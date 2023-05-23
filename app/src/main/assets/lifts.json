@@ -1,0 +1,298 @@
+[
+    {
+        "category": 0,
+        "name": "Leg Press"
+    },
+    {
+        "category": 0,
+        "name": "Leg Press (Machine)"
+    },
+    {
+        "category": 0,
+        "name": "Hack Squat"
+    },
+    {
+        "category": 0,
+        "name": "Hack Squat (Barbell)"
+    },
+    {
+        "category": 0,
+        "name": "Squat"
+    },
+    {
+        "category": 0,
+        "name": "Squat (Low Bar)"
+    },
+    {
+        "category": 0,
+        "name": "Front Squat"
+    },
+    {
+        "category": 1,
+        "name": "Hip Thrust"
+    },
+    {
+        "category": 1,
+        "name": "Cable Pull-Through"
+    },
+    {
+        "category": 1,
+        "name": "Deadlift"
+    },
+    {
+        "category": 1,
+        "name": "Deadlift (Romanian)"
+    },
+    {
+        "category": 1,
+        "name": "Deadlift (Stiff-Legged)"
+    },
+    {
+        "category": 1,
+        "name": "Deadlift (Deficit)"
+    },
+    {
+        "category": 1,
+        "name": "Deadlift (Sumo)"
+    },
+    {
+        "category": 1,
+        "name": "Deadlift (Trap Bar)"
+    },
+    {
+        "category": 2,
+        "name": "Split Squat (Bulgarian)"
+    },
+    {
+        "category": 2,
+        "name": "Split Squat"
+    },
+    {
+        "category": 2,
+        "name": "Leg Extensions"
+    },
+    {
+        "category": 2,
+        "name": "Leg Press (Machine One-Leg)"
+    },
+    {
+        "category": 3,
+        "name": "Leg Curl (Seated)"
+    },
+    {
+        "category": 3,
+        "name": "Leg Curl (Lying)"
+    },
+    {
+        "category": 3,
+        "name": "Back Extensions"
+    },
+    {
+        "category": 3,
+        "name": "Deadlift (Dumbbell Stiff-Legged)"
+    },
+    {
+        "category": 4,
+        "name": "Calf Raise (Smith Seated)"
+    },
+    {
+        "category": 3,
+        "name": "Calf Raise (Smith Standing)"
+    },
+    {
+        "category": 3,
+        "name": "Calf Raise (Leg Press)"
+    },
+    {
+        "category": 3,
+        "name": "Calf Raise (Standing)"
+    },
+    {
+        "category": 3,
+        "name": "Calf Raise (Seated)"
+    },
+    {
+        "category": 4,
+        "name": "Bench Press"
+    },
+    {
+        "category": 4,
+        "name": "Bench Press (Dumbbell)"
+    },
+    {
+        "category": 4,
+        "name": "Bench Press (Incline)"
+    },
+    {
+        "category": 4,
+        "name": "Bench Press (Dumbbell Incline)"
+    },
+    {
+        "category": 4,
+        "name": "Chest Press (Hammer Machine)"
+    },
+    {
+        "category": 4,
+        "name": "Chest Press (Hammer Machine Incline)"
+    },
+    {
+        "category": 5,
+        "name": "Lat Pulldown (Hammer Machine)"
+    },
+    {
+        "category": 5,
+        "name": "Lat Pulldown"
+    },
+    {
+        "category": 5,
+        "name": "Lat Pulldown (Machine)"
+    },
+    {
+        "category": 5,
+        "name": "Lat Pulldown (Single Arm)"
+    },
+    {
+        "category": 5,
+        "name": "Lat Pulldown (Narrow Grip)"
+    },
+	{
+		"category": 6,
+		"name": "Row (Barbell)"
+	},
+	{
+		"category": 6,
+		"name": "Row (Cable Seated)"
+	},
+	{
+		"category": 6,
+		"name": "Row (T-Bar)"
+	},
+	{
+		"category": 6,
+		"name": "Row (Chest-Supported Machine)"
+	},
+	{
+		"category": 6,
+		"name": "Row (Hammer Machine)"
+	},
+	{
+		"category": 6,
+		"name": "Row (Dumbbell Single-Arm)"
+	},
+    {
+        "category": 7,
+        "name": "Flye (Cable)"
+    },
+    {
+        "category": 7,
+        "name": "Flye (Dumbbell)"
+    },
+    {
+        "category": 7,
+        "name": "Flye (Machine)"
+    },
+    {
+        "category": 7,
+        "name": "Cable Scoop"
+    },
+    {
+        "category": 7,
+        "name": "Chest Press (Machine)"
+    },
+	{
+		"category": 8,
+		"name": "Skullcrusher"
+	},
+	{
+		"category": 8,
+		"name": "Tricep Pushdown (Flat Bar)"
+	},
+	{
+		"category": 8,
+		"name": "Tricep Pushdown (Rope)"
+	},
+	{
+		"category": 8,
+		"name": "Tricep Pushdown (Bent Bar)"
+	},
+	{
+		"category": 8,
+		"name": "Tricep Pushdown (Single Arm)"
+	},
+	{
+		"category": 8,
+		"name": "Overhead Tricep Extension (Cable)"
+	},
+	{
+		"category": 8,
+		"name": "Overhead Tricep Extension (Dumbbell)"
+	},
+	{
+		"category": 8,
+		"name": "Bench Press (Close-Grip)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (EZ Bar)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (Dumbbell)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (Dumbbell Incline)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (Cable EZ Bar)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (Cable Straight Bar)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (Cable Rope)"
+	},
+	{
+		"category": 9,
+		"name": "Bicep Curl (Cable Single-Arm)"
+	},
+	{
+		"category": 9,
+		"name": "Preacher Curl"
+	},
+	{
+		"category": 9,
+		"name": "Hammer Curl"
+	},
+	{
+		"category": 10,
+		"name": "Lateral Raise (Dumbbell)"
+	},
+	{
+		"category": 10,
+		"name": "Lateral Raise (Machine)"
+	},
+	{
+		"category": 10,
+		"name": "Lateral Raise (Cable Single-Arm)"
+	},
+	{
+		"category": 10,
+		"name": "Face Pull"
+	},
+	{
+		"category": 10,
+		"name": "Y-Raise (Cable)"
+	},
+	{
+		"category": 10,
+		"name": "Reverse Flye (Pec Deck)"
+	},
+	{
+		"category": 10,
+		"name": "Reverse Flye (Dumbbell)"
+	}
+]
