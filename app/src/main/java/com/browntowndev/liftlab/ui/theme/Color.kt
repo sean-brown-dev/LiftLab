@@ -2,10 +2,31 @@ package com.browntowndev.liftlab.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Dark
+val PrimaryDark = Color(0xFFE4FFB0)
+val OnPrimaryDark = Color.Black
+val PrimaryContainerDark = Color(0xFF292C2E)
+val OnPrimaryContainerDark = Color.White
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val SecondaryDark = Color(0xFF8BC34A)
+val OnSecondaryDark = Color.White
+val SecondaryContainerDark = Color(0xFF4B4949)
+val OnSecondaryContainerDark = Color.White
+
+val TertiaryDark = Color(0xFF737373)
+val OnTertiaryDark = Color.White
+val TertiaryContainerDark = Color(0xFF838383)
+val OnTertiaryContainerDark = Color.White
+
+val ErrorDark = Color(0xFF703E37)
+val OnErrorDark = Color.White
+val ErrorContainerDark = Color(0xFF803E37)
+val OnErrorContainerDark = Color.White
+
+val BackgroundDark = Color(0xFF232527)
+val OnBackgroundDark = Color.White
+val SurfaceDark = Color(0xFF232527)
+
+val OutlineDark = Color(0xFF8d9199)
+val SurfaceVariantDark = Color(0xFF43474e)
+val OnSurfaceVariantDark = Color.White

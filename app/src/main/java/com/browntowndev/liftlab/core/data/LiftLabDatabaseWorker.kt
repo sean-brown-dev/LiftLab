@@ -2,12 +2,12 @@ package com.browntowndev.liftlab.core.data
 
 import android.content.Context
 import android.util.Log
+import androidx.room.withTransaction
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.browntowndev.liftlab.core.common.enums.LiftCategory
 import com.browntowndev.liftlab.core.common.enums.LiftCategoryDeserializer
 import com.browntowndev.liftlab.core.data.entities.Lift
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +30,12 @@ class LiftLabDatabaseWorker(
                             .fromJson(reader, liftType)
 
                         val database = LiftLabDatabase.getInstance(applicationContext)
-                        database.liftsDao().insertAll(lifts)
+                        database.withTransaction {
+                            database.liftsDao().insertAll(lifts)
+
+                            val sharedPreferences = applicationContext.getSharedPreferences("LiftLabPreferences", Context.MODE_PRIVATE)
+                            sharedPreferences.edit().putBoolean("database_initialized", true).apply()
+                        }
 
                         Result.success()
                     }
