@@ -2,29 +2,35 @@ package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.browntowndev.liftlab.ui.models.BottomNavItem
-import com.browntowndev.liftlab.ui.views.Lab
-import com.browntowndev.liftlab.ui.views.LiftLibrary
-import com.browntowndev.liftlab.ui.views.Workout
-import com.browntowndev.liftlab.ui.views.WorkoutHistory
+import com.browntowndev.liftlab.ui.models.LabScreen
+import com.browntowndev.liftlab.ui.models.NavItem
+import com.browntowndev.liftlab.ui.views.main.Lab
+import com.browntowndev.liftlab.ui.views.main.LiftLibrary
+import com.browntowndev.liftlab.ui.views.main.Workout
+import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
+import com.browntowndev.liftlab.ui.models.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.models.TopAppBarState
+import com.browntowndev.liftlab.ui.models.WorkoutHistoryScreen
+import com.browntowndev.liftlab.ui.models.WorkoutScreen
 
 
 @Composable
-fun NavigationGraph(navController: NavHostController, paddingValues: PaddingValues) {
-    NavHost(navController, startDestination = BottomNavItem.Workout.screen_route) {
-        composable(BottomNavItem.LiftLibrary.screen_route) {
-            LiftLibrary(paddingValues)
+fun NavigationGraph(navController: NavHostController, paddingValues: PaddingValues, topAppBarState: MutableState<TopAppBarState>) {
+    NavHost(navController, startDestination = WorkoutScreen.navigation.route) {
+        composable(LiftLibraryScreen.navigation.route) {
+            LiftLibrary(paddingValues, topAppBarState)
         }
-        composable(BottomNavItem.Workout.screen_route) {
+        composable(WorkoutScreen.navigation.route) {
             Workout(paddingValues)
         }
-        composable(BottomNavItem.Lab.screen_route) {
+        composable(LabScreen.navigation.route) {
             Lab(paddingValues)
         }
-        composable(BottomNavItem.WorkoutHistory.screen_route) {
+        composable(WorkoutHistoryScreen.navigation.route) {
             WorkoutHistory(paddingValues)
         }
     }
