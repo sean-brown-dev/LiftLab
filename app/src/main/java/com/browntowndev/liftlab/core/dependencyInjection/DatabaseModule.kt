@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.dependencyInjection
 
 import com.browntowndev.liftlab.core.data.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.data.repositories.Repository
+import com.browntowndev.liftlab.core.data.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.data.repositories.RepositoryHelper
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -9,8 +9,9 @@ import org.koin.dsl.module
 val repositoryModule = module {
     single { androidContext() }
     RepositoryHelper().getRepositories().forEach { repo ->
-        if (repo is LiftsRepository) {
-            single<LiftsRepository> { repo }
+        when(repo) {
+            is LiftsRepository -> single { repo }
+            is ProgramsRepository -> single { repo }
         }
     }
 }

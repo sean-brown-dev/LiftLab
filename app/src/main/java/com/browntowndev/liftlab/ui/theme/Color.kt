@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 // Dark
 val PrimaryDark = Color(0xFFE4FFB0)
 val OnPrimaryDark = Color.Black
-val PrimaryContainerDark = Color(0xFF292C2E)
+val PrimaryContainerDark = Color(0xFF1F2122)
 val OnPrimaryContainerDark = Color.White
 
 val SecondaryDark = Color(0xFF8BC34A)
@@ -23,7 +23,7 @@ val OnErrorDark = Color.White
 val ErrorContainerDark = Color(0xFF803E37)
 val OnErrorContainerDark = Color.White
 
-val BackgroundDark = Color(0xFF232527)
+val BackgroundDark = Color(0xFF1F2122)
 val OnBackgroundDark = Color.White
 val SurfaceDark = Color(0xFF232527)
 

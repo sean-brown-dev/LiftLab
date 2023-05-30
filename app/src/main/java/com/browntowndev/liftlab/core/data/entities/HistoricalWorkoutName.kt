@@ -6,10 +6,10 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity("historicalWorkoutNames",
-    indices = [Index(value = ["programName", "workoutName"], unique = true)])
+    indices = [Index(value = ["programName", "workoutName"])])
 data class HistoricalWorkoutName(
-    @PrimaryKey @ColumnInfo("workout_name_id")
-    val id: String,
+    @PrimaryKey @ColumnInfo("historical_workout_name_id")
+    val id: Long = 0,
     val programName: String,
     val workoutName: String
 )

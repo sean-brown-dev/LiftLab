@@ -8,8 +8,10 @@ class RepositoryHelper() {
     fun getRepositories(): List<Repository> {
         val context: Context = GlobalContext.get().get()
         val database = LiftLabDatabase.getInstance(context)
-        val liftsDao = database.liftsDao()
 
-        return listOf(LiftsRepository(liftsDao))
+        return listOf(
+            LiftsRepository(database.liftsDao()),
+            ProgramsRepository(database.programsDao())
+        )
     }
 }

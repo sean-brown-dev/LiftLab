@@ -19,9 +19,14 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
             childColumns = arrayOf("liftId"),
             onDelete = ForeignKey.CASCADE)])
 data class WorkoutLift(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("workout_lift_id") val id: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo("workout_lift_id")
+    val id: Long = 0,
     val workoutId: Long,
     val liftId: Long,
     val position: Int,
+    val setCount: Int,
+    val rpeTarget: Int? = null,
+    val repRangeBottom: Int? = null,
+    val repRangeTop: Int? = null,
     val progressionScheme: ProgressionScheme
 )

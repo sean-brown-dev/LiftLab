@@ -7,7 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity("previouslyCompletedSets",
-    indices = [Index("workoutId", "liftId", "setPosition")],
+    indices = [Index("workoutId"), Index("liftId"), Index("workoutId", "liftId", "setPosition")],
     foreignKeys = [
         ForeignKey(entity = Workout::class,
             parentColumns = arrayOf("workout_id"),
@@ -18,7 +18,8 @@ import androidx.room.PrimaryKey
             childColumns = arrayOf("liftId"),
             onDelete = ForeignKey.CASCADE)])
 data class PreviouslyCompletedSet(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("previously_completed_set_id") val id: String,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo("previously_completed_set_id")
+    val id: Long = 0,
     val workoutId: Long,
     val liftId: Long,
     val setPosition: Int,
