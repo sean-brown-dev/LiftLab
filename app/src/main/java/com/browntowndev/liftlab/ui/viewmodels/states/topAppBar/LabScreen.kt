@@ -1,11 +1,18 @@
-package com.browntowndev.liftlab.ui.models
+package com.browntowndev.liftlab.ui.viewmodels.states.topAppBar
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.ui.models.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.NavItem
 
-class WorkoutScreen : Screen {
+data class LabScreen(
+    override val isOverflowMenuExpanded: Boolean = false,
+) : BaseScreen() {
     companion object {
-        val navigation = NavItem("Workout", R.drawable.dumbbell_icon_hollow, "workout")
+        val navigation = NavItem("Lab", R.drawable.lab_flask, "lab")
+    }
+    override fun copyOverflowMenuToggle(): Screen {
+        return copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded)
     }
 
     override val route: String

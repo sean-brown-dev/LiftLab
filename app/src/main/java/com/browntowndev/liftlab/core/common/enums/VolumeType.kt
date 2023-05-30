@@ -1,33 +1,43 @@
 package com.browntowndev.liftlab.core.common.enums
 
-enum class VolumeType {
-    CHEST,
-    BACK,
-    QUADS,
-    HAMSTRINGS,
-    GLUTES,
-    DELTOIDS,
-    TRICEPS,
-    BICEPS,
-    TRAPS,
-    CALVES,
-    FOREARMS,
-    ABS,
+enum class VolumeType(val bitMask: Int) {
+    CHEST(1),
+    BACK(2),
+    QUAD(4),
+    HAMSTRING(8),
+    GLUTE(16),
+    POSTERIOR_DELTOID(32),
+    LATERAL_DELTOID(64),
+    ANTERIOR_DELTOID(128),
+    TRICEP(256),
+    BICEP(512),
+    TRAP(1024),
+    CALF(2048),
+    FOREARM(4096),
+    AB(8192),
+    LOWER_BACK(16384),
 }
 
-fun LiftCategory.volumeType(): VolumeType {
+fun Int.getVolumeType(): List<VolumeType> {
+    return VolumeType.values().filter { (this and it.bitMask) != 0 }
+}
+
+fun VolumeType.displayName(): String {
     return when (this) {
-        LiftCategory.HORIZONTAL_PUSH, LiftCategory.CHEST_ISO -> VolumeType.CHEST
-        LiftCategory.HORIZONTAL_PULL, LiftCategory.VERTICAL_PULL -> VolumeType.BACK
-        LiftCategory.LEG_PUSH_COMPOUND, LiftCategory.QUAD_ISO -> VolumeType.QUADS
-        LiftCategory.HIP_COMPOUND, LiftCategory.HAMSTRING_ISO -> VolumeType.HAMSTRINGS
-        LiftCategory.BICEP_ISO -> VolumeType.BICEPS
-        LiftCategory.TRICEP_ISO -> VolumeType.TRICEPS
-        LiftCategory.DELT_ISO -> VolumeType.DELTOIDS
-        LiftCategory.CALVES -> VolumeType.CALVES
-        LiftCategory.GLUTE_ISO -> VolumeType.GLUTES
-        LiftCategory.ABS_ISO -> VolumeType.ABS
-        LiftCategory.FOREARM_ISO -> VolumeType.FOREARMS
-        LiftCategory.TRAP_ISO -> VolumeType.TRAPS
+        VolumeType.CHEST -> "Chest"
+        VolumeType.BACK -> "Back"
+        VolumeType.QUAD -> "Quad"
+        VolumeType.HAMSTRING -> "Hamstring"
+        VolumeType.GLUTE -> "Glute"
+        VolumeType.POSTERIOR_DELTOID -> "Posterior Deltoid"
+        VolumeType.LATERAL_DELTOID -> "Lateral Deltoid"
+        VolumeType.ANTERIOR_DELTOID -> "Anterior Deltoid"
+        VolumeType.TRICEP -> "Tricep"
+        VolumeType.BICEP -> "Bicep"
+        VolumeType.TRAP -> "Trap"
+        VolumeType.CALF -> "Calf"
+        VolumeType.FOREARM -> "Forearm"
+        VolumeType.AB -> "Ab"
+        VolumeType.LOWER_BACK -> "Lower Back"
     }
 }

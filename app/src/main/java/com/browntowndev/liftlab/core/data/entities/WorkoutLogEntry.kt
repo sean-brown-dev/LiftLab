@@ -3,20 +3,23 @@ package com.browntowndev.liftlab.core.data.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.Date
 
 @Entity("workoutLogEntries",
+    indices = [Index("historicalWorkoutNameId")],
     foreignKeys = [
         ForeignKey(
             entity = HistoricalWorkoutName::class,
-            parentColumns = arrayOf("workout_name_id"),
-            childColumns = arrayOf("workoutNameId"),
+            parentColumns = arrayOf("historical_workout_name_id"),
+            childColumns = arrayOf("historicalWorkoutNameId"),
             onDelete = ForeignKey.RESTRICT
         )])
 data class WorkoutLogEntry(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "workout_log_entry_id") val id: String,
-    val historicalWorkoutName: Long,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "workout_log_entry_id")
+    val id: Long = 0,
+    val historicalWorkoutNameId: Long,
     val mesocycle: Int,
     val microcycle: Int,
     val date: Date

@@ -11,42 +11,38 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.browntowndev.liftlab.ui.models.TopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLabTopAppBarState
+import org.koin.androidx.compose.getViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLabTopAppBar(
-    state: MutableState<TopAppBarState>,
+    state: LiftLabTopAppBarState,
     modifier: Modifier = Modifier,
+    topAppBarViewModel: TopAppBarViewModel = getViewModel(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 ) {
-    var isMenuExpanded by remember { mutableStateOf(false) }
-
     LargeTopAppBar(
         colors = topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         navigationIcon = {
-            val icon = state.value.navigationIcon
-            val callback = state.value.onNavigationIconClick
-            if (icon != null && (state.value.navigationIconVisible == true)) {
+            val icon = state.navigationIcon
+            val callback = state.onNavigationIconClick
+            if (icon != null && (state.navigationIconVisible == true)) {
                 IconButton(onClick = { callback?.invoke() }) {
                     Icon(
                         imageVector = icon,
-                        contentDescription = state.value.navigationIconContentDescription
+                        contentDescription = state.navigationIconContentDescription
                     )
                 }
             }
         },
         title = {
-            val title = state.value.title
+            val title = state.title
             if (title.isNotEmpty()) {
                 Text(
                     text = title,
@@ -55,12 +51,12 @@ fun LiftLabTopAppBar(
             }
         },
         actions = {
-            val items = state.value.actions
+            val items = state.actions
             if (items.isNotEmpty()) {
                 ActionsMenu(
                     items = items,
-                    isOpen = isMenuExpanded,
-                    onToggleOverflow = { isMenuExpanded = !isMenuExpanded },
+                    topAppBarState = state,
+                    topAppBarViewModel = topAppBarViewModel,
                     maxVisibleItems = 3,
                 )
             }
@@ -69,8 +65,7 @@ fun LiftLabTopAppBar(
         scrollBehavior = scrollBehavior
     )
 
-    val onExecuteBackNavigation = state.value.onNavigationIconClick;
-    BackHandler(state.value.navigationIconVisible == true) {
-        onExecuteBackNavigation?.invoke()
+    BackHandler(state.navigationIconVisible == true) {
+        state.onNavigationIconClick?.invoke()
     }
 }

@@ -15,7 +15,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -24,12 +23,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
+import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLabTopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.Screen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionsMenu(
     items: MutableList<ActionMenuItem>,
-    isOpen: Boolean,
-    onToggleOverflow: () -> Unit,
+    topAppBarState: LiftLabTopAppBarState,
+    topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
 ) {
     val menuItems = remember(
@@ -57,15 +60,15 @@ fun ActionsMenu(
     }
 
     if (menuItems.overflowItems.isNotEmpty()) {
-        IconButton(onClick = onToggleOverflow) {
+        IconButton(onClick = { topAppBarViewModel.toggleControlVisibility(Screen.OVERFLOW_MENU) }) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
                 contentDescription = stringResource(id = R.string.accessibility_overflow),
             )
         }
         DropdownMenu(
-            expanded = isOpen,
-            onDismissRequest = onToggleOverflow,
+            expanded = topAppBarState.isOverflowMenuExpanded,
+            onDismissRequest = { topAppBarViewModel.toggleControlVisibility(Screen.OVERFLOW_MENU) },
         ) {
             menuItems.overflowItems.forEach { item ->
                 DropdownMenuItem(
@@ -79,15 +82,13 @@ fun ActionsMenu(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RememberedOutlinedTextField(item: ActionMenuItem.TextInputMenuItem) {
-    val rememberedValue = remember { mutableStateOf(item.value) }
     val focusRequester = remember { FocusRequester() }
 
     OutlinedTextField(
         modifier = Modifier.focusRequester(focusRequester),
-        value = rememberedValue.value,
+        value = item.value,
         leadingIcon = { Icon(
             imageVector = item.icon,
             contentDescription = null,
@@ -99,10 +100,7 @@ fun RememberedOutlinedTextField(item: ActionMenuItem.TextInputMenuItem) {
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )}},
-        onValueChange = { newValue ->
-            rememberedValue.value = newValue
-            item.onValueChange(newValue)
-        },
+        onValueChange = item.onValueChange,
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
             focusedBorderColor = MaterialTheme.colorScheme.primaryContainer,

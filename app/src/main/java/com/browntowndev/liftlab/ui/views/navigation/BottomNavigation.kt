@@ -16,10 +16,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.browntowndev.liftlab.ui.models.LabScreen
-import com.browntowndev.liftlab.ui.models.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.models.WorkoutHistoryScreen
-import com.browntowndev.liftlab.ui.models.WorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.WorkoutHistoryScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.WorkoutScreen
 
 @Composable
 fun BottomNavigation(navController: NavController) {

@@ -1,298 +1,524 @@
 [
     {
         "category": 0,
-        "name": "Leg Press"
+        "name": "Leg Press",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 0,
-        "name": "Leg Press (Machine)"
+        "name": "Leg Press (Machine)",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 0,
-        "name": "Hack Squat"
+        "name": "Hack Squat",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 0,
-        "name": "Hack Squat (Barbell)"
+        "name": "Hack Squat (Barbell)",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 0,
-        "name": "Squat"
+        "name": "Squat",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 0,
-        "name": "Squat (Low Bar)"
+        "name": "Squat (Low Bar)",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 0,
-        "name": "Front Squat"
+        "name": "Front Squat",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Hip Thrust"
+        "name": "Hip Thrust",
+		"volumeTypesBitmask": 24,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Cable Pull-Through"
+        "name": "Cable Pull-Through",
+		"volumeTypesBitmask": 16,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Deadlift"
+        "name": "Deadlift",
+		"volumeTypesBitmask": 16408,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Deadlift (Romanian)"
+        "name": "Deadlift (Romanian)",
+		"volumeTypesBitmask": 16408,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Deadlift (Stiff-Legged)"
+        "name": "Deadlift (Stiff-Legged)",
+		"volumeTypesBitmask": 16408,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Deadlift (Deficit)"
+        "name": "Deadlift (Deficit)",
+		"volumeTypesBitmask": 16408,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Deadlift (Sumo)"
+        "name": "Deadlift (Sumo)",
+		"volumeTypesBitmask": 16404,
+		"isBodyweight": false
     },
     {
         "category": 1,
-        "name": "Deadlift (Trap Bar)"
+        "name": "Deadlift (Trap Bar)",
+		"volumeTypesBitmask": 28,
+		"isBodyweight": false
     },
     {
         "category": 2,
-        "name": "Split Squat (Bulgarian)"
+        "name": "Split Squat",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 2,
-        "name": "Split Squat"
+        "name": "Split Squat (Bulgarian)",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 2,
-        "name": "Leg Extensions"
+        "name": "Leg Extensions",
+		"volumeTypesBitmask": 4,
+		"isBodyweight": false
     },
     {
         "category": 2,
-        "name": "Leg Press (Machine One-Leg)"
+        "name": "Leg Press (Machine One-Leg)",
+		"volumeTypesBitmask": 20,
+		"isBodyweight": false
     },
     {
         "category": 3,
-        "name": "Leg Curl (Seated)"
+        "name": "Leg Curl (Seated)",
+		"volumeTypesBitmask": 8,
+		"isBodyweight": false
     },
     {
         "category": 3,
-        "name": "Leg Curl (Lying)"
+        "name": "Leg Curl (Lying)",
+		"volumeTypesBitmask": 8,
+		"isBodyweight": false
     },
     {
         "category": 3,
-        "name": "Back Extensions"
+        "name": "Back Extensions",
+		"volumeTypesBitmask": 16402,
+		"isBodyweight": false
     },
     {
         "category": 3,
-        "name": "Deadlift (Dumbbell Stiff-Legged)"
+        "name": "Deadlift (Dumbbell Stiff-Legged)",
+		"volumeTypesBitmask": 24,
+		"isBodyweight": false
     },
     {
         "category": 4,
-        "name": "Calf Raise (Smith Seated)"
+        "name": "Calf Raise (Smith Seated)",
+		"volumeTypesBitmask": 2048,
+		"isBodyweight": false
     },
     {
         "category": 4,
-        "name": "Calf Raise (Smith Standing)"
+        "name": "Calf Raise (Smith Standing)",
+		"volumeTypesBitmask": 2048,
+		"isBodyweight": false
     },
     {
         "category": 4,
-        "name": "Calf Raise (Leg Press)"
+        "name": "Calf Raise (Leg Press)",
+		"volumeTypesBitmask": 2048,
+		"isBodyweight": false
     },
     {
         "category": 4,
-        "name": "Calf Raise (Standing)"
+        "name": "Calf Raise (Standing)",
+		"volumeTypesBitmask": 2048,
+		"isBodyweight": false
     },
     {
         "category": 4,
-        "name": "Calf Raise (Seated)"
+        "name": "Calf Raise (Seated)",
+		"volumeTypesBitmask": 2048,
+		"isBodyweight": false
     },
     {
         "category": 5,
-        "name": "Bench Press"
+        "name": "Bench Press",
+		"volumeTypesBitmask": 385,
+		"isBodyweight": false
     },
     {
         "category": 5,
-        "name": "Bench Press (Dumbbell)"
+        "name": "Bench Press (Dumbbell)",
+		"volumeTypesBitmask": 385,
+		"isBodyweight": false
+    },
+    {
+        "category": 16,
+        "name": "Bench Press (Incline)",
+		"volumeTypesBitmask": 385,
+		"isBodyweight": false
+    },
+    {
+        "category": 16,
+        "name": "Bench Press (Dumbbell Incline)",
+		"volumeTypesBitmask": 385,
+		"isBodyweight": false
     },
     {
         "category": 5,
-        "name": "Bench Press (Incline)"
+        "name": "Chest Press (Hammer Machine)",
+		"volumeTypesBitmask": 385,
+		"isBodyweight": false
     },
     {
-        "category": 5,
-        "name": "Bench Press (Dumbbell Incline)"
-    },
-    {
-        "category": 5,
-        "name": "Chest Press (Hammer Machine)"
-    },
-    {
-        "category": 5,
-        "name": "Chest Press (Hammer Machine Incline)"
+        "category": 16,
+        "name": "Chest Press (Hammer Machine Incline)",
+		"volumeTypesBitmask": 385,
+		"isBodyweight": false
     },
     {
         "category": 6,
-        "name": "Lat Pulldown (Hammer Machine)"
+        "name": "Lat Pulldown (Hammer Machine)",
+		"volumeTypesBitmask": 546,
+		"isBodyweight": false
     },
     {
         "category": 6,
-        "name": "Lat Pulldown"
+        "name": "Lat Pulldown",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
     },
     {
         "category": 6,
-        "name": "Lat Pulldown (Machine)"
+        "name": "Lat Pulldown (Machine)",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
     },
     {
         "category": 6,
-        "name": "Lat Pulldown (Single Arm)"
+        "name": "Lat Pulldown (Single Arm)",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
     },
     {
         "category": 6,
-        "name": "Lat Pulldown (Narrow Grip)"
+        "name": "Lat Pulldown (Narrow Grip)",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
     },
 	{
 		"category": 7,
-		"name": "Row (Barbell)"
+		"name": "Row (Barbell)",
+		"volumeTypesBitmask": 546,
+		"isBodyweight": false
 	},
 	{
 		"category": 7,
-		"name": "Row (Cable Seated)"
+		"name": "Row (Cable Neutral-Grip Seated)",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
 	},
 	{
 		"category": 7,
-		"name": "Row (T-Bar)"
+		"name": "Row (T-Bar)",
+		"volumeTypesBitmask": 546,
+		"isBodyweight": false
 	},
 	{
 		"category": 7,
-		"name": "Row (Chest-Supported Machine)"
+		"name": "Row (Machine Neutral-Grip)",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
 	},
 	{
 		"category": 7,
-		"name": "Row (Hammer Machine)"
+		"name": "Row (Machine Wide-Grip)",
+		"volumeTypesBitmask": 546,
+		"isBodyweight": false
 	},
 	{
 		"category": 7,
-		"name": "Row (Dumbbell Single-Arm)"
+		"name": "Row (Hammer Machine)",
+		"volumeTypesBitmask": 546,
+		"isBodyweight": false
+	},
+	{
+		"category": 7,
+		"name": "Row (Dumbbell Single-Arm)",
+		"volumeTypesBitmask": 514,
+		"isBodyweight": false
 	},
     {
         "category": 8,
-        "name": "Flye (Cable)"
+        "name": "Flye (Cable)",
+		"volumeTypesBitmask": 1,
+		"isBodyweight": false
     },
     {
         "category": 8,
-        "name": "Flye (Dumbbell)"
+        "name": "Flye (Dumbbell)",
+		"volumeTypesBitmask": 1,
+		"isBodyweight": false
     },
     {
         "category": 8,
-        "name": "Flye (Machine)"
+        "name": "Flye (Machine)",
+		"volumeTypesBitmask": 1,
+		"isBodyweight": false
     },
     {
         "category": 8,
-        "name": "Cable Scoop"
+        "name": "Cable Scoop",
+		"volumeTypesBitmask": 1,
+		"isBodyweight": false
     },
     {
         "category": 8,
-        "name": "Chest Press (Machine)"
+        "name": "Chest Press (Machine)",
+		"volumeTypesBitmask": 257,
+		"isBodyweight": false
     },
 	{
 		"category": 9,
-		"name": "Skullcrusher"
+		"name": "Skullcrusher",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Tricep Pushdown (Flat Bar)"
+		"name": "Tricep Pushdown (Flat Bar)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Tricep Pushdown (Rope)"
+		"name": "Tricep Pushdown (Rope)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Tricep Pushdown (Bent Bar)"
+		"name": "Tricep Pushdown (EZ Bar)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Tricep Pushdown (Single Arm)"
+		"name": "Tricep Pushdown (V-Bar)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Overhead Tricep Extension (Cable)"
+		"name": "Tricep Pushdown (Single Arm)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Overhead Tricep Extension (Dumbbell)"
+		"name": "Overhead Tricep Extension (Cable)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
 	},
 	{
 		"category": 9,
-		"name": "Bench Press (Close-Grip)"
+		"name": "Overhead Tricep Extension (Dumbbell)",
+		"volumeTypesBitmask": 256,
+		"isBodyweight": false
+	},
+	{
+		"category": 9,
+		"name": "Bench Press (Close-Grip)",
+		"volumeTypesBitmask": 257,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (EZ Bar)"
+		"name": "Bicep Curl (EZ Bar)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (Dumbbell)"
+		"name": "Bicep Curl (Dumbbell)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (Dumbbell Incline)"
+		"name": "Bicep Curl (Dumbbell Incline)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (Cable EZ Bar)"
+		"name": "Bicep Curl (Cable EZ Bar)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (Cable Straight Bar)"
+		"name": "Bicep Curl (Cable Straight Bar)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (Cable Rope)"
+		"name": "Bicep Curl (Cable Rope)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Bicep Curl (Cable Single-Arm)"
+		"name": "Bicep Curl (Cable Single-Arm)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Preacher Curl"
+		"name": "Bicep Curl (Machine)",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 10,
-		"name": "Hammer Curl"
+		"name": "Preacher Curl",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
+	},
+	{
+		"category": 10,
+		"name": "Hammer Curl",
+		"volumeTypesBitmask": 512,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Lateral Raise (Dumbbell)"
+		"name": "Lateral Raise (Dumbbell)",
+		"volumeTypesBitmask": 64,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Lateral Raise (Machine)"
+		"name": "Lateral Raise (Machine)",
+		"volumeTypesBitmask": 64,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Lateral Raise (Cable Single-Arm)"
+		"name": "Lateral Raise (Cable Single-Arm)",
+		"volumeTypesBitmask": 64,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Face Pull"
+		"name": "Face Pull",
+		"volumeTypesBitmask": 96,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Y-Raise (Cable)"
+		"name": "Y-Raise (Cable)",
+		"volumeTypesBitmask": 96,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Reverse Flye (Pec Deck)"
+		"name": "Reverse Flye (Pec Deck)",
+		"volumeTypesBitmask": 32,
+		"isBodyweight": false
 	},
 	{
 		"category": 11,
-		"name": "Reverse Flye (Dumbbell)"
+		"name": "Reverse Flye (Dumbbell)",
+		"volumeTypesBitmask": 32,
+		"isBodyweight": false
+	},
+	{
+		"category": 12,
+		"name": "Shrug (Dumbbell)",
+		"volumeTypesBitmask": 1024,
+		"isBodyweight": false
+	},
+	{
+		"category": 12,
+		"name": "Shrug (Barbell)",
+		"volumeTypesBitmask": 1024,
+		"isBodyweight": false
+	},
+	{
+		"category": 12,
+		"name": "Shrug (Smith Machine)",
+		"volumeTypesBitmask": 1024,
+		"isBodyweight": false
+	},
+	{
+		"category": 13,
+		"name": "Ab Machine",
+		"volumeTypesBitmask": 8192,
+		"isBodyweight": false
+	},
+	{
+		"category": 13,
+		"name": "Cable Crunch",
+		"volumeTypesBitmask": 8192,
+		"isBodyweight": false
+	},
+	{
+		"category": 13,
+		"name": "Leg Lifts (Hanging)",
+		"volumeTypesBitmask": 8192,
+		"isBodyweight": true
+	},
+	{
+		"category": 13,
+		"name": "Leg Lifts (Incline Bench)",
+		"volumeTypesBitmask": 8192,
+		"isBodyweight": false
+	},
+	{
+		"category": 15,
+		"name": "Overhead Press (Barbell)",
+		"volumeTypesBitmask": 192,
+		"isBodyweight": false
+	},
+	{
+		"category": 15,
+		"name": "Overhead Press (Dumbbell)",
+		"volumeTypesBitmask": 192,
+		"isBodyweight": false
+	},
+	{
+		"category": 15,
+		"name": "Arnold Press",
+		"volumeTypesBitmask": 192,
+		"isBodyweight": false
 	}
 ]

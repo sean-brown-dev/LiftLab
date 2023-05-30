@@ -4,17 +4,48 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.browntowndev.liftlab.core.data.LiftLabDatabaseWorker.Companion.KEY_FILENAME
+import com.browntowndev.liftlab.core.data.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.dao.LiftsDao
+import com.browntowndev.liftlab.core.data.dao.LoggingDao
+import com.browntowndev.liftlab.core.data.dao.ProgramsDao
+import com.browntowndev.liftlab.core.data.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.data.dao.WorkoutsDao
+import com.browntowndev.liftlab.core.data.entities.CustomLiftSet
+import com.browntowndev.liftlab.core.data.entities.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.data.entities.Lift
+import com.browntowndev.liftlab.core.data.entities.PreviouslyCompletedSet
+import com.browntowndev.liftlab.core.data.entities.Program
+import com.browntowndev.liftlab.core.data.entities.SetLogEntry
+import com.browntowndev.liftlab.core.data.entities.Workout
+import com.browntowndev.liftlab.core.data.entities.WorkoutLift
+import com.browntowndev.liftlab.core.data.entities.WorkoutLogEntry
 
-@Database(entities = [Lift::class], version = 1, exportSchema = false)
+@TypeConverters(Converters::class)
+@Database(
+    entities = [
+        Lift::class, CustomLiftSet::class,
+        HistoricalWorkoutName::class,
+        PreviouslyCompletedSet::class,
+        Program::class,
+        SetLogEntry::class, Workout::class,
+        WorkoutLift::class,
+        WorkoutLogEntry::class
+   ],
+    version = 2,
+    exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
+    abstract fun programsDao(): ProgramsDao
+    abstract fun workoutsDao(): WorkoutsDao
+    abstract fun workoutLiftsDao(): WorkoutLiftsDao
+    abstract fun customSetsDao(): CustomSetsDao
+    abstract fun loggingDao(): LoggingDao
 
     companion object {
         private const val LIFTS_DATA_FILENAME = "lifts.json"
@@ -28,7 +59,10 @@ abstract class LiftLabDatabase : RoomDatabase() {
         }
 
         private fun buildDatabase(context: Context): LiftLabDatabase {
-            val db: LiftLabDatabase = Room.databaseBuilder(context, LiftLabDatabase::class.java, DATABASE_NAME).build()
+            val db: LiftLabDatabase = Room
+                .databaseBuilder(context, LiftLabDatabase::class.java, DATABASE_NAME)
+                .fallbackToDestructiveMigration()
+                .build()
             submitDataInitializationJob(context)
 
             return db
@@ -38,7 +72,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
             val sharedPreferences = context.getSharedPreferences("LiftLabPreferences", Context.MODE_PRIVATE)
             val isDatabaseInitialized = sharedPreferences.getBoolean("database_initialized", false)
 
-            if (!isDatabaseInitialized) {
+            if (isDatabaseInitialized) {
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()
