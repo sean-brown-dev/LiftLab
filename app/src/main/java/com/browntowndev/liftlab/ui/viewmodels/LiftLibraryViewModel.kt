@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.data.dtos.LiftDto
 import com.browntowndev.liftlab.core.data.repositories.LiftsRepository
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLibraryScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,12 +26,7 @@ class LiftLibraryViewModel(private val liftsRepository: LiftsRepository): ViewMo
         viewModelScope.launch {
             screen?.stringActionButtons?.collect {
                 when(it.action) {
-                    LiftLibraryScreen.Companion.AppBarPayloadActions.FilterTextChanged -> {
-                        topAppBarViewModel.mutateControlValue(
-                            AppBarMutateControlRequest(LiftLibraryScreen.LIFT_FILTER_TEXTVIEW, it.value))
-
-                        filterLifts(it.value)
-                    }
+                    LiftLibraryScreen.Companion.AppBarPayloadActions.FilterTextChanged -> filterLifts(it.value)
                 }
             }
         }

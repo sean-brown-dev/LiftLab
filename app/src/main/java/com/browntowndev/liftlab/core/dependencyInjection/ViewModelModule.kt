@@ -8,6 +8,6 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { LiftLibraryViewModel(get()) }
-    viewModel { LabViewModel(get()) }
+    viewModel { LabViewModel(get(), get()) }
     viewModel { TopAppBarViewModel() }
 }

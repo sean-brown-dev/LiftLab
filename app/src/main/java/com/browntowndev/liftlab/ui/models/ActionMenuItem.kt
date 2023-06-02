@@ -1,11 +1,9 @@
 package com.browntowndev.liftlab.ui.models
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.input.TextFieldValue
 
 sealed interface ActionMenuItem {
+    val controlName: String
     val isVisible: Boolean
     val icon: ImageVector
 
@@ -15,6 +13,7 @@ sealed interface ActionMenuItem {
         val contentDescriptionResourceId: Int
 
         data class AlwaysShown  (
+            override val controlName: String,
             override val title: String,
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int,
@@ -23,6 +22,7 @@ sealed interface ActionMenuItem {
         ) : IconMenuItem
 
         data class ShownIfRoom(
+            override val controlName: String,
             override val title: String,
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int,
@@ -31,6 +31,7 @@ sealed interface ActionMenuItem {
         ) : IconMenuItem
 
         data class NeverShown(
+            override val controlName: String,
             override val title: String,
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int,
@@ -46,6 +47,7 @@ sealed interface ActionMenuItem {
         val onClickTrailingIcon: () -> Unit
 
         data class AlwaysShown(
+            override val controlName: String,
             override val icon: ImageVector,
             override val value: String,
             override val isVisible: Boolean,

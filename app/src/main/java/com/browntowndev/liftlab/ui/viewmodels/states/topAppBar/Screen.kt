@@ -13,7 +13,7 @@ sealed interface Screen {
     val navigationIconVisible: Boolean?
     val onNavigationIconClick: (() -> Unit)?
     val title: String
-    val actions: MutableList<ActionMenuItem>
+    val actions: List<ActionMenuItem>
     fun toggleControlVisibility(controlName: String): Screen
     fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>): Screen
 

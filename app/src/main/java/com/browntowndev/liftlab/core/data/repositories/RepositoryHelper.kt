@@ -11,7 +11,8 @@ class RepositoryHelper() {
 
         return listOf(
             LiftsRepository(database.liftsDao()),
-            ProgramsRepository(database.programsDao())
+            ProgramsRepository(database.programsDao()),
+            WorkoutsRepository(database.workoutsDao()),
         )
     }
 }

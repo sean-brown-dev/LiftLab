@@ -16,10 +16,16 @@ interface WorkoutsDao {
     @Delete
     suspend fun delete(workout: Workout)
 
+    @Query("DELETE FROM workouts WHERE workout_id = :id")
+    suspend fun delete(id: Long)
+
     @Query("UPDATE workouts SET name = :newName WHERE workout_id = :id")
     suspend fun updateName(id: Long, newName: String)
 
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
     suspend fun get(id: Long) : ProgramDto.WorkoutDto
+
+    @Query("SELECT MAX(position) FROM workouts WHERE programId = :programId")
+    suspend fun getFinalPosition(programId: Long): Int
 }

@@ -92,12 +92,21 @@ data class ProgramDto(
             @Relation(parentColumn = "liftId", entityColumn =  "lift_id", entity = Lift::class)
             val lift: LiftDto,
             @Relation(parentColumn = "workout_lift_id", entityColumn = "workoutLiftId", entity = CustomLiftSet::class)
-            val customLiftSets: List<CustomLiftSetDto>
+            var customLiftSets: List<CustomLiftSetDto>
         ) {
             data class CustomLiftSetDto(
                 @Embedded
                 val customLiftSet: CustomLiftSet
-            )
+            ) {
+                @Ignore
+                private var _position = customLiftSet.position
+
+                var position
+                    get() = _position
+                    set(newPosition) {
+                        this._position = newPosition
+                    }
+            }
 
             @Ignore
             var isDirty = true

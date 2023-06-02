@@ -3,7 +3,10 @@ package com.browntowndev.liftlab.ui.viewmodels.states.topAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
@@ -21,6 +24,7 @@ data class LiftLibraryScreen(
 ) : BaseScreen() {
     companion object {
         val navigation = NavItem("Lifts", R.drawable.list_icon, "liftLibrary")
+        const val SEARCH_ICON = "searchIcon"
         const val LIFT_FILTER_TEXTVIEW = "liftFilterTextView"
         const val LIFT_FILTER_VALUE = "liftFilterValue"
 
@@ -34,7 +38,7 @@ data class LiftLibraryScreen(
         }
     }
 
-    private val mutableFilterText = mutableStateOf(filterText)
+    private var mutableFilterText by mutableStateOf(filterText)
 
     private val _simpleActionButtons = MutableSharedFlow<AppBarActions>(extraBufferCapacity = 1)
     val simpleActionButtons: Flow<AppBarActions> = _simpleActionButtons.asSharedFlow()
@@ -81,9 +85,10 @@ data class LiftLibraryScreen(
         get() = {
             _simpleActionButtons.tryEmit(AppBarActions.NavigatedBack)
         }
-    override val actions: MutableList<ActionMenuItem>
-        get() = mutableListOf(
+    override val actions: List<ActionMenuItem> by derivedStateOf {
+        listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = SEARCH_ICON,
                 title = "Search",
                 isVisible = !isSearchBarVisible,
                 onClick = {
@@ -92,11 +97,12 @@ data class LiftLibraryScreen(
                 icon = Icons.Filled.Search,
                 contentDescriptionResourceId = R.string.accessibility_search,
             ), ActionMenuItem.TextInputMenuItem.AlwaysShown(
+                controlName = LIFT_FILTER_TEXTVIEW,
                 icon = Icons.Filled.Search,
                 isVisible = isSearchBarVisible,
-                value = mutableFilterText.value,
+                value = mutableFilterText,
                 onValueChange = {
-                    mutableFilterText.value = it
+                    mutableFilterText = it
                     _stringActionButtons.tryEmit(AppBarActionEmission(action = AppBarPayloadActions.FilterTextChanged, value = it))
                 },
                 onClickTrailingIcon = {
@@ -104,4 +110,5 @@ data class LiftLibraryScreen(
                 },
             )
         )
+    }
 }

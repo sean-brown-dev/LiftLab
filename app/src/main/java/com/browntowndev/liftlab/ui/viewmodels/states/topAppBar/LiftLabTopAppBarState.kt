@@ -29,6 +29,6 @@ data class LiftLabTopAppBarState(
     val title: String
         get() = currentScreen?.title.orEmpty()
 
-    val actions: MutableList<ActionMenuItem>
-        get() = currentScreen?.actions ?: mutableListOf()
+    val actions: List<ActionMenuItem>
+        get() = currentScreen?.actions ?: listOf()
 }
