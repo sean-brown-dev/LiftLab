@@ -16,6 +16,9 @@ interface ProgramsDao {
     @Delete
     suspend fun delete(program: Program)
 
+    @Query("DELETE FROM programs WHERE program_id = :id")
+    suspend fun delete(id: Long)
+
     @Transaction
     @Query("SELECT * FROM programs")
     suspend fun getAll(): List<ProgramDto>

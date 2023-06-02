@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
@@ -10,36 +9,32 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.Screen
+import com.browntowndev.liftlab.ui.views.utils.FocusedRoundTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionsMenu(
-    items: MutableList<ActionMenuItem>,
     topAppBarState: LiftLabTopAppBarState,
     topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
 ) {
+    if (topAppBarState.actions.isEmpty()) return;
+
     val menuItems = remember(
-        key1 = items,
+        key1 = topAppBarState.actions,
         key2 = maxVisibleItems,
     ) {
-        splitMenuItems(items, maxVisibleItems)
+        splitMenuItems(topAppBarState.actions, maxVisibleItems)
     }
 
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>().forEach { item ->
@@ -48,6 +43,7 @@ fun ActionsMenu(
                 Icon(
                     imageVector = item.icon,
                     contentDescription = stringResource(id = item.contentDescriptionResourceId),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -55,7 +51,7 @@ fun ActionsMenu(
 
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().forEach { item ->
         if (item.isVisible) {
-            RememberedOutlinedTextField(item)
+            FocusedOutlinedTextField(item, topAppBarViewModel = topAppBarViewModel)
         }
     }
 
@@ -64,6 +60,7 @@ fun ActionsMenu(
             Icon(
                 imageVector = Icons.Filled.MoreVert,
                 contentDescription = stringResource(id = R.string.accessibility_overflow),
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
         DropdownMenu(
@@ -83,38 +80,30 @@ fun ActionsMenu(
 }
 
 @Composable
-fun RememberedOutlinedTextField(item: ActionMenuItem.TextInputMenuItem) {
-    val focusRequester = remember { FocusRequester() }
-
-    OutlinedTextField(
-        modifier = Modifier.focusRequester(focusRequester),
+fun FocusedOutlinedTextField(item: ActionMenuItem.TextInputMenuItem, topAppBarViewModel: TopAppBarViewModel,) {
+    FocusedRoundTextField(
         value = item.value,
-        leadingIcon = { Icon(
-            imageVector = item.icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
-        )},
-        trailingIcon = {IconButton(onClick = item.onClickTrailingIcon) {
+        leadingIcon = {
             Icon(
-                imageVector = Icons.Filled.Close,
+                imageVector = item.icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )}},
-        onValueChange = item.onValueChange,
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
-            focusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
-            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            focusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer
-        ),
-        shape = RoundedCornerShape(45.dp)
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        },
+        trailingIcon = {
+            IconButton(onClick = item.onClickTrailingIcon) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+       },
+        onValueChange = {
+            item.onValueChange(it)
+            topAppBarViewModel.mutateControlValue(AppBarMutateControlRequest(item.controlName, it))
+        }
     )
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 }
 
 private data class MenuItems(

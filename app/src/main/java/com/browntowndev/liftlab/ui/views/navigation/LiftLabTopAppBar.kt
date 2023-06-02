@@ -51,15 +51,11 @@ fun LiftLabTopAppBar(
             }
         },
         actions = {
-            val items = state.actions
-            if (items.isNotEmpty()) {
-                ActionsMenu(
-                    items = items,
-                    topAppBarState = state,
-                    topAppBarViewModel = topAppBarViewModel,
-                    maxVisibleItems = 3,
-                )
-            }
+            ActionsMenu(
+                topAppBarState = state,
+                topAppBarViewModel = topAppBarViewModel,
+                maxVisibleItems = 3,
+            )
         },
         modifier = modifier,
         scrollBehavior = scrollBehavior
