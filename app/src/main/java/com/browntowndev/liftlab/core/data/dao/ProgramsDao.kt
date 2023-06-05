@@ -20,8 +20,8 @@ interface ProgramsDao {
     suspend fun delete(id: Long)
 
     @Transaction
-    @Query("SELECT * FROM programs")
-    suspend fun getAll(): List<ProgramDto>
+    @Query("SELECT * FROM programs WHERE isActive = 1")
+    suspend fun getActive(): ProgramDto
 
     @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id")

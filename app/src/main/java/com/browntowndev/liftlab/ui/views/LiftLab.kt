@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
@@ -15,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
+import com.browntowndev.liftlab.ui.views.navigation.LiftLabSmallTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.compose.getViewModel
 
+@ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLab(topAppBarViewModel: TopAppBarViewModel = getViewModel()) {
@@ -29,7 +32,10 @@ fun LiftLab(topAppBarViewModel: TopAppBarViewModel = getViewModel()) {
         val navController = rememberNavController()
         val scope = rememberCoroutineScope()
         val topAppBarState by topAppBarViewModel.state.collectAsState()
-        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        val scrollAppBarState = rememberTopAppBarState()
+        val exitUntilCollapsedScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(scrollAppBarState)
+        val pinnedScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(scrollAppBarState) { false }
+        val scrollBehavior = if (topAppBarState.isCollapsed) pinnedScrollBehavior else exitUntilCollapsedScrollBehavior
 
         LaunchedEffect(key1 = Unit) {
             navController.currentBackStackEntryFlow
@@ -45,10 +51,18 @@ fun LiftLab(topAppBarViewModel: TopAppBarViewModel = getViewModel()) {
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             bottomBar = { BottomNavigation(navController = navController) },
             topBar = {
-                LiftLabTopAppBar(
-                    state = topAppBarState,
-                    scrollBehavior = scrollBehavior
-                )
+                if (!topAppBarState.isCollapsed) {
+                    LiftLabTopAppBar(
+                        state = topAppBarState,
+                        scrollBehavior = scrollBehavior
+                    )
+                }
+                else {
+                    LiftLabSmallTopAppBar(
+                        state = topAppBarState,
+                        scrollBehavior = scrollBehavior
+                    )
+                }
             }
         ) { paddingValues ->
             NavigationGraph(

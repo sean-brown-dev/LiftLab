@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -17,6 +18,7 @@ import com.browntowndev.liftlab.ui.views.main.Workout
 import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
 
 
+@ExperimentalFoundationApi
 @Composable
 fun NavigationGraph(navController: NavHostController, paddingValues: PaddingValues, liftLabTopAppBarState: LiftLabTopAppBarState, topAppBarViewModel: TopAppBarViewModel) {
     NavHost(navController, startDestination = WorkoutScreen.navigation.route) {
@@ -27,7 +29,7 @@ fun NavigationGraph(navController: NavHostController, paddingValues: PaddingValu
             Workout(paddingValues)
         }
         composable(LabScreen.navigation.route) {
-            Lab(paddingValues)
+            Lab(paddingValues, topAppBarState = liftLabTopAppBarState, topAppBarViewModel = topAppBarViewModel)
         }
         composable(WorkoutHistoryScreen.navigation.route) {
             WorkoutHistory(paddingValues)

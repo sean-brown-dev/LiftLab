@@ -22,6 +22,14 @@ class TopAppBarViewModel: ViewModel() {
         }
     }
 
+    fun setCollapsed(collapsed: Boolean) {
+        if (collapsed != _state.value.isCollapsed) {
+            _state.update {
+                it.copy(isCollapsed = collapsed)
+            }
+        }
+    }
+
     fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>) {
         _state.update { it.copy(currentScreen = it.currentScreen?.mutateControlValue(request)) }
     }

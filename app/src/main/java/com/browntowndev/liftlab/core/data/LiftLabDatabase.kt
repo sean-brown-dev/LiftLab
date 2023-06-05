@@ -37,7 +37,7 @@ import com.browntowndev.liftlab.core.data.entities.WorkoutLogEntry
         WorkoutLift::class,
         WorkoutLogEntry::class
    ],
-    version = 2,
+    version = 3,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao

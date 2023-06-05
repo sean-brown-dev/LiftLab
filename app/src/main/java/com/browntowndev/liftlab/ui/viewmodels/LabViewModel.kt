@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.data.dtos.ProgramDto
 import com.browntowndev.liftlab.core.data.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
+import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LabScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -15,23 +16,31 @@ class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository
 ): ViewModel() {
-    private val _state = MutableStateFlow(LabState())
+    private var _state = MutableStateFlow(LabState())
     val state = _state.asStateFlow()
 
     init {
+        getActiveProgram()
+    }
+
+    fun watchActionBarActions(screen: LabScreen?) {
         viewModelScope.launch {
-            getPrograms()
+            screen?.simpleActionButtons?.collect {
+                when (it) {
+                    LabScreen.Companion.AppBarActions.ReorderWorkouts,
+                    LabScreen.Companion.AppBarActions.NavigatedBack -> toggleReorderingScreen()
+                    else -> { }
+                }
+            }
         }
     }
 
-    private suspend fun getPrograms() {
-        val programs: List<ProgramDto> = programsRepository.getAll()
-        _state.update {
-            it.copy(
-                programs = programs,
-                workoutOfEditNameModal = null,
-                programOfEditNameModal = null
-            )
+    private fun getActiveProgram() {
+        viewModelScope.launch {
+            val program: ProgramDto = programsRepository.getActive()
+            _state.update {
+                it.copy(program = program, isReordering = false)
+            }
         }
     }
 
@@ -49,17 +58,15 @@ class LabViewModel(
         }
     }
 
-    fun showEditProgramNameModal(program: ProgramDto) {
+    fun showEditProgramNameModal() {
         _state.update {
-            it.copy(programOfEditNameModal = program)
+            it.copy(isEditingProgramName = true)
         }
     }
 
     fun collapseEditProgramNameModal() {
-        if (_state.value.programOfEditNameModal != null) {
-            _state.update {
-                it.copy(programOfEditNameModal = null)
-            }
+        _state.update {
+            it.copy(isEditingProgramName = false)
         }
     }
 
@@ -72,21 +79,21 @@ class LabViewModel(
                     newName = newName
                 )
                 collapseEditWorkoutNameModal()
-                getPrograms()
+                getActiveProgram()
             }
         }
     }
 
     fun updateProgramName(newName: String) {
-        if (_state.value.programOfEditNameModal != null &&
-            _state.value.originalProgramNameOfActiveRename != newName) {
+        val program = _state.value.program
+        if (program != null && _state.value.originalProgramName != newName) {
             viewModelScope.launch {
                 programsRepository.updateName(
-                    id = _state.value.programOfEditNameModal?.id as Long,
+                    id = program.id,
                     newName = newName
                 )
                 collapseEditProgramNameModal()
-                getPrograms()
+                getActiveProgram()
             }
         }
     }
@@ -94,7 +101,7 @@ class LabViewModel(
     fun deleteWorkout(workout: ProgramDto.WorkoutDto) {
         viewModelScope.launch {
             workoutsRepository.delete(workout)
-            getPrograms()
+            getActiveProgram()
         }
     }
 
@@ -110,22 +117,62 @@ class LabViewModel(
         }
     }
 
-    fun deleteProgram(program: ProgramDto) {
-        viewModelScope.launch {
-            programsRepository.delete(program)
-            getPrograms()
+    fun deleteProgram() {
+        val program = _state.value.program
+        if (program != null) {
+            viewModelScope.launch {
+                programsRepository.delete(program)
+                getActiveProgram()
+            }
         }
     }
 
-    fun beginDeleteProgram(program: ProgramDto) {
+    fun beginDeleteProgram() {
         _state.update {
-            it.copy(programToDelete = program)
+            it.copy(isDeletingProgram = true)
         }
     }
 
     fun cancelDeleteProgram() {
         _state.update {
-            it.copy(programToDelete = null)
+            it.copy(isDeletingProgram = false)
+        }
+    }
+
+    fun saveReorder() {
+        val program = _state.value.program
+        if(program != null) {
+            viewModelScope.launch {
+                workoutsRepository.updateMany(program.workouts)
+                getActiveProgram()
+            }
+        }
+    }
+
+    fun toggleReorderingScreen() {
+        if (_state.value.isReordering) {
+            viewModelScope.launch {
+                getActiveProgram()
+            }
+        }
+        else {
+            _state.update {
+                it.copy(isReordering = true)
+            }
+        }
+    }
+
+    fun changePosition(to: Int, from: Int) {
+        if (to > -1 && from > -1 &&
+            to < _state.value.workoutCount && from < _state.value.workoutCount
+        ) {
+            val program = _state.value.program?.copy()
+            program?.workouts = program?.workouts
+                ?.toMutableList()?.apply { add(to, removeAt(from)) }
+                ?.onEachIndexed { index, workoutDto -> workoutDto.position = index }?.toList() ?: listOf()
+            _state.update {
+                it.copy(program = program)
+            }
         }
     }
 }

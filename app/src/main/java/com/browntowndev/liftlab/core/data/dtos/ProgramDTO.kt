@@ -71,6 +71,10 @@ data class ProgramDto(
             get() = workout.id
 
         @get:Ignore
+        val programId
+            get() = workout.programId
+
+        @get:Ignore
         var name
             get() = _name
             set(newName) {

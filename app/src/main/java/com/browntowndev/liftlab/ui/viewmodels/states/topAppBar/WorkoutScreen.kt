@@ -7,13 +7,18 @@ import com.browntowndev.liftlab.ui.models.NavItem
 
 data class WorkoutScreen(
     override val isOverflowMenuExpanded: Boolean = false,
+    override val navigationIconVisible: Boolean = false,
 ) : BaseScreen() {
     companion object {
-        val navigation = NavItem("Workout", R.drawable.dumbbell_icon_hollow, "workout")
+        val navigation = NavItem("Workout", "", R.drawable.dumbbell_icon_hollow, "workout")
     }
 
     override fun copyOverflowMenuToggle(): Screen {
         return copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded)
+    }
+
+    override fun copyNavigationIconToggle(): Screen {
+        return copy(navigationIconVisible = !this.navigationIconVisible)
     }
 
     override val route: String
@@ -24,8 +29,6 @@ data class WorkoutScreen(
         get() = true
     override val navigationIcon: ImageVector?
         get() = null
-    override val navigationIconVisible: Boolean?
-        get() = false
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)?

@@ -21,4 +21,15 @@ class WorkoutsRepository(private val workoutsDao: WorkoutsDao): Repository {
     suspend fun delete(workoutDto: ProgramDto.WorkoutDto) {
         workoutsDao.delete(workoutDto.workout)
     }
+
+    suspend fun updateMany(workouts: List<ProgramDto.WorkoutDto>) {
+        workoutsDao.updateMany(workouts.map {
+            it.workout.copy(
+                id = it.id,
+                programId = it.programId,
+                name = it.name,
+                position = it.position
+            )
+        })
+    }
 }

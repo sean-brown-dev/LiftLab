@@ -42,7 +42,7 @@ fun ActionsMenu(
             IconButton(onClick = item.onClick) {
                 Icon(
                     imageVector = item.icon,
-                    contentDescription = stringResource(id = item.contentDescriptionResourceId),
+                    contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -72,7 +72,13 @@ fun ActionsMenu(
                     text = {
                         Text(item.title)
                     },
-                    onClick = item.onClick
+                    leadingIcon = {
+                        Icon(imageVector = item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
+                    },
+                    onClick = {
+                        topAppBarViewModel.toggleControlVisibility(Screen.OVERFLOW_MENU)
+                        item.onClick()
+                    }
                 )
             }
         }

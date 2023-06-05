@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.WorkoutScreen
 
+@ExperimentalFoundationApi
 @Composable
 fun BottomNavigation(navController: NavController) {
     val screens = listOf(

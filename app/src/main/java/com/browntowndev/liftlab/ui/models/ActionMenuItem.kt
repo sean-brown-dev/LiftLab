@@ -10,13 +10,13 @@ sealed interface ActionMenuItem {
     sealed interface IconMenuItem : ActionMenuItem {
         val title: String
         val onClick: () -> Unit
-        val contentDescriptionResourceId: Int
+        val contentDescriptionResourceId: Int?
 
         data class AlwaysShown  (
             override val controlName: String,
             override val title: String,
             override val isVisible: Boolean,
-            override val contentDescriptionResourceId: Int,
+            override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
             override val icon: ImageVector,
         ) : IconMenuItem
@@ -25,7 +25,7 @@ sealed interface ActionMenuItem {
             override val controlName: String,
             override val title: String,
             override val isVisible: Boolean,
-            override val contentDescriptionResourceId: Int,
+            override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
             override val icon: ImageVector,
         ) : IconMenuItem
@@ -34,7 +34,7 @@ sealed interface ActionMenuItem {
             override val controlName: String,
             override val title: String,
             override val isVisible: Boolean,
-            override val contentDescriptionResourceId: Int,
+            override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
             override val icon: ImageVector,
         ) : IconMenuItem
