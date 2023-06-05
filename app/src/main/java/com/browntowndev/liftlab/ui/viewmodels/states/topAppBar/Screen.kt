@@ -10,14 +10,20 @@ sealed interface Screen {
     val isAppBarVisible: Boolean
     val navigationIcon: ImageVector?
     val navigationIconContentDescription: String?
-    val navigationIconVisible: Boolean?
+    val navigationIconVisible: Boolean
     val onNavigationIconClick: (() -> Unit)?
     val title: String
+    val subtitle: String
     val actions: List<ActionMenuItem>
     fun toggleControlVisibility(controlName: String): Screen
     fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>): Screen
 
     companion object {
         const val OVERFLOW_MENU = "overflowMenuIcon"
+        const val NAVIGATION_ICON = "navigationIcon"
+
+        enum class AppBarActions {
+            OnNavigatedBack
+        }
     }
 }

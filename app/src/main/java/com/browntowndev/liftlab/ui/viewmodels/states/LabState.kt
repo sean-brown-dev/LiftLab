@@ -3,12 +3,15 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import com.browntowndev.liftlab.core.data.dtos.ProgramDto
 
 data class LabState(
-    val programs: List<ProgramDto> = listOf(),
+    val program: ProgramDto? = null,
+    val isEditingProgramName: Boolean = false,
+    val isDeletingProgram: Boolean = false,
     val workoutOfEditNameModal: ProgramDto.WorkoutDto? = null,
-    val programOfEditNameModal: ProgramDto? = null,
-    val programToDelete: ProgramDto? = null,
     val workoutToDelete: ProgramDto.WorkoutDto? = null,
+    val isReordering: Boolean = false,
 ) {
-    val originalProgramNameOfActiveRename: String? = programOfEditNameModal?.name
+    val originalProgramName: String? = program?.name
     val originalWorkoutNameOfActiveRename: String? = workoutOfEditNameModal?.name
+    val workoutCount
+        get() = program?.workouts?.count() ?: 0
 }

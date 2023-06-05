@@ -95,7 +95,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = lowerAId,
             liftId = liftsByNameAndCategory["Leg Curl (Seated)-HAMSTRING_ISO"]?.lift?.id ?: throw Exception("Couldn't find Leg Curl (Seated)-HAMSTRING_ISO"),
-            position = 0,
+            position = 3,
             rpeTarget = 8,
             repRangeBottom = 8,
             repRangeTop = 10,
@@ -105,7 +105,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = lowerAId,
             liftId = liftsByNameAndCategory["Calf Raise (Smith Standing)-CALVES"]?.lift?.id ?: throw Exception("Couldn't find Calf Raise (Smith Standing)-CALVES"),
-            position = 0,
+            position = 4,
             rpeTarget = 8,
             repRangeBottom = 12,
             repRangeTop = 15,
@@ -113,7 +113,7 @@ class LiftLabDatabaseWorker(
             setCount = 3,
         ))
 
-        val upperAId: Long = db.workoutsDao().insert(Workout(name = "Upper A", position = 0, programId = programId))
+        val upperAId: Long = db.workoutsDao().insert(Workout(name = "Upper A", position = 1, programId = programId))
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Bench Press (Dumbbell)-HORIZONTAL_PUSH"]?.lift?.id ?: throw Exception("Couldn't find Bench Press (Dumbbell)-HORIZONTAL_PUSH"),
@@ -127,7 +127,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Lat Pulldown (Hammer Machine)-VERTICAL_PULL"]?.lift?.id ?: throw Exception("Couldn't find Lat Pulldown (Hammer Machine)-VERTICAL_PULL"),
-            position = 0,
+            position = 1,
             rpeTarget = 8,
             repRangeBottom = 6,
             repRangeTop = 8,
@@ -137,7 +137,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Flye (Cable)-CHEST_ISO"]?.lift?.id ?: throw Exception("Couldn't find Flye (Cable)-CHEST_ISO"),
-            position = 0,
+            position = 2,
             rpeTarget = 8,
             repRangeBottom = 12,
             repRangeTop = 15,
@@ -147,7 +147,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Skullcrusher-TRICEP_ISO"]?.lift?.id ?: throw Exception("Couldn't find Skullcrusher-TRICEP_ISO"),
-            position = 0,
+            position = 3,
             rpeTarget = 8,
             repRangeBottom = 8,
             repRangeTop = 10,
@@ -157,7 +157,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Row (Cable Neutral-Grip Seated)-HORIZONTAL_PULL"]?.lift?.id ?: throw Exception("Couldn't find Row (Cable Neutral-Grip Seated)-HORIZONTAL_PULL"),
-            position = 0,
+            position = 4,
             rpeTarget = 8,
             repRangeBottom = 8,
             repRangeTop = 10,
@@ -167,7 +167,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Bicep Curl (Dumbbell Incline)-BICEP_ISO"]?.lift?.id ?: throw Exception("Couldn't find Bicep Curl (Dumbbell Incline)-BICEP_ISO"),
-            position = 0,
+            position = 5,
             rpeTarget = 8,
             repRangeBottom = 12,
             repRangeTop = 15,
@@ -177,7 +177,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperAId,
             liftId = liftsByNameAndCategory["Lateral Raise (Dumbbell)-DELT_ISO"]?.lift?.id ?: throw Exception("Couldn't find Lateral Raise (Dumbbell)-DELT_ISO"),
-            position = 0,
+            position = 6,
             rpeTarget = 8,
             repRangeBottom = 12,
             repRangeTop = 18,
@@ -185,7 +185,7 @@ class LiftLabDatabaseWorker(
             setCount = 3,
         ))
 
-        val lowerBId: Long = db.workoutsDao().insert(Workout(name = "Lower B", position = 0, programId = programId))
+        val lowerBId: Long = db.workoutsDao().insert(Workout(name = "Lower B", position = 2, programId = programId))
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = lowerBId,
             liftId = liftsByNameAndCategory["Leg Press-LEG_PUSH"]?.lift?.id ?: throw Exception("Couldn't find Hack Squat-LEG_PUSH"),
@@ -219,7 +219,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = lowerBId,
             liftId = liftsByNameAndCategory["Back Extensions-HAMSTRING_ISO"]?.lift?.id ?: throw Exception("Couldn't find Back Extensions-HAMSTRING_ISO"),
-            position = 0,
+            position = 3,
             rpeTarget = 8,
             repRangeBottom = 8,
             repRangeTop = 12,
@@ -229,7 +229,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = lowerBId,
             liftId = liftsByNameAndCategory["Calf Raise (Smith Seated)-CALVES"]?.lift?.id ?: throw Exception("Couldn't find Calf Raise (Smith Seated)-CALVES"),
-            position = 0,
+            position = 4,
             rpeTarget = 8,
             repRangeBottom = 15,
             repRangeTop = 20,
@@ -237,7 +237,7 @@ class LiftLabDatabaseWorker(
             setCount = 3,
         ))
 
-        val upperBId: Long = db.workoutsDao().insert(Workout(name = "Upper B", position = 0, programId = programId))
+        val upperBId: Long = db.workoutsDao().insert(Workout(name = "Upper B", position = 3, programId = programId))
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Bench Press (Incline)-INCLINE_PUSH"]?.lift?.id ?: throw Exception("Couldn't find Bench Press (Incline)-INCLINE_PUSH"),
@@ -251,7 +251,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Lat Pulldown-VERTICAL_PULL"]?.lift?.id ?: throw Exception("Couldn't find Lat Pulldown-VERTICAL_PULL"),
-            position = 0,
+            position = 1,
             rpeTarget = 8,
             repRangeBottom = 8,
             repRangeTop = 10,
@@ -261,7 +261,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Chest Press (Machine)-CHEST_ISO"]?.lift?.id ?: throw Exception("Couldn't find Chest Press (Machine)-CHEST_ISO"),
-            position = 0,
+            position = 2,
             rpeTarget = 8,
             repRangeBottom = 8,
             repRangeTop = 10,
@@ -271,7 +271,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Tricep Pushdown (Rope)-TRICEP_ISO"]?.lift?.id ?: throw Exception("Couldn't find Tricep Pushdown (Rope)-TRICEP_ISO"),
-            position = 0,
+            position = 3,
             rpeTarget = 8,
             repRangeBottom = 10,
             repRangeTop = 12,
@@ -281,7 +281,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Row (T-Bar)-HORIZONTAL_PULL"]?.lift?.id ?: throw Exception("Couldn't find Row (T-Bar)-HORIZONTAL_PULL"),
-            position = 0,
+            position = 4,
             rpeTarget = 8,
             repRangeBottom = 6,
             repRangeTop = 8,
@@ -291,7 +291,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Hammer Curl-BICEP_ISO"]?.lift?.id ?: throw Exception("Couldn't find Hammer Curl-BICEP_ISO"),
-            position = 0,
+            position = 5,
             rpeTarget = 8,
             repRangeBottom = 10,
             repRangeTop = 12,
@@ -301,7 +301,7 @@ class LiftLabDatabaseWorker(
         db.workoutLiftsDao().insert(WorkoutLift(
             workoutId = upperBId,
             liftId = liftsByNameAndCategory["Face Pull-DELT_ISO"]?.lift?.id ?: throw Exception("Couldn't find Face Pull-DELT_ISO"),
-            position = 0,
+            position = 6,
             rpeTarget = 8,
             repRangeBottom = 10,
             repRangeTop = 12,

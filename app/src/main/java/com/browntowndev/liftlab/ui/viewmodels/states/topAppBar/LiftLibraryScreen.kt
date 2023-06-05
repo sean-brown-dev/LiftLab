@@ -21,9 +21,10 @@ data class LiftLibraryScreen(
     val filterText: String = "",
     val isSearchBarVisible: Boolean = false,
     override val isOverflowMenuExpanded: Boolean = false,
+    override val navigationIconVisible: Boolean = isSearchBarVisible,
 ) : BaseScreen() {
     companion object {
-        val navigation = NavItem("Lifts", R.drawable.list_icon, "liftLibrary")
+        val navigation = NavItem("Lifts", "", R.drawable.list_icon, "liftLibrary")
         const val SEARCH_ICON = "searchIcon"
         const val LIFT_FILTER_TEXTVIEW = "liftFilterTextView"
         const val LIFT_FILTER_VALUE = "liftFilterValue"
@@ -69,6 +70,10 @@ data class LiftLibraryScreen(
         return copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded)
     }
 
+    override fun copyNavigationIconToggle(): Screen {
+        return copy(navigationIconVisible = !this.navigationIconVisible)
+    }
+
     override val route: String
         get() = navigation.route
     override val title: String
@@ -77,8 +82,6 @@ data class LiftLibraryScreen(
         get() = true
     override val navigationIcon: ImageVector?
         get() = Icons.Filled.ArrowBack
-    override val navigationIconVisible: Boolean?
-        get() = isSearchBarVisible
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)?

@@ -6,7 +6,8 @@ import com.browntowndev.liftlab.ui.models.ActionMenuItem
 
 @Stable
 data class LiftLabTopAppBarState(
-    val currentScreen: Screen? = null
+    val currentScreen: Screen? = null,
+    val isCollapsed: Boolean = false,
 ) {
     val isOverflowMenuExpanded: Boolean
         get() = currentScreen?.isOverflowMenuExpanded == true
@@ -28,6 +29,9 @@ data class LiftLabTopAppBarState(
 
     val title: String
         get() = currentScreen?.title.orEmpty()
+
+    val subtitle: String
+        get() = currentScreen?.subtitle.orEmpty()
 
     val actions: List<ActionMenuItem>
         get() = currentScreen?.actions ?: listOf()

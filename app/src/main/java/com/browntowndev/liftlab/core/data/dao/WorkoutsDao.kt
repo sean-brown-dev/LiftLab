@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.browntowndev.liftlab.core.data.dtos.ProgramDto
 import com.browntowndev.liftlab.core.data.entities.Workout
 
@@ -15,6 +16,10 @@ interface WorkoutsDao {
 
     @Delete
     suspend fun delete(workout: Workout)
+
+    @Transaction
+    @Update
+    suspend fun updateMany(workout: List<Workout>)
 
     @Query("DELETE FROM workouts WHERE workout_id = :id")
     suspend fun delete(id: Long)
