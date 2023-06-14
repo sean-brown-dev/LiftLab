@@ -9,6 +9,7 @@ sealed interface ActionMenuItem {
 
     sealed interface IconMenuItem : ActionMenuItem {
         val title: String
+        val dividerBelow: Boolean
         val onClick: () -> Unit
         val contentDescriptionResourceId: Int?
 
@@ -19,6 +20,7 @@ sealed interface ActionMenuItem {
             override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
             override val icon: ImageVector,
+            override val dividerBelow: Boolean = false,
         ) : IconMenuItem
 
         data class ShownIfRoom(
@@ -28,6 +30,7 @@ sealed interface ActionMenuItem {
             override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
             override val icon: ImageVector,
+            override val dividerBelow: Boolean = false,
         ) : IconMenuItem
 
         data class NeverShown(
@@ -37,6 +40,7 @@ sealed interface ActionMenuItem {
             override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
             override val icon: ImageVector,
+            override val dividerBelow: Boolean = false,
         ) : IconMenuItem
     }
 

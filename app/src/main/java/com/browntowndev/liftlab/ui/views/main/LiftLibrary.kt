@@ -13,36 +13,32 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.browntowndev.liftlab.core.data.dtos.LiftDto
+import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLabTopAppBarState
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.views.utils.CircledTextIcon
+import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
 import org.koin.androidx.compose.getViewModel
 
 
 @Composable
 fun LiftLibrary(
     paddingValues: PaddingValues,
-    topAppBarState: LiftLabTopAppBarState,
-    topAppBarViewModel: TopAppBarViewModel,
-    liftLibraryViewModel: LiftLibraryViewModel = getViewModel(),
+    navHostController: NavHostController,
+    isSearchBarVisible: Boolean,
+    onNavigateBack: () -> Unit,
 ) {
+    val liftLibraryViewModel: LiftLibraryViewModel = getViewModel()
     val state by liftLibraryViewModel.state.collectAsState()
-    val screen = topAppBarState.currentScreen as? LiftLibraryScreen
 
-    LaunchedEffect(key1 = screen) {
-        liftLibraryViewModel.watchActionBarActions(screen, topAppBarViewModel)
-    }
+    liftLibraryViewModel.registerEventBus()
+    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
 
-    BackHandler(topAppBarState.navigationIconVisible == true) {
-        topAppBarState.onNavigationIconClick?.invoke();
+    BackHandler(isSearchBarVisible) {
+        onNavigateBack.invoke()
     }
 
     LazyColumn(
@@ -53,22 +49,17 @@ fun LiftLibrary(
             .padding(paddingValues)
     ) {
         items(state.lifts) {lift ->
-            LiftListItem(lift = lift)
+            ListItem(
+                headlineContent = { Text(lift.name) },
+                supportingContent = { Text(lift.movementPatternDisplayName) },
+                leadingContent = { CircledTextIcon(text = lift.name[0].toString()) },
+                colors = ListItemDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    headlineColor = MaterialTheme.colorScheme.onBackground,
+                    supportingColor = MaterialTheme.colorScheme.onBackground,
+                    leadingIconColor = MaterialTheme.colorScheme.onBackground
+                )
+            )
         }
     }
-}
-
-@Composable
-fun LiftListItem(lift: LiftDto) {
-    ListItem(
-        headlineContent = { Text(lift.name) },
-        supportingContent = { Text(lift.categoryDisplayName) },
-        leadingContent = { CircledTextIcon(text = lift.name[0].toString()) },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.background,
-            headlineColor = MaterialTheme.colorScheme.onBackground,
-            supportingColor = MaterialTheme.colorScheme.onBackground,
-            leadingIconColor = MaterialTheme.colorScheme.onBackground
-        )
-    )
 }

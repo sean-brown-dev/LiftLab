@@ -49,14 +49,17 @@ android {
 }
 
 dependencies {
-    def nav_version = "2.5.3"
+    def nav_version = "2.6.0"
     def material_version = "1.1.0"
     def room_version = "2.6.0-alpha01"
-    def koin_version = "3.4.0"
     def lifecycle_version = "2.6.1"
     def kotlin_coroutines_version = "1.5.1"
     def compose_version = "1.4.3"
     def kotlin_reflect_version = "1.8.21"
+    def eventbus_version = '3.2.0'
+
+    implementation "org.greenrobot:eventbus:$eventbus_version"
+    kapt "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
 
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_reflect_version"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
@@ -71,10 +74,15 @@ dependencies {
     implementation "androidx.compose.ui:ui-graphics:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.foundation:foundation:$compose_version"
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material3:material3:$material_version"
 
+    // Third Party
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
+    implementation "com.chargemap.compose:numberpicker:1.0.3"
+    implementation "org.modelmapper:modelmapper:3.1.1"
 
     // Work
     implementation "androidx.work:work-runtime-ktx:2.8.1"
@@ -101,8 +109,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Koin
-    implementation "io.insert-koin:koin-android:$koin_version"
-    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+    implementation "io.insert-koin:koin-core:3.4.2"
+    implementation "io.insert-koin:koin-android:3.4.2"
+    implementation "io.insert-koin:koin-androidx-compose:3.4.5"
 
     // Lifecycle
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
@@ -119,4 +128,9 @@ dependencies {
 }
 ksp {
     arg("room.generateKotlin", "true")
+}
+kapt {
+    arguments {
+        arg('eventBusIndex', 'com.com.browntowndev.liftlab.EventBusIndex')
+    }
 }

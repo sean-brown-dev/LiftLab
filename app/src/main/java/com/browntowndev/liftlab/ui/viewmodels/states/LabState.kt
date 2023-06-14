@@ -1,17 +1,19 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.data.dtos.ProgramDto
+import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
+import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 
 data class LabState(
     val program: ProgramDto? = null,
     val isEditingProgramName: Boolean = false,
     val isDeletingProgram: Boolean = false,
-    val workoutOfEditNameModal: ProgramDto.WorkoutDto? = null,
-    val workoutToDelete: ProgramDto.WorkoutDto? = null,
+    val originalWorkoutName: String? = null,
+    val workoutIdToRename: Long? = null,
+    val workoutToDelete: WorkoutDto? = null,
     val isReordering: Boolean = false,
 ) {
-    val originalProgramName: String? = program?.name
-    val originalWorkoutNameOfActiveRename: String? = workoutOfEditNameModal?.name
+    val originalProgramName: String = program?.name ?: ""
+
     val workoutCount
         get() = program?.workouts?.count() ?: 0
 }

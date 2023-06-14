@@ -1,17 +1,24 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.data.dtos.LiftDto
-import com.browntowndev.liftlab.core.data.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
+import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLibraryScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 
-class LiftLibraryViewModel(private val liftsRepository: LiftsRepository): ViewModel() {
+class LiftLibraryViewModel(
+    private val liftsRepository: LiftsRepository,
+    private val eventBus: EventBus,
+): ViewModel() {
     private val allLifts: MutableList<LiftDto> = mutableListOf()
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
@@ -22,23 +29,23 @@ class LiftLibraryViewModel(private val liftsRepository: LiftsRepository): ViewMo
         }
     }
 
-    fun watchActionBarActions(screen: LiftLibraryScreen?, topAppBarViewModel: TopAppBarViewModel) {
-        viewModelScope.launch {
-            screen?.stringActionButtons?.collect {
-                when(it.action) {
-                    LiftLibraryScreen.Companion.AppBarPayloadActions.FilterTextChanged -> filterLifts(it.value)
-                }
-            }
+    fun registerEventBus() {
+        if (!eventBus.isRegistered(this)) {
+            eventBus.register(this)
+            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
         }
+    }
 
-        viewModelScope.launch {
-            screen?.simpleActionButtons?.collect {
-                when (it) {
-                    LiftLibraryScreen.Companion.AppBarActions.SearchToggled,
-                    LiftLibraryScreen.Companion.AppBarActions.NavigatedBack-> topAppBarViewModel.toggleControlVisibility(
-                        LiftLibraryScreen.LIFT_FILTER_TEXTVIEW)
-                }
-            }
+    override fun onCleared() {
+        super.onCleared()
+        eventBus.unregister(this)
+    }
+
+    @Subscribe
+    fun handleTopAppBarPayloadEvent(payloadEvent: TopAppBarEvent.PayloadActionEvent<String>) {
+        when (payloadEvent.action) {
+            TopAppBarAction.FilterTextChanged -> filterLifts(payloadEvent.payload)
+            else -> {}
         }
     }
 

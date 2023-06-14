@@ -1,8 +1,12 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,13 +16,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLabTopAppBarState
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.utils.FocusedRoundTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +63,7 @@ fun ActionsMenu(
     }
 
     if (menuItems.overflowItems.isNotEmpty()) {
-        IconButton(onClick = { topAppBarViewModel.toggleControlVisibility(Screen.OVERFLOW_MENU) }) {
+        IconButton(onClick = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, true) }) {
             Icon(
                 imageVector = Icons.Filled.MoreVert,
                 contentDescription = stringResource(id = R.string.accessibility_overflow),
@@ -65,7 +72,7 @@ fun ActionsMenu(
         }
         DropdownMenu(
             expanded = topAppBarState.isOverflowMenuExpanded,
-            onDismissRequest = { topAppBarViewModel.toggleControlVisibility(Screen.OVERFLOW_MENU) },
+            onDismissRequest = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false) },
         ) {
             menuItems.overflowItems.forEach { item ->
                 DropdownMenuItem(
@@ -76,10 +83,23 @@ fun ActionsMenu(
                         Icon(imageVector = item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
                     },
                     onClick = {
-                        topAppBarViewModel.toggleControlVisibility(Screen.OVERFLOW_MENU)
+                        topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false)
                         item.onClick()
                     }
                 )
+                if (item.dividerBelow) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Divider(
+                            modifier = Modifier.fillMaxWidth(.85f),
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
             }
         }
     }
