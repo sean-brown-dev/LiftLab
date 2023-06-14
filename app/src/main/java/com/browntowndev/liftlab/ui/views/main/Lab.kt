@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.CardDefaults
@@ -47,64 +46,125 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.core.data.dtos.ProgramDto
+import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.LabState
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.LiftLabTopAppBarState
-import com.browntowndev.liftlab.ui.viewmodels.states.topAppBar.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.views.utils.ConfirmationModal
-import com.browntowndev.liftlab.ui.views.utils.MoreVertDropdown
+import com.browntowndev.liftlab.ui.views.utils.IconDropdown
 import com.browntowndev.liftlab.ui.views.utils.TextFieldModal
+import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
-import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
 @Composable
 fun Lab(
     paddingValues: PaddingValues,
-    labViewModel: LabViewModel = getViewModel(),
-    topAppBarState: LiftLabTopAppBarState,
-    topAppBarViewModel: TopAppBarViewModel,
+    navHostController: NavHostController,
+    setTopAppBarCollapsed: (Boolean) -> Unit,
+    setTopAppBarControlVisibility: (String, Boolean) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit
 ) {
+    val labViewModel: LabViewModel = koinViewModel()
     val labState by labViewModel.state.collectAsState()
-    val screen: LabScreen? = topAppBarState.currentScreen as LabScreen
 
-    LaunchedEffect(key1 = screen) {
-        labViewModel.watchActionBarActions(screen)
+    LaunchedEffect(labState.program != null) {
+        mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, labState.originalProgramName))
+        setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, labState.program != null)
+        setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, labState.program != null)
+        labViewModel.registerEventBus()
     }
+
+    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
 
     BackHandler(labState.isReordering) {
         labViewModel.toggleReorderingScreen()
     }
 
     if (!labState.isReordering) {
-        topAppBarViewModel.setCollapsed(false)
-        if (topAppBarState.navigationIconVisible == true) {
-            topAppBarViewModel.toggleControlVisibility(Screen.NAVIGATION_ICON)
+        setTopAppBarCollapsed(false)
+        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, false)
+        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, true)
+
+        if (labState.program?.workouts != null) {
+            WorkoutCardList(
+                workouts = labState.program!!.workouts,
+                showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout) },
+                beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
+                paddingValues = paddingValues,
+                navigationController = navHostController
+            )
         }
-        WorkoutCardList(labState = labState, labViewModel = labViewModel, paddingValues = paddingValues)
     }
     else {
-        topAppBarViewModel.setCollapsed(true)
-        if (topAppBarState.navigationIconVisible == false) {
-            topAppBarViewModel.toggleControlVisibility(Screen.NAVIGATION_ICON)
+        setTopAppBarCollapsed(true)
+        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, true)
+        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, false)
+
+        if (labState.program?.workouts != null) {
+            DraggableWorkoutList(
+                paddingValues = paddingValues,
+                workouts = labState.program!!.workouts,
+                changePosition = { to, from -> labViewModel.changePosition(to, from) },
+                saveReorder = { labViewModel.saveReorder() },
+                toggleReorderingScreen = { labViewModel.toggleReorderingScreen() },
+            )
         }
-        DraggableWorkoutList(labState = labState, labViewModel = labViewModel, paddingValues = paddingValues)
     }
-    
-    EditWorkoutNameModal(labState = labState, labViewModel = labViewModel)
-    EditProgramNameModal(labState = labState, labViewModel = labViewModel)
-    DeleteProgramConfirmationDialog(labState = labState, labViewModel = labViewModel)
-    DeleteWorkoutConfirmationDialog(labState = labState, labViewModel = labViewModel)
+
+    if (labState.workoutIdToRename != null && labState.originalWorkoutName != null) {
+        TextFieldModal(
+            header = "Rename ${labState.originalWorkoutName}",
+            initialTextFieldValue = labState.originalWorkoutName!!,
+            onConfirm = { labViewModel.updateWorkoutName(labState.workoutIdToRename!!, it) },
+            onCancel = { labViewModel.collapseEditWorkoutNameModal() },
+        )
+    }
+
+    if (labState.isEditingProgramName && labState.program != null) {
+        TextFieldModal(
+            header = "Rename ${labState.program!!.name}",
+            initialTextFieldValue = labState.program!!.name,
+            onConfirm = { labViewModel.updateProgramName(it) },
+            onCancel = { labViewModel.collapseEditProgramNameModal() }
+        )
+    }
+
+    if (labState.isDeletingProgram && labState.program != null) {
+        ConfirmationModal(
+            header = "Delete?",
+            body = "Are you sure you want to delete ${labState.program!!.name}? This cannot be undone.",
+            onConfirm = { labViewModel.deleteProgram() },
+            onCancel = { labViewModel.cancelDeleteProgram() }
+        )
+    }
+
+    if (labState.workoutToDelete != null) {
+        ConfirmationModal(
+            header = "Delete?",
+            body = "Are you sure you want to delete ${labState.workoutToDelete!!.name}? This cannot be undone.",
+            onConfirm = { labViewModel.deleteWorkout(labState.workoutToDelete!!) },
+            onCancel = { labViewModel.cancelDeleteWorkout() }
+        )
+    }
 }
 
 @Composable
-fun WorkoutCardList(labState: LabState, labViewModel: LabViewModel, paddingValues: PaddingValues) {
+fun WorkoutCardList(
+    paddingValues: PaddingValues,
+    navigationController: NavHostController,
+    workouts: List<WorkoutDto>,
+    showEditWorkoutNameModal: (String) -> Unit,
+    beginDeleteWorkout: (WorkoutDto) -> Unit,
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -113,11 +173,14 @@ fun WorkoutCardList(labState: LabState, labViewModel: LabViewModel, paddingValue
             .padding(paddingValues),
         contentPadding = PaddingValues(8.dp)
     ) {
-        items(labState.program?.workouts ?: listOf(), { it.id }) { workout ->
+        items(workouts, { it.id }) { workout ->
             WorkoutCard(
-                state = labState,
-                labViewModel = labViewModel,
-                workout = workout
+                workoutName = workout.name,
+                workoutId = workout.id,
+                lifts = workout.lifts,
+                navigationController = navigationController,
+                showEditWorkoutNameModal = showEditWorkoutNameModal,
+                beginDeleteWorkout = { beginDeleteWorkout(workout) },
             )
         }
     }
@@ -125,10 +188,16 @@ fun WorkoutCardList(labState: LabState, labViewModel: LabViewModel, paddingValue
 
 @ExperimentalFoundationApi
 @Composable
-fun DraggableWorkoutList(labState: LabState, labViewModel: LabViewModel, paddingValues: PaddingValues) {
+fun DraggableWorkoutList(
+    workouts: List<WorkoutDto>,
+    changePosition: (Int, Int) -> Unit,
+    saveReorder: () -> Unit,
+    toggleReorderingScreen: () -> Unit,
+    paddingValues: PaddingValues
+) {
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
-            labViewModel.changePosition(to.index -1, from.index - 1)
+            changePosition(to.index -1, from.index - 1)
         },
     )
 
@@ -141,20 +210,22 @@ fun DraggableWorkoutList(labState: LabState, labViewModel: LabViewModel, padding
             .detectReorderAfterLongPress(reorderableState),
     ) {
         item {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(30.dp))
                 Text(
-                    modifier = Modifier.padding(10.dp, 15.dp),
                     text = "Press, Hold & Drag to Reorder",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontSize = 15.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
+                Spacer(modifier = Modifier.height(25.dp))
             }
         }
-        items(labState.program?.workouts ?: listOf(), { it.id }) { workout ->
+        items(workouts, { it.id }) { workout ->
             ReorderableItem(reorderableState = reorderableState, key = workout.id) { isDragging ->
                 val elevation: State<Dp> = if (isDragging) animateDpAsState(16.dp) else animateDpAsState(0.dp)
                 Column(
@@ -191,7 +262,7 @@ fun DraggableWorkoutList(labState: LabState, labViewModel: LabViewModel, padding
                 Text(
                     modifier = Modifier
                         .padding(0.dp, 0.dp, 15.dp, 0.dp)
-                        .clickable { labViewModel.saveReorder() },
+                        .clickable { saveReorder() },
                     text = "Confirm Reorder",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 18.sp
@@ -200,7 +271,7 @@ fun DraggableWorkoutList(labState: LabState, labViewModel: LabViewModel, padding
                 Text(
                     modifier = Modifier
                         .padding(0.dp, 0.dp, 15.dp, 0.dp)
-                        .clickable { labViewModel.toggleReorderingScreen() },
+                        .clickable { toggleReorderingScreen() },
                     text = "Cancel Reorder",
                     color = MaterialTheme.colorScheme.error,
                     fontSize = 18.sp
@@ -211,11 +282,22 @@ fun DraggableWorkoutList(labState: LabState, labViewModel: LabViewModel, padding
 }
 
 @Composable
-fun WorkoutCard(modifier: Modifier = Modifier, state: LabState, labViewModel: LabViewModel, workout: ProgramDto.WorkoutDto) {
+fun WorkoutCard(
+    modifier: Modifier = Modifier,
+    navigationController: NavHostController,
+    workoutId: Long,
+    workoutName: String,
+    lifts: List<GenericWorkoutLift>,
+    showEditWorkoutNameModal: (String) -> Unit,
+    beginDeleteWorkout: () -> Unit,
+) {
     OutlinedCard(
         modifier = modifier
             .fillMaxSize()
-            .padding(5.dp),
+            .padding(5.dp)
+            .clickable {
+                navigationController.navigate(WorkoutBuilderScreen.navigation.route + "/$workoutId")
+            },
         shape = CardDefaults.shape,
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline),
         colors = CardDefaults.outlinedCardColors(
@@ -230,22 +312,22 @@ fun WorkoutCard(modifier: Modifier = Modifier, state: LabState, labViewModel: La
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = workout.name,
+                text = workoutName,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 modifier = Modifier.padding(15.dp, 0.dp, 0.dp, 0.dp)
             )
             WorkoutMenuDropdown(
-                workout = workout,
-                labState = state,
-                labViewModel = labViewModel
+                workoutName = workoutName,
+                showEditWorkoutNameModal = showEditWorkoutNameModal,
+                beginDeleteWorkout = beginDeleteWorkout,
             )
         }
         Divider(thickness = 12.dp, color = MaterialTheme.colorScheme.background)
-        workout.lifts.forEach {
+        lifts.forEach {
             Text(
-                text = "${it.setCount} x ${it.lift.name}",
+                text = "${it.setCount} x ${it.liftName}",
                 color = MaterialTheme.colorScheme.outline,
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
@@ -257,10 +339,14 @@ fun WorkoutCard(modifier: Modifier = Modifier, state: LabState, labViewModel: La
 }
 
 @Composable
-fun WorkoutMenuDropdown(workout: ProgramDto.WorkoutDto, labState: LabState, labViewModel: LabViewModel) {
+fun WorkoutMenuDropdown(
+    workoutName: String,
+    showEditWorkoutNameModal: (String) -> Unit,
+    beginDeleteWorkout: () -> Unit
+) {
     var isExpanded by remember { mutableStateOf(false) }
 
-    MoreVertDropdown(
+    IconDropdown(
         iconTint = MaterialTheme.colorScheme.primary,
         isExpanded = isExpanded,
         onToggleExpansion = { isExpanded = !isExpanded }
@@ -269,7 +355,7 @@ fun WorkoutMenuDropdown(workout: ProgramDto.WorkoutDto, labState: LabState, labV
             text = { Text("Edit Name") },
             onClick = {
                 isExpanded = false
-                labViewModel.showEditWorkoutNameModal(workout)
+                showEditWorkoutNameModal(workoutName)
             },
             leadingIcon = {
                 Icon(
@@ -282,7 +368,7 @@ fun WorkoutMenuDropdown(workout: ProgramDto.WorkoutDto, labState: LabState, labV
             text = { Text("Delete") },
             onClick = {
                 isExpanded = false
-                labViewModel.beginDeleteWorkout(workout)
+                beginDeleteWorkout()
             },
             leadingIcon = {
                 Icon(
@@ -291,103 +377,5 @@ fun WorkoutMenuDropdown(workout: ProgramDto.WorkoutDto, labState: LabState, labV
                     tint = MaterialTheme.colorScheme.onBackground
                 )
             })
-    }
-}
-
-@Composable
-fun ProgramMenuDropdown(labViewModel: LabViewModel) {
-    var isExpanded by remember { mutableStateOf(false) }
-
-    MoreVertDropdown(
-        iconTint = MaterialTheme.colorScheme.primary,
-        isExpanded = isExpanded,
-        onToggleExpansion = { isExpanded = !isExpanded }
-    ) {
-        DropdownMenuItem(
-            text = { Text("Edit Name") },
-            onClick = {
-                isExpanded = false
-                labViewModel.showEditProgramNameModal()
-            },
-            leadingIcon = {
-                Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Add Workout") },
-            onClick = { /*TODO*/ },
-            leadingIcon = {
-                Icon(
-                    Icons.Outlined.Add,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Delete") },
-            onClick = {
-                isExpanded = false
-                labViewModel.beginDeleteProgram()
-            },
-            leadingIcon = {
-                Icon(
-                    Icons.Outlined.Delete,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            })
-    }
-}
-
-@Composable
-fun EditWorkoutNameModal(labState: LabState, labViewModel: LabViewModel) {
-    if (labState.workoutOfEditNameModal != null) {
-        TextFieldModal(
-            header = "Rename ${labState.workoutOfEditNameModal.name}",
-            initialTextFieldValue = labState.workoutOfEditNameModal.name,
-            onConfirm = { labViewModel.updateWorkoutName(it) },
-            onCancel = { labViewModel.collapseEditWorkoutNameModal() }
-        )
-    }
-}
-
-@Composable
-fun EditProgramNameModal(labState: LabState, labViewModel: LabViewModel) {
-    if (labState.isEditingProgramName) {
-        TextFieldModal(
-            header = "Rename ${labState.program?.name}",
-            initialTextFieldValue = labState.program?.name ?: "",
-            onConfirm = { labViewModel.updateProgramName(it) },
-            onCancel = { labViewModel.collapseEditProgramNameModal() }
-        )
-    }
-}
-
-@Composable
-fun DeleteProgramConfirmationDialog(labState: LabState, labViewModel: LabViewModel) {
-    if (labState.isDeletingProgram) {
-        ConfirmationModal(
-            header = "Delete?",
-            body = "Are you sure you want to delete ${labState.program?.name}? This cannot be undone.",
-            onConfirm = { labViewModel.deleteProgram() },
-            onCancel = { labViewModel.cancelDeleteProgram() }
-        )
-    }
-}
-
-@Composable
-fun DeleteWorkoutConfirmationDialog(labState: LabState, labViewModel: LabViewModel) {
-    if (labState.workoutToDelete != null) {
-        ConfirmationModal(
-            header = "Delete?",
-            body = "Are you sure you want to delete ${labState.workoutToDelete.name}? This cannot be undone.",
-            onConfirm = { labViewModel.deleteWorkout(labState.workoutToDelete) },
-            onCancel = { labViewModel.cancelDeleteWorkout() }
-        )
     }
 }

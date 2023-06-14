@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab
 
 import android.app.Application
+import com.browntowndev.liftlab.core.dependencyInjection.eventBusModule
+import com.browntowndev.liftlab.core.dependencyInjection.mapperModule
 import com.browntowndev.liftlab.core.dependencyInjection.repositoryModule
 import com.browntowndev.liftlab.core.dependencyInjection.viewModelModule
 import org.koin.android.ext.koin.androidContext
@@ -14,7 +16,7 @@ class LiftLabApp : Application() {
         startKoin {
             androidLogger()
             androidContext(this@LiftLabApp)
-            modules(repositoryModule, viewModelModule)
+            modules(mapperModule, repositoryModule, viewModelModule, eventBusModule)
         }
     }
 }
