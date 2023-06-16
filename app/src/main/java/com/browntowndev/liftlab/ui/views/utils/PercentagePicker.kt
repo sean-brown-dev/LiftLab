@@ -39,15 +39,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.browntowndev.liftlab.core.common.enums.DropPercentageOptions
 
 @Composable
-fun RpePicker(
-    modifier: Modifier = Modifier,
+fun PercentagePicker(
     visible: Boolean,
-    onRpeSelected: (rpe: Double) -> Unit,
+    onPercentageSelected: (percentage: String) -> Unit,
 ) {
     var isVisible by remember { mutableStateOf(visible) }
     val focusManager = LocalFocusManager.current
@@ -67,7 +66,7 @@ fun RpePicker(
         ) + fadeOut(),
     ) {
         ElevatedCard(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .height(LocalConfiguration.current.screenHeightDp.dp.times(.30f)),
             colors = CardDefaults.cardColors(
@@ -97,46 +96,16 @@ fun RpePicker(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
             }
-            var selectedRpeOption: Double? by remember { mutableStateOf(null) }
-            Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
-                if (selectedRpeOption != null) {
-                    val repsLeftInTank = 10.0 - selectedRpeOption!!
-                    val repsLeftInTankText = if (repsLeftInTank.toInt().toDouble() == repsLeftInTank) {
-                        if (repsLeftInTank > 1) {
-                            "You could comfortably perform ${repsLeftInTank.toInt()} more reps before failure."
-                        } else if (repsLeftInTank == 1.0) {
-                            "You could comfortably perform ${repsLeftInTank.toInt()} more rep before failure."
-                        }
-                        else {
-                            "Maximal exertion. No more reps possible."
-                        }
-                    }
-                    else {
-                        val bottomRange = repsLeftInTank.toInt().toString()
-                        val topRange = (repsLeftInTank + .5).toInt().toString()
-                        "You could perform $bottomRange - $topRange more reps before failure."
-                    }
 
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
-                        Text(
-                            text = repsLeftInTankText,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp,
-                        )
-                    }
-                }
-                else {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
-                        Text(
-                            text = "Please select a Rate of Perceived Exertion (RPE) value." +
-                                    "This is a way of measuring the difficulty of a set.",
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp,
-                        )
-                    }
+            var selectedPercentage by remember { mutableStateOf("" ) }
+            Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Text(if(selectedPercentage.isNotEmpty()) "Drop $selectedPercentage from the previous set's weight." else "Please select a drop percentage.")
                 }
             }
-
             Spacer(modifier = Modifier.height(20.dp))
 
             Card(
@@ -151,19 +120,31 @@ fun RpePicker(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                 ) {
-                    val rpeMinValue = 6.0
-                    val rpeMaxValue = 10.0
-                    for (rpe in ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2.0 }) {
-                        RpeOption(
+                    val percentages = remember {
+                        (DropPercentageOptions.FivePercent.wholeNumberPercentage..DropPercentageOptions.TwentyFivePercent.wholeNumberPercentage step 5)
+                            .map {
+                                when(it) {
+                                    DropPercentageOptions.FivePercent.wholeNumberPercentage -> DropPercentageOptions.FivePercent.stringPercentage
+                                    DropPercentageOptions.TenPercent.wholeNumberPercentage -> DropPercentageOptions.TenPercent.stringPercentage
+                                    DropPercentageOptions.FifteenPercent.wholeNumberPercentage -> DropPercentageOptions.FifteenPercent.stringPercentage
+                                    DropPercentageOptions.TwentyPercent.wholeNumberPercentage -> DropPercentageOptions.TwentyPercent.stringPercentage
+                                    DropPercentageOptions.TwentyFivePercent.wholeNumberPercentage -> DropPercentageOptions.TwentyFivePercent.stringPercentage
+                                    else -> throw Exception("$it not a recognized drop percentage. Add it to DropPercentageOptions.")
+                                }
+                            }
+                    }
+
+                    for (it in percentages) {
+                        PercentageOption(
                             modifier = Modifier.weight(1f),
-                            isSelected = selectedRpeOption == rpe,
-                            value = rpe,
-                            isFirst = rpe == rpeMinValue,
-                            isLast = rpe == rpeMaxValue,
+                            value = it,
+                            isFirst = it == DropPercentageOptions.FivePercent.stringPercentage,
+                            isLast = it == DropPercentageOptions.TwentyFivePercent.stringPercentage,
+                            isSelected = it == selectedPercentage,
                             selected = {
-                                selectedRpeOption = rpe
-                                onRpeSelected(rpe)
-                            },
+                                selectedPercentage = it
+                                onPercentageSelected(it)
+                            }
                         )
                     }
                 }
@@ -174,15 +155,15 @@ fun RpePicker(
 }
 
 @Composable
-private fun RpeOption(
+private fun PercentageOption(
     modifier: Modifier = Modifier,
-    value: Double,
+    value: String,
     isFirst: Boolean,
     isLast: Boolean,
     isSelected: Boolean = false,
     selected: () -> Unit,
 ) {
-    val rpe by remember { mutableStateOf(value.toString().removeSuffix(".0")) }
+    val percentage by remember { mutableStateOf(value) }
 
     Surface(
         modifier = modifier
@@ -190,10 +171,10 @@ private fun RpeOption(
             .clickable { selected() },
         color = if(isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(
-                topStart = if (isFirst) 16.dp else 0.dp,
-                topEnd = if (isLast) 16.dp else 0.dp,
-                bottomStart = if (isFirst) 16.dp else 0.dp,
-                bottomEnd = if (isLast) 16.dp else 0.dp,)
+            topStart = if (isFirst) 16.dp else 0.dp,
+            topEnd = if (isLast) 16.dp else 0.dp,
+            bottomStart = if (isFirst) 16.dp else 0.dp,
+            bottomEnd = if (isLast) 16.dp else 0.dp,)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -201,7 +182,7 @@ private fun RpeOption(
         ) {
             Text(
                 modifier = Modifier.padding(horizontal = 5.dp),
-                text = rpe,
+                text = percentage,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface

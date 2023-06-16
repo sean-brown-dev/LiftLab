@@ -17,7 +17,8 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.ui.viewmodels.states.RpePickerState
+import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
+import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -58,38 +59,72 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun toggleRpePicker(visible: Boolean, workoutLiftId: Long, position: Int? = null) {
+    fun togglePicker(visible: Boolean, workoutLiftId: Long, position: Int? = null, type: PickerType) {
         _state.update {
-            it.copy(rpePickerState = if(visible) RpePickerState(workoutLiftId, position) else null)
+            it.copy(pickerState = if(visible) PickerState(workoutLiftId, position, type) else null)
+        }
+    }
+
+    fun toggleDetailExpansion(workoutLiftId: Long, position: Int) {
+        _state.update {currentState ->
+            val expansionStatesCopy = HashMap(currentState.detailExpansionStates)
+            val setStatesCopy = expansionStatesCopy[workoutLiftId]?.toHashSet() ?: hashSetOf()
+
+            if (setStatesCopy.contains(position)) {
+                setStatesCopy.remove(position)
+            } else {
+                setStatesCopy.add(position)
+            }
+
+            expansionStatesCopy[workoutLiftId] = setStatesCopy
+            currentState.copy(detailExpansionStates = expansionStatesCopy)
         }
     }
 
     fun addSet(workoutLiftId: Long) {
-        _state.update {
-            _state.value.copy(
-                workout = _state.value.workout!!.let { workout ->
-                    workout.copy(
-                        lifts = workout.lifts.map { lift ->
-                            if (lift.id == workoutLiftId) {
-                                if (lift !is CustomWorkoutLiftDto) throw Exception("Cannot add set to non-custom lift.")
-                                lift.copy(
-                                    customLiftSets = lift.customLiftSets.toMutableList().apply {
-                                        add(
-                                            StandardSetDto(
-                                                position = lift.customLiftSets.count(),
-                                                rpeTarget = 8.toDouble(),
-                                                repRangeBottom = 8,
-                                                repRangeTop = 10,
-                                            )
-                                        )
-                                    }
+        var addedSetPosition: Int? = null;
+
+        val workoutCopy = _state.value.workout!!.let { workout ->
+            workout.copy(
+                lifts = workout.lifts.map { lift ->
+                    if (lift.id == workoutLiftId) {
+                        if (lift !is CustomWorkoutLiftDto) throw Exception("Cannot add set to non-custom lift.")
+                        lift.copy(
+                            customLiftSets = lift.customLiftSets.toMutableList().apply {
+                                addedSetPosition = lift.customLiftSets.count()
+                                add(
+                                    StandardSetDto(
+                                        position = addedSetPosition!!,
+                                        rpeTarget = 8.toDouble(),
+                                        repRangeBottom = 8,
+                                        repRangeTop = 10,
+                                    )
                                 )
                             }
-                            else lift
-                        }
-                    )
+                        )
+                    }
+                    else lift
                 }
             )
+        }
+
+        if (addedSetPosition != null) {
+            _state.update {
+                _state.value.copy(
+                    workout = workoutCopy,
+                    detailExpansionStates = _state.value.detailExpansionStates.let { expansionStates ->
+                        val expansionStatesCopy = HashMap(expansionStates)
+                        val setStates = expansionStatesCopy[workoutLiftId]
+                        if(setStates != null) {
+                            setStates.add(addedSetPosition!!)
+                        } else {
+                            expansionStatesCopy[workoutLiftId]= hashSetOf(addedSetPosition!!)
+                        }
+
+                        expansionStatesCopy
+                    },
+                )
+            }
         }
     }
 
@@ -256,6 +291,7 @@ class WorkoutBuilderViewModel(
         currentState: WorkoutBuilderState,
         workoutLiftId: Long,
         position: Int,
+        copyAll: Boolean = false,
         copySet: (GenericCustomLiftSet) -> GenericCustomLiftSet
     ): WorkoutDto {
         return currentState.workout!!.let { workout ->
@@ -264,7 +300,7 @@ class WorkoutBuilderViewModel(
                     when (currentWorkoutLift) {
                         is CustomWorkoutLiftDto -> currentWorkoutLift.copy(
                             customLiftSets = currentWorkoutLift.customLiftSets.map { set ->
-                                if (set.position == position) copySet(set) else set
+                                if (copyAll || set.position == position) copySet(set) else set
                             }
                         )
                         else -> throw Exception("${currentWorkoutLift.liftName} doesn't have custom sets.")
@@ -378,11 +414,11 @@ class WorkoutBuilderViewModel(
                 workout = setCustomSetProperty(currentState, workoutLiftId, position) { set ->
                     when (set) {
                         is StandardSetDto -> if (newSetType != SetType.STANDARD_SET) transformCustomLiftSet(set, newSetType) else set
-                        is DropSetDto -> if (newSetType != SetType.STANDARD_SET) transformCustomLiftSet(set, newSetType) else set
-                        is MyoRepSetDto -> if (newSetType != SetType.STANDARD_SET) transformCustomLiftSet(set, newSetType) else set
+                        is DropSetDto -> if (newSetType != SetType.DROP_SET) transformCustomLiftSet(set, newSetType) else set
+                        is MyoRepSetDto -> if (newSetType != SetType.MYOREP_SET) transformCustomLiftSet(set, newSetType) else set
                         else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
                     }
-                }
+                },
             )
         }
     }
