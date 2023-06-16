@@ -15,12 +15,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun LabeledCheckBox(
     label: String,
     checked: Boolean,
+    fontSize: TextUnit = 14.sp,
     onCheckedChanged: (Boolean) -> Unit,
 ) {
     var isChecked: Boolean by remember { mutableStateOf(checked) }
@@ -36,6 +39,7 @@ fun LabeledCheckBox(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
+            fontSize = fontSize,
         )
         Spacer(modifier = Modifier.weight(1f))
         Checkbox(

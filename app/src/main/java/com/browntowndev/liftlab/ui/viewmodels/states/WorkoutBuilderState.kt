@@ -5,10 +5,24 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 data class WorkoutBuilderState (
     val workout: WorkoutDto? = null,
     val isEditingName: Boolean = false,
-    val rpePickerState: RpePickerState? = null,
+    val changedSetTypeState: ChangedSetTypeState? = null,
+    val pickerState: PickerState? = null,
+    val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),
 )
 
-data class RpePickerState(
+data class ChangedSetTypeState(
+    val workoutLiftId: Long,
+    val position: Int,
+    val isExpanded: Boolean,
+)
+
+data class PickerState(
     val workoutLiftId: Long,
     val position: Int? = null,
+    val type: PickerType,
 )
+
+enum class PickerType {
+    Rpe,
+    Percentage,
+}

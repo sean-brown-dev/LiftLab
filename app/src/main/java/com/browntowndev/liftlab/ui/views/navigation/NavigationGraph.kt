@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.views.main.Lab
 import com.browntowndev.liftlab.ui.views.main.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.Workout
-import com.browntowndev.liftlab.ui.views.main.WorkoutBuilder
+import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
 
 
