@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.views.main.workoutBuilder
+package com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSetBase
 import com.browntowndev.liftlab.ui.views.utils.DoubleTextField
 import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 
@@ -25,6 +24,7 @@ fun StandardSet(
     rpeTarget: Double,
     repRangeBottom: Int,
     repRangeTop: Int,
+    isPreviousSetMyoRep: Boolean,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
@@ -45,6 +45,8 @@ fun StandardSet(
         rightSideSummaryText = if(rpeTarget == 10.0) "AMRAP" else rpeTarget.toString(),
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
+        isFirstSet = position == 0,
+        isPreviousSetMyoRep = isPreviousSetMyoRep,
     ) {
         Column {
             IntegerTextField(

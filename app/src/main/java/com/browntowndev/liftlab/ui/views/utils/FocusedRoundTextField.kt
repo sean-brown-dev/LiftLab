@@ -23,8 +23,8 @@ fun FocusedRoundTextField(
     textFieldValue: TextFieldValue? = null,
     onValueChange: (String) -> Unit = { },
     onTextFieldValueChange: (TextFieldValue) -> Unit = { },
-    leadingIcon: @Composable() (() -> Unit)? = null,
-    trailingIcon: @Composable() (() -> Unit)? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
     var valueInnitted by remember { mutableStateOf(false) }

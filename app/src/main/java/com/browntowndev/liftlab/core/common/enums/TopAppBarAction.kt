@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.common.enums
 
 enum class TopAppBarAction {
     ReorderWorkouts,
+    ReorderLifts,
     CreateNewWorkout,
     CreateNewProgram,
     RenameProgram,
@@ -9,6 +10,7 @@ enum class TopAppBarAction {
     DeleteProgram,
     NavigatedBack,
     SearchStarted,
-    SearchCompleted,
-    FilterTextChanged,
+    SearchTextChanged,
+    FilterStarted,
+    EditDeloadWeek,
 }

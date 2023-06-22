@@ -1,25 +1,24 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -28,14 +27,13 @@ import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.utils.FocusedRoundTextField
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionsMenu(
     topAppBarState: LiftLabTopAppBarState,
     topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
 ) {
-    if (topAppBarState.actions.isEmpty()) return;
+    if (topAppBarState.actions.isEmpty()) return
 
     val menuItems = remember(
         key1 = topAppBarState.actions,
@@ -44,19 +42,28 @@ fun ActionsMenu(
         splitMenuItems(topAppBarState.actions, maxVisibleItems)
     }
 
-    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>().forEach { item ->
+    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>().fastForEach { item ->
         if (item.isVisible) {
             IconButton(onClick = item.onClick) {
-                Icon(
-                    imageVector = item.icon,
-                    contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                if (item.icon != null) {
+                    Icon(
+                        imageVector = item.icon!!,
+                        contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                } else if (item.iconPainterResourceId != null) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        painter = painterResource(id = item.iconPainterResourceId!!),
+                        contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }
 
-    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().forEach { item ->
+    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().fastForEach { item ->
         if (item.isVisible) {
             FocusedOutlinedTextField(item, topAppBarViewModel = topAppBarViewModel)
         }
@@ -74,13 +81,31 @@ fun ActionsMenu(
             expanded = topAppBarState.isOverflowMenuExpanded,
             onDismissRequest = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false) },
         ) {
-            menuItems.overflowItems.forEach { item ->
+            menuItems.overflowItems.fastForEach { item ->
                 DropdownMenuItem(
                     text = {
                         Text(item.title)
                     },
                     leadingIcon = {
-                        Icon(imageVector = item.icon, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground)
+                        if(item.icon != null) {
+                            Icon(
+                                imageVector = item.icon!!,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        } else if (item.iconPainterResourceId != null) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                painter = painterResource(id = item.iconPainterResourceId!!),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        if(item.trailingIconText != null) {
+                            Text(item.trailingIconText!!, color = MaterialTheme.colorScheme.tertiary)
+                        }
                     },
                     onClick = {
                         topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false)
@@ -88,17 +113,11 @@ fun ActionsMenu(
                     }
                 )
                 if (item.dividerBelow) {
-                    Column(
+                    Divider(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Divider(
-                            modifier = Modifier.fillMaxWidth(.85f),
-                            thickness = 1.dp,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                 }
             }
         }
@@ -106,15 +125,27 @@ fun ActionsMenu(
 }
 
 @Composable
-fun FocusedOutlinedTextField(item: ActionMenuItem.TextInputMenuItem, topAppBarViewModel: TopAppBarViewModel,) {
+fun FocusedOutlinedTextField(
+    item: ActionMenuItem.TextInputMenuItem,
+    topAppBarViewModel: TopAppBarViewModel,
+) {
     FocusedRoundTextField(
         value = item.value,
         leadingIcon = {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            if(item.icon != null) {
+                Icon(
+                    imageVector = item.icon!!,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            } else if (item.iconPainterResourceId != null) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = item.iconPainterResourceId!!),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
         },
         trailingIcon = {
             IconButton(onClick = item.onClickTrailingIcon) {
@@ -162,7 +193,7 @@ private fun splitMenuItems(
     if (availableSlots > 0 && ifRoomItems.isNotEmpty()) {
         val visible = ifRoomItems.subList(0, availableSlots.coerceAtMost(ifRoomItems.size))
         alwaysShownItems.addAll(visible)
-        ifRoomItems.removeAll(visible)
+        ifRoomItems.removeAll(visible.toSet())
     }
 
     return MenuItems(

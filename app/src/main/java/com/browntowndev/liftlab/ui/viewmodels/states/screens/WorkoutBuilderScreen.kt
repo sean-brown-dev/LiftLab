@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
@@ -23,6 +24,7 @@ data class WorkoutBuilderScreen(
         val navigation = NavItem("Lab", "", "workoutBuilder")
 
         const val RENAME_WORKOUT_ICON = "renameWorkoutIcon"
+        const val REORDER_LIFTS = "reorderLifts"
     }
 
     private val eventBus: EventBus by inject()
@@ -65,6 +67,13 @@ data class WorkoutBuilderScreen(
                 icon = Icons.Filled.Edit,
                 isVisible = true,
                 onClick = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameWorkout)) },
+            ),
+            ActionMenuItem.IconMenuItem.NeverShown(
+                controlName = REORDER_LIFTS,
+                title = "Reorder Lifts",
+                iconPainterResourceId = R.drawable.reorder_icon,
+                isVisible = true,
+                onClick = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts)) },
             ),
         )
 }

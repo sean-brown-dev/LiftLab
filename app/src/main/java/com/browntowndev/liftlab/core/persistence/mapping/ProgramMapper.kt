@@ -10,6 +10,7 @@ class ProgramMapper(private val workoutMapper: WorkoutMapper) {
             id = entity.program.id,
             name = entity.program.name,
             isActive = entity.program.isActive,
+            deloadWeek = entity.program.deloadWeek,
             currentMesocycle = entity.program.currentMesocycle,
             currentMicrocycle = entity.program.currentMicrocycle,
             currentMicrocyclePosition = entity.program.currentMicrocyclePosition,

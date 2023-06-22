@@ -6,7 +6,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
-import com.browntowndev.liftlab.core.persistence.entities.update.UpdateCustomLiftSet
 
 class CustomLiftSetMapper {
     fun map(entity: CustomLiftSet): GenericCustomLiftSet {
@@ -17,11 +16,11 @@ class CustomLiftSetMapper {
         }
     }
 
-    fun map(setDto: GenericCustomLiftSet): UpdateCustomLiftSet {
+    fun map(setDto: GenericCustomLiftSet): CustomLiftSet {
         return when (setDto) {
-            is StandardSetDto -> toEntity(setDto)
-            is MyoRepSetDto -> toEntity(setDto)
-            is DropSetDto -> fromDropSetDto(setDto)
+            is StandardSetDto -> toUpdateEntity(setDto)
+            is MyoRepSetDto -> toUpdateEntity(setDto)
+            is DropSetDto -> toUpdateEntity(setDto)
             else -> throw ClassNotFoundException("${setDto::class.simpleName} is not implemented in ${CustomLiftSetMapper::class.simpleName}")
         }
     }
@@ -29,20 +28,23 @@ class CustomLiftSetMapper {
     private fun toStandardSetDto(entity: CustomLiftSet): StandardSetDto {
         return StandardSetDto(
             id = entity.id,
+            workoutLiftId = entity.workoutLiftId,
             position = entity.position,
-            rpeTarget = entity.rpeTarget!!,
-            repRangeBottom = entity.repRangeBottom!!,
-            repRangeTop = entity.repRangeTop!!,
+            rpeTarget = entity.rpeTarget,
+            repRangeBottom = entity.repRangeBottom,
+            repRangeTop = entity.repRangeTop,
         )
     }
 
     private fun toMyoRepSetDto(entity: CustomLiftSet): MyoRepSetDto {
         return MyoRepSetDto(
             id = entity.id,
+            workoutLiftId = entity.workoutLiftId,
             position = entity.position,
-            repFloor = entity.repFloor!!,
-            repRangeBottom = entity.repRangeBottom!!,
-            repRangeTop = entity.repRangeTop!!,
+            rpeTarget = entity.rpeTarget,
+            repFloor = entity.repFloor,
+            repRangeBottom = entity.repRangeBottom,
+            repRangeTop = entity.repRangeTop,
             maxSets = entity.maxSets,
             setMatching = entity.setMatching,
             matchSetGoal = entity.matchSetGoal,
@@ -52,90 +54,53 @@ class CustomLiftSetMapper {
     private fun toDropSetDto(entity: CustomLiftSet): DropSetDto {
         return DropSetDto(
             id = entity.id,
+            workoutLiftId = entity.workoutLiftId,
             position = entity.position,
             dropPercentage = entity.dropPercentage!!,
-            rpeTarget = entity.rpeTarget!!,
-            repRangeBottom = entity.repRangeBottom!!,
-            repRangeTop = entity.repRangeTop!!,
+            rpeTarget = entity.rpeTarget,
+            repRangeBottom = entity.repRangeBottom,
+            repRangeTop = entity.repRangeTop,
         )
     }
 
-    private fun toEntity(setDto: StandardSetDto): UpdateCustomLiftSet {
-        return setDto.id?.let { id ->
-            UpdateCustomLiftSet(
-                id = id,
-                type = SetType.STANDARD_SET,
-                position = setDto.position,
-                repFloor = null,
-                rpeTarget = setDto.rpeTarget,
-                repRangeBottom = setDto.repRangeBottom,
-                repRangeTop = setDto.repRangeTop,
-                dropPercentage = null
-            )
-        } ?: run {
-            UpdateCustomLiftSet(
-                type = SetType.STANDARD_SET,
-                position = setDto.position,
-                repFloor = null,
-                rpeTarget = setDto.rpeTarget,
-                repRangeBottom = setDto.repRangeBottom,
-                repRangeTop = setDto.repRangeTop,
-                dropPercentage = null
-            )
-        }
+    private fun toUpdateEntity(setDto: StandardSetDto): CustomLiftSet {
+        return CustomLiftSet(
+            id = setDto.id,
+            workoutLiftId = setDto.workoutLiftId,
+            type = SetType.STANDARD_SET,
+            position = setDto.position,
+            rpeTarget = setDto.rpeTarget,
+            repRangeBottom = setDto.repRangeBottom,
+            repRangeTop = setDto.repRangeTop,
+        )
     }
 
-    private fun toEntity(setDto: MyoRepSetDto): UpdateCustomLiftSet {
-        return setDto.id?.let { id ->
-            UpdateCustomLiftSet(
-                id = id,
-                type = SetType.STANDARD_SET,
-                position = setDto.position,
-                repFloor = setDto.repFloor,
-                rpeTarget = null,
-                repRangeBottom = setDto.repRangeBottom,
-                repRangeTop = setDto.repRangeTop,
-                dropPercentage = null,
-                maxSets = setDto.maxSets,
-                setMatching = setDto.setMatching,
-            )
-        } ?: run {
-            UpdateCustomLiftSet(
-                type = SetType.STANDARD_SET,
-                position = setDto.position,
-                repFloor = setDto.repFloor,
-                rpeTarget = null,
-                repRangeBottom = setDto.repRangeBottom,
-                repRangeTop = setDto.repRangeTop,
-                dropPercentage = null,
-                maxSets = setDto.maxSets,
-                setMatching = setDto.setMatching,
-            )
-        }
+    private fun toUpdateEntity(setDto: MyoRepSetDto): CustomLiftSet {
+        return CustomLiftSet(
+            id = setDto.id,
+            workoutLiftId = setDto.workoutLiftId,
+            type = SetType.MYOREP_SET,
+            position = setDto.position,
+            repFloor = setDto.repFloor,
+            rpeTarget = setDto.rpeTarget,
+            repRangeBottom = setDto.repRangeBottom,
+            repRangeTop = setDto.repRangeTop,
+            maxSets = setDto.maxSets,
+            setMatching = setDto.setMatching,
+            matchSetGoal = setDto.matchSetGoal,
+        )
     }
 
-    private fun fromDropSetDto(setDto: DropSetDto): UpdateCustomLiftSet {
-        return setDto.id?.let {id ->
-            UpdateCustomLiftSet(
-                id = id,
-                type = SetType.STANDARD_SET,
-                position = setDto.position,
-                repFloor = null,
-                rpeTarget = setDto.rpeTarget,
-                repRangeBottom = setDto.repRangeBottom,
-                repRangeTop = setDto.repRangeTop,
-                dropPercentage = setDto.dropPercentage,
-            )
-        } ?: run {
-            UpdateCustomLiftSet(
-                type = SetType.STANDARD_SET,
-                position = setDto.position,
-                repFloor = null,
-                rpeTarget = setDto.rpeTarget,
-                repRangeBottom = setDto.repRangeBottom,
-                repRangeTop = setDto.repRangeTop,
-                dropPercentage = setDto.dropPercentage,
-            )
-        }
+    private fun toUpdateEntity(setDto: DropSetDto): CustomLiftSet {
+        return CustomLiftSet(
+            id = setDto.id,
+            workoutLiftId = setDto.workoutLiftId,
+            type = SetType.DROP_SET,
+            position = setDto.position,
+            rpeTarget = setDto.rpeTarget,
+            repRangeBottom = setDto.repRangeBottom,
+            repRangeTop = setDto.repRangeTop,
+            dropPercentage = setDto.dropPercentage,
+        )
     }
 }

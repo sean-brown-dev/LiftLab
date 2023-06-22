@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.views.utils
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,16 +49,16 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ScrollableTextField(
     modifier: Modifier = Modifier,
-    listState: LazyListState,
+    listState: LazyListState? = null,
     vertical: Boolean = true,
     disableSystemKeyboard: Boolean = true,
     value: String,
     label: String = "",
-    labelColor: Color = MaterialTheme.colorScheme.outline,
+    labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
     onFocusChanged: (Boolean) -> Unit,
     onValueChanged: ((String) -> String)? = null,
@@ -93,7 +92,7 @@ fun ScrollableTextField(
             .onFocusChanged {
                 isFocused = it.isFocused
 
-                if (isFocused && disableSystemKeyboard) {
+                if (isFocused && disableSystemKeyboard && listState != null) {
                     coroutineScope.launch {
                         scrollToYLocation(
                             listState = listState,

@@ -29,4 +29,10 @@ interface ProgramsDao {
 
     @Query("UPDATE programs SET name = :newName WHERE program_id = :id")
     suspend fun updateName(id: Long, newName: String)
+
+    @Query("UPDATE programs SET deloadWeek = :newDeloadWeek WHERE program_id = :id")
+    suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int)
+
+    @Query("SELECT deloadWeek FROM programs WHERE program_id = :id")
+    suspend fun getDeloadWeek(id: Long): Int
 }

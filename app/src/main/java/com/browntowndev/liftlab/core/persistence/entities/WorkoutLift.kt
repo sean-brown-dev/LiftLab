@@ -24,11 +24,11 @@ data class WorkoutLift(
     val id: Long = 0,
     val workoutId: Long,
     val liftId: Long,
+    val progressionScheme: ProgressionScheme,
     val position: Int,
     val setCount: Int,
+    val deloadWeek: Int? = null,
     val rpeTarget: Double? = null,
     val repRangeBottom: Int? = null,
     val repRangeTop: Int? = null,
-    val useReversePyramidSets: Boolean = false,
-    val progressionScheme: ProgressionScheme
 )

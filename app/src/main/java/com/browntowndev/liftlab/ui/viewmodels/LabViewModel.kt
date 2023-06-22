@@ -1,10 +1,13 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
@@ -20,6 +23,7 @@ import org.greenrobot.eventbus.Subscribe
 class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
+    private val transactionScope: TransactionScope,
     private val eventBus: EventBus,
 ): ViewModel() {
     private var _state = MutableStateFlow(LabState())
@@ -43,7 +47,8 @@ class LabViewModel(
             TopAppBarAction.NavigatedBack -> toggleReorderingScreen()
             TopAppBarAction.RenameProgram -> showEditProgramNameModal()
             TopAppBarAction.DeleteProgram -> beginDeleteProgram()
-            TopAppBarAction.CreateNewWorkout -> { /*TODO*/ }
+            TopAppBarAction.CreateNewWorkout -> createNewWorkout()
+            TopAppBarAction.EditDeloadWeek -> toggleEditDeloadWeek()
             else -> { }
         }
     }
@@ -57,16 +62,59 @@ class LabViewModel(
         }
     }
 
-    fun showEditWorkoutNameModal(originalWorkoutName: String) {
+    fun toggleEditDeloadWeek() {
         _state.update {
-            it.copy(originalWorkoutName = originalWorkoutName)
+            it.copy(isEditingDeloadWeek = !_state.value.isEditingDeloadWeek)
+        }
+    }
+
+    fun updateDeloadWeek(deloadWeek: Int) {
+        executeInTransactionScope {
+            programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
+            _state.update {
+                it.copy(
+                    isEditingDeloadWeek = false,
+                    program = _state.value.program!!.copy(deloadWeek = deloadWeek)
+                )
+            }
+        }
+    }
+
+    private fun createNewWorkout() {
+        executeInTransactionScope {
+            val newWorkout = WorkoutDto(
+                programId = _state.value.program!!.id,
+                name = "New Workout",
+                position = _state.value.program!!.workouts.count(),
+                lifts = listOf()
+            )
+
+            _state.update { currentState ->
+                currentState.copy(
+                    program = currentState.program!!.copy(
+                        workouts = currentState.program.workouts.toMutableList().apply {
+                            add(
+                                newWorkout.copy(
+                                    id = workoutsRepository.insert(newWorkout)
+                                )
+                            )
+                        }
+                    ),
+                )
+            }
+        }
+    }
+    
+    fun showEditWorkoutNameModal(workoutIdToRename: Long, originalWorkoutName: String) {
+        _state.update {
+            it.copy(workoutIdToRename = workoutIdToRename, originalWorkoutName = originalWorkoutName)
         }
     }
 
     fun collapseEditWorkoutNameModal() {
         if (_state.value.originalWorkoutName != null) {
             _state.update {
-                it.copy(originalWorkoutName = null)
+                it.copy(workoutIdToRename = null, originalWorkoutName = null)
             }
         }
     }
@@ -85,13 +133,23 @@ class LabViewModel(
 
     fun updateWorkoutName(workoutId: Long, newName: String) {
         if (_state.value.originalWorkoutName != newName) {
-            viewModelScope.launch {
+            executeInTransactionScope {
                 workoutsRepository.updateName(
                     id = workoutId,
                     newName = newName
                 )
                 collapseEditWorkoutNameModal()
-                getActiveProgram()
+                _state.update { currentState ->
+                    currentState.copy(
+                        program = currentState.program!!.copy(
+                            workouts = currentState.program.workouts.fastMap { workout ->
+                                if(workout.id == workoutId) workout.copy(name = newName)
+                                else workout
+                            }
+                        ),
+                        workoutIdToRename = null,
+                    )
+                }
             }
         }
     }
@@ -99,13 +157,16 @@ class LabViewModel(
     fun updateProgramName(newName: String) {
         val program = _state.value.program
         if (program != null && _state.value.originalProgramName != newName) {
-            viewModelScope.launch {
+            executeInTransactionScope {
+                Log.d(Log.DEBUG.toString(), program.id.toString())
+                Log.d(Log.DEBUG.toString(), newName)
                 programsRepository.updateName(
                     id = program.id,
                     newName = newName
                 )
-                collapseEditProgramNameModal()
-                getActiveProgram()
+                _state.update {
+                    it.copy(program = program.copy(name = newName), isEditingProgramName = false)
+                }
             }
         }
     }
@@ -113,7 +174,16 @@ class LabViewModel(
     fun deleteWorkout(workout: WorkoutDto) {
         viewModelScope.launch {
             workoutsRepository.delete(workout)
-            getActiveProgram()
+            _state.update {
+                _state.value.copy(
+                    program = _state.value.program!!.copy(
+                        workouts = _state.value.program!!.workouts.filter {
+                            it.id != workout.id
+                        }
+                    ),
+                    workoutToDelete = null,
+                )
+            }
         }
     }
 
@@ -138,9 +208,11 @@ class LabViewModel(
     fun deleteProgram() {
         val program = _state.value.program
         if (program != null) {
-            viewModelScope.launch {
+            executeInTransactionScope {
                 programsRepository.delete(program)
-                getActiveProgram()
+                _state.update {
+                    LabState()
+                }
             }
         }
     }
@@ -151,43 +223,34 @@ class LabViewModel(
         }
     }
 
-    fun saveReorder() {
-        val program = _state.value.program
-        if(program != null) {
-            viewModelScope.launch {
-                workoutsRepository.updateMany(program.workouts)
-                getActiveProgram()
+    fun saveReorder(newOrder: List<ReorderableListItem>) {
+        executeInTransactionScope {
+            val reorderedWorkouts = newOrder.mapIndexed { index, reorderableListItem ->
+                val workout = _state.value.program!!.workouts.find { workout -> workout.id == reorderableListItem.key }
+                workout!!.copy(position = index)
+            }
+            workoutsRepository.updateMany(reorderedWorkouts)
+            _state.update { currentState ->
+                currentState.copy(
+                    program = currentState.program!!.copy(
+                        workouts = reorderedWorkouts
+                    ),
+                    isReordering = false
+                )
             }
         }
     }
 
     fun toggleReorderingScreen() {
-        if (_state.value.isReordering) {
-            viewModelScope.launch {
-                getActiveProgram()
-            }
-        }
-        else {
-            _state.update {
-                it.copy(isReordering = true)
-            }
+        _state.update {
+            it.copy(isReordering = !it.isReordering)
         }
     }
 
-    fun changePosition(to: Int, from: Int) {
-        if (to > -1 && from > -1 &&
-            to < _state.value.workoutCount && from < _state.value.workoutCount
-        ) {
-            _state.update {
-                it.program!!.let { program ->
-                    it.copy(
-                        program = program.copy(
-                            workouts = program.workouts.toMutableList()
-                                .apply { add(to, removeAt(from)) }
-                                .mapIndexed { index, workoutDto -> workoutDto.copy(position = index) }
-                        )
-                    )
-                }
+    private fun executeInTransactionScope(action: suspend () -> Unit) {
+        viewModelScope.launch {
+            transactionScope.execute {
+                action()
             }
         }
     }

@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
 class ProgramsRepository(private val programsDao: ProgramsDao, private val programMapper: ProgramMapper) : Repository {
     suspend fun getActive(): ProgramDto? {
         val programEntity: ProgramWithRelationships? = programsDao.getActive()
-        var program: ProgramDto? = null;
+        var program: ProgramDto? = null
 
         if (programEntity != null) {
             program = programMapper.map(programEntity)
@@ -27,6 +27,14 @@ class ProgramsRepository(private val programsDao: ProgramsDao, private val progr
 
     suspend fun updateName(id: Long, newName: String) {
         programsDao.updateName(id, newName)
+    }
+
+    suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int) {
+        programsDao.updateDeloadWeek(id, newDeloadWeek)
+    }
+
+    suspend fun getDeloadWeek(id: Long): Int {
+        return programsDao.getDeloadWeek(id)
     }
 
     suspend fun delete(id: Long) {

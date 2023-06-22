@@ -3,14 +3,12 @@ package com.browntowndev.liftlab.ui.views.utils
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DoubleTextField(
     modifier: Modifier = Modifier,
@@ -21,7 +19,7 @@ fun DoubleTextField(
     precision: Int = 2,
     value: Double,
     label: String = "",
-    labelColor: Color = MaterialTheme.colorScheme.outline,
+    labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
     disableSystemKeyboard: Boolean = false,
     onFocusChanged: (Boolean) -> Unit = {},

@@ -8,19 +8,22 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Workout
-import com.browntowndev.liftlab.core.persistence.entities.update.UpdateWorkout
 
 @Dao
 interface WorkoutsDao {
-    @Insert
+    @Insert(entity = Workout::class)
     suspend fun insert(workout: Workout): Long
 
     @Delete(entity = Workout::class)
-    suspend fun delete(workout: UpdateWorkout)
+    suspend fun delete(workout: Workout)
 
     @Transaction
     @Update(entity = Workout::class)
-    suspend fun updateMany(workout: List<UpdateWorkout>)
+    suspend fun updateMany(workout: List<Workout>)
+
+    @Transaction
+    @Update(entity = Workout::class)
+    suspend fun update(workout: Workout)
 
     @Query("DELETE FROM workouts WHERE workout_id = :id")
     suspend fun delete(id: Long)

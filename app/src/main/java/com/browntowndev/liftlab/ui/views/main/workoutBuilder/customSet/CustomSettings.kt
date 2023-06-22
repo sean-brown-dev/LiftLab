@@ -22,12 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
-import com.browntowndev.liftlab.ui.views.main.workoutBuilder.StandardSet
 
 
 @Composable
@@ -43,6 +43,7 @@ fun CustomSettings(
     onRepRangeTopChanged: (position: Int, newRepRangeTop: Int) -> Unit,
     onRepFloorChanged: (position: Int, newRepFloor: Int) -> Unit,
     onCustomSetTypeChanged: (position: Int, newSetType: SetType) -> Unit,
+    onMaxSetsChanged: (position: Int, newMaxSets: Int) -> Unit,
     toggleRpePicker: (position: Int, visible: Boolean) -> Unit,
     togglePercentagePicker: (position: Int, visible: Boolean) -> Unit,
     toggleDetailsExpansion: (position: Int) -> Unit,
@@ -60,7 +61,8 @@ fun CustomSettings(
         )
     ) {
         Column {
-            customSets.forEachIndexed { index, set ->
+            var previousSetType: SetType? = null
+            customSets.fastForEachIndexed { index, set ->
                 if (index > 0) {
                     Spacer(modifier = Modifier.height(5.dp))
                 }
@@ -80,6 +82,7 @@ fun CustomSettings(
                             onRepRangeTopChanged = { onRepRangeTopChanged(set.position, it) },
                             toggleRpePicker = { toggleRpePicker(set.position, it) },
                             toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
+                            isPreviousSetMyoRep = previousSetType == SetType.MYOREP_SET,
                             onCustomSetTypeChanged = { setType ->
                                 onCustomSetTypeChanged(
                                     set.position,
@@ -87,6 +90,7 @@ fun CustomSettings(
                                 )
                             },
                         )
+                        previousSetType = SetType.STANDARD_SET
                     }
                     is MyoRepSetDto -> {
                         MyoRepSet(
@@ -97,7 +101,9 @@ fun CustomSettings(
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
                             setMatching = set.setMatching,
+                            rpeTarget = set.rpeTarget,
                             matchSetGoal = set.matchSetGoal,
+                            maxSets = set.maxSets,
                             onPixelOverflowChanged = onPixelOverflowChanged,
                             onSetMatchingChanged = { onSetMatchingChanged(set.position, it) },
                             onRepFloorChanged = { onRepFloorChanged(set.position, it) },
@@ -105,6 +111,9 @@ fun CustomSettings(
                             onRepRangeTopChanged = { onRepRangeTopChanged(set.position, it) },
                             onMatchSetGoalChanged = { onMatchSetGoalChanged(set.position, it) },
                             toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
+                            isPreviousSetMyoRep = previousSetType == SetType.MYOREP_SET,
+                            onMaxSetsChanged = { onMaxSetsChanged(set.position, it) },
+                            toggleRpePicker = { toggleRpePicker(set.position, it) },
                             onCustomSetTypeChanged = { setType ->
                                 onCustomSetTypeChanged(
                                     set.position,
@@ -112,6 +121,7 @@ fun CustomSettings(
                                 )
                             },
                         )
+                        previousSetType = SetType.MYOREP_SET
                     }
                     is DropSetDto -> {
                         DropSet(
@@ -128,6 +138,7 @@ fun CustomSettings(
                             toggleRpePicker = { toggleRpePicker(set.position, it) },
                             togglePercentagePicker = { togglePercentagePicker(set.position, it) },
                             toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
+                            isPreviousSetMyoRep = previousSetType == SetType.MYOREP_SET,
                             onCustomSetTypeChanged = { setType ->
                                 onCustomSetTypeChanged(
                                     set.position,
@@ -135,6 +146,7 @@ fun CustomSettings(
                                 )
                             },
                         )
+                        previousSetType = SetType.DROP_SET
                     }
                 }
             }

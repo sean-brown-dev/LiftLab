@@ -36,7 +36,8 @@ suspend fun scrollToYLocation(
                 Log.d(Log.DEBUG.toString(), "AFTER SCROLL currentYLocation: ${currentYLocation()}")
                 Log.d(Log.DEBUG.toString(), "AFTER SCROLL bottomOfTextField: $bottomOfTextField")
             }
-            if (topOfPickerInPixels < bottomOfTextField) {
+            // +1 makes sure it's at least 1 pixel below
+            if (topOfPickerInPixels + 1 < bottomOfTextField) {
                 val pixelOverflow = pickerHeightInPixels - bottomOfTextDistanceFromBottom
                 val dpOverflow = Dp(pixelOverflow / screenDensity.density)
                 onPixelOverflowChanged(dpOverflow)

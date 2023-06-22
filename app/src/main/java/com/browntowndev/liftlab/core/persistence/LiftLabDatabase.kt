@@ -26,7 +26,6 @@ import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
-import com.browntowndev.liftlab.core.persistence.entities.update.UpdateWorkout
 
 @TypeConverters(Converters::class)
 @Database(
@@ -35,12 +34,12 @@ import com.browntowndev.liftlab.core.persistence.entities.update.UpdateWorkout
         HistoricalWorkoutName::class,
         PreviouslyCompletedSet::class,
         Program::class,
-        SetLogEntry::class, Workout::class,
+        SetLogEntry::class,
+        Workout::class,
         WorkoutLift::class,
         WorkoutLogEntry::class,
-        UpdateWorkout::class,
    ],
-    version = 8,
+    version = 16,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao

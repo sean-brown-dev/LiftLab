@@ -5,14 +5,17 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.KoinComponent
@@ -24,6 +27,7 @@ data class LabScreen(
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
     override val subtitle: String = navigation.subtitle,
+    val trailingIconText: String = "",
 ) : BaseScreen(), KoinComponent {
     companion object {
         val navigation = BottomNavItem("Lab", "", R.drawable.lab_flask, "lab")
@@ -33,45 +37,57 @@ data class LabScreen(
         const val CREATE_NEW_PROGRAM_ICON = "createNewProgram"
         const val DELETE_PROGRAM_ICON = "deleteProgramIcon"
         const val CREATE_NEW_WORKOUT_ICON = "createNewWorkoutIcon"
+        const val DELOAD_WEEK_ICON = "deloadWeekIcon"
     }
 
     private val _eventBus: EventBus by inject()
+    private var _reorderWorkoutsTrailingText by mutableStateOf(trailingIconText)
 
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible) else this
+        return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible, trailingIconText = _reorderWorkoutsTrailingText) else this
     }
 
     override fun copySetOverflowMenuVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = isVisible) else this
+        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = isVisible, trailingIconText = _reorderWorkoutsTrailingText) else this
     }
 
     override fun copySetNavigationIconVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.navigationIconVisible) copy(navigationIconVisible = isVisible) else this
+        return if (isVisible != this.navigationIconVisible) copy(navigationIconVisible = isVisible, trailingIconText = _reorderWorkoutsTrailingText) else this
     }
 
     override fun copyTitleMutation(newTitle: String): Screen {
-        return if (newTitle != this.title) copy(title = newTitle) else this
+        return if (newTitle != this.title) copy(title = newTitle, trailingIconText = _reorderWorkoutsTrailingText) else this
     }
 
     override fun copySubtitleMutation(newSubtitle: String): Screen {
-        return if (newSubtitle != this.subtitle) copy(subtitle = newSubtitle) else this
+        return if (newSubtitle != this.subtitle) copy(subtitle = newSubtitle, trailingIconText = _reorderWorkoutsTrailingText) else this
+    }
+
+    override fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>): Screen {
+        return when (request.controlName) {
+            DELOAD_WEEK_ICON -> {
+                _reorderWorkoutsTrailingText = (request.payload as String)
+                this
+            }
+            else -> super.mutateControlValue(request)
+        }
     }
 
     override val route: String
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector?
+    override val navigationIcon: ImageVector
         get() = Icons.Filled.ArrowBack
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
+    override val onNavigationIconClick: (() -> Unit)
         get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_WORKOUT_ICON,
-                title = "Add Workout",
+                title = "Create Workout",
                 icon = Icons.Filled.Add,
                 isVisible = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewWorkout)) },
@@ -79,7 +95,7 @@ data class LabScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_WORKOUTS_ICON,
                 title = "Reorder Workouts",
-                icon = Icons.Filled.Refresh,
+                iconPainterResourceId = R.drawable.reorder_icon,
                 isVisible = true,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderWorkouts))
@@ -105,7 +121,16 @@ data class LabScreen(
                 title = "Delete Program",
                 icon = Icons.Filled.Delete,
                 isVisible = true,
+                dividerBelow = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram)) },
+            ),
+            ActionMenuItem.IconMenuItem.NeverShown(
+                controlName = DELOAD_WEEK_ICON,
+                title = "Deload Week",
+                icon = Icons.Outlined.DateRange,
+                trailingIconText = _reorderWorkoutsTrailingText,
+                isVisible = true,
+                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.EditDeloadWeek)) },
             ),
         )
     }

@@ -9,6 +9,19 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
         liftsDao.insert(lift)
     }
 
+    suspend fun get(id: Long): LiftDto {
+        val lift: Lift = liftsDao.get(id)
+        return LiftDto(
+            id = lift.id,
+            name = lift.name,
+            movementPattern = lift.movementPattern,
+            volumeTypesBitmask = lift.volumeTypesBitmask,
+            incrementOverride = lift.incrementOverride,
+            isHidden = lift.isHidden,
+            isBodyweight = lift.isBodyweight,
+        )
+    }
+
     suspend fun getAll(): List<LiftDto> {
         return liftsDao.getAll().map {
             LiftDto(

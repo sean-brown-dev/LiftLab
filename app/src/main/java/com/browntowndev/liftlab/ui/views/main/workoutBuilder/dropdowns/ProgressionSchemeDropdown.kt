@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
@@ -32,6 +33,7 @@ import com.browntowndev.liftlab.ui.views.utils.TextDropdownTextAnchor
 fun ProgressionSchemeDropdown(
     modifier: Modifier = Modifier,
     text: String,
+    hasCustomSets: Boolean,
     onChangeProgressionScheme: (ProgressionScheme) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -56,7 +58,11 @@ fun ProgressionSchemeDropdown(
             text = text,
             fontSize = 18.sp
         ) {
-            for (progressionScheme in progressionSchemes) {
+            progressionSchemes
+                .filter {
+                    !hasCustomSets ||
+                    (it != ProgressionScheme.WAVE_LOADING_PROGRESSION && it != ProgressionScheme.LINEAR_PROGRESSION)
+                }.fastForEach { progressionScheme ->
                 DropdownMenuItem(
                     text = { Text(progressionScheme.displayName()) },
                     onClick = {

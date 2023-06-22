@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.common.enums
 
+import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
@@ -26,6 +27,61 @@ enum class MovementPattern {
     AB_ISO,
     INCLINE_PUSH,
     VERTICAL_PUSH,
+}
+
+sealed class MovementPatternFilterSection(
+    override val sectionName: String,
+    override val filterChipOptions: Lazy<List<String>>,
+): FlowRowFilterChipSection {
+    object UpperCompound: MovementPatternFilterSection(
+        sectionName = "Upper Compound",
+        filterChipOptions = lazy {
+            listOf(
+                MovementPattern.HORIZONTAL_PULL.displayName(),
+                MovementPattern.VERTICAL_PULL.displayName(),
+                MovementPattern.HORIZONTAL_PUSH.displayName(),
+                MovementPattern.INCLINE_PUSH.displayName(),
+                MovementPattern.VERTICAL_PUSH.displayName(),
+            )
+        }
+    )
+
+    object UpperAccessory: MovementPatternFilterSection(
+        sectionName = "Upper Accessory",
+        filterChipOptions = lazy {
+            listOf(
+                MovementPattern.CHEST_ISO.displayName(),
+                MovementPattern.TRICEP_ISO.displayName(),
+                MovementPattern.BICEP_ISO.displayName(),
+                MovementPattern.DELT_ISO.displayName(),
+                MovementPattern.FOREARM_ISO.displayName(),
+                MovementPattern.TRAP_ISO.displayName(),
+                MovementPattern.AB_ISO.displayName(),
+            )
+        }
+    )
+
+    object LowerCompound: MovementPatternFilterSection(
+        sectionName = "Lower Compound",
+        filterChipOptions = lazy {
+            listOf(
+                MovementPattern.HIP_HINGE.displayName(),
+                MovementPattern.LEG_PUSH.displayName(),
+            )
+        }
+    )
+
+    object LowerAccessory: MovementPatternFilterSection(
+        sectionName = "Lower Accessory",
+        filterChipOptions = lazy {
+            listOf(
+                MovementPattern.QUAD_ISO.displayName(),
+                MovementPattern.HAMSTRING_ISO.displayName(),
+                MovementPattern.GLUTE_ISO.displayName(),
+                MovementPattern.CALVES.displayName(),
+            )
+        }
+    )
 }
 
 fun MovementPattern.displayName(): String {
