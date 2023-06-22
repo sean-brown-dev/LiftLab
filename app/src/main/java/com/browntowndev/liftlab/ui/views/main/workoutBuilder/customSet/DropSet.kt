@@ -18,7 +18,6 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
 import com.browntowndev.liftlab.core.common.enums.toDropPercentageString
-import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSetBase
 import com.browntowndev.liftlab.ui.views.utils.DoubleTextField
 import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 import com.browntowndev.liftlab.ui.views.utils.ScrollableTextField
@@ -33,6 +32,7 @@ fun DropSet(
     rpeTarget: Double,
     repRangeBottom: Int?,
     repRangeTop: Int?,
+    isPreviousSetMyoRep: Boolean,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
@@ -41,8 +41,8 @@ fun DropSet(
     onPixelOverflowChanged: (Dp) -> Unit,
     toggleDetailsExpansion: () -> Unit,
 ) {
-    val dropSetDisplayNameShort by remember { mutableStateOf(com.browntowndev.liftlab.core.common.enums.SetType.DROP_SET.displayNameShort()) }
-    val dropSetDisplayName by remember { mutableStateOf(com.browntowndev.liftlab.core.common.enums.SetType.DROP_SET.displayName()) }
+    val dropSetDisplayNameShort by remember { mutableStateOf(SetType.DROP_SET.displayNameShort()) }
+    val dropSetDisplayName by remember { mutableStateOf(SetType.DROP_SET.displayName()) }
     val standardSetDisplayNameShort = (position + 1).toString()
 
     CustomSetBase(
@@ -58,6 +58,8 @@ fun DropSet(
         rightSideSummaryText = dropPercentage.toDropPercentageString(),
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
+        isPreviousSetMyoRep = isPreviousSetMyoRep,
+        isFirstSet = position == 0
     ) {
         Column {
             ScrollableTextField(

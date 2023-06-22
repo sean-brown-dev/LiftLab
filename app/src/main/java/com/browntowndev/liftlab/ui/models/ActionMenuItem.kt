@@ -5,7 +5,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed interface ActionMenuItem {
     val controlName: String
     val isVisible: Boolean
-    val icon: ImageVector
+    val icon: ImageVector?
+    val iconPainterResourceId: Int?
+    val trailingIconText: String?
 
     sealed interface IconMenuItem : ActionMenuItem {
         val title: String
@@ -19,7 +21,9 @@ sealed interface ActionMenuItem {
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
-            override val icon: ImageVector,
+            override val icon: ImageVector? = null,
+            override val iconPainterResourceId: Int? = null,
+            override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
         ) : IconMenuItem
 
@@ -29,7 +33,9 @@ sealed interface ActionMenuItem {
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
-            override val icon: ImageVector,
+            override val icon: ImageVector? = null,
+            override val iconPainterResourceId: Int? = null,
+            override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
         ) : IconMenuItem
 
@@ -39,7 +45,9 @@ sealed interface ActionMenuItem {
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int? = null,
             override val onClick: () -> Unit,
-            override val icon: ImageVector,
+            override val icon: ImageVector? = null,
+            override val iconPainterResourceId: Int? = null,
+            override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
         ) : IconMenuItem
     }
@@ -52,7 +60,9 @@ sealed interface ActionMenuItem {
 
         data class AlwaysShown(
             override val controlName: String,
-            override val icon: ImageVector,
+            override val icon: ImageVector? = null,
+            override val iconPainterResourceId: Int? = null,
+            override val trailingIconText: String? = null,
             override val value: String,
             override val isVisible: Boolean,
             override val onValueChange: (String) -> Unit,

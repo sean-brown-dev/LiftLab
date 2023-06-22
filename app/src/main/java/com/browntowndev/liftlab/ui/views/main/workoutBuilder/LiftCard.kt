@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
@@ -28,12 +27,16 @@ import kotlinx.coroutines.CoroutineScope
 @Composable
 fun LiftCard(
     liftName: String,
-    category: MovementPattern,
+    movementPattern: MovementPattern,
     hasCustomLiftSets: Boolean,
+    showCustomSetsOption: Boolean,
+    currentDeloadWeek: Int?,
+    showDeloadWeekOption: Boolean,
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
-    onReplaceMovementPattern: () -> Unit,
     onReplaceLift: () -> Unit,
-    content: @Composable (ColumnScope.() -> Unit),
+    onDeleteLift: () -> Unit,
+    onChangeDeloadWeek: () -> Unit,
+    content: @Composable() (ColumnScope.() -> Unit),
 ) {
     Column (
         horizontalAlignment = Alignment.Start,
@@ -42,18 +45,21 @@ fun LiftCard(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 15.dp),
+                .padding(0.dp, 5.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 16.dp, pressedElevation = 0.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            shape = RoundedCornerShape(8.dp),
         ) {
             LiftCardHeader(
-                category = category,
+                category = movementPattern,
                 liftName = liftName,
                 hasCustomLiftSets = hasCustomLiftSets,
+                showCustomSetsOption = showCustomSetsOption,
+                currentDeloadWeek = currentDeloadWeek,
+                showDeloadWeekOption = showDeloadWeekOption,
                 onCustomLiftSetsToggled = onCustomLiftSetsToggled,
-                onReplaceMovementPattern = onReplaceMovementPattern,
                 onReplaceLift = onReplaceLift,
+                onDeleteLift = onDeleteLift,
+                onChangeDeloadWeek = onChangeDeloadWeek,
             )
             Spacer(modifier = Modifier.height(15.dp))
             content()
@@ -67,9 +73,13 @@ fun LiftCardHeader(
     category: MovementPattern,
     liftName: String,
     hasCustomLiftSets: Boolean,
+    showCustomSetsOption: Boolean,
+    currentDeloadWeek: Int?,
+    showDeloadWeekOption: Boolean,
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
-    onReplaceMovementPattern: () -> Unit,
     onReplaceLift: () -> Unit,
+    onDeleteLift: () -> Unit,
+    onChangeDeloadWeek: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -95,9 +105,13 @@ fun LiftCardHeader(
         }
         LiftDropdown(
             hasCustomLiftSets = hasCustomLiftSets,
+            showCustomSetsOption = showCustomSetsOption,
+            currentDeloadWeek = currentDeloadWeek,
+            showDeloadWeekOption = showDeloadWeekOption,
             onCustomLiftSetsToggled = onCustomLiftSetsToggled,
             onReplaceLift = onReplaceLift,
-            onReplaceMovementPattern = onReplaceMovementPattern,
+            onDeleteLift = onDeleteLift,
+            onChangeDeloadWeek = onChangeDeloadWeek,
         )
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -16,6 +17,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +36,63 @@ import androidx.compose.ui.window.Dialog
 @Composable
 fun TextFieldModal(
     header: String,
+    initialTextFieldValue: Int,
+    onConfirm: (Int) -> Unit,
+    onCancel: () -> Unit,
+) {
+    var text by remember { mutableStateOf(initialTextFieldValue) }
+    LaunchedEffect(key1 = initialTextFieldValue) {
+        text = initialTextFieldValue
+    }
+
+    GenericTextFieldModal(
+        header = header,
+        value = initialTextFieldValue,
+        onConfirm = { onConfirm(text) },
+        onCancel = onCancel
+    ) {
+        IntegerTextField(
+            modifier = Modifier.width(100.dp),
+            value = text,
+            onValueChanged = {
+                text = it
+            }
+        )
+    }
+}
+
+@Composable
+fun TextFieldModal(
+    header: String,
     initialTextFieldValue: String,
     onConfirm: (String) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
-    var editedName by remember { mutableStateOf(TextFieldValue(text = initialTextFieldValue, selection = TextRange(start = 0, end = initialTextFieldValue.length))) }
+    var text by remember { mutableStateOf(TextFieldValue(text = initialTextFieldValue, selection = TextRange(start = 0, end = initialTextFieldValue.length))) }
 
+    GenericTextFieldModal(
+        header = header,
+        value = text,
+        onConfirm = { onConfirm(it.text) },
+        onCancel = onCancel
+    ) {
+        FocusedRoundTextField(
+            textFieldValue = text,
+            onTextFieldValueChange = {
+                text = it
+            }
+        )
+    }
+}
+
+@Composable
+private fun <T> GenericTextFieldModal(
+    header: String,
+    value: T,
+    onConfirm: (T) -> Unit,
+    onCancel: () -> Unit,
+    textField: @Composable (() -> Unit),
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -57,7 +110,8 @@ fun TextFieldModal(
                 Column (
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.background)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = header,
@@ -66,12 +120,7 @@ fun TextFieldModal(
                         fontSize = 15.sp
                     )
                     Divider(thickness = 20.dp, color = MaterialTheme.colorScheme.background)
-                    FocusedRoundTextField(
-                        textFieldValue = editedName,
-                        onTextFieldValueChange = {
-                            editedName = it
-                        }
-                    )
+                    textField()
                     Divider(thickness = 12.dp, color = MaterialTheme.colorScheme.background)
                     Row (
                         modifier = Modifier.fillMaxWidth(),
@@ -79,11 +128,13 @@ fun TextFieldModal(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            modifier = Modifier.padding(0.dp, 0.dp, 15.dp, 0.dp).clickable { onCancel() },
+                            modifier = Modifier
+                                .padding(0.dp, 0.dp, 15.dp, 0.dp)
+                                .clickable { onCancel() },
                             text = "Cancel",
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Button(onClick = { onConfirm(editedName.text) }) {
+                        Button(onClick = { onConfirm(value) }) {
                             Text(text = "OK")
                         }
                     }

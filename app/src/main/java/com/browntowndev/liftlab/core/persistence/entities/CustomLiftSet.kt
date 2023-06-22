@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Entity("sets",
-    indices = [Index("workoutLiftId")],
+    indices = [Index("workoutLiftId"), Index("workoutLiftId", "position")],
     foreignKeys = [ForeignKey(entity = WorkoutLift::class,
         parentColumns = arrayOf("workout_lift_id"),
         childColumns = arrayOf("workoutLiftId"),
@@ -19,10 +19,10 @@ data class CustomLiftSet(
     val workoutLiftId: Long,
     val type: SetType,
     val position: Int,
+    val rpeTarget: Double,
+    val repRangeBottom: Int,
+    val repRangeTop: Int,
     val repFloor: Int? = null,
-    val rpeTarget: Double? = null,
-    val repRangeBottom: Int? = null,
-    val repRangeTop: Int? = null,
     val dropPercentage: Double? = null,
     val maxSets: Int? = null,
     val setMatching: Boolean = false,

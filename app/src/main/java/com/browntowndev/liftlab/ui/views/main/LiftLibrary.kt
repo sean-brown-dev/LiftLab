@@ -2,6 +2,9 @@ package com.browntowndev.liftlab.ui.views.main
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,14 +16,25 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.views.utils.CircledTextIcon
 import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.utils.FilterSelector
+import com.browntowndev.liftlab.ui.views.utils.InputChipFlowRow
 import org.koin.androidx.compose.getViewModel
 
 
@@ -29,10 +43,24 @@ fun LiftLibrary(
     paddingValues: PaddingValues,
     navHostController: NavHostController,
     isSearchBarVisible: Boolean,
+    workoutId: Long? = null,
+    workoutLiftId: Long? = null,
+    movementPattern: String = "",
+    addAtPosition: Int? = null,
     onNavigateBack: () -> Unit,
+    setTopAppBarCollapsed: (Boolean) -> Unit,
+    onClearTopAppBarFilterText: () -> Unit,
+    onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
+    onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
     val liftLibraryViewModel: LiftLibraryViewModel = getViewModel()
     val state by liftLibraryViewModel.state.collectAsState()
+    var movementPatternFilter by remember { mutableStateOf(movementPattern) }
+
+    if (movementPatternFilter.isNotEmpty()) {
+        liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPatternFilter))
+        movementPatternFilter = ""
+    }
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
@@ -41,25 +69,88 @@ fun LiftLibrary(
         onNavigateBack.invoke()
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background)
-            .wrapContentSize(Alignment.TopStart)
-            .padding(paddingValues)
-    ) {
-        items(state.lifts) {lift ->
-            ListItem(
-                headlineContent = { Text(lift.name) },
-                supportingContent = { Text(lift.movementPatternDisplayName) },
-                leadingContent = { CircledTextIcon(text = lift.name[0].toString()) },
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    headlineColor = MaterialTheme.colorScheme.onBackground,
-                    supportingColor = MaterialTheme.colorScheme.onBackground,
-                    leadingIconColor = MaterialTheme.colorScheme.onBackground
-                )
+    LaunchedEffect(state.showFilterSelection) {
+        onChangeTopAppBarTitle(if(state.showFilterSelection) "Filter Options" else LiftLibraryScreen.navigation.title)
+        onToggleTopAppBarControlVisibility(Screen.NAVIGATION_ICON, state.showFilterSelection)
+        onToggleTopAppBarControlVisibility(LiftLibraryScreen.SEARCH_ICON, !state.showFilterSelection)
+        onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
+    }
+
+    LaunchedEffect(movementPattern) {
+        movementPatternFilter = movementPattern
+    }
+
+    if (!state.showFilterSelection) {
+        setTopAppBarCollapsed(false)
+        Column(
+            modifier = Modifier.padding(paddingValues),
+        ) {
+            InputChipFlowRow(
+                filters = state.allFilters,
+                onRemove = {
+                    if (it.type == FilterChipOption.NAME) {
+                        onClearTopAppBarFilterText()
+                    } else {
+                        liftLibraryViewModel.removeMovementPatternFilter(it.value)
+                    }
+                },
+            )
+            Box(
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = MaterialTheme.colorScheme.background)
+                        .wrapContentSize(Alignment.TopStart)
+                ) {
+                    items(state.filteredLifts) { lift ->
+                        ListItem(
+                            modifier = Modifier.clickable {
+                                if(workoutId != null && addAtPosition != null) {
+                                    liftLibraryViewModel.addWorkoutLift(workoutId, addAtPosition, lift.id)
+                                } else if (workoutId != null && workoutLiftId != null) {
+                                    liftLibraryViewModel.replaceWorkoutLift(workoutLiftId, lift.id)
+                                }
+
+                                navHostController.popBackStack()
+                                navHostController.popBackStack()
+                                navHostController.navigate(
+                                    route = WorkoutBuilderScreen.navigation.route + "/$workoutId"
+                                )
+                            },
+                            headlineContent = { Text(lift.name) },
+                            supportingContent = { Text(lift.movementPatternDisplayName) },
+                            leadingContent = { CircledTextIcon(text = lift.name[0].toString()) },
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                headlineColor = MaterialTheme.colorScheme.onBackground,
+                                supportingColor = MaterialTheme.colorScheme.onBackground,
+                                leadingIconColor = MaterialTheme.colorScheme.onBackground
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        setTopAppBarCollapsed(true)
+        val filterOptionSections = remember {
+            listOf(
+                MovementPatternFilterSection.UpperCompound,
+                MovementPatternFilterSection.UpperAccessory,
+                MovementPatternFilterSection.LowerCompound,
+                MovementPatternFilterSection.LowerAccessory,
             )
         }
+        FilterSelector(
+            modifier = Modifier.padding(paddingValues),
+            navigateBackClicked = state.backNavigationClicked,
+            filterOptionSections = filterOptionSections,
+            selectedFilters = state.movementPatternFilters,
+            onConfirmSelections = {
+                liftLibraryViewModel.filterLiftsByMovementPatterns(it)
+            },
+        )
     }
 }

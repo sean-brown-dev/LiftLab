@@ -15,11 +15,11 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
-import com.browntowndev.liftlab.ui.views.main.Lab
+import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.Workout
-import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
+import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
 
 @ExperimentalFoundationApi
@@ -33,19 +33,55 @@ fun NavigationGraph(
     hideBottomNavBar: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
-        composable(LiftLibraryScreen.navigation.route) {
+        composable(
+            route = LiftLibraryScreen.navigation.route + "?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}",
+            arguments = listOf(
+                navArgument("workoutId") {
+                    nullable = true
+                },
+                navArgument("workoutLiftId") {
+                    nullable = true
+                },
+                navArgument("movementPattern") {
+                    nullable = true
+                },
+                navArgument("addAtPosition") {
+                    nullable = true
+                },
+            )
+        ) { it ->
+            val workoutId = it.arguments?.getString("workoutId")?.toLongOrNull()
+            val workoutLiftId = it.arguments?.getString("workoutLiftId")?.toLongOrNull()
+            val movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
+            val addAtPosition = it.arguments?.getString("addAtPosition")?.toIntOrNull()
             val libraryScreen = screen as? LiftLibraryScreen
 
             if (libraryScreen != null) {
-                showBottomNavBar()
+                if (movementPatternParam.isNotEmpty() && workoutLiftId != null) {
+                    hideBottomNavBar()
+                } else {
+                    showBottomNavBar()
+                }
                 LiftLibrary(
                     paddingValues = paddingValues,
                     navHostController = navHostController,
+                    workoutId = workoutId,
+                    workoutLiftId = workoutLiftId,
+                    movementPattern = movementPatternParam,
+                    addAtPosition = addAtPosition,
                     isSearchBarVisible = libraryScreen.isSearchBarVisible,
                     onNavigateBack = onNavigateBack,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed,
+                    onChangeTopAppBarTitle = { mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, it)) },
+                    onToggleTopAppBarControlVisibility = { control, visible -> setTopAppBarControlVisibility(control, visible) },
+                    onClearTopAppBarFilterText = {
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW, "")
+                        )
+                    }
                 )
             }
         }
@@ -72,9 +108,11 @@ fun NavigationGraph(
         }
         composable(
             route = WorkoutBuilderScreen.navigation.route + "/{id}",
-            arguments = listOf(navArgument("id") {
-                type = NavType.LongType
-            })
+            arguments = listOf(
+                navArgument("id") {
+                    type = NavType.LongType
+                },
+            )
         ) {
             val workoutBuilderScreen = screen as? WorkoutBuilderScreen
             val workoutId = it.arguments?.getLong("id")

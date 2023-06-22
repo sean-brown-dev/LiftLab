@@ -47,50 +47,81 @@ fun StandardSettings(
             animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
         )
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IntegerTextField(
-                modifier = Modifier.weight(1f),
-                listState = listState,
-                maxValue = 10,
-                value = setCount,
-                label = "Sets",
-                onValueChanged = onSetCountChanged
-            )
-            Spacer(modifier = Modifier.width(2.dp))
-            IntegerTextField(
-                modifier = Modifier.weight(1f),
-                listState = listState,
-                value = repRangeBottom,
-                label = "Rep Range Bottom",
-                onValueChanged = onRepRangeBottomChanged
-            )
-            Spacer(modifier = Modifier.width(2.dp))
-            IntegerTextField(
-                modifier = Modifier.weight(1f),
-                listState = listState,
-                value = repRangeTop,
-                label = "Rep Range Top",
-                onValueChanged = onRepRangeTopChanged
-            )
-            Spacer(modifier = Modifier.width(2.dp))
-            DoubleTextField(
-                modifier = Modifier.weight(1f),
-                value = rpeTarget,
-                listState = listState,
-                disableSystemKeyboard = true,
-                label = when (progressionScheme) {
-                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "RPE"
-                    ProgressionScheme.LINEAR_PROGRESSION -> "Max RPE"
-                    else -> "Top Set RPE"
-                },
-                onFocusChanged = onToggleRpePicker,
-                onValueChanged = onRpeTargetChanged,
-                onPixelOverflowChanged = onPixelOverflowChanged,
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-        }
+        StandardSettingRow(
+            listState = listState,
+            setCount = setCount,
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+            rpeTarget = rpeTarget,
+            progressionScheme = progressionScheme,
+            onSetCountChanged = onSetCountChanged,
+            onRepRangeBottomChanged = onRepRangeBottomChanged,
+            onRepRangeTopChanged = onRepRangeTopChanged,
+            onRpeTargetChanged = onRpeTargetChanged,
+            onToggleRpePicker = onToggleRpePicker,
+            onPixelOverflowChanged = onPixelOverflowChanged
+        )
+    }
+}
+
+@Composable
+private fun StandardSettingRow(
+    listState: LazyListState,
+    setCount: Int,
+    repRangeBottom: Int,
+    repRangeTop: Int,
+    rpeTarget: Double,
+    progressionScheme: ProgressionScheme,
+    onSetCountChanged: (Int) -> Unit,
+    onRepRangeBottomChanged: (Int) -> Unit,
+    onRepRangeTopChanged: (Int) -> Unit,
+    onRpeTargetChanged: (Double) -> Unit,
+    onToggleRpePicker: (Boolean) -> Unit,
+    onPixelOverflowChanged: (Dp) -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IntegerTextField(
+            modifier = Modifier.weight(1f),
+            listState = listState,
+            maxValue = 10,
+            value = setCount,
+            label = "Sets",
+            onValueChanged = onSetCountChanged
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        IntegerTextField(
+            modifier = Modifier.weight(1f),
+            listState = listState,
+            value = repRangeBottom,
+            label = "Rep Range Bottom",
+            onValueChanged = onRepRangeBottomChanged
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        IntegerTextField(
+            modifier = Modifier.weight(1f),
+            listState = listState,
+            value = repRangeTop,
+            label = "Rep Range Top",
+            onValueChanged = onRepRangeTopChanged
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        DoubleTextField(
+            modifier = Modifier.weight(1f),
+            value = rpeTarget,
+            listState = listState,
+            disableSystemKeyboard = true,
+            label = when (progressionScheme) {
+                ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "RPE"
+                ProgressionScheme.LINEAR_PROGRESSION -> "Max RPE"
+                else -> "Top Set RPE"
+            },
+            onFocusChanged = onToggleRpePicker,
+            onValueChanged = onRpeTargetChanged,
+            onPixelOverflowChanged = onPixelOverflowChanged,
+        )
+        Spacer(modifier = Modifier.width(10.dp))
     }
 }

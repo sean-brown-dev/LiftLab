@@ -30,7 +30,7 @@ fun IconDropdown(
     iconSize: Dp = 24.dp,
     iconTint: Color = MaterialTheme.colorScheme.onBackground,
     dropdownColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    menuItems: @Composable() (ColumnScope.() -> Unit),
+    menuItems: @Composable (ColumnScope.() -> Unit),
 ) {
     Box(
         modifier = modifier.wrapContentSize(Alignment.TopStart)

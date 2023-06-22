@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
@@ -23,6 +24,8 @@ fun CustomSetTypeDropdown(
     text: String,
     fontSize: TextUnit = 14.sp,
     standardShortDisplayName: String,
+    isFirstSet: Boolean,
+    isPreviousSetMyoRep: Boolean,
     onCustomSetTypeChanged: (newSetType: SetType) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -35,7 +38,9 @@ fun CustomSetTypeDropdown(
         text = text,
         fontSize = fontSize
     ) {
-        for (setType in setTypes) {
+        setTypes
+            .filter { (it != SetType.DROP_SET) || (!isFirstSet && !isPreviousSetMyoRep)}
+            .fastForEach { setType ->
             DropdownMenuItem(
                 text = { Text(setType.displayName()) },
                 onClick = {

@@ -22,15 +22,16 @@ fun Workout(paddingValues: PaddingValues) {
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.background)
             .wrapContentSize(Alignment.Center)
-            .padding(paddingValues)
+            .padding(paddingValues),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Workout",
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
             textAlign = TextAlign.Center,
             fontSize = 20.sp
         )
+
     }
 }

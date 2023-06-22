@@ -9,8 +9,9 @@ data class Program(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "program_id")
     val id: Long = 0,
     val name: String,
+    val deloadWeek: Int = 4,
     val isActive: Boolean = true,
     val currentMicrocycle: Int = 0,
     val currentMicrocyclePosition: Int = 0,
-    val currentMesocycle: Int = 0
+    val currentMesocycle: Int = 0,
 )

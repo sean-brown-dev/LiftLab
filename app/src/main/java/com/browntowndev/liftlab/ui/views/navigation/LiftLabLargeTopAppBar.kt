@@ -103,7 +103,7 @@ private fun LiftLabSmallTopAppBar(
     state: LiftLabTopAppBarState,
     modifier: Modifier = Modifier,
     topAppBarViewModel: TopAppBarViewModel = getViewModel(),
-    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior() { false }
+    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior { false }
 ) {
     TopAppBar(
         modifier = modifier,

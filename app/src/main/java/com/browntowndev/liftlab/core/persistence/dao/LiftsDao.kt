@@ -20,6 +20,9 @@ interface LiftsDao {
     @Query("UPDATE lifts SET isHidden = 0")
     suspend fun show()
 
+    @Query("SELECT * FROM lifts WHERE lift_id = :id")
+    suspend fun get(id: Long): Lift
+
     @Query("SELECT * FROM lifts")
     suspend fun getAll(): List<Lift>
 

@@ -9,24 +9,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun CircledTextIcon(text: String) {
+fun CircledTextIcon(
+    text: String,
+    backgroundColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
+    textColor: Color = MaterialTheme.colorScheme.onTertiaryContainer,
+) {
     Box(
         modifier = Modifier
             .size(40.dp)
             .background(
-                MaterialTheme.colorScheme.primary,
+                backgroundColor,
                 shape = RoundedCornerShape(20.dp)
-            )
+            ),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colorScheme.onPrimary,
+            color = textColor,
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp
         )

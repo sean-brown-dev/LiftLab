@@ -504,19 +504,19 @@
 		"isBodyweight": false
 	},
 	{
-		"movementPattern": 15,
+		"movementPattern": 17,
 		"name": "Overhead Press (Barbell)",
 		"volumeTypesBitmask": 192,
 		"isBodyweight": false
 	},
 	{
-		"movementPattern": 15,
+		"movementPattern": 17,
 		"name": "Overhead Press (Dumbbell)",
 		"volumeTypesBitmask": 192,
 		"isBodyweight": false
 	},
 	{
-		"movementPattern": 15,
+		"movementPattern": 17,
 		"name": "Arnold Press",
 		"volumeTypesBitmask": 192,
 		"isBodyweight": false

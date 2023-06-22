@@ -11,9 +11,8 @@ data class LabState(
     val workoutIdToRename: Long? = null,
     val workoutToDelete: WorkoutDto? = null,
     val isReordering: Boolean = false,
+    val workoutCreated: Boolean = false,
+    val isEditingDeloadWeek: Boolean = false,
 ) {
     val originalProgramName: String = program?.name ?: ""
-
-    val workoutCount
-        get() = program?.workouts?.count() ?: 0
 }

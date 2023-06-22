@@ -34,7 +34,8 @@ fun CustomSetSummary(
         Text(
             text = leftSideSummaryText,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
+            style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.width(5.dp))
         Icon(
@@ -48,6 +49,7 @@ fun CustomSetSummary(
             text = rightSideSummaryText,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
             fontSize = 14.sp,
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
