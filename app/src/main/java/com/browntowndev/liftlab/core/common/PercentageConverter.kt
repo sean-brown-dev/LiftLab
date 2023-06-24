@@ -1,5 +1,5 @@
 package com.browntowndev.liftlab.core.common
 
-fun convertToDouble(percentageString: String): Double {
-    return percentageString.removeSuffix("%").toDouble() / 100
+fun convertToFloat(percentageString: String): Float {
+    return percentageString.removeSuffix("%").toFloat() / 100
 }

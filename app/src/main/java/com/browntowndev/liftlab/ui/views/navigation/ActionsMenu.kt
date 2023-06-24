@@ -25,7 +25,7 @@ import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.utils.FocusedRoundTextField
+import com.browntowndev.liftlab.ui.views.utils.FocusableRoundTextField
 
 @Composable
 fun ActionsMenu(
@@ -129,7 +129,7 @@ fun FocusedOutlinedTextField(
     item: ActionMenuItem.TextInputMenuItem,
     topAppBarViewModel: TopAppBarViewModel,
 ) {
-    FocusedRoundTextField(
+    FocusableRoundTextField(
         value = item.value,
         leadingIcon = {
             if(item.icon != null) {

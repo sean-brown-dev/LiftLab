@@ -4,6 +4,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,8 +19,10 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun FocusedRoundTextField(
+fun FocusableRoundTextField(
     value: String = "",
+    placeholder: String = "",
+    focus: Boolean = true,
     textFieldValue: TextFieldValue? = null,
     onValueChange: (String) -> Unit = { },
     onTextFieldValueChange: (TextFieldValue) -> Unit = { },
@@ -29,8 +32,10 @@ fun FocusedRoundTextField(
     val focusRequester = remember { FocusRequester() }
     var valueInnitted by remember { mutableStateOf(false) }
 
-    LaunchedEffect(valueInnitted) {
-        focusRequester.requestFocus()
+    if(focus) {
+        LaunchedEffect(valueInnitted) {
+            focusRequester.requestFocus()
+        }
     }
 
     if (textFieldValue == null) {
@@ -40,6 +45,7 @@ fun FocusedRoundTextField(
             value = value,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
+            placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.outline) },
             onValueChange = {
                 valueInnitted = true
                 onValueChange(it)
@@ -62,6 +68,7 @@ fun FocusedRoundTextField(
             value = textFieldValue,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
+            placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.outline) },
             onValueChange = {
                 valueInnitted = true
                 onTextFieldValueChange(it)

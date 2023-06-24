@@ -1,5 +1,9 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
@@ -12,19 +16,24 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.ui.views.utils.DurationPicker
 import com.browntowndev.liftlab.ui.views.utils.IconDropdown
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration
 
 
 @Composable
@@ -33,10 +42,18 @@ fun LiftDropdown(
     showCustomSetsOption: Boolean,
     currentDeloadWeek: Int?,
     showDeloadWeekOption: Boolean,
+    restTime: Duration,
+    increment: Float,
+    restTimeAppliedAcrossWorkouts: Boolean,
+    incrementAppliedAcrossWorkouts: Boolean,
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
     onReplaceLift: () -> Unit,
     onDeleteLift: () -> Unit,
     onChangeDeloadWeek: () -> Unit,
+    onChangeRestTime: (newRestTime: Duration, applyToLift: Boolean) -> Unit,
+    onChangeIncrement: (Float) -> Unit,
+    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
+    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var dropdownExpanded by remember { mutableStateOf(false) }
@@ -47,97 +64,212 @@ fun LiftDropdown(
         isExpanded = dropdownExpanded,
         onToggleExpansion = { dropdownExpanded = !dropdownExpanded }
     ) {
-        DropdownMenuItem(
-            text = { Text("Replace") },
-            onClick = {
-                dropdownExpanded = false
-                onReplaceLift()
-            },
-            leadingIcon = {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(id = R.drawable.replace_icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("Remove") },
-            onClick = {
-                dropdownExpanded = false
-                onDeleteLift()
-            },
-            leadingIcon = {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = Icons.Outlined.Delete,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        )
-        if (showCustomSetsOption || showDeloadWeekOption) {
-            Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
-        }
-        if (showDeloadWeekOption) {
+        var showRestTimePicker by remember { mutableStateOf(false) }
+        var showIncrementPicker by remember { mutableStateOf(false) }
+
+        if (!showRestTimePicker) {
             DropdownMenuItem(
-                text = { Text("Deload Week") },
+                text = { Text("Replace") },
                 onClick = {
                     dropdownExpanded = false
-                    onChangeDeloadWeek()
+                    onReplaceLift()
                 },
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Outlined.DateRange,
+                        painter = painterResource(id = R.drawable.replace_icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Remove") },
+                onClick = {
+                    dropdownExpanded = false
+                    onDeleteLift()
+                },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            )
+            Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+            if (showDeloadWeekOption) {
+                DropdownMenuItem(
+                    text = { Text("Deload Week") },
+                    onClick = {
+                        dropdownExpanded = false
+                        onChangeDeloadWeek()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            imageVector = Icons.Outlined.DateRange,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    },
+                    trailingIcon = {
+                        if (currentDeloadWeek != null) {
+                            Text(
+                                currentDeloadWeek.toString(),
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
+                )
+            }
+            DropdownMenuItem(
+                text = { Text("Rest Time") },
+                onClick = {
+                    showRestTimePicker = true
+                },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = R.drawable.stopwatch_icon),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 trailingIcon = {
-                    if(currentDeloadWeek != null) {
-                        Text(currentDeloadWeek.toString(), color = MaterialTheme.colorScheme.tertiary)
+                    var restTimeDisplay by remember {
+                        mutableStateOf(
+                            "${restTime.inWholeMinutes}:${
+                                String.format(
+                                    "%02d",
+                                    restTime.inWholeSeconds % 60
+                                )
+                            }"
+                        )
                     }
+                    LaunchedEffect(restTime) {
+                        restTimeDisplay = "${restTime.inWholeMinutes}:${
+                            String.format(
+                                "%02d",
+                                restTime.inWholeSeconds % 60
+                            )
+                        }"
+                    }
+
+                    Text(text = restTimeDisplay, color = MaterialTheme.colorScheme.tertiary)
                 }
             )
-        }
-        if (showCustomSetsOption) {
             DropdownMenuItem(
-                text = { Text("Custom Sets") },
+                text = { Text("Weight Increment") },
                 onClick = {
-                    customLiftsEnabled = !customLiftsEnabled
-                    coroutineScope.launch{
-                        delay(100)
-                        dropdownExpanded = false
-                        onCustomLiftSetsToggled(customLiftsEnabled)
-                    }
+                    showIncrementPicker = true
                 },
                 leadingIcon = {
-                    Switch(
-                        enabled = true,
-                        checked = customLiftsEnabled,
-                        onCheckedChange = {
-                            customLiftsEnabled = it
-                            coroutineScope.launch{
-                                delay(100)
-                                dropdownExpanded = false
-                                onCustomLiftSetsToggled(it)
-                            }
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedIconColor = MaterialTheme.colorScheme.onPrimary,
-                            uncheckedIconColor = MaterialTheme.colorScheme.onTertiary,
-                            checkedThumbColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.tertiary,
-                            checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                            checkedBorderColor = MaterialTheme.colorScheme.primary,
-                            uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-                        )
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = R.drawable.plate_icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
+                },
+                trailingIcon = {
+                    var incrementDisplay by remember {
+                        mutableStateOf(
+                            increment.toString().removeSuffix(".0")
+                        )
+                    }
+                    LaunchedEffect(increment) {
+                        incrementDisplay = increment.toString().removeSuffix(".0")
+                    }
+                    Text(text = incrementDisplay, color = MaterialTheme.colorScheme.tertiary)
                 }
             )
+            if (showCustomSetsOption) {
+                DropdownMenuItem(
+                    text = { Text("Custom Sets") },
+                    onClick = {
+                        customLiftsEnabled = !customLiftsEnabled
+                        coroutineScope.launch {
+                            delay(100)
+                            dropdownExpanded = false
+                            onCustomLiftSetsToggled(customLiftsEnabled)
+                        }
+                    },
+                    leadingIcon = {
+                        Switch(
+                            enabled = true,
+                            checked = customLiftsEnabled,
+                            onCheckedChange = {
+                                customLiftsEnabled = it
+                                coroutineScope.launch {
+                                    delay(100)
+                                    dropdownExpanded = false
+                                    onCustomLiftSetsToggled(it)
+                                }
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                uncheckedIconColor = MaterialTheme.colorScheme.onTertiary,
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.tertiary,
+                                checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                                checkedBorderColor = MaterialTheme.colorScheme.primary,
+                                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                            )
+                        )
+                    }
+                )
+            }
+        } else {
+            Column {
+                var restTimeAppliedAcrossWorkoutsState by remember { mutableStateOf(restTimeAppliedAcrossWorkouts) }
+                LaunchedEffect(restTimeAppliedAcrossWorkouts) {
+                    restTimeAppliedAcrossWorkoutsState = restTimeAppliedAcrossWorkouts
+                }
+                DurationPicker(
+                    startTime = restTime,
+                    onConfirm = {
+                        onChangeRestTime(it, restTimeAppliedAcrossWorkoutsState)
+                        showRestTimePicker = false
+                    },
+                    onCancel = { showRestTimePicker = false },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(start = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Use Across Workouts",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontSize = 13.sp,
+                        )
+                        Spacer(modifier = Modifier.weight(.1f))
+                        Switch(
+                            modifier = Modifier.padding(end = 5.dp),
+                            enabled = true,
+                            checked = restTimeAppliedAcrossWorkoutsState,
+                            onCheckedChange = {
+                                restTimeAppliedAcrossWorkoutsState = it
+                                coroutineScope.launch {
+                                    onChangeRestTimeAppliedAcrossWorkouts(it)
+                                }
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                uncheckedIconColor = MaterialTheme.colorScheme.onTertiary,
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.tertiary,
+                                checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                                checkedBorderColor = MaterialTheme.colorScheme.primary,
+                                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 }

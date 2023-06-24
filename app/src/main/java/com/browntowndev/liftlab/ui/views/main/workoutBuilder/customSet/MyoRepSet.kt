@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.ui.views.utils.DoubleTextField
+import com.browntowndev.liftlab.ui.views.utils.FloatTextField
 import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 import com.browntowndev.liftlab.ui.views.utils.LabeledCheckBox
 
@@ -28,7 +28,7 @@ fun MyoRepSet(
     listState: LazyListState,
     detailsExpanded: Boolean,
     position: Int,
-    rpeTarget: Double,
+    rpeTarget: Float,
     repRangeBottom: Int,
     repRangeTop: Int,
     setMatching: Boolean,
@@ -128,7 +128,7 @@ fun MyoRepSet(
                 )
             }
             Spacer(modifier = Modifier.width(2.dp))
-            DoubleTextField(
+            FloatTextField(
                 vertical = false,
                 listState = listState,
                 disableSystemKeyboard = true,

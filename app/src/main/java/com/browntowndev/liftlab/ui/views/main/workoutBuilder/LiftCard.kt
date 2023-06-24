@@ -22,11 +22,16 @@ import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.LiftDropdown
 import kotlinx.coroutines.CoroutineScope
+import kotlin.time.Duration
 
 
 @Composable
 fun LiftCard(
     liftName: String,
+    increment: Float,
+    restTime: Duration,
+    restTimeAppliedAcrossWorkouts: Boolean,
+    incrementAppliedAcrossWorkouts: Boolean,
     movementPattern: MovementPattern,
     hasCustomLiftSets: Boolean,
     showCustomSetsOption: Boolean,
@@ -36,7 +41,11 @@ fun LiftCard(
     onReplaceLift: () -> Unit,
     onDeleteLift: () -> Unit,
     onChangeDeloadWeek: () -> Unit,
-    content: @Composable() (ColumnScope.() -> Unit),
+    onChangeIncrement: (Float) -> Unit,
+    onChangeRestTime: (newRestTime: Duration, appliedAcrossSets: Boolean) -> Unit,
+    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
+    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
+    content: @Composable (ColumnScope.() -> Unit),
 ) {
     Column (
         horizontalAlignment = Alignment.Start,
@@ -52,6 +61,10 @@ fun LiftCard(
             LiftCardHeader(
                 category = movementPattern,
                 liftName = liftName,
+                increment = increment,
+                restTime = restTime,
+                restTimeAppliedAcrossWorkouts = restTimeAppliedAcrossWorkouts,
+                incrementAppliedAcrossWorkouts = incrementAppliedAcrossWorkouts,
                 hasCustomLiftSets = hasCustomLiftSets,
                 showCustomSetsOption = showCustomSetsOption,
                 currentDeloadWeek = currentDeloadWeek,
@@ -59,7 +72,11 @@ fun LiftCard(
                 onCustomLiftSetsToggled = onCustomLiftSetsToggled,
                 onReplaceLift = onReplaceLift,
                 onDeleteLift = onDeleteLift,
+                onChangeIncrement = onChangeIncrement,
+                onChangeRestTime = onChangeRestTime,
                 onChangeDeloadWeek = onChangeDeloadWeek,
+                onChangeIncrementAppliedAcrossWorkouts = onChangeIncrementAppliedAcrossWorkouts,
+                onChangeRestTimeAppliedAcrossWorkouts = onChangeRestTimeAppliedAcrossWorkouts,
             )
             Spacer(modifier = Modifier.height(15.dp))
             content()
@@ -72,6 +89,10 @@ fun LiftCard(
 fun LiftCardHeader(
     category: MovementPattern,
     liftName: String,
+    restTime: Duration,
+    increment: Float,
+    restTimeAppliedAcrossWorkouts: Boolean,
+    incrementAppliedAcrossWorkouts: Boolean,
     hasCustomLiftSets: Boolean,
     showCustomSetsOption: Boolean,
     currentDeloadWeek: Int?,
@@ -79,7 +100,11 @@ fun LiftCardHeader(
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
     onReplaceLift: () -> Unit,
     onDeleteLift: () -> Unit,
+    onChangeIncrement: (Float) -> Unit,
+    onChangeRestTime: (newRestTime: Duration, appliedAcrossSets: Boolean) -> Unit,
     onChangeDeloadWeek: () -> Unit,
+    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
+    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -104,6 +129,10 @@ fun LiftCardHeader(
             )
         }
         LiftDropdown(
+            restTime = restTime,
+            increment = increment,
+            restTimeAppliedAcrossWorkouts = restTimeAppliedAcrossWorkouts,
+            incrementAppliedAcrossWorkouts = incrementAppliedAcrossWorkouts,
             hasCustomLiftSets = hasCustomLiftSets,
             showCustomSetsOption = showCustomSetsOption,
             currentDeloadWeek = currentDeloadWeek,
@@ -111,7 +140,11 @@ fun LiftCardHeader(
             onCustomLiftSetsToggled = onCustomLiftSetsToggled,
             onReplaceLift = onReplaceLift,
             onDeleteLift = onDeleteLift,
+            onChangeIncrement = onChangeIncrement,
+            onChangeRestTime = onChangeRestTime,
             onChangeDeloadWeek = onChangeDeloadWeek,
+            onChangeIncrementAppliedAcrossWorkouts = onChangeIncrementAppliedAcrossWorkouts,
+            onChangeRestTimeAppliedAcrossWorkouts = onChangeRestTimeAppliedAcrossWorkouts,
         )
     }
 }

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.entities.Lift
+import kotlin.time.Duration
 
 class LiftsRepository(private val liftsDao: LiftsDao): Repository {
     suspend fun createLift(lift: Lift) {
@@ -17,6 +18,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
             movementPattern = lift.movementPattern,
             volumeTypesBitmask = lift.volumeTypesBitmask,
             incrementOverride = lift.incrementOverride,
+            restTime = lift.restTime,
             isHidden = lift.isHidden,
             isBodyweight = lift.isBodyweight,
         )
@@ -30,9 +32,14 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 movementPattern = it.movementPattern,
                 volumeTypesBitmask = it.volumeTypesBitmask,
                 incrementOverride = it.incrementOverride,
+                restTime = it.restTime,
                 isHidden = it.isHidden,
                 isBodyweight = it.isBodyweight,
             )
         }
+    }
+
+    suspend fun updateRestTime(id: Long, newRestTime: Duration) {
+        liftsDao.updateRestTime(id, newRestTime)
     }
 }

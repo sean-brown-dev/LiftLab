@@ -4,7 +4,7 @@ interface GenericCustomLiftSet {
     val id: Long
     val workoutLiftId: Long
     val position: Int
-    val rpeTarget: Double
+    val rpeTarget: Float
     val repRangeBottom: Int
     val repRangeTop: Int
 }

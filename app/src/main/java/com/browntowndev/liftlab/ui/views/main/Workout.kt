@@ -32,6 +32,5 @@ fun Workout(paddingValues: PaddingValues) {
             textAlign = TextAlign.Center,
             fontSize = 20.sp
         )
-
     }
 }

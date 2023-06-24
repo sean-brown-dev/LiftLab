@@ -48,6 +48,7 @@ class LabViewModel(
             TopAppBarAction.RenameProgram -> showEditProgramNameModal()
             TopAppBarAction.DeleteProgram -> beginDeleteProgram()
             TopAppBarAction.CreateNewWorkout -> createNewWorkout()
+            TopAppBarAction.CreateNewProgram -> toggleCreateProgramModal()
             TopAppBarAction.EditDeloadWeek -> toggleEditDeloadWeek()
             else -> { }
         }
@@ -76,6 +77,26 @@ class LabViewModel(
                     isEditingDeloadWeek = false,
                     program = _state.value.program!!.copy(deloadWeek = deloadWeek)
                 )
+            }
+        }
+    }
+
+    fun toggleCreateProgramModal() {
+        _state.update {
+            it.copy(isCreatingProgram = !_state.value.isCreatingProgram)
+        }
+    }
+
+    fun createProgram(name: String) {
+        executeInTransactionScope {
+            val newProgram = ProgramDto(name = name)
+            if (_state.value.program != null) {
+                val programToArchive = _state.value.program!!.copy(isActive = false)
+                programsRepository.update(programToArchive)
+            }
+            val newProgramId = programsRepository.insert(newProgram)
+            _state.update {
+                it.copy(program = newProgram.copy(id = newProgramId), isCreatingProgram = false)
             }
         }
     }

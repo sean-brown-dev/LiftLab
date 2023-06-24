@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Program
 
@@ -15,6 +16,9 @@ interface ProgramsDao {
 
     @Delete
     suspend fun delete(program: Program)
+
+    @Update
+    suspend fun update(program: Program)
 
     @Query("DELETE FROM programs WHERE program_id = :id")
     suspend fun delete(id: Long)

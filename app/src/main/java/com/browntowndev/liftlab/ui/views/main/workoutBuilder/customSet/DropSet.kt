@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
 import com.browntowndev.liftlab.core.common.enums.toDropPercentageString
-import com.browntowndev.liftlab.ui.views.utils.DoubleTextField
+import com.browntowndev.liftlab.ui.views.utils.FloatTextField
 import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 import com.browntowndev.liftlab.ui.views.utils.ScrollableTextField
 
@@ -28,8 +28,8 @@ fun DropSet(
     listState: LazyListState,
     detailsExpanded: Boolean,
     position: Int,
-    dropPercentage: Double,
-    rpeTarget: Double,
+    dropPercentage: Float,
+    rpeTarget: Float,
     repRangeBottom: Int?,
     repRangeTop: Int?,
     isPreviousSetMyoRep: Boolean,
@@ -52,7 +52,7 @@ fun DropSet(
         standardShortDisplayName = standardSetDisplayNameShort,
         leftSideSummaryText =
         if (repRangeTop != null && repRangeBottom != null) "$repRangeBottom - $repRangeTop reps @$rpeTarget"
-        else if (rpeTarget != 10.0) "@$rpeTarget"
+        else if (rpeTarget != 10f) "@$rpeTarget"
         else "AMRAP",
         centerIconResourceId = R.drawable.descend_icon,
         rightSideSummaryText = dropPercentage.toDropPercentageString(),
@@ -95,7 +95,7 @@ fun DropSet(
                 onPixelOverflowChanged = onPixelOverflowChanged,
             )
             Spacer(modifier = Modifier.width(2.dp))
-            DoubleTextField(
+            FloatTextField(
                 vertical = false,
                 listState = listState,
                 disableSystemKeyboard = true,

@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScrollableTextField(
     modifier: Modifier = Modifier,
+    placeholder: String = "",
     listState: LazyListState? = null,
     vertical: Boolean = true,
     disableSystemKeyboard: Boolean = true,
@@ -123,6 +124,13 @@ fun ScrollableTextField(
                 isError = text.isEmpty(),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
+                placeholder = {
+                    Text(
+                        text = placeholder,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontSize = 10.sp,
+                    )
+                },
                 textStyle = TextStyle(
                     textAlign = TextAlign.Center,
                     fontSize = 20.sp
@@ -132,7 +140,7 @@ fun ScrollableTextField(
                     unfocusedBorderColor = Color.Transparent,
                     errorBorderColor = MaterialTheme.colorScheme.error,
                     errorCursorColor = MaterialTheme.colorScheme.error,
-                    errorContainerColor = MaterialTheme.colorScheme.errorContainer,
+                    errorContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                     cursorColor = if (disableSystemKeyboard) Color.Transparent else MaterialTheme.colorScheme.primary,
                     unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                     focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
