@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 fun RpePicker(
     modifier: Modifier = Modifier,
     visible: Boolean,
-    onRpeSelected: (rpe: Double) -> Unit,
+    onRpeSelected: (rpe: Float) -> Unit,
 ) {
     var isVisible by remember { mutableStateOf(visible) }
     val focusManager = LocalFocusManager.current
@@ -97,7 +97,7 @@ fun RpePicker(
                 }
                 Spacer(modifier = Modifier.width(5.dp))
             }
-            var selectedRpeOption: Double? by remember { mutableStateOf(null) }
+            var selectedRpeOption: Float? by remember { mutableStateOf(null) }
             Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
                 if (selectedRpeOption != null) {
                     val repsLeftInTank = 10.0 - selectedRpeOption!!
@@ -151,9 +151,9 @@ fun RpePicker(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                 ) {
-                    val rpeMinValue = 6.0
-                    val rpeMaxValue = 10.0
-                    for (rpe in ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2.0 }) {
+                    val rpeMinValue = 6f
+                    val rpeMaxValue = 10f
+                    for (rpe in ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2f }) {
                         RpeOption(
                             modifier = Modifier.weight(1f),
                             isSelected = selectedRpeOption == rpe,
@@ -176,7 +176,7 @@ fun RpePicker(
 @Composable
 private fun RpeOption(
     modifier: Modifier = Modifier,
-    value: Double,
+    value: Float,
     isFirst: Boolean,
     isLast: Boolean,
     isSelected: Boolean = false,

@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
@@ -21,8 +22,10 @@ class CustomLiftSetsRepository(
         customLiftCustomSetsDao.deleteAllForLift(workoutLiftId)
     }
 
+    @Transaction
     suspend fun deleteByPosition(workoutLiftId: Long, position: Int) {
         customLiftCustomSetsDao.deleteByPosition(workoutLiftId, position)
+        customLiftCustomSetsDao.syncPositions(workoutLiftId, position)
     }
 
     suspend fun insertAll(customSets: List<GenericCustomLiftSet>): List<Long> {

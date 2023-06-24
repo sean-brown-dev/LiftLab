@@ -28,4 +28,7 @@ interface CustomSetsDao {
 
     @Query("DELETE FROM sets WHERE workoutLiftId = :workoutLiftId AND position = :position")
     suspend fun deleteByPosition(workoutLiftId: Long, position: Int)
+
+    @Query("UPDATE sets SET position = position - 1 WHERE workoutLiftId = :workoutLiftId AND position > :afterPosition")
+    suspend fun syncPositions(workoutLiftId: Long, afterPosition: Int)
 }

@@ -10,20 +10,20 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun DoubleTextField(
+fun FloatTextField(
     modifier: Modifier = Modifier,
     listState: LazyListState,
     vertical: Boolean = true,
-    maxValue: Double = 10.0,
-    minValue: Double = 0.0,
+    maxValue: Float = 10f,
+    minValue: Float = 0f,
     precision: Int = 2,
-    value: Double,
+    value: Float,
     label: String = "",
     labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
     disableSystemKeyboard: Boolean = false,
     onFocusChanged: (Boolean) -> Unit = {},
-    onValueChanged: (Double) -> Unit = {},
+    onValueChanged: (Float) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
     val textNoDotZero = value.toString().removeSuffix(".0").ifEmpty { "0" }
@@ -39,7 +39,7 @@ fun DoubleTextField(
         disableSystemKeyboard = disableSystemKeyboard,
         onFocusChanged = onFocusChanged,
         onValueChanged = { newValue ->
-            validateDouble(
+            validateFloat(
                 newValue = newValue,
                 existingValue = textNoDotZero,
                 maxValue = maxValue,
@@ -52,22 +52,22 @@ fun DoubleTextField(
     )
 }
 
-private fun validateDouble(
+private fun validateFloat(
     newValue: String,
     existingValue: String,
-    maxValue: Double,
-    minValue: Double,
+    maxValue: Float,
+    minValue: Float,
     precision: Int,
-    onValueChanged: (Double) -> Unit,
+    onValueChanged: (Float) -> Unit,
 ): String {
-    var newValueAsDouble = newValue.trim().toDoubleOrNull()
+    var newValueAsNumber = newValue.trim().toFloatOrNull()
     var text: String = existingValue
 
-    if (newValueAsDouble != null) {
-        if (newValueAsDouble <= maxValue && newValue.substringAfter('.', "").length <= precision) {
-            newValueAsDouble = if (newValueAsDouble >= minValue) newValueAsDouble else minValue
-            text = newValueAsDouble.toString()
-            onValueChanged(newValueAsDouble)
+    if (newValueAsNumber != null) {
+        if (newValueAsNumber <= maxValue && newValue.substringAfter('.', "").length <= precision) {
+            newValueAsNumber = if (newValueAsNumber >= minValue) newValueAsNumber else minValue
+            text = newValueAsNumber.toString()
+            onValueChanged(newValueAsNumber)
         }
     } else if (
         newValue.isEmpty() ||

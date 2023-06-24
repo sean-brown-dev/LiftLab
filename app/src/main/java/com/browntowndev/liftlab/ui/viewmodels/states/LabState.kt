@@ -5,6 +5,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 
 data class LabState(
     val program: ProgramDto? = null,
+    val isCreatingProgram: Boolean = false,
     val isEditingProgramName: Boolean = false,
     val isDeletingProgram: Boolean = false,
     val originalWorkoutName: String? = null,

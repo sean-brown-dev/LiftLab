@@ -20,6 +20,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.repositories.CustomLiftSetsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import kotlin.time.Duration
 
 class WorkoutBuilderViewModel(
     private val workoutId: Long,
@@ -41,6 +43,7 @@ class WorkoutBuilderViewModel(
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val customLiftSetsRepository: CustomLiftSetsRepository,
+    private val liftsRepository: LiftsRepository,
     private val transactionScope: TransactionScope,
     private val eventBus: EventBus,
 ): ViewModel() {
@@ -195,12 +198,16 @@ class WorkoutBuilderViewModel(
                                 liftId = lift.liftId,
                                 liftName = lift.liftName,
                                 liftMovementPattern = lift.liftMovementPattern,
+                                liftIncrementOverride = lift.incrementOverride,
+                                liftRestTime = lift.restTime,
                                 deloadWeek = lift.deloadWeek,
                                 position = lift.position,
                                 setCount = lift.setCount,
                                 repRangeBottom = topCustomLiftSet?.repRangeBottom ?: 8,
                                 repRangeTop = topCustomLiftSet?.repRangeTop ?: 10,
-                                rpeTarget = if (topCustomLiftSet is StandardSetDto) topCustomLiftSet.rpeTarget else 8.toDouble(),
+                                rpeTarget = if (topCustomLiftSet is StandardSetDto) topCustomLiftSet.rpeTarget else 8f,
+                                incrementOverride = null,
+                                restTime = lift.restTime,
                                 progressionScheme = lift.progressionScheme,
                             )
                         } else lift
@@ -256,10 +263,14 @@ class WorkoutBuilderViewModel(
                         liftId = lift.liftId,
                         liftName = lift.liftName,
                         liftMovementPattern = lift.liftMovementPattern,
+                        liftIncrementOverride = lift.incrementOverride,
+                        liftRestTime = lift.restTime,
                         deloadWeek = lift.deloadWeek,
                         position = lift.position,
                         setCount = lift.setCount,
                         progressionScheme = lift.progressionScheme,
+                        incrementOverride = lift.incrementOverride,
+                        restTime = lift.restTime,
                         customLiftSets = customSets
                     )
                 }
@@ -278,6 +289,41 @@ class WorkoutBuilderViewModel(
         }
 
         return if (workoutCopy != null) state.copy(workout = workoutCopy) else state
+    }
+
+    fun setRestTime(workoutLiftId: Long, newRestTime: Duration, applyAcrossWorkouts: Boolean) {
+        Log.d(Log.DEBUG.toString(), "minutes: ${newRestTime.inWholeMinutes} seconds: ${newRestTime.inWholeSeconds % 60}")
+
+        executeInTransactionScope {
+            val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
+            val workoutLiftCopy = when (workoutLift) {
+                is StandardWorkoutLiftDto -> {
+                    if (applyAcrossWorkouts) workoutLift.copy(restTime = null, liftRestTime = newRestTime)
+                    else workoutLift.copy(restTime = newRestTime)
+                }
+                is CustomWorkoutLiftDto -> {
+                    if (applyAcrossWorkouts) workoutLift.copy(restTime = null, liftRestTime = newRestTime)
+                    else workoutLift.copy(restTime = newRestTime)
+                }
+                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
+            }
+
+            if (applyAcrossWorkouts) {
+                liftsRepository.updateRestTime(workoutLift.liftId, newRestTime)
+            }
+
+            workoutLiftsRepository.update(workoutLiftCopy)
+            _state.update { currentState ->
+                currentState.copy(
+                    workout = currentState.workout!!.copy(
+                        lifts = currentState.workout.lifts.fastMap { lift ->
+                            if (lift.id == workoutLiftId) workoutLiftCopy
+                            else lift
+                        }
+                    )
+                )
+            }
+        }
     }
 
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
@@ -356,7 +402,7 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Double) {
+    fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Float) {
         executeInTransactionScope {
             val updatedStateCopy = _state.value.copy(
                 workout = updateLiftProperty(_state.value, workoutLiftId) {
@@ -424,7 +470,7 @@ class WorkoutBuilderViewModel(
                                 addedSet = StandardSetDto(
                                     workoutLiftId = lift.id,
                                     position = lift.customLiftSets.count(),
-                                    rpeTarget = 8.toDouble(),
+                                    rpeTarget = 8f,
                                     repRangeBottom = 8,
                                     repRangeTop = 10,
                                 )
@@ -464,14 +510,14 @@ class WorkoutBuilderViewModel(
 
     fun deleteSet(workoutLiftId: Long, position: Int) {
         executeInTransactionScope {
-            customLiftSetsRepository.deleteByPosition(workoutLiftId, position)
-
-            _state.update { currentState ->
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedState = _state.value.let { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.map { workoutLift ->
                             if(workoutLift.id == workoutLiftId) {
-                                (workoutLift as CustomWorkoutLiftDto).copy(
+                                updatedWorkoutLift = (workoutLift as CustomWorkoutLiftDto).copy(
+                                    setCount = workoutLift.setCount - 1,
                                     customLiftSets = workoutLift.customLiftSets
                                         .filter { it.position != position }
                                         .mapIndexed { index, customSet ->
@@ -483,10 +529,18 @@ class WorkoutBuilderViewModel(
                                             }
                                         }
                                 )
+                                updatedWorkoutLift!!
                             } else workoutLift
                         }
                     )
                 )
+            }
+
+            if (updatedWorkoutLift != null) {
+                customLiftSetsRepository.deleteByPosition(workoutLiftId, position)
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+
+                _state.update { updatedState }
             }
         }
     }
@@ -535,7 +589,7 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun setCustomSetRpeTarget(workoutLiftId: Long, position: Int, newRpeTarget: Double) {
+    fun setCustomSetRpeTarget(workoutLiftId: Long, position: Int, newRpeTarget: Float) {
         executeInTransactionScope {
             var updatedSet: GenericCustomLiftSet? = null
             val updatedStateCopy = _state.value.copy(
@@ -642,7 +696,7 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun setCustomSetDropPercentage(workoutLiftId: Long, position: Int, newDropPercentage: Double) {
+    fun setCustomSetDropPercentage(workoutLiftId: Long, position: Int, newDropPercentage: Float) {
         executeInTransactionScope {
             var updatedSet: GenericCustomLiftSet? = null
             val updatedStateCopy = _state.value.copy(
@@ -692,7 +746,7 @@ class WorkoutBuilderViewModel(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
-                        dropPercentage = .1, // TODO: Add a "drop percentage" setting and use it here
+                        dropPercentage = .1f, // TODO: Add a "drop percentage" setting and use it here
                         rpeTarget = set.rpeTarget,
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
@@ -714,8 +768,8 @@ class WorkoutBuilderViewModel(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
-                        dropPercentage = .1, // TODO: Add a "drop percentage" setting and use it here
-                        rpeTarget = 8.toDouble(), // TODO: Add a "rpe target" setting and use it here
+                        dropPercentage = .1f, // TODO: Add a "drop percentage" setting and use it here
+                        rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
                     )
@@ -724,7 +778,7 @@ class WorkoutBuilderViewModel(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
-                        rpeTarget = 8.toDouble(), // TODO: Add a "rpe target" setting and use it here
+                        rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
                     )
@@ -745,7 +799,7 @@ class WorkoutBuilderViewModel(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
-                        rpeTarget = 8.toDouble(), // TODO: Add a "rpe target" setting and use it here
+                        rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
                     )

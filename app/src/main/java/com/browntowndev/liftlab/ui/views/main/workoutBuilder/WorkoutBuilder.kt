@@ -33,7 +33,8 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.core.common.convertToDouble
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.convertToFloat
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
@@ -59,6 +60,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -110,6 +113,30 @@ fun WorkoutBuilder(
                 items(state.workout?.lifts ?: listOf(), { it.id }) { workoutLift ->
                     val standardLift = workoutLift as? StandardWorkoutLiftDto
                     val customLift = workoutLift as? CustomWorkoutLiftDto
+                    var overrideAppliedAtLiftLevel by remember {
+                        mutableStateOf(workoutLift.incrementOverride == null && workoutLift.liftIncrementOverride != null)
+                    }
+                    var restTimeAppliedAtLiftLevel by remember {
+                        mutableStateOf(workoutLift.restTime == null && workoutLift.liftRestTime != null)
+                    }
+                    var incrementOverride by remember {
+                        mutableStateOf(
+                            workoutLift.incrementOverride ?: workoutLift.liftIncrementOverride
+                            ?: SettingsManager.getSetting(
+                                SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+                            )
+                        )
+                    }
+                    var restTime by remember {
+                        mutableStateOf(
+                            workoutLift.restTime ?: workoutLift.liftRestTime
+                            ?: SettingsManager.getSetting(
+                                SettingsManager.SettingNames.REST_TIME,
+                                SettingsManager.SettingNames.DEFAULT_REST_TIME
+                            ).toDuration(DurationUnit.MILLISECONDS)
+                        )
+                    }
                     var customLiftsVisible by remember { mutableStateOf(customLift != null) }
                     var showCustomSetsOption by remember {
                         mutableStateOf(workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION &&
@@ -129,8 +156,42 @@ fun WorkoutBuilder(
                         deloadWeek = workoutLift.deloadWeek ?: state.programDeloadWeek
                     }
 
+                    LaunchedEffect(
+                        key1 = workoutLift.incrementOverride,
+                        key2 = workoutLift.liftIncrementOverride,
+                    ) {
+                        overrideAppliedAtLiftLevel =
+                            workoutLift.incrementOverride == null && workoutLift.liftIncrementOverride != null
+
+                        incrementOverride =
+                            workoutLift.incrementOverride ?: workoutLift.liftIncrementOverride
+                                    ?: SettingsManager.getSetting(
+                                SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+                            )
+                    }
+
+                    LaunchedEffect(
+                        key1 = workoutLift.restTime,
+                        key2 = workoutLift.liftRestTime,
+                    ) {
+
+                        restTimeAppliedAtLiftLevel =
+                            workoutLift.restTime == null && workoutLift.liftRestTime != null
+
+                        restTime = workoutLift.restTime ?: workoutLift.liftRestTime
+                                ?: SettingsManager.getSetting(
+                            SettingsManager.SettingNames.REST_TIME,
+                            SettingsManager.SettingNames.DEFAULT_REST_TIME
+                        ).toDuration(DurationUnit.MILLISECONDS)
+                    }
+
                     LiftCard(
                         liftName = workoutLift.liftName,
+                        increment = incrementOverride,
+                        restTime = restTime,
+                        restTimeAppliedAcrossWorkouts = restTimeAppliedAtLiftLevel,
+                        incrementAppliedAcrossWorkouts = overrideAppliedAtLiftLevel,
                         movementPattern = workoutLift.liftMovementPattern,
                         hasCustomLiftSets = customLiftsVisible,
                         showCustomSetsOption = showCustomSetsOption,
@@ -167,7 +228,17 @@ fun WorkoutBuilder(
                         },
                         onChangeDeloadWeek = {
                             workoutBuilderViewModel.toggleDeloadWeekModal(workoutLift)
-                        }
+                        },
+                        onChangeRestTime = { newRestTime, applyAcrossWorkouts ->
+                            workoutBuilderViewModel.setRestTime(
+                                workoutLiftId = workoutLift.id,
+                                newRestTime = newRestTime,
+                                applyAcrossWorkouts = applyAcrossWorkouts,
+                            )
+                        },
+                        onChangeIncrement = { },
+                        onChangeRestTimeAppliedAcrossWorkouts = {},
+                        onChangeIncrementAppliedAcrossWorkouts = {},
                     ) {
                         Row {
                             Spacer(modifier = Modifier.width(10.dp))
@@ -183,18 +254,29 @@ fun WorkoutBuilder(
 
                         // These keep the TextField from flashing between the default & actual value when
                         // custom settings are toggled
-                        var repRangeBottom by remember { mutableStateOf(standardLift?.repRangeBottom!!) }
-                        var repRangeTop by remember { mutableStateOf(standardLift?.repRangeTop!!) }
-                        var rpeTarget by remember { mutableStateOf(standardLift?.rpeTarget!!) }
+                        var repRangeBottom by remember { mutableStateOf(standardLift?.repRangeBottom ?: customLift!!.customLiftSets.first().repRangeBottom) }
+                        var repRangeTop by remember { mutableStateOf(standardLift?.repRangeTop ?: customLift!!.customLiftSets.first().repRangeTop) }
+                        var rpeTarget by remember { mutableStateOf(standardLift?.rpeTarget ?: customLift!!.customLiftSets.first().rpeTarget) }
 
                         LaunchedEffect(
                             key1 = standardLift?.repRangeBottom,
                             key2 = standardLift?.repRangeTop,
-                            key3 = standardLift?.rpeTarget
+                            key3 = standardLift?.rpeTarget,
                         ) {
                             repRangeBottom = if (standardLift?.repRangeBottom != null) standardLift.repRangeBottom else repRangeBottom
                             repRangeTop = if (standardLift?.repRangeTop != null) standardLift.repRangeTop else repRangeTop
                             rpeTarget = if (standardLift?.rpeTarget != null) standardLift.rpeTarget else rpeTarget
+                        }
+
+                        LaunchedEffect(
+                            key1 = customLift?.customLiftSets?.first()?.repRangeBottom,
+                            key2 = customLift?.customLiftSets?.first()?.repRangeTop,
+                            key3 = customLift?.customLiftSets?.first()?.rpeTarget,
+                        ) {
+                            val changedTopSet = customLift?.customLiftSets?.first()
+                            repRangeBottom = changedTopSet?.repRangeBottom ?: repRangeBottom
+                            repRangeTop = changedTopSet?.repRangeTop ?: repRangeTop
+                            rpeTarget = changedTopSet?.rpeTarget ?: rpeTarget
                         }
 
                         (customLift?.customLiftSets ?: listOf()).fastForEach { set ->
@@ -273,6 +355,7 @@ fun WorkoutBuilder(
                                 listState = listState,
                                 customSets = customLift?.customLiftSets ?: listOf(),
                                 onAddSet = { workoutBuilderViewModel.addSet(workoutLiftId = workoutLift.id) },
+                                onDeleteSet = { workoutBuilderViewModel.deleteSet(workoutLiftId = workoutLift.id, it) },
                                 onRepRangeBottomChanged = { position, newRepRangeBottom ->
                                     if (position == 0) repRangeBottom = newRepRangeBottom
                                     workoutBuilderViewModel.setCustomSetRepRangeBottom(
@@ -407,7 +490,7 @@ fun WorkoutBuilder(
                     workoutBuilderViewModel.setCustomSetDropPercentage(
                         workoutLiftId = state.pickerState!!.workoutLiftId,
                         position = state.pickerState!!.position!!,
-                        newDropPercentage = convertToDouble(it),
+                        newDropPercentage = convertToFloat(it),
                     )
                 }
             )

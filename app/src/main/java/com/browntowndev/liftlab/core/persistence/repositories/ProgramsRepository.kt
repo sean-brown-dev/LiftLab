@@ -33,6 +33,14 @@ class ProgramsRepository(private val programsDao: ProgramsDao, private val progr
         programsDao.updateDeloadWeek(id, newDeloadWeek)
     }
 
+    suspend fun update(program: ProgramDto) {
+        programsDao.update(programMapper.map(program))
+    }
+
+    suspend fun insert(program: ProgramDto): Long {
+        return programsDao.insert(programMapper.map(program))
+    }
+
     suspend fun getDeloadWeek(id: Long): Int {
         return programsDao.getDeloadWeek(id)
     }

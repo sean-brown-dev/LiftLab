@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun IntegerTextField(
     modifier: Modifier = Modifier,
+    placeholder: String = "",
     listState: LazyListState? = null,
     vertical: Boolean = true,
     maxValue: Int = 99,
@@ -27,6 +28,7 @@ fun IntegerTextField(
 ) {
     ScrollableTextField(
         modifier = modifier,
+        placeholder = placeholder,
         listState = listState,
         vertical = vertical,
         value = value?.toString() ?: "",

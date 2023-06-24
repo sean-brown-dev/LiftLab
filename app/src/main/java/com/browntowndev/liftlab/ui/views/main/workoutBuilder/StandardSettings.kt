@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.ui.views.utils.DoubleTextField
+import com.browntowndev.liftlab.ui.views.utils.FloatTextField
 import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 
 
@@ -27,12 +27,12 @@ fun StandardSettings(
     setCount: Int,
     repRangeBottom: Int,
     repRangeTop: Int,
-    rpeTarget: Double,
+    rpeTarget: Float,
     progressionScheme: ProgressionScheme,
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onRpeTargetChanged: (Double) -> Unit,
+    onRpeTargetChanged: (Float) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
 ) {
@@ -70,12 +70,12 @@ private fun StandardSettingRow(
     setCount: Int,
     repRangeBottom: Int,
     repRangeTop: Int,
-    rpeTarget: Double,
+    rpeTarget: Float,
     progressionScheme: ProgressionScheme,
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onRpeTargetChanged: (Double) -> Unit,
+    onRpeTargetChanged: (Float) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
 ) {
@@ -108,7 +108,7 @@ private fun StandardSettingRow(
             onValueChanged = onRepRangeTopChanged
         )
         Spacer(modifier = Modifier.width(2.dp))
-        DoubleTextField(
+        FloatTextField(
             modifier = Modifier.weight(1f),
             value = rpeTarget,
             listState = listState,

@@ -1,9 +1,11 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ fun CustomSetBase(
     val coroutineScope = rememberCoroutineScope()
 
     Row(
+        modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colorScheme.primaryContainer),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {

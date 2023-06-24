@@ -2,6 +2,8 @@ package com.browntowndev.liftlab.core.persistence
 
 import androidx.room.TypeConverter
 import java.util.Date
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class Converters {
     @TypeConverter
@@ -12,5 +14,16 @@ class Converters {
     @TypeConverter
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time
+    }
+
+
+    @TypeConverter
+    fun fromDuration(duration: Duration): Long {
+        return duration.inWholeMilliseconds
+    }
+
+    @TypeConverter
+    fun toDuration(milliseconds: Long): Duration {
+        return milliseconds.milliseconds
     }
 }

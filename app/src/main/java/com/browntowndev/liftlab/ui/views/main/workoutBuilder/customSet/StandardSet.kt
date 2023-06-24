@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.ui.views.utils.DoubleTextField
+import com.browntowndev.liftlab.ui.views.utils.FloatTextField
 import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 
 
@@ -21,7 +21,7 @@ fun StandardSet(
     listState: LazyListState,
     detailsExpanded: Boolean,
     position: Int,
-    rpeTarget: Double,
+    rpeTarget: Float,
     repRangeBottom: Int,
     repRangeTop: Int,
     isPreviousSetMyoRep: Boolean,
@@ -42,7 +42,7 @@ fun StandardSet(
         standardShortDisplayName = standardSetDisplayNameShort,
         leftSideSummaryText = "$repRangeBottom-$repRangeTop",
         centerIconResourceId = R.drawable.at_symbol_icon,
-        rightSideSummaryText = if(rpeTarget == 10.0) "AMRAP" else rpeTarget.toString(),
+        rightSideSummaryText = if(rpeTarget == 10f) "AMRAP" else rpeTarget.toString(),
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
         isFirstSet = position == 0,
@@ -71,7 +71,7 @@ fun StandardSet(
                 onPixelOverflowChanged = onPixelOverflowChanged,
             )
             Spacer(modifier = Modifier.width(2.dp))
-            DoubleTextField(
+            FloatTextField(
                 vertical = false,
                 listState = listState,
                 disableSystemKeyboard = true,
