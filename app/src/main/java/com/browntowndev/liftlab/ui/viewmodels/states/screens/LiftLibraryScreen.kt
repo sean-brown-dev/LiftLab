@@ -26,7 +26,7 @@ data class LiftLibraryScreen(
     val filterText: String = "",
 ) : BaseScreen(), KoinComponent {
     companion object {
-        val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary")
+        val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
         const val SEARCH_ICON = "searchIcon"
         const val LIFT_NAME_FILTER_TEXTVIEW = "liftNameFilterTextView"
         const val LIFT_MOVEMENT_PATTERN_FILTER_ICON = "liftMovementPatternFilterIcon"

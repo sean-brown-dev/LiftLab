@@ -83,6 +83,7 @@ fun WorkoutBuilder(
 
     BackHandler(true) {
         navHostController.popBackStack()
+        navHostController.popBackStack()
         navHostController.navigate(LabScreen.navigation.route)
     }
 
@@ -217,17 +218,18 @@ fun WorkoutBuilder(
                             }
                         },
                         onReplaceLift = {
-                            navHostController.navigate(
-                                LiftLibraryScreen.navigation.route +
-                                        "?workoutId=${state.workout!!.id}" +
-                                        "&workoutLiftId=${workoutLift.id}" +
-                                        "&movementPattern=${workoutLift.liftMovementPattern.displayName()}")
+                            val liftLibraryRoute = LiftLibraryScreen.navigation.route
+                                .replace("{workoutId}", state.workout!!.id.toString())
+                                .replace("{workoutLiftId}", workoutLift.id.toString())
+                                .replace("{movementPattern}", workoutLift.liftMovementPattern.displayName())
+
+                            navHostController.navigate(liftLibraryRoute)
                         },
                         onDeleteLift = {
                             workoutBuilderViewModel.toggleMovementPatternDeletionModal(workoutLift.id)
                         },
                         onChangeDeloadWeek = {
-                            workoutBuilderViewModel.toggleDeloadWeekModal(workoutLift)
+                            workoutBuilderViewModel.updateDeloadWeek(workoutLift.id, it)
                         },
                         onChangeRestTime = { newRestTime, applyAcrossWorkouts ->
                             workoutBuilderViewModel.setRestTime(
@@ -236,7 +238,13 @@ fun WorkoutBuilder(
                                 applyAcrossWorkouts = applyAcrossWorkouts,
                             )
                         },
-                        onChangeIncrement = { },
+                        onChangeIncrement = { newIncrement, applyAcrossWorkouts ->
+                            workoutBuilderViewModel.setIncrementOverride(
+                                workoutLiftId = workoutLift.id,
+                                newIncrement = newIncrement,
+                                applyAcrossWorkouts = applyAcrossWorkouts
+                            )
+                        },
                         onChangeRestTimeAppliedAcrossWorkouts = {},
                         onChangeIncrementAppliedAcrossWorkouts = {},
                     ) {
@@ -444,10 +452,10 @@ fun WorkoutBuilder(
                     ) {
                         Text(
                             modifier = Modifier.clickable {
-                                navHostController.navigate(
-                                    LiftLibraryScreen.navigation.route +
-                                            "?workoutId=${state.workout!!.id}" +
-                                            "&addAtPosition=${state.workout!!.lifts.count()}")
+                                val liftLibraryRoute = LiftLibraryScreen.navigation.route
+                                    .replace("{workoutId}", state.workout!!.id.toString())
+                                    .replace("{addAtPosition}", state.workout!!.lifts.count().toString())
+                                navHostController.navigate(liftLibraryRoute)
                             },
                             text = "Add Movement Pattern",
                             color = MaterialTheme.colorScheme.primary,
@@ -510,15 +518,6 @@ fun WorkoutBuilder(
             initialTextFieldValue = state.workout!!.name,
             onConfirm = { workoutBuilderViewModel.updateWorkoutName(it) },
             onCancel = { workoutBuilderViewModel.toggleWorkoutRenameModal() },
-        )
-    }
-
-    if (state.workoutLiftToChangeDeloadWeek != null) {
-        TextFieldModal(
-            header = "Change Deload Week",
-            initialTextFieldValue = state.workoutLiftToChangeDeloadWeek!!.deloadWeek ?: state.programDeloadWeek!!,
-            onConfirm = { workoutBuilderViewModel.updateDeloadWeek(it) },
-            onCancel = { workoutBuilderViewModel.toggleDeloadWeekModal() },
         )
     }
 

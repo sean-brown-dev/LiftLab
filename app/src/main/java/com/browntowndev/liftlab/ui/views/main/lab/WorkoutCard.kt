@@ -39,7 +39,8 @@ fun WorkoutCard(
             .fillMaxSize()
             .padding(5.dp)
             .clickable {
-                navigationController.navigate(WorkoutBuilderScreen.navigation.route + "/$workoutId")
+                val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
+                navigationController.navigate(workoutBuilderRoute)
             },
         shape = CardDefaults.shape,
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline),
