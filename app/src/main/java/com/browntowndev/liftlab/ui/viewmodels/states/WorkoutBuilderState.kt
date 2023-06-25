@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 
 data class WorkoutBuilderState (
     val workout: WorkoutDto? = null,
@@ -10,7 +9,6 @@ data class WorkoutBuilderState (
     val isEditingName: Boolean = false,
     val isReordering: Boolean = false,
     val workoutLiftIdToDelete: Long? = null,
-    val workoutLiftToChangeDeloadWeek: GenericWorkoutLift? = null,
     val changedSetTypeState: ChangedSetTypeState? = null,
     val pickerState: PickerState? = null,
     val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),

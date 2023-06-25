@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,14 +50,16 @@ fun CustomSetBase(
             standardShortDisplayName != null &&
             collapsedSetTypeDropdownText != null
         ) {
-            CustomSetTypeDropdown(
-                fontSize = 18.sp,
-                text = collapsedSetTypeDropdownText,
-                standardShortDisplayName = standardShortDisplayName,
-                onCustomSetTypeChanged = onCustomSetTypeChanged,
-                isFirstSet = isFirstSet,
-                isPreviousSetMyoRep = isPreviousSetMyoRep,
-            )
+            Box(modifier = Modifier.width(16.dp), contentAlignment = Alignment.CenterStart) {
+                CustomSetTypeDropdown(
+                    fontSize = 18.sp,
+                    text = collapsedSetTypeDropdownText,
+                    standardShortDisplayName = standardShortDisplayName,
+                    onCustomSetTypeChanged = onCustomSetTypeChanged,
+                    isFirstSet = isFirstSet,
+                    isPreviousSetMyoRep = isPreviousSetMyoRep,
+                )
+            }
             Spacer(Modifier.width(20.dp))
         }
         CustomSetExpandableCard(

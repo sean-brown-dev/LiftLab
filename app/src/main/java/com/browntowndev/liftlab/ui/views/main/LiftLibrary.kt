@@ -113,11 +113,10 @@ fun LiftLibrary(
                                     liftLibraryViewModel.replaceWorkoutLift(workoutLiftId, lift.id)
                                 }
 
+                                val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
                                 navHostController.popBackStack()
                                 navHostController.popBackStack()
-                                navHostController.navigate(
-                                    route = WorkoutBuilderScreen.navigation.route + "/$workoutId"
-                                )
+                                navHostController.navigate(workoutBuilderRoute)
                             },
                             headlineContent = { Text(lift.name) },
                             supportingContent = { Text(lift.movementPatternDisplayName) },

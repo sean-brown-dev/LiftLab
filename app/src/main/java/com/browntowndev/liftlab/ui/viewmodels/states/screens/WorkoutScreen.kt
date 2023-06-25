@@ -12,7 +12,7 @@ data class WorkoutScreen(
     override val title: String = navigation.title,
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon_hollow, "workout")
+        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
     }
 
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {

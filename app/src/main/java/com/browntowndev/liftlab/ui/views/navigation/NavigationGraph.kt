@@ -15,10 +15,10 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
-import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.Workout
 import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
+import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
 
@@ -37,7 +37,7 @@ fun NavigationGraph(
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(
-            route = LiftLibraryScreen.navigation.route + "?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}",
+            route = LiftLibraryScreen.navigation.route,
             arguments = listOf(
                 navArgument("workoutId") {
                     nullable = true
@@ -107,7 +107,7 @@ fun NavigationGraph(
             }
         }
         composable(
-            route = WorkoutBuilderScreen.navigation.route + "/{id}",
+            route = WorkoutBuilderScreen.navigation.route,
             arguments = listOf(
                 navArgument("id") {
                     type = NavType.LongType

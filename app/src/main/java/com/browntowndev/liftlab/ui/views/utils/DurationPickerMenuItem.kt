@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.utils
 
-import android.util.Log
 import android.widget.NumberPicker
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,35 +30,38 @@ import kotlin.time.toDuration
 
 
 @Composable
-fun DurationPicker(
+fun DurationPickerMenuItem(
     startTime: Duration,
-    minMinutes: Int = 0,
-    maxMinutes: Int = 6,
+    rangeInMinutes: LongRange = 0L..6L,
+    secondsStepSize: Int = 5,
     onConfirm: (Duration) -> Unit,
     onCancel: () -> Unit,
     headerContent: @Composable (() -> Unit)
 ) {
+    var stepSize by remember { mutableStateOf(secondsStepSize) }
     var seconds by remember { mutableStateOf(startTime.inWholeSeconds % 60) }
     var minutes by remember {
         mutableStateOf(
-            if (startTime.inWholeMinutes > maxMinutes) maxMinutes.toLong()
-            else if (startTime.inWholeMinutes < minMinutes) minMinutes.toLong()
+            if (startTime.inWholeMinutes > rangeInMinutes.last) rangeInMinutes.last
+            else if (startTime.inWholeMinutes < rangeInMinutes.first) rangeInMinutes.first
             else startTime.inWholeMinutes
         )
+    }
+
+    LaunchedEffect(secondsStepSize) {
+        stepSize = secondsStepSize
     }
 
     LaunchedEffect(startTime) {
         seconds = startTime.inWholeSeconds % 60
         minutes =
-            if (startTime.inWholeMinutes > maxMinutes) maxMinutes.toLong()
-            else if (startTime.inWholeMinutes < minMinutes) minMinutes.toLong()
+            if (startTime.inWholeMinutes > rangeInMinutes.last) rangeInMinutes.last
+            else if (startTime.inWholeMinutes < rangeInMinutes.first) rangeInMinutes.first
             else startTime.inWholeMinutes
     }
 
-
-    val stepSize = remember { 5 }
     Column(modifier = Modifier.width(200.dp)) {
-        Row(horizontalArrangement = Arrangement.End) {
+        Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onCancel) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
@@ -67,13 +69,15 @@ fun DurationPicker(
                     contentDescription = null
                 )
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                modifier = Modifier.weight(1f),
+                text = "Rest Time",
+                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 10.sp,
+            )
             IconButton(onClick = {
                 val secondsDuration = seconds.toDuration(DurationUnit.SECONDS)
                 val minutesDuration = minutes.toDuration(DurationUnit.MINUTES)
-                Log.d(Log.DEBUG.toString(), "minutes: $minutesDuration")
-                Log.d(Log.DEBUG.toString(), "seconds: $secondsDuration")
-                Log.d(Log.DEBUG.toString(), "${minutesDuration + secondsDuration}")
                 onConfirm(minutesDuration + secondsDuration)
             }) {
                 Icon(
@@ -91,8 +95,8 @@ fun DurationPicker(
                     NumberPicker(context).apply {
                         setOnValueChangedListener { _, _, newVal -> minutes = newVal.toLong() }
                         setPadding(10, 0, 10, 0)
-                        minValue = minMinutes
-                        maxValue = maxMinutes
+                        minValue = rangeInMinutes.first.toInt()
+                        maxValue = rangeInMinutes.last.toInt()
                         value = minutes.toInt()
                         wrapSelectorWheel = false
                     }

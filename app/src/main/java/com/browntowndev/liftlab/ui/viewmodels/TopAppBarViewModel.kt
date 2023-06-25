@@ -40,11 +40,11 @@ class TopAppBarViewModel: ViewModel() {
     }
 
     private fun getScreen(route: String?): Screen? = when (route) {
-        LiftLibraryScreen.navigation.route + "?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}"-> LiftLibraryScreen()
+        LiftLibraryScreen.navigation.route-> LiftLibraryScreen()
         WorkoutScreen.navigation.route -> WorkoutScreen()
         LabScreen.navigation.route -> LabScreen()
         WorkoutHistoryScreen.navigation.route -> WorkoutHistoryScreen()
-        WorkoutBuilderScreen.navigation.route + "/{id}" -> WorkoutBuilderScreen()
+        WorkoutBuilderScreen.navigation.route -> WorkoutBuilderScreen()
         else -> null
     }
 }

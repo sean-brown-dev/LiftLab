@@ -94,18 +94,12 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun toggleDeloadWeekModal(workoutLift: GenericWorkoutLift? = null) {
-        _state.update {
-            it.copy(workoutLiftToChangeDeloadWeek = workoutLift)
-        }
-    }
-
-    fun updateDeloadWeek(newDeloadWeek: Int) {
+    fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int) {
         executeInTransactionScope {
             var updatedWorkoutLift: GenericWorkoutLift? = null
             val workoutCopy = _state.value.workout!!.copy(
                 lifts = _state.value.workout!!.lifts.fastMap { lift ->
-                    if (lift.id == _state.value.workoutLiftToChangeDeloadWeek?.id) {
+                    if (lift.id == workoutLiftId) {
                         updatedWorkoutLift = when(lift) {
                             is StandardWorkoutLiftDto -> lift.copy(deloadWeek = newDeloadWeek)
                             is CustomWorkoutLiftDto -> lift.copy(deloadWeek = newDeloadWeek)
@@ -118,7 +112,7 @@ class WorkoutBuilderViewModel(
             if (updatedWorkoutLift != null) {
                 workoutLiftsRepository.update(updatedWorkoutLift!!)
                 _state.update {
-                    it.copy(workout = workoutCopy, workoutLiftToChangeDeloadWeek = null)
+                    it.copy(workout = workoutCopy)
                 }
             }
         }
@@ -135,7 +129,8 @@ class WorkoutBuilderViewModel(
                     currentState.copy(
                         workout = currentState.workout.copy(
                             lifts = mutableLifts.toList()
-                        )
+                        ),
+                        workoutLiftIdToDelete = null,
                     )
                 }
             }
@@ -292,8 +287,6 @@ class WorkoutBuilderViewModel(
     }
 
     fun setRestTime(workoutLiftId: Long, newRestTime: Duration, applyAcrossWorkouts: Boolean) {
-        Log.d(Log.DEBUG.toString(), "minutes: ${newRestTime.inWholeMinutes} seconds: ${newRestTime.inWholeSeconds % 60}")
-
         executeInTransactionScope {
             val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
             val workoutLiftCopy = when (workoutLift) {
@@ -310,6 +303,40 @@ class WorkoutBuilderViewModel(
 
             if (applyAcrossWorkouts) {
                 liftsRepository.updateRestTime(workoutLift.liftId, newRestTime)
+            }
+
+            workoutLiftsRepository.update(workoutLiftCopy)
+            _state.update { currentState ->
+                currentState.copy(
+                    workout = currentState.workout!!.copy(
+                        lifts = currentState.workout.lifts.fastMap { lift ->
+                            if (lift.id == workoutLiftId) workoutLiftCopy
+                            else lift
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    fun setIncrementOverride(workoutLiftId: Long, newIncrement: Float, applyAcrossWorkouts: Boolean) {
+        Log.d(Log.DEBUG.toString(), "newIncrement: $newIncrement")
+        executeInTransactionScope {
+            val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
+            val workoutLiftCopy = when (workoutLift) {
+                is StandardWorkoutLiftDto -> {
+                    if (applyAcrossWorkouts) workoutLift.copy(incrementOverride = null, liftIncrementOverride = newIncrement)
+                    else workoutLift.copy(incrementOverride = newIncrement)
+                }
+                is CustomWorkoutLiftDto -> {
+                    if (applyAcrossWorkouts) workoutLift.copy(incrementOverride = null, liftIncrementOverride = newIncrement)
+                    else workoutLift.copy(incrementOverride = newIncrement)
+                }
+                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
+            }
+
+            if (applyAcrossWorkouts) {
+                liftsRepository.updateIncrementOverride(workoutLift.liftId, newIncrement)
             }
 
             workoutLiftsRepository.update(workoutLiftCopy)
