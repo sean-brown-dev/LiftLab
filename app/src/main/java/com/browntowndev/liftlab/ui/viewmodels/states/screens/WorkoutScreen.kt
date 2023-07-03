@@ -10,6 +10,7 @@ data class WorkoutScreen(
     override val isOverflowMenuIconVisible: Boolean = false,
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
+    override val subtitle: String = navigation.subtitle,
 ) : BaseScreen() {
     companion object {
         val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
@@ -20,15 +21,19 @@ data class WorkoutScreen(
     }
 
     override fun copySetOverflowMenuVisibility(isVisible: Boolean): Screen {
-        return copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded)
+        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded) else this
     }
 
     override fun copySetNavigationIconVisibility(isVisible: Boolean): Screen {
-        return copy(navigationIconVisible = !this.navigationIconVisible)
+        return if (isVisible != navigationIconVisible) copy(navigationIconVisible = !this.navigationIconVisible) else this
     }
 
     override fun copyTitleMutation(newTitle: String): Screen {
-        return copy(title = newTitle)
+        return if (title != newTitle) copy(title = newTitle) else this
+    }
+
+    override fun copySubtitleMutation(newSubtitle: String): Screen {
+        return if (newSubtitle != subtitle) copy(subtitle = newSubtitle) else this
     }
 
     override val route: String

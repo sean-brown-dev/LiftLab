@@ -10,19 +10,9 @@ class BottomNavBarViewModel: ViewModel() {
     private var _state = MutableStateFlow(LiftLabBottomNavBarState())
     val state = _state.asStateFlow()
 
-    fun hide() {
-        if (_state.value.isVisible) {
-            _state.update {
-                it.copy(isVisible = false)
-            }
-        }
-    }
-
-    fun show() {
-        if (!_state.value.isVisible) {
-            _state.update {
-                it.copy(isVisible = true)
-            }
+    fun setVisibility(visible: Boolean) {
+        _state.update {
+            it.copy(isVisible = visible)
         }
     }
 }

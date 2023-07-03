@@ -11,6 +11,7 @@ data class StandardWorkoutLiftDto (
     override val liftId: Long,
     override val liftName: String,
     override val liftMovementPattern: MovementPattern,
+    override val liftVolumeTypes: Int,
     override val liftRestTime: Duration?,
     override val liftIncrementOverride: Float?,
     override val position: Int,

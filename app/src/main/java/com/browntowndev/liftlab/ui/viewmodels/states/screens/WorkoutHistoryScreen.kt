@@ -20,15 +20,15 @@ data class WorkoutHistoryScreen(
     }
 
     override fun copySetOverflowMenuVisibility(isVisible: Boolean): Screen {
-        return copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded)
+        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded) else this
     }
 
     override fun copySetNavigationIconVisibility(isVisible: Boolean): Screen {
-        return copy(navigationIconVisible = !this.navigationIconVisible)
+        return if (isVisible != navigationIconVisible) copy(navigationIconVisible = !this.navigationIconVisible) else this
     }
 
     override fun copyTitleMutation(newTitle: String): Screen {
-        return copy(title = newTitle)
+        return if (title != newTitle) copy(title = newTitle) else this
     }
 
     override val route: String

@@ -18,7 +18,7 @@ enum class VolumeType(val bitMask: Int) {
     LOWER_BACK(16384),
 }
 
-fun Int.getVolumeType(): List<VolumeType> {
+fun Int.getVolumeTypes(): List<VolumeType> {
     return VolumeType.values().filter { (this and it.bitMask) != 0 }
 }
 
@@ -26,18 +26,18 @@ fun VolumeType.displayName(): String {
     return when (this) {
         VolumeType.CHEST -> "Chest"
         VolumeType.BACK -> "Back"
-        VolumeType.QUAD -> "Quad"
-        VolumeType.HAMSTRING -> "Hamstring"
-        VolumeType.GLUTE -> "Glute"
-        VolumeType.POSTERIOR_DELTOID -> "Posterior Deltoid"
-        VolumeType.LATERAL_DELTOID -> "Lateral Deltoid"
-        VolumeType.ANTERIOR_DELTOID -> "Anterior Deltoid"
-        VolumeType.TRICEP -> "Tricep"
-        VolumeType.BICEP -> "Bicep"
-        VolumeType.TRAP -> "Trap"
-        VolumeType.CALF -> "Calf"
-        VolumeType.FOREARM -> "Forearm"
-        VolumeType.AB -> "Ab"
+        VolumeType.QUAD -> "Quads"
+        VolumeType.HAMSTRING -> "Hamstrings"
+        VolumeType.GLUTE -> "Glutes"
+        VolumeType.POSTERIOR_DELTOID -> "Posterior Deltoids"
+        VolumeType.LATERAL_DELTOID -> "Lateral Deltoids"
+        VolumeType.ANTERIOR_DELTOID -> "Anterior Deltoids"
+        VolumeType.TRICEP -> "Triceps"
+        VolumeType.BICEP -> "Biceps"
+        VolumeType.TRAP -> "Traps"
+        VolumeType.CALF -> "Calves"
+        VolumeType.FOREARM -> "Forearms"
+        VolumeType.AB -> "Abs"
         VolumeType.LOWER_BACK -> "Lower Back"
     }
 }

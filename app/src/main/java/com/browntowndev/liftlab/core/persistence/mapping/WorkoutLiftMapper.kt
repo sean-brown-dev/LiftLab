@@ -6,30 +6,22 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutL
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 
-class WorkoutLiftMapper(private val customLiftSetMapper: CustomLiftSetMapper) {
+class WorkoutLiftMapper(private val customLiftSetMapper: CustomLiftSetMapper)  {
 
-    fun map(entity: WorkoutLiftWithRelationships): GenericWorkoutLift {
-        return if (entity.customLiftSets.isEmpty()) {
-            toStandardWorkoutLiftDto(entity)
+    fun map(from: WorkoutLiftWithRelationships): GenericWorkoutLift {
+        return if (from.customLiftSets.isEmpty()) {
+            toStandardWorkoutLiftDto(from)
         }
         else {
-            toCustomWorkoutLiftDto(entity)
+            toCustomWorkoutLiftDto(from)
         }
     }
 
-    fun map(workoutLiftDto: GenericWorkoutLift): WorkoutLift {
-        return when (workoutLiftDto) {
-            is StandardWorkoutLiftDto -> toEntity(workoutLiftDto)
-            is CustomWorkoutLiftDto -> toEntity(workoutLiftDto)
-            else -> throw ClassNotFoundException("${workoutLiftDto::class.simpleName} is not implemented in ${WorkoutLiftMapper::class.simpleName}")
-        }
-    }
-
-    fun mapToFullEntity(workoutLiftDto: GenericWorkoutLift): WorkoutLift {
-        return when (workoutLiftDto) {
-            is StandardWorkoutLiftDto -> toEntity(workoutLiftDto)
-            is CustomWorkoutLiftDto -> toEntity(workoutLiftDto)
-            else -> throw ClassNotFoundException("${workoutLiftDto::class.simpleName} is not implemented in ${WorkoutLiftMapper::class.simpleName}")
+    fun map(from: GenericWorkoutLift): WorkoutLift {
+        return when (from) {
+            is StandardWorkoutLiftDto -> toEntity(from)
+            is CustomWorkoutLiftDto -> toEntity(from)
+            else -> throw ClassNotFoundException("${from::class.simpleName} is not implemented in ${WorkoutLiftMapper::class.simpleName}")
         }
     }
 
@@ -42,6 +34,7 @@ class WorkoutLiftMapper(private val customLiftSetMapper: CustomLiftSetMapper) {
             liftMovementPattern = entity.lift.movementPattern,
             liftRestTime = entity.lift.restTime,
             liftIncrementOverride = entity.lift.incrementOverride,
+            liftVolumeTypes = entity.lift.volumeTypesBitmask,
             deloadWeek = entity.workoutLift.deloadWeek,
             incrementOverride = entity.workoutLift.incrementOverride,
             restTime = entity.workoutLift.restTime,
@@ -61,6 +54,7 @@ class WorkoutLiftMapper(private val customLiftSetMapper: CustomLiftSetMapper) {
             liftId = entity.workoutLift.liftId,
             liftName = entity.lift.name,
             liftMovementPattern = entity.lift.movementPattern,
+            liftVolumeTypes = entity.lift.volumeTypesBitmask,
             liftRestTime = entity.lift.restTime,
             liftIncrementOverride = entity.lift.incrementOverride,
             deloadWeek = entity.workoutLift.deloadWeek,

@@ -10,7 +10,7 @@ class WorkoutLiftsRepository (
 ): Repository {
 
     suspend fun insert(workoutLift: GenericWorkoutLift): Long {
-        return workoutLiftsDao.insert(workoutLiftMapper.mapToFullEntity(workoutLift))
+        return workoutLiftsDao.insert(workoutLiftMapper.map(workoutLift))
     }
 
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {

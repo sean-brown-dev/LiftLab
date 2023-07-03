@@ -34,7 +34,7 @@ data class WorkoutBuilderScreen(
     }
 
     override fun copySetOverflowMenuVisibility(isVisible: Boolean): Screen {
-        return if(isVisible != isOverflowMenuExpanded) copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded) else this
+        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded) else this
     }
 
     override fun copySetNavigationIconVisibility(isVisible: Boolean): Screen {
@@ -42,7 +42,7 @@ data class WorkoutBuilderScreen(
     }
 
     override fun copyTitleMutation(newTitle: String): Screen {
-        return if (newTitle != title) copy(title = newTitle) else this
+        return if (title != newTitle) copy(title = newTitle) else this
     }
 
     override fun copySubtitleMutation(newSubtitle: String): Screen {

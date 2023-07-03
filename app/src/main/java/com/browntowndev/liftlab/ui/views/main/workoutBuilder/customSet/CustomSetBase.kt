@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.CustomSetTypeDropdown
+import com.browntowndev.liftlab.ui.views.utils.ExpandableCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -62,7 +64,8 @@ fun CustomSetBase(
             }
             Spacer(Modifier.width(20.dp))
         }
-        CustomSetExpandableCard(
+        ExpandableCard(
+            paddingValues = PaddingValues(horizontal = 10.dp),
             isCollapsed = !detailsExpanded,
             leftSideSummaryText = leftSideSummaryText,
             centerIconResourceId = centerIconResourceId,

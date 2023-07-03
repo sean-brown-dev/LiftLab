@@ -7,7 +7,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
-import com.browntowndev.liftlab.core.common.enums.LiftCategoryDeserializer
+import com.browntowndev.liftlab.core.common.enums.MovementPatternDeserializer
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.persistence.entities.Lift
@@ -31,7 +31,7 @@ class LiftLabDatabaseWorker(
                     inputStream.reader().use { reader ->
                         val liftType = object : TypeToken<List<Lift>>() {}.type
                         val lifts: List<Lift> = GsonBuilder()
-                            .registerTypeAdapter(MovementPattern::class.java, LiftCategoryDeserializer())
+                            .registerTypeAdapter(MovementPattern::class.java, MovementPatternDeserializer())
                             .create()
                             .fromJson(reader, liftType)
 

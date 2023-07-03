@@ -109,14 +109,16 @@ class LabViewModel(
                 position = _state.value.program!!.workouts.count(),
                 lifts = listOf()
             )
-
+            val newWorkoutId = workoutsRepository.insert(newWorkout)
             _state.update { currentState ->
                 currentState.copy(
+                    workoutIdToRename = newWorkoutId,
+                    originalWorkoutName = newWorkout.name,
                     program = currentState.program!!.copy(
                         workouts = currentState.program.workouts.toMutableList().apply {
                             add(
                                 newWorkout.copy(
-                                    id = workoutsRepository.insert(newWorkout)
+                                    id = newWorkoutId
                                 )
                             )
                         }

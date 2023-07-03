@@ -67,6 +67,7 @@ class LiftLibraryViewModel(
                 liftMovementPattern = newLift.movementPattern,
                 liftIncrementOverride = newLift.incrementOverride,
                 liftRestTime = newLift.restTime,
+                liftVolumeTypes = newLift.volumeTypesBitmask,
                 position = position,
                 deloadWeek = null,
                 setCount = 3,

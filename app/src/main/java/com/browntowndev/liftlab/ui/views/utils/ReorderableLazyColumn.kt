@@ -79,14 +79,14 @@ fun ReorderableLazyColumn(
                 Spacer(modifier = Modifier.height(30.dp))
                 Text(
                     text = "Press, Hold & Drag to Reorder",
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 15.sp,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     text = "After holding, please start the drag slowly.",
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 10.sp,
                     style = MaterialTheme.typography.bodyLarge,
                 )

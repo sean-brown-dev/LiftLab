@@ -25,7 +25,7 @@ import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.persistence.entities.Lift
-import com.browntowndev.liftlab.core.persistence.entities.PreviouslyCompletedSet
+import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.Workout
@@ -37,14 +37,14 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
     entities = [
         Lift::class, CustomLiftSet::class,
         HistoricalWorkoutName::class,
-        PreviouslyCompletedSet::class,
+        PreviousSetResult::class,
         Program::class,
         SetLogEntry::class,
         Workout::class,
         WorkoutLift::class,
         WorkoutLogEntry::class,
    ],
-    version = 19,
+    version = 20,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -81,7 +81,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
             Log.w("TRACE", "Entered submitDataInitializationJob()")
 
             val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
-            if (!isDatabaseInitialized) {
+            if (isDatabaseInitialized) {
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()

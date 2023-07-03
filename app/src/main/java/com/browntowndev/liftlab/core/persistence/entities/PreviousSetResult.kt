@@ -5,8 +5,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.core.common.enums.SetType
 
-@Entity("previouslyCompletedSets",
+@Entity("previousSetResults",
     indices = [Index("workoutId"), Index("liftId"), Index("workoutId", "liftId", "setPosition")],
     foreignKeys = [
         ForeignKey(entity = Workout::class,
@@ -17,13 +18,17 @@ import androidx.room.PrimaryKey
             parentColumns = arrayOf("lift_id"),
             childColumns = arrayOf("liftId"),
             onDelete = ForeignKey.CASCADE)])
-data class PreviouslyCompletedSet(
+data class PreviousSetResult(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("previously_completed_set_id")
     val id: Long = 0,
     val workoutId: Long,
     val liftId: Long,
     val setPosition: Int,
-    val weight: Double,
+    val myoRepSetPosition: Int? = null,
+    val weight: Float,
     val reps: Int,
-    val rpe: Int
+    val rpe: Float,
+    val microCycle: Int,
+    val missedLpGoals: Int? = null,
+    val customSetType: SetType? = null,
 )

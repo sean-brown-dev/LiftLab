@@ -195,6 +195,7 @@ class WorkoutBuilderViewModel(
                                 liftMovementPattern = lift.liftMovementPattern,
                                 liftIncrementOverride = lift.incrementOverride,
                                 liftRestTime = lift.restTime,
+                                liftVolumeTypes = lift.liftVolumeTypes,
                                 deloadWeek = lift.deloadWeek,
                                 position = lift.position,
                                 setCount = lift.setCount,
@@ -259,6 +260,7 @@ class WorkoutBuilderViewModel(
                         liftName = lift.liftName,
                         liftMovementPattern = lift.liftMovementPattern,
                         liftIncrementOverride = lift.incrementOverride,
+                        liftVolumeTypes = lift.liftVolumeTypes,
                         liftRestTime = lift.restTime,
                         deloadWeek = lift.deloadWeek,
                         position = lift.position,
@@ -666,7 +668,7 @@ class WorkoutBuilderViewModel(
                     updatedSet = when (set) {
                         is MyoRepSetDto -> set.copy(
                             setMatching = setMatching,
-                            matchSetGoal = null,
+                            setGoal = set.setGoal,
                             maxSets = null,
                             repFloor = null
                         )
@@ -689,7 +691,7 @@ class WorkoutBuilderViewModel(
             val updatedStateCopy = _state.value.copy(
                 workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
                     updatedSet = when (set) {
-                        is MyoRepSetDto -> set.copy(matchSetGoal = newMatchSetGoal)
+                        is MyoRepSetDto -> set.copy(setGoal = newMatchSetGoal)
                         else -> throw Exception("${set::class.simpleName} cannot have a match set goal.")
                     }
                     updatedSet!!
@@ -749,9 +751,9 @@ class WorkoutBuilderViewModel(
             val updatedStateCopy = _state.value.copy(
                 workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
                     updatedSet = when (set) {
-                        is StandardSetDto -> if (newSetType != SetType.STANDARD_SET) transformCustomLiftSet(set, newSetType) else set
+                        is StandardSetDto -> if (newSetType != SetType.STANDARD) transformCustomLiftSet(set, newSetType) else set
                         is DropSetDto -> if (newSetType != SetType.DROP_SET) transformCustomLiftSet(set, newSetType) else set
-                        is MyoRepSetDto -> if (newSetType != SetType.MYOREP_SET) transformCustomLiftSet(set, newSetType) else set
+                        is MyoRepSetDto -> if (newSetType != SetType.MYOREP) transformCustomLiftSet(set, newSetType) else set
                         else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
                     }
                     updatedSet!!
@@ -778,7 +780,7 @@ class WorkoutBuilderViewModel(
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
                     )
-                    SetType.MYOREP_SET -> MyoRepSetDto(
+                    SetType.MYOREP -> MyoRepSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
@@ -786,8 +788,10 @@ class WorkoutBuilderViewModel(
                         repRangeTop = set.repRangeTop,
                         repRangeBottom = set.repRangeBottom,
                         rpeTarget = set.rpeTarget,
+                        setGoal = 3,
                     )
-                    SetType.STANDARD_SET -> set
+                    SetType.STANDARD -> set
+                    else -> throw Exception("$newSetType is not defined.")
                 }
             is MyoRepSetDto ->
                 when (newSetType) {
@@ -800,8 +804,8 @@ class WorkoutBuilderViewModel(
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
                     )
-                    SetType.MYOREP_SET -> set
-                    SetType.STANDARD_SET -> StandardSetDto(
+                    SetType.MYOREP -> set
+                    SetType.STANDARD -> StandardSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
@@ -813,7 +817,7 @@ class WorkoutBuilderViewModel(
             is DropSetDto ->
                 when (newSetType) {
                     SetType.DROP_SET -> set
-                    SetType.MYOREP_SET -> MyoRepSetDto(
+                    SetType.MYOREP -> MyoRepSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
@@ -821,8 +825,9 @@ class WorkoutBuilderViewModel(
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
                         rpeTarget = set.rpeTarget,
+                        setGoal = 3,
                     )
-                    SetType.STANDARD_SET -> StandardSetDto(
+                    SetType.STANDARD -> StandardSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
                         position = set.position,
