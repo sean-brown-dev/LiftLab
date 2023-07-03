@@ -23,7 +23,7 @@ import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @ExperimentalFoundationApi
 @Composable
 fun NavigationGraph(
