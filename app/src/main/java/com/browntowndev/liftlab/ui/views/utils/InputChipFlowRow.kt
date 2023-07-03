@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.utils
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -35,6 +36,7 @@ fun InputChipFlowRow(
         Modifier
             .fillMaxWidth(1f)
             .wrapContentHeight(align = Alignment.Top)
+            .background(MaterialTheme.colorScheme.background)
             .padding(start = 10.dp, end = 10.dp),
         horizontalArrangement = Arrangement.Start,
     ) {

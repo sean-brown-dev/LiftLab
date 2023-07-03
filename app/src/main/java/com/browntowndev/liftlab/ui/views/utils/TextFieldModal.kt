@@ -132,6 +132,7 @@ private fun <T> GenericTextFieldModal(
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
+                    Spacer(modifier = Modifier.height(5.dp))
                     Divider(modifier = Modifier.height(2.dp))
                     Spacer(modifier = Modifier.height(5.dp))
                     Text(

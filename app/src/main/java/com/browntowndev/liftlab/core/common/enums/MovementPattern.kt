@@ -107,13 +107,13 @@ fun MovementPattern.displayName(): String {
     }
 }
 
-class LiftCategoryDeserializer : JsonDeserializer<MovementPattern> {
+class MovementPatternDeserializer : JsonDeserializer<MovementPattern> {
     override fun deserialize(
         json: JsonElement?,
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): MovementPattern {
         val intValue = json?.asInt
-        return MovementPattern.values().find { it.ordinal == intValue } ?: throw Exception("$intValue is not a LiftCategory.")
+        return MovementPattern.values().find { it.ordinal == intValue } ?: throw Exception("$intValue is not a MovementPattern.")
     }
 }

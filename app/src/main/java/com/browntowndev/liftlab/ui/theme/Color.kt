@@ -3,17 +3,18 @@ package com.browntowndev.liftlab.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Dark
-val PrimaryDark = Color(0xFFE4FFB0)
+//val PrimaryDark = Color(0xFFE4FFB0)
+val PrimaryDark = Color(0xFFFDDE7F)
 val OnPrimaryDark = Color.Black
 val PrimaryContainerDark = Color(0xFF20221F)
 val OnPrimaryContainerDark = Color.White
 
-val SecondaryDark = Color(0xFF8BC34A)
+val SecondaryDark = Color(0xFF7B1FA2)
 val OnSecondaryDark = Color.White
 val SecondaryContainerDark = Color(0xFF2C2C29)
 val OnSecondaryContainerDark = Color.White
 
-val TertiaryDark = Color(0xFF737373)
+val TertiaryDark = Color(0xFFFDBC4D)
 val OnTertiaryDark = Color.White
 val TertiaryContainerDark = Color(0xFF383838)
 val OnTertiaryContainerDark = Color.White

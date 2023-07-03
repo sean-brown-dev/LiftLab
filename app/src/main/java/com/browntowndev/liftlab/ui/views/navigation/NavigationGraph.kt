@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -16,12 +17,13 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScree
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.views.main.LiftLibrary
-import com.browntowndev.liftlab.ui.views.main.Workout
 import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
+import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalFoundationApi
 @Composable
 fun NavigationGraph(
@@ -29,11 +31,12 @@ fun NavigationGraph(
     paddingValues: PaddingValues,
     screen: Screen?,
     onNavigateBack: () -> Unit,
-    showBottomNavBar: () -> Unit,
-    hideBottomNavBar: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
+    setBottomSheetContent: (label: String, volumeChipLabels: List<CharSequence>) -> Unit,
+    setBottomSheetVisibility: (visible: Boolean) -> Unit,
+    setBottomNavBarVisibility: (visible: Boolean) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(
@@ -60,10 +63,11 @@ fun NavigationGraph(
             val libraryScreen = screen as? LiftLibraryScreen
 
             if (libraryScreen != null) {
+                setBottomSheetVisibility(false)
                 if (movementPatternParam.isNotEmpty() && workoutLiftId != null) {
-                    hideBottomNavBar()
+                    setBottomNavBarVisibility(false)
                 } else {
-                    showBottomNavBar()
+                    setBottomNavBarVisibility(true)
                 }
                 LiftLibrary(
                     paddingValues = paddingValues,
@@ -86,14 +90,24 @@ fun NavigationGraph(
             }
         }
         composable(WorkoutScreen.navigation.route) {
-            showBottomNavBar()
-            Workout(paddingValues)
+            if (screen as? WorkoutScreen != null) {
+                setBottomSheetVisibility(true)
+                setBottomNavBarVisibility(true)
+
+                Workout(
+                    paddingValues = paddingValues,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed,
+                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    setBottomSheetContent = setBottomSheetContent,
+                )
+            }
         }
         composable(LabScreen.navigation.route) {
             val labScreen = screen as? LabScreen
 
             if (labScreen != null) {
-                showBottomNavBar()
+                setBottomSheetVisibility(true)
+                setBottomNavBarVisibility(true)
                 setTopAppBarCollapsed(false)
                 setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, false)
 
@@ -103,7 +117,9 @@ fun NavigationGraph(
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
-                )
+                ) { label, volumeChips ->
+                    setBottomSheetContent(label, volumeChips)
+                }
             }
         }
         composable(
@@ -118,7 +134,8 @@ fun NavigationGraph(
             val workoutId = it.arguments?.getLong("id")
 
             if (workoutBuilderScreen != null && workoutId != null) {
-                hideBottomNavBar()
+                setBottomSheetVisibility(true)
+                setBottomNavBarVisibility(false)
                 setTopAppBarCollapsed(true)
                 setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, true)
 
@@ -127,11 +144,14 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     navHostController = navHostController,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
-                )
+                ) { label, volumeChips ->
+                    setBottomSheetContent(label, volumeChips)
+                }
             }
         }
         composable(WorkoutHistoryScreen.navigation.route) {
-            showBottomNavBar()
+            setBottomSheetVisibility(false)
+            setBottomNavBarVisibility(true)
             WorkoutHistory(paddingValues)
         }
     }

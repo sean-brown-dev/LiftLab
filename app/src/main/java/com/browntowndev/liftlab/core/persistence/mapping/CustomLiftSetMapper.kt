@@ -8,20 +8,20 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLi
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 
 class CustomLiftSetMapper {
-    fun map(entity: CustomLiftSet): GenericCustomLiftSet {
-        return when (entity.type) {
-            SetType.STANDARD_SET -> toStandardSetDto(entity)
-            SetType.MYOREP_SET -> toMyoRepSetDto(entity)
-            SetType.DROP_SET -> toDropSetDto(entity)
+    fun map(from: CustomLiftSet): GenericCustomLiftSet {
+        return when (from.type) {
+            SetType.STANDARD -> toStandardSetDto(from)
+            SetType.MYOREP -> toMyoRepSetDto(from)
+            SetType.DROP_SET -> toDropSetDto(from)
         }
     }
 
-    fun map(setDto: GenericCustomLiftSet): CustomLiftSet {
-        return when (setDto) {
-            is StandardSetDto -> toUpdateEntity(setDto)
-            is MyoRepSetDto -> toUpdateEntity(setDto)
-            is DropSetDto -> toUpdateEntity(setDto)
-            else -> throw ClassNotFoundException("${setDto::class.simpleName} is not implemented in ${CustomLiftSetMapper::class.simpleName}")
+    fun map(from: GenericCustomLiftSet): CustomLiftSet {
+        return when (from) {
+            is StandardSetDto -> toUpdateEntity(from)
+            is MyoRepSetDto -> toUpdateEntity(from)
+            is DropSetDto -> toUpdateEntity(from)
+            else -> throw ClassNotFoundException("${from::class.simpleName} is not implemented in ${CustomLiftSetMapper::class.simpleName}")
         }
     }
 
@@ -47,7 +47,7 @@ class CustomLiftSetMapper {
             repRangeTop = entity.repRangeTop,
             maxSets = entity.maxSets,
             setMatching = entity.setMatching,
-            matchSetGoal = entity.matchSetGoal,
+            setGoal = entity.setGoal ?: 3,
         )
     }
 
@@ -67,7 +67,7 @@ class CustomLiftSetMapper {
         return CustomLiftSet(
             id = setDto.id,
             workoutLiftId = setDto.workoutLiftId,
-            type = SetType.STANDARD_SET,
+            type = SetType.STANDARD,
             position = setDto.position,
             rpeTarget = setDto.rpeTarget,
             repRangeBottom = setDto.repRangeBottom,
@@ -79,7 +79,7 @@ class CustomLiftSetMapper {
         return CustomLiftSet(
             id = setDto.id,
             workoutLiftId = setDto.workoutLiftId,
-            type = SetType.MYOREP_SET,
+            type = SetType.MYOREP,
             position = setDto.position,
             repFloor = setDto.repFloor,
             rpeTarget = setDto.rpeTarget,
@@ -87,7 +87,7 @@ class CustomLiftSetMapper {
             repRangeTop = setDto.repRangeTop,
             maxSets = setDto.maxSets,
             setMatching = setDto.setMatching,
-            matchSetGoal = setDto.matchSetGoal,
+            setGoal = setDto.setGoal,
         )
     }
 

@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
 
-data class MyoRepSetDto (
+data class MyoRepSetDto(
     override val id: Long = 0,
     override val workoutLiftId: Long,
     override val position: Int,
@@ -12,5 +12,5 @@ data class MyoRepSetDto (
     val repFloor: Int? = null,
     val maxSets: Int? = null,
     val setMatching: Boolean = false,
-    val matchSetGoal: Int? = null,
+    val setGoal: Int,
 ) : GenericCustomLiftSet

@@ -70,7 +70,7 @@ fun PercentagePicker(
                 .fillMaxWidth()
                 .height(LocalConfiguration.current.screenHeightDp.dp.times(.30f)),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
             shape = RoundedCornerShape(
                 topStart = 10.dp,

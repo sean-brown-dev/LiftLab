@@ -26,35 +26,37 @@ fun Lab(
     navHostController: NavHostController,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
+    setBottomSheetContent: (label: String, volumeChipLabels: List<CharSequence>) -> Unit,
 ) {
     val labViewModel: LabViewModel = koinViewModel()
-    val labState by labViewModel.state.collectAsState()
+    val state by labViewModel.state.collectAsState()
 
-    LaunchedEffect(labState.program) {
-        if(labState.program != null) {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, labState.originalProgramName))
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, labState.program!!.deloadWeek.toString()))
+    LaunchedEffect(state.program) {
+        if(state.program != null) {
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
-
-            labViewModel.registerEventBus()
+            setBottomSheetContent("Program Volume", state.volumeTypes)
         }
     }
 
+    labViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
 
-    if (!labState.isReordering) {
+    if (!state.isReordering) {
         setTopAppBarCollapsed(false)
         setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, false)
         setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, true)
 
-        if (labState.program?.workouts != null) {
+        if (state.program?.workouts != null) {
             WorkoutCardList(
-                workouts = labState.program!!.workouts,
+                paddingValues = paddingValues,
+                workouts = state.program!!.workouts,
+                volumeTypes = state.volumeTypes,
                 showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
                 beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
-                paddingValues = paddingValues,
                 navigationController = navHostController
             )
         }
@@ -64,45 +66,45 @@ fun Lab(
         setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, true)
         setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, false)
 
-        if (labState.program?.workouts != null) {
+        if (state.program?.workouts != null) {
             ReorderableLazyColumn(
                 paddingValues = paddingValues,
-                items = labState.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
+                items = state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
                 saveReorder = { labViewModel.saveReorder(it) },
                 cancelReorder = { labViewModel.toggleReorderingScreen() }
             )
         }
     }
 
-    if (labState.workoutIdToRename != null && labState.originalWorkoutName != null) {
+    if (state.workoutIdToRename != null && state.originalWorkoutName != null) {
         TextFieldModal(
-            header = "Rename ${labState.originalWorkoutName}",
-            initialTextFieldValue = labState.originalWorkoutName!!,
-            onConfirm = { labViewModel.updateWorkoutName(labState.workoutIdToRename!!, it) },
+            header = "Rename ${state.originalWorkoutName}",
+            initialTextFieldValue = state.originalWorkoutName!!,
+            onConfirm = { labViewModel.updateWorkoutName(state.workoutIdToRename!!, it) },
             onCancel = { labViewModel.collapseEditWorkoutNameModal() },
         )
     }
 
-    if (labState.isEditingProgramName && labState.program != null) {
+    if (state.isEditingProgramName && state.program != null) {
         TextFieldModal(
-            header = "Rename ${labState.program!!.name}",
-            initialTextFieldValue = labState.program!!.name,
+            header = "Rename ${state.program!!.name}",
+            initialTextFieldValue = state.program!!.name,
             onConfirm = { labViewModel.updateProgramName(it) },
             onCancel = { labViewModel.collapseEditProgramNameModal() }
         )
     }
 
-    if (labState.isEditingDeloadWeek && labState.program != null) {
+    if (state.isEditingDeloadWeek && state.program != null) {
         TextFieldModal(
             header = "Edit Deload Week",
-            initialTextFieldValue = labState.program!!.deloadWeek,
+            initialTextFieldValue = state.program!!.deloadWeek,
             onConfirm = { labViewModel.updateDeloadWeek(it) },
             onCancel = { labViewModel.toggleEditDeloadWeek() }
         )
     }
 
-    if (labState.isCreatingProgram) {
-        val subtext = if(labState.program != null) {
+    if (state.isCreatingProgram) {
+        val subtext = if(state.program != null) {
             "Creating a new program will archive the existing one." +
                     "It can be restored or deleted from the Settings menu."
         } else ""
@@ -117,20 +119,20 @@ fun Lab(
         )
     }
 
-    if (labState.isDeletingProgram && labState.program != null) {
+    if (state.isDeletingProgram && state.program != null) {
         ConfirmationModal(
             header = "Delete?",
-            body = "Are you sure you want to delete ${labState.program!!.name}? This cannot be undone.",
+            body = "Are you sure you want to delete ${state.program!!.name}? This cannot be undone.",
             onConfirm = { labViewModel.deleteProgram() },
             onCancel = { labViewModel.cancelDeleteProgram() }
         )
     }
 
-    if (labState.workoutToDelete != null) {
+    if (state.workoutToDelete != null) {
         ConfirmationModal(
             header = "Delete?",
-            body = "Are you sure you want to delete ${labState.workoutToDelete!!.name}? This cannot be undone.",
-            onConfirm = { labViewModel.deleteWorkout(labState.workoutToDelete!!) },
+            body = "Are you sure you want to delete ${state.workoutToDelete!!.name}? This cannot be undone.",
+            onConfirm = { labViewModel.deleteWorkout(state.workoutToDelete!!) },
             onCancel = { labViewModel.cancelDeleteWorkout() }
         )
     }

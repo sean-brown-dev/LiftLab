@@ -1,18 +1,16 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -24,6 +22,7 @@ fun WorkoutCardList(
     paddingValues: PaddingValues,
     navigationController: NavHostController,
     workouts: List<WorkoutDto>,
+    volumeTypes: List<CharSequence>,
     showEditWorkoutNameModal: (WorkoutDto) -> Unit,
     beginDeleteWorkout: (WorkoutDto) -> Unit,
 ) {
@@ -36,13 +35,8 @@ fun WorkoutCardList(
     }
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = MaterialTheme.colorScheme.background)
-            .wrapContentSize(Alignment.Center)
-            .padding(paddingValues),
-        contentPadding = PaddingValues(8.dp),
         state = listState,
+        modifier = Modifier.fillMaxWidth().padding(paddingValues)
     ) {
         items(workouts, { it.id }) { workout ->
             WorkoutCard(
@@ -53,6 +47,9 @@ fun WorkoutCardList(
                 showEditWorkoutNameModal = { showEditWorkoutNameModal(workout) },
                 beginDeleteWorkout = { beginDeleteWorkout(workout) },
             )
+        }
+        item {
+            Spacer(modifier = Modifier.height(65.dp))
         }
     }
 

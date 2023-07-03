@@ -5,27 +5,27 @@ import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelat
 import com.browntowndev.liftlab.core.persistence.entities.Program
 
 class ProgramMapper(private val workoutMapper: WorkoutMapper) {
-    fun map(entity: ProgramWithRelationships): ProgramDto {
+    fun map(from: ProgramWithRelationships): ProgramDto {
         return ProgramDto(
-            id = entity.program.id,
-            name = entity.program.name,
-            isActive = entity.program.isActive,
-            deloadWeek = entity.program.deloadWeek,
-            currentMesocycle = entity.program.currentMesocycle,
-            currentMicrocycle = entity.program.currentMicrocycle,
-            currentMicrocyclePosition = entity.program.currentMicrocyclePosition,
-            workouts = entity.workouts.map { workoutMapper.map(it) }
+            id = from.program.id,
+            name = from.program.name,
+            isActive = from.program.isActive,
+            deloadWeek = from.program.deloadWeek,
+            currentMesocycle = from.program.currentMesocycle,
+            currentMicrocycle = from.program.currentMicrocycle,
+            currentMicrocyclePosition = from.program.currentMicrocyclePosition,
+            workouts = from.workouts.map { workoutMapper.map(it) }
         )
     }
 
-    fun map(setDto: ProgramDto): Program {
+    fun map(from: ProgramDto): Program {
         return Program(
-            id = setDto.id,
-            name = setDto.name,
-            isActive = setDto.isActive,
-            currentMesocycle = setDto.currentMesocycle,
-            currentMicrocycle = setDto.currentMicrocycle,
-            currentMicrocyclePosition = setDto.currentMicrocyclePosition,
+            id = from.id,
+            name = from.name,
+            isActive = from.isActive,
+            currentMesocycle = from.currentMesocycle,
+            currentMicrocycle = from.currentMicrocycle,
+            currentMicrocyclePosition = from.currentMicrocyclePosition,
         )
     }
 }

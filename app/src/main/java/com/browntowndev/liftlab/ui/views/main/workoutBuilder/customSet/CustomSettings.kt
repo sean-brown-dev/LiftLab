@@ -168,7 +168,7 @@ fun CustomSettings(
                                     onRepRangeTopChanged = { onRepRangeTopChanged(set.position, it) },
                                     toggleRpePicker = { toggleRpePicker(set.position, it) },
                                     toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
-                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP_SET,
+                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                     onCustomSetTypeChanged = { setType ->
                                         onCustomSetTypeChanged(
                                             set.position,
@@ -176,7 +176,7 @@ fun CustomSettings(
                                         )
                                     },
                                 )
-                                previousSetType = SetType.STANDARD_SET
+                                previousSetType = SetType.STANDARD
                             }
                             is MyoRepSetDto -> {
                                 MyoRepSet(
@@ -188,7 +188,7 @@ fun CustomSettings(
                                     repRangeTop = set.repRangeTop,
                                     setMatching = set.setMatching,
                                     rpeTarget = set.rpeTarget,
-                                    matchSetGoal = set.matchSetGoal,
+                                    setGoal = set.setGoal,
                                     maxSets = set.maxSets,
                                     onPixelOverflowChanged = onPixelOverflowChanged,
                                     onSetMatchingChanged = { onSetMatchingChanged(set.position, it) },
@@ -197,7 +197,7 @@ fun CustomSettings(
                                     onRepRangeTopChanged = { onRepRangeTopChanged(set.position, it) },
                                     onMatchSetGoalChanged = { onMatchSetGoalChanged(set.position, it) },
                                     toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
-                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP_SET,
+                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                     onMaxSetsChanged = { onMaxSetsChanged(set.position, it) },
                                     toggleRpePicker = { toggleRpePicker(set.position, it) },
                                     onCustomSetTypeChanged = { setType ->
@@ -207,7 +207,7 @@ fun CustomSettings(
                                         )
                                     },
                                 )
-                                previousSetType = SetType.MYOREP_SET
+                                previousSetType = SetType.MYOREP
                             }
                             is DropSetDto -> {
                                 DropSet(
@@ -224,7 +224,7 @@ fun CustomSettings(
                                     toggleRpePicker = { toggleRpePicker(set.position, it) },
                                     togglePercentagePicker = { togglePercentagePicker(set.position, it) },
                                     toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
-                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP_SET,
+                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                     onCustomSetTypeChanged = { setType ->
                                         onCustomSetTypeChanged(
                                             set.position,

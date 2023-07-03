@@ -37,7 +37,7 @@ fun WorkoutCard(
     OutlinedCard(
         modifier = modifier
             .fillMaxSize()
-            .padding(5.dp)
+            .padding(vertical = 5.dp)
             .clickable {
                 val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
                 navigationController.navigate(workoutBuilderRoute)
@@ -46,8 +46,6 @@ fun WorkoutCard(
         border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline),
         colors = CardDefaults.outlinedCardColors(
             containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            disabledContainerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row (

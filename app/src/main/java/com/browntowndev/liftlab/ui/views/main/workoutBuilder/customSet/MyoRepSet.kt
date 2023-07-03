@@ -32,7 +32,7 @@ fun MyoRepSet(
     repRangeBottom: Int,
     repRangeTop: Int,
     setMatching: Boolean,
-    matchSetGoal: Int?,
+    setGoal: Int?,
     repFloor: Int?,
     maxSets: Int?,
     isPreviousSetMyoRep: Boolean,
@@ -47,8 +47,8 @@ fun MyoRepSet(
     onPixelOverflowChanged: (Dp) -> Unit,
     toggleDetailsExpansion: () -> Unit,
 ) {
-    val myoRepSetDisplayNameDisplayNameShort by remember { mutableStateOf(SetType.MYOREP_SET.displayNameShort()) }
-    val myoRepSetDisplayNameDisplayName by remember { mutableStateOf(SetType.MYOREP_SET.displayName()) }
+    val myoRepSetDisplayNameDisplayNameShort by remember { mutableStateOf(SetType.MYOREP.displayNameShort()) }
+    val myoRepSetDisplayNameDisplayName by remember { mutableStateOf(SetType.MYOREP.displayName()) }
     val standardSetDisplayNameShort = (position + 1).toString()
     var showMaxSetLimit by remember { mutableStateOf(maxSets != null) }
 
@@ -59,7 +59,7 @@ fun MyoRepSet(
         standardShortDisplayName = standardSetDisplayNameShort,
         leftSideSummaryText = "$repRangeBottom - $repRangeTop reps @$rpeTarget",
         centerIconResourceId = R.drawable.descend_icon,
-        rightSideSummaryText = if(setMatching) "matched within ${matchSetGoal ?: "?"} sets" else "until ${repFloor ?: "?"} reps",
+        rightSideSummaryText = if(setMatching) "matched within ${setGoal ?: "?"} sets" else "until ${repFloor ?: "?"} reps",
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
         isPreviousSetMyoRep = isPreviousSetMyoRep,
@@ -104,6 +104,17 @@ fun MyoRepSet(
                 onPixelOverflowChanged = onPixelOverflowChanged,
             )
             Spacer(modifier = Modifier.width(2.dp))
+            IntegerTextField(
+                vertical = false,
+                listState = listState,
+                value = setGoal,
+                label = "Set Goal",
+                labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                labelFontSize = 14.sp,
+                onValueChanged = onMatchSetGoalChanged,
+                onPixelOverflowChanged = onPixelOverflowChanged,
+            )
+            Spacer(modifier = Modifier.width(2.dp))
             if (!setMatching) {
                 IntegerTextField(
                     vertical = false,
@@ -115,19 +126,8 @@ fun MyoRepSet(
                     onValueChanged = onRepFloorChanged,
                     onPixelOverflowChanged = onPixelOverflowChanged,
                 )
-            } else {
-                IntegerTextField(
-                    vertical = false,
-                    listState = listState,
-                    value = matchSetGoal,
-                    label = "Match Set Goal",
-                    labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    labelFontSize = 14.sp,
-                    onValueChanged = onMatchSetGoalChanged,
-                    onPixelOverflowChanged = onPixelOverflowChanged,
-                )
+                Spacer(modifier = Modifier.width(2.dp))
             }
-            Spacer(modifier = Modifier.width(2.dp))
             FloatTextField(
                 vertical = false,
                 listState = listState,

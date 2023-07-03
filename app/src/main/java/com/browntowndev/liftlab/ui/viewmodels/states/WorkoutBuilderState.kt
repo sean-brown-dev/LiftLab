@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 
 data class WorkoutBuilderState (
@@ -17,6 +18,10 @@ data class WorkoutBuilderState (
         workout?.let {
             it.lifts.find { lift -> lift.id == this.workoutLiftIdToDelete }?.liftMovementPattern?.displayName()
         }
+    }
+
+    val volumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels() ?: listOf()
     }
 }
 

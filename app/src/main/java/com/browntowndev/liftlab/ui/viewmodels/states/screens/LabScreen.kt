@@ -44,19 +44,19 @@ data class LabScreen(
     private var _reorderWorkoutsTrailingText by mutableStateOf(trailingIconText)
 
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible, trailingIconText = _reorderWorkoutsTrailingText) else this
+        return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible) else this
     }
 
     override fun copySetOverflowMenuVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = isVisible, trailingIconText = _reorderWorkoutsTrailingText) else this
+        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded) else this
     }
 
     override fun copySetNavigationIconVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.navigationIconVisible) copy(navigationIconVisible = isVisible, trailingIconText = _reorderWorkoutsTrailingText) else this
+        return if (isVisible != navigationIconVisible) copy(navigationIconVisible = !this.navigationIconVisible) else this
     }
 
     override fun copyTitleMutation(newTitle: String): Screen {
-        return if (newTitle != this.title) copy(title = newTitle, trailingIconText = _reorderWorkoutsTrailingText) else this
+        return if (title != newTitle) copy(title = newTitle) else this
     }
 
     override fun copySubtitleMutation(newSubtitle: String): Screen {

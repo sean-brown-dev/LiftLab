@@ -22,9 +22,9 @@ data class CustomLiftSet(
     val rpeTarget: Float,
     val repRangeBottom: Int,
     val repRangeTop: Int,
+    val setGoal: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
     val maxSets: Int? = null,
     val setMatching: Boolean = false,
-    val matchSetGoal: Int? = null,
 )

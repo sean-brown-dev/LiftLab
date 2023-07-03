@@ -38,21 +38,21 @@ data class LiftLibraryScreen(
     private var isFilterIconVisible by mutableStateOf(true)
 
     private val _eventBus: EventBus by inject()
-    
+
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {
-        return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible, filterText = mutableFilterText) else this
+        return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible) else this
     }
 
     override fun copySetOverflowMenuVisibility(isVisible: Boolean): Screen {
-        return if(isOverflowMenuExpanded != isVisible) copy(isOverflowMenuExpanded = isVisible, filterText = mutableFilterText) else this
+        return if (isVisible != this.isOverflowMenuExpanded) copy(isOverflowMenuExpanded = !this.isOverflowMenuExpanded) else this
     }
 
     override fun copySetNavigationIconVisibility(isVisible: Boolean): Screen {
-        return if(navigationIconVisible != isVisible) copy(navigationIconVisible = !this.navigationIconVisible, filterText = mutableFilterText) else this
+        return if (isVisible != navigationIconVisible) copy(navigationIconVisible = !this.navigationIconVisible) else this
     }
 
     override fun copyTitleMutation(newTitle: String): Screen {
-        return if (newTitle != title) copy(title = newTitle, filterText = mutableFilterText) else this
+        return if (title != newTitle) copy(title = newTitle) else this
     }
 
     override fun setControlVisibility(controlName: String, isVisible: Boolean): Screen {

@@ -10,6 +10,7 @@ interface GenericWorkoutLift {
     val liftId: Long
     val liftName: String
     val liftMovementPattern: MovementPattern
+    val liftVolumeTypes: Int
     val liftRestTime: Duration?
     val liftIncrementOverride: Float?
     val position: Int
