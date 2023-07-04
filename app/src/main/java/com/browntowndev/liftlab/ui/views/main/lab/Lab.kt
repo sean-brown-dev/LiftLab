@@ -17,6 +17,7 @@ import com.browntowndev.liftlab.ui.views.utils.ConfirmationModal
 import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.utils.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.views.utils.TextFieldModal
+import com.browntowndev.liftlab.ui.views.utils.VolumeChipBottomSheet
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
@@ -27,7 +28,6 @@ fun Lab(
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
-    setBottomSheetContent: (label: String, volumeChipLabels: List<CharSequence>) -> Unit,
 ) {
     val labViewModel: LabViewModel = koinViewModel()
     val state by labViewModel.state.collectAsState()
@@ -38,27 +38,34 @@ fun Lab(
             mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
-            setBottomSheetContent("Program Volume", state.volumeTypes)
         }
+    }
+
+    LaunchedEffect(key1 = state.isReordering) {
+        setTopAppBarCollapsed(state.isReordering)
+        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, state.isReordering)
+        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, !state.isReordering)
     }
 
     labViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
 
     if (!state.isReordering) {
-        setTopAppBarCollapsed(false)
-        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, false)
-        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, true)
-
         if (state.program?.workouts != null) {
-            WorkoutCardList(
-                paddingValues = paddingValues,
-                workouts = state.program!!.workouts,
-                volumeTypes = state.volumeTypes,
-                showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
-                beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
-                navigationController = navHostController
-            )
+            VolumeChipBottomSheet(
+                placeAboveBottomNavBar = true,
+                title = "Program Volume",
+                state.volumeTypes
+            ) {
+                WorkoutCardList(
+                    paddingValues = paddingValues,
+                    workouts = state.program!!.workouts,
+                    volumeTypes = state.volumeTypes,
+                    showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
+                    beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
+                    navigationController = navHostController
+                )
+            }
         }
     }
     else {

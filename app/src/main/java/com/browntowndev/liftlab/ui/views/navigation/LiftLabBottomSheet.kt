@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,13 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,39 +35,23 @@ import com.browntowndev.liftlab.ui.views.utils.LabeledChips
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLabBottomSheet(
-    visible: Boolean,
     sheetPeekHeight: Dp,
     bottomSpacerHeight: Dp,
     label: String,
     volumeTypes: List<CharSequence> = listOf(),
-    content:  @Composable (PaddingValues) -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit,
 ) {
-    var scaffoldState by remember {
-        mutableStateOf(
-            BottomSheetScaffoldState(
-                bottomSheetState = SheetState(
-                    initialValue = SheetValue.PartiallyExpanded,
-                    skipPartiallyExpanded = false,
-                    skipHiddenState = visible
-                ),
-                snackbarHostState = SnackbarHostState()
-            )
+    var rememberedLabel by remember { mutableStateOf(label) }
+    var scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = SheetState(
+            initialValue = SheetValue.PartiallyExpanded,
+            skipPartiallyExpanded = false,
+            skipHiddenState = true
         )
-    }
+    )
 
-    LaunchedEffect(key1 = visible) {
-        scaffoldState = BottomSheetScaffoldState(
-            bottomSheetState = SheetState(
-                initialValue = SheetValue.PartiallyExpanded,
-                skipPartiallyExpanded = false,
-                skipHiddenState = visible
-            ),
-            snackbarHostState = SnackbarHostState()
-        )
-
-        if (!visible) {
-            scaffoldState.bottomSheetState.hide()
-        }
+    LaunchedEffect(key1 = label) {
+        rememberedLabel = label
     }
 
     BottomSheetScaffold(
@@ -93,7 +75,6 @@ fun LiftLabBottomSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize()
                     .padding(
                         top = 10.dp,
                         start = 10.dp,
@@ -103,7 +84,7 @@ fun LiftLabBottomSheet(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(text = label, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
+                Text(text = rememberedLabel, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 LabeledChips(
                     labels = volumeTypes,

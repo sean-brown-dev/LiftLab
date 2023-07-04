@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
+import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 
+@Stable
 data class LiftLibraryState (
     val allLifts: List<LiftDto> = listOf(),
     val nameFilter: String? = null,

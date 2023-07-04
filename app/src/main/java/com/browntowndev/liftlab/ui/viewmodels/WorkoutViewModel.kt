@@ -36,7 +36,16 @@ class WorkoutViewModel(
     fun setInProgress(inProgress: Boolean) {
         _state.update {
             it.copy(
-                inProgress = inProgress
+                inProgress = inProgress,
+                workoutLogVisible = inProgress,
+            )
+        }
+    }
+
+    fun setWorkoutLogVisibility(visible: Boolean) {
+        _state.update {
+            it.copy(
+                workoutLogVisible = visible
             )
         }
     }

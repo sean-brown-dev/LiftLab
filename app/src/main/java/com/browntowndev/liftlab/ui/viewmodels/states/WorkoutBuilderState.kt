@@ -1,9 +1,11 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
+import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 
+@Stable
 data class WorkoutBuilderState (
     val workout: WorkoutDto? = null,
     val programDeloadWeek: Int? = null,
@@ -25,12 +27,14 @@ data class WorkoutBuilderState (
     }
 }
 
+@Stable
 data class ChangedSetTypeState(
     val workoutLiftId: Long,
     val position: Int,
     val isExpanded: Boolean,
 )
 
+@Stable
 data class PickerState(
     val workoutLiftId: Long,
     val position: Int? = null,
