@@ -11,6 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -77,8 +80,8 @@ data class LabScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector
-        get() = Icons.Filled.ArrowBack
+    override val navigationIcon: Either<ImageVector, Int>?
+        get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)
@@ -88,14 +91,14 @@ data class LabScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_WORKOUT_ICON,
                 title = "Create Workout",
-                icon = Icons.Filled.Add,
+                icon = Icons.Filled.Add.left(),
                 isVisible = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewWorkout)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_WORKOUTS_ICON,
                 title = "Reorder Workouts",
-                iconPainterResourceId = R.drawable.reorder_icon,
+                icon = R.drawable.reorder_icon.right(),
                 isVisible = true,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderWorkouts))
@@ -105,21 +108,21 @@ data class LabScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_PROGRAM_ICON,
                 title = "Create Program",
-                icon = Icons.Filled.Add,
+                icon = Icons.Filled.Add.left(),
                 isVisible = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewProgram)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_PROGRAM_ICON,
                 title = "Rename Program",
-                icon = Icons.Filled.Edit,
+                icon = Icons.Filled.Edit.left(),
                 isVisible = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameProgram)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELETE_PROGRAM_ICON,
                 title = "Delete Program",
-                icon = Icons.Filled.Delete,
+                icon = Icons.Filled.Delete.left(),
                 isVisible = true,
                 dividerBelow = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram)) },
@@ -127,7 +130,7 @@ data class LabScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELOAD_WEEK_ICON,
                 title = "Deload Week",
-                icon = Icons.Outlined.DateRange,
+                icon = Icons.Outlined.DateRange.left(),
                 trailingIconText = _reorderWorkoutsTrailingText,
                 isVisible = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.EditDeloadWeek)) },

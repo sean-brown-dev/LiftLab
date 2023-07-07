@@ -14,6 +14,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -108,3 +109,9 @@ fun Float.toFloorAndCeiling(): Iterable<Int> {
 fun Double.roundToNearestFactor(factor: Float): Float {
     return abs((this / factor).roundToInt()) * factor
 }
+
+fun Long.toMinutesSecondsString(format: String): String = String.format(
+    format,
+    TimeUnit.MILLISECONDS.toMinutes(this),
+    TimeUnit.MILLISECONDS.toSeconds(this) % 60
+)

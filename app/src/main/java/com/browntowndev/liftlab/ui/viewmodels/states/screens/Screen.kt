@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 
@@ -9,7 +10,7 @@ sealed interface Screen {
     val isOverflowMenuExpanded: Boolean
     val isOverflowMenuIconVisible: Boolean
     val isAppBarVisible: Boolean
-    val navigationIcon: ImageVector?
+    val navigationIcon: Either<ImageVector, Int>?
     val navigationIconContentDescription: String?
     val navigationIconVisible: Boolean
     val onNavigationIconClick: (() -> Unit)?

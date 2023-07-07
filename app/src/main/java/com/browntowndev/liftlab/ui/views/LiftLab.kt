@@ -9,21 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabBottomSheetState
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
-import com.browntowndev.liftlab.ui.views.navigation.LiftLabBottomSheet
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -77,9 +71,27 @@ fun LiftLab() {
                 onNavigateBack = { topAppBarState.onNavigationIconClick?.invoke() },
                 setBottomNavBarVisibility = { bottomNavBarViewModel.setVisibility(it) },
                 mutateTopAppBarControlValue = { request ->
-                    topAppBarViewModel.mutateControlValue(
-                        request
-                    )
+                    request.payload.onLeft {
+                        topAppBarViewModel.mutateControlValue(
+                            AppBarMutateControlRequest(
+                                request.controlName,
+                                it
+                            )
+                        )
+                    }.onRight {
+                        topAppBarViewModel.mutateControlValue(
+                            AppBarMutateControlRequest(
+                                request.controlName,
+                                it.first
+                            )
+                        )
+                        topAppBarViewModel.mutateControlValue(
+                            AppBarMutateControlRequest(
+                                request.controlName,
+                                it.second
+                            )
+                        )
+                    }
                 },
                 setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
                 setTopAppBarControlVisibility = { control, visible ->

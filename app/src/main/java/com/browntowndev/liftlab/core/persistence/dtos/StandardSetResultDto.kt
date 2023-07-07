@@ -9,6 +9,7 @@ data class StandardSetResultDto(
     override val weight: Float,
     override val reps: Int,
     override val rpe: Float,
+    override val mesoCycle: Int,
     override val microCycle: Int,
     val missedLpGoals: Int? = null,
 ): SetResult

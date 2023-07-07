@@ -10,8 +10,7 @@ interface HistoricalWorkoutNamesDao {
     @Insert
     suspend fun insert(historyEntry: HistoricalWorkoutName): Long
 
-    @Query("SELECT historical_workout_name_id " +
-            "FROM historicalWorkoutNames " +
-            "WHERE historical_workout_name_id = :id OR (programName = :programName AND workoutName = :workoutName)")
-    suspend fun get(id: Long, programName: String, workoutName: String)
+    @Query("SELECT * FROM historicalWorkoutNames " +
+            "WHERE programId = :programId AND workoutId = :workoutId")
+    suspend fun getByProgramAndWorkoutId(programId: Long, workoutId: Long): HistoricalWorkoutName?
 }

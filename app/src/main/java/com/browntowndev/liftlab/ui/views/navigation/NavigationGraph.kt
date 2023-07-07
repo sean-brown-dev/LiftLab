@@ -9,6 +9,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import arrow.core.Either
+import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
@@ -33,7 +35,7 @@ fun NavigationGraph(
     onNavigateBack: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Pair<Long, Boolean>>>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
@@ -78,11 +80,11 @@ fun NavigationGraph(
                     isSearchBarVisible = screen.isSearchBarVisible,
                     onNavigateBack = onNavigateBack,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
-                    onChangeTopAppBarTitle = { mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, it)) },
+                    onChangeTopAppBarTitle = { mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, it.left())) },
                     onToggleTopAppBarControlVisibility = { control, visible -> setTopAppBarControlVisibility(control, visible) },
                     onClearTopAppBarFilterText = {
                         mutateTopAppBarControlValue(
-                            AppBarMutateControlRequest(LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW, "")
+                            AppBarMutateControlRequest(LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW, "".left())
                         )
                     }
                 )
@@ -92,9 +94,11 @@ fun NavigationGraph(
             if (screen as? WorkoutScreen != null) {
                 Workout(
                     paddingValues = paddingValues,
+                    navHostController = navHostController,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
+                    setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                 )
             }
         }
@@ -109,7 +113,12 @@ fun NavigationGraph(
                 Lab(
                     paddingValues,
                     navHostController = navHostController,
-                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    mutateTopAppBarControlValue = {
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                it.controlName,
+                                it.payload.left()))
+                    },
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                 )
@@ -135,7 +144,12 @@ fun NavigationGraph(
                     workoutId = workoutId,
                     paddingValues = paddingValues,
                     navHostController = navHostController,
-                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    mutateTopAppBarControlValue = {
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                it.controlName,
+                                it.payload.left()))
+                    },
                 )
             }
         }

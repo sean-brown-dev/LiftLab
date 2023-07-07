@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -59,6 +60,7 @@ fun ScrollableTextField(
     disableSystemKeyboard: Boolean = true,
     value: String,
     label: String = "",
+    errorOnEmptyString: Boolean = true,
     labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
     onFocusChanged: (Boolean) -> Unit,
@@ -86,7 +88,7 @@ fun ScrollableTextField(
 
     val customKeyboardTextField: @Composable (width: Dp?) -> Unit = { width ->
         val txtMod = (if (width != null) Modifier.width(width) else Modifier)
-            .height(60.dp)
+            .height(50.dp)
             .onGloballyPositioned { coordinates ->
                 topOfTextFieldPosition = coordinates.positionInRoot().y
             }
@@ -121,31 +123,33 @@ fun ScrollableTextField(
             OutlinedTextField(
                 modifier = txtMod,
                 value = text,
-                isError = text.isEmpty(),
+                isError = errorOnEmptyString && text.isEmpty(),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 placeholder = {
-                    Text(
-                        text = placeholder,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        fontSize = 10.sp,
-                    )
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = placeholder,
+                            color = MaterialTheme.colorScheme.outline,
+                            fontSize = 16.sp,
+                        )
+                    }
                 },
                 textStyle = TextStyle(
                     textAlign = TextAlign.Center,
-                    fontSize = 20.sp
+                    fontSize = 16.sp
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = Color.Transparent,
                     errorBorderColor = MaterialTheme.colorScheme.error,
                     errorCursorColor = MaterialTheme.colorScheme.error,
-                    errorContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    errorContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     cursorColor = if (disableSystemKeyboard) Color.Transparent else MaterialTheme.colorScheme.primary,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    focusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number,

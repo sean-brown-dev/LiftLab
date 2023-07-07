@@ -8,6 +8,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -23,7 +26,7 @@ data class LiftLibraryScreen(
     override val isOverflowMenuIconVisible: Boolean = false,
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
-    val filterText: String = "",
+    var filterText: String = "",
 ) : BaseScreen(), KoinComponent {
     companion object {
         val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
@@ -82,6 +85,7 @@ data class LiftLibraryScreen(
             LIFT_NAME_FILTER_TEXTVIEW ->  {
                 val newFilter = request.payload as String
                 mutableFilterText = newFilter
+                filterText = mutableFilterText
                 _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, newFilter))
                 return this
             }
@@ -93,11 +97,11 @@ data class LiftLibraryScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector?
-        get() = Icons.Filled.ArrowBack
+    override val navigationIcon: Either<ImageVector, Int>
+        get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
+    override val onNavigationIconClick: (() -> Unit)
         get() = {
             isSearchBarVisible = false
             _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
@@ -112,20 +116,22 @@ data class LiftLibraryScreen(
                     isSearchBarVisible = true
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.SearchStarted))
                 },
-                icon = Icons.Filled.Search,
+                icon = Icons.Filled.Search.left(),
                 contentDescriptionResourceId = R.string.accessibility_search,
             ), ActionMenuItem.TextInputMenuItem.AlwaysShown(
                 controlName = LIFT_NAME_FILTER_TEXTVIEW,
-                icon = Icons.Filled.Search,
+                icon = Icons.Filled.Search.left(),
                 isVisible = isSearchBarVisible,
                 value = mutableFilterText,
                 onValueChange = {
                     mutableFilterText = it
+                    filterText = mutableFilterText
                     _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, it))
                 },
                 onClickTrailingIcon = {
                     isSearchBarVisible = false
                     mutableFilterText = ""
+                    filterText = mutableFilterText
                     _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, mutableFilterText))
                 },
             ),
@@ -136,7 +142,7 @@ data class LiftLibraryScreen(
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.FilterStarted))
                 },
-                iconPainterResourceId = R.drawable.filter_icon,
+                icon = R.drawable.filter_icon.right(),
                 contentDescriptionResourceId = R.string.accessibility_search,
             ),
         )

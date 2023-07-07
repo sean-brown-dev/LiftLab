@@ -168,7 +168,7 @@ fun RpePicker(
                     }
                 }
             }
-            Spacer(modifier = Modifier.weight(.2f))
+            Spacer(modifier = Modifier.weight(.45f))
         }
     }
 }
@@ -204,7 +204,7 @@ private fun RpeOption(
                 text = rpe,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurface
             )
         }
     }

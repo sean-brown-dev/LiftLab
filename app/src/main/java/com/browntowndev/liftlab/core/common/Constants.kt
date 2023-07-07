@@ -1,0 +1,10 @@
+package com.browntowndev.liftlab.core.common
+
+
+const val ONE_MINUTE_IN_MILLIS = 60000L
+const val TEN_MINUTES_IN_MILLIS = 10 * ONE_MINUTE_IN_MILLIS
+const val ONE_HOUR_IN_MILLIS = 60 * ONE_MINUTE_IN_MILLIS
+const val FIVE_HOURS_IN_MILLIS = ONE_HOUR_IN_MILLIS * 5
+const val SINGLE_MINUTES_SECONDS_FORMAT = "%01d:%02d"
+const val DOUBLE_MINUTES_SECONDS_FORMAT = "%02d:%02d"
+const val HOURS_MINUTES_SECONDS_FORMAT = "%01d:02d:%02d"

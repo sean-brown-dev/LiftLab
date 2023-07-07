@@ -1,7 +1,5 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -23,20 +21,13 @@ class LiftLibraryViewModel(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val transactionScope: TransactionScope,
     private val eventBus: EventBus,
-): ViewModel() {
+): LiftLabViewModel(transactionScope, eventBus) {
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
             getAllLifts()
-        }
-    }
-
-    fun registerEventBus() {
-        if (!eventBus.isRegistered(this)) {
-            eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
         }
     }
 
@@ -124,14 +115,6 @@ class LiftLibraryViewModel(
 
         _state.update {
             it.copy(allLifts = lifts)
-        }
-    }
-
-    private fun executeInTransactionScope(action: suspend () -> Unit) {
-        viewModelScope.launch {
-            transactionScope.execute {
-                action()
-            }
         }
     }
 }

@@ -17,9 +17,12 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
+import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
+import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
@@ -29,22 +32,25 @@ import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.Workout
+import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 
 @TypeConverters(Converters::class)
 @Database(
     entities = [
-        Lift::class, CustomLiftSet::class,
+        Lift::class,
+        CustomLiftSet::class,
         HistoricalWorkoutName::class,
         PreviousSetResult::class,
         Program::class,
+        WorkoutLogEntry::class,
         SetLogEntry::class,
         Workout::class,
         WorkoutLift::class,
-        WorkoutLogEntry::class,
+        WorkoutInProgress::class,
    ],
-    version = 20,
+    version = 22,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -52,6 +58,9 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun workoutsDao(): WorkoutsDao
     abstract fun workoutLiftsDao(): WorkoutLiftsDao
     abstract fun customSetsDao(): CustomSetsDao
+    abstract fun previousSetResultsDao(): PreviousSetResultDao
+    abstract fun workoutInProgressDao(): WorkoutInProgressDao
+    abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
     abstract fun loggingDao(): LoggingDao
 
     companion object {

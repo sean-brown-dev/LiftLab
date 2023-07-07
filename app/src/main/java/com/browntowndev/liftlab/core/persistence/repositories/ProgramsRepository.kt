@@ -1,11 +1,16 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
+import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
 
-class ProgramsRepository(private val programsDao: ProgramsDao, private val programMapper: ProgramMapper) : Repository {
+class ProgramsRepository(
+    private val programsDao: ProgramsDao,
+    private val programMapper: ProgramMapper
+) : Repository {
     suspend fun getActive(): ProgramDto? {
         val programEntity: ProgramWithRelationships? = programsDao.getActive()
         var program: ProgramDto? = null
@@ -17,7 +22,17 @@ class ProgramsRepository(private val programsDao: ProgramsDao, private val progr
             program = program.copy(workouts = program.workouts
                 .sortedBy { workout -> workout.position }
                 .map { workout ->
-                    workout.copy(lifts = workout.lifts.sortedBy { lift -> lift.position })
+                    workout.copy(lifts = workout.lifts
+                        .sortedBy { lift -> lift.position }
+                        .map { lift ->
+                            when (lift) {
+                                is CustomWorkoutLiftDto -> lift.copy(
+                                    customLiftSets = lift.customLiftSets.sortedBy { it.position }
+                                )
+                                else -> lift
+                            }
+                        }
+                    )
                 }
             )
         }
@@ -45,11 +60,19 @@ class ProgramsRepository(private val programsDao: ProgramsDao, private val progr
         return programsDao.getDeloadWeek(id)
     }
 
+    suspend fun getActiveProgramMetadata(): ActiveProgramMetadataDto? {
+        return programsDao.getActiveProgramMetadata()
+    }
+
     suspend fun delete(id: Long) {
         programsDao.delete(id)
     }
 
     suspend fun delete(programToDelete: ProgramDto) {
         programsDao.delete(programMapper.map(programToDelete))
+    }
+
+    suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int) {
+        programsDao.updateMesoAndMicroCycle(id, mesoCycle, microCycle, microCyclePosition)
     }
 }

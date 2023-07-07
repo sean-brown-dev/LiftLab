@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Workout
 
 @Dao
@@ -37,4 +38,7 @@ interface WorkoutsDao {
 
     @Query("SELECT MAX(position) FROM workouts WHERE programId = :programId")
     suspend fun getFinalPosition(programId: Long): Int
+
+    @Query("SELECT * FROM workouts WHERE position = :microcyclePosition")
+    suspend fun getByMicrocyclePosition(microcyclePosition: Int): WorkoutWithRelationships
 }

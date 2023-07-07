@@ -9,6 +9,7 @@ data class MyoRepSetResultDto(
     override val weight: Float,
     override val reps: Int,
     override val rpe: Float,
+    override val mesoCycle: Int,
     override val microCycle: Int,
     val myoRepSetPosition: Int? = null,
 ): SetResult

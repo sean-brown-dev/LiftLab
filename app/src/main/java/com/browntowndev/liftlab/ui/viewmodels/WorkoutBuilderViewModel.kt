@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
@@ -44,9 +43,9 @@ class WorkoutBuilderViewModel(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val customLiftSetsRepository: CustomLiftSetsRepository,
     private val liftsRepository: LiftsRepository,
-    private val transactionScope: TransactionScope,
-    private val eventBus: EventBus,
-): ViewModel() {
+    transactionScope: TransactionScope,
+    eventBus: EventBus,
+): LiftLabViewModel(transactionScope, eventBus) {
     private var _state = MutableStateFlow(WorkoutBuilderState())
     val state = _state.asStateFlow()
 
@@ -66,13 +65,6 @@ class WorkoutBuilderViewModel(
     private suspend fun updateLift(currentState: WorkoutBuilderState, workoutLiftId: Long) {
         val updatedLift = currentState.workout!!.lifts.find { it.id == workoutLiftId }!!
         workoutLiftsRepository.update(updatedLift)
-    }
-    
-    fun registerEventBus() {
-        if (!eventBus.isRegistered(this)) {
-            eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
-        }
     }
 
     @Subscribe
@@ -791,7 +783,6 @@ class WorkoutBuilderViewModel(
                         setGoal = 3,
                     )
                     SetType.STANDARD -> set
-                    else -> throw Exception("$newSetType is not defined.")
                 }
             is MyoRepSetDto ->
                 when (newSetType) {
@@ -837,14 +828,6 @@ class WorkoutBuilderViewModel(
                     )
                 }
             else -> throw Exception("${set::class.simpleName} is not recognized as a custom set type.")
-        }
-    }
-    
-    private fun executeInTransactionScope(action: suspend () -> Unit) {
-        viewModelScope.launch { 
-            transactionScope.execute {
-                action()
-            }
         }
     }
 }

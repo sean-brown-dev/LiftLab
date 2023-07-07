@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -23,21 +22,14 @@ import org.greenrobot.eventbus.Subscribe
 class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
-    private val transactionScope: TransactionScope,
-    private val eventBus: EventBus,
-): ViewModel() {
+    transactionScope: TransactionScope,
+    eventBus: EventBus,
+): LiftLabViewModel(transactionScope, eventBus) {
     private var _state = MutableStateFlow(LabState())
     val state = _state.asStateFlow()
 
     init {
         getActiveProgram()
-    }
-
-    fun registerEventBus() {
-        if (!eventBus.isRegistered(this)) {
-            eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
-        }
     }
 
     @Subscribe
@@ -267,14 +259,6 @@ class LabViewModel(
     fun toggleReorderingScreen() {
         _state.update {
             it.copy(isReordering = !it.isReordering)
-        }
-    }
-
-    private fun executeInTransactionScope(action: suspend () -> Unit) {
-        viewModelScope.launch {
-            transactionScope.execute {
-                action()
-            }
         }
     }
 }

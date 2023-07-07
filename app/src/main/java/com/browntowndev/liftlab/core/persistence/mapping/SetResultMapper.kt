@@ -30,6 +30,7 @@ class SetResultMapper {
         return LinearProgressionSetResultDto(
             workoutId = from.workoutId,
             liftId = from.liftId,
+            mesoCycle = from.mesoCycle,
             microCycle = from.microCycle,
             setPosition = from.setPosition,
             weight = from.weight,
@@ -43,6 +44,7 @@ class SetResultMapper {
         return MyoRepSetResultDto(
             workoutId = from.workoutId,
             liftId = from.liftId,
+            mesoCycle = from.mesoCycle,
             microCycle = from.microCycle,
             setPosition = from.setPosition,
             myoRepSetPosition = from.myoRepSetPosition!!,
@@ -56,6 +58,7 @@ class SetResultMapper {
         return StandardSetResultDto(
             workoutId = from.workoutId,
             liftId = from.liftId,
+            mesoCycle = from.mesoCycle,
             microCycle = from.microCycle,
             setPosition = from.setPosition,
             weight = from.weight,
@@ -68,6 +71,7 @@ class SetResultMapper {
         return PreviousSetResult(
             workoutId = from.workoutId,
             liftId = from.liftId,
+            mesoCycle = from.mesoCycle,
             microCycle = from.microCycle,
             setPosition = from.setPosition,
             weight = from.weight,
@@ -80,6 +84,7 @@ class SetResultMapper {
         return PreviousSetResult(
             workoutId = from.workoutId,
             liftId = from.liftId,
+            mesoCycle = from.mesoCycle,
             microCycle = from.microCycle,
             setPosition = from.setPosition,
             myoRepSetPosition = from.myoRepSetPosition,
@@ -93,6 +98,7 @@ class SetResultMapper {
         return PreviousSetResult(
             workoutId = from.workoutId,
             liftId = from.liftId,
+            mesoCycle = from.mesoCycle,
             microCycle = from.microCycle,
             setPosition = from.setPosition,
             weight = from.weight,

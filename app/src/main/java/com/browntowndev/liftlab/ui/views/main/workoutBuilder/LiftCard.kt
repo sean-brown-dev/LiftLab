@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,8 +56,9 @@ fun LiftCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(0.dp, 5.dp),
+            shape = RectangleShape,
             elevation = CardDefaults.cardElevation(defaultElevation = 16.dp, pressedElevation = 0.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         ) {
             LiftCardHeader(
                 category = movementPattern,

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
@@ -130,12 +131,21 @@ private fun LiftLabSmallTopAppBar(
 
 @Composable
 private fun NavigationIcon(state: LiftLabTopAppBarState) {
-    val icon = state.navigationIcon
+    val navIconVisible = (state.navigationIconVisible == true)
+    val icon = state.navigationIconImageVector
+    val iconResource = state.navigationIconResourceId
     val callback = state.onNavigationIconClick
-    if (icon != null && (state.navigationIconVisible == true)) {
+    if (icon != null && navIconVisible) {
         IconButton(onClick = { callback?.invoke() }) {
             Icon(
                 imageVector = icon,
+                contentDescription = state.navigationIconContentDescription
+            )
+        }
+    } else if (iconResource != null && navIconVisible) {
+        IconButton(onClick = { callback?.invoke() }) {
+            Icon(
+                painter = painterResource(id = iconResource),
                 contentDescription = state.navigationIconContentDescription
             )
         }

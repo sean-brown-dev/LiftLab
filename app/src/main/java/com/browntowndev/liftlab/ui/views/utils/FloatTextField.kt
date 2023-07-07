@@ -17,7 +17,9 @@ fun FloatTextField(
     maxValue: Float = 10f,
     minValue: Float = 0f,
     precision: Int = 2,
-    value: Float,
+    value: Float?,
+    errorOnEmpty: Boolean = true,
+    placeholder: Float? = null,
     label: String = "",
     labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
@@ -26,13 +28,15 @@ fun FloatTextField(
     onValueChanged: (Float) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
-    val textNoDotZero = value.toString().removeSuffix(".0").ifEmpty { "0" }
+    val textNoDotZero = value?.toString()?.removeSuffix(".0")?.ifEmpty { "0" } ?: ""
 
     ScrollableTextField(
         modifier = modifier,
         listState = listState,
         vertical = vertical,
+        errorOnEmptyString = errorOnEmpty,
         value = textNoDotZero,
+        placeholder = placeholder?.toString() ?: "",
         label = label,
         labelColor = labelColor,
         labelFontSize = labelFontSize,

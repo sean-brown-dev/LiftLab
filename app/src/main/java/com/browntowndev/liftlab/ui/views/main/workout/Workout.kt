@@ -11,17 +11,30 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -35,44 +48,67 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
+import androidx.navigation.NavHostController
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.insertSuperscript
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.ProgressionDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.utils.CircledTextIcon
+import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.utils.FloatTextField
+import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
 import com.browntowndev.liftlab.ui.views.utils.VolumeChipBottomSheet
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun Workout(
     paddingValues: PaddingValues,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
+    navHostController: NavHostController,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Pair<Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
+    setTopAppBarControlVisibility: (String, Boolean) -> Unit,
 ) {
+    val timerViewModel: TimerViewModel = koinViewModel()
     val workoutViewModel: WorkoutViewModel = koinViewModel()
     val state by workoutViewModel.state.collectAsState()
+    val timerState by timerViewModel.state.collectAsState()
 
-    LaunchedEffect(state.workout) {
-        if (state.workout != null) {
+    workoutViewModel.registerEventBus()
+    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutViewModel)
+
+    LaunchedEffect(state.workoutWithProgression) {
+        if (state.workoutWithProgression != null) {
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,
-                    state.workout!!.name
+                    state.workoutWithProgression!!.workout.name.left()
                 )
             )
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.SUBTITLE,
-                    "Mesocycle ${state.program!!.currentMesocycle + 1}"
+                    ("Mesocycle: ${state.programMetadata!!.currentMesocycle + 1} " +
+                     "Microcycle: ${state.programMetadata!!.currentMicrocycle + 1}").left()
                 )
             )
         }
@@ -81,15 +117,47 @@ fun Workout(
     LaunchedEffect(key1 = state.workoutLogVisible) {
         setTopAppBarCollapsed(state.workoutLogVisible)
         setBottomNavBarVisibility(!state.workoutLogVisible)
+        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, state.workoutLogVisible)
+        setTopAppBarControlVisibility(REST_TIMER, state.workoutLogVisible)
+
+        if (state.workoutLogVisible) {
+            timerViewModel.start() // This is smart and won't restart from 0
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.SUBTITLE,
+                    "Duration: ${timerState.time}".left()
+                )
+            )
+        } else if (state.programMetadata != null) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.SUBTITLE,
+                    ("Mesocycle: ${state.programMetadata!!.currentMesocycle + 1} " +
+                            "Microcycle: ${state.programMetadata!!.currentMicrocycle + 1}").left()
+                )
+            )
+        }
     }
 
-    if (state.workout != null) {
+    // Update subtitle on every tick
+    LaunchedEffect(key1 = timerState.time) {
+        if (state.workoutLogVisible) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.SUBTITLE,
+                    "Duration: ${timerState.time}".left()
+                )
+            )
+        }
+    }
+
+    if (state.workoutWithProgression != null) {
         WorkoutPreview(
             paddingValues = paddingValues,
             visible = !state.workoutLogVisible,
             workoutInProgress = state.inProgress,
-            workoutName = state.workout!!.name,
-            lifts = state.workout!!.lifts,
+            workoutName = state.workoutWithProgression!!.workout.name,
+            lifts = state.workoutWithProgression!!.workout.lifts,
             volumeTypes = state.volumeTypes,
             setInProgress = { workoutViewModel.setInProgress(it) },
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
@@ -97,8 +165,19 @@ fun Workout(
         WorkoutLog(
             paddingValues = paddingValues,
             visible = state.workoutLogVisible,
-            lifts = state.workout!!.lifts,
-            setVisible = { workoutViewModel.setWorkoutLogVisibility(it) }
+            lifts = state.workoutWithProgression!!.workout.lifts,
+            completedSets = state.completedSets,
+            progressions = state.workoutWithProgression!!.progressions,
+            startRestTimer = {
+                mutateTopAppBarControlValue(
+                    AppBarMutateControlRequest(REST_TIMER, Pair(it, true).right())
+                )
+            },
+            cancelRestTimer = {
+                mutateTopAppBarControlValue(
+                    AppBarMutateControlRequest(REST_TIMER, Pair(0L, false).right())
+                )
+            }
         )
     }
 }
@@ -241,7 +320,10 @@ fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
     lifts: List<GenericWorkoutLift>,
-    setVisible: (visible: Boolean) -> Unit,
+    completedSets: Map<String, SetResult>,
+    progressions: Map<Long, List<ProgressionDto>>,
+    startRestTimer: (time: Long) -> Unit,
+    cancelRestTimer: () -> Unit,
 ) {
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
@@ -249,19 +331,146 @@ fun WorkoutLog(
         enter = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn(),
         exit = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut(),
     ) {
+        val lazyListState = rememberLazyListState()
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
+            state = lazyListState,
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            items(lifts, key = { it.id }) {lift ->
-                Text(lift.liftName, color = MaterialTheme.colorScheme.onSurface)
+            items(lifts, key = { it.id }) { lift ->
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp, 5.dp),
+                    shape = RectangleShape,
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 16.dp,
+                        pressedElevation = 0.dp
+                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(10.dp),
+                            text = lift.liftName,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        when (lift) {
+                            is StandardWorkoutLiftDto -> {
+                                for (i in 0 until lift.setCount) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 5.dp),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        var completedSet by remember {
+                                            mutableStateOf(
+                                                completedSets["$lift.liftId-$i"]
+                                            )
+                                        }
+                                        val weightRecommendation = remember {
+                                            progressions[lift.id]
+                                                ?.firstOrNull { it.setPosition == i }
+                                                ?.weightRecommendation
+                                        }
+                                        LaunchedEffect(key1 = completedSets) {
+                                            completedSet = completedSets["$lift.liftId-$i"]
+                                        }
+
+                                        val padding = remember { if(i == 0) 10.dp else 0.dp }
+                                        Text(
+                                            modifier = Modifier.padding(top = padding),
+                                            text = (i + 1).toString(),
+                                            fontSize = 14.sp,
+                                            textAlign = TextAlign.Center,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        FloatTextField(
+                                            modifier = Modifier.weight(1f),
+                                            label = if (i == 0) "Weight" else "",
+                                            listState = lazyListState,
+                                            value = completedSet?.weight,
+                                            placeholder = weightRecommendation,
+                                            errorOnEmpty = false,
+                                            maxValue = Float.MAX_VALUE,
+                                            onValueChanged = { },
+                                            onFocusChanged = { },
+                                            onPixelOverflowChanged = { },
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        IntegerTextField(
+                                            modifier = Modifier.weight(1f),
+                                            label = if (i == 0) "Reps" else "",
+                                            value = completedSet?.reps,
+                                            placeholder = "${lift.repRangeBottom}-${lift.repRangeTop}",
+                                            errorOnEmpty = false,
+                                            onValueChanged = { },
+                                            onFocusChanged = { },
+                                            onPixelOverflowChanged = { },
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        IntegerTextField(
+                                            modifier = Modifier.weight(1f),
+                                            label = if (i == 0) "RPE" else "",
+                                            value = completedSet?.reps,
+                                            placeholder = lift.rpeTarget.toString().removeSuffix(".0"),
+                                            disableSystemKeyboard = true,
+                                            errorOnEmpty = false,
+                                            onValueChanged = { },
+                                            onFocusChanged = { },
+                                            onPixelOverflowChanged = { },
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column (
+                                            modifier = Modifier.fillMaxHeight(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Top,
+                                        ) {
+                                            if (i == 0) {
+                                                Icon(
+                                                    modifier = Modifier.size(14.dp),
+                                                    imageVector = Icons.Filled.Check,
+                                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                    contentDescription = null,
+                                                )
+                                            }
+                                            Checkbox(
+                                                checked = completedSet != null,
+                                                enabled = true,
+                                                colors = CheckboxDefaults.colors(
+                                                    uncheckedColor = MaterialTheme.colorScheme.outline,
+                                                    checkedColor = MaterialTheme.colorScheme.primary,
+                                                    checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+                                                ),
+                                                onCheckedChange = { }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            is CustomWorkoutLiftDto -> {
+
+                            }
+
+                            else -> throw Exception("${lift::class.simpleName} is not defined.")
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+                }
             }
             item {
-                Button(onClick = { setVisible(false) }) {
-                    Text("Hide")
+                Button(onClick = { startRestTimer(3000L) }) {
+                    Text("Show Rest Timer")
                 }
             }
         }

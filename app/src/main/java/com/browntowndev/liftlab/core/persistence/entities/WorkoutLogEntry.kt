@@ -22,5 +22,6 @@ data class WorkoutLogEntry(
     val historicalWorkoutNameId: Long,
     val mesocycle: Int,
     val microcycle: Int,
-    val date: Date
+    val date: Date,
+    val durationInMillis: Long,
 )
