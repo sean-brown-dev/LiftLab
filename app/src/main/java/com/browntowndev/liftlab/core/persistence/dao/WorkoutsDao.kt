@@ -9,6 +9,7 @@ import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Workout
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutsDao {
@@ -40,5 +41,5 @@ interface WorkoutsDao {
     suspend fun getFinalPosition(programId: Long): Int
 
     @Query("SELECT * FROM workouts WHERE position = :microcyclePosition")
-    suspend fun getByMicrocyclePosition(microcyclePosition: Int): WorkoutWithRelationships
+    fun getByMicrocyclePosition(microcyclePosition: Int): Flow<WorkoutWithRelationships>
 }

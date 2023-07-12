@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.views.utils.LabeledChips
+import com.browntowndev.liftlab.ui.views.composables.LabeledChips
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,11 +43,11 @@ fun LiftLabBottomSheet(
 ) {
     var rememberedLabel by remember { mutableStateOf(label) }
     var scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = SheetState(
+        bottomSheetState = remember { SheetState(
             initialValue = SheetValue.PartiallyExpanded,
             skipPartiallyExpanded = false,
             skipHiddenState = true
-        )
+        ) }
     )
 
     LaunchedEffect(key1 = label) {

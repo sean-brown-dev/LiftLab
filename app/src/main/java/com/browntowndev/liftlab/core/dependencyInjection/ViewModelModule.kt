@@ -5,6 +5,7 @@ import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
@@ -22,4 +23,5 @@ val viewModelModule = module {
     viewModel { BottomSheetViewModel() }
     viewModel { params -> CountdownTimerViewModel(params.get()) }
     viewModel { TimerViewModel() }
+    viewModel { PickerViewModel() }
 }

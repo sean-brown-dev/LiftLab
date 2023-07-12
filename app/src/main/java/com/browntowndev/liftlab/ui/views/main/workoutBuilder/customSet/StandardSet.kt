@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.ui.views.utils.FloatTextField
-import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
+import com.browntowndev.liftlab.ui.views.composables.FloatTextField
+import com.browntowndev.liftlab.ui.views.composables.IntegerTextField
 
 
 @Composable

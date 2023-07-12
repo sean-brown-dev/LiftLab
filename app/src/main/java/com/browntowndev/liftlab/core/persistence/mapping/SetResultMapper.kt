@@ -28,6 +28,7 @@ class SetResultMapper {
 
     private fun toLpSetResult(from: PreviousSetResult): LinearProgressionSetResultDto {
         return LinearProgressionSetResultDto(
+            id = from.id,
             workoutId = from.workoutId,
             liftId = from.liftId,
             mesoCycle = from.mesoCycle,
@@ -42,6 +43,7 @@ class SetResultMapper {
 
     private fun toMyoRepSetResult(from: PreviousSetResult): MyoRepSetResultDto {
         return MyoRepSetResultDto(
+            id = from.id,
             workoutId = from.workoutId,
             liftId = from.liftId,
             mesoCycle = from.mesoCycle,
@@ -56,6 +58,7 @@ class SetResultMapper {
 
     private fun toStandardSetResult(from: PreviousSetResult): StandardSetResultDto {
         return StandardSetResultDto(
+            id = from.id,
             workoutId = from.workoutId,
             liftId = from.liftId,
             mesoCycle = from.mesoCycle,
@@ -69,6 +72,7 @@ class SetResultMapper {
 
     private fun toEntity(from: StandardSetResultDto): PreviousSetResult {
         return PreviousSetResult(
+            id = from.id,
             workoutId = from.workoutId,
             liftId = from.liftId,
             mesoCycle = from.mesoCycle,
@@ -82,6 +86,7 @@ class SetResultMapper {
 
     private fun toEntity(from: MyoRepSetResultDto): PreviousSetResult {
         return PreviousSetResult(
+            id = from.id,
             workoutId = from.workoutId,
             liftId = from.liftId,
             mesoCycle = from.mesoCycle,
@@ -96,6 +101,7 @@ class SetResultMapper {
 
     private fun toEntity(from: LinearProgressionSetResultDto): PreviousSetResult {
         return PreviousSetResult(
+            id = from.id,
             workoutId = from.workoutId,
             liftId = from.liftId,
             mesoCycle = from.mesoCycle,

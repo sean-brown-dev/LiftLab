@@ -37,9 +37,9 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
@@ -69,9 +69,9 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 2),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 2),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 2),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 2, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 2, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 2, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
@@ -101,9 +101,9 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 3),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 3),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 3),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 3, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 3, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 3, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)

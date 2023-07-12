@@ -2,31 +2,59 @@ package com.browntowndev.liftlab.core.progression
 
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.persistence.dtos.ProgressionDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutWithProgressionDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
 class StandardProgressionFactory: ProgressionFactory {
     override fun calculate(
-        programDeloadWeek: Int,
         workout: WorkoutDto,
-        previousSetResults: List<SetResult>
-    ): WorkoutWithProgressionDto {
-        val progressionByWorkout = HashMap<Long, List<ProgressionDto>>()
+        previousSetResults: List<SetResult>,
+        microCycle: Int,
+        programDeloadWeek: Int,
+    ): LoggingWorkoutDto {
+        var loggingWorkout = LoggingWorkoutDto(
+            id = workout.id,
+            name = workout.name,
+            lifts = listOf()
+        )
+
         workout.lifts.fastForEach { workoutLift ->
-            progressionByWorkout[workoutLift.id] = when (workoutLift.progressionScheme) {
-                ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
-                ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
-                ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
-                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek)
-            }.calculate(workoutLift = workoutLift, previousSetResults = previousSetResults)
+            loggingWorkout = loggingWorkout.copy(
+                lifts = loggingWorkout.lifts.toMutableList().apply {
+                    val isDeloadWeek = (microCycle + 1) == (workoutLift.deloadWeek ?: programDeloadWeek)
+                    add(
+                        LoggingWorkoutLiftDto(
+                            id = workoutLift.id,
+                            liftId = workoutLift.liftId,
+                            liftName = workoutLift.liftName,
+                            liftMovementPattern = workoutLift.liftMovementPattern,
+                            liftVolumeTypes = workoutLift.liftVolumeTypes,
+                            liftRestTime = workoutLift.liftRestTime,
+                            deloadWeek = workoutLift.deloadWeek,
+                            incrementOverride = workoutLift.incrementOverride,
+                            liftIncrementOverride = workoutLift.liftIncrementOverride,
+                            position = workoutLift.position,
+                            progressionScheme = workoutLift.progressionScheme,
+                            restTime = workoutLift.restTime,
+                            setCount = workoutLift.setCount,
+                            sets = when (workoutLift.progressionScheme) {
+                                ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
+                                ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
+                                ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
+                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek)
+                            }.calculate(
+                                workoutLift = workoutLift,
+                                previousSetResults = previousSetResults,
+                                isDeloadWeek = isDeloadWeek,
+                            )
+                        )
+                    )
+                }
+            )
         }
 
-        return WorkoutWithProgressionDto(
-            workout = workout,
-            progressions = progressionByWorkout
-        )
+        return loggingWorkout
     }
 }

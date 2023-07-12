@@ -13,11 +13,11 @@ import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.utils.ConfirmationModal
-import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.utils.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.views.utils.TextFieldModal
-import com.browntowndev.liftlab.ui.views.utils.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.views.composables.TextFieldModal
+import com.browntowndev.liftlab.ui.views.composables.VolumeChipBottomSheet
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi

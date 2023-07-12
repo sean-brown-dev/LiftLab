@@ -1,12 +1,22 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutWithProgressionDto
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import com.browntowndev.liftlab.core.progression.ProgressionFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 
 class WorkoutsRepository(
     private val programsRepository: ProgramsRepository,
@@ -50,14 +60,76 @@ class WorkoutsRepository(
         customLiftSetsRepository.updateMany(updSets)
     }
 
-    suspend fun getNextToPerform(programMetadata: ActiveProgramMetadataDto): WorkoutWithProgressionDto {
-        val workout = workoutsDao.getByMicrocyclePosition(programMetadata.currentMicrocyclePosition)
-        val previousSetResults = previousSetResultsRepository.getByWorkoutId(workout.workout.id)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    suspend fun getNextToPerform(
+        programMetadata: ActiveProgramMetadataDto,
+    ): LiveData<LoggingWorkoutDto> {
+        return workoutsDao.getByMicrocyclePosition(programMetadata.currentMicrocyclePosition)
+            .flatMapLatest { workout ->
+                val previousSetResults =
+                    previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
+                        workoutId = workout.workout.id,
+                        mesoCycle = programMetadata.currentMesocycle,
+                        microCycle = programMetadata.currentMicrocycle,
+                    )
 
-        return progressionFactory.calculate(
-            programMetadata.deloadWeek,
-            workoutMapper.map(workout),
-            previousSetResults
-        )
+                val loggingWorkout = progressionFactory.calculate(
+                    workout = workoutMapper.map(workout),
+                    previousSetResults = previousSetResults,
+                    programDeloadWeek = programMetadata.deloadWeek,
+                    microCycle = programMetadata.currentMicrocycle,
+                )
+
+                val inProgressCompletedSets = previousSetResultsRepository.getForWorkout(
+                    workoutId = workout.workout.id,
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle
+                ).associateBy { result ->
+                    "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
+                }
+
+                flowOf(
+                    if ((inProgressCompletedSets.size) > 0) {
+                        loggingWorkout.copy(
+                            lifts = loggingWorkout.lifts.fastMap { workoutLift ->
+                                workoutLift.copy(
+                                    sets = workoutLift.sets.fastMap { set ->
+                                        val completedSet = inProgressCompletedSets[
+                                                "${workoutLift.liftId}-${set.setPosition}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
+                                        ]
+
+                                        if (completedSet != null) {
+                                            when (set) {
+                                                is LoggingStandardSetDto -> set.copy(
+                                                    complete = true,
+                                                    completedWeight = completedSet.weight,
+                                                    completedReps = completedSet.reps,
+                                                    completedRpe = completedSet.rpe,
+                                                )
+
+                                                is LoggingDropSetDto -> set.copy(
+                                                    complete = true,
+                                                    completedWeight = completedSet.weight,
+                                                    completedReps = completedSet.reps,
+                                                    completedRpe = completedSet.rpe,
+                                                )
+
+                                                is LoggingMyoRepSetDto -> set.copy(
+                                                    complete = true,
+                                                    completedWeight = completedSet.weight,
+                                                    completedReps = completedSet.reps,
+                                                    completedRpe = completedSet.rpe,
+                                                )
+
+                                                else -> throw Exception("${set::class.simpleName} is not defined.")
+                                            }
+                                        } else set
+                                    }
+                                )
+                            }
+                        )
+                    } else loggingWorkout
+                )
+            }.asLiveData()
     }
 }

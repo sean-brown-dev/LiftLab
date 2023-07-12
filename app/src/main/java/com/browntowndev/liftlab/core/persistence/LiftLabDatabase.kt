@@ -50,7 +50,7 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
         WorkoutLift::class,
         WorkoutInProgress::class,
    ],
-    version = 22,
+    version = 23,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -90,7 +90,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
             Log.w("TRACE", "Entered submitDataInitializationJob()")
 
             val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
-            if (isDatabaseInitialized) {
+            if (!isDatabaseInitialized) {
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()

@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.views.utils.NumberPickerMenuItem
+import com.browntowndev.liftlab.ui.views.composables.NumberPickerMenuItem
 import kotlinx.coroutines.launch
 
 @Composable

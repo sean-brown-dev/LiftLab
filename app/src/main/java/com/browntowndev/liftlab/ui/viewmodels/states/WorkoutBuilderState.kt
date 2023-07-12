@@ -34,13 +34,6 @@ data class ChangedSetTypeState(
     val isExpanded: Boolean,
 )
 
-@Stable
-data class PickerState(
-    val workoutLiftId: Long,
-    val position: Int? = null,
-    val type: PickerType,
-)
-
 enum class PickerType {
     Rpe,
     Percentage,

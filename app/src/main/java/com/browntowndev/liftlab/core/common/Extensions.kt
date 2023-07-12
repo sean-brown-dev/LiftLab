@@ -10,6 +10,9 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
@@ -56,7 +59,7 @@ fun String.insertSuperscript(
     }
 }
 
-private fun getVolumeTypeMap(lifts: List<GenericWorkoutLift>):  HashMap<String, Pair<Int, Boolean>> {
+private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>):  HashMap<String, Pair<Int, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
     lifts.fastForEach { lift ->
         lift.liftVolumeTypes.getVolumeTypes().fastForEach { volumeType ->
@@ -76,8 +79,28 @@ private fun getVolumeTypeMap(lifts: List<GenericWorkoutLift>):  HashMap<String, 
     return volumeCounts
 }
 
-private fun getVolumeTypeLabels(lifts: List<GenericWorkoutLift>): List<CharSequence> {
-    return getVolumeTypeMap(lifts).map { (volumeType, totalVolume) ->
+private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>):  HashMap<String, Pair<Int, Boolean>> {
+    val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
+    lifts.fastForEach { lift ->
+        lift.liftVolumeTypes.getVolumeTypes().fastForEach { volumeType ->
+            val displayName = volumeType.displayName()
+            val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
+            val hasMyoReps = lift.sets.any { it is LoggingMyoRepSetDto }
+            var newTotalVolume: Int = lift.setCount
+
+            if (currTotalVolume != null) {
+                newTotalVolume += currTotalVolume.first
+            }
+
+            volumeCounts[displayName] = Pair(newTotalVolume, hasMyoReps || currTotalVolume?.second ?: false )
+        }
+    }
+
+    return volumeCounts
+}
+
+private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>): List<CharSequence> {
+    return getVolumeTypeMapForGenericWorkoutLifts(lifts).map { (volumeType, totalVolume) ->
         val plainVolumeString = "$volumeType: ${totalVolume.first}"
         if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
         else plainVolumeString
@@ -85,11 +108,23 @@ private fun getVolumeTypeLabels(lifts: List<GenericWorkoutLift>): List<CharSeque
 }
 
 fun WorkoutDto.getVolumeTypeLabels(): List<CharSequence> {
-    return getVolumeTypeLabels(this.lifts)
+    return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts)
+}
+
+private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>): List<CharSequence> {
+    return getVolumeTypeMapForLoggingWorkoutLifts(lifts).map { (volumeType, totalVolume) ->
+        val plainVolumeString = "$volumeType: ${totalVolume.first}"
+        if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
+        else plainVolumeString
+    }
+}
+
+fun LoggingWorkoutDto.getVolumeTypeLabels(): List<CharSequence> {
+    return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts)
 }
 
 fun ProgramDto.getVolumeTypeLabels(): List<CharSequence> {
-    return getVolumeTypeLabels(
+    return getVolumeTypeLabelsForGenericWorkoutLifts(
         this.workouts.flatMap { workout ->
             workout.lifts
         }
@@ -110,8 +145,50 @@ fun Double.roundToNearestFactor(factor: Float): Float {
     return abs((this / factor).roundToInt()) * factor
 }
 
-fun Long.toMinutesSecondsString(format: String): String = String.format(
-    format,
-    TimeUnit.MILLISECONDS.toMinutes(this),
-    TimeUnit.MILLISECONDS.toSeconds(this) % 60
-)
+fun Float.roundToNearestFactor(factor: Float): Float {
+    return abs((this / factor).roundToInt()) * factor
+}
+
+fun Long.toTimeString(format: String): String {
+    // TODO: Unit Tests
+    return if (this < TEN_MINUTES_IN_MILLIS) {
+        String.format(
+            SINGLE_MINUTES_SECONDS_FORMAT,
+            TimeUnit.MILLISECONDS.toMinutes(this),
+            TimeUnit.MILLISECONDS.toSeconds(this) % 60
+        )
+    }
+    else if (this < ONE_HOUR_IN_MILLIS ) {
+        String.format(
+            DOUBLE_MINUTES_SECONDS_FORMAT,
+            TimeUnit.MILLISECONDS.toMinutes(this),
+            TimeUnit.MILLISECONDS.toSeconds(this) % 60
+        )
+    }
+    else if (this < TEN_HOURS_IN_MILLIS) {
+        String.format(
+            SINGLE_HOURS_MINUTES_SECONDS_FORMAT,
+            TimeUnit.MILLISECONDS.toHours(this),
+            TimeUnit.MILLISECONDS.toMinutes(this) % 60,
+            TimeUnit.MILLISECONDS.toSeconds(this) % 60
+        )
+    }
+    else if (this < TWENTY_FOUR_HOURS_IN_MILLIS) {
+        String.format(
+            DOUBLE_HOURS_MINUTES_SECONDS_FORMAT,
+            TimeUnit.MILLISECONDS.toHours(this),
+            TimeUnit.MILLISECONDS.toMinutes(this) % 60,
+            TimeUnit.MILLISECONDS.toSeconds(this) % 60
+        )
+    } else if (this < NINETY_NINE_DAYS_IN_MILLIS) {
+        String.format(
+            DAYS_HOURS_MINUTES_SECONDS_FORMAT,
+            TimeUnit.MILLISECONDS.toDays(this),
+            TimeUnit.MILLISECONDS.toHours(this) % 24,
+            TimeUnit.MILLISECONDS.toMinutes(this) % 60,
+            TimeUnit.MILLISECONDS.toSeconds(this) % 60
+        )
+    } else {
+        return ">99 Days"
+    }
+}

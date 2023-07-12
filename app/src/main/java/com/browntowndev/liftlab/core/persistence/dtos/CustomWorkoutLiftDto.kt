@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import kotlin.time.Duration
 
@@ -21,5 +21,5 @@ data class CustomWorkoutLiftDto (
     override val deloadWeek: Int?,
     override val incrementOverride: Float?,
     override val restTime: Duration?,
-    val customLiftSets: List<GenericCustomLiftSet>
+    val customLiftSets: List<GenericLiftSet>
 ) : GenericWorkoutLift

@@ -10,6 +10,9 @@ interface WorkoutInProgressDao {
     @Insert
     suspend fun insert(workoutInProgress: WorkoutInProgress)
 
-    @Query("DELETE FROM workoutsInProgress WHERE workoutId = :workoutId")
-    suspend fun delete(workoutId: Long)
+    @Query("SELECT * FROM workoutsInProgress")
+    suspend fun get(): WorkoutInProgress?
+
+    @Query("DELETE FROM workoutsInProgress")
+    suspend fun delete()
 }

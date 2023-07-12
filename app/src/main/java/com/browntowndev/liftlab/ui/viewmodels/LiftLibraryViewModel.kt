@@ -19,8 +19,8 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val transactionScope: TransactionScope,
-    private val eventBus: EventBus,
+    transactionScope: TransactionScope,
+    eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
@@ -50,6 +50,7 @@ class LiftLibraryViewModel(
 
     fun addWorkoutLift(workoutId: Long, position: Int, newLiftId: Long) {
         viewModelScope.launch {
+            // TODO: Block duplicate lift from being added
             val newLift = _state.value.filteredLifts.find { it.id == newLiftId }!!
             val newWorkoutLift = StandardWorkoutLiftDto(
                 liftId = newLift.id,

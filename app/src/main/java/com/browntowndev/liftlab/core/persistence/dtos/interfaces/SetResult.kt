@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.dtos.interfaces
 
 interface SetResult {
+    val id: Long
     val workoutId: Long
     val liftId: Long
     val setPosition: Int

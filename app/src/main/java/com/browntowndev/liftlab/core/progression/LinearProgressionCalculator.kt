@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutL
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
 class LinearProgressionCalculator: StraightSetProgressionCalculator() {
-    override fun allSetsMetCriteria(
+    override fun allSetsMetCriterion(
         lift: StandardWorkoutLiftDto,
         previousSetResults: List<SetResult>
     ): Boolean {
@@ -26,7 +26,7 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
                 }
     }
 
-    override fun allSetsMetCriteria(
+    override fun allSetsMetCriterion(
         lift: CustomWorkoutLiftDto,
         previousSetResults: List<SetResult>
     ): Boolean {
@@ -35,20 +35,20 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
     }
 
     override fun getFailureWeight(
-        lift: GenericWorkoutLift,
+        workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>
-    ): Float {
+    ): Float? {
         val previouslyFailedSet = previousSetResults.firstOrNull {
             (it as LinearProgressionSetResultDto).missedLpGoals > 1 // cast validated already by allSetsMetCriteria()
         }
 
         return if (previousSetResults.isNotEmpty() && previouslyFailedSet != null) {
             val factor =
-                lift.incrementOverride ?: lift.liftIncrementOverride ?: SettingsManager.getSetting(
+                workoutLift.incrementOverride ?: workoutLift.liftIncrementOverride ?: SettingsManager.getSetting(
                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
                     5f
                 )
             (previouslyFailedSet.weight * .9).roundToNearestFactor(factor)
-        } else super.getFailureWeight(lift = lift, previousSetResults = previousSetResults)
+        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults)
     }
 }

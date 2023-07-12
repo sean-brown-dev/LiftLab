@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
 class DoubleProgressionCalculator: StraightSetProgressionCalculator() {
 
-    override fun allSetsMetCriteria(
+    override fun allSetsMetCriterion(
         lift: StandardWorkoutLiftDto,
         previousSetResults: List<SetResult>,
     ): Boolean {
@@ -20,7 +20,7 @@ class DoubleProgressionCalculator: StraightSetProgressionCalculator() {
         return allSetGoalsMet
     }
 
-    override fun allSetsMetCriteria(
+    override fun allSetsMetCriterion(
         lift: CustomWorkoutLiftDto,
         previousSetResults: List<SetResult>,
     ): Boolean {
@@ -32,14 +32,13 @@ class DoubleProgressionCalculator: StraightSetProgressionCalculator() {
                             is MyoRepSetDto -> {
                                 customSetMeetsCriterion(
                                     set = set,
-                                    setData = groupedSetData[set.position]?.filterIsInstance<MyoRepSetResultDto>()
+                                    setData = groupedSetData[set.setPosition]?.filterIsInstance<MyoRepSetResultDto>()
                                 )
                             }
-
                             else -> {
                                 customSetMeetsCriterion(
                                     set = set,
-                                    previousSet = groupedSetData[set.position]?.firstOrNull()
+                                    previousSet = groupedSetData[set.setPosition]?.firstOrNull()
                                 )
                             }
                         }

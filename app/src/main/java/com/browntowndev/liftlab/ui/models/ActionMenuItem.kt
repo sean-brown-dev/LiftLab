@@ -59,6 +59,7 @@ sealed interface ActionMenuItem {
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val isVisible: Boolean = false,
+            val timerRequestId: String = "",
             val started: Boolean = false,
             val startTimeInMillis: Long = 0,
         ) : TimerMenuItem

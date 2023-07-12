@@ -57,7 +57,8 @@ class RepositoryHelper(context: Context): KoinComponent {
     )
 
     val workoutInProgress get() = WorkoutInProgressRepository(
-        database.workoutInProgressDao()
+        database.workoutInProgressDao(),
+        previousSetResultsRepository = previousSetResults,
     )
 
     val historicalWorkoutNames get() = HistoricalWorkoutNamesRepository(

@@ -15,6 +15,7 @@ import com.browntowndev.liftlab.ui.models.BottomNavItem
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.util.UUID
 
 data class WorkoutScreen(
     override val isOverflowMenuExpanded: Boolean = false,
@@ -25,10 +26,12 @@ data class WorkoutScreen(
     private val restTimerControlVisible: Boolean = false,
     private val restTimerRunning: Boolean = false,
     private val restTimerSpanInMillis: Long = 0L,
+    private val timerRequestId: String = "",
 ) : BaseScreen(), KoinComponent {
     companion object {
         val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
         const val REST_TIMER = "restTimer"
+        const val FINISH_BUTTON = "finishButton"
     }
 
     private val _eventBus: EventBus by inject()
@@ -63,9 +66,17 @@ data class WorkoutScreen(
                         )
                     }
                     is Long -> {
-                        copy(
-                            restTimerSpanInMillis = request.payload
-                        )
+                        val restTime: Long = request.payload
+                        if (restTime > 0L) {
+                            copy(
+                                timerRequestId = UUID.randomUUID().toString(),
+                                restTimerSpanInMillis = restTime
+                            )
+                        } else if (restTime == 0L) {
+                            copy(
+                                restTimerSpanInMillis = restTime
+                            )
+                        } else this
                     }
                     else -> throw Exception("Invalid type of ${
                         if (request.payload !=  null) {
@@ -104,11 +115,12 @@ data class WorkoutScreen(
                 controlName = REST_TIMER,
                 started = restTimerRunning,
                 startTimeInMillis = restTimerSpanInMillis,
+                timerRequestId = timerRequestId,
                 icon = R.drawable.stopwatch_icon.right(),
             ),
             ActionMenuItem.ButtonMenuItem.AlwaysShown(
                 isVisible = restTimerControlVisible,
-                controlName = REST_TIMER,
+                controlName = FINISH_BUTTON,
                 buttonContent = {
                     Text("Finish")
                 },

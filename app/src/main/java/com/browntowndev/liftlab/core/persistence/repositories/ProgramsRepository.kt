@@ -27,7 +27,7 @@ class ProgramsRepository(
                         .map { lift ->
                             when (lift) {
                                 is CustomWorkoutLiftDto -> lift.copy(
-                                    customLiftSets = lift.customLiftSets.sortedBy { it.position }
+                                    customLiftSets = lift.customLiftSets.sortedBy { it.setPosition }
                                 )
                                 else -> lift
                             }

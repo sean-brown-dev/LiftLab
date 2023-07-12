@@ -8,18 +8,28 @@ class PreviousSetResultsRepository(
     private val previousSetResultDao: PreviousSetResultDao,
     private val setResultsMapper: SetResultMapper,
 ): Repository {
-    suspend fun getByWorkoutId(workoutId: Long): List<SetResult> {
-        return previousSetResultDao.getByWorkoutId(workoutId).map {
+    suspend fun getByWorkoutIdExcludingGivenMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult> {
+        return previousSetResultDao.getByWorkoutIdExcludingGivenMesoAndMicro(workoutId, mesoCycle, microCycle).map {
             setResultsMapper.map(it)
         }
     }
 
-    suspend fun insert(setResult: SetResult) {
-        previousSetResultDao.insert(setResultsMapper.map(setResult))
+    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult> {
+        return previousSetResultDao.getForWorkout(workoutId, mesoCycle, microCycle).map {
+            setResultsMapper.map(it)
+        }
+    }
+
+    suspend fun upsert(setResult: SetResult): Long {
+        return previousSetResultDao.upsert(setResultsMapper.map(setResult))
+    }
+
+    suspend fun insertMany(setResult: List<SetResult>) {
+        previousSetResultDao.insertMany(setResult.map { setResultsMapper.map(it) })
     }
 
     suspend fun deleteAllNotForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
-        previousSetResultDao.deleteAllNotForWorkout(workoutId, mesoCycle, microCycle)
+        previousSetResultDao.deleteAllNotForWorkoutMesoAndMicro(workoutId, mesoCycle, microCycle)
     }
 
     suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
@@ -30,7 +40,7 @@ class PreviousSetResultsRepository(
         previousSetResultDao.delete(workoutId, liftId, setPosition)
     }
 
-    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int, myoRepSetPosition: Int) {
+    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int, myoRepSetPosition: Int?) {
         previousSetResultDao.delete(workoutId, liftId, setPosition, myoRepSetPosition)
     }
 }

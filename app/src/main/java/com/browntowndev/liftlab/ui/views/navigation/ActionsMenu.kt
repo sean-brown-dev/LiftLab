@@ -1,10 +1,8 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -31,8 +29,7 @@ import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.utils.FocusableRoundTextField
-import com.browntowndev.liftlab.ui.views.utils.ProgressCountdownTimer
+import com.browntowndev.liftlab.ui.views.composables.FocusableRoundTextField
 
 @Composable
 fun ActionsMenu(
@@ -47,22 +44,6 @@ fun ActionsMenu(
         key2 = maxVisibleItems,
     ) {
         splitMenuItems(topAppBarState.actions, maxVisibleItems)
-    }
-
-    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TimerMenuItem.AlwaysShown>().fastForEach { item ->
-        ProgressCountdownTimer(
-            start = item.started,
-            startTimeInMillis = item.startTimeInMillis,
-            onComplete = { ranToCompletion ->
-                topAppBarViewModel.mutateControlValue(AppBarMutateControlRequest(item.controlName, false))
-
-                // TODO: Make a sound
-                if (ranToCompletion) {
-
-                }
-            }
-        )
-        Spacer(modifier = Modifier.width(20.dp))
     }
 
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>().fastForEach { item ->
@@ -212,9 +193,8 @@ private fun splitMenuItems(
     val alwaysShownItems: MutableList<ActionMenuItem> =
         items.filterIsInstance<ActionMenuItem.IconMenuItem.AlwaysShown>().filter{ i -> i.isVisible}.toMutableList()
 
-    alwaysShownItems.addAll(items.filterIsInstance<ActionMenuItem.TextInputMenuItem>())
-    alwaysShownItems.addAll(items.filterIsInstance<ActionMenuItem.TimerMenuItem>().filter{ i -> i.isVisible})
-    alwaysShownItems.addAll(items.filterIsInstance<ActionMenuItem.ButtonMenuItem>())
+    alwaysShownItems.addAll(items.filterIsInstance<ActionMenuItem.TextInputMenuItem>().filter { it.isVisible })
+    alwaysShownItems.addAll(items.filterIsInstance<ActionMenuItem.ButtonMenuItem>().filter { it.isVisible })
 
     val ifRoomItems: MutableList<ActionMenuItem.IconMenuItem> =
         items.filterIsInstance<ActionMenuItem.IconMenuItem.ShownIfRoom>().filter{ i -> i.isVisible}.toMutableList()
