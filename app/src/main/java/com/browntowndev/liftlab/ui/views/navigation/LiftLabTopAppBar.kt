@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
@@ -62,7 +61,7 @@ fun LiftLabTopAppBar(
         LiftLabSmallTopAppBar(
             modifier = modifier.alpha(appBarAlpha),
             topAppBarViewModel = topAppBarViewModel,
-            state = state
+            state = state,
         )
     }
     else {
@@ -70,7 +69,7 @@ fun LiftLabTopAppBar(
             modifier = modifier.alpha(1f - appBarAlpha),
             scrollBehavior = scrollBehavior,
             topAppBarViewModel = topAppBarViewModel,
-            state = state
+            state = state,
         )
     }
 
@@ -99,7 +98,7 @@ private fun LiftLabLargeTopAppBar(
         title = {
             Title(
                 topAppBarViewModel = topAppBarViewModel,
-                state = state
+                state = state,
             )
         },
         actions = {
@@ -119,7 +118,7 @@ private fun LiftLabSmallTopAppBar(
     state: LiftLabTopAppBarState,
     modifier: Modifier = Modifier,
     topAppBarViewModel: TopAppBarViewModel = getViewModel(),
-    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior { false }
+    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior { false },
 ) {
     TopAppBar(
         modifier = modifier,
@@ -134,7 +133,7 @@ private fun LiftLabSmallTopAppBar(
         title = {
             Title(
                 topAppBarViewModel = topAppBarViewModel,
-                state = state
+                state = state,
             )
         },
         actions = {
@@ -170,7 +169,6 @@ private fun NavigationIcon(state: LiftLabTopAppBarState) {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun Title(
     topAppBarViewModel: TopAppBarViewModel,
@@ -192,32 +190,38 @@ private fun Title(
             }
         }
     } else {
-        val restTimer = state.actions
+        val restTimerAction = state.actions
             .filterIsInstance<ActionMenuItem.TimerMenuItem.AlwaysShown>()
             .firstOrNull()
 
-        if (restTimer != null) {
+        if (restTimerAction != null) {
             Box (
                 contentAlignment = Alignment.CenterStart,
             ) {
                 ProgressCountdownTimer(
-                    timerRequestId = restTimer.timerRequestId,
-                    start = restTimer.started,
-                    startTimeInMillis = restTimer.startTimeInMillis,
-                    onComplete = { ranToCompletion ->
-                        topAppBarViewModel.mutateControlValue(AppBarMutateControlRequest(restTimer.controlName, false))
-                        EventBus.getDefault().post(TopAppBarEvent.ActionEvent(TopAppBarAction.RestTimerCompleted))
-                        // TODO: Make a sound
-                        if (ranToCompletion) {
+                    timerRequestId = restTimerAction.timerRequestId,
+                    start = restTimerAction.started,
+                    countDownStartedFrom = restTimerAction.countDownStartedFrom,
+                    countDownFrom = restTimerAction.countDownFrom
+                ) { ranToCompletion ->
+                    topAppBarViewModel.mutateControlValue(
+                        AppBarMutateControlRequest(
+                            restTimerAction.controlName,
+                            Triple(0L, 0L, false)
+                        )
+                    )
+                    EventBus.getDefault()
+                        .post(TopAppBarEvent.ActionEvent(TopAppBarAction.RestTimerCompleted))
+                    // TODO: Make a sound
+                    if (ranToCompletion) {
 
-                        }
                     }
-                )
+                }
                 Icon(
                     modifier = Modifier.size(25.dp),
                     painter = painterResource(id = R.drawable.stopwatch_icon),
                     contentDescription = null,
-                    tint = if (restTimer.started) MaterialTheme.colorScheme.onBackground
+                    tint = if (restTimerAction.started) MaterialTheme.colorScheme.onBackground
                         else MaterialTheme.colorScheme.primary,
                 )
             }

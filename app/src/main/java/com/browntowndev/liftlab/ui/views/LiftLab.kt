@@ -60,7 +60,7 @@ fun LiftLab() {
             topBar = {
                 LiftLabTopAppBar(
                     state = topAppBarState,
-                    scrollBehavior = scrollBehavior
+                    scrollBehavior = scrollBehavior,
                 )
             }
         ) { scaffoldPaddingValues ->
@@ -69,7 +69,13 @@ fun LiftLab() {
                 paddingValues = scaffoldPaddingValues,
                 screen = topAppBarState.currentScreen,
                 onNavigateBack = { topAppBarState.onNavigationIconClick?.invoke() },
-                setBottomNavBarVisibility = { bottomNavBarViewModel.setVisibility(it) },
+                setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
+                setTopAppBarControlVisibility = { control, visible ->
+                    topAppBarViewModel.setControlVisibility(
+                        control,
+                        visible
+                    )
+                },
                 mutateTopAppBarControlValue = { request ->
                     request.payload.onLeft {
                         topAppBarViewModel.mutateControlValue(
@@ -82,25 +88,12 @@ fun LiftLab() {
                         topAppBarViewModel.mutateControlValue(
                             AppBarMutateControlRequest(
                                 request.controlName,
-                                it.first
-                            )
-                        )
-                        topAppBarViewModel.mutateControlValue(
-                            AppBarMutateControlRequest(
-                                request.controlName,
-                                it.second
+                                it
                             )
                         )
                     }
                 },
-                setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
-                setTopAppBarControlVisibility = { control, visible ->
-                    topAppBarViewModel.setControlVisibility(
-                        control,
-                        visible
-                    )
-                },
-            )
+            ) { bottomNavBarViewModel.setVisibility(it) }
         }
     }
 }

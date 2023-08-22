@@ -1,10 +1,14 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
@@ -27,23 +31,31 @@ import org.koin.androidx.compose.koinViewModel
 fun Workout(
     paddingValues: PaddingValues,
     navHostController: NavHostController,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Pair<Long, Boolean>>>) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
 ) {
+    var restTimerRestarted by remember { mutableStateOf(false) }
+
     val timerViewModel: TimerViewModel = koinViewModel()
     val workoutViewModel: WorkoutViewModel = koinViewModel()
     val state by workoutViewModel.state.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
 
-    val restTimerRemaining = if (state.restTimerStartedAt != null) {
-        state.restTime - (Utils.getCurrentDate().time - state.restTimerStartedAt!!.time)
-    } else null
-    if (restTimerRemaining != null) {
-        mutateTopAppBarControlValue(
-            AppBarMutateControlRequest(REST_TIMER, Pair(restTimerRemaining, true).right())
-        )
+    LaunchedEffect(state.restTimerStartedAt) {
+        if (state.restTimerStartedAt != null && !restTimerRestarted) {
+            val restTimeRemaining = state.restTime - (Utils.getCurrentDate().time - state.restTimerStartedAt!!.time)
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())
+            )
+            restTimerRestarted = true
+            Log.d(Log.DEBUG.toString(), "restarted rest timer.")
+        } else if (state.restTime == 0L && state.restTimerStartedAt == null) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
+            )
+        }
     }
 
     workoutViewModel.registerEventBus()
@@ -162,7 +174,7 @@ fun Workout(
                     }
                 )
                 mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Pair(restTime, true).right())
+                    AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
                 )
             },
             undoCompleteSet = { liftId, setPosition, myoRepSetPosition ->
@@ -172,13 +184,13 @@ fun Workout(
                     myoRepSetPosition = myoRepSetPosition
                 )
                 mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Pair(0L, false).right())
+                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
             },
             cancelWorkout = {
                 workoutViewModel.cancelWorkout()
                 mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Pair(0L, false).right())
+                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
             },
             onRpeSelected = { workoutLiftId, setPosition, myoRepSetPosition, newRpe ->

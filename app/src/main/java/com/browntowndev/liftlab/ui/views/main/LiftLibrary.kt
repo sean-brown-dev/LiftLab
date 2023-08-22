@@ -19,9 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -55,12 +53,6 @@ fun LiftLibrary(
 ) {
     val liftLibraryViewModel: LiftLibraryViewModel = getViewModel()
     val state by liftLibraryViewModel.state.collectAsState()
-    var movementPatternFilter by remember { mutableStateOf(movementPattern) }
-
-    if (movementPatternFilter.isNotEmpty()) {
-        liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPatternFilter))
-        movementPatternFilter = ""
-    }
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
@@ -76,8 +68,10 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
     }
 
-    LaunchedEffect(movementPattern) {
-        movementPatternFilter = movementPattern
+    LaunchedEffect(key1 = movementPattern) {
+        if (movementPattern.isNotEmpty()) {
+            liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPattern))
+        }
     }
 
     if (!state.showFilterSelection) {

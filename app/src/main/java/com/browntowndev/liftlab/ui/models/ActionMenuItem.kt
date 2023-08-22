@@ -61,7 +61,8 @@ sealed interface ActionMenuItem {
             override val isVisible: Boolean = false,
             val timerRequestId: String = "",
             val started: Boolean = false,
-            val startTimeInMillis: Long = 0,
+            val countDownStartedFrom: Long = 0L,
+            val countDownFrom: Long = 0L,
         ) : TimerMenuItem
     }
 

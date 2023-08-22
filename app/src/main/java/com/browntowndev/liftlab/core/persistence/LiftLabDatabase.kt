@@ -22,6 +22,7 @@ import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
+import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
@@ -30,6 +31,7 @@ import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.persistence.entities.Lift
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.entities.Program
+import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
@@ -49,8 +51,9 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
         Workout::class,
         WorkoutLift::class,
         WorkoutInProgress::class,
+        RestTimerInProgress::class,
    ],
-    version = 23,
+    version = 25,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -62,6 +65,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun workoutInProgressDao(): WorkoutInProgressDao
     abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
     abstract fun loggingDao(): LoggingDao
+    abstract fun restTimerInProgressDao(): RestTimerInProgressDao
 
     companion object {
         private const val LIFTS_DATA_FILENAME = "lifts.json"

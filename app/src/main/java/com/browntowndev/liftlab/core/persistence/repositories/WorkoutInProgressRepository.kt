@@ -26,6 +26,19 @@ class WorkoutInProgressRepository(
         workoutInProgressDao.delete()
     }
 
+    suspend fun getWithoutCompletedSets(): WorkoutInProgressDto? {
+        val inProgressEntity = workoutInProgressDao.get()
+
+        return if (inProgressEntity != null) {
+
+            return WorkoutInProgressDto(
+                workoutId = inProgressEntity.workoutId,
+                startTime = inProgressEntity.startTime,
+                completedSets = listOf()
+            )
+        } else null
+    }
+
     suspend fun get(mesoCycle: Int, microCycle: Int): WorkoutInProgressDto? {
         val inProgressWorkout =  workoutInProgressDao.get()
         return if (inProgressWorkout != null) {

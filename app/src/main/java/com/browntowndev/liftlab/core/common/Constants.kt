@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.common
 
 
+// Time
 const val ONE_MINUTE_IN_MILLIS = 60000L
 const val TEN_MINUTES_IN_MILLIS = 10 * ONE_MINUTE_IN_MILLIS
 const val ONE_HOUR_IN_MILLIS = 60 * ONE_MINUTE_IN_MILLIS

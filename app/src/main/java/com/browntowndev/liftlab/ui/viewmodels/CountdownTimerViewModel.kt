@@ -14,14 +14,25 @@ class CountdownTimerViewModel(
     val state = _state.asStateFlow()
     private var _countDownTimer: LiftLabTimer? = null
 
-    fun start(startTimeInMillis: Long) {
+    fun start(
+        timerId: String,
+        originalCountDownStartedFrom: Long,
+        startTimeInMillis: Long
+    ): Boolean {
+        // If this isn't a new request then don't restart the timer
+        if (timerId == state.value.timerId) {
+            return false
+        }
+
         if (_countDownTimer !=  null) {
             cancelWithoutCallback()
         }
 
         _state.update {
             it.copy(
+                timerId = timerId,
                 running = true,
+                originalCountDownStartedFrom = originalCountDownStartedFrom,
                 startTimeInMillis = startTimeInMillis,
                 millisRemaining = startTimeInMillis,
             )
@@ -43,6 +54,7 @@ class CountdownTimerViewModel(
             override fun onFinish() {
                 _state.update {
                     it.copy(
+                        originalCountDownStartedFrom = 0L,
                         millisRemaining = 0L,
                         running = false,
                     )
@@ -57,6 +69,8 @@ class CountdownTimerViewModel(
                 onComplete(true)
             }
         }.start()
+
+        return true
     }
 
     private fun cancelWithoutCallback() {
@@ -66,6 +80,7 @@ class CountdownTimerViewModel(
                 running = false,
                 startTimeInMillis = 0L,
                 millisRemaining = 0L,
+                originalCountDownStartedFrom = 0L,
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.common
 
+import android.content.BroadcastReceiver
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -17,7 +18,14 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.util.Date
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -190,5 +198,24 @@ fun Long.toTimeString(format: String): String {
         )
     } else {
         return ">99 Days"
+    }
+}
+
+fun Long.toDate(): Date {
+    return Date(this)
+}
+
+fun BroadcastReceiver.executeInCoroutineScope(
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: suspend CoroutineScope.() -> Unit
+) {
+    val pendingResult = goAsync()
+    @OptIn(DelicateCoroutinesApi::class) // Must run globally; there's no teardown callback.
+    GlobalScope.launch(context) {
+        try {
+            block()
+        } finally {
+            pendingResult.finish()
+        }
     }
 }

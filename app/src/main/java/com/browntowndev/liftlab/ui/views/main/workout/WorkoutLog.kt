@@ -84,6 +84,7 @@ fun WorkoutLog(
             }.toSet()
         )
     }
+
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = visible,

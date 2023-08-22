@@ -46,7 +46,7 @@ class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int): Base
     }
 
     private fun getRepRangePlaceholder(repRangeBottom: Int, repRangeTop: Int, microCycle: Int): String {
-        val fullRepRange = (repRangeBottom..repRangeTop).toList()
+        val fullRepRange = (repRangeTop downTo repRangeBottom).toList()
         val index = microCycle % fullRepRange.size
         return fullRepRange[index].toString()
     }

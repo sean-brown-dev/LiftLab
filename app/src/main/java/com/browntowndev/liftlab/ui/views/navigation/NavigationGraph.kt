@@ -35,7 +35,7 @@ fun NavigationGraph(
     onNavigateBack: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Pair<Long, Boolean>>>) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
@@ -95,8 +95,8 @@ fun NavigationGraph(
                 Workout(
                     paddingValues = paddingValues,
                     navHostController = navHostController,
-                    setTopAppBarCollapsed = setTopAppBarCollapsed,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                 )

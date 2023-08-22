@@ -9,6 +9,7 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
+import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -23,6 +24,7 @@ import com.browntowndev.liftlab.core.persistence.entities.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
@@ -41,6 +43,7 @@ class WorkoutViewModel(
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
     private val loggingRepository: LoggingRepository,
+    private val restTimerInProgressRepository: RestTimerInProgressRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -63,14 +66,19 @@ class WorkoutViewModel(
                                 programMetadata.currentMesocycle,
                                 programMetadata.currentMicrocycle
                             )
-                            _state.update { currentState ->
-                                currentState.copy(
-                                    inProgressWorkout = inProgressWorkout,
-                                    programMetadata = programMetadata,
-                                    workout = workout,
-                                    workoutLogVisible = false,
-                                )
-                            }
+
+                            restTimerInProgressRepository.getLive()
+                                .observeForever { restTimerInProgress ->
+                                    _state.update { currentState ->
+                                        currentState.copy(
+                                            inProgressWorkout = inProgressWorkout,
+                                            programMetadata = programMetadata,
+                                            workout = workout,
+                                            restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
+                                            restTime = restTimerInProgress?.restTime ?: 0L,
+                                        )
+                                    }
+                                }
                         }
                     }
             }
@@ -82,8 +90,13 @@ class WorkoutViewModel(
             TopAppBarAction.NavigatedBack -> _state.update {
                 it.copy(workoutLogVisible = false)
             }
-            TopAppBarAction.RestTimerCompleted -> _state.update {
-                it.copy(restTimerStartedAt = null)
+            TopAppBarAction.RestTimerCompleted -> {
+                executeInTransactionScope {
+                    restTimerInProgressRepository.deleteAll()
+                    _state.update {
+                        it.copy(restTimerStartedAt = null)
+                    }
+                }
             }
             else -> {}
         }
@@ -326,6 +339,7 @@ class WorkoutViewModel(
 
     fun completeSet(restTime: Long, result: SetResult) {
         executeInTransactionScope {
+            restTimerInProgressRepository.insert(restTime)
             _state.update { currentState ->
                 currentState.copy(
                     restTime = restTime,

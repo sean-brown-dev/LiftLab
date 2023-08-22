@@ -15,5 +15,6 @@ val repositoryModule = module {
     factory { RepositoryHelper(get()).workoutInProgress }
     factory { RepositoryHelper(get()).historicalWorkoutNames }
     factory { RepositoryHelper(get()).logging }
+    factory { RepositoryHelper(get()).restTimer }
     single { TransactionScope(LiftLabDatabase.getInstance(get())) }
 }

@@ -25,7 +25,8 @@ data class WorkoutScreen(
     override val subtitle: String = navigation.subtitle,
     private val restTimerControlVisible: Boolean = false,
     private val restTimerRunning: Boolean = false,
-    private val restTimerSpanInMillis: Long = 0L,
+    private val restTime: Long = 0L,
+    private val countDownFrom: Long = 0L,
     private val timerRequestId: String = "",
 ) : BaseScreen(), KoinComponent {
     companion object {
@@ -59,31 +60,21 @@ data class WorkoutScreen(
     override fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>): Screen {
         return when (request.controlName) {
             REST_TIMER -> {
-                when (request.payload) {
-                    is Boolean -> {
-                        copy(
-                            restTimerRunning = request.payload
-                        )
-                    }
-                    is Long -> {
-                        val restTime: Long = request.payload
-                        if (restTime > 0L) {
-                            copy(
-                                timerRequestId = UUID.randomUUID().toString(),
-                                restTimerSpanInMillis = restTime
-                            )
-                        } else if (restTime == 0L) {
-                            copy(
-                                restTimerSpanInMillis = restTime
-                            )
-                        } else this
-                    }
-                    else -> throw Exception("Invalid type of ${
-                        if (request.payload !=  null) {
-                            request.payload!!::class.simpleName
-                        } else "NULL"
-                    }")
-                }
+                val payload = request.payload as? Triple<*, *, *>
+                val restTime = payload?.first as? Long
+                val restTimeRemaining = payload?.second as? Long
+                val restTimerRunning = payload?.third as? Boolean
+
+                if (restTime == null) throw Exception("restTime not provided or Triple type wrong.")
+                if (restTimeRemaining == null) throw Exception("restTimeRemaining not provided or Triple type wrong.")
+                if (restTimerRunning == null) throw Exception("restTimerRunning not provided or Triple type wrong.")
+
+                copy(
+                    timerRequestId = if (restTimeRemaining > 0L) UUID.randomUUID().toString() else timerRequestId,
+                    restTimerRunning = restTimerRunning,
+                    restTime = restTime,
+                    countDownFrom = restTimeRemaining,
+                )
             }
             else -> super.mutateControlValue(request)
         }
@@ -114,7 +105,8 @@ data class WorkoutScreen(
                 isVisible = restTimerControlVisible,
                 controlName = REST_TIMER,
                 started = restTimerRunning,
-                startTimeInMillis = restTimerSpanInMillis,
+                countDownStartedFrom = restTime,
+                countDownFrom = countDownFrom,
                 timerRequestId = timerRequestId,
                 icon = R.drawable.stopwatch_icon.right(),
             ),

@@ -68,4 +68,8 @@ class RepositoryHelper(context: Context): KoinComponent {
     val logging get() = LoggingRepository(
         database.loggingDao()
     )
+
+    val restTimer get() = RestTimerInProgressRepository(
+        database.restTimerInProgressDao()
+    )
 }
