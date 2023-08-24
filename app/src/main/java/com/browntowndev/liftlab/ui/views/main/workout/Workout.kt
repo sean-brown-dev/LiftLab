@@ -200,7 +200,14 @@ fun Workout(
                     newRpe = newRpe,
                     myoRepSetPosition = myoRepSetPosition,
                 )
-            }
+            },
+            onChangeRestTime = { workoutLiftId, newRestTime, applyToLift ->
+                workoutViewModel.updateRestTime(
+                    workoutLiftId = workoutLiftId,
+                    newRestTime = newRestTime,
+                    applyToLift = applyToLift,
+                )
+            },
         )
     }
 }

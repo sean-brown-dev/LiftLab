@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns
+package com.browntowndev.liftlab.ui.views.composables
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,18 +9,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.views.composables.DurationPickerMenuItem
-import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
 @Composable
@@ -29,14 +25,9 @@ fun RestTimePicker(
     applyAcrossWorkouts: Boolean,
     onHide: () -> Unit,
     onChangeRestTime: (newRestTime: Duration, applyAcrossWorkouts: Boolean) -> Unit,
-    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     Column {
-        var applyAcrossWorkoutsState by remember { mutableStateOf(applyAcrossWorkouts) }
-        LaunchedEffect(applyAcrossWorkouts) {
-            applyAcrossWorkoutsState = applyAcrossWorkouts
-        }
+        var applyAcrossWorkoutsState by remember(applyAcrossWorkouts) { mutableStateOf(applyAcrossWorkouts) }
         DurationPickerMenuItem(
             startTime = restTime,
             onConfirm = {
@@ -61,9 +52,6 @@ fun RestTimePicker(
                     checked = applyAcrossWorkoutsState,
                     onCheckedChange = {
                         applyAcrossWorkoutsState = it
-                        coroutineScope.launch {
-                            onChangeRestTimeAppliedAcrossWorkouts(it)
-                        }
                     },
                     colors = SwitchDefaults.colors(
                         checkedIconColor = MaterialTheme.colorScheme.onPrimary,

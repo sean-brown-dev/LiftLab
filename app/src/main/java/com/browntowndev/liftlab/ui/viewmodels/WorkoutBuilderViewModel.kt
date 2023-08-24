@@ -302,12 +302,18 @@ class WorkoutBuilderViewModel(
                 }
                 else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
             }
-
             if (applyAcrossWorkouts) {
-                liftsRepository.updateRestTime(workoutLift.liftId, newRestTime)
+                liftsRepository.updateRestTime(
+                    id = workoutLift.liftId,
+                    newRestTime = newRestTime
+                )
+            } else {
+                workoutLiftsRepository.updateRestTime(
+                    workoutLiftId = workoutLiftId,
+                    restTime = workoutLiftCopy.restTime
+                )
             }
 
-            workoutLiftsRepository.update(workoutLiftCopy)
             _state.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
@@ -337,11 +343,11 @@ class WorkoutBuilderViewModel(
                 else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
             }
 
-            if (applyAcrossWorkouts) {
-                liftsRepository.updateIncrementOverride(workoutLift.liftId, newIncrement)
-            }
-
             workoutLiftsRepository.update(workoutLiftCopy)
+            liftsRepository.updateIncrementOverride(
+                id = workoutLift.liftId,
+                newIncrement = if (applyAcrossWorkouts) newIncrement else null,
+            )
             _state.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(

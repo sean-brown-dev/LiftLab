@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -57,6 +58,9 @@ import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.views.composables.RpePicker
 import org.koin.androidx.compose.getViewModel
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -70,6 +74,7 @@ fun WorkoutLog(
     onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, setPosition: Int, myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float, restTime: Long) -> Unit,
     undoCompleteSet: (liftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     cancelWorkout: () -> Unit,
+    onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, applyToLift: Boolean) -> Unit,
 ) {
     // Remember the myo rep set indices from the previous composition. Below they will
     // animate if they're not found in this set (they are new)
@@ -141,16 +146,7 @@ fun WorkoutLog(
                             horizontalAlignment = Alignment.Start,
                             verticalArrangement = Arrangement.Center,
                         ) {
-                            Text(
-                                modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 5.dp, end = 10.dp),
-                                text = lift.liftName,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSize = 20.sp,
-                                color = MaterialTheme.colorScheme.tertiary
-                            )
-                            LogHeaders()
-
-                            val restTime = remember {
+                            val restTime = remember(lift.restTime) {
                                 lift.restTime?.inWholeMilliseconds
                                     ?: lift.liftRestTime?.inWholeMilliseconds
                                     ?: SettingsManager.getSetting(
@@ -159,7 +155,29 @@ fun WorkoutLog(
                                     )
                             }
 
+                            Row {
+                                Text(
+                                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 5.dp, end = 10.dp),
+                                    text = lift.liftName,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 20.sp,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                LiftDropdown(
+                                    restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
+                                    restTimeAppliedAcrossWorkouts = remember(lift.liftRestTime) { lift.liftRestTime != null },
+                                    onChangeRestTime = { restTime, applyToLift ->
+                                        onChangeRestTime(lift.id, restTime, applyToLift)
+                                    },
+                                )
+                            }
+                            LogHeaders()
+
                             lift.sets.fastForEachIndexed { index, set ->
+                                if (lift.position == 0 && set.setPosition == 0) {
+                                    Log.d(Log.DEBUG.toString(), "completed: ${set.complete}")
+                                }
                                 val animateVisibility = remember(lift.sets.size) {
                                     set is LoggingMyoRepSetDto &&
                                             !indicesOfExistingMyoRepSets.contains("${lift.id}-${set.myoRepSetPosition}")
@@ -171,7 +189,7 @@ fun WorkoutLog(
                                     position = set.setPosition,
                                     progressionScheme = lift.progressionScheme,
                                     setNumberLabel = set.setNumberLabel,
-                                    weightRecommendation = remember (set.weightRecommendation) { set.weightRecommendation },
+                                    weightRecommendation = set.weightRecommendation,
                                     rpeTarget = set.rpeTarget,
                                     complete = set.complete,
                                     completedWeight = set.completedWeight,

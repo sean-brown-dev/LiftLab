@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
+import kotlin.time.Duration
 
 class WorkoutLiftsRepository (
     private val workoutLiftsDao: WorkoutLiftsDao,
@@ -27,5 +28,9 @@ class WorkoutLiftsRepository (
 
     suspend fun delete(workoutLift: GenericWorkoutLift) {
         workoutLiftsDao.delete(workoutLiftMapper.map(workoutLift))
+    }
+
+    suspend fun updateRestTime(workoutLiftId: Long, restTime: Duration?) {
+        workoutLiftsDao.updateRestTime(workoutLiftId, restTime)
     }
 }

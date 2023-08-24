@@ -39,11 +39,11 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
         }
     }
 
-    suspend fun updateRestTime(id: Long, newRestTime: Duration) {
+    suspend fun updateRestTime(id: Long, newRestTime: Duration?) {
         liftsDao.updateRestTime(id, newRestTime)
     }
 
-    suspend fun updateIncrementOverride(id: Long, newIncrement: Float) {
+    suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {
         liftsDao.updateIncrementOverride(id, newIncrement)
     }
 }

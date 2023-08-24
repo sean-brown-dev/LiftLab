@@ -44,8 +44,6 @@ fun LiftCard(
     onChangeDeloadWeek: (Int) -> Unit,
     onChangeIncrement: (newIncrement: Float, applyAcrossWorkouts: Boolean) -> Unit,
     onChangeRestTime: (newRestTime: Duration, applyAcrossWorkouts: Boolean) -> Unit,
-    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
-    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
     content: @Composable (ColumnScope.() -> Unit),
 ) {
     Column (
@@ -77,8 +75,6 @@ fun LiftCard(
                 onChangeIncrement = onChangeIncrement,
                 onChangeRestTime = onChangeRestTime,
                 onChangeDeloadWeek = onChangeDeloadWeek,
-                onChangeIncrementAppliedAcrossWorkouts = onChangeIncrementAppliedAcrossWorkouts,
-                onChangeRestTimeAppliedAcrossWorkouts = onChangeRestTimeAppliedAcrossWorkouts,
             )
             Spacer(modifier = Modifier.height(15.dp))
             content()
@@ -105,8 +101,6 @@ fun LiftCardHeader(
     onChangeIncrement: (newIncrement: Float, applyAcrossWorkouts: Boolean) -> Unit,
     onChangeRestTime: (newRestTime: Duration, applyAcrossWorkouts: Boolean) -> Unit,
     onChangeDeloadWeek: (Int) -> Unit,
-    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
-    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -145,8 +139,6 @@ fun LiftCardHeader(
             onChangeIncrement = onChangeIncrement,
             onChangeRestTime = onChangeRestTime,
             onChangeDeloadWeek = onChangeDeloadWeek,
-            onChangeIncrementAppliedAcrossWorkouts = onChangeIncrementAppliedAcrossWorkouts,
-            onChangeRestTimeAppliedAcrossWorkouts = onChangeRestTimeAppliedAcrossWorkouts,
         )
     }
 }

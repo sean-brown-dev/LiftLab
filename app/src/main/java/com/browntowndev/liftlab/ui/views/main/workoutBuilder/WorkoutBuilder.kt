@@ -221,8 +221,6 @@ fun WorkoutBuilder(
                                         applyAcrossWorkouts = applyAcrossWorkouts
                                     )
                                 },
-                                onChangeRestTimeAppliedAcrossWorkouts = {},
-                                onChangeIncrementAppliedAcrossWorkouts = {},
                             ) {
                                 Row {
                                     Spacer(modifier = Modifier.width(10.dp))

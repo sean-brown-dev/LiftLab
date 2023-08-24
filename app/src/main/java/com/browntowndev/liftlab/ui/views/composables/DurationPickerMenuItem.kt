@@ -14,7 +14,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,26 +37,14 @@ fun DurationPickerMenuItem(
     onCancel: () -> Unit,
     headerContent: @Composable (() -> Unit)
 ) {
-    var stepSize by remember { mutableStateOf(secondsStepSize) }
-    var seconds by remember { mutableStateOf(startTime.inWholeSeconds % 60) }
-    var minutes by remember {
+    var stepSize by remember(secondsStepSize) { mutableStateOf(secondsStepSize) }
+    var seconds by remember(startTime) { mutableStateOf(startTime.inWholeSeconds % 60) }
+    var minutes by remember(startTime) {
         mutableStateOf(
             if (startTime.inWholeMinutes > rangeInMinutes.last) rangeInMinutes.last
             else if (startTime.inWholeMinutes < rangeInMinutes.first) rangeInMinutes.first
             else startTime.inWholeMinutes
         )
-    }
-
-    LaunchedEffect(secondsStepSize) {
-        stepSize = secondsStepSize
-    }
-
-    LaunchedEffect(startTime) {
-        seconds = startTime.inWholeSeconds % 60
-        minutes =
-            if (startTime.inWholeMinutes > rangeInMinutes.last) rangeInMinutes.last
-            else if (startTime.inWholeMinutes < rangeInMinutes.first) rangeInMinutes.first
-            else startTime.inWholeMinutes
     }
 
     Column(modifier = Modifier.width(200.dp)) {
@@ -112,12 +99,12 @@ fun DurationPickerMenuItem(
                         setOnValueChangedListener { _, _, newVal ->
                             seconds = (newVal * stepSize).toLong()
                         }
-                        val displayedValues = Array(13) { index ->
+                        val displayedValues = Array(12) { index ->
                             String.format("%02d", index * stepSize)
                         }
                         setDisplayedValues(displayedValues)
                         minValue = 0
-                        maxValue = 12
+                        maxValue = 11
                         value = (seconds / stepSize).toInt()
                         wrapSelectorWheel = false
                     }

@@ -22,10 +22,12 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.entities.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import kotlin.time.Duration
 
 class WorkoutViewModel(
     private val programsRepository: ProgramsRepository,
@@ -44,6 +47,8 @@ class WorkoutViewModel(
     private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
     private val loggingRepository: LoggingRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
+    private val liftsRepository: LiftsRepository,
+    private val workoutLiftsRepository: WorkoutLiftsRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -67,13 +72,18 @@ class WorkoutViewModel(
                                 programMetadata.currentMicrocycle
                             )
 
+                            _state.update { currentState ->
+                                currentState.copy(
+                                    inProgressWorkout = inProgressWorkout,
+                                    programMetadata = programMetadata,
+                                    workout = workout,
+                                )
+                            }
+
                             restTimerInProgressRepository.getLive()
                                 .observeForever { restTimerInProgress ->
                                     _state.update { currentState ->
                                         currentState.copy(
-                                            inProgressWorkout = inProgressWorkout,
-                                            programMetadata = programMetadata,
-                                            workout = workout,
                                             restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
                                             restTime = restTimerInProgress?.restTime ?: 0L,
                                         )
@@ -410,7 +420,7 @@ class WorkoutViewModel(
                 currentState.copy(
                     restTimerStartedAt = null,
                     workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.map { workoutLift ->
+                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
                             if (workoutLift.liftId == liftId) {
                                 workoutLift.copy(
                                     sets = workoutLift.sets.fastMap { set ->
@@ -520,5 +530,36 @@ class WorkoutViewModel(
         }
 
         setResultsRepository.insertMany(setResultsToUpdate)
+    }
+
+    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, applyToLift: Boolean) {
+        executeInTransactionScope {
+            val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
+            val workoutLiftCopy =  if (applyToLift) workoutLift.copy(restTime = null, liftRestTime = newRestTime)
+                else workoutLift.copy(restTime = newRestTime)
+
+            if (applyToLift) {
+                liftsRepository.updateRestTime(
+                    id = workoutLift.liftId,
+                    newRestTime = newRestTime
+                )
+            } else {
+                workoutLiftsRepository.updateRestTime(
+                    workoutLiftId = workoutLiftId,
+                    restTime = workoutLiftCopy.restTime
+                )
+            }
+
+            _state.update { currentState ->
+                currentState.copy(
+                    workout = currentState.workout!!.copy(
+                        lifts = currentState.workout.lifts.fastMap { lift ->
+                            if (lift.id == workoutLiftId) workoutLiftCopy
+                            else lift
+                        }
+                    )
+                )
+            }
+        }
     }
 }

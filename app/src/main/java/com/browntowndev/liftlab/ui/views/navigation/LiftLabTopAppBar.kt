@@ -221,8 +221,8 @@ private fun Title(
                     modifier = Modifier.size(25.dp),
                     painter = painterResource(id = R.drawable.stopwatch_icon),
                     contentDescription = null,
-                    tint = if (restTimerAction.started) MaterialTheme.colorScheme.onBackground
-                        else MaterialTheme.colorScheme.primary,
+                    tint = if (restTimerAction.started) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onBackground,
                 )
             }
         }
