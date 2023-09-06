@@ -63,7 +63,7 @@ fun NavigationGraph(
 
             if (screen as? LiftLibraryScreen != null) {
                 LaunchedEffect(key1 = screen) {
-                    if (movementPatternParam.isNotEmpty() && workoutLiftId != null) {
+                    if (workoutId != null) {
                         setBottomNavBarVisibility(false)
                     } else {
                         setBottomNavBarVisibility(true)

@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ data class LiftLibraryScreen(
     companion object {
         val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
         const val SEARCH_ICON = "searchIcon"
+        const val CONFIRM_ADD_LIFT_ICON = "confirmAddLiftIcon"
         const val LIFT_NAME_FILTER_TEXTVIEW = "liftNameFilterTextView"
         const val LIFT_MOVEMENT_PATTERN_FILTER_ICON = "liftMovementPatternFilterIcon"
     }
@@ -39,6 +41,7 @@ data class LiftLibraryScreen(
     var isSearchBarVisible by mutableStateOf(false)
     private var isSearchIconVisible by mutableStateOf(true)
     private var isFilterIconVisible by mutableStateOf(true)
+    private var isConfirmAddLiftVisible by mutableStateOf(false)
 
     private val _eventBus: EventBus by inject()
 
@@ -73,6 +76,10 @@ data class LiftLibraryScreen(
             }
             LIFT_MOVEMENT_PATTERN_FILTER_ICON -> {
                 isFilterIconVisible = isVisible
+                this
+            }
+            CONFIRM_ADD_LIFT_ICON -> {
+                isConfirmAddLiftVisible = isVisible
                 this
             }
             else -> superCopy
@@ -111,7 +118,7 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = SEARCH_ICON,
                 title = "Search",
-                isVisible = !isSearchBarVisible && isSearchIconVisible,
+                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isSearchIconVisible,
                 onClick = {
                     isSearchBarVisible = true
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.SearchStarted))
@@ -121,7 +128,7 @@ data class LiftLibraryScreen(
             ), ActionMenuItem.TextInputMenuItem.AlwaysShown(
                 controlName = LIFT_NAME_FILTER_TEXTVIEW,
                 icon = Icons.Filled.Search.left(),
-                isVisible = isSearchBarVisible,
+                isVisible = !isConfirmAddLiftVisible && isSearchBarVisible,
                 value = mutableFilterText,
                 onValueChange = {
                     mutableFilterText = it
@@ -138,12 +145,22 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = LIFT_MOVEMENT_PATTERN_FILTER_ICON,
                 title = "Filter",
-                isVisible = !isSearchBarVisible && isFilterIconVisible,
+                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible &&  isFilterIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.FilterStarted))
                 },
                 icon = R.drawable.filter_icon.right(),
-                contentDescriptionResourceId = R.string.accessibility_search,
+                contentDescriptionResourceId = R.string.accessibility_filter,
+            ),
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = CONFIRM_ADD_LIFT_ICON,
+                title = "Confirm Add Lift",
+                isVisible = isConfirmAddLiftVisible,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
+                },
+                icon = Icons.Filled.Check.left(),
+                contentDescriptionResourceId = null,
             ),
         )
     }

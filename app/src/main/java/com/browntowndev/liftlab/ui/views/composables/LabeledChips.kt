@@ -10,7 +10,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
@@ -20,13 +19,13 @@ import androidx.compose.ui.util.fastForEach
 @Composable
 fun LabeledChips(
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-    verticalAlignment: Alignment.Vertical = Alignment.Top,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     labels: List<CharSequence>,
     onClick: () -> Unit = {},
 ) {
     FlowRow(
         horizontalArrangement = horizontalArrangement,
-        verticalAlignment = verticalAlignment,
+        verticalArrangement = verticalArrangement,
     ) {
         labels.fastForEach {
             FilterChip(

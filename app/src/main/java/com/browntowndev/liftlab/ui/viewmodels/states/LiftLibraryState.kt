@@ -1,17 +1,26 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
+import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 
 @Stable
 data class LiftLibraryState (
     val allLifts: List<LiftDto> = listOf(),
+    val selectedNewLifts: List<Long> = listOf(),
+    val addAtPosition: Int? = null,
+    val workoutId: Long? = null,
     val nameFilter: String? = null,
     val movementPatternFilters: List<String> = listOf(),
     val showFilterSelection: Boolean = false,
     val backNavigationClicked: Boolean = false,
+    val navHostController: NavHostController? = null,
 ) {
+    val selectedNewLiftsHashSet by lazy {
+        selectedNewLifts.toHashSet()
+    }
+
     val allFilters by lazy {
         val mutableMovementFilters = movementPatternFilters.map {
             FilterChipOption(FilterChipOption.MOVEMENT_PATTERN, it)

@@ -61,7 +61,7 @@ fun FilterSelector(
             )
             FlowRow(
                 horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.Center,
             ) {
                 section.filterChipOptions.value.fastForEach { movementPattern ->
                     var isSelected by remember {

@@ -14,6 +14,9 @@ interface WorkoutLiftsDao {
     @Insert
     suspend fun insert(workoutLift: WorkoutLift): Long
 
+    @Insert
+    suspend fun insertAll(workoutLifts: List<WorkoutLift>): List<Long>
+
     @Transaction
     @Delete
     suspend fun delete(workoutLift: WorkoutLift)
@@ -29,5 +32,5 @@ interface WorkoutLiftsDao {
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long)
 
     @Query("UPDATE workoutLifts SET restTime = :restTime WHERE workout_lift_id = :workoutLiftId")
-    abstract fun updateRestTime(workoutLiftId: Long, restTime: Duration?)
+    suspend fun updateRestTime(workoutLiftId: Long, restTime: Duration?)
 }

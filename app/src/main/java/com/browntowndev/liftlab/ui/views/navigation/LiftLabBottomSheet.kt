@@ -89,7 +89,7 @@ fun LiftLabBottomSheet(
                 LabeledChips(
                     labels = volumeTypes,
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalArrangement = Arrangement.Center,
                 )
                 Spacer(modifier = Modifier.height(bottomSpacerHeight))
             }
