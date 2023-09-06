@@ -158,6 +158,7 @@ data class LiftLibraryScreen(
                 isVisible = isConfirmAddLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
+                    isConfirmAddLiftVisible = false
                 },
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,

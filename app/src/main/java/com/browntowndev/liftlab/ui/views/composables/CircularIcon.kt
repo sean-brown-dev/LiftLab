@@ -15,18 +15,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CircularIcon(
+    modifier: Modifier = Modifier,
     size: Dp,
     imageVector: ImageVector,
     circleBackgroundColorScheme: Color,
     iconTint: Color,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier.then(
+            Modifier
             .size(size)
             .background(
                 color = circleBackgroundColorScheme,
                 shape = RoundedCornerShape(20.dp)
-            ),
+            )
+        ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
