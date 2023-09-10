@@ -14,12 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import com.browntowndev.liftlab.MainActivity
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.DOUBLE_MINUTES_SECONDS_FORMAT
 import com.browntowndev.liftlab.core.common.LiftLabTimer
-import com.browntowndev.liftlab.core.common.ONE_HOUR_IN_MILLIS
-import com.browntowndev.liftlab.core.common.SINGLE_HOURS_MINUTES_SECONDS_FORMAT
-import com.browntowndev.liftlab.core.common.SINGLE_MINUTES_SECONDS_FORMAT
-import com.browntowndev.liftlab.core.common.TEN_MINUTES_IN_MILLIS
 import com.browntowndev.liftlab.core.common.toTimeString
 
 class RestTimerNotificationService : Service() {
@@ -86,11 +81,7 @@ class RestTimerNotificationService : Service() {
             countDownInterval = 100L,
         ) {
             override fun onTick(newTimeInMillis: Long) {
-                val timeRemaining = newTimeInMillis.toTimeString(
-                    if (newTimeInMillis < TEN_MINUTES_IN_MILLIS) SINGLE_MINUTES_SECONDS_FORMAT
-                    else if (newTimeInMillis < ONE_HOUR_IN_MILLIS ) DOUBLE_MINUTES_SECONDS_FORMAT
-                    else SINGLE_HOURS_MINUTES_SECONDS_FORMAT
-                )
+                val timeRemaining = newTimeInMillis.toTimeString()
                 updateTime(time = timeRemaining)
             }
 

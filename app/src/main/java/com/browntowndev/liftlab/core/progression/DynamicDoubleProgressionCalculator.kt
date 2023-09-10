@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.progression
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.filterIsNotInstance
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -9,7 +10,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
@@ -71,58 +71,66 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         sortedSetData: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
+        val nonMyoRepSetResults = sortedSetData
+            .filterIsNotInstance<MyoRepSetResultDto>()
+            .associateBy { it.setPosition }
+
+        val myoRepSetResults = sortedSetData
+            .filterIsInstance<MyoRepSetResultDto>()
+            .groupBy { it.setPosition }
+
         return workoutLift.customLiftSets.flatMap { set ->
             when (set) {
                 is MyoRepSetDto -> {
-                    val groupedSetData = sortedSetData.filterIsInstance<MyoRepSetResultDto>()
-                        .groupBy { it.setPosition }
-                    val allMyoRepSets = groupedSetData[set.setPosition]
-                    val activationSet = allMyoRepSets?.first { it.myoRepSetPosition == null }
-                    val myoRepSets = allMyoRepSets?.filter { it.myoRepSetPosition != null }
+                    val allMyoRepSets = myoRepSetResults[set.setPosition]
                     val weightRecommendation =
-                        getWeightRecommendation(workoutLift, set, groupedSetData[set.setPosition])
+                        getWeightRecommendation(workoutLift, set, myoRepSetResults[set.setPosition])
 
-                    (myoRepSets?.fastMap {
+                    (allMyoRepSets?.fastMap {
                         LoggingMyoRepSetDto(
                             setPosition = set.setPosition,
+                            myoRepSetPosition = it.myoRepSetPosition,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
                             previousSetResultLabel = "${it.weight}x${it.reps} @${it.rpe}",
                             weightRecommendation = weightRecommendation,
-                            myoRepSetPosition = it.myoRepSetPosition,
-                            repRangePlaceholder = if (!isDeloadWeek) {
+                            repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
-                            } else set.repRangeBottom.toString(),
+                            } else if (!isDeloadWeek && set.repFloor != null) {
+                                ">${set.repFloor}"
+                            } else if (!isDeloadWeek) {
+                                "—"
+                            } else {
+                                set.repRangeBottom.toString()
+                            },
                         )
                     }?.toMutableList() ?: mutableListOf()).apply {
-                        add(
-                            LoggingMyoRepSetDto(
-                                setPosition = set.setPosition,
-                                rpeTarget = set.rpeTarget,
-                                repRangeBottom = set.repRangeBottom,
-                                repRangeTop = set.repRangeTop,
-                                setMatching = set.setMatching,
-                                maxSets = set.maxSets,
-                                repFloor = set.repFloor,
-                                previousSetResultLabel =
-                                if (activationSet != null) {
-                                    "${activationSet.weight}x${activationSet.reps} @${activationSet.rpe}"
-                                } else "—",
-                                repRangePlaceholder = if (!isDeloadWeek) {
-                                    "${set.repRangeBottom}-${set.repRangeTop}"
-                                } else set.repRangeBottom.toString(),
-                                weightRecommendation = weightRecommendation,
+                        if (size == 0) {
+                            add(
+                                LoggingMyoRepSetDto(
+                                    setPosition = set.setPosition,
+                                    rpeTarget = set.rpeTarget,
+                                    repRangeBottom = set.repRangeBottom,
+                                    repRangeTop = set.repRangeTop,
+                                    setMatching = set.setMatching,
+                                    maxSets = set.maxSets,
+                                    repFloor = set.repFloor,
+                                    previousSetResultLabel = "—",
+                                    repRangePlaceholder = if (!isDeloadWeek) {
+                                        "${set.repRangeBottom}-${set.repRangeTop}"
+                                    } else {
+                                        set.repRangeBottom.toString()
+                                    },
+                                    weightRecommendation = weightRecommendation,
+                                )
                             )
-                        )
+                        }
                     }
                 }
 
                 is DropSetDto -> {
-                    val groupedSetData = sortedSetData
-                        .filterIsInstance<StandardSetResultDto>()
-                        .groupBy { it.setPosition }
-                    val result = groupedSetData[set.setPosition]?.first()
+                    val result = nonMyoRepSetResults[set.setPosition]
                     listOf(
                         LoggingDropSetDto(
                             dropPercentage = set.dropPercentage,
@@ -130,25 +138,21 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel =
-                            if (result != null) {
+                            previousSetResultLabel = if (result != null) {
                                 "${result.weight}x${result.reps} @${result.rpe}"
                             } else "—",
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
                             weightRecommendation = getWeightRecommendation(
-                                workoutLift, set, groupedSetData[set.setPosition]?.firstOrNull()
+                                workoutLift, set, result
                             )
                         )
                     )
                 }
 
                 is StandardSetDto -> {
-                    val groupedSetData = sortedSetData
-                        .filterIsInstance<StandardSetResultDto>()
-                        .groupBy { it.setPosition }
-                    val result = groupedSetData[set.setPosition]?.first()
+                    val result = nonMyoRepSetResults[set.setPosition]
                     listOf(
                         LoggingStandardSetDto(
                             setPosition = set.setPosition,
@@ -163,7 +167,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
                             weightRecommendation = getWeightRecommendation(
-                                workoutLift, set, groupedSetData[set.setPosition]?.firstOrNull()
+                                workoutLift, set, result
                             )
                         )
                     )
@@ -177,7 +181,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     private fun getWeightRecommendation(
         lift: CustomWorkoutLiftDto,
         set: GenericLiftSet,
-        setData: StandardSetResultDto?,
+        setData: SetResult?,
     ) : Float? {
         return if (customSetMeetsCriterion(set, setData)) {
             incrementWeight(lift, setData!!)

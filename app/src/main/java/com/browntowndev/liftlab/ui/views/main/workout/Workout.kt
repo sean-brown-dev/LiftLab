@@ -135,6 +135,7 @@ fun Workout(
                             if (progressionScheme != ProgressionScheme.LINEAR_PROGRESSION) {
                                 StandardSetResultDto(
                                     workoutId = state.workout!!.id,
+                                    setType = setType,
                                     liftId = liftId,
                                     mesoCycle = state.programMetadata!!.currentMesocycle,
                                     microCycle = state.programMetadata!!.currentMicrocycle,
@@ -208,6 +209,13 @@ fun Workout(
                     applyToLift = applyToLift,
                 )
             },
+            onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
+                workoutViewModel.deleteMyoRepSet(
+                    workoutLiftId = workoutLiftId,
+                    setPosition = setPosition,
+                    myoRepSetPosition = myoRepSetPosition,
+                )
+            }
         )
     }
 }

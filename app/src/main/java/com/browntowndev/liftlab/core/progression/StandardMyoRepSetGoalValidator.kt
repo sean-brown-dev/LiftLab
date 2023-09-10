@@ -6,11 +6,11 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 class MyoRepSetGoalValidator {
     companion object {
         fun validate(
-            myoRepSetGoals: LoggingMyoRepSetDto,
-            completedMyoRepSetResult: MyoRepSetResultDto,
-            previousMyoRepSets: List<LoggingMyoRepSetDto>,
-        ): Boolean {
-            // TODO: Unit tests
+                myoRepSetGoals: LoggingMyoRepSetDto,
+                completedMyoRepSetResult: MyoRepSetResultDto,
+                previousMyoRepSets: List<LoggingMyoRepSetDto>,
+            ): Boolean {
+                // TODO: Unit tests
             val isActivationSet = previousMyoRepSets.isEmpty()
             val metGoals = completedMyoRepSetResult.rpe == myoRepSetGoals.rpeTarget
 

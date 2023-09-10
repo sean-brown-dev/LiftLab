@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper

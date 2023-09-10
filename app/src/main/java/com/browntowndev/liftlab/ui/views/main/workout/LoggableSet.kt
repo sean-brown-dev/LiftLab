@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -113,6 +114,7 @@ private fun SetRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.secondaryContainer)
             .padding(horizontal = 10.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,

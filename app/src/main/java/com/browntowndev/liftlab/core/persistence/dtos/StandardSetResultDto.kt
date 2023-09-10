@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.dtos
 
+import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
 data class StandardSetResultDto(
@@ -13,4 +14,5 @@ data class StandardSetResultDto(
     override val mesoCycle: Int,
     override val microCycle: Int,
     val missedLpGoals: Int? = null,
+    val setType: SetType,
 ): SetResult

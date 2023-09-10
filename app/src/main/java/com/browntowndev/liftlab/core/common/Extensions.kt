@@ -47,6 +47,7 @@ fun String.appendSuperscript(
         )
     }
 }
+
 fun String.insertSuperscript(
     superscript: String,
     insertAt: Int,
@@ -157,7 +158,7 @@ fun Float.roundToNearestFactor(factor: Float): Float {
     return abs((this / factor).roundToInt()) * factor
 }
 
-fun Long.toTimeString(format: String): String {
+fun Long.toTimeString(): String {
     // TODO: Unit Tests
     return if (this < TEN_MINUTES_IN_MILLIS) {
         String.format(
@@ -219,3 +220,8 @@ fun BroadcastReceiver.executeInCoroutineScope(
         }
     }
 }
+
+inline fun <reified T> Iterable<*>.filterIsNotInstance(): List<T> {
+    return this.filterNot { it is T }.map { it as T }
+}
+

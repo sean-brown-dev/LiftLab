@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -56,6 +55,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
+import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.views.composables.RpePicker
 import org.koin.androidx.compose.getViewModel
 import kotlin.time.Duration
@@ -75,6 +75,7 @@ fun WorkoutLog(
     undoCompleteSet: (liftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, applyToLift: Boolean) -> Unit,
+    onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
 ) {
     // Remember the myo rep set indices from the previous composition. Below they will
     // animate if they're not found in this set (they are new)
@@ -175,68 +176,76 @@ fun WorkoutLog(
                             LogHeaders()
 
                             lift.sets.fastForEachIndexed { index, set ->
-                                if (lift.position == 0 && set.setPosition == 0) {
-                                    Log.d(Log.DEBUG.toString(), "completed: ${set.complete}")
-                                }
-                                val animateVisibility = remember(lift.sets.size) {
-                                    set is LoggingMyoRepSetDto &&
-                                            !indicesOfExistingMyoRepSets.contains("${lift.id}-${set.myoRepSetPosition}")
-                                }
-                                LoggableSet(
-                                    index = index,
-                                    lazyListState = lazyListState,
-                                    animateVisibility = animateVisibility,
-                                    position = set.setPosition,
-                                    progressionScheme = lift.progressionScheme,
-                                    setNumberLabel = set.setNumberLabel,
-                                    weightRecommendation = set.weightRecommendation,
-                                    rpeTarget = set.rpeTarget,
-                                    complete = set.complete,
-                                    completedWeight = set.completedWeight,
-                                    completedReps = set.completedReps,
-                                    completedRpe = set.completedRpe,
-                                    previousSetResultLabel = set.previousSetResultLabel,
-                                    repRangePlaceholder = set.repRangePlaceholder,
-                                    toggleRpePicker = {
-                                        if (it) {
-                                            pickerViewModel.showRpePicker(
-                                                workoutLiftId = lift.id,
-                                                setPosition = set.setPosition,
-                                                myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                            )
-                                        } else {
-                                            pickerViewModel.hideRpePicker()
+                                DeleteableOnSwipeLeft(
+                                    enabled = remember(set) { set is LoggingMyoRepSetDto && (index == (lift.sets.size - 1)) },
+                                    confirmationDialogHeader = "Delete Myorep Set?",
+                                    confirmationDialogBody = "Confirm to delete the myorep set.",
+                                    onDelete = {
+                                        onDeleteMyoRepSet(lift.id, set.setPosition, (set as LoggingMyoRepSetDto).myoRepSetPosition!!)
+                                    },
+                                    dismissContent = {
+                                        val animateVisibility = remember(lift.sets.size) {
+                                            set is LoggingMyoRepSetDto &&
+                                                    !indicesOfExistingMyoRepSets.contains("${lift.id}-${set.myoRepSetPosition}")
                                         }
-                                    },
-                                    onCompleted = { weight, reps, rpe ->
-                                        val setType = when (set) {
-                                            is LoggingStandardSetDto -> SetType.STANDARD
-                                            is LoggingDropSetDto -> SetType.DROP_SET
-                                            is LoggingMyoRepSetDto -> SetType.MYOREP
-                                            else -> throw Exception("${set::class.simpleName} is not defined.")
-                                        }
-                                        onSetCompleted(
-                                            setType,
-                                            lift.progressionScheme,
-                                            set.setPosition,
-                                            (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                            lift.liftId,
-                                            weight,
-                                            reps,
-                                            rpe,
-                                            restTime,
+
+                                        LoggableSet(
+                                            index = index,
+                                            lazyListState = lazyListState,
+                                            animateVisibility = animateVisibility,
+                                            position = set.setPosition,
+                                            progressionScheme = lift.progressionScheme,
+                                            setNumberLabel = set.setNumberLabel,
+                                            weightRecommendation = set.weightRecommendation,
+                                            rpeTarget = set.rpeTarget,
+                                            complete = set.complete,
+                                            completedWeight = set.completedWeight,
+                                            completedReps = set.completedReps,
+                                            completedRpe = set.completedRpe,
+                                            previousSetResultLabel = set.previousSetResultLabel,
+                                            repRangePlaceholder = set.repRangePlaceholder,
+                                            toggleRpePicker = {
+                                                if (it) {
+                                                    pickerViewModel.showRpePicker(
+                                                        workoutLiftId = lift.id,
+                                                        setPosition = set.setPosition,
+                                                        myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+                                                    )
+                                                } else {
+                                                    pickerViewModel.hideRpePicker()
+                                                }
+                                            },
+                                            onCompleted = { weight, reps, rpe ->
+                                                val setType = when (set) {
+                                                    is LoggingStandardSetDto -> SetType.STANDARD
+                                                    is LoggingDropSetDto -> SetType.DROP_SET
+                                                    is LoggingMyoRepSetDto -> SetType.MYOREP
+                                                    else -> throw Exception("${set::class.simpleName} is not defined.")
+                                                }
+                                                onSetCompleted(
+                                                    setType,
+                                                    lift.progressionScheme,
+                                                    set.setPosition,
+                                                    (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+                                                    lift.liftId,
+                                                    weight,
+                                                    reps,
+                                                    rpe,
+                                                    restTime,
+                                                )
+                                                pickerViewModel.hideRpePicker()
+                                            },
+                                            onUndoCompletion = {
+                                                undoCompleteSet(
+                                                    lift.liftId,
+                                                    set.setPosition,
+                                                    (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+                                                )
+                                            },
+                                            onAddSpacer = {
+                                                pickerSpacer = it
+                                            }
                                         )
-                                        pickerViewModel.hideRpePicker()
-                                    },
-                                    onUndoCompletion = {
-                                        undoCompleteSet(
-                                            lift.liftId,
-                                            set.setPosition,
-                                            (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                        )
-                                    },
-                                    onAddSpacer = {
-                                        pickerSpacer = it
                                     }
                                 )
                             }

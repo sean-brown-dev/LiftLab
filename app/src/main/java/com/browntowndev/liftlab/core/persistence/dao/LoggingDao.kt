@@ -26,7 +26,7 @@ interface LoggingDao {
             "(workoutLogEntryId, liftId, customSetType, " +
             "setPosition, myoRepSetPosition, weight, " +
             "reps, rpe, mesoCycle, microCycle) " +
-            "SELECT :workoutLogEntryId, liftId, customSetType, " +
+            "SELECT :workoutLogEntryId, liftId, setType, " +
             "setPosition, myoRepSetPosition, weight, " +
             "reps, rpe, mesoCycle, microCycle " +
             "FROM previousSetResults")

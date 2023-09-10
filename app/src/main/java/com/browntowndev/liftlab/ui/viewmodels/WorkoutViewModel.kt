@@ -247,7 +247,7 @@ class WorkoutViewModel(
         return if (!hasMyoRepSetsAfter && // Don't add more myorep sets if it already has them
             MyoRepSetGoalValidator.validate(
                 myoRepSetGoals = thisMyoRepSet,
-                completedMyoRepSetResult = result as MyoRepSetResultDto,
+                completedMyoRepSetResult = result,
                 previousMyoRepSets = previousMyoRepResults,
             )
         ) {
@@ -261,6 +261,8 @@ class WorkoutViewModel(
                     thisMyoRepSet.copy(
                         myoRepSetPosition = previousMyoRepResults.size,
                         weightRecommendation = result.weight,
+                        repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
+                            else "—",
                         complete = false,
                         completedWeight = null,
                         completedReps = null,
@@ -558,6 +560,54 @@ class WorkoutViewModel(
                             else lift
                         }
                     )
+                )
+            }
+        }
+    }
+
+    fun deleteMyoRepSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) {
+        executeInTransactionScope {
+            val liftId = _state.value.workout!!.lifts.find { it.id == workoutLiftId }!!.liftId
+            val isComplete = _state.value.inProgressWorkout!!.completedSets.find {
+                (it is MyoRepSetResultDto) &&
+                        (it.liftId == liftId) &&
+                        (it.setPosition == setPosition) &&
+                        (it.myoRepSetPosition == myoRepSetPosition)
+            } != null
+
+            if (isComplete) {
+                this.undoSetCompletion(
+                    liftId = liftId,
+                    setPosition = setPosition,
+                    myoRepSetPosition = myoRepSetPosition
+                )
+            }
+
+            _state.update { currentState ->
+                currentState.copy(
+                    workout = currentState.workout!!.let { workout ->
+                        workout.copy(
+                            lifts = workout.lifts.fastMap { workoutLift ->
+                                if (workoutLift.id == workoutLiftId) {
+                                    workoutLift.copy(
+                                        sets = workoutLift.sets.toMutableList().apply {
+                                            val toDelete = find { set ->
+                                                set.setPosition == setPosition &&
+                                                        (set as LoggingMyoRepSetDto).myoRepSetPosition == myoRepSetPosition
+                                            }!!
+
+                                            remove(toDelete)
+                                        }.mapIndexed { index, set ->
+                                            if (index > 0) {
+                                                val myoRepSet = set as LoggingMyoRepSetDto
+                                                myoRepSet.copy(myoRepSetPosition = index - 1)
+                                            } else set
+                                        }
+                                    )
+                                } else workoutLift
+                            }
+                        )
+                    }
                 )
             }
         }
