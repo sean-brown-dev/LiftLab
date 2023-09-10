@@ -38,7 +38,6 @@ class RepositoryHelper(context: Context): KoinComponent {
     )
 
     val workouts get() = WorkoutsRepository(
-        programsRepository = programs,
         workoutLiftsRepository = workoutLifts,
         customLiftSetsRepository = customLiftSets,
         previousSetResultsRepository = previousSetResults,

@@ -108,6 +108,7 @@ class WorkoutViewModel(
                     }
                 }
             }
+            TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm
             else -> {}
         }
     }
@@ -273,33 +274,26 @@ class WorkoutViewModel(
         } else mutableLoggingSets
     }
 
-    private fun updateDropSetWeightRecommendationOnSetCompletion(
+    private fun copyDropSetWithUpdatedWeightRecommendation(
         set: LoggingDropSetDto,
-        allLoggingSets: List<GenericLoggingSet>,
         result: SetResult,
-        incrementOverride: Float,
+        increment: Float,
     ): LoggingDropSetDto {
         if (set.setPosition < 1) throw Exception ("Drop set must come after another set.")
-        val previousSetWeight = allLoggingSets[set.setPosition - 1].completedWeight
 
         return set.copy(
-            completedWeight = result.weight,
-            completedReps = result.reps,
-            completedRpe = result.rpe,
-            weightRecommendation = if (previousSetWeight != null) {
-                (previousSetWeight * set.dropPercentage)
-                    .roundToNearestFactor(incrementOverride)
-            } else null
+            weightRecommendation = (result.weight * (1 - set.dropPercentage))
+                .roundToNearestFactor(increment)
         )
     }
 
     private fun copySetsOnCompletion(
         result: SetResult,
         currentSets: List<GenericLoggingSet>,
-        incrementOverride: Float,
+        increment: Float,
     ): List<GenericLoggingSet> {
         var thisMyoRepSet: LoggingMyoRepSetDto? = null
-        val mutableSetCopy = currentSets.map { set ->
+        val mutableSetCopy = currentSets.fastMap { set ->
             if (result.setPosition == set.setPosition &&
                 (result as? MyoRepSetResultDto)?.myoRepSetPosition == (set as? LoggingMyoRepSetDto)?.myoRepSetPosition) {
                 when (set) {
@@ -331,11 +325,10 @@ class WorkoutViewModel(
                 }
             } else if (set.setPosition == (result.setPosition + 1) && set is LoggingDropSetDto) {
                 // If there is a drop set after this completed set update it's weight recommendation
-                updateDropSetWeightRecommendationOnSetCompletion(
+                copyDropSetWithUpdatedWeightRecommendation(
                     set = set,
-                    allLoggingSets = currentSets,
                     result = result,
-                    incrementOverride = incrementOverride,
+                    increment = increment,
                 )
             } else set
         }.toMutableList()
@@ -394,7 +387,7 @@ class WorkoutViewModel(
                                     sets = copySetsOnCompletion(
                                         result = result,
                                         currentSets = workoutLift.sets,
-                                        incrementOverride = workoutLift.incrementOverride
+                                        increment = workoutLift.incrementOverride
                                             ?: workoutLift.liftIncrementOverride
                                             ?: SettingsManager.getSetting(
                                                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
@@ -445,8 +438,11 @@ class WorkoutViewModel(
         }
     }
 
-    fun finishWorkout(durationInMillis: Long) {
+    private fun finishWorkout() {
         executeInTransactionScope {
+            val startTimeInMillis = _state.value.inProgressWorkout!!.startTime.time
+            val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
+
             // Remove the workout from in progress
             workoutInProgressRepository.delete()
 
