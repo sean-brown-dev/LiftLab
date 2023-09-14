@@ -41,5 +41,5 @@ interface WorkoutsDao {
     suspend fun getFinalPosition(programId: Long): Int
 
     @Query("SELECT * FROM workouts WHERE position = :microcyclePosition")
-    fun getByMicrocyclePosition(microcyclePosition: Int): Flow<WorkoutWithRelationships>
+    fun getByMicrocyclePosition(microcyclePosition: Int): Flow<WorkoutWithRelationships?>
 }

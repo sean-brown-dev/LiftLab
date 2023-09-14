@@ -38,6 +38,16 @@ fun Lab(
             mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
+            setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, true)
+            setTopAppBarControlVisibility(LabScreen.REORDER_WORKOUTS_ICON, state.program!!.workouts.size > 1)
+            setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, true)
+        } else {
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
+            setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.REORDER_WORKOUTS_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, false)
         }
     }
 
@@ -69,18 +79,12 @@ fun Lab(
         }
     }
     else {
-        setTopAppBarCollapsed(true)
-        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, true)
-        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, false)
-
-        if (state.program?.workouts != null) {
-            ReorderableLazyColumn(
-                paddingValues = paddingValues,
-                items = state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
-                saveReorder = { labViewModel.saveReorder(it) },
-                cancelReorder = { labViewModel.toggleReorderingScreen() }
-            )
-        }
+        ReorderableLazyColumn(
+            paddingValues = paddingValues,
+            items = state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
+            saveReorder = { labViewModel.saveReorder(it) },
+            cancelReorder = { labViewModel.toggleReorderingScreen() }
+        )
     }
 
     if (state.workoutIdToRename != null && state.originalWorkoutName != null) {

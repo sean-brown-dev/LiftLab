@@ -416,17 +416,25 @@ class WorkoutViewModel(
                     restTimerStartedAt = null,
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { workoutLift ->
+                            var hasWeightRecommendation = false
                             if (workoutLift.liftId == liftId) {
                                 workoutLift.copy(
                                     sets = workoutLift.sets.fastMap { set ->
                                         if (set.setPosition == setPosition &&
                                             (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == myoRepSetPosition) {
+                                            hasWeightRecommendation = set.weightRecommendation != null
                                             when (set) {
                                                 is LoggingStandardSetDto -> set.copy(complete = false)
                                                 is LoggingDropSetDto -> set.copy(complete = false)
                                                 is LoggingMyoRepSetDto -> set.copy(complete = false)
                                                 else -> throw Exception("${set::class.simpleName} is not defined.")
                                             }
+                                        } else if (!hasWeightRecommendation &&
+                                            set.setPosition == (setPosition + 1) &&
+                                            set is LoggingDropSetDto) {
+                                            // undo the drop set's weight recommendation when its main
+                                            // set is set as incomplete and it has no recommendation
+                                            set.copy(weightRecommendation = null)
                                         } else set
                                     }
                                 )

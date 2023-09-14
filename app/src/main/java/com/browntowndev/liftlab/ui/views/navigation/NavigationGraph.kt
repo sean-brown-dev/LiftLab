@@ -106,8 +106,6 @@ fun NavigationGraph(
             if (screen as? LabScreen != null) {
                 LaunchedEffect(key1 = screen) {
                     setBottomNavBarVisibility(true)
-                    setTopAppBarCollapsed(false)
-                    setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, false)
                 }
 
                 Lab(

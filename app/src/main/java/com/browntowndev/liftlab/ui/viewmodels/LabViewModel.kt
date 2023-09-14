@@ -10,6 +10,8 @@ import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +24,8 @@ import org.greenrobot.eventbus.Subscribe
 class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val restTimerInProgressRepository: RestTimerInProgressRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -225,6 +229,9 @@ class LabViewModel(
         if (program != null) {
             executeInTransactionScope {
                 programsRepository.delete(program)
+                workoutInProgressRepository.delete()
+                restTimerInProgressRepository.deleteAll()
+
                 _state.update {
                     LabState()
                 }

@@ -68,33 +68,38 @@ class WorkoutsRepository(
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getNextToPerform(
         programMetadata: ActiveProgramMetadataDto,
-    ): LiveData<LoggingWorkoutDto> {
+    ): LiveData<LoggingWorkoutDto?> {
         return workoutsDao.getByMicrocyclePosition(programMetadata.currentMicrocyclePosition)
             .flatMapLatest { workout ->
-                val previousSetResults =
+                val previousSetResults = if (workout != null) {
                     previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
                         workoutId = workout.workout.id,
                         mesoCycle = programMetadata.currentMesocycle,
                         microCycle = programMetadata.currentMicrocycle,
                     )
+                } else listOf()
 
-                val loggingWorkout = progressionFactory.calculate(
-                    workout = workoutMapper.map(workout),
-                    previousSetResults = previousSetResults,
-                    programDeloadWeek = programMetadata.deloadWeek,
-                    microCycle = programMetadata.currentMicrocycle,
-                )
+                val loggingWorkout = if (workout!= null) {
+                    progressionFactory.calculate(
+                        workout = workoutMapper.map(workout),
+                        previousSetResults = previousSetResults,
+                        programDeloadWeek = programMetadata.deloadWeek,
+                        microCycle = programMetadata.currentMicrocycle,
+                    )
+                } else null
 
-                val inProgressCompletedSets = previousSetResultsRepository.getForWorkout(
-                    workoutId = workout.workout.id,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle
-                ).associateBy { result ->
-                    "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
-                }
+                val inProgressCompletedSets = if (workout != null) {
+                    previousSetResultsRepository.getForWorkout(
+                        workoutId = workout.workout.id,
+                        mesoCycle = programMetadata.currentMesocycle,
+                        microCycle = programMetadata.currentMicrocycle
+                    ).associateBy { result ->
+                        "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
+                    }
+                } else mapOf()
 
                 flowOf(
-                    if ((inProgressCompletedSets.size) > 0) {
+                    if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
                         loggingWorkout.copy(
                             lifts = loggingWorkout.lifts.fastMap { workoutLift ->
                                 workoutLift.copy(

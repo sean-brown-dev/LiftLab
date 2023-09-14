@@ -31,6 +31,11 @@ data class LabScreen(
     override val title: String = navigation.title,
     override val subtitle: String = navigation.subtitle,
     val trailingIconText: String = "",
+    val renameProgramVisible: Boolean = true,
+    val reorderWorkoutsVisible: Boolean = true,
+    val deleteProgramVisible: Boolean = true,
+    val deloadWeekVisible: Boolean = true,
+    val createWorkoutVisible: Boolean = true,
 ) : BaseScreen(), KoinComponent {
     companion object {
         val navigation = BottomNavItem("Lab", "", R.drawable.lab_flask, "lab")
@@ -76,6 +81,27 @@ data class LabScreen(
         }
     }
 
+    override fun setControlVisibility(controlName: String, isVisible: Boolean): Screen {
+        return when (controlName) {
+            RENAME_PROGRAM_ICON -> {
+              copy(renameProgramVisible = isVisible)
+            }
+            DELETE_PROGRAM_ICON -> {
+                copy(deleteProgramVisible = isVisible)
+            }
+            REORDER_WORKOUTS_ICON -> {
+                copy(reorderWorkoutsVisible = isVisible)
+            }
+            CREATE_NEW_WORKOUT_ICON -> {
+                copy(createWorkoutVisible = isVisible)
+            }
+            DELOAD_WEEK_ICON -> {
+                copy(deloadWeekVisible = isVisible)
+            }
+            else -> super.setControlVisibility(controlName, isVisible)
+        }
+    }
+
     override val route: String
         get() = navigation.route
     override val isAppBarVisible: Boolean
@@ -92,14 +118,15 @@ data class LabScreen(
                 controlName = CREATE_NEW_WORKOUT_ICON,
                 title = "Create Workout",
                 icon = Icons.Filled.Add.left(),
-                isVisible = true,
+                isVisible = createWorkoutVisible,
+                dividerBelow = !reorderWorkoutsVisible,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewWorkout)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_WORKOUTS_ICON,
                 title = "Reorder Workouts",
                 icon = R.drawable.reorder_icon.right(),
-                isVisible = true,
+                isVisible = reorderWorkoutsVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderWorkouts))
                 },
@@ -116,14 +143,14 @@ data class LabScreen(
                 controlName = RENAME_PROGRAM_ICON,
                 title = "Rename Program",
                 icon = Icons.Filled.Edit.left(),
-                isVisible = true,
+                isVisible = renameProgramVisible,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameProgram)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELETE_PROGRAM_ICON,
                 title = "Delete Program",
                 icon = Icons.Filled.Delete.left(),
-                isVisible = true,
+                isVisible = deleteProgramVisible,
                 dividerBelow = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram)) },
             ),
@@ -132,7 +159,7 @@ data class LabScreen(
                 title = "Deload Week",
                 icon = Icons.Outlined.DateRange.left(),
                 trailingIconText = _reorderWorkoutsTrailingText,
-                isVisible = true,
+                isVisible = deloadWeekVisible,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.EditDeloadWeek)) },
             ),
         )
