@@ -5,7 +5,6 @@ import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
@@ -14,11 +13,8 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected fun getDropSetRecommendation(
         lift: GenericWorkoutLift,
         set: DropSetDto,
-        sortedSetData: List<SetResult>,
+        previousSetWeight: Float?,
     ): Float? {
-        // TODO: Unit tests
-        val groupedSetData = sortedSetData.filterIsInstance<StandardSetResultDto>().groupBy { it.setPosition }
-        val previousSetWeight = groupedSetData[set.setPosition - 1]?.firstOrNull()?.weight
         return if (previousSetWeight != null) {
             val incrementAmount = lift.incrementOverride
                 ?: lift.liftIncrementOverride
@@ -27,7 +23,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
                     5f
                 )
 
-            (previousSetWeight * set.dropPercentage).roundToNearestFactor(
+            (previousSetWeight * (1 - set.dropPercentage)).roundToNearestFactor(
                 incrementAmount
             )
         } else null

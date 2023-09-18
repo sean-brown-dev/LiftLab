@@ -243,7 +243,7 @@ class WorkoutsRepository(
                 ] as? MyoRepSetResultDto
 
             if (nextInProgressSetResult == null &&
-                MyoRepSetGoalValidator.validate(
+                MyoRepSetGoalValidator.shouldContinueMyoReps(
                     myoRepSetGoals = set,
                     completedMyoRepSetResult = lastCompletedSet,
                     previousMyoRepSets = myoRepSets,

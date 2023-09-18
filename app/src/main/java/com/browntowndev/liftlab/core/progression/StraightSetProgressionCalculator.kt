@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.progression
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.filterIsNotInstance
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -69,7 +68,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
     ): List<GenericLoggingSet> {
         val criterionMet = allSetsMetCriterion(workoutLift, previousSetResults)
         val resultsByPosition = previousSetResults
-            .filterIsNotInstance<MyoRepSetResultDto>()
+            .filterNot { it is MyoRepSetResultDto }
             .associateBy { it.setPosition }
         val myoRepSetResults = previousSetResults
             .filterIsInstance<MyoRepSetResultDto>()
@@ -107,6 +106,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             }
 
             is CustomWorkoutLiftDto -> {
+                var lastWeightRecommendation: Float? = null
                 workoutLift.customLiftSets.flatMap { set ->
                     val result = resultsByPosition[set.setPosition]
                     val currSetMyoRepResults = myoRepSetResults[set.setPosition]
@@ -126,7 +126,8 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                             } else set.repRangeBottom.toString(),
                             weightRecommendation =
                             if (criterionMet) {
-                                incrementWeight(workoutLift, result ?: previousSetResults.last())
+                                lastWeightRecommendation = incrementWeight(workoutLift, result ?: previousSetResults.last())
+                                lastWeightRecommendation
                             } else if (previousSetResults.isNotEmpty()) {
                                 getFailureWeight(workoutLift = workoutLift, result = result ?: previousSetResults.last())
                                     ?: getFailureWeight(
@@ -149,7 +150,12 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
-                            weightRecommendation = getDropSetRecommendation(workoutLift, set, previousSetResults),
+                            weightRecommendation = if (criterionMet) {
+                                lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
+                                lastWeightRecommendation
+                            } else if (previousSetResults.isNotEmpty()) {
+                                previousSetResults[set.setPosition].weight
+                            } else null,
                             dropPercentage = set.dropPercentage,
                         ))
 

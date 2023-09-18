@@ -170,7 +170,7 @@ class LabViewModel(
                     )
                 }
             }
-        }
+        } else collapseEditWorkoutNameModal()
     }
 
     fun updateProgramName(newName: String) {

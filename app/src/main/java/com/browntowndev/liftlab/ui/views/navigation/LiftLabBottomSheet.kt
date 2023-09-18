@@ -42,7 +42,7 @@ fun LiftLabBottomSheet(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     var rememberedLabel by remember { mutableStateOf(label) }
-    var scaffoldState = rememberBottomSheetScaffoldState(
+    val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = remember { SheetState(
             initialValue = SheetValue.PartiallyExpanded,
             skipPartiallyExpanded = false,

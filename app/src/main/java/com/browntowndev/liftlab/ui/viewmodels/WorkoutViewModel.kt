@@ -246,9 +246,8 @@ class WorkoutViewModel(
             }
 
         return if (!hasMyoRepSetsAfter && // Don't add more myorep sets if it already has them
-            MyoRepSetGoalValidator.validate(
-                myoRepSetGoals = thisMyoRepSet,
-                completedMyoRepSetResult = result,
+            MyoRepSetGoalValidator.shouldContinueMyoReps(
+                completedSet = thisMyoRepSet,
                 previousMyoRepSets = previousMyoRepResults,
             )
         ) {

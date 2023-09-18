@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.progression
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.filterIsNotInstance
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -72,7 +71,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         val nonMyoRepSetResults = sortedSetData
-            .filterIsNotInstance<MyoRepSetResultDto>()
+            .filterNot {it is MyoRepSetResultDto }
             .associateBy { it.setPosition }
 
         val myoRepSetResults = sortedSetData

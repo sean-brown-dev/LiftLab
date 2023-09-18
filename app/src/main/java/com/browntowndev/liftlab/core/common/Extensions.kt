@@ -220,8 +220,3 @@ fun BroadcastReceiver.executeInCoroutineScope(
         }
     }
 }
-
-inline fun <reified T> Iterable<*>.filterIsNotInstance(): List<T> {
-    return this.filterNot { it is T }.map { it as T }
-}
-

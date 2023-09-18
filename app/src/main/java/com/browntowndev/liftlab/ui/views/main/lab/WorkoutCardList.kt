@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -22,7 +24,6 @@ fun WorkoutCardList(
     paddingValues: PaddingValues,
     navigationController: NavHostController,
     workouts: List<WorkoutDto>,
-    volumeTypes: List<CharSequence>,
     showEditWorkoutNameModal: (WorkoutDto) -> Unit,
     beginDeleteWorkout: (WorkoutDto) -> Unit,
 ) {
@@ -36,7 +37,10 @@ fun WorkoutCardList(
 
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxWidth().padding(paddingValues)
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.background)
+            .padding(paddingValues)
     ) {
         items(workouts, { it.id }) { workout ->
             WorkoutCard(

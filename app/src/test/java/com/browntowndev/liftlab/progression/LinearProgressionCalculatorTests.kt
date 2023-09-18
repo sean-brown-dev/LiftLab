@@ -45,7 +45,7 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResultDto(missedLpGoals = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
         result.forEach {
             Assert.assertEquals(80f, it.weightRecommendation)
         }
@@ -77,7 +77,7 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResultDto(missedLpGoals = 1, reps = 7, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
         result.forEach {
             Assert.assertEquals(75f, it.weightRecommendation)
         }
@@ -109,14 +109,14 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResultDto(missedLpGoals = 2, reps = 7, rpe = 8f, setPosition = 2, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
         result.forEach {
             Assert.assertEquals(90f, it.weightRecommendation)
         }
     }
 
     @Test
-    fun `weight is 0 when an empty list of set results is passed in`() {
+    fun `weight is null when an empty list of set results is passed in`() {
         val lift = WorkoutLiftWithRelationships(
             workoutLift = WorkoutLift(
                 workoutId = 0,
@@ -136,9 +136,9 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf<LinearProgressionSetResultDto>()
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
         result.forEach {
-            Assert.assertEquals(0f, it.weightRecommendation)
+            Assert.assertEquals(null, it.weightRecommendation)
         }
     }
 
@@ -163,18 +163,18 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, setPosition = 0, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0),
+            StandardSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, setPosition = 0, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, setType = SetType.STANDARD),
             LinearProgressionSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, setPosition = 1, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0),
             LinearProgressionSetResultDto(missedLpGoals = 2, reps = 7, rpe = 8f, setPosition = 2, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0),
         )
 
         Assert.assertThrows(Exception::class.java) {
-            calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
+            calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
         }
     }
 
     @Test
-    fun `throws exception if custom lift is passed in`() {
+    fun `weight recommendation should be null for all lifts`() {
         val lift = WorkoutLiftWithRelationships(
             workoutLift = WorkoutLift(
                 workoutId = 0,
@@ -204,9 +204,9 @@ class LinearProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf<LinearProgressionSetResultDto>()
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
         result.forEach {
-            Assert.assertEquals(0f, it.weightRecommendation)
+            Assert.assertEquals(null, it.weightRecommendation)
         }
     }
 }

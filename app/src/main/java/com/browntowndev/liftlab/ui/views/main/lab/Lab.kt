@@ -61,7 +61,7 @@ fun Lab(
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
 
     if (!state.isReordering) {
-        if (state.program?.workouts != null) {
+        if (state.program?.workouts?.isEmpty() == false) {
             VolumeChipBottomSheet(
                 placeAboveBottomNavBar = true,
                 title = "Program Volume",
@@ -70,7 +70,6 @@ fun Lab(
                 WorkoutCardList(
                     paddingValues = paddingValues,
                     workouts = state.program!!.workouts,
-                    volumeTypes = state.volumeTypes,
                     showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
                     beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
                     navigationController = navHostController
