@@ -14,11 +14,14 @@ import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgres
 import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
 import com.browntowndev.liftlab.ui.views.LiftLab
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.KoinAndroidContext
+import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
+    @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -28,7 +31,9 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         setContent {
             if(LiftLabDatabase.initialized) {
-                LiftLab()
+                KoinAndroidContext {
+                    LiftLab()
+                }
             }
         }
     }

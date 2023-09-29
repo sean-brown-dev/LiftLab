@@ -585,16 +585,17 @@ class WorkoutViewModel(
 
     fun deleteMyoRepSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) {
         executeInTransactionScope {
-            val liftId = _state.value.workout!!.lifts.find { it.id == workoutLiftId }!!.liftId
-            val isComplete = _state.value.inProgressWorkout!!.completedSets.find {
-                (it is MyoRepSetResultDto) &&
-                        (it.liftId == liftId) &&
-                        (it.setPosition == setPosition) &&
-                        (it.myoRepSetPosition == myoRepSetPosition)
-            } != null
+            val workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId }!!
+            val liftId = workoutLift.liftId
+            val isComplete = workoutLift.sets.find {
+                it is LoggingMyoRepSetDto &&
+                    it.setPosition == setPosition &&
+                    it.myoRepSetPosition == myoRepSetPosition
+            }?.complete
 
-            if (isComplete) {
-                this.undoSetCompletion(
+            if (isComplete == true) {
+                setResultsRepository.delete(
+                    workoutId = _state.value.workout!!.id,
                     liftId = liftId,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition

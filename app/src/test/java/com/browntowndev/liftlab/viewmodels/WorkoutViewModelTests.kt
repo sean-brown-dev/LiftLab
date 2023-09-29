@@ -20,10 +20,12 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.entities.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.Runs
@@ -44,8 +46,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
+import java.time.Duration
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class WorkoutViewModelTests {
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -310,6 +315,132 @@ class WorkoutViewModelTests {
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
             Assert.assertEquals(8f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[2] as LoggingMyoRepSetDto).weightRecommendation)
+        }
+
+    @Test
+    fun `Myo rep set is not created on completion of  myorep set that meets criterion if one exists after it already`() =
+        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
+            val programsRepository = mockk<ProgramsRepository>()
+            val activeProgramMetadata = ActiveProgramMetadataDto(
+                programId = 0L,
+                name = "Test Program",
+                currentMicrocycle = 0,
+                currentMesocycle = 0,
+                currentMicrocyclePosition = 0,
+                workoutCount = 4,
+                deloadWeek = 4,
+            )
+            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+
+            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workout = LoggingWorkoutDto(
+                id = 0L,
+                name = "Test Workout",
+                lifts = listOf(
+                    LoggingWorkoutLiftDto(
+                        id = 0L,
+                        liftId = 0L,
+                        liftName = "Test Lift 1",
+                        liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+                        progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                        liftVolumeTypes = 1,
+                        liftRestTime = null,
+                        liftIncrementOverride = null,
+                        incrementOverride = 5f,
+                        restTime = null,
+                        position = 0,
+                        setCount = 1,
+                        deloadWeek = null,
+                        sets = listOf(
+                            LoggingMyoRepSetDto(
+                                setPosition = 0,
+                                repFloor = 5,
+                                rpeTarget = 8f,
+                                repRangeBottom = 25,
+                                repRangeTop = 30,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                                completedReps = 30,
+                                completedWeight = 100f,
+                                completedRpe = 8f,
+                            ),
+                            LoggingMyoRepSetDto(
+                                setPosition = 0,
+                                myoRepSetPosition = 0,
+                                repFloor = 5,
+                                rpeTarget = 8f,
+                                repRangeBottom = 25,
+                                repRangeTop = 30,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                        )
+                    )
+                )
+            )
+            coEvery { workoutsRepository.getNextToPerform(any()) } returns flowOf(
+                workout
+            ).asLiveData()
+
+            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressMetadata = WorkoutInProgressDto(
+                workoutId = 0L,
+                startTime = Utils.getCurrentDate(),
+                completedSets = listOf()
+            )
+            coEvery {
+                workoutInProgressRepository.get(
+                    any(),
+                    any()
+                )
+            } returns workoutInProgressMetadata
+
+            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
+            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.insert(any()) } just Runs
+
+            val setResultsRepository = mockk<PreviousSetResultsRepository>()
+            coEvery { setResultsRepository.upsert(any()) } returns 0L
+
+            val transactionScope = mockk<TransactionScope>()
+            coEvery { transactionScope.execute(any()) } coAnswers {
+                val function = args[0] as (suspend () -> Unit)
+                function()
+            }
+
+            val viewModel = WorkoutViewModel(
+                programsRepository = programsRepository,
+                workoutsRepository = workoutsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgramsRepository,
+                setResultsRepository = setResultsRepository,
+                historicalWorkoutNamesRepository = mockk(),
+                loggingRepository = mockk(),
+                liftsRepository = mockk(),
+                workoutLiftsRepository = mockk(),
+                transactionScope = transactionScope,
+                eventBus = mockk(),
+            )
+
+            viewModel.completeSet(
+                0L,
+                MyoRepSetResultDto(
+                    workoutId = 0L,
+                    liftId = 0L,
+                    setPosition = 0,
+                    weight = 100f,
+                    reps = 20,
+                    rpe = 8f,
+                    mesoCycle = 0,
+                    microCycle = 0,
+                )
+            )
+
+            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            Assert.assertEquals(2, sets.size)
+            Assert.assertEquals(0, (sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
         }
 
     @Test
@@ -1714,6 +1845,16 @@ class WorkoutViewModelTests {
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
+                            LoggingDropSetDto(
+                                setPosition = 2,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                                dropPercentage = .1f,
+                            ),
                         )
                     )
                 )
@@ -1762,5 +1903,427 @@ class WorkoutViewModelTests {
 
             viewModel.setRpe(0L, 0, null, 8.5f)
             Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[0].completedRpe)
+
+            viewModel.setRpe(0L, 1, null, 8.5f)
+            Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[1].completedRpe)
+
+            viewModel.setRpe(0L, 2, null, 8.5f)
+            Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[2].completedRpe)
+        }
+
+    @Test
+    fun `Rest time is set on workout lift level`() =
+        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
+            val programsRepository = mockk<ProgramsRepository>()
+            val activeProgramMetadata = ActiveProgramMetadataDto(
+                programId = 0L,
+                name = "Test Program",
+                currentMicrocycle = 0,
+                currentMesocycle = 0,
+                currentMicrocyclePosition = 0,
+                workoutCount = 4,
+                deloadWeek = 4,
+            )
+            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery {
+                programsRepository.updateMesoAndMicroCycle(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } just Runs
+
+            val loggingRepository = mockk<LoggingRepository>()
+            coEvery {
+                loggingRepository.insertWorkoutLogEntry(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } returns 0L
+            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+
+            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workout = LoggingWorkoutDto(
+                id = 0L,
+                name = "Test Workout",
+                lifts = listOf(
+                    LoggingWorkoutLiftDto(
+                        id = 0L,
+                        liftId = 0L,
+                        liftName = "Test Lift 1",
+                        liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+                        progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+                        liftVolumeTypes = 1,
+                        liftRestTime = null,
+                        liftIncrementOverride = null,
+                        incrementOverride = 5f,
+                        restTime = null,
+                        position = 0,
+                        setCount = 1,
+                        deloadWeek = null,
+                        sets = listOf(
+                            LoggingStandardSetDto(
+                                setPosition = 0,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                            LoggingMyoRepSetDto(
+                                setPosition = 1,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                            LoggingDropSetDto(
+                                setPosition = 2,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                                dropPercentage = .1f,
+                            ),
+                        )
+                    )
+                )
+            )
+            coEvery { workoutsRepository.getNextToPerform(any()) } returns flowOf(
+                workout
+            ).asLiveData()
+
+            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressMetadata = WorkoutInProgressDto(
+                workoutId = 0L,
+                startTime = Utils.getCurrentDate(),
+                completedSets = listOf()
+            )
+            coEvery {
+                workoutInProgressRepository.get(
+                    any(),
+                    any()
+                )
+            } returns workoutInProgressMetadata
+            coEvery { workoutInProgressRepository.delete() } just Runs
+
+            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
+            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.insert(any()) } just Runs
+
+            val transactionScope = mockk<TransactionScope>()
+            coEvery { transactionScope.execute(any()) } coAnswers {
+                val function = args[0] as (suspend () -> Unit)
+                function()
+            }
+
+            val workoutLiftsRepository = mockk<WorkoutLiftsRepository>()
+            coEvery { workoutLiftsRepository.updateRestTime(any(), any()) } just Runs
+
+            val viewModel = WorkoutViewModel(
+                programsRepository = programsRepository,
+                workoutsRepository = workoutsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgramsRepository,
+                setResultsRepository = mockk(),
+                historicalWorkoutNamesRepository = mockk(),
+                loggingRepository = loggingRepository,
+                liftsRepository = mockk(),
+                workoutLiftsRepository = workoutLiftsRepository,
+                transactionScope = transactionScope,
+                eventBus = mockk(),
+            )
+
+            viewModel.updateRestTime(0L, 120000L.toDuration(DurationUnit.MILLISECONDS), false)
+            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.state.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
+            Assert.assertEquals(null, viewModel.state.value.workout!!.lifts[0].liftRestTime?.inWholeMilliseconds)
+        }
+
+    @Test
+    fun `Rest time is set at lift level`() =
+        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
+            val programsRepository = mockk<ProgramsRepository>()
+            val activeProgramMetadata = ActiveProgramMetadataDto(
+                programId = 0L,
+                name = "Test Program",
+                currentMicrocycle = 0,
+                currentMesocycle = 0,
+                currentMicrocyclePosition = 0,
+                workoutCount = 4,
+                deloadWeek = 4,
+            )
+            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery {
+                programsRepository.updateMesoAndMicroCycle(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } just Runs
+
+            val loggingRepository = mockk<LoggingRepository>()
+            coEvery {
+                loggingRepository.insertWorkoutLogEntry(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } returns 0L
+            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+
+            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workout = LoggingWorkoutDto(
+                id = 0L,
+                name = "Test Workout",
+                lifts = listOf(
+                    LoggingWorkoutLiftDto(
+                        id = 0L,
+                        liftId = 0L,
+                        liftName = "Test Lift 1",
+                        liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+                        progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+                        liftVolumeTypes = 1,
+                        liftRestTime = null,
+                        liftIncrementOverride = null,
+                        incrementOverride = 5f,
+                        restTime = null,
+                        position = 0,
+                        setCount = 1,
+                        deloadWeek = null,
+                        sets = listOf(
+                            LoggingStandardSetDto(
+                                setPosition = 0,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                            LoggingMyoRepSetDto(
+                                setPosition = 1,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                            LoggingDropSetDto(
+                                setPosition = 2,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                                dropPercentage = .1f,
+                            ),
+                        )
+                    )
+                )
+            )
+            coEvery { workoutsRepository.getNextToPerform(any()) } returns flowOf(
+                workout
+            ).asLiveData()
+
+            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressMetadata = WorkoutInProgressDto(
+                workoutId = 0L,
+                startTime = Utils.getCurrentDate(),
+                completedSets = listOf()
+            )
+            coEvery {
+                workoutInProgressRepository.get(
+                    any(),
+                    any()
+                )
+            } returns workoutInProgressMetadata
+            coEvery { workoutInProgressRepository.delete() } just Runs
+
+            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
+            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.insert(any()) } just Runs
+
+            val transactionScope = mockk<TransactionScope>()
+            coEvery { transactionScope.execute(any()) } coAnswers {
+                val function = args[0] as (suspend () -> Unit)
+                function()
+            }
+
+            val liftsRepository = mockk<LiftsRepository>()
+            coEvery { liftsRepository.updateRestTime(any(), any()) } just Runs
+
+            val viewModel = WorkoutViewModel(
+                programsRepository = programsRepository,
+                workoutsRepository = workoutsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgramsRepository,
+                setResultsRepository = mockk(),
+                historicalWorkoutNamesRepository = mockk(),
+                loggingRepository = loggingRepository,
+                liftsRepository = liftsRepository,
+                workoutLiftsRepository = mockk(),
+                transactionScope = transactionScope,
+                eventBus = mockk(),
+            )
+
+            viewModel.updateRestTime(0L, 120000L.toDuration(DurationUnit.MILLISECONDS), true)
+            Assert.assertEquals(null, viewModel.state.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
+            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.state.value.workout!!.lifts[0].liftRestTime?.inWholeMilliseconds)
+        }
+
+    @Test
+    fun `Myorep set is successfully deleted`() =
+        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
+            val programsRepository = mockk<ProgramsRepository>()
+            val activeProgramMetadata = ActiveProgramMetadataDto(
+                programId = 0L,
+                name = "Test Program",
+                currentMicrocycle = 0,
+                currentMesocycle = 0,
+                currentMicrocyclePosition = 0,
+                workoutCount = 4,
+                deloadWeek = 4,
+            )
+            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery {
+                programsRepository.updateMesoAndMicroCycle(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } just Runs
+
+            val loggingRepository = mockk<LoggingRepository>()
+            coEvery {
+                loggingRepository.insertWorkoutLogEntry(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } returns 0L
+            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+
+            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workout = LoggingWorkoutDto(
+                id = 0L,
+                name = "Test Workout",
+                lifts = listOf(
+                    LoggingWorkoutLiftDto(
+                        id = 0L,
+                        liftId = 0L,
+                        liftName = "Test Lift 1",
+                        liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+                        progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+                        liftVolumeTypes = 1,
+                        liftRestTime = null,
+                        liftIncrementOverride = null,
+                        incrementOverride = 5f,
+                        restTime = null,
+                        position = 0,
+                        setCount = 1,
+                        deloadWeek = null,
+                        sets = listOf(
+                            LoggingMyoRepSetDto(
+                                setPosition = 0,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                            LoggingMyoRepSetDto(
+                                setPosition = 0,
+                                myoRepSetPosition = 0,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                                complete = true,
+                            ),
+                            LoggingMyoRepSetDto(
+                                setPosition = 0,
+                                myoRepSetPosition = 1,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                                weightRecommendation = 100f,
+                                previousSetResultLabel = "",
+                                repRangePlaceholder = "",
+                            ),
+                        )
+                    )
+                )
+            )
+            coEvery { workoutsRepository.getNextToPerform(any()) } returns flowOf(
+                workout
+            ).asLiveData()
+
+            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressMetadata = WorkoutInProgressDto(
+                workoutId = 0L,
+                startTime = Utils.getCurrentDate(),
+                completedSets = listOf()
+            )
+            coEvery {
+                workoutInProgressRepository.get(
+                    any(),
+                    any()
+                )
+            } returns workoutInProgressMetadata
+            coEvery { workoutInProgressRepository.delete() } just Runs
+
+            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
+            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.insert(any()) } just Runs
+
+            val transactionScope = mockk<TransactionScope>()
+            coEvery { transactionScope.execute(any()) } coAnswers {
+                val function = args[0] as (suspend () -> Unit)
+                function()
+            }
+
+            val setResultsRepository = mockk<PreviousSetResultsRepository>()
+            coEvery { setResultsRepository.delete(any(), any(), any(), any()) } just Runs
+
+            val viewModel = WorkoutViewModel(
+                programsRepository = programsRepository,
+                workoutsRepository = workoutsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgramsRepository,
+                setResultsRepository = setResultsRepository,
+                historicalWorkoutNamesRepository = mockk(),
+                loggingRepository = loggingRepository,
+                liftsRepository = mockk(),
+                workoutLiftsRepository = mockk(),
+                transactionScope = transactionScope,
+                eventBus = mockk(),
+            )
+
+            viewModel.deleteMyoRepSet(0L, 0, 0)
+            Assert.assertEquals(2, viewModel.state.value.workout!!.lifts[0].sets.size)
+            Assert.assertEquals(null, (viewModel.state.value.workout!!.lifts[0].sets[0] as LoggingMyoRepSetDto).myoRepSetPosition)
+            Assert.assertEquals(0, (viewModel.state.value.workout!!.lifts[0].sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
+
+            coVerify(exactly = 1) { setResultsRepository.delete(any(), any(), any(), any()) }
         }
 }
