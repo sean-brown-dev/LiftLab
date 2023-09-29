@@ -197,10 +197,10 @@ class WorkoutViewModel(
         _state.update { currentState ->
             currentState.copy(
                 workout = currentState.workout!!.copy(
-                    lifts = currentState.workout.lifts.map { workoutLift ->
+                    lifts = currentState.workout.lifts.fastMap { workoutLift ->
                         if (workoutLift.id == workoutLiftId) {
                             workoutLift.copy(
-                                sets = workoutLift.sets.map { set ->
+                                sets = workoutLift.sets.fastMap { set ->
                                     if (set.setPosition == setPosition &&
                                         (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == myoRepSetPosition
                                     ) {
