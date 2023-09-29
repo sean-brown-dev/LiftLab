@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
-import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
@@ -23,6 +22,10 @@ class PreviousSetResultsRepository(
 
     suspend fun upsert(setResult: SetResult): Long {
         return previousSetResultDao.upsert(setResultsMapper.map(setResult))
+    }
+
+    suspend fun upsertMany(setResults: List<SetResult>): List<Long> {
+        return previousSetResultDao.upsertMany(setResults.map { setResult -> setResultsMapper.map(setResult) })
     }
 
     suspend fun insertMany(setResult: List<SetResult>) {

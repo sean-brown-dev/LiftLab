@@ -19,10 +19,10 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
             throw Exception("Linear progression lift contains invalid set type.")
         }
 
-        return previousSetResults.size == lift.setCount &&
-                previousSetResults.isNotEmpty() &&
+        return previousSetResults.isNotEmpty() &&
+                previousSetResults.size == lift.setCount &&
                 previousSetResults.all {
-                    it.rpe == lift.rpeTarget && it.reps == lift.repRangeTop
+                    it.rpe <= lift.rpeTarget && it.reps >= lift.repRangeBottom
                 }
     }
 

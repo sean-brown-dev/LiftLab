@@ -376,7 +376,6 @@ class WorkoutViewModel(
                                 }
                                 add(insertedResult)
                             }
-
                         }
                     ),
                     workout = currentState.workout!!.copy(
@@ -445,13 +444,14 @@ class WorkoutViewModel(
         }
     }
 
-    private fun finishWorkout() {
+    public fun finishWorkout() {
         executeInTransactionScope {
             val startTimeInMillis = _state.value.inProgressWorkout!!.startTime.time
             val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
 
             // Remove the workout from in progress
             workoutInProgressRepository.delete()
+            restTimerInProgressRepository.deleteAll()
 
             // Delete all set results from the previous workout
             val programMetadata = _state.value.programMetadata!!
@@ -468,7 +468,7 @@ class WorkoutViewModel(
             val deloadWeekComplete =
                 microCycleComplete && (programMetadata.deloadWeek - 1) == programMetadata.currentMicrocycle
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
-            val newMicroCycle = if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
+            val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
             programsRepository.updateMesoAndMicroCycle(
                 id = programMetadata.programId,
@@ -500,10 +500,19 @@ class WorkoutViewModel(
             )
 
             // Update any Linear Progression failures
+            // The reason this is done when the workout is completed is because if it were done on the fly
+            // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
+            // and then you get double increment. Or any variation of them going between success/failure by
+            // modifying results.
             updateLinearProgressionFailures()
 
             // Copy all of the set results from this workout into the set history table
             loggingRepository.insertFromPreviousSetResults(workoutLogEntryId)
+
+            // TODO: have summary pop up as dialog and close this on completion instead
+            _state.update {
+                it.copy(workoutLogVisible = false)
+            }
 
             initialize()
         }
@@ -514,27 +523,33 @@ class WorkoutViewModel(
             "${it.liftId}-${it.setPosition}"
         }
         val setResultsToUpdate = mutableListOf<SetResult>()
-
-        _state.value.workout!!.lifts.fastForEach { workoutLift ->
-            if (workoutLift.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION) {
+        _state.value.workout!!.lifts
+            .filter { workoutLift -> workoutLift.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
+            .fastForEach { workoutLift ->
                 workoutLift.sets.fastForEach { set ->
                     val result = resultsByLift["${workoutLift.liftId}-${set.setPosition}"]
-                    if(result != null &&
-                        ((set.completedWeight ?: -2f) < (set.weightRecommendation ?: -1f) ||
-                                (set.completedReps ?: -1) < set.repRangeTop ||
-                                (set.completedRpe ?: -1f) <= set.rpeTarget)) {
+                    if (result != null &&
+                        ((set.completedReps ?: -1) < set.repRangeBottom ||
+                                (set.completedRpe ?: -1f) > set.rpeTarget)) {
                         val lpResults = result as LinearProgressionSetResultDto
                         setResultsToUpdate.add(
                             lpResults.copy(
                                 missedLpGoals = lpResults.missedLpGoals + 1
                             )
                         )
+                    } else if (result != null && (result as LinearProgressionSetResultDto).missedLpGoals > 0) {
+                        setResultsToUpdate.add(
+                            result.copy(
+                                missedLpGoals = 0
+                            )
+                        )
                     }
                 }
             }
-        }
 
-        setResultsRepository.insertMany(setResultsToUpdate)
+        if (setResultsToUpdate.isNotEmpty()) {
+            setResultsRepository.upsertMany(setResultsToUpdate)
+        }
     }
 
     fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, applyToLift: Boolean) {

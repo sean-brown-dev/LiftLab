@@ -23,6 +23,9 @@ interface PreviousSetResultDao {
     @Upsert
     suspend fun upsert(result: PreviousSetResult): Long
 
+    @Upsert
+    suspend fun upsertMany(results: List<PreviousSetResult>): List<Long>
+
     @Insert
     suspend fun insertMany(result: List<PreviousSetResult>): List<Long>
 
