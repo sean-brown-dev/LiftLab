@@ -117,7 +117,9 @@ fun Workout(
             workoutName = state.workout!!.name,
             timeInProgress = timerState.time,
             lifts = state.workout!!.lifts,
-            volumeTypes = state.volumeTypes,
+            combinedVolumeTypes = state.combinedVolumeTypes,
+            primaryVolumeTypes = state.primaryVolumeTypes,
+            secondaryVolumeTypes = state.secondaryVolumeTypes,
             startWorkout = { workoutViewModel.startWorkout() },
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
         )

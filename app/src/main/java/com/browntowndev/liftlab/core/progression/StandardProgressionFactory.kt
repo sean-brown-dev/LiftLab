@@ -31,6 +31,7 @@ class StandardProgressionFactory: ProgressionFactory {
                             liftName = workoutLift.liftName,
                             liftMovementPattern = workoutLift.liftMovementPattern,
                             liftVolumeTypes = workoutLift.liftVolumeTypes,
+                            liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
                             liftRestTime = workoutLift.liftRestTime,
                             deloadWeek = workoutLift.deloadWeek,
                             incrementOverride = workoutLift.incrementOverride,

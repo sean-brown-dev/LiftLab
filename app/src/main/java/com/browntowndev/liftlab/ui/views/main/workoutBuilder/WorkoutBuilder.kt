@@ -107,7 +107,9 @@ fun WorkoutBuilder(
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = false,
             title = "Workout Volume",
-            state.volumeTypes
+            combinedVolumeChipLabels = state.combinedVolumeTypes,
+            primaryVolumeChipLabels = state.combinedVolumeTypes,
+            secondaryVolumeChipLabels = state.combinedVolumeTypes,
         ) {
             Column(modifier = modifier.then(
                 Modifier
@@ -326,8 +328,10 @@ fun WorkoutBuilder(
                                 Row {
                                     // Save this here and then update it after the custom lifts are rendered
                                     // so the lifts don't disappear until after animation}
-                                    var nonDisappearCustomLifts by remember { mutableStateOf(customLift?.customLiftSets ?: listOf()) }
-                                    val customLifts = remember(customLift?.customLiftSets) { customLift?.customLiftSets ?: nonDisappearCustomLifts }
+                                    var nonDisappearCustomLifts by remember { mutableStateOf(customLift?.customLiftSets
+                                        ?: listOf()) }
+                                    val customLifts = remember(customLift?.customLiftSets) { customLift?.customLiftSets
+                                        ?: nonDisappearCustomLifts }
                                     Spacer(modifier = Modifier.width(10.dp))
                                     CustomSettings(
                                         isVisible = customLiftsVisible,

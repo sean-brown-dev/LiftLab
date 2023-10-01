@@ -54,7 +54,9 @@ fun WorkoutPreview(
     workoutName: String,
     timeInProgress: String,
     lifts: List<LoggingWorkoutLiftDto>,
-    volumeTypes: List<CharSequence>,
+    combinedVolumeTypes: List<CharSequence>,
+    primaryVolumeTypes: List<CharSequence>,
+    secondaryVolumeTypes: List<CharSequence>,
     showWorkoutLog: () -> Unit,
     startWorkout: () -> Unit,
 ) {
@@ -67,7 +69,9 @@ fun WorkoutPreview(
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
             title = "Workout Volume",
-            volumeChipLabels = volumeTypes
+            combinedVolumeChipLabels = combinedVolumeTypes,
+            primaryVolumeChipLabels = primaryVolumeTypes,
+            secondaryVolumeChipLabels = secondaryVolumeTypes,
         ) {
             LazyColumn(
                 modifier = Modifier

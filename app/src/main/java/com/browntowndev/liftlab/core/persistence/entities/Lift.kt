@@ -14,6 +14,7 @@ data class Lift(
     val name: String,
     val movementPattern: MovementPattern,
     val volumeTypesBitmask: Int,
+    val secondaryVolumeTypesBitmask: Int? = null,
     val restTime: Duration? = null,
     val incrementOverride: Float? = null,
     val isHidden: Boolean = false,

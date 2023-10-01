@@ -9,6 +9,7 @@ data class LiftDto(
     val name: String,
     val movementPattern: MovementPattern,
     val volumeTypesBitmask: Int,
+    val secondaryVolumeTypesBitmask: Int?,
     val incrementOverride: Float?,
     val restTime: Duration?,
     val isHidden: Boolean,

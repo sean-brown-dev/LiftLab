@@ -8,6 +8,7 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
@@ -68,10 +69,16 @@ fun String.insertSuperscript(
     }
 }
 
-private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>):  HashMap<String, Pair<Int, Boolean>> {
+private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
     lifts.fastForEach { lift ->
-        lift.liftVolumeTypes.getVolumeTypes().fastForEach { volumeType ->
+        val volumeTypes = when(impact) {
+            VolumeTypeImpact.PRIMARY -> lift.liftVolumeTypes
+            VolumeTypeImpact.SECONDARY -> lift.liftSecondaryVolumeTypes
+            VolumeTypeImpact.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
+        }
+
+        volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = (lift as? CustomWorkoutLiftDto)?.customLiftSets?.any { it is MyoRepSetDto } ?: false
@@ -88,10 +95,16 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLif
     return volumeCounts
 }
 
-private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>):  HashMap<String, Pair<Int, Boolean>> {
+private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
     lifts.fastForEach { lift ->
-        lift.liftVolumeTypes.getVolumeTypes().fastForEach { volumeType ->
+        val volumeTypes = when(impact) {
+            VolumeTypeImpact.PRIMARY -> lift.liftVolumeTypes
+            VolumeTypeImpact.SECONDARY -> lift.liftSecondaryVolumeTypes
+            VolumeTypeImpact.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
+        }
+
+        volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = lift.sets.any { it is LoggingMyoRepSetDto }
@@ -108,35 +121,36 @@ private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLif
     return volumeCounts
 }
 
-private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>): List<CharSequence> {
-    return getVolumeTypeMapForGenericWorkoutLifts(lifts).map { (volumeType, totalVolume) ->
+private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>, impact: VolumeTypeImpact): List<CharSequence> {
+    return getVolumeTypeMapForGenericWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
         val plainVolumeString = "$volumeType: ${totalVolume.first}"
         if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
         else plainVolumeString
     }
 }
 
-fun WorkoutDto.getVolumeTypeLabels(): List<CharSequence> {
-    return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts)
+fun WorkoutDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+    return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts, impact)
 }
 
-private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>): List<CharSequence> {
-    return getVolumeTypeMapForLoggingWorkoutLifts(lifts).map { (volumeType, totalVolume) ->
+private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>, impact: VolumeTypeImpact): List<CharSequence> {
+    return getVolumeTypeMapForLoggingWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
         val plainVolumeString = "$volumeType: ${totalVolume.first}"
         if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
         else plainVolumeString
     }
 }
 
-fun LoggingWorkoutDto.getVolumeTypeLabels(): List<CharSequence> {
-    return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts)
+fun LoggingWorkoutDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+    return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts, impact)
 }
 
-fun ProgramDto.getVolumeTypeLabels(): List<CharSequence> {
+fun ProgramDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(
-        this.workouts.flatMap { workout ->
+        lifts = this.workouts.flatMap { workout ->
             workout.lifts
-        }
+        },
+        impact = impact,
     )
 }
 

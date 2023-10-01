@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
+import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
@@ -22,8 +23,14 @@ data class WorkoutBuilderState (
         }
     }
 
-    val volumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels() ?: listOf()
+    val combinedVolumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
+    }
+    val primaryVolumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.PRIMARY) ?: listOf()
+    }
+    val secondaryVolumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.SECONDARY) ?: listOf()
     }
 }
 

@@ -65,7 +65,9 @@ fun Lab(
             VolumeChipBottomSheet(
                 placeAboveBottomNavBar = true,
                 title = "Program Volume",
-                state.volumeTypes
+                combinedVolumeChipLabels = state.combinedVolumeTypes,
+                primaryVolumeChipLabels = state.primaryVolumeTypes,
+                secondaryVolumeChipLabels = state.secondaryVolumeTypes,
             ) {
                 WorkoutCardList(
                     paddingValues = paddingValues,

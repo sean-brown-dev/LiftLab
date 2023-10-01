@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.ui.views.composables.LabeledChips
 
 
@@ -38,7 +41,9 @@ fun LiftLabBottomSheet(
     sheetPeekHeight: Dp,
     bottomSpacerHeight: Dp,
     label: String,
-    volumeTypes: List<CharSequence> = listOf(),
+    combinedVolumeChipLabels: List<CharSequence> = listOf(),
+    primaryVolumeChipLabels: List<CharSequence> = listOf(),
+    secondaryVolumeChipLabels: List<CharSequence> = listOf(),
     content: @Composable (PaddingValues) -> Unit,
 ) {
     var rememberedLabel by remember { mutableStateOf(label) }
@@ -86,8 +91,40 @@ fun LiftLabBottomSheet(
             ) {
                 Text(text = rememberedLabel, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(10.dp))
+
+                val options = remember { listOf("Primary", "Secondary", "All") }
+                var selectedOption by remember { mutableStateOf(options[0]) }
+                var selectedVolumeTypes by remember(
+                    key1 = combinedVolumeChipLabels,
+                    key2 = primaryVolumeChipLabels,
+                    key3 = secondaryVolumeChipLabels) {
+                    mutableStateOf(primaryVolumeChipLabels)
+                }
+
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    options.fastForEach { option ->
+                        RadioButton(
+                            selected = selectedOption == option,
+                            onClick = {
+                                selectedOption = option
+                                selectedVolumeTypes = when (option) {
+                                    "Primary" -> primaryVolumeChipLabels
+                                    "Secondary" -> secondaryVolumeChipLabels
+                                    "All" -> combinedVolumeChipLabels
+                                    else -> throw Exception ("Unrecognized volume types radio button")
+                                }
+                            }
+                        )
+                        Text(text = option, color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
+                    }
+                }
+
                 LabeledChips(
-                    labels = volumeTypes,
+                    labels = selectedVolumeTypes,
                     horizontalArrangement = Arrangement.Center,
                     verticalArrangement = Arrangement.Center,
                 )
