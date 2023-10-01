@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -119,7 +120,19 @@ fun LiftLabBottomSheet(
                                 }
                             }
                         )
-                        Text(text = option, color = MaterialTheme.colorScheme.onSurface, fontSize = 12.sp)
+                        Text(
+                            modifier = Modifier.clickable {
+                                selectedOption = option
+                                selectedVolumeTypes = when (option) {
+                                    "Primary" -> primaryVolumeChipLabels
+                                    "Secondary" -> secondaryVolumeChipLabels
+                                    "All" -> combinedVolumeChipLabels
+                                    else -> throw Exception ("Unrecognized volume types radio button")
+                                }
+                            },
+                            text = option,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp)
                     }
                 }
 

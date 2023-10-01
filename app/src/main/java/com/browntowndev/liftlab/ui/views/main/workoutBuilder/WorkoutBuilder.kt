@@ -108,8 +108,8 @@ fun WorkoutBuilder(
             placeAboveBottomNavBar = false,
             title = "Workout Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
-            primaryVolumeChipLabels = state.combinedVolumeTypes,
-            secondaryVolumeChipLabels = state.combinedVolumeTypes,
+            primaryVolumeChipLabels = state.primaryVolumeTypes,
+            secondaryVolumeChipLabels = state.secondaryVolumeTypes,
         ) {
             Column(modifier = modifier.then(
                 Modifier
