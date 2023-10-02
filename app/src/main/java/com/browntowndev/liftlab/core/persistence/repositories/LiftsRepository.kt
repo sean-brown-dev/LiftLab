@@ -6,8 +6,23 @@ import com.browntowndev.liftlab.core.persistence.entities.Lift
 import kotlin.time.Duration
 
 class LiftsRepository(private val liftsDao: LiftsDao): Repository {
-    suspend fun createLift(lift: Lift) {
-        liftsDao.insert(lift)
+    suspend fun createLift(lift: LiftDto) {
+        liftsDao.insert(
+            Lift(
+            id = lift.id,
+            name = lift.name,
+            movementPattern = lift.movementPattern,
+            volumeTypesBitmask = lift.volumeTypesBitmask,
+            secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
+            incrementOverride = lift.incrementOverride,
+            restTime = lift.restTime,
+            isHidden = lift.isHidden,
+            isBodyweight = lift.isBodyweight,
+        ))
+    }
+
+    suspend fun update(lift: LiftDto) {
+
     }
 
     suspend fun get(id: Long): LiftDto {

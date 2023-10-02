@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.views.main
+package com.browntowndev.liftlab.ui.views.main.liftlibrary
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -107,10 +107,14 @@ fun LiftLibrary(
                     items(state.filteredLifts) { lift ->
                         ListItem(
                             modifier = Modifier.clickable {
-                                if(workoutId != null && addAtPosition != null) {
-                                    liftLibraryViewModel.addWorkoutLift(workoutId, addAtPosition, lift.id)
-                                } else if (workoutId != null && workoutLiftId != null) {
-                                    liftLibraryViewModel.replaceWorkoutLift(workoutLiftId, lift.id)
+                                if(isAddingToWorkout && selected) {
+                                    liftLibraryViewModel.removeSelectedLift(lift.id)
+                                } else if (isAddingToWorkout) {
+                                    liftLibraryViewModel.addSelectedLift(lift.id)
+                                } else if (isReplacingWorkout) {
+                                    liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
+                                } else {
+                                    // TODO: navigate to lift details with lift ID
                                 }
 
                                 val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())

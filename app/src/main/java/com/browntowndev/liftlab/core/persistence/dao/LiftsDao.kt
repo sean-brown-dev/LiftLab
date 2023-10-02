@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.persistence.entities.Lift
 import kotlin.time.Duration
@@ -14,6 +15,9 @@ interface LiftsDao {
 
     @Insert
     suspend fun insert(lift: Lift)
+
+    @Update
+    suspend fun update(lift: Lift)
 
     @Query("UPDATE lifts SET isHidden = 1")
     suspend fun hide()
