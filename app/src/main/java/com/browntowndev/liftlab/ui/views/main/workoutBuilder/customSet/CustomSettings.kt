@@ -46,7 +46,7 @@ fun CustomSettings(
     onRepRangeTopChanged: (position: Int, newRepRangeTop: Int) -> Unit,
     onRepFloorChanged: (position: Int, newRepFloor: Int) -> Unit,
     onCustomSetTypeChanged: (position: Int, newSetType: SetType) -> Unit,
-    onMaxSetsChanged: (position: Int, newMaxSets: Int) -> Unit,
+    onMaxSetsChanged: (position: Int, newMaxSets: Int?) -> Unit,
     toggleRpePicker: (position: Int, visible: Boolean) -> Unit,
     togglePercentagePicker: (position: Int, visible: Boolean) -> Unit,
     toggleDetailsExpansion: (position: Int) -> Unit,

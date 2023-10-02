@@ -678,7 +678,7 @@ class WorkoutBuilderViewModel(
                             setMatching = setMatching,
                             setGoal = set.setGoal,
                             maxSets = null,
-                            repFloor = null
+                            repFloor = if (setMatching) null else 5,
                         )
                         else -> throw Exception("${set::class.simpleName} cannot have set matching.")
                     }
@@ -713,7 +713,7 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun setCustomSetMaxSets(workoutLiftId: Long, position: Int, newMaxSets: Int) {
+    fun setCustomSetMaxSets(workoutLiftId: Long, position: Int, newMaxSets: Int?) {
         executeInTransactionScope {
             var updatedSet: GenericLiftSet? = null
             val updatedStateCopy = _state.value.copy(

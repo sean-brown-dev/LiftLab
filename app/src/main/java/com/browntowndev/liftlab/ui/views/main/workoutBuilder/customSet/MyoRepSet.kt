@@ -38,7 +38,7 @@ fun MyoRepSet(
     isPreviousSetMyoRep: Boolean,
     onSetMatchingChanged: (enabled: Boolean) -> Unit,
     onMatchSetGoalChanged: (Int) -> Unit,
-    onMaxSetsChanged: (Int) -> Unit,
+    onMaxSetsChanged: (Int?) -> Unit,
     toggleRpePicker: (Boolean) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
@@ -79,7 +79,10 @@ fun MyoRepSet(
                 LabeledCheckBox(
                     label = "Limit Sets Performed",
                     checked = showMaxSetLimit,
-                    onCheckedChanged = { showMaxSetLimit = !showMaxSetLimit }
+                    onCheckedChanged = {
+                        showMaxSetLimit = !showMaxSetLimit
+                        onMaxSetsChanged(if(showMaxSetLimit) 5 else null)
+                    }
                 )
             }
             IntegerTextField(
