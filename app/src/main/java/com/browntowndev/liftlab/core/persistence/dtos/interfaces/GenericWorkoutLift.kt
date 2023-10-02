@@ -11,6 +11,7 @@ interface GenericWorkoutLift {
     val liftName: String
     val liftMovementPattern: MovementPattern
     val liftVolumeTypes: Int
+    val liftSecondaryVolumeTypes: Int?
     val liftRestTime: Duration?
     val liftIncrementOverride: Float?
     val position: Int

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -21,20 +23,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.views.utils.CircledTextIcon
-import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.utils.FilterSelector
-import com.browntowndev.liftlab.ui.views.utils.InputChipFlowRow
+import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
+import com.browntowndev.liftlab.ui.views.composables.CircularIcon
+import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.FilterSelector
+import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow
 import org.koin.androidx.compose.getViewModel
 
 
@@ -55,11 +57,16 @@ fun LiftLibrary(
 ) {
     val liftLibraryViewModel: LiftLibraryViewModel = getViewModel()
     val state by liftLibraryViewModel.state.collectAsState()
-    var movementPatternFilter by remember { mutableStateOf(movementPattern) }
 
-    if (movementPatternFilter.isNotEmpty()) {
-        liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPatternFilter))
-        movementPatternFilter = ""
+    liftLibraryViewModel.setNavHostController(navHostController)
+    liftLibraryViewModel.setWorkoutId(workoutId)
+    liftLibraryViewModel.setAddAtPosition(addAtPosition)
+
+    val isReplacingWorkout by remember(key1 = workoutId, key2 = workoutLiftId) {
+        mutableStateOf(workoutId != null && workoutLiftId != null)
+    }
+    val isAddingToWorkout by remember(key1 = workoutId, key2 = addAtPosition) {
+        mutableStateOf(workoutId != null && addAtPosition != null)
     }
 
     liftLibraryViewModel.registerEventBus()
@@ -76,8 +83,18 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
     }
 
-    LaunchedEffect(movementPattern) {
-        movementPatternFilter = movementPattern
+    LaunchedEffect(key1 = movementPattern) {
+        if (movementPattern.isNotEmpty()) {
+            liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPattern))
+        }
+    }
+
+    LaunchedEffect(key1 = state.selectedNewLifts) {
+        if (state.selectedNewLifts.isEmpty()) {
+            onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, false)
+        } else if (state.selectedNewLifts.size == 1) {
+            onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, true)
+        }
     }
 
     if (!state.showFilterSelection) {
@@ -105,22 +122,33 @@ fun LiftLibrary(
                         .wrapContentSize(Alignment.TopStart)
                 ) {
                     items(state.filteredLifts) { lift ->
+                        val selected by remember(state.selectedNewLifts) {
+                            mutableStateOf(state.selectedNewLiftsHashSet.contains(lift.id))
+                        }
                         ListItem(
                             modifier = Modifier.clickable {
-                                if(workoutId != null && addAtPosition != null) {
-                                    liftLibraryViewModel.addWorkoutLift(workoutId, addAtPosition, lift.id)
-                                } else if (workoutId != null && workoutLiftId != null) {
-                                    liftLibraryViewModel.replaceWorkoutLift(workoutLiftId, lift.id)
+                                if(isAddingToWorkout && selected) {
+                                    liftLibraryViewModel.removeSelectedLift(lift.id)
+                                } else if (isAddingToWorkout) {
+                                    liftLibraryViewModel.addSelectedLift(lift.id)
+                                } else if (isReplacingWorkout) {
+                                    liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
                                 }
-
-                                val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
-                                navHostController.popBackStack()
-                                navHostController.popBackStack()
-                                navHostController.navigate(workoutBuilderRoute)
                             },
                             headlineContent = { Text(lift.name) },
                             supportingContent = { Text(lift.movementPatternDisplayName) },
-                            leadingContent = { CircledTextIcon(text = lift.name[0].toString()) },
+                            leadingContent = {
+                                if (selected) {
+                                    CircularIcon(
+                                        size = 40.dp,
+                                        imageVector = Icons.Filled.Check,
+                                        circleBackgroundColorScheme = MaterialTheme.colorScheme.tertiary,
+                                        iconTint = MaterialTheme.colorScheme.secondary,
+                                    )
+                                } else {
+                                    CircledTextIcon(text = lift.name[0].toString())
+                                }
+                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = MaterialTheme.colorScheme.background,
                                 headlineColor = MaterialTheme.colorScheme.onBackground,

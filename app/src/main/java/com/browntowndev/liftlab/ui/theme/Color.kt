@@ -6,16 +6,16 @@ import androidx.compose.ui.graphics.Color
 //val PrimaryDark = Color(0xFFE4FFB0)
 val PrimaryDark = Color(0xFFFDDE7F)
 val OnPrimaryDark = Color.Black
-val PrimaryContainerDark = Color(0xFF20221F)
+val PrimaryContainerDark = Color(0xFF1F2122)
 val OnPrimaryContainerDark = Color.White
 
 val SecondaryDark = Color(0xFF7B1FA2)
 val OnSecondaryDark = Color.White
-val SecondaryContainerDark = Color(0xFF2C2C29)
+val SecondaryContainerDark = Color(0xFF242423)
 val OnSecondaryContainerDark = Color.White
 
 val TertiaryDark = Color(0xFFFDBC4D)
-val OnTertiaryDark = Color.White
+val OnTertiaryDark = Color.Black
 val TertiaryContainerDark = Color(0xFF383838)
 val OnTertiaryContainerDark = Color.White
 

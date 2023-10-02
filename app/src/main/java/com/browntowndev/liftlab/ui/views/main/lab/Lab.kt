@@ -13,10 +13,11 @@ import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.utils.ConfirmationModal
-import com.browntowndev.liftlab.ui.views.utils.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.utils.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.views.utils.TextFieldModal
+import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.views.composables.TextFieldModal
+import com.browntowndev.liftlab.ui.views.composables.VolumeChipBottomSheet
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
@@ -27,7 +28,6 @@ fun Lab(
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
-    setBottomSheetContent: (label: String, volumeChipLabels: List<CharSequence>) -> Unit,
 ) {
     val labViewModel: LabViewModel = koinViewModel()
     val state by labViewModel.state.collectAsState()
@@ -38,42 +38,54 @@ fun Lab(
             mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
-            setBottomSheetContent("Program Volume", state.volumeTypes)
+            setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, true)
+            setTopAppBarControlVisibility(LabScreen.REORDER_WORKOUTS_ICON, state.program!!.workouts.size > 1)
+            setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, true)
+        } else {
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
+            setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.REORDER_WORKOUTS_ICON, false)
+            setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, false)
         }
+    }
+
+    LaunchedEffect(key1 = state.isReordering) {
+        setTopAppBarCollapsed(state.isReordering)
+        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, state.isReordering)
+        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, !state.isReordering)
     }
 
     labViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
 
     if (!state.isReordering) {
-        setTopAppBarCollapsed(false)
-        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, false)
-        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, true)
-
-        if (state.program?.workouts != null) {
-            WorkoutCardList(
-                paddingValues = paddingValues,
-                workouts = state.program!!.workouts,
-                volumeTypes = state.volumeTypes,
-                showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
-                beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
-                navigationController = navHostController
-            )
+        if (state.program?.workouts?.isEmpty() == false) {
+            VolumeChipBottomSheet(
+                placeAboveBottomNavBar = true,
+                title = "Program Volume",
+                combinedVolumeChipLabels = state.combinedVolumeTypes,
+                primaryVolumeChipLabels = state.primaryVolumeTypes,
+                secondaryVolumeChipLabels = state.secondaryVolumeTypes,
+            ) {
+                WorkoutCardList(
+                    paddingValues = paddingValues,
+                    workouts = state.program!!.workouts,
+                    showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
+                    beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
+                    navigationController = navHostController
+                )
+            }
         }
     }
     else {
-        setTopAppBarCollapsed(true)
-        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, true)
-        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, false)
-
-        if (state.program?.workouts != null) {
-            ReorderableLazyColumn(
-                paddingValues = paddingValues,
-                items = state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
-                saveReorder = { labViewModel.saveReorder(it) },
-                cancelReorder = { labViewModel.toggleReorderingScreen() }
-            )
-        }
+        ReorderableLazyColumn(
+            paddingValues = paddingValues,
+            items = state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
+            saveReorder = { labViewModel.saveReorder(it) },
+            cancelReorder = { labViewModel.toggleReorderingScreen() }
+        )
     }
 
     if (state.workoutIdToRename != null && state.originalWorkoutName != null) {

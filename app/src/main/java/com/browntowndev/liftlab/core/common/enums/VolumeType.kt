@@ -1,5 +1,11 @@
 package com.browntowndev.liftlab.core.common.enums
 
+enum class VolumeTypeImpact {
+    PRIMARY,
+    SECONDARY,
+    COMBINED,
+}
+
 enum class VolumeType(val bitMask: Int) {
     CHEST(1),
     BACK(2),

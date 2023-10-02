@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.ui.views.utils.FloatTextField
-import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
+import com.browntowndev.liftlab.ui.views.composables.FloatTextField
+import com.browntowndev.liftlab.ui.views.composables.IntegerTextField
 
 
 @Composable

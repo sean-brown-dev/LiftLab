@@ -4,6 +4,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -53,8 +56,8 @@ data class WorkoutBuilderScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector?
-        get() = Icons.Filled.ArrowBack
+    override val navigationIcon: Either<ImageVector, Int>?
+        get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)?
@@ -64,14 +67,14 @@ data class WorkoutBuilderScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_WORKOUT_ICON,
                 title = "Rename Workout",
-                icon = Icons.Filled.Edit,
+                icon = Icons.Filled.Edit.left(),
                 isVisible = true,
                 onClick = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameWorkout)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_LIFTS,
                 title = "Reorder Lifts",
-                iconPainterResourceId = R.drawable.reorder_icon,
+                icon = R.drawable.reorder_icon.right(),
                 isVisible = true,
                 onClick = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts)) },
             ),

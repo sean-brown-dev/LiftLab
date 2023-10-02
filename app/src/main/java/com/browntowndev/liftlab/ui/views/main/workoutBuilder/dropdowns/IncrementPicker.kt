@@ -9,18 +9,15 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.views.utils.NumberPickerMenuItem
-import kotlinx.coroutines.launch
+import com.browntowndev.liftlab.ui.views.composables.NumberPickerMenuItem
 
 @Composable
 fun IncrementPicker(
@@ -28,14 +25,9 @@ fun IncrementPicker(
     applyAcrossWorkouts: Boolean,
     onHide: () -> Unit,
     onChangeIncrement: (newIncrement: Float, applyAcrossWorkouts: Boolean) -> Unit,
-    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     Column {
-        var applyAcrossWorkoutsState by remember { mutableStateOf(applyAcrossWorkouts) }
-        LaunchedEffect(applyAcrossWorkouts) {
-            applyAcrossWorkoutsState = applyAcrossWorkouts
-        }
+        var applyAcrossWorkoutsState by remember(applyAcrossWorkouts) { mutableStateOf(applyAcrossWorkouts) }
         NumberPickerMenuItem(
             initialValue = increment,
             label = "Weight Increment",
@@ -62,9 +54,6 @@ fun IncrementPicker(
                     checked = applyAcrossWorkoutsState,
                     onCheckedChange = {
                         applyAcrossWorkoutsState = it
-                        coroutineScope.launch {
-                            onChangeIncrementAppliedAcrossWorkouts(it)
-                        }
                     },
                     colors = SwitchDefaults.colors(
                         checkedIconColor = MaterialTheme.colorScheme.onPrimary,

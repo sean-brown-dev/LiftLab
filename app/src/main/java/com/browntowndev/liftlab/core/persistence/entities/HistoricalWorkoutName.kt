@@ -10,6 +10,8 @@ import androidx.room.PrimaryKey
 data class HistoricalWorkoutName(
     @PrimaryKey @ColumnInfo("historical_workout_name_id")
     val id: Long = 0,
+    val programId: Long,
+    val workoutId: Long,
     val programName: String,
-    val workoutName: String
+    val workoutName: String,
 )

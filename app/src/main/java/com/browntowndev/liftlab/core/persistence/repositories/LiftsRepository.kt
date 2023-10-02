@@ -17,6 +17,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
             name = lift.name,
             movementPattern = lift.movementPattern,
             volumeTypesBitmask = lift.volumeTypesBitmask,
+            secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
             incrementOverride = lift.incrementOverride,
             restTime = lift.restTime,
             isHidden = lift.isHidden,
@@ -31,6 +32,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 name = it.name,
                 movementPattern = it.movementPattern,
                 volumeTypesBitmask = it.volumeTypesBitmask,
+                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
                 incrementOverride = it.incrementOverride,
                 restTime = it.restTime,
                 isHidden = it.isHidden,
@@ -39,11 +41,11 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
         }
     }
 
-    suspend fun updateRestTime(id: Long, newRestTime: Duration) {
+    suspend fun updateRestTime(id: Long, newRestTime: Duration?) {
         liftsDao.updateRestTime(id, newRestTime)
     }
 
-    suspend fun updateIncrementOverride(id: Long, newIncrement: Float) {
+    suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {
         liftsDao.updateIncrementOverride(id, newIncrement)
     }
 }

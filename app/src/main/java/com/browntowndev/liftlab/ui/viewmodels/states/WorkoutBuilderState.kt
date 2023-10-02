@@ -1,9 +1,12 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
+import androidx.compose.runtime.Stable
+import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 
+@Stable
 data class WorkoutBuilderState (
     val workout: WorkoutDto? = null,
     val programDeloadWeek: Int? = null,
@@ -20,21 +23,22 @@ data class WorkoutBuilderState (
         }
     }
 
-    val volumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels() ?: listOf()
+    val combinedVolumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
+    }
+    val primaryVolumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.PRIMARY) ?: listOf()
+    }
+    val secondaryVolumeTypes: List<CharSequence> by lazy {
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.SECONDARY) ?: listOf()
     }
 }
 
+@Stable
 data class ChangedSetTypeState(
     val workoutLiftId: Long,
     val position: Int,
     val isExpanded: Boolean,
-)
-
-data class PickerState(
-    val workoutLiftId: Long,
-    val position: Int? = null,
-    val type: PickerType,
 )
 
 enum class PickerType {

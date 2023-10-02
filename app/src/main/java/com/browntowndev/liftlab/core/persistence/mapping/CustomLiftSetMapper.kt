@@ -4,11 +4,11 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericCustomLiftSet
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 
 class CustomLiftSetMapper {
-    fun map(from: CustomLiftSet): GenericCustomLiftSet {
+    fun map(from: CustomLiftSet): GenericLiftSet {
         return when (from.type) {
             SetType.STANDARD -> toStandardSetDto(from)
             SetType.MYOREP -> toMyoRepSetDto(from)
@@ -16,7 +16,7 @@ class CustomLiftSetMapper {
         }
     }
 
-    fun map(from: GenericCustomLiftSet): CustomLiftSet {
+    fun map(from: GenericLiftSet): CustomLiftSet {
         return when (from) {
             is StandardSetDto -> toUpdateEntity(from)
             is MyoRepSetDto -> toUpdateEntity(from)
@@ -29,7 +29,7 @@ class CustomLiftSetMapper {
         return StandardSetDto(
             id = entity.id,
             workoutLiftId = entity.workoutLiftId,
-            position = entity.position,
+            setPosition = entity.position,
             rpeTarget = entity.rpeTarget,
             repRangeBottom = entity.repRangeBottom,
             repRangeTop = entity.repRangeTop,
@@ -40,7 +40,7 @@ class CustomLiftSetMapper {
         return MyoRepSetDto(
             id = entity.id,
             workoutLiftId = entity.workoutLiftId,
-            position = entity.position,
+            setPosition = entity.position,
             rpeTarget = entity.rpeTarget,
             repFloor = entity.repFloor,
             repRangeBottom = entity.repRangeBottom,
@@ -55,7 +55,7 @@ class CustomLiftSetMapper {
         return DropSetDto(
             id = entity.id,
             workoutLiftId = entity.workoutLiftId,
-            position = entity.position,
+            setPosition = entity.position,
             dropPercentage = entity.dropPercentage!!,
             rpeTarget = entity.rpeTarget,
             repRangeBottom = entity.repRangeBottom,
@@ -68,7 +68,7 @@ class CustomLiftSetMapper {
             id = setDto.id,
             workoutLiftId = setDto.workoutLiftId,
             type = SetType.STANDARD,
-            position = setDto.position,
+            position = setDto.setPosition,
             rpeTarget = setDto.rpeTarget,
             repRangeBottom = setDto.repRangeBottom,
             repRangeTop = setDto.repRangeTop,
@@ -80,7 +80,7 @@ class CustomLiftSetMapper {
             id = setDto.id,
             workoutLiftId = setDto.workoutLiftId,
             type = SetType.MYOREP,
-            position = setDto.position,
+            position = setDto.setPosition,
             repFloor = setDto.repFloor,
             rpeTarget = setDto.rpeTarget,
             repRangeBottom = setDto.repRangeBottom,
@@ -96,7 +96,7 @@ class CustomLiftSetMapper {
             id = setDto.id,
             workoutLiftId = setDto.workoutLiftId,
             type = SetType.DROP_SET,
-            position = setDto.position,
+            position = setDto.setPosition,
             rpeTarget = setDto.rpeTarget,
             repRangeBottom = setDto.repRangeBottom,
             repRangeTop = setDto.repRangeTop,

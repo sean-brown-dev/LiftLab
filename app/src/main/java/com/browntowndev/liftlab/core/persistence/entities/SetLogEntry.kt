@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Entity("setLogEntries",
     indices = [Index("liftId"), Index("workoutLogEntryId")],
@@ -26,8 +27,12 @@ data class SetLogEntry(
     val id: Long = 0,
     val workoutLogEntryId: Long,
     val liftId: Long,
+    val customSetType: SetType? = null,
     val setPosition: Int,
-    val weight: Double,
+    val myoRepSetPosition: Int? = null,
+    val weight: Float,
     val reps: Int,
-    val rpe: Int
+    val rpe: Float,
+    val mesoCycle: Int,
+    val microCycle: Int,
 )

@@ -16,8 +16,11 @@ data class LiftLabTopAppBarState(
     val isVisible: Boolean
         get() = currentScreen?.isAppBarVisible == true
 
-    val navigationIcon: ImageVector?
-        get() = currentScreen?.navigationIcon
+    val navigationIconImageVector: ImageVector?
+        get() = currentScreen?.navigationIcon?.leftOrNull()
+
+    val navigationIconResourceId: Int?
+        get() = currentScreen?.navigationIcon?.getOrNull()
 
     val navigationIconVisible: Boolean?
         get() = currentScreen?.navigationIconVisible

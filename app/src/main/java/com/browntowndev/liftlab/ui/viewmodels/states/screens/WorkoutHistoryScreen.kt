@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.BottomNavItem
@@ -35,7 +36,7 @@ data class WorkoutHistoryScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector?
+    override val navigationIcon: Either<ImageVector, Int>?
         get() = null
     override val navigationIconContentDescription: String?
         get() = null

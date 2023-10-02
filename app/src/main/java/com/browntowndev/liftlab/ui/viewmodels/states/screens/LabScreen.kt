@@ -11,6 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -28,6 +31,11 @@ data class LabScreen(
     override val title: String = navigation.title,
     override val subtitle: String = navigation.subtitle,
     val trailingIconText: String = "",
+    val renameProgramVisible: Boolean = true,
+    val reorderWorkoutsVisible: Boolean = true,
+    val deleteProgramVisible: Boolean = true,
+    val deloadWeekVisible: Boolean = true,
+    val createWorkoutVisible: Boolean = true,
 ) : BaseScreen(), KoinComponent {
     companion object {
         val navigation = BottomNavItem("Lab", "", R.drawable.lab_flask, "lab")
@@ -73,12 +81,33 @@ data class LabScreen(
         }
     }
 
+    override fun setControlVisibility(controlName: String, isVisible: Boolean): Screen {
+        return when (controlName) {
+            RENAME_PROGRAM_ICON -> {
+              copy(renameProgramVisible = isVisible)
+            }
+            DELETE_PROGRAM_ICON -> {
+                copy(deleteProgramVisible = isVisible)
+            }
+            REORDER_WORKOUTS_ICON -> {
+                copy(reorderWorkoutsVisible = isVisible)
+            }
+            CREATE_NEW_WORKOUT_ICON -> {
+                copy(createWorkoutVisible = isVisible)
+            }
+            DELOAD_WEEK_ICON -> {
+                copy(deloadWeekVisible = isVisible)
+            }
+            else -> super.setControlVisibility(controlName, isVisible)
+        }
+    }
+
     override val route: String
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector
-        get() = Icons.Filled.ArrowBack
+    override val navigationIcon: Either<ImageVector, Int>?
+        get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)
@@ -88,15 +117,16 @@ data class LabScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_WORKOUT_ICON,
                 title = "Create Workout",
-                icon = Icons.Filled.Add,
-                isVisible = true,
+                icon = Icons.Filled.Add.left(),
+                isVisible = createWorkoutVisible,
+                dividerBelow = !reorderWorkoutsVisible,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewWorkout)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_WORKOUTS_ICON,
                 title = "Reorder Workouts",
-                iconPainterResourceId = R.drawable.reorder_icon,
-                isVisible = true,
+                icon = R.drawable.reorder_icon.right(),
+                isVisible = reorderWorkoutsVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderWorkouts))
                 },
@@ -105,31 +135,31 @@ data class LabScreen(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_PROGRAM_ICON,
                 title = "Create Program",
-                icon = Icons.Filled.Add,
+                icon = Icons.Filled.Add.left(),
                 isVisible = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewProgram)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_PROGRAM_ICON,
                 title = "Rename Program",
-                icon = Icons.Filled.Edit,
-                isVisible = true,
+                icon = Icons.Filled.Edit.left(),
+                isVisible = renameProgramVisible,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameProgram)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELETE_PROGRAM_ICON,
                 title = "Delete Program",
-                icon = Icons.Filled.Delete,
-                isVisible = true,
+                icon = Icons.Filled.Delete.left(),
+                isVisible = deleteProgramVisible,
                 dividerBelow = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELOAD_WEEK_ICON,
                 title = "Deload Week",
-                icon = Icons.Outlined.DateRange,
+                icon = Icons.Outlined.DateRange.left(),
                 trailingIconText = _reorderWorkoutsTrailingText,
-                isVisible = true,
+                isVisible = deloadWeekVisible,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.EditDeloadWeek)) },
             ),
         )

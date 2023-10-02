@@ -18,9 +18,9 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.ui.views.utils.FloatTextField
-import com.browntowndev.liftlab.ui.views.utils.IntegerTextField
-import com.browntowndev.liftlab.ui.views.utils.LabeledCheckBox
+import com.browntowndev.liftlab.ui.views.composables.FloatTextField
+import com.browntowndev.liftlab.ui.views.composables.IntegerTextField
+import com.browntowndev.liftlab.ui.views.composables.LabeledCheckBox
 
 
 @Composable
@@ -38,7 +38,7 @@ fun MyoRepSet(
     isPreviousSetMyoRep: Boolean,
     onSetMatchingChanged: (enabled: Boolean) -> Unit,
     onMatchSetGoalChanged: (Int) -> Unit,
-    onMaxSetsChanged: (Int) -> Unit,
+    onMaxSetsChanged: (Int?) -> Unit,
     toggleRpePicker: (Boolean) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
@@ -79,7 +79,10 @@ fun MyoRepSet(
                 LabeledCheckBox(
                     label = "Limit Sets Performed",
                     checked = showMaxSetLimit,
-                    onCheckedChanged = { showMaxSetLimit = !showMaxSetLimit }
+                    onCheckedChanged = {
+                        showMaxSetLimit = !showMaxSetLimit
+                        onMaxSetsChanged(if(showMaxSetLimit) 5 else null)
+                    }
                 )
             }
             IntegerTextField(

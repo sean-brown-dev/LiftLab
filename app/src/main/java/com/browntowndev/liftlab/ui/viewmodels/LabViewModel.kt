@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -11,6 +10,8 @@ import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,21 +24,16 @@ import org.greenrobot.eventbus.Subscribe
 class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
-    private val transactionScope: TransactionScope,
-    private val eventBus: EventBus,
-): ViewModel() {
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val restTimerInProgressRepository: RestTimerInProgressRepository,
+    transactionScope: TransactionScope,
+    eventBus: EventBus,
+): LiftLabViewModel(transactionScope, eventBus) {
     private var _state = MutableStateFlow(LabState())
     val state = _state.asStateFlow()
 
     init {
         getActiveProgram()
-    }
-
-    fun registerEventBus() {
-        if (!eventBus.isRegistered(this)) {
-            eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
-        }
     }
 
     @Subscribe
@@ -174,7 +170,7 @@ class LabViewModel(
                     )
                 }
             }
-        }
+        } else collapseEditWorkoutNameModal()
     }
 
     fun updateProgramName(newName: String) {
@@ -233,6 +229,9 @@ class LabViewModel(
         if (program != null) {
             executeInTransactionScope {
                 programsRepository.delete(program)
+                workoutInProgressRepository.delete()
+                restTimerInProgressRepository.deleteAll()
+
                 _state.update {
                     LabState()
                 }
@@ -267,14 +266,6 @@ class LabViewModel(
     fun toggleReorderingScreen() {
         _state.update {
             it.copy(isReordering = !it.isReordering)
-        }
-    }
-
-    private fun executeInTransactionScope(action: suspend () -> Unit) {
-        viewModelScope.launch {
-            transactionScope.execute {
-                action()
-            }
         }
     }
 }

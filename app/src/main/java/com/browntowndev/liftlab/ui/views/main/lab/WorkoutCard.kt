@@ -37,7 +37,7 @@ fun WorkoutCard(
     OutlinedCard(
         modifier = modifier
             .fillMaxSize()
-            .padding(vertical = 5.dp)
+            .padding(vertical = 5.dp, horizontal = 10.dp)
             .clickable {
                 val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
                 navigationController.navigate(workoutBuilderRoute)

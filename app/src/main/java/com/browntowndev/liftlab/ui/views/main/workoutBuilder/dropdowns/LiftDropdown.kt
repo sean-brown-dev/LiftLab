@@ -22,8 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.views.utils.IconDropdown
-import com.browntowndev.liftlab.ui.views.utils.NumberPickerMenuItem
+import com.browntowndev.liftlab.ui.views.composables.IconDropdown
+import com.browntowndev.liftlab.ui.views.composables.NumberPickerMenuItem
+import com.browntowndev.liftlab.ui.views.composables.RestTimePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,8 +47,6 @@ fun LiftDropdown(
     onChangeDeloadWeek: (Int) -> Unit,
     onChangeRestTime: (newRestTime: Duration, applyToLift: Boolean) -> Unit,
     onChangeIncrement: (newIncrement: Float, applyToLift: Boolean) -> Unit,
-    onChangeRestTimeAppliedAcrossWorkouts: (Boolean) -> Unit,
-    onChangeIncrementAppliedAcrossWorkouts: (Boolean) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var dropdownExpanded by remember { mutableStateOf(false) }
@@ -68,7 +67,6 @@ fun LiftDropdown(
                 applyAcrossWorkouts = restTimeAppliedAcrossWorkouts,
                 onHide = { showRestTimePicker = false },
                 onChangeRestTime = onChangeRestTime,
-                onChangeRestTimeAppliedAcrossWorkouts = onChangeRestTimeAppliedAcrossWorkouts
             )
         } else if(showIncrementPicker) {
             IncrementPicker(
@@ -76,7 +74,6 @@ fun LiftDropdown(
                 applyAcrossWorkouts = incrementAppliedAcrossWorkouts,
                 onHide = { showIncrementPicker = false },
                 onChangeIncrement = onChangeIncrement,
-                onChangeIncrementAppliedAcrossWorkouts = onChangeIncrementAppliedAcrossWorkouts,
             )
         } else if (showDeloadWeekPicker) {
             NumberPickerMenuItem(
@@ -189,7 +186,7 @@ fun LiftDropdown(
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = R.drawable.plate_icon),
+                        painter = painterResource(id = R.drawable.weight_icon),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onBackground
                     )
