@@ -2,12 +2,16 @@ package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -23,11 +27,12 @@ data class LiftLibraryScreen(
     override val isOverflowMenuIconVisible: Boolean = false,
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
-    val filterText: String = "",
+    var filterText: String = "",
 ) : BaseScreen(), KoinComponent {
     companion object {
         val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
         const val SEARCH_ICON = "searchIcon"
+        const val CONFIRM_ADD_LIFT_ICON = "confirmAddLiftIcon"
         const val LIFT_NAME_FILTER_TEXTVIEW = "liftNameFilterTextView"
         const val LIFT_MOVEMENT_PATTERN_FILTER_ICON = "liftMovementPatternFilterIcon"
     }
@@ -36,6 +41,7 @@ data class LiftLibraryScreen(
     var isSearchBarVisible by mutableStateOf(false)
     private var isSearchIconVisible by mutableStateOf(true)
     private var isFilterIconVisible by mutableStateOf(true)
+    private var isConfirmAddLiftVisible by mutableStateOf(false)
 
     private val _eventBus: EventBus by inject()
 
@@ -72,6 +78,10 @@ data class LiftLibraryScreen(
                 isFilterIconVisible = isVisible
                 this
             }
+            CONFIRM_ADD_LIFT_ICON -> {
+                isConfirmAddLiftVisible = isVisible
+                this
+            }
             else -> superCopy
         }
     }
@@ -82,6 +92,7 @@ data class LiftLibraryScreen(
             LIFT_NAME_FILTER_TEXTVIEW ->  {
                 val newFilter = request.payload as String
                 mutableFilterText = newFilter
+                filterText = mutableFilterText
                 _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, newFilter))
                 return this
             }
@@ -93,11 +104,11 @@ data class LiftLibraryScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: ImageVector?
-        get() = Icons.Filled.ArrowBack
+    override val navigationIcon: Either<ImageVector, Int>
+        get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
+    override val onNavigationIconClick: (() -> Unit)
         get() = {
             isSearchBarVisible = false
             _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
@@ -107,37 +118,50 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = SEARCH_ICON,
                 title = "Search",
-                isVisible = !isSearchBarVisible && isSearchIconVisible,
+                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isSearchIconVisible,
                 onClick = {
                     isSearchBarVisible = true
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.SearchStarted))
                 },
-                icon = Icons.Filled.Search,
+                icon = Icons.Filled.Search.left(),
                 contentDescriptionResourceId = R.string.accessibility_search,
             ), ActionMenuItem.TextInputMenuItem.AlwaysShown(
                 controlName = LIFT_NAME_FILTER_TEXTVIEW,
-                icon = Icons.Filled.Search,
-                isVisible = isSearchBarVisible,
+                icon = Icons.Filled.Search.left(),
+                isVisible = !isConfirmAddLiftVisible && isSearchBarVisible,
                 value = mutableFilterText,
                 onValueChange = {
                     mutableFilterText = it
+                    filterText = mutableFilterText
                     _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, it))
                 },
                 onClickTrailingIcon = {
                     isSearchBarVisible = false
                     mutableFilterText = ""
+                    filterText = mutableFilterText
                     _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, mutableFilterText))
                 },
             ),
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = LIFT_MOVEMENT_PATTERN_FILTER_ICON,
                 title = "Filter",
-                isVisible = !isSearchBarVisible && isFilterIconVisible,
+                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible &&  isFilterIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.FilterStarted))
                 },
-                iconPainterResourceId = R.drawable.filter_icon,
-                contentDescriptionResourceId = R.string.accessibility_search,
+                icon = R.drawable.filter_icon.right(),
+                contentDescriptionResourceId = R.string.accessibility_filter,
+            ),
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = CONFIRM_ADD_LIFT_ICON,
+                title = "Confirm Add Lift",
+                isVisible = isConfirmAddLiftVisible,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
+                    isConfirmAddLiftVisible = false
+                },
+                icon = Icons.Filled.Check.left(),
+                contentDescriptionResourceId = null,
             ),
         )
     }

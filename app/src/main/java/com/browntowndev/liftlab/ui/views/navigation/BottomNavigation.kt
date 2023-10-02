@@ -43,7 +43,7 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
         modifier = Modifier.animateContentSize(),
         visible = isVisible,
         enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)),
-        exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(durationMillis = 500, easing = FastOutLinearInEasing)),
+        exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(durationMillis = 200, easing = FastOutLinearInEasing)),
     ) {
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.primaryContainer,

@@ -1,7 +1,9 @@
 package com.browntowndev.liftlab.core.persistence.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 
 @Dao

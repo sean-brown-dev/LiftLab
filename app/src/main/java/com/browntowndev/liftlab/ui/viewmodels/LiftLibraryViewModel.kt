@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -11,6 +11,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,9 +22,9 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val transactionScope: TransactionScope,
-    private val eventBus: EventBus,
-): ViewModel() {
+    transactionScope: TransactionScope,
+    eventBus: EventBus,
+): LiftLabViewModel(transactionScope, eventBus) {
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 
@@ -33,18 +34,12 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun registerEventBus() {
-        if (!eventBus.isRegistered(this)) {
-            eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
-        }
-    }
-
     @Subscribe
     fun handleTopAppBarActionEvent(event: TopAppBarEvent.ActionEvent) {
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState(true)
+            TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
             else -> {}
         }
     }
@@ -57,28 +52,73 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun addWorkoutLift(workoutId: Long, position: Int, newLiftId: Long) {
+    fun setNavHostController(navHostController: NavHostController) {
+        _state.update {
+            it.copy(navHostController = navHostController)
+        }
+    }
+
+    fun setWorkoutId(workoutId: Long?) {
+        _state.update {
+            it.copy(workoutId = workoutId)
+        }
+    }
+
+    fun setAddAtPosition(position: Int?) {
+        _state.update {
+            it.copy(addAtPosition = position)
+        }
+    }
+
+    fun addSelectedLift(id: Long) {
+        _state.update {
+            it.copy(selectedNewLifts = it.selectedNewLifts.toMutableList().apply {
+                add(id)
+            })
+        }
+    }
+
+    fun removeSelectedLift(id: Long) {
+        _state.update {
+            it.copy(selectedNewLifts = it.selectedNewLifts.toMutableList().apply {
+                remove(id)
+            })
+        }
+    }
+
+    private fun addWorkoutLifts() {
         viewModelScope.launch {
-            val newLift = _state.value.filteredLifts.find { it.id == newLiftId }!!
-            val newWorkoutLift = StandardWorkoutLiftDto(
-                liftId = newLift.id,
-                workoutId = workoutId,
-                liftName = newLift.name,
-                liftMovementPattern = newLift.movementPattern,
-                liftIncrementOverride = newLift.incrementOverride,
-                liftRestTime = newLift.restTime,
-                liftVolumeTypes = newLift.volumeTypesBitmask,
-                position = position,
-                deloadWeek = null,
-                setCount = 3,
-                incrementOverride = newLift.incrementOverride,
-                restTime = newLift.restTime,
-                rpeTarget = 8f,
-                repRangeBottom = 8,
-                repRangeTop = 10,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
-            )
-            workoutLiftsRepository.insert(newWorkoutLift)
+            // TODO: Block duplicate lift from being added
+            val newLiftHashSet = _state.value.selectedNewLiftsHashSet
+            val workoutId = _state.value.workoutId!!
+            var position = _state.value.addAtPosition!! - 1
+            val newLifts = _state.value.filteredLifts
+                .filter { newLiftHashSet.contains(it.id) }
+                .fastMap { newLift ->
+                    position++
+                    StandardWorkoutLiftDto(
+                        liftId = newLift.id,
+                        workoutId = workoutId,
+                        liftName = newLift.name,
+                        liftMovementPattern = newLift.movementPattern,
+                        liftIncrementOverride = newLift.incrementOverride,
+                        liftRestTime = newLift.restTime,
+                        liftVolumeTypes = newLift.volumeTypesBitmask,
+                        liftSecondaryVolumeTypes = newLift.secondaryVolumeTypesBitmask,
+                        position = position,
+                        deloadWeek = null,
+                        setCount = 3,
+                        incrementOverride = newLift.incrementOverride,
+                        restTime = newLift.restTime,
+                        rpeTarget = 8f,
+                        repRangeBottom = 8,
+                        repRangeTop = 10,
+                        progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                    )
+                }
+
+            workoutLiftsRepository.insertAll(newLifts)
+            navigateBackToWorkoutBuilder()
         }
     }
 
@@ -88,7 +128,15 @@ class LiftLibraryViewModel(
     ) {
         viewModelScope.launch {
             workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
+            navigateBackToWorkoutBuilder()
         }
+    }
+
+    private fun navigateBackToWorkoutBuilder() {
+        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
+        _state.value.navHostController?.popBackStack()
+        _state.value.navHostController?.popBackStack()
+        _state.value.navHostController?.navigate(workoutBuilderRoute)
     }
 
     private fun setNavigateBackIconClickedState(clicked: Boolean) {
@@ -124,14 +172,6 @@ class LiftLibraryViewModel(
 
         _state.update {
             it.copy(allLifts = lifts)
-        }
-    }
-
-    private fun executeInTransactionScope(action: suspend () -> Unit) {
-        viewModelScope.launch {
-            transactionScope.execute {
-                action()
-            }
         }
     }
 }

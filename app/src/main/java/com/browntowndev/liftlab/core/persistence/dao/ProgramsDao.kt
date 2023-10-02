@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Program
 
@@ -39,4 +40,17 @@ interface ProgramsDao {
 
     @Query("SELECT deloadWeek FROM programs WHERE program_id = :id")
     suspend fun getDeloadWeek(id: Long): Int
+
+    @Query("SELECT program_id AS programId, name, deloadWeek, currentMesocycle, currentMicrocycle, currentMicrocyclePosition, " +
+            "(SELECT COUNT(*) FROM workouts WHERE programId = program_id) AS workoutCount " +
+            "FROM programs " +
+            "WHERE isActive = 1")
+    suspend fun getActiveProgramMetadata(): ActiveProgramMetadataDto?
+
+    @Query("UPDATE programs " +
+            "SET currentMesocycle = :mesoCycle, " +
+            "currentMicroCycle = :microCycle, " +
+            "currentMicrocyclePosition = :microCyclePosition " +
+            "WHERE program_id = :id")
+    suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int)
 }
