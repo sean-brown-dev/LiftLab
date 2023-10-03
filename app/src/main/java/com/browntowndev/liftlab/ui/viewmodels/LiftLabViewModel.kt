@@ -12,7 +12,6 @@ abstract class LiftLabViewModel(
     private val eventBus: EventBus,
 ): ViewModel() {
 
-
     fun registerEventBus() {
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this)

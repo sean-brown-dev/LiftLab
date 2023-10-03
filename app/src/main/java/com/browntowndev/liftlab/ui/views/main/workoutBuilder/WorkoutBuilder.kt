@@ -100,7 +100,6 @@ fun WorkoutBuilder(
         }
     }
 
-    workoutBuilderViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutBuilderViewModel)
 
     if(!state.isReordering) {

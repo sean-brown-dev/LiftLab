@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
@@ -41,6 +42,7 @@ class TopAppBarViewModel: ViewModel() {
 
     private fun getScreen(route: String?): Screen? = when (route) {
         LiftLibraryScreen.navigation.route-> LiftLibraryScreen()
+        LiftDetailsScreen.navigation.route -> LiftDetailsScreen()
         WorkoutScreen.navigation.route -> WorkoutScreen()
         LabScreen.navigation.route -> LabScreen()
         WorkoutHistoryScreen.navigation.route -> WorkoutHistoryScreen()

@@ -50,6 +50,8 @@ class WorkoutBuilderViewModel(
     val state = _state.asStateFlow()
 
     init {
+        registerEventBus()
+
         viewModelScope.launch {
             _state.update {
                 val workout = workoutsRepository.get(workoutId)

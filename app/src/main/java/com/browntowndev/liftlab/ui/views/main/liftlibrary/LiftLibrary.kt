@@ -30,6 +30,7 @@ import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
@@ -69,7 +70,6 @@ fun LiftLibrary(
         mutableStateOf(workoutId != null && addAtPosition != null)
     }
 
-    liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
 
     BackHandler(isSearchBarVisible) {
@@ -134,7 +134,10 @@ fun LiftLibrary(
                                 } else if (isReplacingWorkout) {
                                     liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
                                 } else {
-                                    // TODO: navigate to lift details with lift ID
+                                    val liftDetailsRoute = LiftDetailsScreen.navigation.route
+                                        .replace("{id}", lift.id.toString())
+
+                                    navHostController.navigate(liftDetailsRoute)
                                 }
                             },
                             headlineContent = { Text(lift.name) },

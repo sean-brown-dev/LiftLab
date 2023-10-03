@@ -57,7 +57,6 @@ fun Lab(
         setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, !state.isReordering)
     }
 
-    labViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
 
     if (!state.isReordering) {

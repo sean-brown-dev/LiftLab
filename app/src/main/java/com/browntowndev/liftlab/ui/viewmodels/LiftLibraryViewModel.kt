@@ -29,6 +29,8 @@ class LiftLibraryViewModel(
     val state = _state.asStateFlow()
 
     init {
+        registerEventBus()
+
         viewModelScope.launch {
             getAllLifts()
         }

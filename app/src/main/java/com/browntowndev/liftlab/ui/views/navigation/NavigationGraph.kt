@@ -13,14 +13,16 @@ import arrow.core.Either
 import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
-import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
+import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
+import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.LiftDetails
 import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
@@ -88,6 +90,28 @@ fun NavigationGraph(
                         )
                     }
                 )
+            }
+        }
+        composable(
+            route = LiftDetailsScreen.navigation.route,
+            arguments = listOf(
+                navArgument("id") {
+                    nullable = false
+                },
+            )
+        ) {
+            val id = it.arguments?.getString("id")?.toLong()!!
+
+            if (screen as? LiftDetailsScreen != null) {
+                LaunchedEffect(key1 = screen) {
+                    setBottomNavBarVisibility(false)
+                    setTopAppBarCollapsed(true)
+                }
+
+                LiftDetails(
+                    id = id,
+                    navHostController = navHostController,
+                    paddingValues = paddingValues)
             }
         }
         composable(WorkoutScreen.navigation.route) {

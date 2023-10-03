@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
@@ -26,10 +25,7 @@ import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
-import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
-import org.koin.core.component.KoinComponent
-import org.koin.dsl.koinApplication
 
 @Composable
 fun Workout(
@@ -62,7 +58,6 @@ fun Workout(
         }
     }
 
-    workoutViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutViewModel)
 
     LaunchedEffect(key1 = state.workout != null, key2 = state.workoutLogVisible) {
