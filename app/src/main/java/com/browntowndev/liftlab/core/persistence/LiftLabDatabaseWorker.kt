@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.asLiveData
 import androidx.room.withTransaction
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -60,8 +61,7 @@ class LiftLabDatabaseWorker(
     }
 
     private suspend fun populateDefaultProgram(db: LiftLabDatabase) {
-        val liftsByNameAndCategory = db.liftsDao().getAll().associateBy { "${it.name}-${it.movementPattern}" }
-
+        val liftsByNameAndCategory = db.liftsDao().getAll().asLiveData().value!!.associateBy { "${it.name}-${it.movementPattern}" }
         val programId: Long = db.programsDao().insert(Program(name = "Intermediate Upper/Lower"))
 
         val lowerAId: Long = db.workoutsDao().insert(Workout(name = "Lower A", position = 0, programId = programId))

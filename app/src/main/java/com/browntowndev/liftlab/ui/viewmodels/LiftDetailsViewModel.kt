@@ -1,8 +1,12 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.enums.VolumeType
+import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
@@ -31,10 +35,20 @@ class LiftDetailsViewModel(
         registerEventBus()
 
         viewModelScope.launch {
+            val lift = liftsRepository.get(liftId)
+
             _state.update {
                 it.copy(
-                    lift = liftsRepository.get(liftId),
+                    lift = lift,
                     previousSetResults = previousSetResultsRepository.getForLift(liftId),
+                    volumeTypeDisplayNames = lift.volumeTypesBitmask.getVolumeTypes()
+                        .fastMap { volumeType ->
+                            volumeType.displayName()
+                        },
+                    secondaryVolumeTypeDisplayNames = lift.secondaryVolumeTypesBitmask?.getVolumeTypes()
+                        ?.fastMap { volumeType ->
+                            volumeType.displayName()
+                        } ?: listOf(),
                 )
             }
         }
@@ -61,27 +75,111 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun updateVolumeType(newVolumeTypeBitmask: Int) {
+    fun addVolumeType(newVolumeType: VolumeType) {
+        val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask + newVolumeType.bitMask
+        val newDisplayNames = _state.value.volumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                add(newVolumeType.displayName())
+            }
+
+        updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
+    }
+
+    fun addSecondaryVolumeType(newVolumeType: VolumeType) {
+        val newVolumeTypeBitmask = (_state.value.lift!!.secondaryVolumeTypesBitmask ?: 0) + newVolumeType.bitMask
+        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                add(newVolumeType.displayName())
+            }
+
+        updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
+    }
+
+    fun removeVolumeType(toRemove: VolumeType) {
+        val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask - toRemove.bitMask
+        val newDisplayNames = _state.value.volumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                remove(toRemove.displayName())
+            }
+
+        updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
+    }
+
+    fun removeSecondaryVolumeType(toRemove: VolumeType) {
+        val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!! - toRemove.bitMask
+        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                remove(toRemove.displayName())
+            }
+
+        updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
+    }
+
+    fun updateVolumeType(index: Int, newVolumeType: VolumeType) {
+        val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask
+            .getVolumeTypes()
+            .toMutableList()
+            .apply {
+                this[index] = newVolumeType
+            }.sumOf {
+                it.bitMask
+            }
+
+        val newDisplayNames = _state.value.volumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                this[index] = newVolumeType.displayName()
+            }
+
+        updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
+    }
+
+    fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) {
+        val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!!
+            .getVolumeTypes()
+            .toMutableList()
+            .apply {
+                this[index] = newVolumeType
+            }.sumOf {
+                it.bitMask
+            }
+
+        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                this[index] = newVolumeType.displayName()
+            }
+
+        updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
+    }
+
+    private fun updateVolumeType(newVolumeTypeBitmask: Int, newDisplayNames: List<String>) {
         executeInTransactionScope {
             val updatedLift = _state.value.lift!!.copy(volumeTypesBitmask = newVolumeTypeBitmask)
             liftsRepository.update(updatedLift)
 
             _state.update {
                 it.copy(
-                    lift = updatedLift
+                    lift = updatedLift,
+                    volumeTypeDisplayNames = newDisplayNames,
                 )
             }
         }
     }
 
-    fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?) {
+    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?, newDisplayNames: List<String>) {
         executeInTransactionScope {
             val updatedLift = _state.value.lift!!.copy(secondaryVolumeTypesBitmask = newSecondaryVolumeTypeBitmask)
             liftsRepository.update(updatedLift)
 
             _state.update {
                 it.copy(
-                    lift = updatedLift
+                    lift = updatedLift,
+                    secondaryVolumeTypeDisplayNames = newDisplayNames,
                 )
             }
         }

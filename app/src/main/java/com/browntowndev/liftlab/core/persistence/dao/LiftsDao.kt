@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.persistence.entities.Lift
+import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
 
 @Dao
@@ -29,7 +30,7 @@ interface LiftsDao {
     suspend fun get(id: Long): Lift
 
     @Query("SELECT * FROM lifts")
-    suspend fun getAll(): List<Lift>
+    fun getAll(): Flow<List<Lift>>
 
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")
     suspend fun getByCategory(movementPattern: MovementPattern): List<Lift>

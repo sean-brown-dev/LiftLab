@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -36,9 +37,10 @@ import kotlinx.coroutines.launch
 fun DeleteableOnSwipeLeft(
     confirmationDialogHeader: String,
     confirmationDialogBody: String,
-    dismissContent: @Composable (RowScope.() -> Unit),
-    onDelete: () -> Unit,
     enabled: Boolean = true,
+    shape: Shape = RoundedCornerShape(bottomEnd = 14.dp, topEnd = 14.dp),
+    onDelete: () -> Unit,
+    dismissContent: @Composable (RowScope.() -> Unit),
 ) {
     if (enabled) {
         val coroutineScope = rememberCoroutineScope()
@@ -87,7 +89,7 @@ fun DeleteableOnSwipeLeft(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(end = 10.dp)
-                        .clip(RoundedCornerShape(bottomEnd = 14.dp, topEnd = 14.dp))
+                        .clip(shape)
                         .background(color),
                     contentAlignment = Alignment.CenterEnd
                 ) {

@@ -20,7 +20,7 @@ data class LiftDetailsScreen(
     override val title: String = navigation.title,
 ): BaseScreen(), KoinComponent {
     companion object {
-        val navigation = NavItem("", "", "liftDetails/{id}")
+        val navigation = NavItem("Lift Metrics", "", "liftDetails/{id}")
     }
 
     private val _eventBus: EventBus by inject()

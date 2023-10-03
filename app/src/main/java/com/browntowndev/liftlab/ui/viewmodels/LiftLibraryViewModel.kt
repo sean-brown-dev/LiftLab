@@ -32,7 +32,12 @@ class LiftLibraryViewModel(
         registerEventBus()
 
         viewModelScope.launch {
-            getAllLifts()
+            liftsRepository.getAll()
+                .observeForever { lifts ->
+                    _state.update { currentState ->
+                        currentState.copy(allLifts = lifts.sortedBy { it.name })
+                    }
+                }
         }
     }
 
@@ -167,13 +172,5 @@ class LiftLibraryViewModel(
 
     fun removeMovementPatternFilter(movementPattern: String) {
         this.filterLiftsByMovementPatterns(_state.value.movementPatternFilters.filter { it != movementPattern })
-    }
-
-    private suspend fun getAllLifts() {
-        val lifts = liftsRepository.getAll().sortedBy { it.name }
-
-        _state.update {
-            it.copy(allLifts = lifts)
-        }
     }
 }

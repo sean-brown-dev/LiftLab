@@ -49,11 +49,15 @@ fun LiftDetails(
             when (tabIndex) {
                 0 -> DetailsTab(
                     liftName = state.lift!!.name,
-                    volumeTypes = state.volumeTypes,
-                    secondaryVolumeTypes = state.secondaryVolumeTypes,
+                    volumeTypes = state.volumeTypeDisplayNames,
+                    secondaryVolumeTypes = state.secondaryVolumeTypeDisplayNames,
                     onLiftNameChanged = { liftDetailsViewModel.updateName(it) },
-                    onUpdateVolumeType = { liftDetailsViewModel.updateVolumeType(it) },
-                    onUpdateSecondaryVolumeType = { liftDetailsViewModel.updateSecondaryVolumeType(it) }
+                    onAddVolumeType = { liftDetailsViewModel.addVolumeType(it) },
+                    onAddSecondaryVolumeType = { liftDetailsViewModel.addSecondaryVolumeType(it) },
+                    onRemoveVolumeType = { liftDetailsViewModel.removeVolumeType(it) },
+                    onRemoveSecondaryVolumeType = { liftDetailsViewModel.removeSecondaryVolumeType(it) },
+                    onUpdateVolumeType = { index, newVolumeType ->  liftDetailsViewModel.updateVolumeType(index, newVolumeType) },
+                    onUpdateSecondaryVolumeType = { index, newVolumeType -> liftDetailsViewModel.updateSecondaryVolumeType(index, newVolumeType) },
                 )
 
                 1, 2 -> {}

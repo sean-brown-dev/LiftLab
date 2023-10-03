@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ fun FocusableRoundTextField(
     value: String = "",
     textFieldValue: TextFieldValue? = null,
     supportingText: @Composable() (() -> Unit)? = null,
+    shape: Shape = RoundedCornerShape(45.dp),
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(
         unfocusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
         focusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
@@ -43,6 +45,7 @@ fun FocusableRoundTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
+    var text by remember(value) { mutableStateOf(value) }
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
@@ -69,15 +72,16 @@ fun FocusableRoundTextField(
             supportingText = supportingText,
             colors = colors,
             singleLine = true,
-            value = value,
+            value = text,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             placeholder = { Text(text = placeholder, color = MaterialTheme.colorScheme.outline) },
             onValueChange = {
                 valueInnitted = true
+                text = it
                 onValueChange(it)
             },
-            shape = RoundedCornerShape(45.dp)
+            shape = shape,
         )
     }
     else {
@@ -99,7 +103,7 @@ fun FocusableRoundTextField(
                 valueInnitted = true
                 onTextFieldValueChange(it)
             },
-            shape = RoundedCornerShape(45.dp)
+            shape = shape,
         )
     }
 }
