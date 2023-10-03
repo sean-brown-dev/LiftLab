@@ -70,6 +70,7 @@ fun LiftLibrary(
         mutableStateOf(workoutId != null && addAtPosition != null)
     }
 
+    liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
 
     BackHandler(isSearchBarVisible) {

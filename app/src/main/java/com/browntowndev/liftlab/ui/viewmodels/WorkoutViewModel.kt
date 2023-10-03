@@ -56,8 +56,6 @@ class WorkoutViewModel(
     val state = _state.asStateFlow()
 
     init {
-        registerEventBus()
-
         viewModelScope.launch {
             initialize()
         }

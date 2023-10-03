@@ -58,6 +58,7 @@ fun Workout(
         }
     }
 
+    workoutViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutViewModel)
 
     LaunchedEffect(key1 = state.workout != null, key2 = state.workoutLogVisible) {

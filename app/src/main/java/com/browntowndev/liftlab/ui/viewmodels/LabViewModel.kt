@@ -33,7 +33,6 @@ class LabViewModel(
     val state = _state.asStateFlow()
 
     init {
-        registerEventBus()
         getActiveProgram()
     }
 

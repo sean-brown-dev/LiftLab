@@ -29,8 +29,6 @@ class LiftLibraryViewModel(
     val state = _state.asStateFlow()
 
     init {
-        registerEventBus()
-
         viewModelScope.launch {
             liftsRepository.getAll()
                 .observeForever { lifts ->
