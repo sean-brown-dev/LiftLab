@@ -23,12 +23,12 @@ fun TextDropdown(
     menuItems: @Composable (ColumnScope.() -> Unit),
 ) {
     Box(
-        modifier = modifier.wrapContentSize(Alignment.Center)
+        modifier = modifier.then(Modifier.wrapContentSize(Alignment.Center))
     ) {
         TextDropdownTextAnchor(
             text = text,
             fontSize = fontSize,
-            modifier = modifier.clickable { onToggleExpansion() },
+            modifier = Modifier.clickable { onToggleExpansion() },
         )
         DropdownMenu(
             expanded = isExpanded,
@@ -39,7 +39,11 @@ fun TextDropdown(
 }
 
 @Composable
-fun TextDropdownTextAnchor(text: String, fontSize: TextUnit, modifier: Modifier = Modifier) {
+fun TextDropdownTextAnchor(
+    modifier: Modifier = Modifier,
+    text: String,
+    fontSize: TextUnit,
+) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(
             text = text,

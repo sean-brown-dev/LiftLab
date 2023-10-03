@@ -3,12 +3,14 @@ package com.browntowndev.liftlab.ui.viewmodels
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
@@ -21,7 +23,7 @@ import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
 
 class LiftDetailsViewModel(
-    private val liftId: Long,
+    private val liftId: Long?,
     private val navHostController: NavHostController,
     private val liftsRepository: LiftsRepository,
     private val previousSetResultsRepository: PreviousSetResultsRepository,
@@ -32,15 +34,31 @@ class LiftDetailsViewModel(
     val state = _state.asStateFlow()
 
     init {
-        registerEventBus()
-
         viewModelScope.launch {
-            val lift = liftsRepository.get(liftId)
+            val lift = if (liftId != null) {
+                liftsRepository.get(liftId)
+            } else {
+                LiftDto(
+                    id = 0L,
+                    name = "New Lift",
+                    movementPattern = MovementPattern.AB_ISO,
+                    volumeTypesBitmask = VolumeType.AB.bitMask,
+                    secondaryVolumeTypesBitmask = null,
+                    incrementOverride = null,
+                    restTime = null,
+                    isHidden = false,
+                    isBodyweight = false,
+                )
+            }
+
+            val previousSetResults = if (liftId != null) {
+                previousSetResultsRepository.getForLift(liftId)
+            } else listOf()
 
             _state.update {
                 it.copy(
                     lift = lift,
-                    previousSetResults = previousSetResultsRepository.getForLift(liftId),
+                    previousSetResults = previousSetResults,
                     volumeTypeDisplayNames = lift.volumeTypesBitmask.getVolumeTypes()
                         .fastMap { volumeType ->
                             volumeType.displayName()
@@ -188,6 +206,19 @@ class LiftDetailsViewModel(
     fun updateRestTime(newRestTime: Duration) {
         executeInTransactionScope {
             val updatedLift = _state.value.lift!!.copy(restTime = newRestTime)
+            liftsRepository.update(updatedLift)
+
+            _state.update {
+                it.copy(
+                    lift = updatedLift
+                )
+            }
+        }
+    }
+
+    fun updateMovementPattern(newMovementPattern: MovementPattern) {
+        executeInTransactionScope {
+            val updatedLift = _state.value.lift!!.copy(movementPattern = newMovementPattern)
             liftsRepository.update(updatedLift)
 
             _state.update {

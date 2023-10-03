@@ -100,7 +100,7 @@ fun NavigationGraph(
                 },
             )
         ) {
-            val id = it.arguments?.getString("id")?.toLong()!!
+            val id = it.arguments?.getString("id")?.toLongOrNull()
 
             if (screen as? LiftDetailsScreen != null) {
                 LaunchedEffect(key1 = screen) {
@@ -111,7 +111,14 @@ fun NavigationGraph(
                 LiftDetails(
                     id = id,
                     navHostController = navHostController,
-                    paddingValues = paddingValues)
+                    paddingValues = paddingValues,
+                    mutateTopAppBarControlValue = { request ->
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                request.controlName,
+                                request.payload.left()))
+                    },
+                )
             }
         }
         composable(WorkoutScreen.navigation.route) {

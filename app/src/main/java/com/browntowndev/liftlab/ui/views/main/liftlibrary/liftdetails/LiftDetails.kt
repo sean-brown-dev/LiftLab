@@ -8,6 +8,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -15,28 +16,43 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 @Composable
 fun LiftDetails(
-    id: Long,
+    id: Long?,
     paddingValues: PaddingValues,
     navHostController: NavHostController,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
     val liftDetailsViewModel: LiftDetailsViewModel = koinViewModel { parametersOf(id, navHostController) }
     val state by liftDetailsViewModel.state.collectAsState()
 
+    liftDetailsViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftDetailsViewModel)
 
-    if (state.lift != null) {
-        var tabIndex by remember { mutableIntStateOf(0) }
-        val tabs = listOf("Details", "History", "Charts")
+    LaunchedEffect(key1 = id) {
+        if (id == null) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    controlName = Screen.TITLE,
+                    payload = "Create Lift"
+                )
+            )
+        }
+    }
 
-        Column(modifier = Modifier.padding(paddingValues)) {
-            TabRow(selectedTabIndex = tabIndex, contentColor = MaterialTheme.colorScheme.primary) {
+    var tabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Details", "History", "Charts")
+    Column(modifier = Modifier.padding(paddingValues)) {
+        if (id != null) {
+            TabRow(selectedTabIndex = tabIndex, contentColor = MaterialTheme.colorScheme.primary, containerColor = MaterialTheme.colorScheme.tertiaryContainer) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         text = { Text(title) },
@@ -45,23 +61,35 @@ fun LiftDetails(
                     )
                 }
             }
+        }
 
-            when (tabIndex) {
-                0 -> DetailsTab(
-                    liftName = state.lift!!.name,
-                    volumeTypes = state.volumeTypeDisplayNames,
-                    secondaryVolumeTypes = state.secondaryVolumeTypeDisplayNames,
-                    onLiftNameChanged = { liftDetailsViewModel.updateName(it) },
-                    onAddVolumeType = { liftDetailsViewModel.addVolumeType(it) },
-                    onAddSecondaryVolumeType = { liftDetailsViewModel.addSecondaryVolumeType(it) },
-                    onRemoveVolumeType = { liftDetailsViewModel.removeVolumeType(it) },
-                    onRemoveSecondaryVolumeType = { liftDetailsViewModel.removeSecondaryVolumeType(it) },
-                    onUpdateVolumeType = { index, newVolumeType ->  liftDetailsViewModel.updateVolumeType(index, newVolumeType) },
-                    onUpdateSecondaryVolumeType = { index, newVolumeType -> liftDetailsViewModel.updateSecondaryVolumeType(index, newVolumeType) },
-                )
+        when (tabIndex) {
+            0 -> DetailsTab(
+                liftName = state.lift?.name ?: "",
+                movementPattern = state.lift?.movementPattern ?: MovementPattern.AB_ISO,
+                volumeTypes = state.volumeTypeDisplayNames,
+                secondaryVolumeTypes = state.secondaryVolumeTypeDisplayNames,
+                onLiftNameChanged = { liftDetailsViewModel.updateName(it) },
+                onAddVolumeType = { liftDetailsViewModel.addVolumeType(it) },
+                onAddSecondaryVolumeType = { liftDetailsViewModel.addSecondaryVolumeType(it) },
+                onRemoveVolumeType = { liftDetailsViewModel.removeVolumeType(it) },
+                onRemoveSecondaryVolumeType = { liftDetailsViewModel.removeSecondaryVolumeType(it) },
+                onUpdateMovementPattern = { liftDetailsViewModel.updateMovementPattern(it) },
+                onUpdateVolumeType = { index, newVolumeType ->
+                    liftDetailsViewModel.updateVolumeType(
+                        index,
+                        newVolumeType
+                    )
+                },
+                onUpdateSecondaryVolumeType = { index, newVolumeType ->
+                    liftDetailsViewModel.updateSecondaryVolumeType(
+                        index,
+                        newVolumeType
+                    )
+                },
+            )
 
-                1, 2 -> {}
-            }
+            1, 2 -> {}
         }
     }
 }

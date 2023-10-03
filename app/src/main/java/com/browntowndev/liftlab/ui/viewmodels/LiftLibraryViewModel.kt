@@ -7,10 +7,12 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +24,7 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val navHostController: NavHostController,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -45,6 +48,7 @@ class LiftLibraryViewModel(
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState(true)
             TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
+            TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
         }
     }
@@ -170,5 +174,16 @@ class LiftLibraryViewModel(
 
     fun removeMovementPatternFilter(movementPattern: String) {
         this.filterLiftsByMovementPatterns(_state.value.movementPatternFilters.filter { it != movementPattern })
+    }
+
+    fun hideLift(lift: LiftDto) {
+        viewModelScope.launch {
+            // No need to update state. The lifts are retrieved via Flow
+            liftsRepository.update(lift.copy(isHidden = true))
+        }
+    }
+
+    private fun navigateToCreateLiftMenu() {
+        navHostController.navigate(LiftDetailsScreen.navigation.route)
     }
 }

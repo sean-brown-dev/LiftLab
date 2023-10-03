@@ -20,16 +20,13 @@ interface LiftsDao {
     @Update
     suspend fun update(lift: Lift)
 
-    @Query("UPDATE lifts SET isHidden = 1")
-    suspend fun hide()
-
     @Query("UPDATE lifts SET isHidden = 0")
     suspend fun show()
 
     @Query("SELECT * FROM lifts WHERE lift_id = :id")
     suspend fun get(id: Long): Lift
 
-    @Query("SELECT * FROM lifts")
+    @Query("SELECT * FROM lifts WHERE isHidden = 0")
     fun getAll(): Flow<List<Lift>>
 
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")

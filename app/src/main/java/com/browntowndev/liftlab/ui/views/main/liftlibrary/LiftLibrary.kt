@@ -35,10 +35,13 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.views.composables.CircularIcon
+import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.FilterSelector
 import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow
 import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 
 @Composable
@@ -56,7 +59,7 @@ fun LiftLibrary(
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
-    val liftLibraryViewModel: LiftLibraryViewModel = getViewModel()
+    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController) }
     val state by liftLibraryViewModel.state.collectAsState()
 
     liftLibraryViewModel.setNavHostController(navHostController)
@@ -126,42 +129,49 @@ fun LiftLibrary(
                         val selected by remember(state.selectedNewLifts) {
                             mutableStateOf(state.selectedNewLiftsHashSet.contains(lift.id))
                         }
-                        ListItem(
-                            modifier = Modifier.clickable {
-                                if(isAddingToWorkout && selected) {
-                                    liftLibraryViewModel.removeSelectedLift(lift.id)
-                                } else if (isAddingToWorkout) {
-                                    liftLibraryViewModel.addSelectedLift(lift.id)
-                                } else if (isReplacingWorkout) {
-                                    liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
-                                } else {
-                                    val liftDetailsRoute = LiftDetailsScreen.navigation.route
-                                        .replace("{id}", lift.id.toString())
+                        DeleteableOnSwipeLeft(
+                            confirmationDialogHeader = "Delete Lift?",
+                            confirmationDialogBody = "Deleting this lift will hide it from the Lifts menu. It can be restored from the Settings menu.",
+                            enabled = !isAddingToWorkout && !isReplacingWorkout,
+                            onDelete = { liftLibraryViewModel.hideLift(lift) },
+                        ) {
+                            ListItem(
+                                modifier = Modifier.clickable {
+                                    if(isAddingToWorkout && selected) {
+                                        liftLibraryViewModel.removeSelectedLift(lift.id)
+                                    } else if (isAddingToWorkout) {
+                                        liftLibraryViewModel.addSelectedLift(lift.id)
+                                    } else if (isReplacingWorkout) {
+                                        liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
+                                    } else {
+                                        val liftDetailsRoute = LiftDetailsScreen.navigation.route
+                                            .replace("{id}", lift.id.toString())
 
-                                    navHostController.navigate(liftDetailsRoute)
-                                }
-                            },
-                            headlineContent = { Text(lift.name) },
-                            supportingContent = { Text(lift.movementPatternDisplayName) },
-                            leadingContent = {
-                                if (selected) {
-                                    CircularIcon(
-                                        size = 40.dp,
-                                        imageVector = Icons.Filled.Check,
-                                        circleBackgroundColorScheme = MaterialTheme.colorScheme.tertiary,
-                                        iconTint = MaterialTheme.colorScheme.secondary,
-                                    )
-                                } else {
-                                    CircledTextIcon(text = lift.name[0].toString())
-                                }
-                             },
-                            colors = ListItemDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.background,
-                                headlineColor = MaterialTheme.colorScheme.onBackground,
-                                supportingColor = MaterialTheme.colorScheme.onBackground,
-                                leadingIconColor = MaterialTheme.colorScheme.onBackground
+                                        navHostController.navigate(liftDetailsRoute)
+                                    }
+                                },
+                                headlineContent = { Text(lift.name) },
+                                supportingContent = { Text(lift.movementPatternDisplayName) },
+                                leadingContent = {
+                                    if (selected) {
+                                        CircularIcon(
+                                            size = 40.dp,
+                                            imageVector = Icons.Filled.Check,
+                                            circleBackgroundColorScheme = MaterialTheme.colorScheme.tertiary,
+                                            iconTint = MaterialTheme.colorScheme.secondary,
+                                        )
+                                    } else {
+                                        CircledTextIcon(text = lift.name[0].toString())
+                                    }
+                                },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    headlineColor = MaterialTheme.colorScheme.onBackground,
+                                    supportingColor = MaterialTheme.colorScheme.onBackground,
+                                    leadingIconColor = MaterialTheme.colorScheme.onBackground
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }

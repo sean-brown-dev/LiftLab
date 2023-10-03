@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
@@ -32,6 +33,7 @@ data class LiftLibraryScreen(
     companion object {
         val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
         const val SEARCH_ICON = "searchIcon"
+        const val CREATE_NEW_LIFT_ICON = "createNewLiftIcon"
         const val CONFIRM_ADD_LIFT_ICON = "confirmAddLiftIcon"
         const val LIFT_NAME_FILTER_TEXTVIEW = "liftNameFilterTextView"
         const val LIFT_MOVEMENT_PATTERN_FILTER_ICON = "liftMovementPatternFilterIcon"
@@ -42,6 +44,7 @@ data class LiftLibraryScreen(
     private var isSearchIconVisible by mutableStateOf(true)
     private var isFilterIconVisible by mutableStateOf(true)
     private var isConfirmAddLiftVisible by mutableStateOf(false)
+    private var isCreateNewLiftIconVisible by mutableStateOf(true)
 
     private val _eventBus: EventBus by inject()
 
@@ -82,6 +85,10 @@ data class LiftLibraryScreen(
                 isConfirmAddLiftVisible = isVisible
                 this
             }
+            CREATE_NEW_LIFT_ICON -> {
+                isCreateNewLiftIconVisible = isVisible
+                this
+            }
             else -> superCopy
         }
     }
@@ -118,14 +125,15 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = SEARCH_ICON,
                 title = "Search",
+                icon = Icons.Filled.Search.left(),
                 isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isSearchIconVisible,
                 onClick = {
                     isSearchBarVisible = true
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.SearchStarted))
                 },
-                icon = Icons.Filled.Search.left(),
                 contentDescriptionResourceId = R.string.accessibility_search,
-            ), ActionMenuItem.TextInputMenuItem.AlwaysShown(
+            ),
+            ActionMenuItem.TextInputMenuItem.AlwaysShown(
                 controlName = LIFT_NAME_FILTER_TEXTVIEW,
                 icon = Icons.Filled.Search.left(),
                 isVisible = !isConfirmAddLiftVisible && isSearchBarVisible,
@@ -162,6 +170,16 @@ data class LiftLibraryScreen(
                 },
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,
+            ),
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = CREATE_NEW_LIFT_ICON,
+                title = "Create Lift",
+                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isCreateNewLiftIconVisible,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewLift))
+                },
+                icon = Icons.Filled.Add.left(),
+                contentDescriptionResourceId = R.string.create_a_new_lift,
             ),
         )
     }

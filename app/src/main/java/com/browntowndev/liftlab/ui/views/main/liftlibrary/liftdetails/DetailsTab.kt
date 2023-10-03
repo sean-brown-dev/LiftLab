@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.views.composables.FocusableRoundTextField
@@ -24,6 +27,7 @@ import com.browntowndev.liftlab.ui.views.composables.FocusableRoundTextField
 @Composable
 fun DetailsTab(
     liftName: String,
+    movementPattern: MovementPattern,
     volumeTypes: List<String>,
     secondaryVolumeTypes: List<String>,
     onLiftNameChanged: (newName: String) -> Unit,
@@ -33,16 +37,20 @@ fun DetailsTab(
     onRemoveSecondaryVolumeType: (toRemove: VolumeType) -> Unit,
     onUpdateVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
     onUpdateSecondaryVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
+    onUpdateMovementPattern: (MovementPattern) -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(start = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         FocusableRoundTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 35.dp, end = 10.dp),
+                .padding(top = 10.dp, bottom = 5.dp, end = 10.dp),
             focus = false,
             value = liftName,
             shape = RoundedCornerShape(5.dp),
@@ -54,12 +62,16 @@ fun DetailsTab(
                 focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
             ),
-            supportingText = { Text(text = "Name", color = MaterialTheme.colorScheme.tertiary) },
+            supportingText = { Text(text = "Name", color = MaterialTheme.colorScheme.onBackground) },
             onValueChange = {
                 onLiftNameChanged(it)
             },
         )
 
+        MovementPatternDropdown(
+            movementPatternDisplay = movementPattern.displayName(),
+            onUpdateMovementPattern = onUpdateMovementPattern,
+        )
 
         val volumeTypeOptions: Map<String, VolumeType> = remember {
             val sortedVolumeTypeOptions = VolumeType.values().sortedBy { it.displayName() }
@@ -90,7 +102,6 @@ fun DetailsTab(
             onAddVolumeType = onAddVolumeType,
             onRemoveVolumeType = onRemoveVolumeType,
         )
-        Spacer(modifier = Modifier.height(20.dp))
         VolumeTypeMenu(
             sectionHeader = "Secondary Volume Types",
             allowDeleteAll = true,
@@ -101,5 +112,6 @@ fun DetailsTab(
             onAddVolumeType = onAddSecondaryVolumeType,
             onRemoveVolumeType = onRemoveSecondaryVolumeType,
         )
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
