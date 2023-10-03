@@ -44,11 +44,11 @@ class LiftDetailsViewModel(
                     volumeTypeDisplayNames = lift.volumeTypesBitmask.getVolumeTypes()
                         .fastMap { volumeType ->
                             volumeType.displayName()
-                        },
+                        }.sorted(),
                     secondaryVolumeTypeDisplayNames = lift.secondaryVolumeTypesBitmask?.getVolumeTypes()
                         ?.fastMap { volumeType ->
                             volumeType.displayName()
-                        } ?: listOf(),
+                        }?.sorted() ?: listOf(),
                 )
             }
         }

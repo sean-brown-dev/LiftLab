@@ -56,7 +56,7 @@ fun VolumeTypeMenu(
         DeleteableOnSwipeLeft(
             confirmationDialogHeader = "Delete Volume Type?",
             confirmationDialogBody = "Confirm to remove the volume type.",
-            enabled = remember(key1 = allowDeleteAll, key2 = index) { allowDeleteAll || index > 0 },
+            enabled = remember(key1 = allowDeleteAll, key2 = volumeTypes) { allowDeleteAll || volumeTypes.size > 1 },
             shape = RoundedCornerShape(5.dp),
             onDelete = { onRemoveVolumeType(volumeTypeOptions[selectedOption]!!) }
         ) {

@@ -66,8 +66,15 @@ fun DetailsTab(
             sortedVolumeTypeOptions.associateBy { it.displayName() }
         }
 
-        val unselectedVolumeTypeOptions: List<VolumeType> = remember(volumeTypes) {
-            val unselectedTypes = volumeTypeOptions.keys.filterNot { volumeTypes.contains(it) }
+        val unselectedVolumeTypeOptions: List<VolumeType> = remember(key1 = volumeTypes, key2 = secondaryVolumeTypes) {
+            val unselectedTypes = volumeTypeOptions.keys
+                .filterNot {
+                    volumeTypes
+                        .toMutableList()
+                        .apply { addAll(secondaryVolumeTypes) }
+                        .contains(it)
+                }
+
             unselectedTypes.fastMap {
                 volumeTypeOptions[it]!!
             }
