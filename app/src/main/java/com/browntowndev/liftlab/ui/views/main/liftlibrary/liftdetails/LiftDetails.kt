@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import org.koin.androidx.compose.koinViewModel
@@ -30,6 +31,7 @@ fun LiftDetails(
     paddingValues: PaddingValues,
     navHostController: NavHostController,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
+    setTopAppBarControlVisibility: (String, Boolean) -> Unit,
 ) {
     val liftDetailsViewModel: LiftDetailsViewModel = koinViewModel { parametersOf(id, navHostController) }
     val state by liftDetailsViewModel.state.collectAsState()
@@ -39,6 +41,7 @@ fun LiftDetails(
 
     LaunchedEffect(key1 = id) {
         if (id == null) {
+            setTopAppBarControlVisibility(LiftDetailsScreen.CONFIRM_CREATE_LIFT_ICON, true)
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     controlName = Screen.TITLE,
@@ -66,6 +69,7 @@ fun LiftDetails(
         when (tabIndex) {
             0 -> DetailsTab(
                 liftName = state.lift?.name ?: "",
+                liftNamePlaceholder = remember(id) { if (id == null) "New Lift" else "" },
                 movementPattern = state.lift?.movementPattern ?: MovementPattern.AB_ISO,
                 volumeTypes = state.volumeTypeDisplayNames,
                 secondaryVolumeTypes = state.secondaryVolumeTypeDisplayNames,

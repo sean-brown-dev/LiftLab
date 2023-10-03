@@ -2,6 +2,11 @@ package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.left
@@ -21,9 +26,11 @@ data class LiftDetailsScreen(
 ): BaseScreen(), KoinComponent {
     companion object {
         val navigation = NavItem("Lift Metrics", "", "liftDetails/{id}")
+        const val CONFIRM_CREATE_LIFT_ICON = "confirmCreateLiftIcon"
     }
 
     private val _eventBus: EventBus by inject()
+    private var isConfirmCreateLiftVisible by mutableStateOf(false)
 
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {
         return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible) else this
@@ -41,6 +48,17 @@ data class LiftDetailsScreen(
         return if (title != newTitle) copy(title = newTitle) else this
     }
 
+    override fun setControlVisibility(controlName: String, isVisible: Boolean): Screen {
+        val superCopy = super.setControlVisibility(controlName, isVisible)
+        return when (controlName) {
+            CONFIRM_CREATE_LIFT_ICON -> {
+                isConfirmCreateLiftVisible = isVisible
+                this
+            }
+            else -> superCopy
+        }
+    }
+
     override val route: String
         get() = navigation.route
     override val isAppBarVisible: Boolean
@@ -51,6 +69,19 @@ data class LiftDetailsScreen(
         get() = null
     override val onNavigationIconClick: (() -> Unit)?
         get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
-    override val actions: List<ActionMenuItem>
-        get() = listOf()
+    override val actions: List<ActionMenuItem> by derivedStateOf {
+        listOf(
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = CONFIRM_CREATE_LIFT_ICON,
+                title = "Confirm Create Lift",
+                isVisible = isConfirmCreateLiftVisible,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmCreateNewLift))
+                    isConfirmCreateLiftVisible = false
+                },
+                icon = Icons.Filled.Check.left(),
+                contentDescriptionResourceId = null,
+            ),
+        )
+    }
 }

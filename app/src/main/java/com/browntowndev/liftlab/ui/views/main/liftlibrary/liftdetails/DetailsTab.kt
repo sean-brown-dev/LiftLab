@@ -27,6 +27,7 @@ import com.browntowndev.liftlab.ui.views.composables.FocusableRoundTextField
 @Composable
 fun DetailsTab(
     liftName: String,
+    liftNamePlaceholder: String = "",
     movementPattern: MovementPattern,
     volumeTypes: List<String>,
     secondaryVolumeTypes: List<String>,
@@ -53,6 +54,7 @@ fun DetailsTab(
                 .padding(top = 10.dp, bottom = 5.dp, end = 10.dp),
             focus = false,
             value = liftName,
+            placeholder = liftNamePlaceholder,
             shape = RoundedCornerShape(5.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,

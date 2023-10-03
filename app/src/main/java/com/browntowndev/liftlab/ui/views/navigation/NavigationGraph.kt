@@ -112,6 +112,7 @@ fun NavigationGraph(
                     id = id,
                     navHostController = navHostController,
                     paddingValues = paddingValues,
+                    setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(

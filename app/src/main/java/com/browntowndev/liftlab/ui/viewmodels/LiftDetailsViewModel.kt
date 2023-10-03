@@ -40,7 +40,7 @@ class LiftDetailsViewModel(
             } else {
                 LiftDto(
                     id = 0L,
-                    name = "New Lift",
+                    name = "",
                     movementPattern = MovementPattern.AB_ISO,
                     volumeTypesBitmask = VolumeType.AB.bitMask,
                     secondaryVolumeTypesBitmask = null,
@@ -76,6 +76,7 @@ class LiftDetailsViewModel(
     fun handleTopAppBarActionEvent(event: TopAppBarEvent.ActionEvent) {
         when (event.action) {
             TopAppBarAction.NavigatedBack -> navHostController.popBackStack()
+            TopAppBarAction.ConfirmCreateNewLift -> createNewLift()
             else -> {}
         }
     }
@@ -226,6 +227,13 @@ class LiftDetailsViewModel(
                     lift = updatedLift
                 )
             }
+        }
+    }
+
+    private fun createNewLift() {
+        viewModelScope.launch {
+            liftsRepository.createLift(_state.value.lift!!)
+            navHostController.popBackStack()
         }
     }
 }

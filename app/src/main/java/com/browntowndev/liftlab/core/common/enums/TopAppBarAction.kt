@@ -17,4 +17,5 @@ enum class TopAppBarAction {
     RestTimerCompleted,
     ConfirmAddLift,
     CreateNewLift,
+    ConfirmCreateNewLift,
 }
