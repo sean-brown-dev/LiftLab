@@ -34,10 +34,6 @@ class PreviousSetResultsRepository(
         return previousSetResultDao.upsertMany(setResults.map { setResult -> setResultsMapper.map(setResult) })
     }
 
-    suspend fun insertMany(setResult: List<SetResult>) {
-        previousSetResultDao.insertMany(setResult.map { setResultsMapper.map(it) })
-    }
-
     suspend fun deleteAllNotForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
         previousSetResultDao.deleteAllNotForWorkoutMesoAndMicro(workoutId, mesoCycle, microCycle)
     }

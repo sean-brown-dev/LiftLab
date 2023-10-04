@@ -59,7 +59,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getAll(): LiveData<List<LiftDto>> {
-        return liftsDao.getAll().flatMapLatest{ lifts ->
+        return liftsDao.getAllAsFlow().flatMapLatest{ lifts ->
             flowOf(
                 lifts.fastMap {
                     LiftDto(

@@ -448,19 +448,15 @@ class WorkoutViewModel(
         executeInTransactionScope {
             val startTimeInMillis = _state.value.inProgressWorkout!!.startTime.time
             val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
+            val programMetadata = _state.value.programMetadata!!
+            val workout = _state.value.workout!!
 
             // Remove the workout from in progress
             workoutInProgressRepository.delete()
             restTimerInProgressRepository.deleteAll()
 
-            // Delete all set results from the previous workout
-            val programMetadata = _state.value.programMetadata!!
-            val workout = _state.value.workout!!
-            setResultsRepository.deleteAllNotForWorkout(
-                workoutId = workout.id,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle,
-            )
+            // Copy all of the set results from this workout into the set history table
+            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId)
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =
@@ -506,8 +502,12 @@ class WorkoutViewModel(
             // modifying results.
             updateLinearProgressionFailures()
 
-            // Copy all of the set results from this workout into the set history table
-            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId)
+            // Delete all set results from the previous workout
+            setResultsRepository.deleteAllNotForWorkout(
+                workoutId = workout.id,
+                mesoCycle = programMetadata.currentMesocycle,
+                microCycle = programMetadata.currentMicrocycle,
+            )
 
             // TODO: have summary pop up as dialog and close this on completion instead
             _state.update {

@@ -61,7 +61,7 @@ class LiftLabDatabaseWorker(
     }
 
     private suspend fun populateDefaultProgram(db: LiftLabDatabase) {
-        val liftsByNameAndCategory = db.liftsDao().getAll().asLiveData().value!!.associateBy { "${it.name}-${it.movementPattern}" }
+        val liftsByNameAndCategory = db.liftsDao().getAll().associateBy { "${it.name}-${it.movementPattern}" }
         val programId: Long = db.programsDao().insert(Program(name = "Intermediate Upper/Lower"))
 
         val lowerAId: Long = db.workoutsDao().insert(Workout(name = "Lower A", position = 0, programId = programId))

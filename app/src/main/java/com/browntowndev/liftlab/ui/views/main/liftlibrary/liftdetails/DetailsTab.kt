@@ -51,7 +51,7 @@ fun DetailsTab(
         FocusableRoundTextField(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 5.dp, end = 10.dp),
+                .padding(top = 10.dp, bottom = 5.dp),
             focus = false,
             value = liftName,
             placeholder = liftNamePlaceholder,

@@ -27,7 +27,10 @@ interface LiftsDao {
     suspend fun get(id: Long): Lift
 
     @Query("SELECT * FROM lifts WHERE isHidden = 0")
-    fun getAll(): Flow<List<Lift>>
+    fun getAllAsFlow(): Flow<List<Lift>>
+
+    @Query("SELECT * FROM lifts WHERE isHidden = 0")
+    suspend fun getAll(): List<Lift>
 
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")
     suspend fun getByCategory(movementPattern: MovementPattern): List<Lift>

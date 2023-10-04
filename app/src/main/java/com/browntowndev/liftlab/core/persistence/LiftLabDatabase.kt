@@ -32,7 +32,6 @@ import com.browntowndev.liftlab.core.persistence.entities.Lift
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
-import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
@@ -47,7 +46,6 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
         PreviousSetResult::class,
         Program::class,
         WorkoutLogEntry::class,
-        SetLogEntry::class,
         Workout::class,
         WorkoutLift::class,
         WorkoutInProgress::class,
@@ -94,7 +92,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
             Log.w("TRACE", "Entered submitDataInitializationJob()")
 
             val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
-            if (!isDatabaseInitialized) {
+            if (isDatabaseInitialized) {
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()

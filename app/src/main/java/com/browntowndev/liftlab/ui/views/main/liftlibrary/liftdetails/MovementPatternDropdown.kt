@@ -48,7 +48,7 @@ fun MovementPatternDropdown(
                     color = MaterialTheme.colorScheme.tertiaryContainer,
                     shape = RoundedCornerShape(5.dp))
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(13.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
         ) {
