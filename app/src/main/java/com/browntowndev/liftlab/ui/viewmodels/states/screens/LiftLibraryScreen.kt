@@ -174,7 +174,7 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CREATE_NEW_LIFT_ICON,
                 title = "Create Lift",
-                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isCreateNewLiftIconVisible,
+                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isFilterIconVisible && isCreateNewLiftIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewLift))
                 },

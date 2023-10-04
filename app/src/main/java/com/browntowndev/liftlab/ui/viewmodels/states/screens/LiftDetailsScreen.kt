@@ -23,6 +23,7 @@ data class LiftDetailsScreen(
     override val isOverflowMenuIconVisible: Boolean = false,
     override val navigationIconVisible: Boolean = true,
     override val title: String = navigation.title,
+    private val isConfirmCreateLiftVisible: Boolean = false,
 ): BaseScreen(), KoinComponent {
     companion object {
         val navigation = NavItem("Lift Metrics", "", "liftDetails/{id}")
@@ -30,7 +31,6 @@ data class LiftDetailsScreen(
     }
 
     private val _eventBus: EventBus by inject()
-    private var isConfirmCreateLiftVisible by mutableStateOf(false)
 
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {
         return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible) else this
@@ -52,8 +52,7 @@ data class LiftDetailsScreen(
         val superCopy = super.setControlVisibility(controlName, isVisible)
         return when (controlName) {
             CONFIRM_CREATE_LIFT_ICON -> {
-                isConfirmCreateLiftVisible = isVisible
-                this
+                copy(isConfirmCreateLiftVisible = isVisible)
             }
             else -> superCopy
         }
@@ -77,7 +76,6 @@ data class LiftDetailsScreen(
                 isVisible = isConfirmCreateLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmCreateNewLift))
-                    isConfirmCreateLiftVisible = false
                 },
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,

@@ -83,7 +83,7 @@ fun NavigationGraph(
                     onNavigateBack = onNavigateBack,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onChangeTopAppBarTitle = { mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, it.left())) },
-                    onToggleTopAppBarControlVisibility = { control, visible -> setTopAppBarControlVisibility(control, visible) },
+                    onToggleTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onClearTopAppBarFilterText = {
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW, "".left())
@@ -174,11 +174,11 @@ fun NavigationGraph(
                     workoutId = workoutId,
                     paddingValues = paddingValues,
                     navHostController = navHostController,
-                    mutateTopAppBarControlValue = {
+                    mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
-                                it.controlName,
-                                it.payload.left()))
+                                request.controlName,
+                                request.payload.left()))
                     },
                 )
             }

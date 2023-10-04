@@ -62,7 +62,6 @@ fun LiftLibrary(
     val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController) }
     val state by liftLibraryViewModel.state.collectAsState()
 
-    liftLibraryViewModel.setNavHostController(navHostController)
     liftLibraryViewModel.setWorkoutId(workoutId)
     liftLibraryViewModel.setAddAtPosition(addAtPosition)
 
@@ -125,7 +124,7 @@ fun LiftLibrary(
                         .background(color = MaterialTheme.colorScheme.background)
                         .wrapContentSize(Alignment.TopStart)
                 ) {
-                    items(state.filteredLifts) { lift ->
+                    items(state.filteredLifts, { it.id }) { lift ->
                         val selected by remember(state.selectedNewLifts) {
                             mutableStateOf(state.selectedNewLiftsHashSet.contains(lift.id))
                         }

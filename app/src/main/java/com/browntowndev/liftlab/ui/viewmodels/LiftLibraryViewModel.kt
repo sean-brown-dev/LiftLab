@@ -61,12 +61,6 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun setNavHostController(navHostController: NavHostController) {
-        _state.update {
-            it.copy(navHostController = navHostController)
-        }
-    }
-
     fun setWorkoutId(workoutId: Long?) {
         _state.update {
             it.copy(workoutId = workoutId)
@@ -143,9 +137,9 @@ class LiftLibraryViewModel(
 
     private fun navigateBackToWorkoutBuilder() {
         val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
-        _state.value.navHostController?.popBackStack()
-        _state.value.navHostController?.popBackStack()
-        _state.value.navHostController?.navigate(workoutBuilderRoute)
+        navHostController.popBackStack()
+        navHostController.popBackStack()
+        navHostController.navigate(workoutBuilderRoute)
     }
 
     private fun setNavigateBackIconClickedState(clicked: Boolean) {

@@ -232,7 +232,12 @@ class LiftDetailsViewModel(
 
     private fun createNewLift() {
         viewModelScope.launch {
-            liftsRepository.createLift(_state.value.lift!!)
+            val lift = _state.value.lift!!
+            val liftToCreate = if (state.value.lift!!.name.isEmpty()) {
+                lift.copy(name = "New Lift")
+            } else lift
+
+            liftsRepository.createLift(liftToCreate)
             navHostController.popBackStack()
         }
     }

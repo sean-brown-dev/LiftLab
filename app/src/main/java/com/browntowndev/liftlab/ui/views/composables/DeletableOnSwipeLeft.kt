@@ -61,7 +61,6 @@ fun DeleteableOnSwipeLeft(
                     coroutineScope.launch {
                         dismissState.dismiss(DismissDirection.EndToStart)
                         onDelete()
-                        dismissState.reset()
                         showConfirmationDialog = false
                     }
                 },
