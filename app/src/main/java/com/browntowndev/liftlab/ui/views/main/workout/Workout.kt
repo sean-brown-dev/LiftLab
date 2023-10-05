@@ -123,6 +123,8 @@ fun Workout(
             startWorkout = { workoutViewModel.startWorkout() },
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
         )
+        // TODO: Need to mark weight and reps completed just like RPE because when scrolling around
+        // TODO: the completed ones get lost
         WorkoutLog(
             paddingValues = paddingValues,
             visible = state.workoutLogVisible,
