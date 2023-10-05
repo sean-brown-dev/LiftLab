@@ -14,6 +14,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -147,10 +148,18 @@ fun FocusedOutlinedTextField(
     topAppBarViewModel: TopAppBarViewModel,
 ) {
     FocusableRoundTextField(
+        modifier = Modifier.padding(end = 15.dp),
         value = item.value,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
+            focusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
+            unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer
+        ),
         leadingIcon = {
             item.icon?.onLeft {
-
                 Icon(
                     imageVector = it,
                     contentDescription = null,

@@ -156,7 +156,7 @@ fun ProgramDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence>
 }
 
 fun Float.isWholeNumber(): Boolean {
-    return this.toInt().toFloat() == this
+    return this % 1.0 == 0.0
 }
 
 fun Float.toFloorAndCeiling(): Iterable<Int> {

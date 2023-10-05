@@ -35,11 +35,8 @@ fun VolumeTypeMenu(
     onAddVolumeType: (newVolumeType: VolumeType) -> Unit,
     onRemoveVolumeType: (toRemove: VolumeType) -> Unit,
 ) {
-    Text(
-        text = sectionHeader,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontSize = 12.sp,
-    )
+
+    SectionLabel(text = sectionHeader)
     volumeTypes.forEachIndexed { index, volumeType ->
         DeleteableOnSwipeLeft(
             confirmationDialogHeader = "Delete Volume Type?",

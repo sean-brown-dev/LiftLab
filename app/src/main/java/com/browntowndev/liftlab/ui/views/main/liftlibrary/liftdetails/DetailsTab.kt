@@ -95,7 +95,7 @@ fun DetailsTab(
         }
 
         VolumeTypeMenu(
-            sectionHeader = "Primary Volume Types",
+            sectionHeader = "PRIMARY VOLUME TYPES",
             allowDeleteAll = false,
             volumeTypes = volumeTypes,
             volumeTypeOptions = volumeTypeOptions,
@@ -105,7 +105,7 @@ fun DetailsTab(
             onRemoveVolumeType = onRemoveVolumeType,
         )
         VolumeTypeMenu(
-            sectionHeader = "Secondary Volume Types",
+            sectionHeader = "SECONDARY VOLUME TYPES",
             allowDeleteAll = true,
             volumeTypes = secondaryVolumeTypes,
             volumeTypeOptions = volumeTypeOptions,

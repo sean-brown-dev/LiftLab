@@ -65,7 +65,7 @@ fun InputChipFlowRow(
                         onClick = { onRemove(filter) }
                     ) {
                         Icon(
-                            modifier = Modifier.size(16.dp).padding(end = 0.dp),
+                            modifier = Modifier.size(16.dp),
                             imageVector = Icons.Filled.Close,
                             contentDescription = null,
                         )
