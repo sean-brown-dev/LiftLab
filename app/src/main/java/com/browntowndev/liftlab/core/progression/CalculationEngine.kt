@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.core.progression
 
 import com.browntowndev.liftlab.core.common.isWholeNumber
+import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.common.toFloorAndCeiling
 import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class CalculationEngine {
     companion object {
@@ -19,7 +21,7 @@ class CalculationEngine {
             10 to 0.733f
         )
 
-        private fun getOneRepMax(weight: Float, reps: Float): Float {
+        private fun getOneRepMax(weight: Float, reps: Float): Int {
             var oneRepMax = 0f
 
             reps.toFloorAndCeiling().forEach {
@@ -37,10 +39,10 @@ class CalculationEngine {
                 oneRepMax = if (oneRepMax > 0) (oneRepMax + currOneRepMax) / 2 else currOneRepMax
             }
 
-            return oneRepMax
+            return oneRepMax.roundToInt()
         }
 
-        fun getOneRepMax(weight: Float, reps: Int, rpe: Float): Float {
+        fun getOneRepMax(weight: Float, reps: Int, rpe: Float): Int {
             val repsConsideringRpe = reps + (10 - rpe)
             return getOneRepMax(weight, repsConsideringRpe)
         }

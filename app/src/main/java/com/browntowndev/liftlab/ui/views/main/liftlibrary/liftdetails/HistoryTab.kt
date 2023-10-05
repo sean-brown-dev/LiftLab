@@ -19,7 +19,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.OneRepMaxResultDto
 
 @Composable
 fun HistoryTab(
-    oneRepMax: Pair<String, Float>?,
+    oneRepMax: Pair<String, Int>?,
     maxVolume: Pair<String, Float>?,
     maxWeight: Pair<String, Float>?,
     topTenPerformances: List<OneRepMaxResultDto>,
