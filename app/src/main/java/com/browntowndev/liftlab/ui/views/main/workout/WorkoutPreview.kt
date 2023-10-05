@@ -11,8 +11,10 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -82,39 +85,6 @@ fun WorkoutPreview(
                 verticalArrangement = Arrangement.Top,
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(5.dp))
-                }
-                items(lifts) { lift ->
-                    val movementPatternDisplayName =
-                        remember { lift.liftMovementPattern.displayName() }
-                    val liftFirstLetter = remember { lift.liftName[0].toString() }
-                    val hasMyoRepSets = remember { lift.sets.any { it is LoggingMyoRepSetDto } }
-                    val liftNameWithSetCount = remember {
-                        val setCountAndName = "${lift.setCount} x ${lift.liftName}"
-                        if (hasMyoRepSets) setCountAndName.insertSuperscript(
-                            "+myo",
-                            lift.setCount.toString().length - 1
-                        )
-                        else setCountAndName
-                    }
-                    ListItem(
-                        headlineContent = { Text(movementPatternDisplayName, fontSize = 20.sp) },
-                        supportingContent = {
-                            if (liftNameWithSetCount is AnnotatedString)
-                                Text(liftNameWithSetCount, fontSize = 15.sp)
-                            else if (liftNameWithSetCount is String)
-                                Text(liftNameWithSetCount, fontSize = 15.sp)
-                        },
-                        leadingContent = { CircledTextIcon(text = liftFirstLetter) },
-                        colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.background,
-                            headlineColor = MaterialTheme.colorScheme.onBackground,
-                            supportingColor = MaterialTheme.colorScheme.onBackground,
-                            leadingIconColor = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-                }
-                item {
                     val primaryColor = MaterialTheme.colorScheme.primary
                     val secondaryColor = MaterialTheme.colorScheme.secondary
                     var buttonColor by remember {
@@ -174,6 +144,49 @@ fun WorkoutPreview(
                             color = textColor,
                         )
                     }
+
+                    Divider(
+                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 10.dp, end = 20.dp),
+                        color = MaterialTheme.colorScheme.tertiary,
+                        thickness = 1.dp,
+                    )
+                }
+                items(lifts) { lift ->
+                    val movementPatternDisplayName =
+                        remember { lift.liftMovementPattern.displayName() }
+                    val liftFirstLetter = remember { lift.liftName[0].toString() }
+                    val hasMyoRepSets = remember { lift.sets.any { it is LoggingMyoRepSetDto } }
+                    val liftNameWithSetCount = remember {
+                        val setCountAndName = "${lift.setCount} x ${lift.liftName}"
+                        if (hasMyoRepSets) setCountAndName.insertSuperscript(
+                            "+myo",
+                            lift.setCount.toString().length - 1
+                        )
+                        else setCountAndName
+                    }
+                    ListItem(
+                        headlineContent = { Text(movementPatternDisplayName, fontSize = 20.sp) },
+                        supportingContent = {
+                            if (liftNameWithSetCount is AnnotatedString)
+                                Text(liftNameWithSetCount, fontSize = 15.sp)
+                            else if (liftNameWithSetCount is String)
+                                Text(liftNameWithSetCount, fontSize = 15.sp)
+                        },
+                        leadingContent = { CircledTextIcon(text = liftFirstLetter) },
+                        colors = ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            headlineColor = MaterialTheme.colorScheme.onBackground,
+                            supportingColor = MaterialTheme.colorScheme.onBackground,
+                            leadingIconColor = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                }
+                item {
+                    Divider(
+                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp),
+                        color = MaterialTheme.colorScheme.tertiary,
+                        thickness = 1.dp,
+                    )
                 }
             }
         }
