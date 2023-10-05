@@ -36,7 +36,7 @@ import com.browntowndev.liftlab.ui.views.composables.IntegerTextField
 
 @Composable
 fun LoggableSet(
-    index: Int,
+    key: String,
     lazyListState: LazyListState,
     animateVisibility: Boolean,
     position: Int,
@@ -46,10 +46,12 @@ fun LoggableSet(
     weightRecommendation: Float?,
     repRangePlaceholder: String,
     complete: Boolean,
-    completedReps: Int?,
     completedWeight: Float?,
+    completedReps: Int?,
     completedRpe: Float?,
     rpeTarget: Float,
+    onWeightChanged: (weight: Float?) -> Unit,
+    onRepsChanged: (reps: Int?) -> Unit,
     onCompleted: (weight: Float, reps: Int, rpe: Float) -> Unit,
     onUndoCompletion: () -> Unit,
     toggleRpePicker: (visible: Boolean) -> Unit,
@@ -64,23 +66,25 @@ fun LoggableSet(
         )
     ) {
         SetRow(
-            index,
-            lazyListState,
-            position,
-            progressionScheme,
-            setNumberLabel,
-            previousSetResultLabel,
-            weightRecommendation,
-            repRangePlaceholder,
-            complete,
-            completedReps,
-            completedWeight,
-            completedRpe,
-            rpeTarget,
-            onCompleted,
-            onUndoCompletion,
-            toggleRpePicker,
-            onAddSpacer
+            key = key,
+            lazyListState = lazyListState,
+            position = position,
+            progressionScheme = progressionScheme,
+            setNumberLabel = setNumberLabel,
+            previousSetResultLabel = previousSetResultLabel,
+            weightRecommendation = weightRecommendation,
+            repRangePlaceholder = repRangePlaceholder,
+            complete = complete,
+            completedReps = completedReps,
+            completedWeight = completedWeight,
+            completedRpe = completedRpe,
+            rpeTarget = rpeTarget,
+            onWeightChanged = onWeightChanged,
+            onRepsChanged = onRepsChanged,
+            onCompleted = onCompleted,
+            onUndoCompletion = onUndoCompletion,
+            toggleRpePicker = toggleRpePicker,
+            onAddSpacer = onAddSpacer,
         )
     }
 
@@ -93,7 +97,7 @@ fun LoggableSet(
 
 @Composable
 private fun SetRow(
-    index: Int,
+    key: String,
     lazyListState: LazyListState,
     position: Int,
     progressionScheme: ProgressionScheme,
@@ -106,6 +110,8 @@ private fun SetRow(
     completedWeight: Float?,
     completedRpe: Float?,
     rpeTarget: Float,
+    onWeightChanged: (weight: Float?) -> Unit,
+    onRepsChanged: (reps: Int?) -> Unit,
     onCompleted: (weight: Float, reps: Int, rpe: Float) -> Unit,
     onUndoCompletion: () -> Unit,
     toggleRpePicker: (visible: Boolean) -> Unit,
@@ -136,7 +142,7 @@ private fun SetRow(
             style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.width(8.dp))
-        var weight: Float? by remember(key1 = index, key2 = completedWeight) { mutableStateOf(completedWeight) }
+        var weight: Float? by remember(key1 = key, key2 = completedWeight) { mutableStateOf(completedWeight) }
         FloatTextField(
             modifier = Modifier.weight(1f),
             listState = lazyListState,
@@ -148,17 +154,20 @@ private fun SetRow(
                 weight = it
                 if (complete) {
                     onCompleted(weight!!, completedReps!!, completedRpe!!)
+                } else {
+                    onWeightChanged(it)
                 }
             },
             onLeftFocusBlank = {
                 weight = null
+                onWeightChanged(null)
                 if (complete) {
                     onUndoCompletion()
                 }
             },
         )
         Spacer(modifier = Modifier.width(8.dp))
-        var reps: Int? by remember(key1 = index, key2 = completedReps) { mutableStateOf(completedReps) }
+        var reps: Int? by remember(key1 = key, key2 = completedReps) { mutableStateOf(completedReps) }
         IntegerTextField(
             modifier = Modifier.weight(1f),
             value = reps,
@@ -168,18 +177,21 @@ private fun SetRow(
                 reps = it
                 if (complete) {
                     onCompleted(completedWeight!!, reps!!, completedRpe!!)
+                } else {
+                    onRepsChanged(it)
                 }
             },
             onLeftFocusBlank = {
                 reps = null
+                onRepsChanged(null)
                 if (complete) {
                     onUndoCompletion()
                 }
             },
         )
         Spacer(modifier = Modifier.width(8.dp))
-        var rpe: Float? by remember(key1 = index, key2 = completedRpe) { mutableStateOf(completedRpe) }
-        val rpePlaceholder = remember(key1 = index, key2 = rpeTarget) {
+        var rpe: Float? by remember(key1 = key, key2 = completedRpe) { mutableStateOf(completedRpe) }
+        val rpePlaceholder = remember(key1 = key, key2 = rpeTarget) {
             if (position == 0) {
                 rpeTarget.toString().removeSuffix(".0")
             } else {
@@ -211,12 +223,12 @@ private fun SetRow(
         )
         Spacer(modifier = Modifier.width(8.dp))
         val enabled by remember(
-            key1 = index,
+            key1 = key,
             key2 = weight != null && reps != null && rpe != null
         ) {
             mutableStateOf(weight != null && reps != null && rpe != null)
         }
-        var checked by remember(key1 = index, key2 = complete) { mutableStateOf(complete) }
+        var checked by remember(key1 = key, key2 = complete) { mutableStateOf(complete) }
         LaunchedEffect(enabled) {
             if (!enabled && checked) {
                 onUndoCompletion()

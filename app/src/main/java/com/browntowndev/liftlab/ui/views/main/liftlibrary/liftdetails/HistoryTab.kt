@@ -50,13 +50,13 @@ fun HistoryTab(
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = oneRepMax?.first ?: "N/A",
+                text = oneRepMax?.second?.toString() ?: "N/A",
                 color = MaterialTheme.colorScheme.outline,
                 fontSize = 15.sp,
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = oneRepMax?.second?.toString() ?: "N/A",
+                text = oneRepMax?.first ?: "N/A",
                 color = MaterialTheme.colorScheme.outline,
                 fontSize = 15.sp,
             )

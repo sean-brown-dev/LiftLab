@@ -63,13 +63,14 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
     lifts: List<LoggingWorkoutLiftDto>,
     duration: String,
+    onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
+    onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
     onRpeSelected: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) -> Unit,
     onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, setPosition: Int, myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float, restTime: Long) -> Unit,
     undoCompleteSet: (liftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
@@ -190,7 +191,7 @@ fun WorkoutLog(
                                         }
 
                                         LoggableSet(
-                                            index = index,
+                                            key = "${lift.id}-${index}",
                                             lazyListState = lazyListState,
                                             animateVisibility = animateVisibility,
                                             position = set.setPosition,
@@ -204,6 +205,12 @@ fun WorkoutLog(
                                             completedRpe = set.completedRpe,
                                             previousSetResultLabel = set.previousSetResultLabel,
                                             repRangePlaceholder = set.repRangePlaceholder,
+                                            onWeightChanged = {
+                                                onWeightChanged(lift.id, set.setPosition, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
+                                            },
+                                            onRepsChanged = {
+                                                onRepsChanged(lift.id, set.setPosition, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
+                                            },
                                             toggleRpePicker = {
                                                 if (it) {
                                                     pickerViewModel.showRpePicker(
