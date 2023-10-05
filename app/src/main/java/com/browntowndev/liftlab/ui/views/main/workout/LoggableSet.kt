@@ -36,7 +36,6 @@ import com.browntowndev.liftlab.ui.views.composables.IntegerTextField
 
 @Composable
 fun LoggableSet(
-    key: String,
     lazyListState: LazyListState,
     animateVisibility: Boolean,
     position: Int,
@@ -66,7 +65,6 @@ fun LoggableSet(
         )
     ) {
         SetRow(
-            key = key,
             lazyListState = lazyListState,
             position = position,
             progressionScheme = progressionScheme,
@@ -97,7 +95,6 @@ fun LoggableSet(
 
 @Composable
 private fun SetRow(
-    key: String,
     lazyListState: LazyListState,
     position: Int,
     progressionScheme: ProgressionScheme,
@@ -142,24 +139,21 @@ private fun SetRow(
             style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.width(8.dp))
-        var weight: Float? by remember(key1 = key, key2 = completedWeight) { mutableStateOf(completedWeight) }
         FloatTextField(
             modifier = Modifier.weight(1f),
             listState = lazyListState,
-            value = weight,
+            value = completedWeight,
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
             errorOnEmpty = false,
             maxValue = Float.MAX_VALUE,
             onValueChanged = {
-                weight = it
                 if (complete) {
-                    onCompleted(weight!!, completedReps!!, completedRpe!!)
+                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
                 } else {
                     onWeightChanged(it)
                 }
             },
             onLeftFocusBlank = {
-                weight = null
                 onWeightChanged(null)
                 if (complete) {
                     onUndoCompletion()
@@ -167,22 +161,19 @@ private fun SetRow(
             },
         )
         Spacer(modifier = Modifier.width(8.dp))
-        var reps: Int? by remember(key1 = key, key2 = completedReps) { mutableStateOf(completedReps) }
         IntegerTextField(
             modifier = Modifier.weight(1f),
-            value = reps,
+            value = completedReps,
             placeholder = repRangePlaceholder,
             errorOnEmpty = false,
             onValueChanged = {
-                reps = it
                 if (complete) {
-                    onCompleted(completedWeight!!, reps!!, completedRpe!!)
+                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
                 } else {
                     onRepsChanged(it)
                 }
             },
             onLeftFocusBlank = {
-                reps = null
                 onRepsChanged(null)
                 if (complete) {
                     onUndoCompletion()
@@ -190,8 +181,7 @@ private fun SetRow(
             },
         )
         Spacer(modifier = Modifier.width(8.dp))
-        var rpe: Float? by remember(key1 = key, key2 = completedRpe) { mutableStateOf(completedRpe) }
-        val rpePlaceholder = remember(key1 = key, key2 = rpeTarget) {
+        val rpePlaceholder = remember(rpeTarget) {
             if (position == 0) {
                 rpeTarget.toString().removeSuffix(".0")
             } else {
@@ -208,14 +198,13 @@ private fun SetRow(
         FloatTextField(
             modifier = Modifier.weight(1f),
             listState = lazyListState,
-            value = rpe,
+            value = completedRpe,
             placeholder = rpePlaceholder,
             disableSystemKeyboard = true,
             errorOnEmpty = false,
             onValueChanged = {
-                rpe = it
                 if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, rpe!!)
+                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
                 }
             },
             onFocusChanged = { toggleRpePicker(it) },
@@ -223,17 +212,18 @@ private fun SetRow(
         )
         Spacer(modifier = Modifier.width(8.dp))
         val enabled by remember(
-            key1 = key,
-            key2 = weight != null && reps != null && rpe != null
+            key1 = completedWeight,
+            key2 = completedReps,
+            key3 = completedRpe
         ) {
-            mutableStateOf(weight != null && reps != null && rpe != null)
+            mutableStateOf(completedWeight != null && completedReps != null && completedRpe != null)
         }
-        var checked by remember(key1 = key, key2 = complete) { mutableStateOf(complete) }
         LaunchedEffect(enabled) {
-            if (!enabled && checked) {
+            if (!enabled && complete) {
                 onUndoCompletion()
             }
         }
+        var checked by remember(complete) { mutableStateOf(complete) }
         Checkbox(
             checked = checked,
             enabled = enabled,
@@ -243,9 +233,9 @@ private fun SetRow(
                 checkmarkColor = MaterialTheme.colorScheme.onPrimary,
             ),
             onCheckedChange = {
-                checked = it
+                checked = checked
                 if (it) {
-                    onCompleted(weight!!, reps!!, rpe!!)
+                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
                 } else {
                     onUndoCompletion()
                 }

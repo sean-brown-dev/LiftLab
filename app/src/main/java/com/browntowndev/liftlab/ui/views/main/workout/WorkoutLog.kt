@@ -191,7 +191,6 @@ fun WorkoutLog(
                                         }
 
                                         LoggableSet(
-                                            key = "${lift.id}-${index}",
                                             lazyListState = lazyListState,
                                             animateVisibility = animateVisibility,
                                             position = set.setPosition,
