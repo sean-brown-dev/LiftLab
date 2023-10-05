@@ -130,6 +130,9 @@ class WorkoutsRepository(
         val completedSet = inProgressCompletedSets[
             "${workoutLift.liftId}-${set.setPosition}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
         ]
+        val prevCompletedSet = inProgressCompletedSets[
+            "${workoutLift.liftId}-${set.setPosition - 1}-null"
+        ]
 
         return if (completedSet != null) {
             when (set) {
@@ -164,31 +167,25 @@ class WorkoutsRepository(
 
                 else -> throw Exception("${set::class.simpleName} is not defined.")
             }
-        } else if (set !is LoggingMyoRepSetDto) {
-            val prevCompletedSet = inProgressCompletedSets[
-                "${workoutLift.liftId}-${set.setPosition - 1}-null"
-            ]
-
+        } else if (set !is LoggingMyoRepSetDto && prevCompletedSet != null) {
             listOf(
-                if (prevCompletedSet != null) {
-                    when (set) {
-                        is LoggingDropSetDto -> {
-                            val increment = workoutLift.incrementOverride
-                                ?: workoutLift.liftIncrementOverride
-                                ?: SettingsManager.getSetting(
-                                    SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                    5f
-                                )
+                when (set) {
+                    is LoggingDropSetDto -> {
+                        val increment = workoutLift.incrementOverride
+                            ?: workoutLift.liftIncrementOverride
+                            ?: SettingsManager.getSetting(
+                                SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                                5f
+                            )
 
-                            val weightRecommendation = (prevCompletedSet.weight * (1 - set.dropPercentage))
-                                .roundToNearestFactor(increment)
+                        val weightRecommendation = (prevCompletedSet.weight * (1 - set.dropPercentage))
+                            .roundToNearestFactor(increment)
 
-                            set.copy(weightRecommendation = weightRecommendation)
-                        }
-                        is LoggingStandardSetDto -> set.copy(weightRecommendation = prevCompletedSet.weight)
-                        else -> throw Exception("${set::class.simpleName} is not defined.")
+                        set.copy(weightRecommendation = weightRecommendation)
                     }
-                } else set
+                    is LoggingStandardSetDto -> set.copy(weightRecommendation = prevCompletedSet.weight)
+                    else -> throw Exception("${set::class.simpleName} is not defined.")
+                }
             )
         } else listOf(set)
     }
