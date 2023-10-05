@@ -93,7 +93,16 @@ fun LiftDetails(
                 },
             )
 
-            1, 2 -> {}
+            1 -> HistoryTab(
+                oneRepMax = state.oneRepMax,
+                maxVolume = state.maxVolume,
+                maxWeight = state.maxWeight,
+                topTenPerformances = state.topTenPerformances,
+                totalReps = state.totalReps,
+                totalVolume = state.totalVolume,
+            )
+
+            2 -> {}
         }
     }
 }

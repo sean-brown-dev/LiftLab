@@ -19,7 +19,7 @@ class CalculationEngine {
             10 to 0.733f
         )
 
-        private fun getOneRepMax(weight: Int, reps: Float): Float {
+        private fun getOneRepMax(weight: Float, reps: Float): Float {
             var oneRepMax = 0f
 
             reps.toFloorAndCeiling().forEach {
@@ -40,7 +40,12 @@ class CalculationEngine {
             return oneRepMax
         }
 
-        fun calculateSuggestedWeight (weight: Int, reps: Int, rpe: Float, roundingFactor: Float): Int {
+        fun getOneRepMax(weight: Float, reps: Int, rpe: Float): Float {
+            val repsConsideringRpe = reps + (10 - rpe)
+            return getOneRepMax(weight, repsConsideringRpe)
+        }
+
+        fun calculateSuggestedWeight (weight: Float, reps: Int, rpe: Float, roundingFactor: Float): Int {
             val repsConsideringRpe = reps + (10 - rpe)
             val oneRepMax = getOneRepMax(weight, repsConsideringRpe)
 

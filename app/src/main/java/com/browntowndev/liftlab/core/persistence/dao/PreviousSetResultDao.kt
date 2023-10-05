@@ -37,8 +37,12 @@ interface PreviousSetResultDao {
     suspend fun insertMany(result: List<PreviousSetResult>): List<Long>
 
     @Query("DELETE FROM previousSetResults " +
+            "WHERE previously_completed_set_id NOT IN (" +
+            "SELECT previously_completed_set_id " +
+            "FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
-            "(mesoCycle != :mesoCycle OR microCycle != :microCycle)")
+            "mesoCycle = :mesoCycle AND " +
+            "microCycle = :microCycle)")
     suspend fun deleteAllNotForWorkoutMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): Int
 
     @Query("DELETE FROM previousSetResults " +

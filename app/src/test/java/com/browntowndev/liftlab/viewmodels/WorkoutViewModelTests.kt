@@ -18,9 +18,9 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
-import com.browntowndev.liftlab.core.persistence.entities.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
@@ -46,7 +46,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
-import java.time.Duration
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
@@ -1611,12 +1610,12 @@ class WorkoutViewModelTests {
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 100f, 7, 8f, 0, 0, 0)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
             )
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 1, 100f, 7, 8f, 0, 0, 0)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 1, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
             )
             viewModel.finishWorkout()
 
@@ -1773,12 +1772,12 @@ class WorkoutViewModelTests {
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 100f, 10, 8f, 0, 0, 2)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
             )
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 1, 100f, 10, 8f, 0, 0, 2)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 1, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
             )
             viewModel.finishWorkout()
 

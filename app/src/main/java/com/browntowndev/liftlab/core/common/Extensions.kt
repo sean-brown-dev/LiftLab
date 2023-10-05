@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.text.DateFormat.getDateInstance
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -218,6 +219,11 @@ fun Long.toTimeString(): String {
 
 fun Long.toDate(): Date {
     return Date(this)
+}
+
+fun Date.toSimpleDateString(): String {
+    val formatter = getDateInstance()
+    return formatter.format(this)
 }
 
 fun BroadcastReceiver.executeInCoroutineScope(

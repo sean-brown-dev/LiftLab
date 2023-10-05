@@ -20,9 +20,9 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
-import com.browntowndev.liftlab.core.persistence.entities.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
@@ -31,10 +31,12 @@ import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsReposi
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
@@ -351,9 +353,10 @@ class WorkoutViewModel(
                     inProgressWorkout = currentState.inProgressWorkout?.copy(
                         completedSets = currentState.inProgressWorkout.completedSets.toMutableList().apply {
                             val existingResult = find { existing ->
-                                existing.setPosition == result.setPosition &&
+                                existing.liftId == result.liftId &&
+                                        existing.setPosition == result.setPosition &&
                                         (existing as? MyoRepSetResultDto)?.myoRepSetPosition ==
-                                         (result as? MyoRepSetResultDto)?.myoRepSetPosition
+                                        (result as? MyoRepSetResultDto)?.myoRepSetPosition
                             }
 
                             if (existingResult != null) {
@@ -444,7 +447,7 @@ class WorkoutViewModel(
         }
     }
 
-    public fun finishWorkout() {
+    fun finishWorkout() {
         executeInTransactionScope {
             val startTimeInMillis = _state.value.inProgressWorkout!!.startTime.time
             val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
@@ -455,14 +458,9 @@ class WorkoutViewModel(
             workoutInProgressRepository.delete()
             restTimerInProgressRepository.deleteAll()
 
-            // Copy all of the set results from this workout into the set history table
-            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId)
-
             // Increment the mesocycle and microcycle
-            val microCycleComplete =
-                (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val deloadWeekComplete =
-                microCycleComplete && (programMetadata.deloadWeek - 1) == programMetadata.currentMicrocycle
+            val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
+            val deloadWeekComplete = microCycleComplete && (programMetadata.deloadWeek - 1) == programMetadata.currentMicrocycle
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
@@ -495,13 +493,6 @@ class WorkoutViewModel(
                 durationInMillis = durationInMillis,
             )
 
-            // Update any Linear Progression failures
-            // The reason this is done when the workout is completed is because if it were done on the fly
-            // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
-            // and then you get double increment. Or any variation of them going between success/failure by
-            // modifying results.
-            updateLinearProgressionFailures()
-
             // Delete all set results from the previous workout
             setResultsRepository.deleteAllNotForWorkout(
                 workoutId = workout.id,
@@ -509,12 +500,24 @@ class WorkoutViewModel(
                 microCycle = programMetadata.currentMicrocycle,
             )
 
+            // Copy all of the set results from this workout into the set history table
+            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId)
+
+            // Update any Linear Progression failures
+            // The reason this is done when the workout is completed is because if it were done on the fly
+            // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
+            // and then you get double increment. Or any variation of them going between success/failure by
+            // modifying results.
+            updateLinearProgressionFailures()
+
             // TODO: have summary pop up as dialog and close this on completion instead
             _state.update {
                 it.copy(workoutLogVisible = false)
             }
 
-            initialize()
+            withContext(Dispatchers.Main) {
+                initialize()
+            }
         }
     }
 

@@ -12,7 +12,7 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +26,7 @@ class LiftDetailsViewModel(
     private val liftId: Long?,
     private val navHostController: NavHostController,
     private val liftsRepository: LiftsRepository,
-    private val previousSetResultsRepository: PreviousSetResultsRepository,
+    private val loggingRepository: LoggingRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus
 ) : LiftLabViewModel(transactionScope, eventBus) {
@@ -51,14 +51,16 @@ class LiftDetailsViewModel(
                 )
             }
 
-            val previousSetResults = if (liftId != null) {
-                previousSetResultsRepository.getForLift(liftId)
+            val test = loggingRepository.getAll().size
+
+            val workoutLogs = if (liftId != null) {
+                loggingRepository.getWorkoutLogsForLift(liftId)
             } else listOf()
 
             _state.update {
                 it.copy(
                     lift = lift,
-                    previousSetResults = previousSetResults,
+                    workoutLogs = workoutLogs,
                     volumeTypeDisplayNames = lift.volumeTypesBitmask.getVolumeTypes()
                         .fastMap { volumeType ->
                             volumeType.displayName()
