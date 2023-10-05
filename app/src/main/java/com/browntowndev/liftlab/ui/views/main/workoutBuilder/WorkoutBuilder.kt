@@ -93,7 +93,7 @@ fun WorkoutBuilder(
         if (state.workout != null) {
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
-                    controlName = Screen.SUBTITLE,
+                    controlName = Screen.TITLE,
                     payload = state.workout!!.name
                 )
             )
