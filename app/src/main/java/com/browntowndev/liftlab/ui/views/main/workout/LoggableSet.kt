@@ -186,10 +186,11 @@ private fun SetRow(
                 rpeTarget.toString().removeSuffix(".0")
             } else {
                 when (progressionScheme) {
-                    ProgressionScheme.DOUBLE_PROGRESSION,
+                    ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                     ProgressionScheme.WAVE_LOADING_PROGRESSION -> ""
 
-                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> rpeTarget.toString().removeSuffix(".0")
+                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
+                    ProgressionScheme.DOUBLE_PROGRESSION_REP_RANGE -> rpeTarget.toString().removeSuffix(".0")
 
                     ProgressionScheme.LINEAR_PROGRESSION -> "≤${rpeTarget.toString().removeSuffix(".0")}"
                 }

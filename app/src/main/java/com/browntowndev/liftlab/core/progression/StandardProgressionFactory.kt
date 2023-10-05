@@ -41,7 +41,7 @@ class StandardProgressionFactory: ProgressionFactory {
                             restTime = workoutLift.restTime,
                             setCount = workoutLift.setCount,
                             sets = when (workoutLift.progressionScheme) {
-                                ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
+                                ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE -> DoubleProgressionCalculator()
                                 ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
                                 ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
                                 ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek)

@@ -23,7 +23,7 @@ class WaveLoadingProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -55,7 +55,7 @@ class WaveLoadingProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -87,7 +87,7 @@ class WaveLoadingProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,

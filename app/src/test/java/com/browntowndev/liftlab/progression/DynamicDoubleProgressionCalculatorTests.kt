@@ -26,7 +26,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -59,7 +59,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -87,7 +87,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -121,7 +121,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 4,
                 repRangeBottom = 6,
@@ -154,7 +154,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 4,
                 repRangeBottom = 6,
@@ -187,7 +187,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeTop = 8,
@@ -244,7 +244,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 3,
                 repRangeTop = 8,
@@ -301,7 +301,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
@@ -345,7 +345,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
@@ -401,7 +401,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
@@ -458,7 +458,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
@@ -504,7 +504,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
@@ -549,7 +549,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 4,
                 repRangeBottom = 6,
@@ -577,7 +577,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
@@ -623,7 +623,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
@@ -666,7 +666,7 @@ class DynamicDoubleProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
