@@ -164,24 +164,30 @@ class WorkoutsRepository(
 
                 else -> throw Exception("${set::class.simpleName} is not defined.")
             }
-        } else if (set is LoggingDropSetDto) {
+        } else if (set !is LoggingMyoRepSetDto) {
             val prevCompletedSet = inProgressCompletedSets[
                 "${workoutLift.liftId}-${set.setPosition - 1}-null"
             ]
 
             listOf(
                 if (prevCompletedSet != null) {
-                    val increment = workoutLift.incrementOverride
-                        ?: workoutLift.liftIncrementOverride
-                        ?: SettingsManager.getSetting(
-                            SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                            5f
-                        )
+                    when (set) {
+                        is LoggingDropSetDto -> {
+                            val increment = workoutLift.incrementOverride
+                                ?: workoutLift.liftIncrementOverride
+                                ?: SettingsManager.getSetting(
+                                    SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                                    5f
+                                )
 
-                    val weightRecommendation = (prevCompletedSet.weight * (1 - set.dropPercentage))
-                        .roundToNearestFactor(increment)
+                            val weightRecommendation = (prevCompletedSet.weight * (1 - set.dropPercentage))
+                                .roundToNearestFactor(increment)
 
-                    set.copy(weightRecommendation = weightRecommendation)
+                            set.copy(weightRecommendation = weightRecommendation)
+                        }
+                        is LoggingStandardSetDto -> set.copy(weightRecommendation = prevCompletedSet.weight)
+                        else -> throw Exception("${set::class.simpleName} is not defined.")
+                    }
                 } else set
             )
         } else listOf(set)
