@@ -116,6 +116,9 @@ class WorkoutViewModelTests {
                                 weightRecommendation = 100f,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
+                                completedWeight = 100f,
+                                completedReps = 30,
+                                completedRpe = 8f,
                             )
                         )
                     )
@@ -246,6 +249,9 @@ class WorkoutViewModelTests {
                                 weightRecommendation = 100f,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
+                                completedWeight = 100f,
+                                completedReps = 20,
+                                completedRpe = 8f,
                             ),
                         )
                     )
@@ -504,6 +510,9 @@ class WorkoutViewModelTests {
                                 weightRecommendation = 100f,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
+                                completedWeight = 100f,
+                                completedReps = 5,
+                                completedRpe = 8f,
                             ),
                         )
                     )
@@ -649,6 +658,9 @@ class WorkoutViewModelTests {
                                 weightRecommendation = 100f,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
+                                completedWeight = 100f,
+                                completedReps = 5,
+                                completedRpe = 8f,
                             ),
                         )
                     )
@@ -804,6 +816,9 @@ class WorkoutViewModelTests {
                                 weightRecommendation = 100f,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
+                                completedWeight = 100f,
+                                completedReps = 5,
+                                completedRpe = 8f,
                             ),
                         )
                     )
@@ -920,6 +935,9 @@ class WorkoutViewModelTests {
                                 weightRecommendation = 100f,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
+                                completedWeight = 100f,
+                                completedReps = 10,
+                                completedRpe = 8f,
                             ),
                             LoggingDropSetDto(
                                 setPosition = 1,
