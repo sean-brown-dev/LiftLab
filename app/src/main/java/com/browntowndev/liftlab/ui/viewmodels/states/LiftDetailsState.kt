@@ -5,11 +5,13 @@ import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toSimpleDateString
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.OneRepMaxResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
-import com.patrykandpatrick.vico.core.axis.AxisPosition
-import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
+import com.patrykandpatrick.vico.core.entry.ChartEntryModel
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.patrykandpatrick.vico.core.entry.entryOf
 import java.text.NumberFormat
@@ -63,10 +65,10 @@ data class LiftDetailsState(
         } else null
     }
 
-    val topTenPerformances: List<OneRepMaxResultDto> by lazy {
+    val topTenPerformances: List<OneRepMaxEntry> by lazy {
         workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults.map { setLog ->
-                OneRepMaxResultDto(
+                OneRepMaxEntry(
                     setsAndRepsLabel = "${formatFloatString(setLog.weight)}x${setLog.reps} @${setLog.rpe}",
                     date = workoutLog.date.toSimpleDateString(),
                     oneRepMax = CalculationEngine.getOneRepMax(setLog.weight, setLog.reps, setLog.rpe).toString()
@@ -91,28 +93,58 @@ data class LiftDetailsState(
         }.sum())
     }
 
-    val oneRepMaxChartValues by lazy {
-        val oneRepMaxes = workoutLogs.fastMap { workoutLog ->
+    val workoutFilterOptions by lazy {
+        workoutLogs.associate {
+            it.historicalWorkoutNameId to it.workoutName
+        }
+    }
+
+    val oneRepMaxChartModel by lazy {
+        val oneRepMaxesByLocalDate = workoutLogs.fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
                     workoutLog.setResults.maxOf {
                         CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                     }
         }.toMutableList().apply {
-            addAll(List(50) {
-                this[0].first.plusDays(it.toLong() + 1L) to (this[0].second * Random.nextDouble(.8, .9)).roundToInt()
-            })
+            if (any()) {
+                addAll(List(50) {
+                    this[0].first.plusDays(it.toLong() + 1L) to (this[0].second * Random.nextDouble(.9, .99)).roundToInt()
+                })
+            }
         }.associate { (date, oneRepMax) ->
             date to oneRepMax
         }
-
-        val xValuesToDates = oneRepMaxes.keys.associateBy { it.toEpochDay().toFloat() }
-        val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(oneRepMaxes.values, ::entryOf))
+        val xValuesToDates = oneRepMaxesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
+        val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(oneRepMaxesByLocalDate.values, ::entryOf))
         val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
-        val horizontalAxisValueFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
-            (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
-        }
 
-        chartEntryModel to horizontalAxisValueFormatter
+        ChartModel(
+            chartEntryModel = chartEntryModel,
+            axisValuesOverrider = object: AxisValuesOverrider<ChartEntryModel> {
+                override fun getMinY(model: ChartEntryModel): Float {
+                    return model.entries.first().minOf {
+                        it.y
+                    } - 5
+                }
+                override fun getMaxY(model: ChartEntryModel): Float {
+                    return model.entries.first().maxOf {
+                        it.y
+                    } + 5
+                }
+            },
+            bottomAxisValueFormatter = { value, _ ->
+                (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
+            },
+            startAxisValueFormatter = { value, _ ->
+                value.roundToInt().toString()
+            },
+            persistentMarkers =  { marker ->
+                chartEntryModel.entries[0].associate {
+                    it.x to marker
+                }
+            },
+            itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
+        )
     }
 
     private fun formatFloatString(float: Float): String {

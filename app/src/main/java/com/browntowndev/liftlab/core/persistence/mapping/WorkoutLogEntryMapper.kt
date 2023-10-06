@@ -13,6 +13,7 @@ class WorkoutLogEntryMapper {
                 .map { workoutLog ->
                     val firstEntry = workoutLog.value[0]
                     WorkoutLogEntryDto(
+                        historicalWorkoutNameId = firstEntry.historicalWorkoutNameId,
                         workoutName = firstEntry.workoutName,
                         programName = firstEntry.programName,
                         microcycle = firstEntry.microCycle,

@@ -13,10 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
-import com.browntowndev.liftlab.core.persistence.dtos.OneRepMaxResultDto
+import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
 
 @Composable
-fun TopTenPerformances(topTenPerformances: List<OneRepMaxResultDto>) {
+fun TopTenPerformances(topTenPerformances: List<OneRepMaxEntry>) {
     SectionLabel(text = "TOP TEN ESTIMATED 1RM PERFORMANCES")
     Column (
         modifier = Modifier.padding(start = 10.dp, top = 10.dp, end = 20.dp),

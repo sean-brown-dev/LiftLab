@@ -9,7 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.core.persistence.dtos.OneRepMaxResultDto
+import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
 
 @Composable
 fun HistoryTab(
@@ -18,7 +18,7 @@ fun HistoryTab(
     maxWeight: Pair<String, String>?,
     totalReps: String,
     totalVolume: String,
-    topTenPerformances: List<OneRepMaxResultDto>,
+    topTenPerformances: List<OneRepMaxEntry>,
 ) {
     Column(modifier = Modifier
         .fillMaxSize()
