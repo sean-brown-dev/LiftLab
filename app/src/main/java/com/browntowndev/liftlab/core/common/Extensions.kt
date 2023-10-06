@@ -24,6 +24,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -160,9 +162,14 @@ fun Float.isWholeNumber(): Boolean {
 }
 
 fun Float.toFloorAndCeiling(): Iterable<Int> {
-    val roundedDown = this.toInt()
-    val roundedUp = roundedDown + 1
-    return roundedDown..roundedUp
+    return if (this.isWholeNumber()) {
+        listOf(this.roundToInt())
+    } else {
+        val roundedDown = this.toInt()
+        val roundedUp = roundedDown + 1
+
+        roundedDown..roundedUp
+    }
 }
 
 fun Double.roundToNearestFactor(factor: Float): Float {
@@ -224,6 +231,12 @@ fun Long.toDate(): Date {
 fun Date.toSimpleDateString(): String {
     val formatter = getDateInstance()
     return formatter.format(this)
+}
+
+fun Date.toLocalDate(): LocalDate {
+    return this.toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
 }
 
 fun BroadcastReceiver.executeInCoroutineScope(

@@ -1,0 +1,38 @@
+package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
+
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+import com.patrykandpatrick.vico.compose.chart.Chart
+import com.patrykandpatrick.vico.compose.chart.line.lineChart
+import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
+import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
+import com.patrykandpatrick.vico.core.axis.AxisPosition
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.entry.ChartEntryModel
+import kotlin.math.roundToInt
+
+@Composable
+fun ChartsTab(
+    oneRepMaxChartValues: Pair<ChartEntryModel, AxisValueFormatter<AxisPosition.Horizontal.Bottom>>,
+) {
+    Card (modifier = Modifier.padding(10.dp)) {
+        ProvideChartStyle(m3ChartStyle()) {
+            Chart(
+                modifier = Modifier.height(250.dp),
+                chart = lineChart(),
+                model = oneRepMaxChartValues.first,
+                startAxis = rememberStartAxis(valueFormatter = { value, _ ->
+                    value.roundToInt().toString()
+                }),
+                bottomAxis = rememberBottomAxis(valueFormatter = oneRepMaxChartValues.second),
+                marker = rememberMarker(),
+            )
+        }
+    }
+}

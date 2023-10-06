@@ -116,7 +116,7 @@ class LiftLibraryViewModel(
                         rpeTarget = 8f,
                         repRangeBottom = 8,
                         repRangeTop = 10,
-                        progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                        progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                     )
                 }
 

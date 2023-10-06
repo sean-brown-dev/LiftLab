@@ -35,7 +35,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     }
 
     protected fun customSetMeetsCriterion(set: GenericLiftSet, previousSet: SetResult?): Boolean {
-        return previousSet != null && set.rpeTarget == previousSet.rpe && set.repRangeTop <= previousSet.reps
+        return previousSet != null && set.rpeTarget >= previousSet.rpe && set.repRangeTop <= previousSet.reps
     }
 
     protected fun customSetMeetsCriterion(

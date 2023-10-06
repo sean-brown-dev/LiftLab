@@ -58,6 +58,7 @@ dependencies {
     def kotlin_reflect_version = '1.9.10'
     def eventbus_version = '3.3.1'
     def mockkVersion = '1.13.8'
+    def vico_version = '1.12.0'
 
     implementation "org.greenrobot:eventbus:$eventbus_version"
     kapt "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
@@ -130,6 +131,16 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.5.2'
     debugImplementation 'androidx.compose.ui:ui-tooling:1.5.2'
     debugImplementation 'androidx.compose.ui:ui-test-manifest:1.5.2'
+
+    // Vico Charts
+    // For Jetpack Compose.
+    implementation("com.patrykandpatrick.vico:compose:$vico_version")
+    // For `compose`. Creates a `ChartStyle` based on an M3 Material Theme.
+    implementation("com.patrykandpatrick.vico:compose-m3:$vico_version")
+    // Houses the core logic for charts and other elements. Included in all other modules.
+    implementation("com.patrykandpatrick.vico:core:$vico_version")
+    // For the view system.
+    implementation("com.patrykandpatrick.vico:views:$vico_version")
 }
 ksp {
     arg("room.generateKotlin", "true")

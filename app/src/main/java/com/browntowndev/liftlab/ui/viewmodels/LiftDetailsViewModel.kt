@@ -51,8 +51,6 @@ class LiftDetailsViewModel(
                 )
             }
 
-            val test = loggingRepository.getAll().size
-
             val workoutLogs = if (liftId != null) {
                 loggingRepository.getWorkoutLogsForLift(liftId)
             } else listOf()

@@ -102,7 +102,7 @@ fun LiftDetails(
                 totalVolume = state.totalVolume,
             )
 
-            2 -> {}
+            2 -> ChartsTab(oneRepMaxChartValues = state.oneRepMaxChartValues)
         }
     }
 }

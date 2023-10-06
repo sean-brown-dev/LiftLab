@@ -14,11 +14,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.core.common.Utils
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -123,8 +118,6 @@ fun Workout(
             startWorkout = { workoutViewModel.startWorkout() },
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
         )
-        // TODO: Need to mark weight and reps completed just like RPE because when scrolling around
-        // TODO: the completed ones get lost
         WorkoutLog(
             paddingValues = paddingValues,
             visible = state.workoutLogVisible,

@@ -25,7 +25,7 @@ class LinearProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -57,7 +57,7 @@ class LinearProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -89,7 +89,7 @@ class LinearProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -121,7 +121,7 @@ class LinearProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -148,7 +148,7 @@ class LinearProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,
@@ -179,7 +179,7 @@ class LinearProgressionCalculatorTests {
             workoutLift = WorkoutLift(
                 workoutId = 0,
                 liftId = 0,
-                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+                progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 position = 0,
                 setCount = 3,
                 repRangeBottom = 6,

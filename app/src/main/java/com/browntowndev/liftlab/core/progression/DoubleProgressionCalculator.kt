@@ -12,10 +12,9 @@ class DoubleProgressionCalculator: StraightSetProgressionCalculator() {
         lift: StandardWorkoutLiftDto,
         previousSetResults: List<SetResult>,
     ): Boolean {
-        val allSetGoalsMet = previousSetResults.firstOrNull()?.rpe == lift.rpeTarget &&
-                previousSetResults.all {
-                    it.reps == lift.repRangeTop
-                }
+        val allSetGoalsMet = previousSetResults.all {
+            it.reps >= lift.repRangeTop && it.rpe <= lift.rpeTarget
+        }
 
         return allSetGoalsMet
     }

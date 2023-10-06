@@ -2,13 +2,21 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.isWholeNumber
+import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toSimpleDateString
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.OneRepMaxResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
+import com.patrykandpatrick.vico.core.axis.AxisPosition
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.entry.entryModelOf
+import com.patrykandpatrick.vico.core.entry.entryOf
 import java.text.NumberFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 data class LiftDetailsState(
     val lift: LiftDto? = null,
@@ -18,11 +26,10 @@ data class LiftDetailsState(
 ) {
     val oneRepMax: Pair<String, String>? by lazy {
         val oneRepMax = workoutLogs.fastMap { workoutLog ->
-            Pair(
-                workoutLog.date.toSimpleDateString(),
-                workoutLog.setResults.maxOf {
-                    CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                })
+            workoutLog.date.toSimpleDateString() to
+                    workoutLog.setResults.maxOf {
+                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                    }
         }.maxByOrNull { it.second }
 
         if (oneRepMax != null) {
@@ -32,12 +39,10 @@ data class LiftDetailsState(
 
     val maxVolume: Pair<String, String>? by lazy {
         val maxVolume = workoutLogs.fastMap { workoutLog ->
-            Pair(
-                workoutLog.date.toSimpleDateString(),
-                workoutLog.setResults.maxOf {
-                    it.reps * it.weight
-                }
-            )
+            workoutLog.date.toSimpleDateString() to
+                    workoutLog.setResults.maxOf {
+                        it.reps * it.weight
+                    }
         }.maxByOrNull { it.second }
 
         if (maxVolume != null) {
@@ -47,12 +52,10 @@ data class LiftDetailsState(
 
     val maxWeight: Pair<String, String>? by lazy {
         val maxWeight = workoutLogs.fastMap { workoutLog ->
-            Pair(
-                workoutLog.date.toSimpleDateString(),
-                workoutLog.setResults.maxOf {
-                    it.weight
-                }
-            )
+            workoutLog.date.toSimpleDateString() to
+                    workoutLog.setResults.maxOf {
+                        it.weight
+                    }
         }.maxByOrNull { it.second }
 
         if (maxWeight != null) {
@@ -86,6 +89,30 @@ data class LiftDetailsState(
                 setLog.reps * setLog.weight
             }
         }.sum())
+    }
+
+    val oneRepMaxChartValues by lazy {
+        val oneRepMaxes = workoutLogs.fastMap { workoutLog ->
+            workoutLog.date.toLocalDate() to
+                    workoutLog.setResults.maxOf {
+                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                    }
+        }.toMutableList().apply {
+            addAll(List(50) {
+                this[0].first.plusDays(it.toLong() + 1L) to (this[0].second * Random.nextDouble(.8, .9)).roundToInt()
+            })
+        }.associate { (date, oneRepMax) ->
+            date to oneRepMax
+        }
+
+        val xValuesToDates = oneRepMaxes.keys.associateBy { it.toEpochDay().toFloat() }
+        val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(oneRepMaxes.values, ::entryOf))
+        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
+        val horizontalAxisValueFormatter = AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+            (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
+        }
+
+        chartEntryModel to horizontalAxisValueFormatter
     }
 
     private fun formatFloatString(float: Float): String {

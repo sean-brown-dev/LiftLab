@@ -91,7 +91,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 7f,
             repRangeBottom = 10,
             repRangeTop = 12,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -143,7 +143,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 12,
             repRangeTop = 15,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -163,7 +163,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 8,
             repRangeTop = 10,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -173,7 +173,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 12,
             repRangeTop = 15,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -183,7 +183,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 12,
             repRangeTop = 18,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
 
@@ -215,7 +215,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 7f,
             repRangeBottom = 10,
             repRangeTop = 12,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -235,7 +235,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 15,
             repRangeTop = 20,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
 
@@ -277,7 +277,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 10,
             repRangeTop = 12,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -297,7 +297,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 10,
             repRangeTop = 12,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
         db.workoutLiftsDao().insert(WorkoutLift(
@@ -307,7 +307,7 @@ class LiftLabDatabaseWorker(
             rpeTarget = 8f,
             repRangeBottom = 10,
             repRangeTop = 12,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION_TOP_SET_RPE,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             setCount = 3,
         ))
     }

@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.progression
 
 import com.browntowndev.liftlab.core.common.isWholeNumber
-import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.common.toFloorAndCeiling
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -22,21 +21,22 @@ class CalculationEngine {
         )
 
         private fun getOneRepMax(weight: Float, reps: Float): Int {
-            var oneRepMax = 0f
-
-            reps.toFloorAndCeiling().forEach {
-                val currOneRepMax = if (reps.isWholeNumber() && rep1RMPercentages.containsKey(it)) {
-                    weight / rep1RMPercentages[it]!!
-                } else {
-                    val dBrzyckiCalc = weight * (36.0f / (37.0f - reps))
-                    val dBaechleCalc = weight * (1.0f + .033f * reps)
-                    val dLanderCalc = weight / (1.013f - .0267123f * reps)
-                    val dEpleyCalc = weight * (1.0f + reps / 30.0f)
-                    val dLombardiCalc: Float = weight * reps.pow(.10f)
-                    (dBrzyckiCalc + dBaechleCalc + dLanderCalc + dEpleyCalc + dLombardiCalc) / 5f
-                }
-
-                oneRepMax = if (oneRepMax > 0) (oneRepMax + currOneRepMax) / 2 else currOneRepMax
+            val oneRepMax = if (reps.isWholeNumber() && rep1RMPercentages.containsKey(reps.roundToInt())) {
+                weight / rep1RMPercentages[reps.roundToInt()]!!
+            } else {
+                reps.toFloorAndCeiling()
+                    .map { roundedReps ->
+                        if (rep1RMPercentages.containsKey(roundedReps)) {
+                            weight / rep1RMPercentages[roundedReps]!!
+                        } else {
+                            val dBrzyckiCalc = weight * (36.0f / (37.0f - roundedReps))
+                            val dBaechleCalc = weight * (1.0f + .033f * roundedReps)
+                            val dLanderCalc = weight / (1.013f - .0267123f * roundedReps)
+                            val dEpleyCalc = weight * (1.0f + roundedReps / 30.0f)
+                            val dLombardiCalc: Float = weight * roundedReps.toFloat().pow(.10f)
+                            (dBrzyckiCalc + dBaechleCalc + dLanderCalc + dEpleyCalc + dLombardiCalc) / 5f
+                        }
+                    }.average().toFloat()
             }
 
             return oneRepMax.roundToInt()

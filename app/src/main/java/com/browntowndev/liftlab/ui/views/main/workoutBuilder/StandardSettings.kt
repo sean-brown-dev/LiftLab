@@ -114,9 +114,10 @@ private fun StandardSettingRow(
             listState = listState,
             disableSystemKeyboard = true,
             label = when (progressionScheme) {
-                ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "RPE"
+                ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
+                ProgressionScheme.DOUBLE_PROGRESSION -> "RPE"
                 ProgressionScheme.LINEAR_PROGRESSION -> "Max RPE"
-                else -> "Top Set RPE"
+                ProgressionScheme.WAVE_LOADING_PROGRESSION -> "Top Set RPE"
             },
             onFocusChanged = onToggleRpePicker,
             onValueChanged = onRpeTargetChanged,
