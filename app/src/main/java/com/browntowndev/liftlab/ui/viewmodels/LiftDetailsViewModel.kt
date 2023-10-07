@@ -241,4 +241,11 @@ class LiftDetailsViewModel(
             navHostController.popBackStack()
         }
     }
+
+
+    fun filterOneRepMaxChart(selectedOneRepMaxWorkoutFilters: Set<Long>) {
+        _state.update {
+            it.copy(selectedOneRepMaxWorkoutFilters = selectedOneRepMaxWorkoutFilters)
+        }
+    }
 }

@@ -25,6 +25,7 @@ data class LiftDetailsState(
     val workoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val volumeTypeDisplayNames: List<String> = listOf(),
     val secondaryVolumeTypeDisplayNames: List<String> = listOf(),
+    val selectedOneRepMaxWorkoutFilters: Set<Long> = setOf(),
 ) {
     val oneRepMax: Pair<String, String>? by lazy {
         val oneRepMax = workoutLogs.fastMap { workoutLog ->
@@ -100,20 +101,26 @@ data class LiftDetailsState(
     }
 
     val oneRepMaxChartModel by lazy {
-        val oneRepMaxesByLocalDate = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toLocalDate() to
-                    workoutLog.setResults.maxOf {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
-        }.toMutableList().apply {
-            if (any()) {
-                addAll(List(50) {
-                    this[0].first.plusDays(it.toLong() + 1L) to (this[0].second * Random.nextDouble(.9, .99)).roundToInt()
-                })
+        val oneRepMaxesByLocalDate = workoutLogs
+            .filter { workoutLog ->
+                selectedOneRepMaxWorkoutFilters.isEmpty() ||
+                        selectedOneRepMaxWorkoutFilters.contains(workoutLog.historicalWorkoutNameId)
             }
-        }.associate { (date, oneRepMax) ->
-            date to oneRepMax
-        }
+            .fastMap { workoutLog ->
+                workoutLog.date.toLocalDate() to
+                        workoutLog.setResults.maxOf {
+                            CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                        }
+            }.toMutableList().apply {
+                if (any()) {
+                    addAll(List(50) {
+                        this[0].first.plusDays(it.toLong() + 1L) to
+                                (this[0].second * Random.nextDouble(.9,.99)).roundToInt()
+                    })
+                }
+            }.associate { (date, oneRepMax) ->
+                date to oneRepMax
+            }
         val xValuesToDates = oneRepMaxesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
         val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(oneRepMaxesByLocalDate.values, ::entryOf))
         val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")

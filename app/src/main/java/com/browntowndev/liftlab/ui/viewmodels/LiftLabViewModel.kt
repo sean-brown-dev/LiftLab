@@ -11,7 +11,6 @@ abstract class LiftLabViewModel(
     private val transactionScope: TransactionScope,
     private val eventBus: EventBus,
 ): ViewModel() {
-
     fun registerEventBus() {
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this)

@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.views.composables
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -150,13 +150,16 @@ private fun <T> GenericTextFieldModal(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
+                        TextButton(
                             modifier = Modifier
-                                .padding(0.dp, 0.dp, 15.dp, 0.dp)
-                                .clickable { onCancel() },
-                            text = "Cancel",
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                                .padding(0.dp, 0.dp, 15.dp, 0.dp),
+                            onClick = onCancel
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         Button(onClick = { onConfirm(value) }) {
                             Text(text = "OK")
                         }
