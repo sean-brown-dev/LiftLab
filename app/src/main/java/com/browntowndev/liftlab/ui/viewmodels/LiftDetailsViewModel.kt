@@ -242,10 +242,15 @@ class LiftDetailsViewModel(
         }
     }
 
-
     fun filterOneRepMaxChart(selectedOneRepMaxWorkoutFilters: Set<Long>) {
         _state.update {
             it.copy(selectedOneRepMaxWorkoutFilters = selectedOneRepMaxWorkoutFilters)
+        }
+    }
+
+    fun filterVolumeChart(selectedVolumeChartWorkoutFilters: Set<Long>) {
+        _state.update {
+            it.copy(selectedVolumeWorkoutFilters = selectedVolumeChartWorkoutFilters)
         }
     }
 }

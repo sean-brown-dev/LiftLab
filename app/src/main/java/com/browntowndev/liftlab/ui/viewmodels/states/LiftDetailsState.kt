@@ -8,12 +8,16 @@ import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.models.VolumeTypesForDate
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.entry.ChartEntryModel
+import com.patrykandpatrick.vico.core.entry.composed.plus
 import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.patrykandpatrick.vico.core.entry.entryOf
+import com.patrykandpatrick.vico.core.extension.sumOf
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -26,6 +30,7 @@ data class LiftDetailsState(
     val volumeTypeDisplayNames: List<String> = listOf(),
     val secondaryVolumeTypeDisplayNames: List<String> = listOf(),
     val selectedOneRepMaxWorkoutFilters: Set<Long> = setOf(),
+    val selectedVolumeWorkoutFilters: Set<Long> = setOf(),
 ) {
     val oneRepMax: Pair<String, String>? by lazy {
         val oneRepMax = workoutLogs.fastMap { workoutLog ->
@@ -145,12 +150,64 @@ data class LiftDetailsState(
             startAxisValueFormatter = { value, _ ->
                 value.roundToInt().toString()
             },
-            persistentMarkers =  { marker ->
-                chartEntryModel.entries[0].associate {
-                    it.x to marker
+            itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
+        )
+    }
+
+    val volumeChartModel by lazy {
+        val volumesByLocalDate = workoutLogs
+            .filter { workoutLog ->
+                selectedOneRepMaxWorkoutFilters.isEmpty() ||
+                        selectedOneRepMaxWorkoutFilters.contains(workoutLog.historicalWorkoutNameId)
+            }
+            .fastMap { workoutLog ->
+                VolumeTypesForDate(
+                    date = workoutLog.date.toLocalDate(),
+                    repVolume = workoutLog.setResults.sumOf { it.reps.toFloat() }.roundToInt(),
+                    weightVolume = workoutLog.setResults.sumOf { it.reps * it.weight },
+                )
+            }.toMutableList().apply {
+                if (any()) {
+                    addAll(List(50) {
+                        VolumeTypesForDate(
+                            date = this[0].date.plusDays(it.toLong() + 1L),
+                            repVolume = (this[0].repVolume * Random.nextDouble(.9,.99)).roundToInt(),
+                            weightVolume = (this[0].weightVolume * Random.nextDouble(.9,.99)).toFloat(),
+                        )
+                    })
+                }
+            }.associateBy { volumes -> volumes.date }
+        val xValuesToDates = volumesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
+        val repVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.repVolume }, ::entryOf))
+        val weightVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.weightVolume }, ::entryOf))
+        val chartEntryModel = repVolumeEntries + weightVolumeEntries
+        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
+
+        ComposedChartModel(
+            composedChartEntryModel = chartEntryModel,
+            axisValuesOverrider = object: AxisValuesOverrider<ChartEntryModel> {
+                override fun getMinY(model: ChartEntryModel): Float {
+                    return model.entries.first().minOf {
+                        it.y
+                    } - 5
+                }
+                override fun getMaxY(model: ChartEntryModel): Float {
+                    return model.entries.first().maxOf {
+                        it.y
+                    } + 5
                 }
             },
+            bottomAxisValueFormatter = { value, _ ->
+                (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
+            },
+            startAxisValueFormatter = { value, _ ->
+                value.roundToInt().toString()
+            },
+            endAxisValueFormatter = { value, _ ->
+                value.roundToInt().toString()
+            },
             itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
+            persistentMarkers = { null }
         )
     }
 

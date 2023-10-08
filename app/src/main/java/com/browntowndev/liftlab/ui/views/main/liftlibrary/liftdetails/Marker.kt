@@ -1,12 +1,15 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 
 import android.graphics.Typeface
+import android.text.Spannable
+import android.text.style.ForegroundColorSpan
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.overlayingComponent
 import com.patrykandpatrick.vico.compose.component.shapeComponent
@@ -14,6 +17,7 @@ import com.patrykandpatrick.vico.compose.component.textComponent
 import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
 import com.patrykandpatrick.vico.core.chart.dimensions.HorizontalDimensions
 import com.patrykandpatrick.vico.core.chart.insets.Insets
+import com.patrykandpatrick.vico.core.chart.values.ChartValues
 import com.patrykandpatrick.vico.core.component.marker.MarkerComponent
 import com.patrykandpatrick.vico.core.component.shape.DashedShape
 import com.patrykandpatrick.vico.core.component.shape.ShapeComponent
@@ -21,8 +25,12 @@ import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.cornered.Corner
 import com.patrykandpatrick.vico.core.component.shape.cornered.MarkerCorneredShape
 import com.patrykandpatrick.vico.core.context.MeasureContext
+import com.patrykandpatrick.vico.core.extension.appendCompat
 import com.patrykandpatrick.vico.core.extension.copyColor
+import com.patrykandpatrick.vico.core.extension.transformToSpannable
 import com.patrykandpatrick.vico.core.marker.Marker
+import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
+import kotlin.math.roundToInt
 
 @Composable
 internal fun rememberMarker(): Marker {
@@ -66,6 +74,22 @@ internal fun rememberMarker(): Marker {
                     with(indicatorCenterComponent) {
                         color = entryColor
                         setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = entryColor)
+                    }
+                }
+                labelFormatter = object: MarkerLabelFormatter {
+                    private val PATTERN = "%.02f"
+                    override fun getLabel(
+                        markedEntries: List<Marker.EntryModel>,
+                        chartValues: ChartValues,
+                    ): CharSequence = markedEntries.transformToSpannable(
+                        separator = "  ",
+                    ) { model ->
+                        appendCompat(
+                            if (model.entry.y.isWholeNumber()) model.entry.y.roundToInt().toString()
+                            else PATTERN.format(model.entry.y),
+                            ForegroundColorSpan(model.color),
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+                        )
                     }
                 }
             }

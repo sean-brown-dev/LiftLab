@@ -104,11 +104,16 @@ fun LiftDetails(
 
             2 -> ChartsTab(
                 oneRepMaxChartModel = state.oneRepMaxChartModel,
+                volumeChartModel = state.volumeChartModel,
                 workoutFilterOptions = state.workoutFilterOptions,
                 selectedOneRepMaxWorkoutFilters = state.selectedOneRepMaxWorkoutFilters,
+                selectedVolumeWorkoutFilters = state.selectedVolumeWorkoutFilters,
                 onFilterOneRepMaxChartByWorkouts = {
                     liftDetailsViewModel.filterOneRepMaxChart(it)
                 },
+                onFilterVolumeChartByWorkouts = {
+                    liftDetailsViewModel.filterVolumeChart(it)
+                }
             )
         }
     }
