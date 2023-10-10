@@ -24,7 +24,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
+import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -228,8 +230,13 @@ fun Long.toDate(): Date {
     return Date(this)
 }
 
-fun LocalDate.toDate(): Date {
+fun LocalDate.toStartOfDate(): Date {
     return Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
+}
+
+fun LocalDate.toEndOfDate(): Date {
+    val endOfDay = this.atTime(23, 59).atZone(ZoneId.systemDefault())
+    return Date.from(endOfDay.toInstant())
 }
 
 fun Date.toSimpleDateString(): String {

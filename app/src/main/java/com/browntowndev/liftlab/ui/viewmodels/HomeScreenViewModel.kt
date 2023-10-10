@@ -1,7 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.toDate
+import com.browntowndev.liftlab.core.common.toEndOfDate
+import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
@@ -23,7 +24,7 @@ class HomeScreenViewModel(
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
     private var _state = MutableStateFlow(
-        HomeScreenState(dateRange = getWeekRange(LocalDate.now())))
+        HomeScreenState(dateRange = getWeekRange()))
     val state = _state.asStateFlow()
 
     init {
@@ -39,8 +40,9 @@ class HomeScreenViewModel(
         }
     }
 
-    private fun getWeekRange(date: LocalDate): Pair<Date, Date> {
-        val monday = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        return monday.minusWeeks(8).toDate() to date.toDate()
+    private fun getWeekRange(): Pair<Date, Date> {
+        val today = LocalDate.now()
+        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
     }
 }

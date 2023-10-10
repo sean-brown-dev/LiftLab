@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.ui.util.fastMap
-import arrow.core.zip
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
@@ -70,22 +69,21 @@ data class HomeScreenState(
             workout.lifts.sumOf { it.setCount }
         } ?: 1
 
-        val completedWorkoutsByWeek = workoutLogs
+        val completedWorkoutsByMicroCycle = workoutLogs
             .asSequence()
             .sortedByDescending { it.date }
             .take(8)
-            .groupBy { "${it.mesocycle}:${it.microcycle}" }
+            .groupBy { "${it.mesocycle + 1}:${it.microcycle + 1}" }
             .map {
                 it.key to it.value.sumOf { workoutLog ->
                     workoutLog.setResults.size
-                }.div(setCount.toFloat())
+                }.div(setCount.toFloat()) * 100
             }.associate { (date, percentCompleted) ->
                 date to percentCompleted
             }
 
-        val xValues = List(completedWorkoutsByWeek.)
-        val chartEntryModel = entryModelOf(xValues.keys.map { entryOf() })
-        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d")
+        val xValues = List(completedWorkoutsByMicroCycle.size) { it.toFloat() }.associateWith { completedWorkoutsByMicroCycle.keys.toList()[it.roundToInt()] }
+        val chartEntryModel = entryModelOf(xValues.keys.zip(completedWorkoutsByMicroCycle.values, ::entryOf))
 
         ChartModel(
             chartEntryModel = chartEntryModel,
@@ -98,10 +96,10 @@ data class HomeScreenState(
                 }
             },
             bottomAxisValueFormatter = { value, _ ->
-                (xValues[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
+                xValues[value] ?: ""
             },
             startAxisValueFormatter = { value, _ ->
-                "${(value * 100).roundToInt()}%"
+                "${String.format("%.2f", value)}%"
             },
             startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 11),
         )
