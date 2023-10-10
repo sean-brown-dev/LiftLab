@@ -23,26 +23,26 @@ class HomeScreenViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
-    private var _state = MutableStateFlow(
-        HomeScreenState(dateRange = getWeekRange()))
+    private var _state = MutableStateFlow(HomeScreenState())
     val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    program = programsRepository.getActive(),
-                    workoutLogs = loggingRepository.getWorkoutLogsForDateRange(
-                        range = it.dateRange
+            programsRepository.getActive().observeForever { activeProgram ->
+                _state.update {
+                    it.copy(
+                        program = activeProgram
                     )
-                )
+                }
+            }
+
+            loggingRepository.getAll().observeForever { workoutLogs ->
+                _state.update {
+                    it.copy(
+                        workoutLogs = workoutLogs
+                    )
+                }
             }
         }
-    }
-
-    private fun getWeekRange(): Pair<Date, Date> {
-        val today = LocalDate.now()
-        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
     }
 }

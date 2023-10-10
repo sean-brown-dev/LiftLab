@@ -1,11 +1,15 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 
 class ProgramsRepository(
     private val programsDao: ProgramsDao,
@@ -15,33 +19,33 @@ class ProgramsRepository(
         return programsDao.getWorkoutCountOfActive()
     }
 
-    suspend fun getActive(): ProgramDto? {
-        val programEntity: ProgramWithRelationships? = programsDao.getActive()
-        var program: ProgramDto? = null
-
-        if (programEntity != null) {
-            program = programMapper.map(programEntity)
-
-            // Sort the workout and lift positions
-            program = program.copy(workouts = program.workouts
-                .sortedBy { workout -> workout.position }
-                .map { workout ->
-                    workout.copy(lifts = workout.lifts
-                        .sortedBy { lift -> lift.position }
-                        .map { lift ->
-                            when (lift) {
-                                is CustomWorkoutLiftDto -> lift.copy(
-                                    customLiftSets = lift.customLiftSets.sortedBy { it.setPosition }
-                                )
-                                else -> lift
-                            }
+    fun getActive(): LiveData<ProgramDto?> {
+        val programMeta = programsDao.getActive().flatMapLatest { programEntity ->
+            flowOf(
+                if (programEntity != null) {
+                    val program = programMapper.map(programEntity)
+                    // Sort the workout and lift positions
+                    program.copy(workouts = program.workouts
+                        .sortedBy { workout -> workout.position }
+                        .map { workout ->
+                            workout.copy(lifts = workout.lifts
+                                .sortedBy { lift -> lift.position }
+                                .map { lift ->
+                                    when (lift) {
+                                        is CustomWorkoutLiftDto -> lift.copy(
+                                            customLiftSets = lift.customLiftSets.sortedBy { it.setPosition }
+                                        )
+                                        else -> lift
+                                    }
+                                }
+                            )
                         }
                     )
-                }
+                } else null
             )
-        }
+        }.asLiveData()
 
-        return program
+        return programMeta
     }
 
     suspend fun updateName(id: Long, newName: String) {

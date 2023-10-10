@@ -9,12 +9,12 @@ val OnPrimaryDark = Color.Black
 val PrimaryContainerDark = Color(0xFF1F2122)
 val OnPrimaryContainerDark = Color.White
 
-val SecondaryDark = Color(0xFF7B1FA2)
+val SecondaryDark = Color(0xFF9931C5)
 val OnSecondaryDark = Color.White
 val SecondaryContainerDark = Color(0xFF242423)
 val OnSecondaryContainerDark = Color.White
 
-val TertiaryDark = Color(0xFFFDBC4D)
+val TertiaryDark = Color(0xFFFFB942)
 val OnTertiaryDark = Color.Black
 val TertiaryContainerDark = Color(0xFF383838)
 val OnTertiaryContainerDark = Color.White

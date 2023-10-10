@@ -6,6 +6,7 @@ import androidx.room.Query
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 @Dao
@@ -13,8 +14,13 @@ interface LoggingDao {
     @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 
-    @Query("SELECT * FROM setLogEntries")
-    suspend fun getAll(): List<SetLogEntry>
+    @Query("SELECT log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
+            "setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
+            "FROM workoutLogEntries log " +
+            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
+            "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id")
+    fun getAll(): Flow<List<FlattenedWorkoutLogEntryDto>>
 
     @Query("INSERT INTO setLogEntries " +
             "(workoutLogEntryId, liftId, setType, " +
