@@ -18,4 +18,5 @@ enum class TopAppBarAction {
     ConfirmAddLift,
     CreateNewLift,
     ConfirmCreateNewLift,
+    OpenSettingsMenu,
 }

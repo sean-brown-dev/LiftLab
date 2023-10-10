@@ -71,34 +71,47 @@ import com.patrykandpatrick.vico.core.scroll.InitialScroll
 fun ChartsTab(
     oneRepMaxChartModel: ChartModel,
     volumeChartModel: ComposedChartModel,
+    intensityChartModel: ChartModel,
     workoutFilterOptions: Map<Long, String>,
     selectedOneRepMaxWorkoutFilters: Set<Long>,
     selectedVolumeWorkoutFilters: Set<Long>,
+    selectedIntensityWorkoutFilters: Set<Long>,
     onFilterOneRepMaxChartByWorkouts: (historicalWorkoutIds: Set<Long>) -> Unit,
     onFilterVolumeChartByWorkouts: (historicalWorkoutIds: Set<Long>) -> Unit,
+    onFilterIntensityChartByWorkouts: (historicalWorkoutIds: Set<Long>) -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        OneRepMaxChart(
+        SingleLineChart(
+            label = remember(oneRepMaxChartModel) { "ESTIMATED ONE REP MAX ${if(!oneRepMaxChartModel.hasData) "- NO DATA" else ""}" },
             oneRepMaxChartModel = oneRepMaxChartModel,
             workoutFilterOptions = workoutFilterOptions,
             selectedWorkoutFilters = selectedOneRepMaxWorkoutFilters,
             onApplyWorkoutFilters = onFilterOneRepMaxChartByWorkouts,
         )
-        VolumeChart(
+        MultiLineChart(
             volumeChartModel = volumeChartModel,
             workoutFilterOptions = workoutFilterOptions,
             selectedWorkoutFilters = selectedVolumeWorkoutFilters,
             onApplyWorkoutFilters = onFilterVolumeChartByWorkouts,
         )
+        SingleLineChart(
+            label = remember(oneRepMaxChartModel) { "RELATIVE INTENSITY ${if(!oneRepMaxChartModel.hasData) "- NO DATA" else ""}" },
+            oneRepMaxChartModel = intensityChartModel,
+            workoutFilterOptions = workoutFilterOptions,
+            selectedWorkoutFilters = selectedIntensityWorkoutFilters,
+            onApplyWorkoutFilters = onFilterIntensityChartByWorkouts,
+        )
     }
 }
 
 @Composable
-private fun OneRepMaxChart(
+private fun SingleLineChart(
+    label: String,
     oneRepMaxChartModel: ChartModel,
     workoutFilterOptions: Map<Long, String>,
     selectedWorkoutFilters: Set<Long>,
@@ -106,7 +119,8 @@ private fun OneRepMaxChart(
 ) {
     SectionLabel(
         modifier = Modifier.padding(top = 10.dp),
-        text = "ESTIMATED ONE REP MAX ${if(!oneRepMaxChartModel.hasData) "- NO DATA" else ""}"
+        text = label,
+        fontSize = 14.sp,
     )
     Card(
         modifier = Modifier.padding(10.dp),
@@ -165,7 +179,7 @@ private fun OneRepMaxChart(
                         ),
                         model = oneRepMaxChartModel.chartEntryModel,
                         startAxis = rememberStartAxis(
-                            itemPlacer = oneRepMaxChartModel.itemPlacer,
+                            itemPlacer = oneRepMaxChartModel.startAxisItemPlacer,
                             valueFormatter = oneRepMaxChartModel.startAxisValueFormatter
                         ),
                         bottomAxis = rememberBottomAxis(
@@ -184,7 +198,7 @@ private fun OneRepMaxChart(
 }
 
 @Composable
-private fun VolumeChart(
+private fun MultiLineChart(
     volumeChartModel: ComposedChartModel,
     workoutFilterOptions: Map<Long, String>,
     selectedWorkoutFilters: Set<Long>,
@@ -192,7 +206,8 @@ private fun VolumeChart(
 ) {
     SectionLabel(
         modifier = Modifier.padding(top = 10.dp),
-        text = "VOLUME ${if(!volumeChartModel.hasData) "- NO DATA" else ""}"
+        text = "VOLUME ${if(!volumeChartModel.hasData) "- NO DATA" else ""}",
+        fontSize = 14.sp,
     )
     Card(
         modifier = Modifier.padding(10.dp),
@@ -283,7 +298,7 @@ private fun VolumeChart(
                         chart = remember { startAxisLineChart + endAxisLineChart },
                         model = volumeChartModel.composedChartEntryModel,
                         startAxis = rememberStartAxis(
-                            itemPlacer = volumeChartModel.itemPlacer,
+                            itemPlacer = volumeChartModel.startAxisItemPlacer,
                             valueFormatter = volumeChartModel.startAxisValueFormatter
                         ),
                         bottomAxis = rememberBottomAxis(
@@ -291,13 +306,13 @@ private fun VolumeChart(
                             labelRotationDegrees = volumeChartModel.bottomAxisLabelRotationDegrees
                         ),
                         endAxis = rememberEndAxis(
-                            itemPlacer = volumeChartModel.itemPlacer,
+                            itemPlacer = volumeChartModel.endAxisItemPlacer,
                             valueFormatter = volumeChartModel.endAxisValueFormatter,
                         ),
                         marker = marker,
                         legend = rememberLegend(
                             chartColors = chartColors,
-                            labels = listOf("Reps", "Weight")),
+                            labels = listOf("Working Sets", "Intensity Adjusted Rep Volume")),
                         autoScaleUp = AutoScaleUp.Full,
                         chartScrollState = scrollState,
                         chartScrollSpec = scrollSpec,
@@ -316,7 +331,7 @@ private val legendTopPaddingValue = 8.dp
 private val legendPadding = dimensionsOf(top = legendTopPaddingValue)
 
 @Composable
-private fun rememberLegend(chartColors: List<androidx.compose.ui.graphics.Color>, labels: List<String>) = verticalLegend(
+private fun rememberLegend(chartColors: List<Color>, labels: List<String>) = verticalLegend(
     items = chartColors.mapIndexed { index, chartColor ->
         legendItem(
             icon = shapeComponent(color = chartColor, shape = Shapes.pillShape),
@@ -428,9 +443,13 @@ private fun WorkoutFilterDropdown(
                                 .padding(bottom = 5.dp, end = 5.dp),
                             onClick = {
                                 filterDropdownExpanded = false
-                                onApplyFilter(
-                                    workoutFilters.toSet()
-                                )
+                                if (!selectedFilters.containsAll(workoutFilters) ||
+                                    !workoutFilters.containsAll(selectedFilters)
+                                ) {
+                                    onApplyFilter(
+                                        workoutFilters.toSet()
+                                    )
+                                }
                             }
                         ) {
                             Text(

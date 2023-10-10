@@ -228,6 +228,10 @@ fun Long.toDate(): Date {
     return Date(this)
 }
 
+fun LocalDate.toDate(): Date {
+    return Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
+}
+
 fun Date.toSimpleDateString(): String {
     val formatter = getDateInstance()
     return formatter.format(this)

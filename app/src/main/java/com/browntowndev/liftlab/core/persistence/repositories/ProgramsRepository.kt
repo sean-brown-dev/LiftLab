@@ -11,6 +11,10 @@ class ProgramsRepository(
     private val programsDao: ProgramsDao,
     private val programMapper: ProgramMapper
 ) : Repository {
+    suspend fun getWorkoutCountOfActive(): Int {
+        return programsDao.getWorkoutCountOfActive()
+    }
+
     suspend fun getActive(): ProgramDto? {
         val programEntity: ProgramWithRelationships? = programsDao.getActive()
         var program: ProgramDto? = null

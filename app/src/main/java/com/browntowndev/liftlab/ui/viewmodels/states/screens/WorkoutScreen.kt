@@ -13,7 +13,6 @@ import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import org.greenrobot.eventbus.EventBus
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.util.UUID
 
@@ -28,7 +27,7 @@ data class WorkoutScreen(
     private val restTime: Long = 0L,
     private val countDownFrom: Long = 0L,
     private val timerRequestId: String = "",
-) : BaseScreen(), KoinComponent {
+) : BaseScreen() {
     companion object {
         val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
         const val REST_TIMER = "restTimer"

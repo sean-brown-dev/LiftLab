@@ -12,14 +12,14 @@ import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
-import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
+import com.browntowndev.liftlab.ui.views.main.Home
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.LiftDetails
@@ -41,6 +41,12 @@ fun NavigationGraph(
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
+        composable(HomeScreen.navigation.route) {
+            LaunchedEffect(key1 = screen) {
+                setBottomNavBarVisibility(true)
+            }
+            Home(paddingValues)
+        }
         composable(
             route = LiftLibraryScreen.navigation.route,
             arguments = listOf(
@@ -182,12 +188,6 @@ fun NavigationGraph(
                     },
                 )
             }
-        }
-        composable(WorkoutHistoryScreen.navigation.route) {
-            LaunchedEffect(key1 = screen) {
-                setBottomNavBarVisibility(true)
-            }
-            WorkoutHistory(paddingValues)
         }
     }
 }

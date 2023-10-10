@@ -253,4 +253,10 @@ class LiftDetailsViewModel(
             it.copy(selectedVolumeWorkoutFilters = selectedVolumeChartWorkoutFilters)
         }
     }
+
+    fun filterIntensityChart(selectedIntensityChartWorkoutFilters: Set<Long>) {
+        _state.update {
+            it.copy(selectedIntensityWorkoutFilters = selectedIntensityChartWorkoutFilters)
+        }
+    }
 }

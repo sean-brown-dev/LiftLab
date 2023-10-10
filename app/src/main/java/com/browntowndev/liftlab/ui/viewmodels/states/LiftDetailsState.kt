@@ -31,6 +31,7 @@ data class LiftDetailsState(
     val secondaryVolumeTypeDisplayNames: List<String> = listOf(),
     val selectedOneRepMaxWorkoutFilters: Set<Long> = setOf(),
     val selectedVolumeWorkoutFilters: Set<Long> = setOf(),
+    val selectedIntensityWorkoutFilters: Set<Long> = setOf(),
 ) {
     val oneRepMax: Pair<String, String>? by lazy {
         val oneRepMax = workoutLogs.fastMap { workoutLog ->
@@ -116,13 +117,6 @@ data class LiftDetailsState(
                         workoutLog.setResults.maxOf {
                             CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                         }
-            }.toMutableList().apply {
-                if (any()) {
-                    addAll(List(50) {
-                        this[0].first.plusDays(it.toLong() + 1L) to
-                                (this[0].second * Random.nextDouble(.9,.99)).roundToInt()
-                    })
-                }
             }.associate { (date, oneRepMax) ->
                 date to oneRepMax
             }
@@ -150,7 +144,7 @@ data class LiftDetailsState(
             startAxisValueFormatter = { value, _ ->
                 value.roundToInt().toString()
             },
-            itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
+            startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
         )
     }
 
@@ -161,26 +155,21 @@ data class LiftDetailsState(
                         selectedOneRepMaxWorkoutFilters.contains(workoutLog.historicalWorkoutNameId)
             }
             .fastMap { workoutLog ->
+                val repVolume = workoutLog.setResults.sumOf { it.reps.toFloat() }.roundToInt()
+                val totalWeight = workoutLog.setResults.sumOf { it.weight }
                 VolumeTypesForDate(
                     date = workoutLog.date.toLocalDate(),
-                    repVolume = workoutLog.setResults.sumOf { it.reps.toFloat() }.roundToInt(),
-                    weightVolume = workoutLog.setResults.sumOf { it.reps * it.weight },
+                    workingSetVolume = workoutLog.setResults.filter { it.rpe >= 7f }.size,
+                    relativeVolume = repVolume *
+                            (totalWeight / workoutLog.setResults.maxOf {
+                            CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                        }),
                 )
-            }.toMutableList().apply {
-                if (any()) {
-                    addAll(List(50) {
-                        VolumeTypesForDate(
-                            date = this[0].date.plusDays(it.toLong() + 1L),
-                            repVolume = (this[0].repVolume * Random.nextDouble(.9,.99)).roundToInt(),
-                            weightVolume = (this[0].weightVolume * Random.nextDouble(.9,.99)).toFloat(),
-                        )
-                    })
-                }
             }.associateBy { volumes -> volumes.date }
         val xValuesToDates = volumesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
-        val repVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.repVolume }, ::entryOf))
-        val weightVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.weightVolume }, ::entryOf))
-        val chartEntryModel = repVolumeEntries + weightVolumeEntries
+        val workingSetVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.workingSetVolume }, ::entryOf))
+        val relativeVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.relativeVolume }, ::entryOf))
+        val chartEntryModel = workingSetVolumeEntries + relativeVolumeEntries
         val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
         ComposedChartModel(
@@ -189,12 +178,12 @@ data class LiftDetailsState(
                 override fun getMinY(model: ChartEntryModel): Float {
                     return model.entries.first().minOf {
                         it.y
-                    } - 5
+                    } - 1
                 }
                 override fun getMaxY(model: ChartEntryModel): Float {
                     return model.entries.first().maxOf {
                         it.y
-                    } + 5
+                    } + 1
                 }
             },
             bottomAxisValueFormatter = { value, _ ->
@@ -206,8 +195,58 @@ data class LiftDetailsState(
             endAxisValueFormatter = { value, _ ->
                 value.roundToInt().toString()
             },
-            itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
+            startAxisItemPlacer = AxisItemPlacer.Vertical.default(
+                maxItemCount = ((workingSetVolumeEntries.entries.first().maxOf { it.y } + 1) -
+                        (workingSetVolumeEntries.entries.first().minOf { it.y } - 1)).roundToInt() + 1
+            ),
+            endAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 9),
             persistentMarkers = { null }
+        )
+    }
+
+    val intensityChartModel by lazy {
+        val relativeIntensitiesByLocalDate = workoutLogs
+            .filter { workoutLog ->
+                selectedOneRepMaxWorkoutFilters.isEmpty() ||
+                        selectedOneRepMaxWorkoutFilters.contains(workoutLog.historicalWorkoutNameId)
+            }
+            .fastMap { workoutLog ->
+                workoutLog.date.toLocalDate() to
+                        workoutLog.setResults.maxOf {
+                            it.weight / CalculationEngine.getOneRepMax(
+                                it.weight,
+                                it.reps,
+                                it.rpe
+                            ) * 100
+                        }
+            }.associate { (date, relativeIntensity) ->
+                date to relativeIntensity
+            }
+        val xValuesToDates = relativeIntensitiesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
+        val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(relativeIntensitiesByLocalDate.values, ::entryOf))
+        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
+
+        ChartModel(
+            chartEntryModel = chartEntryModel,
+            axisValuesOverrider = object: AxisValuesOverrider<ChartEntryModel> {
+                override fun getMinY(model: ChartEntryModel): Float {
+                    return model.entries.first().minOf {
+                        it.y
+                    } - 5f
+                }
+                override fun getMaxY(model: ChartEntryModel): Float {
+                    return model.entries.first().maxOf {
+                        it.y
+                    } + 5f
+                }
+            },
+            bottomAxisValueFormatter = { value, _ ->
+                (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
+            },
+            startAxisValueFormatter = { value, _ ->
+                "${String.format("%.2f", value)}%"
+            },
+            startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 10),
         )
     }
 

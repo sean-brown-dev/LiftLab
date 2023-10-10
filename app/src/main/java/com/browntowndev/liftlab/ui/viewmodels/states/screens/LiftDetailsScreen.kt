@@ -5,8 +5,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.left
@@ -15,7 +13,6 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.NavItem
 import org.greenrobot.eventbus.EventBus
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 data class LiftDetailsScreen(
@@ -24,7 +21,7 @@ data class LiftDetailsScreen(
     override val navigationIconVisible: Boolean = true,
     override val title: String = navigation.title,
     private val isConfirmCreateLiftVisible: Boolean = false,
-): BaseScreen(), KoinComponent {
+): BaseScreen() {
     companion object {
         val navigation = NavItem("Lift Metrics", "", "liftDetails/{id}")
         const val CONFIRM_CREATE_LIFT_ICON = "confirmCreateLiftIcon"

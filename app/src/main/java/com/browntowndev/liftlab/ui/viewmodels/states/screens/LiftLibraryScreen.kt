@@ -29,7 +29,7 @@ data class LiftLibraryScreen(
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
     var filterText: String = "",
-) : BaseScreen(), KoinComponent {
+) : BaseScreen() {
     companion object {
         val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
         const val SEARCH_ICON = "searchIcon"

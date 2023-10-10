@@ -73,7 +73,7 @@ internal fun rememberMarker(): Marker {
                     indicatorOuterComponent.color = entryColor.copyColor(INDICATOR_OUTER_COMPONENT_ALPHA)
                     with(indicatorCenterComponent) {
                         color = entryColor
-                        setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = entryColor)
+                                    setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = entryColor)
                     }
                 }
                 labelFormatter = object: MarkerLabelFormatter {

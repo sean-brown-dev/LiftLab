@@ -13,7 +13,6 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.NavItem
 import org.greenrobot.eventbus.EventBus
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 data class WorkoutBuilderScreen(
@@ -22,7 +21,7 @@ data class WorkoutBuilderScreen(
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
     override val subtitle: String = navigation.subtitle,
-) : BaseScreen(), KoinComponent {
+) : BaseScreen() {
     companion object {
         val navigation = NavItem("", "", "workoutBuilder/{id}")
 

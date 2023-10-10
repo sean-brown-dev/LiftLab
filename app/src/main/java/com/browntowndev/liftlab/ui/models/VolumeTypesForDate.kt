@@ -4,6 +4,6 @@ import java.time.LocalDate
 
 data class VolumeTypesForDate(
     val date: LocalDate,
-    val repVolume: Int,
-    val weightVolume: Float,
+    val workingSetVolume: Int,
+    val relativeVolume: Float,
 )

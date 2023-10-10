@@ -32,6 +32,10 @@ interface ProgramsDao {
     @Query("SELECT * FROM programs WHERE program_id = :id")
     suspend fun get(id: Long) : ProgramWithRelationships
 
+    @Query("SELECT COUNT(*) FROM programs p " +
+            "INNER JOIN workouts w ON w.programId = p.program_id")
+    suspend fun getWorkoutCountOfActive(): Int
+
     @Query("UPDATE programs SET name = :newName WHERE program_id = :id")
     suspend fun updateName(id: Long, newName: String)
 

@@ -17,7 +17,12 @@ class LoggingRepository(
     }
 
     suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntryDto> {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> =  loggingDao.getLogsByLiftId(liftId)
+        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getLogsByLiftId(liftId)
+        return workoutLogEntryMapper.map(flattenedLogEntries)
+    }
+
+    suspend fun getWorkoutLogsForDateRange(range: Pair<Date, Date>): List<WorkoutLogEntryDto> {
+        val flattenedLogEntries = loggingDao.getForDateRange(range.first, range.second)
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
