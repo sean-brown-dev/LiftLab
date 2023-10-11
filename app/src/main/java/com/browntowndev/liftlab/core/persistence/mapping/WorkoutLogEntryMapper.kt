@@ -22,6 +22,7 @@ class WorkoutLogEntryMapper {
                         durationInMillis = firstEntry.durationInMillis,
                         setResults = workoutLog.value.fastMap {
                             SetLogEntryDto(
+                                liftName = it.liftName,
                                 setType = it.setType,
                                 setPosition = it.setPosition,
                                 myoRepSetPosition = it.myoRepSetPosition,

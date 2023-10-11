@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 import com.browntowndev.liftlab.core.common.enums.SetType
 
 data class SetLogEntryDto(
+    val liftName: String,
     val setType: SetType? = null,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,

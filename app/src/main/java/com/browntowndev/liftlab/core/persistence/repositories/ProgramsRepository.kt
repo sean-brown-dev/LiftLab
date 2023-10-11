@@ -6,8 +6,8 @@ import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
@@ -19,6 +19,7 @@ class ProgramsRepository(
         return programsDao.getWorkoutCountOfActive()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun getActive(): LiveData<ProgramDto?> {
         val programMeta = programsDao.getActive().flatMapLatest { programEntity ->
             flowOf(

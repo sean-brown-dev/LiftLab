@@ -9,16 +9,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -28,25 +27,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.isWholeNumber
+import com.browntowndev.liftlab.core.common.toSimpleDateString
+import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeScreenViewModel
 import com.browntowndev.liftlab.ui.views.composables.rememberChartStyle
-import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.SectionLabel
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
-import com.browntowndev.liftlab.ui.views.main.lab.WorkoutMenuDropdown
+import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.SectionLabel
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
-import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.compose.style.currentChartStyle
 import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
@@ -71,21 +71,32 @@ fun Home(paddingValues: PaddingValues) {
         verticalArrangement = Arrangement.spacedBy(15.dp),
     ) {
         item {
-            ColumnChart(
-                modifier = Modifier
-                    .height(200.dp)
-                    .padding(top = 5.dp),
-                label = "WORKOUTS COMPLETED",
-                chartModel = state.weeklyCompletionChart
-            )
-            Spacer(modifier = Modifier.height(15.dp))
-            ColumnChart(
-                modifier = Modifier
-                    .height(225.dp)
-                    .padding(top = 5.dp),
-                label = "MICROCYCLE SETS COMPLETED",
-                chartModel = state.microCycleCompletionChart,
-                marker = rememberMarker(),
+            if (state.workoutCompletionChart != null) {
+                ColumnChart(
+                    modifier = Modifier
+                        .height(200.dp)
+                        .padding(top = 5.dp),
+                    label = "WORKOUTS COMPLETED",
+                    chartModel = state.workoutCompletionChart!!
+                )
+                Spacer(modifier = Modifier.height(15.dp))
+            }
+
+            if (state.microCycleCompletionChart != null) {
+                ColumnChart(
+                    modifier = Modifier
+                        .height(225.dp)
+                        .padding(top = 5.dp),
+                    label = "MICROCYCLE SETS COMPLETED",
+                    chartModel = state.microCycleCompletionChart!!,
+                    marker = rememberMarker(),
+                )
+            }
+
+            SectionLabel(
+                modifier = Modifier.padding(top = 10.dp),
+                text = "HISTORY",
+                fontSize = 14.sp,
             )
         }
 
@@ -106,20 +117,76 @@ fun Home(paddingValues: PaddingValues) {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(15.dp, 0.dp, 0.dp, 0.dp)
+                    modifier = Modifier.padding(start = 15.dp, top = 10.dp)
                 )
-                Divider(thickness = 12.dp, color = MaterialTheme.colorScheme.background)
-                it.setResults.fastForEach {
-                    val weight = remember(it.weight) { if (it.weight.isWholeNumber()) it.weight.roundToInt().toString() else String.format("%.2f", it.weight) }
+                Text(
+                    modifier = Modifier.padding(start = 15.dp, bottom = 10.dp),
+                    text = it.date.toSimpleDateString(),
+                    color = MaterialTheme.colorScheme.outline,
+                    fontSize = 15.sp,
+                )
+                Row(
+                    modifier = Modifier.padding(start = 15.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Icon(
+                        modifier = Modifier.size(15.dp),
+                        painter = painterResource(id = R.drawable.stopwatch_icon),
+                        tint = MaterialTheme.colorScheme.outline,
+                        contentDescription = null,
+                    )
                     Text(
-                        text = "Bring Back Lift Name ${weight}x${it.reps} @${it.rpe}",
+                        text = it.durationInMillis.toTimeString(),
                         color = MaterialTheme.colorScheme.outline,
-                        textAlign = TextAlign.Center,
                         fontSize = 15.sp,
-                        modifier = Modifier.padding(horizontal = 15.dp)
                     )
                 }
-                Divider(thickness = 15.dp, color = MaterialTheme.colorScheme.background)
+                val topSet = remember(it) { state.topSets[it.setResults[0].liftName] }
+                if (topSet != null) {
+                    val weight = remember(topSet.second.weight) {
+                        if (topSet.second.weight.isWholeNumber()) topSet.second.weight.roundToInt().toString()
+                        else String.format("%.2f", topSet.second.weight)
+                    }
+
+                    Row (verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 15.dp),
+                            text = "Lift",
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            modifier = Modifier.padding(horizontal = 15.dp),
+                            text = "Best Set",
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    Row (verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${topSet.first} x ${topSet.second.liftName}",
+                            color = MaterialTheme.colorScheme.outline,
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp,
+                            modifier = Modifier.padding(start = 15.dp)
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text(
+                            text = "$weight x ${topSet.second.reps} @${topSet.second.rpe}",
+                            color = MaterialTheme.colorScheme.outline,
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp,
+                            modifier = Modifier.padding(end = 15.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(15.dp))
             }
         }
     }

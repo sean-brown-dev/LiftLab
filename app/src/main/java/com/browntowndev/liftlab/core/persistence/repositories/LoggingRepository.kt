@@ -5,7 +5,6 @@ import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,11 +26,6 @@ class LoggingRepository(
 
     suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntryDto> {
         val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getLogsByLiftId(liftId)
-        return workoutLogEntryMapper.map(flattenedLogEntries)
-    }
-
-    suspend fun getWorkoutLogsForDateRange(range: Pair<Date, Date>): List<WorkoutLogEntryDto> {
-        val flattenedLogEntries = loggingDao.getForDateRange(range.first, range.second)
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 

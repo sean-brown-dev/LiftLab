@@ -9,6 +9,7 @@ data class FlattenedWorkoutLogEntryDto (
     val workoutName: String,
     val date: Date,
     val durationInMillis: Long,
+    val liftName: String,
     val setType: SetType?,
     val setPosition: Int,
     val myoRepSetPosition: Int?,
