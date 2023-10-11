@@ -24,6 +24,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
+import java.text.DateFormat.getDateTimeInstance
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
@@ -241,6 +242,11 @@ fun LocalDate.toEndOfDate(): Date {
 
 fun Date.toSimpleDateString(): String {
     val formatter = getDateInstance()
+    return formatter.format(this)
+}
+
+fun Date.toSimpleDateTimeString(): String {
+    val formatter = getDateTimeInstance()
     return formatter.format(this)
 }
 

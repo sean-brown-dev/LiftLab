@@ -32,12 +32,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.isWholeNumber
-import com.browntowndev.liftlab.core.common.toSimpleDateString
+import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.viewmodels.HomeScreenViewModel
+import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.views.composables.rememberChartStyle
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.SectionLabel
@@ -60,8 +61,8 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(paddingValues: PaddingValues) {
-    val homeScreenViewModel: HomeScreenViewModel = koinViewModel()
-    val state by homeScreenViewModel.state.collectAsState()
+    val homeViewModel: HomeViewModel = koinViewModel()
+    val state by homeViewModel.state.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -101,27 +102,26 @@ fun Home(paddingValues: PaddingValues) {
         }
 
         items(state.dateOrderedWorkoutLogs, { it.historicalWorkoutNameId }) {
-            OutlinedCard(
+            Card(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = 5.dp, horizontal = 10.dp),
                 shape = CardDefaults.shape,
-                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline),
                 colors = CardDefaults.outlinedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 ),
                 onClick = { /*TODO*/ }
             ) {
                 Text(
                     text = it.workoutName,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontSize = 20.sp,
                     modifier = Modifier.padding(start = 15.dp, top = 10.dp)
                 )
                 Text(
                     modifier = Modifier.padding(start = 15.dp, bottom = 10.dp),
-                    text = it.date.toSimpleDateString(),
+                    text = it.date.toSimpleDateTimeString(),
                     color = MaterialTheme.colorScheme.outline,
                     fontSize = 15.sp,
                 )
@@ -142,48 +142,51 @@ fun Home(paddingValues: PaddingValues) {
                         fontSize = 15.sp,
                     )
                 }
-                val topSet = remember(it) { state.topSets[it.setResults[0].liftName] }
-                if (topSet != null) {
-                    val weight = remember(topSet.second.weight) {
-                        if (topSet.second.weight.isWholeNumber()) topSet.second.weight.roundToInt().toString()
-                        else String.format("%.2f", topSet.second.weight)
-                    }
 
-                    Row (verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 15.dp),
-                            text = "Lift",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            modifier = Modifier.padding(horizontal = 15.dp),
-                            text = "Best Set",
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
-                    Row (verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "${topSet.first} x ${topSet.second.liftName}",
-                            color = MaterialTheme.colorScheme.outline,
-                            textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
-                            modifier = Modifier.padding(start = 15.dp)
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = "$weight x ${topSet.second.reps} @${topSet.second.rpe}",
-                            color = MaterialTheme.colorScheme.outline,
-                            textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
-                            modifier = Modifier.padding(end = 15.dp)
-                        )
+                Row (verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 15.dp),
+                        text = "Lift",
+                        color = MaterialTheme.colorScheme.outline,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        modifier = Modifier.padding(horizontal = 15.dp),
+                        text = "Best Set",
+                        color = MaterialTheme.colorScheme.outline,
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                val liftNames = remember (it) { it.setResults.distinctBy { it.liftName }.map { it.liftName } }
+                liftNames.fastForEach { liftName ->
+                    val topSet = remember(it) { state.topSets[liftName] }
+                    if (topSet != null) {
+                        val weight = remember(topSet.second.weight) {
+                            if (topSet.second.weight.isWholeNumber()) topSet.second.weight.roundToInt().toString()
+                            else String.format("%.2f", topSet.second.weight)
+                        }
+                        Row (verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "${topSet.first} x ${topSet.second.liftName}",
+                                color = MaterialTheme.colorScheme.onBackground,
+                                textAlign = TextAlign.Center,
+                                fontSize = 15.sp,
+                                modifier = Modifier.padding(start = 15.dp)
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = "$weight x ${topSet.second.reps} @${topSet.second.rpe}",
+                                color = MaterialTheme.colorScheme.onBackground,
+                                textAlign = TextAlign.Center,
+                                fontSize = 15.sp,
+                                modifier = Modifier.padding(end = 15.dp)
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(15.dp))

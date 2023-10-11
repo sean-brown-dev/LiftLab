@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -432,19 +433,22 @@ fun WorkoutBuilder(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    modifier = Modifier.clickable {
+                                TextButton(
+                                    onClick = {
                                         val liftLibraryRoute = LiftLibraryScreen.navigation.route
                                             .replace("{workoutId}", state.workout!!.id.toString())
                                             .replace("{addAtPosition}", state.workout!!.lifts.count().toString())
                                         navHostController.navigate(liftLibraryRoute)
-                                    },
-                                    text = "Add Movement Pattern",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontSize = 17.sp,
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Add Movement Pattern",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 17.sp,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(80.dp))
                             Spacer(modifier = modifier.height(scrollSpacerSize))

@@ -30,7 +30,7 @@ import java.time.temporal.TemporalAdjusters
 import java.util.Date
 import kotlin.math.roundToInt
 
-class HomeScreenViewModel(
+class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
     transactionScope: TransactionScope,
@@ -156,8 +156,6 @@ class HomeScreenViewModel(
         }?.toFloat() ?: 1f
 
         val workoutsForCurrentMeso = dateOrderedWorkoutLogs
-            .asSequence()
-            .sortedByDescending { it.date }
             .groupBy { it.mesocycle }
             .values.firstOrNull()
             ?.groupBy { it.microcycle }
@@ -166,7 +164,7 @@ class HomeScreenViewModel(
                 logsForMicro.key + 1 to logsForMicro.value.sumOf {  workoutLog ->
                     workoutLog.setResults.size
                 }.div(setCount).times(100)
-            } ?: mapOf()
+            } ?: mapOf(1 to 0f)
 
         val chartEntryModel = entryModelOf(workoutsForCurrentMeso.keys.zip(workoutsForCurrentMeso.values, ::entryOf))
 

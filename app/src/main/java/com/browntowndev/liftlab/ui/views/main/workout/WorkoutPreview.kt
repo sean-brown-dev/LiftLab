@@ -172,7 +172,9 @@ fun WorkoutPreview(
                             else if (liftNameWithSetCount is String)
                                 Text(liftNameWithSetCount, fontSize = 15.sp)
                         },
-                        leadingContent = { CircledTextIcon(text = liftFirstLetter) },
+                        leadingContent = {
+                            CircledTextIcon(text = liftFirstLetter)
+                        },
                         colors = ListItemDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.background,
                             headlineColor = MaterialTheme.colorScheme.onBackground,

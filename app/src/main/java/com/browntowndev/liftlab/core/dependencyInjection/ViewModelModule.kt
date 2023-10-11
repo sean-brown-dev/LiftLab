@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.dependencyInjection
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.HomeScreenViewModel
+import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
@@ -27,5 +27,5 @@ val viewModelModule = module {
     viewModel { params -> CountdownTimerViewModel(params.get()) }
     viewModel { TimerViewModel() }
     viewModel { PickerViewModel() }
-    viewModel { HomeScreenViewModel(get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get()) }
 }
