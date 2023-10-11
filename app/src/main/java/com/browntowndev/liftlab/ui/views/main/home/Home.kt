@@ -65,12 +65,14 @@ fun Home(paddingValues: PaddingValues) {
 
         items(state.dateOrderedWorkoutLogs, { it.historicalWorkoutNameId }) {
             WorkoutHistoryCard(
+                workoutLogEntryId = it.id,
                 historicalWorkoutNameId = it.historicalWorkoutNameId,
                 workoutName = it.workoutName,
                 workoutDate = it.date,
                 workoutDuration = it.durationInMillis,
                 setResults = it.setResults,
                 topSets = state.topSets,
+                personalRecords = state.personalRecords,
             )
         }
     }

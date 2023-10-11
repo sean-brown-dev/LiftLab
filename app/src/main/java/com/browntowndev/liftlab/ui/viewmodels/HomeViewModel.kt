@@ -59,6 +59,7 @@ class HomeViewModel(
                         it.copy(
                             dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
                             topSets = getTopSets(dateOrderedWorkoutLogs),
+                            personalRecords = getPersonalRecords(workoutLogs),
                             workoutCompletionChart = getWeeklyCompletionChart(
                                 workoutCompletionRange = workoutCompletionRange,
                                 workoutsInDateRange = workoutsInDateRange,
@@ -82,14 +83,25 @@ class HomeViewModel(
     private fun getTopSets(workoutLogs: List<WorkoutLogEntryDto>): Map<String, Pair<Int, SetLogEntryDto>> {
         return workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults
-                .groupBy { set ->
-                    set.liftName
-                }.map { setsForLift ->
-                    "${workoutLog.historicalWorkoutNameId}-${setsForLift.key}" to (setsForLift.value.size to setsForLift.value.maxBy {
+                .groupBy { it.liftId }
+                .map { setsForLift ->
+                    "${workoutLog.id}-${setsForLift.key}" to (setsForLift.value.size to setsForLift.value.maxBy {
                         CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                     })
                 }
         }.associate { topSet -> topSet.first to topSet.second }
+    }
+
+    private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): HashSet<SetLogEntryDto> {
+        return workoutLogs.flatMap { workoutLog ->
+            workoutLog.setResults
+                .groupBy { it.liftId }
+                .map { liftSetResults ->
+                    liftSetResults.value.maxBy {
+                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                    }
+                }
+        }.toHashSet()
     }
 
     private fun getWorkoutsInDateRange(

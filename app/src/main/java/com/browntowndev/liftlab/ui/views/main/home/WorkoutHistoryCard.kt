@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,20 +33,20 @@ import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
-import com.browntowndev.liftlab.ui.viewmodels.states.HomeScreenState
 import java.util.Date
 import kotlin.math.roundToInt
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun WorkoutHistoryCard(
+    workoutLogEntryId: Long,
     historicalWorkoutNameId: Long,
     workoutName: String,
     workoutDate: Date,
     workoutDuration: Long,
     setResults: List<SetLogEntryDto>,
     topSets: Map<String, Pair<Int, SetLogEntryDto>>,
+    personalRecords: HashSet<SetLogEntryDto>,
 ) {
     Card(
         modifier = Modifier
@@ -53,6 +58,9 @@ fun WorkoutHistoryCard(
         ),
         onClick = { /*TODO*/ }
     ) {
+        var totalPersonalRecords by remember (key1 = topSets, key2 = personalRecords) {
+            mutableIntStateOf(0)
+        }
         Text(
             text = workoutName,
             fontWeight = FontWeight.Bold,
@@ -78,7 +86,20 @@ fun WorkoutHistoryCard(
                 contentDescription = null,
             )
             Text(
+                modifier = Modifier.padding(end = 10.dp),
                 text = workoutDuration.toTimeString(),
+                color = MaterialTheme.colorScheme.outline,
+                fontSize = 15.sp,
+            )
+            Icon(
+                modifier = Modifier.size(15.dp),
+                painter = painterResource(id = R.drawable.square_weight_icon),
+                tint = MaterialTheme.colorScheme.tertiary,
+                contentDescription = null,
+            )
+            Text(
+                modifier = Modifier.padding(end = 10.dp),
+                text = "$totalPersonalRecords PRs",
                 color = MaterialTheme.colorScheme.outline,
                 fontSize = 15.sp,
             )
@@ -103,10 +124,17 @@ fun WorkoutHistoryCard(
                 fontWeight = FontWeight.Bold,
             )
         }
-        val liftNames = remember(setResults) { setResults.distinctBy { it.liftName }.map { it.liftName } }
-        liftNames.fastForEach { liftName ->
-            val topSet = remember(topSets) { topSets["${historicalWorkoutNameId}-$liftName"] }
+        val liftIds = remember(setResults) { setResults.distinctBy { it.liftId }.map { it.liftId } }
+        liftIds.fastForEach { liftId ->
+            val topSet = remember(topSets) { topSets["${historicalWorkoutNameId}-$liftId"] }
             if (topSet != null) {
+                val isPersonalRecord = remember(topSet) { personalRecords.contains(topSet.second) }
+                Log.d(Log.DEBUG.toString(), personalRecords.toString())
+                LaunchedEffect(key1 = liftId, key2 = isPersonalRecord) {
+                    if (isPersonalRecord) {
+                        totalPersonalRecords++
+                    }
+                }
                 val weight = remember(topSet.second.weight) {
                     if (topSet.second.weight.isWholeNumber()) topSet.second.weight.roundToInt()
                         .toString()
@@ -117,15 +145,15 @@ fun WorkoutHistoryCard(
                         text = "${topSet.first} x ${topSet.second.liftName}",
                         color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Center,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier.padding(start = 15.dp)
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
                         text = "$weight x ${topSet.second.reps} @${topSet.second.rpe}",
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = if (isPersonalRecord) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Center,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier.padding(end = 15.dp)
                     )
                 }

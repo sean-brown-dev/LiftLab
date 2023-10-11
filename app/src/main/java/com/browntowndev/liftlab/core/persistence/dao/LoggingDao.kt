@@ -12,8 +12,8 @@ interface LoggingDao {
     @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 
-    @Query("SELECT log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
-            "log.durationInMillis, lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
+    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
             "setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
@@ -31,8 +31,8 @@ interface LoggingDao {
             "FROM previousSetResults")
     suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long)
 
-    @Query("SELECT log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
-            "log.durationInMillis, lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
+    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
             "setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +

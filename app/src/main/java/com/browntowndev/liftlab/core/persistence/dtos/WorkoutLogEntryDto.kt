@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 import java.util.Date
 
 data class WorkoutLogEntryDto(
+    val id: Long,
     val historicalWorkoutNameId: Long,
     val programName: String,
     val workoutName: String,

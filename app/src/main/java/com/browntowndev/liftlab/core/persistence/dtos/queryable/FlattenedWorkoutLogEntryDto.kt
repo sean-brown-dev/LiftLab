@@ -4,11 +4,13 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import java.util.Date
 
 data class FlattenedWorkoutLogEntryDto (
+    val id: Long,
     val historicalWorkoutNameId: Long,
     val programName: String,
     val workoutName: String,
     val date: Date,
     val durationInMillis: Long,
+    val liftId: Long,
     val liftName: String,
     val setType: SetType?,
     val setPosition: Int,
