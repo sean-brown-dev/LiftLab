@@ -52,14 +52,15 @@ class HomeViewModel(
                 }
 
                 loggingRepository.getAll().observeForever { workoutLogs ->
-                    val dateOrderedWorkoutLogs = workoutLogs.sortedByDescending { it.date }
+                    val dateOrderedWorkoutLogs = updatePersonalRecordOnSetLogs(
+                        workoutLogs = workoutLogs.sortedByDescending { it.date }
+                    )
                     val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
 
                     _state.update {
                         it.copy(
                             dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
                             topSets = getTopSets(dateOrderedWorkoutLogs),
-                            personalRecords = getPersonalRecords(workoutLogs),
                             workoutCompletionChart = getWeeklyCompletionChart(
                                 workoutCompletionRange = workoutCompletionRange,
                                 workoutsInDateRange = workoutsInDateRange,
@@ -90,6 +91,23 @@ class HomeViewModel(
                     })
                 }
         }.associate { topSet -> topSet.first to topSet.second }
+    }
+
+    private fun updatePersonalRecordOnSetLogs(workoutLogs: List<WorkoutLogEntryDto>): List<WorkoutLogEntryDto> {
+        val personalRecords = getPersonalRecords(workoutLogs)
+        val updatedLogs = workoutLogs.fastMap { workoutLog ->
+            workoutLog.copy(
+                setResults = workoutLog.setResults.fastMap { setLog ->
+                    if (personalRecords.contains(setLog)) {
+                        setLog.copy(
+                            isPersonalRecord = true
+                        )
+                    } else setLog
+                }
+            )
+        }
+
+        return updatedLogs
     }
 
     private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): HashSet<SetLogEntryDto> {

@@ -13,4 +13,5 @@ data class SetLogEntryDto(
     val rpe: Float,
     val mesoCycle: Int,
     val microCycle: Int,
+    val isPersonalRecord: Boolean = false,
 )

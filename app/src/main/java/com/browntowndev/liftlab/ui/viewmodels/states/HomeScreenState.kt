@@ -9,7 +9,6 @@ data class HomeScreenState(
     val program: ProgramDto? = null,
     val dateOrderedWorkoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val topSets: Map<String, Pair<Int, SetLogEntryDto>> = mapOf(),
-    val personalRecords: HashSet<SetLogEntryDto> = hashSetOf(),
     val workoutCompletionChart: ChartModel? = null,
     val microCycleCompletionChart: ChartModel? = null,
 )
