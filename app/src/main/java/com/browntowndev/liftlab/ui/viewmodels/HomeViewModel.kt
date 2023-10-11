@@ -85,7 +85,7 @@ class HomeViewModel(
                 .groupBy { set ->
                     set.liftName
                 }.map { setsForLift ->
-                    setsForLift.key to (setsForLift.value.size to setsForLift.value.maxBy {
+                    "${workoutLog.historicalWorkoutNameId}-${setsForLift.key}" to (setsForLift.value.size to setsForLift.value.maxBy {
                         CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                     })
                 }
