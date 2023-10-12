@@ -43,6 +43,7 @@ class CalculationEngine {
         }
 
         fun getOneRepMax(weight: Float, reps: Int, rpe: Float): Int {
+            if (weight == 0f || reps == 0) return 0
             val repsConsideringRpe = reps + (10 - rpe)
             return getOneRepMax(weight, repsConsideringRpe)
         }

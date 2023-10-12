@@ -81,16 +81,23 @@ class HomeViewModel(
         return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
     }
 
-    private fun getTopSets(workoutLogs: List<WorkoutLogEntryDto>): Map<String, Pair<Int, SetLogEntryDto>> {
-        return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults
-                .groupBy { it.liftId }
-                .map { setsForLift ->
-                    "${workoutLog.id}-${setsForLift.key}" to (setsForLift.value.size to setsForLift.value.maxBy {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    })
+    private fun getTopSets(workoutLogs: List<WorkoutLogEntryDto>): Map<Long, Map<Long, Pair<Int, SetLogEntryDto>>> {
+        return workoutLogs.associate { workoutLog ->
+            workoutLog.id to getTopSetsForWorkout(workoutLog)
+        }
+    }
+
+    private fun getTopSetsForWorkout(workoutLog: WorkoutLogEntryDto): Map<Long, Pair<Int, SetLogEntryDto>> {
+        return workoutLog.setResults
+            .groupBy { it.liftId }
+            .filterValues { set -> set.isNotEmpty() }
+            .mapValues { (_, sets) ->
+                val setSize = sets.size
+                val topSet = sets.maxBy {
+                    CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                 }
-        }.associate { topSet -> topSet.first to topSet.second }
+                setSize to topSet
+            }
     }
 
     private fun updatePersonalRecordOnSetLogs(workoutLogs: List<WorkoutLogEntryDto>): List<WorkoutLogEntryDto> {

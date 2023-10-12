@@ -34,12 +34,11 @@ import kotlin.math.roundToInt
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun WorkoutHistoryCard(
-    workoutLogEntryId: Long,
     workoutName: String,
     workoutDate: Date,
     workoutDuration: Long,
     setResults: List<SetLogEntryDto>,
-    topSets: Map<String, Pair<Int, SetLogEntryDto>>,
+    topSets: Map<Long, Pair<Int, SetLogEntryDto>>?,
 ) {
     Card(
         modifier = Modifier
@@ -51,7 +50,7 @@ fun WorkoutHistoryCard(
         ),
         onClick = { /*TODO*/ }
     ) {
-        val totalPersonalRecords = remember(topSets) { setResults.count { it.isPersonalRecord } }
+        val totalPersonalRecords = remember(topSets) { topSets?.values?.count { it.second.isPersonalRecord } ?: 0 }
         Text(
             text = workoutName,
             fontWeight = FontWeight.Bold,
@@ -117,7 +116,7 @@ fun WorkoutHistoryCard(
         }
         val liftIds = remember(setResults) { setResults.distinctBy { it.liftId }.map { it.liftId } }
         liftIds.fastForEach { liftId ->
-            val topSet = remember(topSets) { topSets["${workoutLogEntryId}-$liftId"] }
+            val topSet = remember(topSets) { topSets?.get(liftId) }
             if (topSet != null) {
                 val weight = remember(topSet) {
                     if (topSet.second.weight.isWholeNumber()) {
