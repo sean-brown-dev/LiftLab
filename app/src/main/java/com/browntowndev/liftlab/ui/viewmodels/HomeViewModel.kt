@@ -52,9 +52,7 @@ class HomeViewModel(
                 }
 
                 loggingRepository.getAll().observeForever { workoutLogs ->
-                    val dateOrderedWorkoutLogs = updatePersonalRecordOnSetLogs(
-                        workoutLogs = workoutLogs.sortedByDescending { it.date }
-                    )
+                    val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs = workoutLogs)
                     val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
 
                     _state.update {
@@ -100,19 +98,21 @@ class HomeViewModel(
             }
     }
 
-    private fun updatePersonalRecordOnSetLogs(workoutLogs: List<WorkoutLogEntryDto>): List<WorkoutLogEntryDto> {
+    private fun sortAndSetPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): List<WorkoutLogEntryDto> {
         val personalRecords = getPersonalRecords(workoutLogs)
-        val updatedLogs = workoutLogs.fastMap { workoutLog ->
-            workoutLog.copy(
-                setResults = workoutLog.setResults.fastMap { setLog ->
-                    if (personalRecords.contains(setLog)) {
-                        setLog.copy(
-                            isPersonalRecord = true
-                        )
-                    } else setLog
-                }
-            )
-        }
+        val updatedLogs = workoutLogs
+            .sortedByDescending { it.date }
+            .fastMap { workoutLog ->
+                workoutLog.copy(
+                    setResults = workoutLog.setResults.fastMap { setLog ->
+                        if (personalRecords.contains(setLog)) {
+                            setLog.copy(
+                                isPersonalRecord = true
+                            )
+                        } else setLog
+                    }
+                )
+            }
 
         return updatedLogs
     }

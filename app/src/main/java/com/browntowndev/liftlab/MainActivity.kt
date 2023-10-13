@@ -1,11 +1,16 @@
 package com.browntowndev.liftlab
 
+import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
@@ -25,6 +30,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        requestNotificationPermission(this)
         val context = super.getApplicationContext()
         SettingsManager.initialize(context)
         LiftLabDatabase.getInstance(context)
@@ -84,5 +90,20 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         Log.d(Log.DEBUG.toString(), "Rest time remaining: $restTimeRemaining")
         return restTimeRemaining
+    }
+
+    private fun requestNotificationPermission(context: Activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                context,
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                1
+            )
+        }
     }
 }
