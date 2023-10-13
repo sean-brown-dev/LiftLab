@@ -267,8 +267,10 @@ class LabViewModel(
     }
 
     fun toggleReorderingScreen() {
-        _state.update {
-            it.copy(isReordering = !it.isReordering)
+        viewModelScope.launch {
+            _state.update {
+                it.copy(isReordering = !it.isReordering)
+            }
         }
     }
 }

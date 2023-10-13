@@ -272,8 +272,10 @@ class LiftDetailsViewModel(
                 value.roundToInt().toString()
             },
             startAxisItemPlacer = AxisItemPlacer.Vertical.default(
-                maxItemCount = ((workingSetVolumeEntries.entries.first().maxOf { it.y } + 1) -
-                        (workingSetVolumeEntries.entries.first().minOf { it.y } - 1)).roundToInt() + 1
+                maxItemCount =  if(workingSetVolumeEntries.entries.first().isNotEmpty()) {
+                    ((workingSetVolumeEntries.entries.first().maxOf { it.y } + 1) -
+                            (workingSetVolumeEntries.entries.first().maxOf { it.y } - 1)).roundToInt() + 1
+                } else 0
             ),
             endAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 9),
             persistentMarkers = { null }
