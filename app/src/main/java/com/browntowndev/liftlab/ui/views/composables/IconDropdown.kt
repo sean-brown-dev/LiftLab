@@ -33,7 +33,7 @@ fun IconDropdown(
     menuItems: @Composable (ColumnScope.() -> Unit),
 ) {
     Box(
-        modifier = modifier.wrapContentSize(Alignment.TopStart)
+        modifier = modifier.then(Modifier.wrapContentSize(Alignment.TopStart))
     ) {
         IconButton(onClick = onToggleExpansion) {
             if (painter != null) {

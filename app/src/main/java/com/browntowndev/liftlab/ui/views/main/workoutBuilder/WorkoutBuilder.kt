@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.views.main.workoutBuilder
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -93,7 +93,7 @@ fun WorkoutBuilder(
         if (state.workout != null) {
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
-                    controlName = Screen.SUBTITLE,
+                    controlName = Screen.TITLE,
                     payload = state.workout!!.name
                 )
             )
@@ -124,34 +124,18 @@ fun WorkoutBuilder(
                         items(state.workout?.lifts ?: listOf(), { it.id }) { workoutLift ->
                             val standardLift = workoutLift as? StandardWorkoutLiftDto
                             val customLift = workoutLift as? CustomWorkoutLiftDto
-                            val overrideAppliedAtLiftLevel = remember(
-                                key1 = workoutLift.incrementOverride,
-                                key2 = workoutLift.liftIncrementOverride,
-                            ) {
-                                workoutLift.incrementOverride == null && workoutLift.liftIncrementOverride != null
-                            }
-                            val restTimeAppliedAtLiftLevel = remember(
-                                key1 = workoutLift.restTime,
-                                key2 = workoutLift.liftRestTime,
-                            ) {
-                                workoutLift.restTime == null && workoutLift.liftRestTime != null
-                            }
                             val incrementOverride = remember(
                                 key1 = workoutLift.incrementOverride,
-                                key2 = workoutLift.liftIncrementOverride,
                             ) {
-                                workoutLift.incrementOverride ?: workoutLift.liftIncrementOverride
-                                ?: SettingsManager.getSetting(
+                                workoutLift.incrementOverride ?: SettingsManager.getSetting(
                                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
                                     SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                                 )
                             }
                             val restTime = remember(
                                 key1 = workoutLift.restTime,
-                                key2 = workoutLift.liftRestTime,
                             ) {
-                                workoutLift.restTime ?: workoutLift.liftRestTime
-                                ?: SettingsManager.getSetting(
+                                workoutLift.restTime ?: SettingsManager.getSetting(
                                     SettingsManager.SettingNames.REST_TIME,
                                     SettingsManager.SettingNames.DEFAULT_REST_TIME
                                 ).toDuration(DurationUnit.MILLISECONDS)
@@ -175,8 +159,7 @@ fun WorkoutBuilder(
                                 liftName = workoutLift.liftName,
                                 increment = incrementOverride,
                                 restTime = restTime,
-                                restTimeAppliedAcrossWorkouts = restTimeAppliedAtLiftLevel,
-                                incrementAppliedAcrossWorkouts = overrideAppliedAtLiftLevel,
+                                restTimerEnabled = workoutLift.restTimerEnabled,
                                 movementPattern = workoutLift.liftMovementPattern,
                                 hasCustomLiftSets = customLiftsVisible,
                                 showCustomSetsOption = showCustomSetsOption,
@@ -209,18 +192,17 @@ fun WorkoutBuilder(
                                 onChangeDeloadWeek = {
                                     workoutBuilderViewModel.updateDeloadWeek(workoutLift.id, it)
                                 },
-                                onChangeRestTime = { newRestTime, applyAcrossWorkouts ->
+                                onChangeRestTime = { newRestTime, enabled ->
                                     workoutBuilderViewModel.setRestTime(
                                         workoutLiftId = workoutLift.id,
                                         newRestTime = newRestTime,
-                                        applyAcrossWorkouts = applyAcrossWorkouts,
+                                        enabled = enabled,
                                     )
                                 },
-                                onChangeIncrement = { newIncrement, applyAcrossWorkouts ->
+                                onChangeIncrement = { newIncrement ->
                                     workoutBuilderViewModel.setIncrementOverride(
                                         workoutLiftId = workoutLift.id,
                                         newIncrement = newIncrement,
-                                        applyAcrossWorkouts = applyAcrossWorkouts
                                     )
                                 },
                             ) {
@@ -432,19 +414,22 @@ fun WorkoutBuilder(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    modifier = Modifier.clickable {
+                                TextButton(
+                                    onClick = {
                                         val liftLibraryRoute = LiftLibraryScreen.navigation.route
                                             .replace("{workoutId}", state.workout!!.id.toString())
                                             .replace("{addAtPosition}", state.workout!!.lifts.count().toString())
                                         navHostController.navigate(liftLibraryRoute)
-                                    },
-                                    text = "Add Movement Pattern",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontSize = 17.sp,
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Add Movement Pattern",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 17.sp,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.height(80.dp))
                             Spacer(modifier = modifier.height(scrollSpacerSize))

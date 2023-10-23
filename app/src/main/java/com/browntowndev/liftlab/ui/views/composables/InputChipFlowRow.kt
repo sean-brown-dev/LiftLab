@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.FilterChipOption
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -40,16 +41,16 @@ fun InputChipFlowRow(
             .padding(start = 10.dp, end = 10.dp),
         horizontalArrangement = Arrangement.Start,
     ) {
-        for(filter in filters) {
+        filters.fastForEach { filter ->
             InputChip(
                 modifier = Modifier.height(35.dp).padding(2.dp),
                 shape = RoundedCornerShape(25.dp),
                 border = InputChipDefaults.inputChipBorder(
-                    borderColor = MaterialTheme.colorScheme.onTertiary,
+                    borderColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 ),
                 colors = InputChipDefaults.inputChipColors(
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    labelColor = MaterialTheme.colorScheme.onTertiary,
+                    labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     trailingIconColor = MaterialTheme.colorScheme.primary,
                 ),
                 selected = false,
@@ -64,7 +65,7 @@ fun InputChipFlowRow(
                         onClick = { onRemove(filter) }
                     ) {
                         Icon(
-                            modifier = Modifier.size(16.dp).padding(end = 0.dp),
+                            modifier = Modifier.size(16.dp),
                             imageVector = Icons.Filled.Close,
                             contentDescription = null,
                         )

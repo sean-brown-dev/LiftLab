@@ -24,19 +24,19 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.browntowndev.liftlab.ui.models.BottomNavItem
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 
 @ExperimentalFoundationApi
 @Composable
 fun BottomNavigation(navController: NavController, isVisible: Boolean) {
     val screens: List<BottomNavItem> = listOf(
-        LiftLibraryScreen.navigation,
+        HomeScreen.navigation,
         WorkoutScreen.navigation,
         LabScreen.navigation,
-        WorkoutHistoryScreen.navigation
+        LiftLibraryScreen.navigation,
     )
 
     AnimatedVisibility(

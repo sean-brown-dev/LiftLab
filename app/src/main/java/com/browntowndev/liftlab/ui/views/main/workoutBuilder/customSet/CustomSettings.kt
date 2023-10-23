@@ -74,91 +74,90 @@ fun CustomSettings(
                     confirmationDialogHeader = "Delete Set?",
                     confirmationDialogBody = "Confirm to delete the set.",
                     onDelete = { onDeleteSet(set.setPosition) },
-                    dismissContent = {
-                        val detailsExpanded = detailExpansionStates.contains(set.setPosition)
-                        when (set) {
-                            is StandardSetDto -> {
-                                StandardSet(
-                                    listState = listState,
-                                    detailsExpanded = detailsExpanded,
-                                    position = set.setPosition,
-                                    rpeTarget = set.rpeTarget,
-                                    repRangeBottom = set.repRangeBottom,
-                                    repRangeTop = set.repRangeTop,
-                                    onPixelOverflowChanged = onPixelOverflowChanged,
-                                    onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
-                                    onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
-                                    toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
-                                    toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
-                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
-                                    onCustomSetTypeChanged = { setType ->
-                                        onCustomSetTypeChanged(
-                                            set.setPosition,
-                                            setType
-                                        )
-                                    },
-                                )
-                                previousSetType = SetType.STANDARD
-                            }
-                            is MyoRepSetDto -> {
-                                MyoRepSet(
-                                    listState = listState,
-                                    detailsExpanded = detailsExpanded,
-                                    position = set.setPosition,
-                                    repFloor = set.repFloor,
-                                    repRangeBottom = set.repRangeBottom,
-                                    repRangeTop = set.repRangeTop,
-                                    setMatching = set.setMatching,
-                                    rpeTarget = set.rpeTarget,
-                                    setGoal = set.setGoal,
-                                    maxSets = set.maxSets,
-                                    onPixelOverflowChanged = onPixelOverflowChanged,
-                                    onSetMatchingChanged = { onSetMatchingChanged(set.setPosition, it) },
-                                    onRepFloorChanged = { onRepFloorChanged(set.setPosition, it) },
-                                    onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
-                                    onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
-                                    onMatchSetGoalChanged = { onMatchSetGoalChanged(set.setPosition, it) },
-                                    toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
-                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
-                                    onMaxSetsChanged = { onMaxSetsChanged(set.setPosition, it) },
-                                    toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
-                                    onCustomSetTypeChanged = { setType ->
-                                        onCustomSetTypeChanged(
-                                            set.setPosition,
-                                            setType
-                                        )
-                                    },
-                                )
-                                previousSetType = SetType.MYOREP
-                            }
-                            is DropSetDto -> {
-                                DropSet(
-                                    position = set.setPosition,
-                                    detailsExpanded = detailsExpanded,
-                                    dropPercentage = set.dropPercentage,
-                                    rpeTarget = set.rpeTarget,
-                                    repRangeBottom = set.repRangeBottom,
-                                    repRangeTop = set.repRangeTop,
-                                    listState = listState,
-                                    onPixelOverflowChanged = onPixelOverflowChanged,
-                                    onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
-                                    onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
-                                    toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
-                                    togglePercentagePicker = { togglePercentagePicker(set.setPosition, it) },
-                                    toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
-                                    isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
-                                    onCustomSetTypeChanged = { setType ->
-                                        onCustomSetTypeChanged(
-                                            set.setPosition,
-                                            setType
-                                        )
-                                    },
-                                )
-                                previousSetType = SetType.DROP_SET
-                            }
+                ) {
+                    val detailsExpanded = detailExpansionStates.contains(set.setPosition)
+                    when (set) {
+                        is StandardSetDto -> {
+                            StandardSet(
+                                listState = listState,
+                                detailsExpanded = detailsExpanded,
+                                position = set.setPosition,
+                                rpeTarget = set.rpeTarget,
+                                repRangeBottom = set.repRangeBottom,
+                                repRangeTop = set.repRangeTop,
+                                onPixelOverflowChanged = onPixelOverflowChanged,
+                                onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
+                                onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
+                                toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
+                                toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
+                                isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
+                                onCustomSetTypeChanged = { setType ->
+                                    onCustomSetTypeChanged(
+                                        set.setPosition,
+                                        setType
+                                    )
+                                },
+                            )
+                            previousSetType = SetType.STANDARD
+                        }
+                        is MyoRepSetDto -> {
+                            MyoRepSet(
+                                listState = listState,
+                                detailsExpanded = detailsExpanded,
+                                position = set.setPosition,
+                                repFloor = set.repFloor,
+                                repRangeBottom = set.repRangeBottom,
+                                repRangeTop = set.repRangeTop,
+                                setMatching = set.setMatching,
+                                rpeTarget = set.rpeTarget,
+                                setGoal = set.setGoal,
+                                maxSets = set.maxSets,
+                                onPixelOverflowChanged = onPixelOverflowChanged,
+                                onSetMatchingChanged = { onSetMatchingChanged(set.setPosition, it) },
+                                onRepFloorChanged = { onRepFloorChanged(set.setPosition, it) },
+                                onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
+                                onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
+                                onMatchSetGoalChanged = { onMatchSetGoalChanged(set.setPosition, it) },
+                                toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
+                                isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
+                                onMaxSetsChanged = { onMaxSetsChanged(set.setPosition, it) },
+                                toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
+                                onCustomSetTypeChanged = { setType ->
+                                    onCustomSetTypeChanged(
+                                        set.setPosition,
+                                        setType
+                                    )
+                                },
+                            )
+                            previousSetType = SetType.MYOREP
+                        }
+                        is DropSetDto -> {
+                            DropSet(
+                                position = set.setPosition,
+                                detailsExpanded = detailsExpanded,
+                                dropPercentage = set.dropPercentage,
+                                rpeTarget = set.rpeTarget,
+                                repRangeBottom = set.repRangeBottom,
+                                repRangeTop = set.repRangeTop,
+                                listState = listState,
+                                onPixelOverflowChanged = onPixelOverflowChanged,
+                                onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
+                                onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
+                                toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
+                                togglePercentagePicker = { togglePercentagePicker(set.setPosition, it) },
+                                toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
+                                isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
+                                onCustomSetTypeChanged = { setType ->
+                                    onCustomSetTypeChanged(
+                                        set.setPosition,
+                                        setType
+                                    )
+                                },
+                            )
+                            previousSetType = SetType.DROP_SET
                         }
                     }
-                )
+                }
             }
             Spacer(modifier = Modifier.height(25.dp))
             Box(

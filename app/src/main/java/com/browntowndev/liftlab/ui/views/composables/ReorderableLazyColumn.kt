@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -129,23 +129,25 @@ fun ReorderableLazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    modifier = Modifier
-                        .padding(0.dp, 0.dp, 15.dp, 0.dp)
-                        .clickable { saveReorder(reorderableItems.toList()) },
-                    text = "Confirm Reorder",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 18.sp
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    modifier = Modifier
-                        .padding(0.dp, 0.dp, 15.dp, 0.dp)
-                        .clickable { cancelReorder() },
-                    text = "Cancel Reorder",
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 18.sp
-                )
+                TextButton(
+                    onClick = { saveReorder(reorderableItems.toList()) }
+                ) {
+                    Text(
+                        text = "Confirm Reorder",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 18.sp
+                    )
+                }
+                TextButton(
+                    modifier = Modifier.padding(bottom = 15.dp),
+                    onClick = { cancelReorder() }
+                ) {
+                    Text(
+                        text = "Cancel Reorder",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 18.sp
+                    )
+                }
             }
         }
     }

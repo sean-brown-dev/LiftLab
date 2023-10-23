@@ -21,7 +21,6 @@ import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import org.greenrobot.eventbus.EventBus
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 data class LabScreen(
@@ -36,7 +35,7 @@ data class LabScreen(
     val deleteProgramVisible: Boolean = true,
     val deloadWeekVisible: Boolean = true,
     val createWorkoutVisible: Boolean = true,
-) : BaseScreen(), KoinComponent {
+) : BaseScreen() {
     companion object {
         val navigation = BottomNavItem("Lab", "", R.drawable.lab_flask, "lab")
 

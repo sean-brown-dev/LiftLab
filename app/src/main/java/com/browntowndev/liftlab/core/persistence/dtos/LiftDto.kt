@@ -12,6 +12,7 @@ data class LiftDto(
     val secondaryVolumeTypesBitmask: Int?,
     val incrementOverride: Float?,
     val restTime: Duration?,
+    val restTimerEnabled: Boolean,
     val isHidden: Boolean,
     val isBodyweight: Boolean,
 ) {

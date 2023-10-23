@@ -22,49 +22,63 @@ import kotlin.time.Duration
 @Composable
 fun RestTimePicker(
     restTime: Duration,
-    applyAcrossWorkouts: Boolean,
+    enable: Boolean,
     onHide: () -> Unit,
-    onChangeRestTime: (newRestTime: Duration, applyAcrossWorkouts: Boolean) -> Unit,
+    onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
 ) {
     Column {
-        var applyAcrossWorkoutsState by remember(applyAcrossWorkouts) { mutableStateOf(applyAcrossWorkouts) }
         DurationPickerMenuItem(
+            enabled = enable,
             startTime = restTime,
-            onConfirm = {
-                onChangeRestTime(it, applyAcrossWorkoutsState)
-                onHide()
-            },
+            onRestTimeChanged = { newRestTime -> onChangeRestTime(newRestTime, enable) },
             onCancel = onHide,
         ) {
-            Row(
-                modifier = Modifier.padding(start = 5.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Use Across Workouts",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontSize = 13.sp,
-                )
-                Spacer(modifier = Modifier.weight(.1f))
-                Switch(
-                    modifier = Modifier.padding(end = 5.dp),
-                    enabled = true,
-                    checked = applyAcrossWorkoutsState,
-                    onCheckedChange = {
-                        applyAcrossWorkoutsState = it
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedIconColor = MaterialTheme.colorScheme.onPrimary,
-                        uncheckedIconColor = MaterialTheme.colorScheme.onTertiary,
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.tertiary,
-                        checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                        checkedBorderColor = MaterialTheme.colorScheme.primary,
-                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-                    )
-                )
-            }
+            HeaderSwitcher(
+                label = "Enable",
+                checked = enable,
+                onChanged = {
+                    onChangeRestTime(restTime, it)
+                }
+            )
         }
+    }
+}
+
+@Composable
+fun HeaderSwitcher(
+    label: String,
+    checked: Boolean,
+    onChanged: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.padding(start = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            fontSize = 13.sp,
+        )
+        Spacer(modifier = Modifier.weight(.1f))
+        var checkedState by remember(checked) { mutableStateOf(checked) }
+        Switch(
+            modifier = Modifier.padding(end = 5.dp),
+            enabled = true,
+            checked = checkedState,
+            onCheckedChange = {
+                checkedState = it
+                onChanged(it)
+            },
+            colors = SwitchDefaults.colors(
+                checkedIconColor = MaterialTheme.colorScheme.onPrimary,
+                uncheckedIconColor = MaterialTheme.colorScheme.onTertiary,
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.tertiary,
+                checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
+                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedBorderColor = MaterialTheme.colorScheme.primary,
+                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+            )
+        )
     }
 }

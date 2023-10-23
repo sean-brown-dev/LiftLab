@@ -2,11 +2,11 @@ package com.browntowndev.liftlab.core.persistence.repositories
 
 import android.content.Context
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
-import com.browntowndev.liftlab.core.persistence.entities.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
+import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import com.browntowndev.liftlab.core.progression.ProgressionFactory
 import com.browntowndev.liftlab.core.progression.StandardProgressionFactory
@@ -19,6 +19,7 @@ class RepositoryHelper(context: Context): KoinComponent {
     private val workoutMapper: WorkoutMapper by inject()
     private val programMapper: ProgramMapper by inject()
     private val setResultsMapper: SetResultMapper by inject()
+    private val workoutLogEntryMapper: WorkoutLogEntryMapper by inject()
     private val progressionFactory: ProgressionFactory by inject<StandardProgressionFactory>()
     private val database: LiftLabDatabase = LiftLabDatabase.getInstance(context)
 
@@ -65,7 +66,8 @@ class RepositoryHelper(context: Context): KoinComponent {
     )
 
     val logging get() = LoggingRepository(
-        database.loggingDao()
+        database.loggingDao(),
+        workoutLogEntryMapper,
     )
 
     val restTimer get() = RestTimerInProgressRepository(

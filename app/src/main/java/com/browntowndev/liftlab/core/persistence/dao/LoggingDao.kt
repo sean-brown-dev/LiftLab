@@ -3,27 +3,26 @@ package com.browntowndev.liftlab.core.persistence.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.browntowndev.liftlab.core.persistence.dtos.queryable.LiftLogWithRelationships
-import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutLogWithRelationships
-import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LoggingDao {
     @Insert
-    suspend fun insertMany(setLogEntry: List<SetLogEntry>)
-
-    @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 
-    @Query("SELECT * FROM setLogEntries WHERE liftId = :liftId")
-    suspend fun getForLift(liftId: Long): List<LiftLogWithRelationships>
-
-    @Query("SELECT * FROM workoutLogEntries WHERE historicalWorkoutNameId = :historicalWorkoutNameId")
-    suspend fun getForWorkout(historicalWorkoutNameId: Long): List<WorkoutLogWithRelationships>
+    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
+            "setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
+            "FROM workoutLogEntries log " +
+            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
+            "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
+            "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id")
+    fun getAll(): Flow<List<FlattenedWorkoutLogEntryDto>>
 
     @Query("INSERT INTO setLogEntries " +
-            "(workoutLogEntryId, liftId, customSetType, " +
+            "(workoutLogEntryId, liftId, setType, " +
             "setPosition, myoRepSetPosition, weight, " +
             "reps, rpe, mesoCycle, microCycle) " +
             "SELECT :workoutLogEntryId, liftId, setType, " +
@@ -31,4 +30,14 @@ interface LoggingDao {
             "reps, rpe, mesoCycle, microCycle " +
             "FROM previousSetResults")
     suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long)
+
+    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
+            "setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
+            "FROM workoutLogEntries log " +
+            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
+            "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
+            "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id " +
+            "WHERE setResult.liftId = :liftId")
+    suspend fun getLogsByLiftId(liftId: Long): List<FlattenedWorkoutLogEntryDto>
 }

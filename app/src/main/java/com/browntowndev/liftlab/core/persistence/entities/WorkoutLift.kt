@@ -6,7 +6,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import kotlin.time.Duration
 
 @Entity("workoutLifts",
     indices = [Index("liftId"), Index("workoutId")],
@@ -28,8 +27,6 @@ data class WorkoutLift(
     val progressionScheme: ProgressionScheme,
     val position: Int,
     val setCount: Int,
-    val restTime: Duration? = null,
-    val incrementOverride: Float? = null,
     val deloadWeek: Int? = null,
     val rpeTarget: Float? = null,
     val repRangeBottom: Int? = null,

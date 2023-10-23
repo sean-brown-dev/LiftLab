@@ -15,7 +15,6 @@ data class LiftLibraryState (
     val movementPatternFilters: List<String> = listOf(),
     val showFilterSelection: Boolean = false,
     val backNavigationClicked: Boolean = false,
-    val navHostController: NavHostController? = null,
 ) {
     val selectedNewLiftsHashSet by lazy {
         selectedNewLifts.toHashSet()

@@ -23,6 +23,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.text.DateFormat.getDateInstance
+import java.text.DateFormat.getDateTimeInstance
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -155,13 +161,18 @@ fun ProgramDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence>
 }
 
 fun Float.isWholeNumber(): Boolean {
-    return this.toInt().toFloat() == this
+    return this % 1.0 == 0.0
 }
 
 fun Float.toFloorAndCeiling(): Iterable<Int> {
-    val roundedDown = this.toInt()
-    val roundedUp = roundedDown + 1
-    return roundedDown..roundedUp
+    return if (this.isWholeNumber()) {
+        listOf(this.roundToInt())
+    } else {
+        val roundedDown = this.toInt()
+        val roundedUp = roundedDown + 1
+
+        roundedDown..roundedUp
+    }
 }
 
 fun Double.roundToNearestFactor(factor: Float): Float {
@@ -218,6 +229,31 @@ fun Long.toTimeString(): String {
 
 fun Long.toDate(): Date {
     return Date(this)
+}
+
+fun LocalDate.toStartOfDate(): Date {
+    return Date.from(this.atStartOfDay(ZoneId.systemDefault()).toInstant())
+}
+
+fun LocalDate.toEndOfDate(): Date {
+    val endOfDay = this.atTime(23, 59).atZone(ZoneId.systemDefault())
+    return Date.from(endOfDay.toInstant())
+}
+
+fun Date.toSimpleDateString(): String {
+    val formatter = getDateInstance()
+    return formatter.format(this)
+}
+
+fun Date.toSimpleDateTimeString(): String {
+    val formatter = getDateTimeInstance()
+    return formatter.format(this)
+}
+
+fun Date.toLocalDate(): LocalDate {
+    return this.toInstant()
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
 }
 
 fun BroadcastReceiver.executeInCoroutineScope(

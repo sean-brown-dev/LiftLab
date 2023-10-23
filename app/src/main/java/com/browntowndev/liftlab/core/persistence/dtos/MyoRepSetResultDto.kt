@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.dtos
 
+import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
 data class MyoRepSetResultDto(
@@ -12,5 +13,6 @@ data class MyoRepSetResultDto(
     override val rpe: Float,
     override val mesoCycle: Int,
     override val microCycle: Int,
+    override val setType: SetType = SetType.MYOREP,
     val myoRepSetPosition: Int? = null,
 ): SetResult

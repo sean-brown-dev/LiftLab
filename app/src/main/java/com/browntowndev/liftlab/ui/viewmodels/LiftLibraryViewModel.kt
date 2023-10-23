@@ -7,10 +7,12 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +24,7 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val navHostController: NavHostController,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -30,7 +33,12 @@ class LiftLibraryViewModel(
 
     init {
         viewModelScope.launch {
-            getAllLifts()
+            liftsRepository.getAll()
+                .observeForever { lifts ->
+                    _state.update { currentState ->
+                        currentState.copy(allLifts = lifts.sortedBy { it.name })
+                    }
+                }
         }
     }
 
@@ -40,6 +48,7 @@ class LiftLibraryViewModel(
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState(true)
             TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
+            TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
         }
     }
@@ -49,12 +58,6 @@ class LiftLibraryViewModel(
         when (payloadEvent.action) {
             TopAppBarAction.SearchTextChanged -> filterLiftsByName(payloadEvent.payload)
             else -> {}
-        }
-    }
-
-    fun setNavHostController(navHostController: NavHostController) {
-        _state.update {
-            it.copy(navHostController = navHostController)
         }
     }
 
@@ -101,8 +104,6 @@ class LiftLibraryViewModel(
                         workoutId = workoutId,
                         liftName = newLift.name,
                         liftMovementPattern = newLift.movementPattern,
-                        liftIncrementOverride = newLift.incrementOverride,
-                        liftRestTime = newLift.restTime,
                         liftVolumeTypes = newLift.volumeTypesBitmask,
                         liftSecondaryVolumeTypes = newLift.secondaryVolumeTypesBitmask,
                         position = position,
@@ -110,6 +111,7 @@ class LiftLibraryViewModel(
                         setCount = 3,
                         incrementOverride = newLift.incrementOverride,
                         restTime = newLift.restTime,
+                        restTimerEnabled = newLift.restTimerEnabled,
                         rpeTarget = 8f,
                         repRangeBottom = 8,
                         repRangeTop = 10,
@@ -134,9 +136,9 @@ class LiftLibraryViewModel(
 
     private fun navigateBackToWorkoutBuilder() {
         val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
-        _state.value.navHostController?.popBackStack()
-        _state.value.navHostController?.popBackStack()
-        _state.value.navHostController?.navigate(workoutBuilderRoute)
+        navHostController.popBackStack()
+        navHostController.popBackStack()
+        navHostController.navigate(workoutBuilderRoute)
     }
 
     private fun setNavigateBackIconClickedState(clicked: Boolean) {
@@ -167,11 +169,14 @@ class LiftLibraryViewModel(
         this.filterLiftsByMovementPatterns(_state.value.movementPatternFilters.filter { it != movementPattern })
     }
 
-    private suspend fun getAllLifts() {
-        val lifts = liftsRepository.getAll().sortedBy { it.name }
-
-        _state.update {
-            it.copy(allLifts = lifts)
+    fun hideLift(lift: LiftDto) {
+        viewModelScope.launch {
+            // No need to update state. The lifts are retrieved via Flow
+            liftsRepository.update(lift.copy(isHidden = true))
         }
+    }
+
+    private fun navigateToCreateLiftMenu() {
+        navHostController.navigate(LiftDetailsScreen.navigation.route)
     }
 }

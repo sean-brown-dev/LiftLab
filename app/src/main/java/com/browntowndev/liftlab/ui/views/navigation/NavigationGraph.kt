@@ -12,15 +12,17 @@ import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
-import com.browntowndev.liftlab.ui.views.main.LiftLibrary
-import com.browntowndev.liftlab.ui.views.main.WorkoutHistory
+import com.browntowndev.liftlab.ui.views.main.home.Home
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
+import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
+import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.LiftDetails
 import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
@@ -39,6 +41,12 @@ fun NavigationGraph(
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
+        composable(HomeScreen.navigation.route) {
+            LaunchedEffect(key1 = screen) {
+                setBottomNavBarVisibility(true)
+            }
+            Home(paddingValues)
+        }
         composable(
             route = LiftLibraryScreen.navigation.route,
             arguments = listOf(
@@ -81,12 +89,42 @@ fun NavigationGraph(
                     onNavigateBack = onNavigateBack,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onChangeTopAppBarTitle = { mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, it.left())) },
-                    onToggleTopAppBarControlVisibility = { control, visible -> setTopAppBarControlVisibility(control, visible) },
+                    onToggleTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onClearTopAppBarFilterText = {
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW, "".left())
                         )
                     }
+                )
+            }
+        }
+        composable(
+            route = LiftDetailsScreen.navigation.route,
+            arguments = listOf(
+                navArgument("id") {
+                    nullable = false
+                },
+            )
+        ) {
+            val id = it.arguments?.getString("id")?.toLongOrNull()
+
+            if (screen as? LiftDetailsScreen != null) {
+                LaunchedEffect(key1 = screen) {
+                    setBottomNavBarVisibility(false)
+                    setTopAppBarCollapsed(true)
+                }
+
+                LiftDetails(
+                    id = id,
+                    navHostController = navHostController,
+                    paddingValues = paddingValues,
+                    setTopAppBarControlVisibility = setTopAppBarControlVisibility,
+                    mutateTopAppBarControlValue = { request ->
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                request.controlName,
+                                request.payload.left()))
+                    },
                 )
             }
         }
@@ -142,20 +180,14 @@ fun NavigationGraph(
                     workoutId = workoutId,
                     paddingValues = paddingValues,
                     navHostController = navHostController,
-                    mutateTopAppBarControlValue = {
+                    mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
-                                it.controlName,
-                                it.payload.left()))
+                                request.controlName,
+                                request.payload.left()))
                     },
                 )
             }
-        }
-        composable(WorkoutHistoryScreen.navigation.route) {
-            LaunchedEffect(key1 = screen) {
-                setBottomNavBarVisibility(true)
-            }
-            WorkoutHistory(paddingValues)
         }
     }
 }

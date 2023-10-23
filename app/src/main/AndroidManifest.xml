@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
     <application
         android:name=".LiftLabApp"
         android:allowBackup="true"
@@ -25,9 +26,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".ui.notifications.RestTimerNotificationService"/>
+        <service
+            android:name=".ui.notifications.RestTimerNotificationService"
+            android:foregroundServiceType="specialUse"
+            android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="rest timer countdown notification"
+            />
+        </service>
         <receiver android:name=".ui.notifications.RestTimerButtonHandler"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.example.app.SKIP_ACTION" />
             </intent-filter>

@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.dtos.interfaces
 
+import com.browntowndev.liftlab.core.common.enums.SetType
+
 interface SetResult {
     val id: Long
     val workoutId: Long
@@ -10,4 +12,5 @@ interface SetResult {
     val rpe: Float
     val mesoCycle: Int
     val microCycle: Int
+    val setType: SetType
 }

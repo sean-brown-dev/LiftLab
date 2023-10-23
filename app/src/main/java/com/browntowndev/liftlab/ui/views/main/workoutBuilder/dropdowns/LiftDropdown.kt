@@ -38,15 +38,14 @@ fun LiftDropdown(
     currentDeloadWeek: Int?,
     showDeloadWeekOption: Boolean,
     restTime: Duration,
+    restTimerEnabled: Boolean,
     increment: Float,
-    restTimeAppliedAcrossWorkouts: Boolean,
-    incrementAppliedAcrossWorkouts: Boolean,
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
     onReplaceLift: () -> Unit,
     onDeleteLift: () -> Unit,
     onChangeDeloadWeek: (Int) -> Unit,
-    onChangeRestTime: (newRestTime: Duration, applyToLift: Boolean) -> Unit,
-    onChangeIncrement: (newIncrement: Float, applyToLift: Boolean) -> Unit,
+    onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
+    onChangeIncrement: (newIncrement: Float) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var dropdownExpanded by remember { mutableStateOf(false) }
@@ -64,15 +63,14 @@ fun LiftDropdown(
         if (showRestTimePicker) {
             RestTimePicker(
                 restTime = restTime,
-                applyAcrossWorkouts = restTimeAppliedAcrossWorkouts,
+                enable = restTimerEnabled,
                 onHide = { showRestTimePicker = false },
                 onChangeRestTime = onChangeRestTime,
             )
         } else if(showIncrementPicker) {
             IncrementPicker(
                 increment = increment,
-                applyAcrossWorkouts = incrementAppliedAcrossWorkouts,
-                onHide = { showIncrementPicker = false },
+                onBackPressed = { showIncrementPicker = false },
                 onChangeIncrement = onChangeIncrement,
             )
         } else if (showDeloadWeekPicker) {
@@ -80,11 +78,10 @@ fun LiftDropdown(
                 initialValue = currentDeloadWeek!!.toFloat(),
                 label = "Deload Week",
                 options = listOf(3f, 4f, 5f, 6f, 7f, 8f),
-                onConfirm = {
+                onChanged = {
                     onChangeDeloadWeek(it.toInt())
-                    showDeloadWeekPicker = false
                 },
-                onCancel = { showDeloadWeekPicker = false},
+                onBackPressed = { showDeloadWeekPicker = false},
             )
         } else {
             DropdownMenuItem(
@@ -156,23 +153,17 @@ fun LiftDropdown(
                     )
                 },
                 trailingIcon = {
-                    var restTimeDisplay by remember {
+                    val restTimeDisplay by remember(key1 = restTime, key2 = restTimerEnabled) {
                         mutableStateOf(
-                            "${restTime.inWholeMinutes}:${
-                                String.format(
-                                    "%02d",
-                                    restTime.inWholeSeconds % 60
-                                )
-                            }"
+                            if (restTimerEnabled) {
+                                "${restTime.inWholeMinutes}:${
+                                    String.format(
+                                        "%02d",
+                                        restTime.inWholeSeconds % 60
+                                    )
+                                }"
+                            } else "Off"
                         )
-                    }
-                    LaunchedEffect(restTime) {
-                        restTimeDisplay = "${restTime.inWholeMinutes}:${
-                            String.format(
-                                "%02d",
-                                restTime.inWholeSeconds % 60
-                            )
-                        }"
                     }
 
                     Text(text = restTimeDisplay, color = MaterialTheme.colorScheme.tertiary)

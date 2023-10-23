@@ -13,8 +13,8 @@ import kotlin.time.Duration
 @Composable
 fun LiftDropdown(
     restTime: Duration,
-    restTimeAppliedAcrossWorkouts: Boolean,
-    onChangeRestTime: (newRestTime: Duration, applyToLift: Boolean) -> Unit,
+    restTimerEnabled: Boolean,
+    onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
 ) {
     var dropdownExpanded by remember { mutableStateOf(false) }
 
@@ -25,7 +25,7 @@ fun LiftDropdown(
     ) {
         RestTimePicker(
             restTime = restTime,
-            applyAcrossWorkouts = restTimeAppliedAcrossWorkouts,
+            enable = restTimerEnabled,
             onHide = { dropdownExpanded = !dropdownExpanded },
             onChangeRestTime = onChangeRestTime,
         )

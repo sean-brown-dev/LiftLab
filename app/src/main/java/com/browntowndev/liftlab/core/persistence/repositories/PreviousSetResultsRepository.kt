@@ -20,16 +20,18 @@ class PreviousSetResultsRepository(
         }
     }
 
+    suspend fun getForLift(liftId: Long): List<SetResult> {
+        return previousSetResultDao.getForLift(liftId).map {
+            setResultsMapper.map(it)
+        }
+    }
+
     suspend fun upsert(setResult: SetResult): Long {
         return previousSetResultDao.upsert(setResultsMapper.map(setResult))
     }
 
     suspend fun upsertMany(setResults: List<SetResult>): List<Long> {
         return previousSetResultDao.upsertMany(setResults.map { setResult -> setResultsMapper.map(setResult) })
-    }
-
-    suspend fun insertMany(setResult: List<SetResult>) {
-        previousSetResultDao.insertMany(setResult.map { setResultsMapper.map(it) })
     }
 
     suspend fun deleteAllNotForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {

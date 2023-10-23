@@ -3,4 +3,6 @@
     <string name="accessibility_overflow">Overflow Action Items</string>
     <string name="accessibility_search">Search</string>
     <string name="accessibility_filter">Filter</string>
+    <string name="create_a_new_lift">create a new lift</string>
+    <string name="settings">Settings</string>
 </resources>

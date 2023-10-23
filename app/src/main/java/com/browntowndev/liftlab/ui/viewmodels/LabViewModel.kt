@@ -33,7 +33,19 @@ class LabViewModel(
     val state = _state.asStateFlow()
 
     init {
-        getActiveProgram()
+        _state.update {
+            it.copy(isReordering = false, isDeletingProgram = false)
+        }
+
+        viewModelScope.launch {
+            programsRepository.getActive().observeForever { activeProgram ->
+                _state.update {
+                    it.copy(
+                        program = activeProgram
+                    )
+                }
+            }
+        }
     }
 
     @Subscribe
@@ -47,15 +59,6 @@ class LabViewModel(
             TopAppBarAction.CreateNewProgram -> toggleCreateProgramModal()
             TopAppBarAction.EditDeloadWeek -> toggleEditDeloadWeek()
             else -> { }
-        }
-    }
-
-    private fun getActiveProgram() {
-        viewModelScope.launch {
-            val program: ProgramDto? = programsRepository.getActive()
-            _state.update {
-                it.copy(program = program, isReordering = false, isDeletingProgram = false)
-            }
         }
     }
 
@@ -264,8 +267,10 @@ class LabViewModel(
     }
 
     fun toggleReorderingScreen() {
-        _state.update {
-            it.copy(isReordering = !it.isReordering)
+        viewModelScope.launch {
+            _state.update {
+                it.copy(isReordering = !it.isReordering)
+            }
         }
     }
 }

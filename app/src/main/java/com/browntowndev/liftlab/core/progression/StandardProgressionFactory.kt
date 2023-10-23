@@ -32,13 +32,12 @@ class StandardProgressionFactory: ProgressionFactory {
                             liftMovementPattern = workoutLift.liftMovementPattern,
                             liftVolumeTypes = workoutLift.liftVolumeTypes,
                             liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
-                            liftRestTime = workoutLift.liftRestTime,
                             deloadWeek = workoutLift.deloadWeek,
                             incrementOverride = workoutLift.incrementOverride,
-                            liftIncrementOverride = workoutLift.liftIncrementOverride,
                             position = workoutLift.position,
                             progressionScheme = workoutLift.progressionScheme,
                             restTime = workoutLift.restTime,
+                            restTimerEnabled = workoutLift.restTimerEnabled,
                             setCount = workoutLift.setCount,
                             sets = when (workoutLift.progressionScheme) {
                                 ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()

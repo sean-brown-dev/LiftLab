@@ -13,6 +13,6 @@ data class StandardSetResultDto(
     override val rpe: Float,
     override val mesoCycle: Int,
     override val microCycle: Int,
+    override val setType: SetType,
     val missedLpGoals: Int? = null,
-    val setType: SetType,
 ): SetResult

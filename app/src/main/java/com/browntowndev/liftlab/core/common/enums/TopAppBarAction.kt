@@ -16,4 +16,7 @@ enum class TopAppBarAction {
     FinishWorkout,
     RestTimerCompleted,
     ConfirmAddLift,
+    CreateNewLift,
+    ConfirmCreateNewLift,
+    OpenSettingsMenu,
 }

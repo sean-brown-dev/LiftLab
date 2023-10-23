@@ -4,8 +4,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import org.koin.core.component.KoinComponent
 
-sealed interface Screen {
+sealed interface Screen: KoinComponent {
     val route: String
     val isOverflowMenuExpanded: Boolean
     val isOverflowMenuIconVisible: Boolean

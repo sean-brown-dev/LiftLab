@@ -9,27 +9,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.core.common.Utils
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
-import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
-import org.koin.core.component.KoinComponent
-import org.koin.dsl.koinApplication
 
 @Composable
 fun Workout(
@@ -48,7 +39,7 @@ fun Workout(
     val timerState by timerViewModel.state.collectAsState()
 
     LaunchedEffect(state.restTimerStartedAt) {
-        if (state.restTimerStartedAt != null && !restTimerRestarted) {
+            if (state.restTimerStartedAt != null && !restTimerRestarted) {
             val restTimeRemaining = state.restTime - (Utils.getCurrentDate().time - state.restTimerStartedAt!!.time)
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())
@@ -132,57 +123,50 @@ fun Workout(
             visible = state.workoutLogVisible,
             lifts = state.workout!!.lifts,
             duration = timerState.time,
-            onSetCompleted = { setType, progressionScheme, position, myoRepSetPosition, liftId, weight, reps, rpe, restTime ->
+            onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
+                workoutViewModel.setWeight(
+                    workoutLiftId = workoutLiftId,
+                    setPosition = setPosition,
+                    newWeight = weight,
+                    myoRepSetPosition = myoRepSetPosition,
+                )
+            },
+            onRepsChanged = { workoutLiftId, setPosition, myoRepSetPosition, reps ->
+                workoutViewModel.setReps(
+                    workoutLiftId = workoutLiftId,
+                    setPosition = setPosition,
+                    newReps = reps,
+                    myoRepSetPosition = myoRepSetPosition,
+                )
+            },
+            onRpeSelected = { workoutLiftId, setPosition, myoRepSetPosition, newRpe ->
+                workoutViewModel.setRpe(
+                    workoutLiftId = workoutLiftId,
+                    setPosition = setPosition,
+                    newRpe = newRpe,
+                    myoRepSetPosition = myoRepSetPosition,
+                )
+            },
+            onSetCompleted = { setType, progressionScheme, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
                 workoutViewModel.completeSet(
                     restTime = restTime,
-                    result = when (setType) {
-                        SetType.STANDARD,
-                        SetType.DROP_SET -> {
-                            if (progressionScheme != ProgressionScheme.LINEAR_PROGRESSION) {
-                                StandardSetResultDto(
-                                    workoutId = state.workout!!.id,
-                                    setType = setType,
-                                    liftId = liftId,
-                                    mesoCycle = state.programMetadata!!.currentMesocycle,
-                                    microCycle = state.programMetadata!!.currentMicrocycle,
-                                    setPosition = position,
-                                    weight = weight,
-                                    reps = reps,
-                                    rpe = rpe,
-                                )
-                            } else {
-                                // LP can only be standard lift, so no myo
-                                LinearProgressionSetResultDto(
-                                    workoutId = state.workout!!.id,
-                                    liftId = liftId,
-                                    mesoCycle = state.programMetadata!!.currentMesocycle,
-                                    microCycle = state.programMetadata!!.currentMicrocycle,
-                                    setPosition = position,
-                                    weight = weight,
-                                    reps = reps,
-                                    rpe = rpe,
-                                    missedLpGoals = 0, // assigned on completion
-                                )
-                            }
-                        }
+                    restTimerEnabled = restTimerEnabled,
+                    result = workoutViewModel.buildSetResult(
+                        liftId = liftId,
+                        setType = setType,
+                        progressionScheme = progressionScheme,
+                        setPosition = setPosition,
+                        myoRepSetPosition = myoRepSetPosition,
+                        weight = weight,
+                        reps = reps,
+                        rpe = rpe,
+                    ))
 
-                        SetType.MYOREP ->
-                            MyoRepSetResultDto(
-                                workoutId = state.workout!!.id,
-                                liftId = liftId,
-                                mesoCycle = state.programMetadata!!.currentMesocycle,
-                                microCycle = state.programMetadata!!.currentMicrocycle,
-                                setPosition = position,
-                                weight = weight,
-                                reps = reps,
-                                rpe = rpe,
-                                myoRepSetPosition = myoRepSetPosition,
-                            )
-                    }
-                )
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
-                )
+                if (restTimerEnabled) {
+                    mutateTopAppBarControlValue(
+                        AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
+                    )
+                }
             },
             undoCompleteSet = { liftId, setPosition, myoRepSetPosition ->
                 workoutViewModel.undoSetCompletion(
@@ -200,19 +184,11 @@ fun Workout(
                     AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
             },
-            onRpeSelected = { workoutLiftId, setPosition, myoRepSetPosition, newRpe ->
-                workoutViewModel.setRpe(
-                    workoutLiftId = workoutLiftId,
-                    setPosition = setPosition,
-                    newRpe = newRpe,
-                    myoRepSetPosition = myoRepSetPosition,
-                )
-            },
-            onChangeRestTime = { workoutLiftId, newRestTime, applyToLift ->
+            onChangeRestTime = { workoutLiftId, newRestTime, enabled ->
                 workoutViewModel.updateRestTime(
                     workoutLiftId = workoutLiftId,
                     newRestTime = newRestTime,
-                    applyToLift = applyToLift,
+                    enabled = enabled,
                 )
             },
             onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->

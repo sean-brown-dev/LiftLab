@@ -1,0 +1,15 @@
+package com.browntowndev.liftlab.core.persistence.dtos
+
+import java.util.Date
+
+data class WorkoutLogEntryDto(
+    val id: Long,
+    val historicalWorkoutNameId: Long,
+    val programName: String,
+    val workoutName: String,
+    val mesocycle: Int,
+    val microcycle: Int,
+    val date: Date,
+    val durationInMillis: Long,
+    val setResults: List<SetLogEntryDto>,
+)

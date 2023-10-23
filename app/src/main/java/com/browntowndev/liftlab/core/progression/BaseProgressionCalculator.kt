@@ -17,7 +17,6 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     ): Float? {
         return if (previousSetWeight != null) {
             val incrementAmount = lift.incrementOverride
-                ?: lift.liftIncrementOverride
                 ?: SettingsManager.getSetting(
                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
                     5f
@@ -30,12 +29,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     }
 
     protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
-        return prevSet.weight + (lift.incrementOverride ?: lift.liftIncrementOverride
-        ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()
+        return prevSet.weight + (lift.incrementOverride
+            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()
     }
 
     protected fun customSetMeetsCriterion(set: GenericLiftSet, previousSet: SetResult?): Boolean {
-        return previousSet != null && set.rpeTarget == previousSet.rpe && set.repRangeTop <= previousSet.reps
+        return previousSet != null && set.rpeTarget >= previousSet.rpe && set.repRangeTop <= previousSet.reps
     }
 
     protected fun customSetMeetsCriterion(
