@@ -35,8 +35,8 @@ interface LiftsDao {
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")
     suspend fun getByCategory(movementPattern: MovementPattern): List<Lift>
 
-    @Query("UPDATE lifts SET restTime = :newRestTime WHERE lift_id = :id")
-    suspend fun updateRestTime(id: Long, newRestTime: Duration?)
+    @Query("UPDATE lifts SET restTime = :newRestTime, restTimerEnabled = :enabled WHERE lift_id = :id")
+    suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?)
 
     @Query("UPDATE lifts SET incrementOverride = :newIncrementOverride WHERE lift_id = :id")
     suspend fun updateIncrementOverride(id: Long, newIncrementOverride: Float?)

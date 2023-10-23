@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
-import kotlin.time.Duration
 
 @Dao
 interface WorkoutLiftsDao {
@@ -30,7 +29,4 @@ interface WorkoutLiftsDao {
 
     @Query("UPDATE workoutLifts SET liftId = :newLiftId WHERE workout_lift_id = :workoutLiftId")
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long)
-
-    @Query("UPDATE workoutLifts SET restTime = :restTime WHERE workout_lift_id = :workoutLiftId")
-    suspend fun updateRestTime(workoutLiftId: Long, restTime: Duration?)
 }

@@ -66,6 +66,7 @@ class LiftDetailsViewModel(
                     secondaryVolumeTypesBitmask = null,
                     incrementOverride = null,
                     restTime = null,
+                    restTimerEnabled = true,
                     isHidden = false,
                     isBodyweight = false,
                 )

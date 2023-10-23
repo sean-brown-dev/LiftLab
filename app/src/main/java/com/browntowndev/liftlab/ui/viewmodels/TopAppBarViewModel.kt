@@ -1,14 +1,17 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.content.Context
+import android.media.MediaPlayer
 import androidx.lifecycle.ViewModel
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +41,11 @@ class TopAppBarViewModel: ViewModel() {
 
     fun setControlVisibility(controlName: String, isVisible: Boolean) {
         _state.update { it.copy(currentScreen = it.currentScreen?.setControlVisibility(controlName, isVisible = isVisible)) }
+    }
+
+    fun playRestTimerCompletionSound(context: Context) {
+        val mediaPlayer: MediaPlayer = MediaPlayer.create(context, R.raw.boxing_bell)
+        mediaPlayer.start()
     }
 
     private fun getScreen(route: String?): Screen? = when (route) {

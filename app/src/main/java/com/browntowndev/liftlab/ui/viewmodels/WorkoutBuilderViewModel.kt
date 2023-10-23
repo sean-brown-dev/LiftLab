@@ -193,8 +193,6 @@ class WorkoutBuilderViewModel(
                                 liftId = lift.liftId,
                                 liftName = lift.liftName,
                                 liftMovementPattern = lift.liftMovementPattern,
-                                liftIncrementOverride = lift.incrementOverride,
-                                liftRestTime = lift.restTime,
                                 liftVolumeTypes = lift.liftVolumeTypes,
                                 liftSecondaryVolumeTypes = lift.liftSecondaryVolumeTypes,
                                 deloadWeek = lift.deloadWeek,
@@ -205,6 +203,7 @@ class WorkoutBuilderViewModel(
                                 rpeTarget = topCustomLiftSet?.rpeTarget ?: 8f,
                                 incrementOverride = null,
                                 restTime = lift.restTime,
+                                restTimerEnabled = lift.restTimerEnabled,
                                 progressionScheme = lift.progressionScheme,
                             )
                         } else lift
@@ -262,14 +261,13 @@ class WorkoutBuilderViewModel(
                         liftMovementPattern = lift.liftMovementPattern,
                         liftVolumeTypes = lift.liftVolumeTypes,
                         liftSecondaryVolumeTypes = lift.liftSecondaryVolumeTypes,
-                        liftRestTime = lift.restTime,
-                        liftIncrementOverride = lift.incrementOverride,
                         position = lift.position,
                         setCount = lift.setCount,
                         progressionScheme = lift.progressionScheme,
                         deloadWeek = lift.deloadWeek,
                         incrementOverride = lift.incrementOverride,
                         restTime = lift.restTime,
+                        restTimerEnabled = lift.restTimerEnabled,
                         customLiftSets = customSets
                     )
                 }
@@ -290,37 +288,29 @@ class WorkoutBuilderViewModel(
         return if (workoutCopy != null) state.copy(workout = workoutCopy) else state
     }
 
-    fun setRestTime(workoutLiftId: Long, newRestTime: Duration, applyAcrossWorkouts: Boolean) {
+    fun setRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) {
         executeInTransactionScope {
-            val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
-            val workoutLiftCopy = when (workoutLift) {
-                is StandardWorkoutLiftDto -> {
-                    if (applyAcrossWorkouts) workoutLift.copy(restTime = null, liftRestTime = newRestTime)
-                    else workoutLift.copy(restTime = newRestTime)
-                }
-                is CustomWorkoutLiftDto -> {
-                    if (applyAcrossWorkouts) workoutLift.copy(restTime = null, liftRestTime = newRestTime)
-                    else workoutLift.copy(restTime = newRestTime)
-                }
-                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
-            }
-            if (applyAcrossWorkouts) {
-                liftsRepository.updateRestTime(
-                    id = workoutLift.liftId,
-                    newRestTime = newRestTime
-                )
-            } else {
-                workoutLiftsRepository.updateRestTime(
-                    workoutLiftId = workoutLiftId,
-                    restTime = workoutLiftCopy.restTime
-                )
-            }
-
             _state.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { lift ->
-                            if (lift.id == workoutLiftId) workoutLiftCopy
+                            if (lift.id == workoutLiftId) {
+                                val workoutLiftCopy = when (lift) {
+                                    is StandardWorkoutLiftDto -> {
+                                        lift.copy(restTime = newRestTime, restTimerEnabled = enabled)
+                                    }
+                                    is CustomWorkoutLiftDto -> {
+                                        lift.copy(restTime = newRestTime, restTimerEnabled = enabled)
+                                    }
+                                    else -> throw Exception("${lift::class.simpleName} is not defined.")
+                                }
+                                liftsRepository.updateRestTime(
+                                    id = workoutLiftCopy.liftId,
+                                    enabled = enabled,
+                                    newRestTime = newRestTime
+                                )
+                                workoutLiftCopy
+                            }
                             else lift
                         }
                     )
@@ -329,32 +319,30 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun setIncrementOverride(workoutLiftId: Long, newIncrement: Float, applyAcrossWorkouts: Boolean) {
+    fun setIncrementOverride(workoutLiftId: Long, newIncrement: Float) {
         Log.d(Log.DEBUG.toString(), "newIncrement: $newIncrement")
         executeInTransactionScope {
-            val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
-            val workoutLiftCopy = when (workoutLift) {
-                is StandardWorkoutLiftDto -> {
-                    if (applyAcrossWorkouts) workoutLift.copy(incrementOverride = null, liftIncrementOverride = newIncrement)
-                    else workoutLift.copy(incrementOverride = newIncrement)
-                }
-                is CustomWorkoutLiftDto -> {
-                    if (applyAcrossWorkouts) workoutLift.copy(incrementOverride = null, liftIncrementOverride = newIncrement)
-                    else workoutLift.copy(incrementOverride = newIncrement)
-                }
-                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
-            }
-
-            workoutLiftsRepository.update(workoutLiftCopy)
-            liftsRepository.updateIncrementOverride(
-                id = workoutLift.liftId,
-                newIncrement = if (applyAcrossWorkouts) newIncrement else null,
-            )
             _state.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { lift ->
-                            if (lift.id == workoutLiftId) workoutLiftCopy
+                            if (lift.id == workoutLiftId) {
+                                val workoutLiftCopy = when (lift) {
+                                    is StandardWorkoutLiftDto -> {
+                                        lift.copy(incrementOverride = newIncrement)
+                                    }
+                                    is CustomWorkoutLiftDto -> {
+                                        lift.copy(incrementOverride = newIncrement)
+                                    }
+                                    else -> throw Exception("${lift::class.simpleName} is not defined.")
+                                }
+
+                                liftsRepository.updateIncrementOverride(
+                                    id = lift.liftId,
+                                    newIncrement = newIncrement,
+                                )
+                                workoutLiftCopy
+                            }
                             else lift
                         }
                     )

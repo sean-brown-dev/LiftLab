@@ -172,7 +172,6 @@ class WorkoutsRepository(
                 when (set) {
                     is LoggingDropSetDto -> {
                         val increment = workoutLift.incrementOverride
-                            ?: workoutLift.liftIncrementOverride
                             ?: SettingsManager.getSetting(
                                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
                                 5f

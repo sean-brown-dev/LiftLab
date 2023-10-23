@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -72,10 +71,12 @@ fun WorkoutLog(
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
     onRpeSelected: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) -> Unit,
-    onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, setPosition: Int, myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float, restTime: Long) -> Unit,
+    onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, setPosition: Int,
+                     myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float,
+                     restTime: Long, restTimeEnabled: Boolean) -> Unit,
     undoCompleteSet: (liftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     cancelWorkout: () -> Unit,
-    onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, applyToLift: Boolean) -> Unit,
+    onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
 ) {
     // Remember the myo rep set indices from the previous composition. Below they will
@@ -150,13 +151,11 @@ fun WorkoutLog(
                         ) {
                             val restTime = remember(lift.restTime) {
                                 lift.restTime?.inWholeMilliseconds
-                                    ?: lift.liftRestTime?.inWholeMilliseconds
                                     ?: SettingsManager.getSetting(
                                         SettingsManager.SettingNames.REST_TIME,
                                         SettingsManager.SettingNames.DEFAULT_REST_TIME,
                                     )
                             }
-
                             Row {
                                 Text(
                                     modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 5.dp, end = 10.dp),
@@ -168,9 +167,9 @@ fun WorkoutLog(
                                 Spacer(modifier = Modifier.weight(1f))
                                 LiftDropdown(
                                     restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
-                                    restTimeAppliedAcrossWorkouts = remember(lift.liftRestTime) { lift.liftRestTime != null },
-                                    onChangeRestTime = { restTime, applyToLift ->
-                                        onChangeRestTime(lift.id, restTime, applyToLift)
+                                    restTimerEnabled = lift.restTimerEnabled,
+                                    onChangeRestTime = { restTime, enabled ->
+                                        onChangeRestTime(lift.id, restTime, enabled)
                                     },
                                 )
                             }
@@ -238,6 +237,7 @@ fun WorkoutLog(
                                                     reps,
                                                     rpe,
                                                     restTime,
+                                                    lift.restTimerEnabled,
                                                 )
                                                 pickerViewModel.hideRpePicker()
                                             },

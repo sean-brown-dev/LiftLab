@@ -7,14 +7,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,12 +30,12 @@ fun NumberPickerMenuItem(
     initialValue: Float,
     label: String,
     options: List<Float>,
-    onConfirm: (Float) -> Unit,
-    onCancel: () -> Unit,
+    onChanged: (Float) -> Unit,
+    onBackPressed: () -> Unit,
     headerContent: @Composable (() -> Unit) = {},
 ) {
-    var optionValues by remember { mutableStateOf(options) }
-    var displayValues by remember {
+    val optionValues by remember(options) { mutableStateOf(options) }
+    val displayValues by remember(options) {
         mutableStateOf(options.fastMap {
             if (it % 1 == 0f) {
                 String.format("%.0f", it) // Format as whole number if no decimal places
@@ -44,25 +44,11 @@ fun NumberPickerMenuItem(
             }
         }.toTypedArray())
     }
-    var selectedValue by remember { mutableStateOf(initialValue) }
-
-    LaunchedEffect(initialValue) {
-        selectedValue = initialValue
-    }
-    LaunchedEffect(options) {
-        optionValues = options
-        displayValues = options.fastMap {
-            if (it % 1 == 0f) {
-                String.format("%.0f", it) // Format as whole number if no decimal places
-            } else {
-                String.format("%.1f", it) // Format with 1 decimal place if there are non-zero decimals
-            }
-        }.toTypedArray()
-    }
+    var selectedValue by remember(initialValue) { mutableFloatStateOf(initialValue) }
 
     Column(modifier = Modifier.width(200.dp)) {
         Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onCancel) {
+            IconButton(onClick = onBackPressed) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -75,20 +61,10 @@ fun NumberPickerMenuItem(
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 10.sp,
             )
-            IconButton(onClick = { onConfirm(selectedValue)}) {
-                Icon(
-                    imageVector = Icons.Outlined.CheckCircle,
-                    tint = MaterialTheme.colorScheme.primary,
-                    contentDescription = null
-                )
-            }
         }
         headerContent()
         Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            var selectedIndex by remember { mutableStateOf(optionValues.indexOf(selectedValue)) }
-            LaunchedEffect(key1 = selectedValue, key2 = optionValues) {
-                selectedIndex = optionValues.indexOf(selectedValue)
-            }
+            var selectedIndex by remember(selectedValue, optionValues) { mutableIntStateOf(optionValues.indexOf(selectedValue)) }
             AndroidView(
                 modifier = Modifier.weight(1f),
                 factory = { context ->
@@ -96,6 +72,7 @@ fun NumberPickerMenuItem(
                         setOnValueChangedListener { _, _, newVal ->
                             selectedIndex = newVal
                             selectedValue = optionValues[newVal]
+                            onChanged(selectedValue)
                         }
                         displayedValues = displayValues
                         minValue = 0

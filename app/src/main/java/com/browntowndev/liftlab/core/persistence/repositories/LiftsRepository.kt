@@ -22,6 +22,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
             secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
             incrementOverride = lift.incrementOverride,
             restTime = lift.restTime,
+            restTimerEnabled = lift.restTimerEnabled,
             isHidden = lift.isHidden,
             isBodyweight = lift.isBodyweight,
         ))
@@ -37,6 +38,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
                 incrementOverride = lift.incrementOverride,
                 restTime = lift.restTime,
+                restTimerEnabled = lift.restTimerEnabled,
                 isHidden = lift.isHidden,
                 isBodyweight = lift.isBodyweight,
             ))
@@ -52,13 +54,14 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
             secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
             incrementOverride = lift.incrementOverride,
             restTime = lift.restTime,
+            restTimerEnabled = lift.restTimerEnabled,
             isHidden = lift.isHidden,
             isBodyweight = lift.isBodyweight,
         )
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun getAll(): LiveData<List<LiftDto>> {
+    fun getAll(): LiveData<List<LiftDto>> {
         return liftsDao.getAllAsFlow().flatMapLatest{ lifts ->
             flowOf(
                 lifts.fastMap {
@@ -70,6 +73,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                         secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
                         incrementOverride = it.incrementOverride,
                         restTime = it.restTime,
+                        restTimerEnabled = it.restTimerEnabled,
                         isHidden = it.isHidden,
                         isBodyweight = it.isBodyweight,
                     )
@@ -78,8 +82,8 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
         }.asLiveData()
     }
 
-    suspend fun updateRestTime(id: Long, newRestTime: Duration?) {
-        liftsDao.updateRestTime(id, newRestTime)
+    suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?) {
+        liftsDao.updateRestTime(id, enabled, newRestTime)
     }
 
     suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {

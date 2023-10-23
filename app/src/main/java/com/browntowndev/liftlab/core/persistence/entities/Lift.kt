@@ -16,6 +16,7 @@ data class Lift(
     val volumeTypesBitmask: Int,
     val secondaryVolumeTypesBitmask: Int? = null,
     val restTime: Duration? = null,
+    val restTimerEnabled: Boolean = true,
     val incrementOverride: Float? = null,
     val isHidden: Boolean = false,
     val isBodyweight: Boolean = false,

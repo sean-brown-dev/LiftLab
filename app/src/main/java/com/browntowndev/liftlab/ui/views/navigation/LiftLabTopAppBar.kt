@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -190,6 +191,7 @@ private fun Title(
             }
         }
     } else {
+        val context = LocalContext.current
         val restTimerAction = state.actions
             .filterIsInstance<ActionMenuItem.TimerMenuItem.AlwaysShown>()
             .firstOrNull()
@@ -210,11 +212,10 @@ private fun Title(
                             Triple(0L, 0L, false)
                         )
                     )
-                    EventBus.getDefault()
-                        .post(TopAppBarEvent.ActionEvent(TopAppBarAction.RestTimerCompleted))
-                    // TODO: Make a sound
-                    if (ranToCompletion) {
+                    EventBus.getDefault().post(TopAppBarEvent.ActionEvent(TopAppBarAction.RestTimerCompleted))
 
+                    if (ranToCompletion) {
+                        topAppBarViewModel.playRestTimerCompletionSound(context)
                     }
                 }
                 Icon(
@@ -222,7 +223,7 @@ private fun Title(
                     painter = painterResource(id = R.drawable.stopwatch_icon),
                     contentDescription = null,
                     tint = if (restTimerAction.started) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onBackground,
+                    else MaterialTheme.colorScheme.onBackground,
                 )
             }
         }

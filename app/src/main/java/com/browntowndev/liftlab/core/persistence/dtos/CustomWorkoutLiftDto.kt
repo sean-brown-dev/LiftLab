@@ -14,13 +14,12 @@ data class CustomWorkoutLiftDto(
     override val liftMovementPattern: MovementPattern,
     override val liftVolumeTypes: Int,
     override val liftSecondaryVolumeTypes: Int?,
-    override val liftRestTime: Duration?,
-    override val liftIncrementOverride: Float?,
     override val position: Int,
     override val setCount: Int,
     override val progressionScheme: ProgressionScheme,
     override val deloadWeek: Int?,
     override val incrementOverride: Float?,
     override val restTime: Duration?,
+    override val restTimerEnabled: Boolean,
     val customLiftSets: List<GenericLiftSet>
 ) : GenericWorkoutLift

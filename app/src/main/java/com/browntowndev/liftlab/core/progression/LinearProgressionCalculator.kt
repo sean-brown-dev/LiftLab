@@ -44,7 +44,7 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
 
         return if (previousSetResults.isNotEmpty() && previouslyFailedSet != null) {
             val factor =
-                workoutLift.incrementOverride ?: workoutLift.liftIncrementOverride ?: SettingsManager.getSetting(
+                workoutLift.incrementOverride ?: SettingsManager.getSetting(
                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
                     5f
                 )

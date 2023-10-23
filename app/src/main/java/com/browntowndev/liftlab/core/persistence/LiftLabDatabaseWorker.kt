@@ -2,13 +2,14 @@ package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.ui.util.fastMap
 import androidx.room.withTransaction
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
-import com.browntowndev.liftlab.core.common.enums.MovementPatternDeserializer
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.core.common.enums.MovementPatternDeserializer
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.persistence.entities.Lift
 import com.browntowndev.liftlab.core.persistence.entities.Program
@@ -30,10 +31,11 @@ class LiftLabDatabaseWorker(
                 applicationContext.assets.open(filename).use { inputStream ->
                     inputStream.reader().use { reader ->
                         val liftType = object : TypeToken<List<Lift>>() {}.type
-                        val lifts: List<Lift> = GsonBuilder()
+                        val lifts: List<Lift> = (GsonBuilder()
                             .registerTypeAdapter(MovementPattern::class.java, MovementPatternDeserializer())
                             .create()
-                            .fromJson(reader, liftType)
+                            .fromJson(reader, liftType) as List<Lift>)
+                            .fastMap { it.copy(restTimerEnabled = true) }
 
                         val database = LiftLabDatabase.getInstance(applicationContext)
                         database.withTransaction {

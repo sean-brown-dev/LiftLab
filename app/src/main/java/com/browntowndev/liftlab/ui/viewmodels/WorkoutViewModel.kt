@@ -318,7 +318,7 @@ class WorkoutViewModel(
         increment: Float,
     ): LoggingDropSetDto {
         return dropSet.copy(
-            weightRecommendation = (completedWeight!! * (1 - dropSet.dropPercentage))
+            weightRecommendation = (completedWeight * (1 - dropSet.dropPercentage))
                 .roundToNearestFactor(increment)
         )
     }
@@ -423,13 +423,15 @@ class WorkoutViewModel(
         }
     }
 
-    fun completeSet(restTime: Long, result: SetResult) {
+    fun completeSet(restTime: Long, restTimerEnabled: Boolean, result: SetResult) {
         executeInTransactionScope {
-            restTimerInProgressRepository.insert(restTime)
+            if (restTimerEnabled) {
+                restTimerInProgressRepository.insert(restTime)
+            }
             _state.update { currentState ->
                 currentState.copy(
-                    restTime = restTime,
-                    restTimerStartedAt = Utils.getCurrentDate(),
+                    restTime = if (restTimerEnabled) restTime else currentState.restTime,
+                    restTimerStartedAt = if(restTimerEnabled) Utils.getCurrentDate() else currentState.restTimerStartedAt,
                     inProgressWorkout = currentState.inProgressWorkout?.copy(
                         completedSets = currentState.inProgressWorkout.completedSets.toMutableList().apply {
                             val existingResult = find { existing ->
@@ -470,7 +472,6 @@ class WorkoutViewModel(
                                         myoRepSetPosition = (result as? MyoRepSetResultDto)?.myoRepSetPosition,
                                         currentSets = workoutLift.sets,
                                         increment = workoutLift.incrementOverride
-                                            ?: workoutLift.liftIncrementOverride
                                             ?: SettingsManager.getSetting(
                                                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
                                                 5f
@@ -640,29 +641,21 @@ class WorkoutViewModel(
         }
     }
 
-    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, applyToLift: Boolean) {
+    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) {
         executeInTransactionScope {
-            val workoutLift = _state.value.workout!!.lifts.find{ it.id == workoutLiftId }!!
-            val workoutLiftCopy =  if (applyToLift) workoutLift.copy(restTime = null, liftRestTime = newRestTime)
-                else workoutLift.copy(restTime = newRestTime)
-
-            if (applyToLift) {
-                liftsRepository.updateRestTime(
-                    id = workoutLift.liftId,
-                    newRestTime = newRestTime
-                )
-            } else {
-                workoutLiftsRepository.updateRestTime(
-                    workoutLiftId = workoutLiftId,
-                    restTime = workoutLiftCopy.restTime
-                )
-            }
-
             _state.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { lift ->
-                            if (lift.id == workoutLiftId) workoutLiftCopy
+                            if (lift.id == workoutLiftId) {
+                                val workoutLiftCopy = lift.copy(restTime = newRestTime, restTimerEnabled = enabled)
+                                liftsRepository.updateRestTime(
+                                    id = lift.liftId,
+                                    enabled = enabled,
+                                    newRestTime = newRestTime
+                                )
+                                workoutLiftCopy
+                            }
                             else lift
                         }
                     )

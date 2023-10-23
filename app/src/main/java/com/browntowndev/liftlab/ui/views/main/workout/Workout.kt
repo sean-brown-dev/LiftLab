@@ -39,7 +39,7 @@ fun Workout(
     val timerState by timerViewModel.state.collectAsState()
 
     LaunchedEffect(state.restTimerStartedAt) {
-        if (state.restTimerStartedAt != null && !restTimerRestarted) {
+            if (state.restTimerStartedAt != null && !restTimerRestarted) {
             val restTimeRemaining = state.restTime - (Utils.getCurrentDate().time - state.restTimerStartedAt!!.time)
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())
@@ -147,9 +147,10 @@ fun Workout(
                     myoRepSetPosition = myoRepSetPosition,
                 )
             },
-            onSetCompleted = { setType, progressionScheme, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime ->
+            onSetCompleted = { setType, progressionScheme, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
                 workoutViewModel.completeSet(
                     restTime = restTime,
+                    restTimerEnabled = restTimerEnabled,
                     result = workoutViewModel.buildSetResult(
                         liftId = liftId,
                         setType = setType,
@@ -160,9 +161,12 @@ fun Workout(
                         reps = reps,
                         rpe = rpe,
                     ))
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
-                )
+
+                if (restTimerEnabled) {
+                    mutateTopAppBarControlValue(
+                        AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
+                    )
+                }
             },
             undoCompleteSet = { liftId, setPosition, myoRepSetPosition ->
                 workoutViewModel.undoSetCompletion(
@@ -180,11 +184,11 @@ fun Workout(
                     AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
             },
-            onChangeRestTime = { workoutLiftId, newRestTime, applyToLift ->
+            onChangeRestTime = { workoutLiftId, newRestTime, enabled ->
                 workoutViewModel.updateRestTime(
                     workoutLiftId = workoutLiftId,
                     newRestTime = newRestTime,
-                    applyToLift = applyToLift,
+                    enabled = enabled,
                 )
             },
             onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
