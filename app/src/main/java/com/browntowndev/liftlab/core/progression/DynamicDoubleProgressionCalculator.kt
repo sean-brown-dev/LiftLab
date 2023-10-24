@@ -38,7 +38,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         workoutLift: StandardWorkoutLiftDto,
         sortedSetData: List<SetResult>,
         isDeloadWeek: Boolean,
-        ): List<LoggingStandardSetDto> {
+    ): List<LoggingStandardSetDto> {
         val resultsMap = sortedSetData.associateBy { it.setPosition }
         return List(workoutLift.setCount) { setPosition ->
             val result = resultsMap[setPosition]

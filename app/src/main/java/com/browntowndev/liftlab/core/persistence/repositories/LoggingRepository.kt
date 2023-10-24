@@ -29,8 +29,8 @@ class LoggingRepository(
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
-    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long) {
-        loggingDao.insertFromPreviousSetResults(workoutLogEntryId)
+    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, excludeFromCopy: List<Long>) {
+        loggingDao.insertFromPreviousSetResults(workoutLogEntryId, excludeFromCopy)
     }
 
     suspend fun insertWorkoutLogEntry(

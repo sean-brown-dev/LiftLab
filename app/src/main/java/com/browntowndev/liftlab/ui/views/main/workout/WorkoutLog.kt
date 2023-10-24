@@ -71,7 +71,7 @@ fun WorkoutLog(
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
     onRpeSelected: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) -> Unit,
-    onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, setPosition: Int,
+    onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, liftPosition: Int, setPosition: Int,
                      myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float,
                      restTime: Long, restTimeEnabled: Boolean) -> Unit,
     undoCompleteSet: (liftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
@@ -230,6 +230,7 @@ fun WorkoutLog(
                                                 onSetCompleted(
                                                     setType,
                                                     lift.progressionScheme,
+                                                    lift.position,
                                                     set.setPosition,
                                                     (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                                                     lift.liftId,

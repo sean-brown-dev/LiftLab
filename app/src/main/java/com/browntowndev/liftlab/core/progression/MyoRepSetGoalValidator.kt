@@ -6,26 +6,27 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 class MyoRepSetGoalValidator {
     companion object {
         fun shouldContinueMyoReps(
+                completedRpe: Float,
+                completedReps: Int,
                 myoRepSetGoals: LoggingMyoRepSetDto,
-                completedMyoRepSetResult: MyoRepSetResultDto,
                 previousMyoRepSets: List<LoggingMyoRepSetDto>,
             ): Boolean {
             val isActivationSet = previousMyoRepSets.isEmpty()
-            val metGoals = completedMyoRepSetResult.rpe == myoRepSetGoals.rpeTarget
+            val metGoals = completedRpe == myoRepSetGoals.rpeTarget
 
             return metGoals && if (isActivationSet) {
-                completedMyoRepSetResult.reps >= myoRepSetGoals.repRangeBottom
+                completedReps >= myoRepSetGoals.repRangeBottom
             } else if (myoRepSetGoals.setMatching) {
                 val totalSetsCompleted = previousMyoRepSets.sumOf { prevSet ->
                     if (prevSet.myoRepSetPosition != null) {
                         prevSet.completedReps ?: 0
                     } else 0
-                } + completedMyoRepSetResult.reps
+                } + completedReps
 
                 myoRepSetGoals.repRangeTop > totalSetsCompleted
             } else {
                 previousMyoRepSets.size + 1 < (myoRepSetGoals.maxSets ?: Int.MAX_VALUE) &&
-                        completedMyoRepSetResult.reps > myoRepSetGoals.repFloor!!
+                        completedReps > myoRepSetGoals.repFloor!!
             }
         }
 
@@ -40,21 +41,10 @@ class MyoRepSetGoalValidator {
                 return false
             }
 
-            val setResult = MyoRepSetResultDto(
-                workoutId = 0L,
-                liftId = 0L,
-                mesoCycle = 0,
-                microCycle = 0,
-                setPosition = completedSet.setPosition,
-                myoRepSetPosition = completedSet.myoRepSetPosition,
-                weight = completedSet.completedWeight,
-                reps = completedSet.completedReps,
-                rpe = completedSet.completedRpe,
-            )
-
             return shouldContinueMyoReps(
+                completedRpe = completedSet.completedRpe,
+                completedReps = completedSet.completedReps,
                 myoRepSetGoals = completedSet,
-                completedMyoRepSetResult = setResult,
                 previousMyoRepSets = previousMyoRepSets)
         }
     }

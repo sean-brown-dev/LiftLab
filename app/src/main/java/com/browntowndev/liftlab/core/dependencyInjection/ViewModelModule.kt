@@ -20,7 +20,7 @@ val viewModelModule = module {
     viewModel { params -> LiftDetailsViewModel(params[0], params.get(), get(), get(), get(), get()) }
     viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { params -> LiftLibraryViewModel(get(), get(), params.get(), get(), get()) }
-    viewModel { WorkoutViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { params -> WorkoutViewModel(get(), get(), get(), get(), get(), get(), get(), get(), params[0], get(), get()) }
     viewModel { TopAppBarViewModel() }
     viewModel { BottomNavBarViewModel() }
     viewModel { BottomSheetViewModel() }

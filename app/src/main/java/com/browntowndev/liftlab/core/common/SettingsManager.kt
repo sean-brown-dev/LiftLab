@@ -32,6 +32,10 @@ object SettingsManager {
         }
     }
 
+    fun initialize(sharedPreferences: SharedPreferences) {
+        this.sharedPreferences = sharedPreferences
+    }
+
     fun <T: Any> getSetting(key: String, defaultValue: T): T {
         return when (defaultValue) {
             is String -> sharedPreferences.getString(key, defaultValue)

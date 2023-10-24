@@ -21,6 +21,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun Workout(
@@ -34,7 +35,13 @@ fun Workout(
     var restTimerRestarted by remember { mutableStateOf(false) }
 
     val timerViewModel: TimerViewModel = koinViewModel()
-    val workoutViewModel: WorkoutViewModel = koinViewModel()
+    val workoutViewModel: WorkoutViewModel = koinViewModel {
+        parametersOf({
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
+            )
+        })
+    }
     val state by workoutViewModel.state.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
 
@@ -147,7 +154,7 @@ fun Workout(
                     myoRepSetPosition = myoRepSetPosition,
                 )
             },
-            onSetCompleted = { setType, progressionScheme, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
+            onSetCompleted = { setType, progressionScheme, liftPosition, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
                 workoutViewModel.completeSet(
                     restTime = restTime,
                     restTimerEnabled = restTimerEnabled,
@@ -155,6 +162,7 @@ fun Workout(
                         liftId = liftId,
                         setType = setType,
                         progressionScheme = progressionScheme,
+                        liftPosition = liftPosition,
                         setPosition = setPosition,
                         myoRepSetPosition = myoRepSetPosition,
                         weight = weight,

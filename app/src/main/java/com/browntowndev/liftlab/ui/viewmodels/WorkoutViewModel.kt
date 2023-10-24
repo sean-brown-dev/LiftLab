@@ -28,7 +28,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResults
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -51,7 +50,7 @@ class WorkoutViewModel(
     private val loggingRepository: LoggingRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val onWorkoutFinished: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -128,60 +127,6 @@ class WorkoutViewModel(
                 it.copy(
                     inProgressWorkout = inProgressWorkout,
                     workoutLogVisible = true,
-                )
-            }
-        }
-    }
-
-    fun cancelWorkout() {
-        executeInTransactionScope {
-            // Remove the workout from in progress
-            workoutInProgressRepository.delete()
-
-            // Delete all set results from the workout
-            val programMetadata = _state.value.programMetadata!!
-            setResultsRepository.deleteAllForWorkout(
-                workoutId = _state.value.workout!!.id,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle,
-            )
-
-            _state.update {
-                it.copy(
-                    workoutLogVisible = false,
-                    inProgressWorkout = null,
-                    workout = it.workout?.copy(
-                        lifts = it.workout.lifts.fastMap { workoutLift ->
-                            workoutLift.copy(
-                                sets = workoutLift.sets
-                                .filter { set ->
-                                    (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == null
-                                }.fastMap { set ->
-                                    when (set) {
-                                        is LoggingStandardSetDto -> set.copy(
-                                            completedWeight = null,
-                                            completedReps = null,
-                                            completedRpe = null,
-                                        )
-
-                                        is LoggingDropSetDto -> set.copy(
-                                            completedWeight = null,
-                                            completedReps = null,
-                                            completedRpe = null,
-                                        )
-
-                                        is LoggingMyoRepSetDto -> set.copy(
-                                            completedWeight = null,
-                                            completedReps = null,
-                                            completedRpe = null,
-                                        )
-
-                                        else -> throw Exception("${set::class.simpleName} is not defined.")
-                                    }
-                                }
-                            )
-                        }
-                    )
                 )
             }
         }
@@ -367,6 +312,7 @@ class WorkoutViewModel(
         liftId: Long,
         setType: SetType,
         progressionScheme: ProgressionScheme,
+        liftPosition: Int,
         setPosition: Int,
         myoRepSetPosition: Int?,
         weight: Float,
@@ -387,6 +333,7 @@ class WorkoutViewModel(
                         liftId = liftId,
                         mesoCycle = currentMesocycle,
                         microCycle = currentMicrocycle,
+                        liftPosition = liftPosition,
                         setPosition = setPosition,
                         weight = weight,
                         reps = reps,
@@ -399,6 +346,7 @@ class WorkoutViewModel(
                         liftId = liftId,
                         mesoCycle = currentMesocycle,
                         microCycle = currentMicrocycle,
+                        liftPosition = liftPosition,
                         setPosition = setPosition,
                         weight = weight,
                         reps = reps,
@@ -414,6 +362,7 @@ class WorkoutViewModel(
                     liftId = liftId,
                     mesoCycle = currentMesocycle,
                     microCycle = currentMicrocycle,
+                    liftPosition = liftPosition,
                     setPosition = setPosition,
                     weight = weight,
                     reps = reps,
@@ -436,6 +385,7 @@ class WorkoutViewModel(
                         completedSets = currentState.inProgressWorkout.completedSets.toMutableList().apply {
                             val existingResult = find { existing ->
                                 existing.liftId == result.liftId &&
+                                        existing.liftPosition == result.liftPosition &&
                                         existing.setPosition == result.setPosition &&
                                         (existing as? MyoRepSetResultDto)?.myoRepSetPosition ==
                                         (result as? MyoRepSetResultDto)?.myoRepSetPosition
@@ -586,8 +536,19 @@ class WorkoutViewModel(
                 microCycle = programMetadata.currentMicrocycle,
             )
 
+            val liftsAndPositions = _state.value.workout!!.lifts.associate {
+                it.liftId to it.position
+            }
+            // If any lifts were changed and had completed results do not copy them
+            val excludeFromCopy = _state.value.inProgressWorkout!!.completedSets.filter { result ->
+                val liftPosition = liftsAndPositions[result.liftId]
+                liftPosition != result.liftPosition
+            }.map {
+                it.id
+            }
+
             // Copy all of the set results from this workout into the set history table
-            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId)
+            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId, excludeFromCopy)
 
             // Update any Linear Progression failures
             // The reason this is done when the workout is completed is because if it were done on the fly
@@ -596,6 +557,8 @@ class WorkoutViewModel(
             // modifying results.
             updateLinearProgressionFailures()
 
+            onWorkoutFinished()
+
             // TODO: have summary pop up as dialog and close this on completion instead
             _state.update {
                 it.copy(workoutLogVisible = false)
@@ -603,6 +566,60 @@ class WorkoutViewModel(
 
             withContext(Dispatchers.Main) {
                 initialize()
+            }
+        }
+    }
+
+    fun cancelWorkout() {
+        executeInTransactionScope {
+            // Remove the workout from in progress
+            workoutInProgressRepository.delete()
+
+            // Delete all set results from the workout
+            val programMetadata = _state.value.programMetadata!!
+            setResultsRepository.deleteAllForWorkout(
+                workoutId = _state.value.workout!!.id,
+                mesoCycle = programMetadata.currentMesocycle,
+                microCycle = programMetadata.currentMicrocycle,
+            )
+
+            _state.update {
+                it.copy(
+                    workoutLogVisible = false,
+                    inProgressWorkout = null,
+                    workout = it.workout?.copy(
+                        lifts = it.workout.lifts.fastMap { workoutLift ->
+                            workoutLift.copy(
+                                sets = workoutLift.sets
+                                    .filter { set ->
+                                        (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == null
+                                    }.fastMap { set ->
+                                        when (set) {
+                                            is LoggingStandardSetDto -> set.copy(
+                                                completedWeight = null,
+                                                completedReps = null,
+                                                completedRpe = null,
+                                            )
+
+                                            is LoggingDropSetDto -> set.copy(
+                                                completedWeight = null,
+                                                completedReps = null,
+                                                completedRpe = null,
+                                            )
+
+                                            is LoggingMyoRepSetDto -> set.copy(
+                                                completedWeight = null,
+                                                completedReps = null,
+                                                completedRpe = null,
+                                            )
+
+                                            else -> throw Exception("${set::class.simpleName} is not defined.")
+                                        }
+                                    }
+                            )
+                        }
+                    )
+                )
             }
         }
     }

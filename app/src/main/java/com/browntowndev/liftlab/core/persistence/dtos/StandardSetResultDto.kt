@@ -7,6 +7,7 @@ data class StandardSetResultDto(
     override val id: Long = 0L,
     override val workoutId: Long,
     override val liftId: Long,
+    override val liftPosition: Int,
     override val setPosition: Int,
     override val weight: Float,
     override val reps: Int,

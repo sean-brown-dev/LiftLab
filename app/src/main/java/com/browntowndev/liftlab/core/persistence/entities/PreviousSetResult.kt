@@ -28,6 +28,7 @@ data class PreviousSetResult(
     val workoutId: Long,
     val liftId: Long,
     val setType: SetType,
+    val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,
     val weight: Float,

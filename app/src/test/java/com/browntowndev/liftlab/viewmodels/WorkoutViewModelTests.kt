@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.viewmodels
 
+import android.content.SharedPreferences
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.asLiveData
+import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -25,12 +27,12 @@ import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResults
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +65,14 @@ class WorkoutViewModelTests {
     fun setup() {
         // Set the main dispatcher to the test dispatcher
         Dispatchers.setMain(testDispatcher)
+
+        // Set the main dispatcher to the test dispatcher
+        val sharedPrefs = mockk<SharedPreferences>()
+        every { sharedPrefs.getBoolean(any(), any()) } returns true
+        every { sharedPrefs.getLong(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_REST_TIME
+        every { sharedPrefs.getFloat(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+
+        SettingsManager.initialize(sharedPrefs)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -100,9 +110,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -163,16 +172,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 MyoRepSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     weight = 100f,
                     reps = 30,
@@ -218,9 +229,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -296,16 +306,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 MyoRepSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 0,
                     weight = 100f,
@@ -352,9 +364,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -427,16 +438,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 MyoRepSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     weight = 100f,
                     reps = 20,
@@ -479,9 +492,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -557,16 +569,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 MyoRepSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 0,
                     weight = 100f,
@@ -613,9 +627,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -705,16 +718,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 MyoRepSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 1,
                     weight = 100f,
@@ -771,9 +786,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -863,16 +877,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 MyoRepSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 1,
                     weight = 100f,
@@ -919,9 +935,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -992,16 +1007,18 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
+                true,
                 StandardSetResultDto(
                     workoutId = 0L,
                     liftId = 0L,
+                    liftPosition = 0,
                     setPosition = 0,
                     setType = SetType.STANDARD,
                     weight = 100f,
@@ -1044,9 +1061,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1118,7 +1134,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1158,7 +1174,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1173,9 +1189,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1239,7 +1254,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1273,7 +1288,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1288,9 +1303,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1354,7 +1368,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1388,7 +1402,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1403,9 +1417,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1469,7 +1482,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1519,7 +1532,7 @@ class WorkoutViewModelTests {
                     any()
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1534,9 +1547,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1621,19 +1633,21 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
+                true,
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0,0, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
             )
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 1, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
+                true,
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0,1, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
             )
             viewModel.finishWorkout()
 
@@ -1681,7 +1695,7 @@ class WorkoutViewModelTests {
                     any()
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1696,9 +1710,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1783,19 +1796,21 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
+                true,
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 0, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
             )
 
             viewModel.completeSet(
                 0L,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 1, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
+                true,
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 1, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
             )
             viewModel.finishWorkout()
 
@@ -1835,7 +1850,7 @@ class WorkoutViewModelTests {
                     any()
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1850,9 +1865,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -1927,7 +1941,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1940,144 +1954,6 @@ class WorkoutViewModelTests {
 
             viewModel.setRpe(0L, 2, null, 8.5f)
             Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[2].completedRpe)
-        }
-
-    @Test
-    fun `Rest time is set on workout lift level`() =
-        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
-            val programsRepository = mockk<ProgramsRepository>()
-            val activeProgramMetadata = ActiveProgramMetadataDto(
-                programId = 0L,
-                name = "Test Program",
-                currentMicrocycle = 0,
-                currentMesocycle = 0,
-                currentMicrocyclePosition = 0,
-                workoutCount = 4,
-                deloadWeek = 4,
-            )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
-            coEvery {
-                programsRepository.updateMesoAndMicroCycle(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            } just Runs
-
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery {
-                loggingRepository.insertWorkoutLogEntry(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
-
-            val workoutsRepository = mockk<WorkoutsRepository>()
-            val workout = LoggingWorkoutDto(
-                id = 0L,
-                name = "Test Workout",
-                lifts = listOf(
-                    LoggingWorkoutLiftDto(
-                        id = 0L,
-                        liftId = 0L,
-                        liftName = "Test Lift 1",
-                        liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
-                        progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
-                        liftVolumeTypes = 1,
-                        liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
-                        incrementOverride = 5f,
-                        restTime = null,
-                        position = 0,
-                        setCount = 1,
-                        deloadWeek = null,
-                        sets = listOf(
-                            LoggingStandardSetDto(
-                                setPosition = 0,
-                                rpeTarget = 8f,
-                                repRangeBottom = 8,
-                                repRangeTop = 10,
-                                weightRecommendation = 100f,
-                                previousSetResultLabel = "",
-                                repRangePlaceholder = "",
-                            ),
-                            LoggingMyoRepSetDto(
-                                setPosition = 1,
-                                rpeTarget = 8f,
-                                repRangeBottom = 8,
-                                repRangeTop = 10,
-                                weightRecommendation = 100f,
-                                previousSetResultLabel = "",
-                                repRangePlaceholder = "",
-                            ),
-                            LoggingDropSetDto(
-                                setPosition = 2,
-                                rpeTarget = 8f,
-                                repRangeBottom = 8,
-                                repRangeTop = 10,
-                                weightRecommendation = 100f,
-                                previousSetResultLabel = "",
-                                repRangePlaceholder = "",
-                                dropPercentage = .1f,
-                            ),
-                        )
-                    )
-                )
-            )
-            coEvery { workoutsRepository.getNextToPerform(any()) } returns flowOf(
-                workout
-            ).asLiveData()
-
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
-            val workoutInProgressMetadata = WorkoutInProgressDto(
-                workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
-                completedSets = listOf()
-            )
-            coEvery {
-                workoutInProgressRepository.get(
-                    any(),
-                    any()
-                )
-            } returns workoutInProgressMetadata
-            coEvery { workoutInProgressRepository.delete() } just Runs
-
-            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
-            coEvery { restTimerInProgramsRepository.insert(any()) } just Runs
-
-            val transactionScope = mockk<TransactionScope>()
-            coEvery { transactionScope.execute(any()) } coAnswers {
-                val function = args[0] as (suspend () -> Unit)
-                function()
-            }
-
-            val workoutLiftsRepository = mockk<WorkoutLiftsRepository>()
-            coEvery { workoutLiftsRepository.updateRestTime(any(), any()) } just Runs
-
-            val viewModel = WorkoutViewModel(
-                programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutInProgressRepository = workoutInProgressRepository,
-                restTimerInProgressRepository = restTimerInProgramsRepository,
-                setResultsRepository = mockk(),
-                historicalWorkoutNamesRepository = mockk(),
-                loggingRepository = loggingRepository,
-                liftsRepository = mockk(),
-                workoutLiftsRepository = workoutLiftsRepository,
-                transactionScope = transactionScope,
-                eventBus = mockk(),
-            )
-
-            viewModel.updateRestTime(0L, 120000L.toDuration(DurationUnit.MILLISECONDS), false)
-            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.state.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
-            Assert.assertEquals(null, viewModel.state.value.workout!!.lifts[0].liftRestTime?.inWholeMilliseconds)
         }
 
     @Test
@@ -2113,7 +1989,7 @@ class WorkoutViewModelTests {
                     any()
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -2128,9 +2004,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -2197,7 +2072,7 @@ class WorkoutViewModelTests {
             }
 
             val liftsRepository = mockk<LiftsRepository>()
-            coEvery { liftsRepository.updateRestTime(any(), any()) } just Runs
+            coEvery { liftsRepository.updateRestTime(any(), any(), any()) } just Runs
 
             val viewModel = WorkoutViewModel(
                 programsRepository = programsRepository,
@@ -2208,14 +2083,13 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = liftsRepository,
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.updateRestTime(0L, 120000L.toDuration(DurationUnit.MILLISECONDS), true)
-            Assert.assertEquals(null, viewModel.state.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
-            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.state.value.workout!!.lifts[0].liftRestTime?.inWholeMilliseconds)
+            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.state.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
         }
 
     @Test
@@ -2251,7 +2125,7 @@ class WorkoutViewModelTests {
                     any()
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -2266,9 +2140,8 @@ class WorkoutViewModelTests {
                         progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                         liftVolumeTypes = 1,
                         liftSecondaryVolumeTypes = null,
-                        liftRestTime = null,
-                        liftIncrementOverride = null,
                         incrementOverride = 5f,
+                        restTimerEnabled = true,
                         restTime = null,
                         position = 0,
                         setCount = 1,
@@ -2348,7 +2221,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                workoutLiftsRepository = mockk(),
+                onWorkoutFinished = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )

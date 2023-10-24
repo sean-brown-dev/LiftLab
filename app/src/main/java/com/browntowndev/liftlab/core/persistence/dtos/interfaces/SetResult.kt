@@ -6,6 +6,7 @@ interface SetResult {
     val id: Long
     val workoutId: Long
     val liftId: Long
+    val liftPosition: Int
     val setPosition: Int
     val weight: Float
     val reps: Int
