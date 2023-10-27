@@ -145,7 +145,7 @@ private fun SetRow(
             value = completedWeight,
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
             errorOnEmpty = false,
-            maxValue = Float.MAX_VALUE,
+            maxValue = 2000f,
             onValueChanged = {
                 if (complete) {
                     onCompleted(completedWeight!!, completedReps!!, completedRpe!!)

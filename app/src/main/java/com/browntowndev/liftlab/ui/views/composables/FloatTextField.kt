@@ -68,21 +68,32 @@ private fun validateFloat(
     precision: Int,
     onValueChanged: (Float) -> Unit,
 ): String {
-    var newValueAsNumber = newValue.trim().toFloatOrNull()
-    var text: String = existingValue
+    val text: String
+    val newValueAsNumber = newValue.trim().toFloatOrNull()
 
-    if (newValueAsNumber != null) {
-        if (newValueAsNumber <= maxValue && newValue.substringAfter('.', "").length <= precision) {
-            newValueAsNumber = if (newValueAsNumber >= minValue) newValueAsNumber else minValue
-            text = newValueAsNumber.toString()
-            onValueChanged(newValueAsNumber)
-        }
-    } else if (
-        newValue.isEmpty() ||
-        (newValue.last() == '.' && newValue.count { it == '.' } == 1)
+    if (newValueAsNumber != null &&
+        newValue.substringAfter('.', "").length <= precision
     ) {
+        val minMaxEvaluatedNumber = if (newValueAsNumber in minValue..maxValue) {
+            newValueAsNumber
+        } else if (newValueAsNumber < minValue) {
+            minValue
+        } else {
+            maxValue
+        }
+
+        text = if (newValue.endsWith('.') && (newValueAsNumber == minMaxEvaluatedNumber)) {
+            newValue
+        } else {
+            minMaxEvaluatedNumber.toString().removeSuffix(".0")
+        }
+
+        onValueChanged(minMaxEvaluatedNumber)
+    } else if (newValue.isEmpty()) {
         text = newValue
+    } else {
+        text = existingValue
     }
 
-    return text.removeSuffix(".0")
+    return text
 }
