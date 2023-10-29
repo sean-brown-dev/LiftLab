@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +43,8 @@ fun CustomSettings(
     onMatchSetGoalChanged: (position: Int, newMatchSetGoal: Int) -> Unit,
     onRepRangeBottomChanged: (position: Int, newRepRangeBottom: Int) -> Unit,
     onRepRangeTopChanged: (position: Int, newRepRangeTop: Int) -> Unit,
+    onConfirmRepRangeBottom: (position: Int) -> Unit,
+    onConfirmRepRangeTop: (position: Int) -> Unit,
     onRepFloorChanged: (position: Int, newRepFloor: Int) -> Unit,
     onCustomSetTypeChanged: (position: Int, newSetType: SetType) -> Unit,
     onMaxSetsChanged: (position: Int, newMaxSets: Int?) -> Unit,
@@ -88,6 +89,8 @@ fun CustomSettings(
                                 onPixelOverflowChanged = onPixelOverflowChanged,
                                 onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
                                 onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
+                                onConfirmRepRangeBottom = { onConfirmRepRangeBottom(set.setPosition) },
+                                onConfirmRepRangeTop = { onConfirmRepRangeTop(set.setPosition) },
                                 toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
                                 isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
@@ -117,6 +120,8 @@ fun CustomSettings(
                                 onRepFloorChanged = { onRepFloorChanged(set.setPosition, it) },
                                 onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
                                 onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
+                                onConfirmRepRangeBottom = { onConfirmRepRangeBottom(set.setPosition) },
+                                onConfirmRepRangeTop = { onConfirmRepRangeTop(set.setPosition) },
                                 onMatchSetGoalChanged = { onMatchSetGoalChanged(set.setPosition, it) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },
                                 isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
@@ -143,6 +148,8 @@ fun CustomSettings(
                                 onPixelOverflowChanged = onPixelOverflowChanged,
                                 onRepRangeBottomChanged = { onRepRangeBottomChanged(set.setPosition, it) },
                                 onRepRangeTopChanged = { onRepRangeTopChanged(set.setPosition, it) },
+                                onConfirmRepRangeBottom = { onConfirmRepRangeBottom(set.setPosition) },
+                                onConfirmRepRangeTop = { onConfirmRepRangeTop(set.setPosition) },
                                 toggleRpePicker = { toggleRpePicker(set.setPosition, it) },
                                 togglePercentagePicker = { togglePercentagePicker(set.setPosition, it) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.setPosition) },

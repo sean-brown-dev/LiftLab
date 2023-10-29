@@ -27,7 +27,7 @@ fun FloatTextField(
     disableSystemKeyboard: Boolean = false,
     onFocusChanged: (Boolean) -> Unit = {},
     onLeftFocusBlank: () -> Unit = {},
-    onValueChanged: (Float) -> Unit = {},
+    onValueChanged: (Float?) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
     val textNoDotZero = value?.toString()?.removeSuffix(".0") ?: ""
@@ -66,7 +66,7 @@ private fun validateFloat(
     maxValue: Float,
     minValue: Float,
     precision: Int,
-    onValueChanged: (Float) -> Unit,
+    onValueChanged: (Float?) -> Unit,
 ): String {
     val text: String
     val newValueAsNumber = newValue.trim().toFloatOrNull()
@@ -91,6 +91,7 @@ private fun validateFloat(
         onValueChanged(minMaxEvaluatedNumber)
     } else if (newValue.isEmpty()) {
         text = newValue
+        onValueChanged(null)
     } else {
         text = existingValue
     }

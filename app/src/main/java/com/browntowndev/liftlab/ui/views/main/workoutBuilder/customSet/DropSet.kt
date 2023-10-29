@@ -35,6 +35,8 @@ fun DropSet(
     isPreviousSetMyoRep: Boolean,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
+    onConfirmRepRangeBottom: () -> Unit,
+    onConfirmRepRangeTop: () -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
     toggleRpePicker: (Boolean) -> Unit,
     togglePercentagePicker: (Boolean) -> Unit,
@@ -82,6 +84,9 @@ fun DropSet(
                 labelFontSize = 14.sp,
                 onValueChanged = onRepRangeBottomChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
+                onFocusChanged = {
+                    if (!it) onConfirmRepRangeBottom()
+                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
@@ -93,6 +98,9 @@ fun DropSet(
                 labelFontSize = 14.sp,
                 onValueChanged = onRepRangeTopChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
+                onFocusChanged = {
+                    if (!it) onConfirmRepRangeTop()
+                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             FloatTextField(

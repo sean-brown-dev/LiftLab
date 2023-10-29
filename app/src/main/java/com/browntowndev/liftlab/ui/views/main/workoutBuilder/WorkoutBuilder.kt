@@ -22,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
@@ -40,9 +41,6 @@ import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
@@ -220,47 +218,25 @@ fun WorkoutBuilder(
 
                                 // These keep the TextField from flashing between the default & actual value when
                                 // custom settings are toggled
-                                var repRangeBottom by remember(
+                                val repRangeBottom by remember(
                                     key1 = standardLift?.repRangeBottom,
                                     key2 = customLift?.customLiftSets?.firstOrNull()?.repRangeBottom
                                 ) {
-                                    mutableStateOf(standardLift?.repRangeBottom ?: customLift!!.customLiftSets.first().repRangeBottom)
+                                    mutableIntStateOf(standardLift?.repRangeBottom ?: customLift!!.customLiftSets.first().repRangeBottom)
                                 }
-                                var repRangeTop by remember(
+                                val repRangeTop by remember(
                                     key1 = standardLift?.repRangeTop,
                                     key2 = customLift?.customLiftSets?.firstOrNull()?.repRangeTop
                                 ) {
-                                    mutableStateOf(standardLift?.repRangeTop ?: customLift!!.customLiftSets.first().repRangeTop)
+                                    mutableIntStateOf(standardLift?.repRangeTop ?: customLift!!.customLiftSets.first().repRangeTop)
                                 }
-                                var rpeTarget by remember(
+                                val rpeTarget by remember(
                                     key1 = standardLift?.rpeTarget,
                                     key2 = customLift?.customLiftSets?.firstOrNull()?.rpeTarget
                                 ) {
-                                    mutableStateOf(standardLift?.rpeTarget ?: customLift!!.customLiftSets.first().rpeTarget)
+                                    mutableFloatStateOf(standardLift?.rpeTarget ?: customLift!!.customLiftSets.first().rpeTarget)
                                 }
 
-                                (customLift?.customLiftSets ?: listOf()).fastForEach { set ->
-                                    when (set) {
-                                        is StandardSetDto ->
-                                            LaunchedEffect(key1 = set.rpeTarget, key2 = set.repRangeBottom, key3 = set.repRangeTop) {
-                                                repRangeTop = set.repRangeTop
-                                                repRangeBottom = set.repRangeBottom
-                                                rpeTarget = set.rpeTarget
-                                            }
-                                        is DropSetDto ->
-                                            LaunchedEffect(key1 = set.rpeTarget, key2 = set.repRangeBottom, key3 = set.repRangeTop) {
-                                                repRangeTop = set.repRangeTop
-                                                repRangeBottom = set.repRangeBottom
-                                                rpeTarget = set.rpeTarget
-                                            }
-                                        is MyoRepSetDto ->
-                                            LaunchedEffect(key1 = set.repRangeBottom, key2 = set.repRangeTop) {
-                                                repRangeTop = set.repRangeTop
-                                                repRangeBottom = set.repRangeBottom
-                                            }
-                                        else -> {}
-                                    }
-                                }
                                 Row {
                                     Spacer(modifier = Modifier.width(10.dp))
                                     StandardSettings(
@@ -289,10 +265,20 @@ fun WorkoutBuilder(
                                                 newRepRangeTop = it
                                             )
                                         },
+                                        onConfirmRepRangeBottom = {
+                                            workoutBuilderViewModel.confirmStandardSetRepRangeBottom(
+                                                workoutLiftId = workoutLift.id,
+                                            )
+                                        },
+                                        onConfirmRepRangeTop = {
+                                            workoutBuilderViewModel.confirmStandardSetRepRangeTop(
+                                                workoutLiftId = workoutLift.id,
+                                            )
+                                        },
                                         onRpeTargetChanged = {
                                             workoutBuilderViewModel.setLiftRpeTarget(
                                                 workoutLiftId = workoutLift.id,
-                                                newRpeTarget = it
+                                                newRpeTarget = it ?: 8f // should never be null, but just in case
                                             )
                                         },
                                         onToggleRpePicker = {
@@ -323,7 +309,6 @@ fun WorkoutBuilder(
                                         onAddSet = { workoutBuilderViewModel.addSet(workoutLiftId = workoutLift.id) },
                                         onDeleteSet = { workoutBuilderViewModel.deleteSet(workoutLiftId = workoutLift.id, it) },
                                         onRepRangeBottomChanged = { position, newRepRangeBottom ->
-                                            if (position == 0) repRangeBottom = newRepRangeBottom
                                             workoutBuilderViewModel.setCustomSetRepRangeBottom(
                                                 workoutLiftId = workoutLift.id,
                                                 position = position,
@@ -331,11 +316,22 @@ fun WorkoutBuilder(
                                             )
                                         },
                                         onRepRangeTopChanged = { position, newRepRangeTop ->
-                                            if (position == 0) repRangeTop = newRepRangeTop
                                             workoutBuilderViewModel.setCustomSetRepRangeTop(
                                                 workoutLiftId = workoutLift.id,
                                                 position = position,
                                                 newRepRangeTop = newRepRangeTop
+                                            )
+                                        },
+                                        onConfirmRepRangeBottom = { position ->
+                                            workoutBuilderViewModel.confirmCustomSetRepRangeBottom(
+                                                workoutLiftId = workoutLift.id,
+                                                position = position,
+                                            )
+                                        },
+                                        onConfirmRepRangeTop = { position ->
+                                            workoutBuilderViewModel.confirmCustomSetRepRangeTop(
+                                                workoutLiftId = workoutLift.id,
+                                                position = position,
                                             )
                                         },
                                         onRepFloorChanged = { position, newRepFloor ->

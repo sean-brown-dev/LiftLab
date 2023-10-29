@@ -32,7 +32,9 @@ fun StandardSettings(
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onRpeTargetChanged: (Float) -> Unit,
+    onConfirmRepRangeBottom: () -> Unit,
+    onConfirmRepRangeTop: () -> Unit,
+    onRpeTargetChanged: (Float?) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
 ) {
@@ -57,9 +59,11 @@ fun StandardSettings(
             onSetCountChanged = onSetCountChanged,
             onRepRangeBottomChanged = onRepRangeBottomChanged,
             onRepRangeTopChanged = onRepRangeTopChanged,
+            onConfirmRepRangeBottom = onConfirmRepRangeBottom,
+            onConfirmRepRangeTop = onConfirmRepRangeTop,
             onRpeTargetChanged = onRpeTargetChanged,
             onToggleRpePicker = onToggleRpePicker,
-            onPixelOverflowChanged = onPixelOverflowChanged
+            onPixelOverflowChanged = onPixelOverflowChanged,
         )
     }
 }
@@ -75,7 +79,9 @@ private fun StandardSettingRow(
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onRpeTargetChanged: (Float) -> Unit,
+    onConfirmRepRangeBottom: () -> Unit,
+    onConfirmRepRangeTop: () -> Unit,
+    onRpeTargetChanged: (Float?) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
 ) {
@@ -97,7 +103,10 @@ private fun StandardSettingRow(
             listState = listState,
             value = repRangeBottom,
             label = "Rep Range Bottom",
-            onValueChanged = onRepRangeBottomChanged
+            onValueChanged = onRepRangeBottomChanged,
+            onFocusChanged = {
+                if (!it) onConfirmRepRangeBottom()
+            },
         )
         Spacer(modifier = Modifier.width(2.dp))
         IntegerTextField(
@@ -105,7 +114,10 @@ private fun StandardSettingRow(
             listState = listState,
             value = repRangeTop,
             label = "Rep Range Top",
-            onValueChanged = onRepRangeTopChanged
+            onValueChanged = onRepRangeTopChanged,
+            onFocusChanged = {
+                if (!it) onConfirmRepRangeTop()
+            },
         )
         Spacer(modifier = Modifier.width(2.dp))
         FloatTextField(

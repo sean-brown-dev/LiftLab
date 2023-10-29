@@ -374,7 +374,7 @@ class WorkoutBuilderViewModel(
         copyLift: (GenericWorkoutLift) -> GenericWorkoutLift
     ): WorkoutDto {
         return currentState.workout!!.let { workout ->
-            workout.copy(lifts = workout.lifts.map { currentWorkoutLift ->
+            workout.copy(lifts = workout.lifts.fastMap { currentWorkoutLift ->
                 if (currentWorkoutLift.id == workoutLiftId) copyLift(currentWorkoutLift)
                 else currentWorkoutLift
             })
@@ -832,6 +832,141 @@ class WorkoutBuilderViewModel(
                     )
                 }
             else -> throw Exception("${set::class.simpleName} is not recognized as a custom set type.")
+        }
+    }
+
+    fun confirmStandardSetRepRangeBottom(workoutLiftId: Long) {
+        executeInTransactionScope {
+            var workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+                ?: throw Exception("Must be standard workout lift.")
+            val validatedRepRangeBottom = getValidatedRepRangeBottom(workoutLift.repRangeBottom, workoutLift.repRangeTop)
+            if (validatedRepRangeBottom != workoutLift.repRangeBottom) {
+                workoutLift = workoutLift.copy(repRangeBottom = validatedRepRangeBottom)
+                workoutLiftsRepository.update(workoutLift)
+            }
+
+            updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
+        }
+    }
+
+    fun confirmStandardSetRepRangeTop(workoutLiftId: Long) {
+        executeInTransactionScope {
+            var workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+                ?: throw Exception("Must be standard workout lift.")
+            val validatedRepRangeTop = getValidatedRepRangeTop(workoutLift.repRangeTop, workoutLift.repRangeBottom)
+            if (validatedRepRangeTop != workoutLift.repRangeBottom) {
+                workoutLift = workoutLift.copy(repRangeTop = validatedRepRangeTop)
+                workoutLiftsRepository.update(workoutLift)
+            }
+
+            updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
+        }
+    }
+
+    private fun updateStateWithWorkoutLift(
+        workoutLiftId: Long,
+        workoutLift: StandardWorkoutLiftDto
+    ) {
+        _state.update { currentState ->
+            currentState.copy(
+                workout = currentState.workout!!.copy(
+                    lifts = currentState.workout.lifts.fastMap { currWorkoutLift ->
+                        if (currWorkoutLift.id == workoutLiftId) {
+                            workoutLift
+                        } else {
+                            currWorkoutLift
+                        }
+                    }
+                )
+            )
+        }
+    }
+
+    fun confirmCustomSetRepRangeBottom(workoutLiftId: Long, position: Int) {
+        executeInTransactionScope {
+            val workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto
+                ?: throw Exception("Must be custom workout lift.")
+            var customSet = workoutLift.customLiftSets[position]
+            val validatedRepRangeBottom = getValidatedRepRangeBottom(customSet.repRangeBottom, customSet.repRangeTop)
+            if (validatedRepRangeBottom != customSet.repRangeBottom) {
+                customSet = when (customSet) {
+                    is StandardSetDto -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
+                    is MyoRepSetDto -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
+                    is DropSetDto -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
+                    else -> throw Exception("${customSet::class.simpleName} is not defined")
+                }
+                customLiftSetsRepository.update(customSet)
+            }
+
+            updateStateWithCustomSet(
+                workoutLiftId = workoutLiftId,
+                workoutLift = workoutLift,
+                customSet = customSet
+            )
+        }
+    }
+
+    fun confirmCustomSetRepRangeTop(workoutLiftId: Long, position: Int) {
+        executeInTransactionScope {
+            val workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto
+                ?: throw Exception("Must be custom workout lift.")
+            var customSet = workoutLift.customLiftSets[position]
+            val validatedRepRangeTop = getValidatedRepRangeTop(customSet.repRangeTop, customSet.repRangeBottom)
+            if (validatedRepRangeTop != customSet.repRangeTop) {
+                customSet = when (customSet) {
+                    is StandardSetDto -> customSet.copy(repRangeTop = validatedRepRangeTop)
+                    is MyoRepSetDto -> customSet.copy(repRangeTop = validatedRepRangeTop)
+                    is DropSetDto -> customSet.copy(repRangeTop = validatedRepRangeTop)
+                    else -> throw Exception("${customSet::class.simpleName} is not defined")
+                }
+                customLiftSetsRepository.update(customSet)
+            }
+
+            updateStateWithCustomSet(
+                workoutLiftId = workoutLiftId,
+                workoutLift = workoutLift,
+                customSet = customSet
+            )
+        }
+    }
+
+    private fun updateStateWithCustomSet(
+        workoutLiftId: Long,
+        workoutLift: CustomWorkoutLiftDto,
+        customSet: GenericLiftSet
+    ) {
+        _state.update { currentState ->
+            currentState.copy(
+                workout = currentState.workout!!.copy(
+                    lifts = currentState.workout.lifts.fastMap { currWorkoutLift ->
+                        if (currWorkoutLift.id == workoutLiftId) {
+                            workoutLift.copy(
+                                customLiftSets = workoutLift.customLiftSets.fastMap { set ->
+                                    if (set.id == customSet.id) customSet else set
+                                }
+                            )
+                        } else {
+                            currWorkoutLift
+                        }
+                    }
+                )
+            )
+        }
+    }
+
+    private fun getValidatedRepRangeBottom(newRepRangeBottom: Int, repRangeTop: Int): Int {
+        return if (newRepRangeBottom < repRangeTop) {
+            newRepRangeBottom
+        } else {
+            repRangeTop - 1
+        }
+    }
+
+    private fun getValidatedRepRangeTop(newRepRangeTop: Int, repRangeBottom: Int): Int {
+        return if (newRepRangeTop > repRangeBottom) {
+            newRepRangeTop
+        } else {
+            repRangeBottom + 1
         }
     }
 }

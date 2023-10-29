@@ -42,6 +42,8 @@ fun MyoRepSet(
     toggleRpePicker: (Boolean) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
+    onConfirmRepRangeBottom: () -> Unit,
+    onConfirmRepRangeTop: () -> Unit,
     onRepFloorChanged: (Int) -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
@@ -94,6 +96,9 @@ fun MyoRepSet(
                 labelFontSize = 14.sp,
                 onValueChanged = onRepRangeBottomChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
+                onFocusChanged = {
+                    if(!it) onConfirmRepRangeBottom()
+                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
@@ -105,6 +110,9 @@ fun MyoRepSet(
                 labelFontSize = 14.sp,
                 onValueChanged = onRepRangeTopChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
+                onFocusChanged = {
+                    if(!it) onConfirmRepRangeTop()
+                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
