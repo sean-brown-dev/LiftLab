@@ -102,6 +102,19 @@ fun Workout(
             if (!state.inProgress) {
                 timerViewModel.stop()
             }
+        } else {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.TITLE,
+                    "Workout".left()
+                )
+            )
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.SUBTITLE,
+                    "".left()
+                )
+            )
         }
     }
 
