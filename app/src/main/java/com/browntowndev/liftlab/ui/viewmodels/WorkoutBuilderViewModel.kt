@@ -980,19 +980,26 @@ class WorkoutBuilderViewModel(
 
     private fun debounceSetUpdate(updatedSet: GenericLiftSet) {
         viewModelScope.launch {
-            MutableStateFlow(updatedSet)
-                .debounce(300L, this)
-                .collect {
-                    customLiftSetsRepository.update(it)
+            _state.debounce(300L, this) { state ->
+                (state.workout!!.lifts
+                    .find { it.id == updatedSet.workoutLiftId } as? CustomWorkoutLiftDto)
+                    ?.customLiftSets
+                    ?.find { it.id == updatedSet.id }
+            }.collect { set ->
+                if (set != null) {
+                    customLiftSetsRepository.update(set)
                 }
+            }
         }
     }
 
     private suspend fun debounceWorkoutLiftUpdate(coroutineScope: CoroutineScope, updatedLift: GenericWorkoutLift) {
-        MutableStateFlow(updatedLift)
-            .debounce(300L, coroutineScope)
-            .collect {
-                workoutLiftsRepository.update(updatedLift)
+        _state.debounce(300L, coroutineScope) { state ->
+            state.workout!!.lifts.find { it.id == updatedLift.id }
+        }.collect { workoutLift ->
+            if (workoutLift != null) {
+                workoutLiftsRepository.update(workoutLift)
             }
+        }
     }
 }

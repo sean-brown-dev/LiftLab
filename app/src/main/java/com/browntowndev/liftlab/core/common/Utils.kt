@@ -23,18 +23,24 @@ class Utils {
             return Date.from(localDateTime.atZone(zoneId).toInstant())
         }
 
-        fun <T> StateFlow<T>.debounce(
+        fun <T, V> StateFlow<T>.debounce(
             timeoutInMillis: Long,
-            coroutineScope: CoroutineScope
-        ): StateFlow<T> {
-            val debouncedValue = MutableStateFlow(value)
+            coroutineScope: CoroutineScope,
+            searchFunc: (state: T) -> V,
+        ): StateFlow<V> {
+            val debouncedValue = MutableStateFlow(searchFunc(value))
+
             coroutineScope.launch {
-                collect {value ->
-                    coroutineContext.job.cancelChildren()
-                    delay(timeoutInMillis)
-                    debouncedValue.value = value
+                collect { value ->
+                    val newSearchValue: V = searchFunc(value)
+                    if (newSearchValue != debouncedValue.value) {
+                        coroutineContext.job.cancelChildren()
+                        delay(timeoutInMillis)
+                        debouncedValue.value = newSearchValue
+                    }
                 }
             }
+
             return debouncedValue
         }
     }
