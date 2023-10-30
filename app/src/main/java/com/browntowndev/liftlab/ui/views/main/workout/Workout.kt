@@ -182,9 +182,6 @@ fun Workout(
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition
                 )
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
-                )
             },
             cancelWorkout = {
                 workoutViewModel.cancelWorkout()

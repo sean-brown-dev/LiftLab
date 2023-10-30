@@ -5,7 +5,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.core.common.Utils.Companion.debounce
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -381,23 +380,23 @@ class WorkoutBuilderViewModel(
     }
 
     fun setLiftSetCount(workoutLiftId: Long, newSetCount: Int) {
-        var updatedWorkoutLift: GenericWorkoutLift? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
-                updatedWorkoutLift = when (lift) {
-                    is StandardWorkoutLiftDto -> lift.copy(setCount = newSetCount)
-                    is CustomWorkoutLiftDto -> lift.copy(setCount = newSetCount)
-                    else -> throw Exception("${lift::class.simpleName} cannot have a set count.")
+        executeInTransactionScope {
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
+                    updatedWorkoutLift = when (lift) {
+                        is StandardWorkoutLiftDto -> lift.copy(setCount = newSetCount)
+                        is CustomWorkoutLiftDto -> lift.copy(setCount = newSetCount)
+                        else -> throw Exception("${lift::class.simpleName} cannot have a set count.")
+                    }
+                    updatedWorkoutLift!!
                 }
-                updatedWorkoutLift!!
-            }
-        )
+            )
 
-        if (updatedWorkoutLift != null) {
-            viewModelScope.launch {
-                debounceWorkoutLiftUpdate(this, updatedWorkoutLift!!)
+            if (updatedWorkoutLift != null) {
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                _state.update { updatedStateCopy }
             }
-            _state.update { updatedStateCopy }
         }
     }
 
@@ -426,22 +425,22 @@ class WorkoutBuilderViewModel(
     }
 
     fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Float) {
-        var updatedWorkoutLift: GenericWorkoutLift? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateLiftProperty(_state.value, workoutLiftId) {
-                updatedWorkoutLift = when (it) {
-                    is StandardWorkoutLiftDto -> it.copy(rpeTarget = newRpeTarget)
-                    else -> throw Exception("${it::class.simpleName} cannot have an RPE target.")
+        executeInTransactionScope {
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateLiftProperty(_state.value, workoutLiftId) {
+                    updatedWorkoutLift = when (it) {
+                        is StandardWorkoutLiftDto -> it.copy(rpeTarget = newRpeTarget)
+                        else -> throw Exception("${it::class.simpleName} cannot have an RPE target.")
+                    }
+                    updatedWorkoutLift!!
                 }
-                updatedWorkoutLift!!
-            }
-        )
+            )
 
-        if(updatedWorkoutLift != null) {
-            viewModelScope.launch {
-                debounceWorkoutLiftUpdate(this, updatedWorkoutLift!!)
+            if(updatedWorkoutLift != null) {
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                _state.update { updatedStateCopy }
             }
-            _state.update { updatedStateCopy }
         }
     }
 
@@ -618,156 +617,170 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetRpeTarget(workoutLiftId: Long, position: Int, newRpeTarget: Float) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
-                updatedSet = when (set) {
-                    is StandardSetDto -> set.copy(rpeTarget = newRpeTarget)
-                    is DropSetDto -> set.copy(rpeTarget = newRpeTarget)
-                    else -> throw Exception("${set::class.simpleName} cannot have an rpe target.")
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                    updatedSet = when (set) {
+                        is StandardSetDto -> set.copy(rpeTarget = newRpeTarget)
+                        is DropSetDto -> set.copy(rpeTarget = newRpeTarget)
+                        else -> throw Exception("${set::class.simpleName} cannot have an rpe target.")
+                    }
+                    updatedSet!!
                 }
-                updatedSet!!
-            }
-        )
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
     fun setCustomSetRepFloor(workoutLiftId: Long, position: Int, newRepFloor: Int) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
-                updatedSet = when (set) {
-                    is MyoRepSetDto -> set.copy(repFloor = newRepFloor)
-                    else -> throw Exception("${set::class.simpleName} cannot have a rep floor.")
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                    updatedSet = when (set) {
+                        is MyoRepSetDto -> set.copy(repFloor = newRepFloor)
+                        else -> throw Exception("${set::class.simpleName} cannot have a rep floor.")
+                    }
+                    updatedSet!!
                 }
-                updatedSet!!
-            }
-        )
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
     fun setCustomSetUseSetMatching(workoutLiftId: Long, position: Int, setMatching: Boolean) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
 
-                updatedSet = when (set) {
-                    is MyoRepSetDto -> set.copy(
-                        setMatching = setMatching,
-                        setGoal = set.setGoal,
-                        maxSets = null,
-                        repFloor = if (setMatching) null else 5,
-                    )
+                    updatedSet = when (set) {
+                        is MyoRepSetDto -> set.copy(
+                            setMatching = setMatching,
+                            setGoal = set.setGoal,
+                            maxSets = null,
+                            repFloor = if (setMatching) null else 5,
+                        )
 
-                    else -> throw Exception("${set::class.simpleName} cannot have set matching.")
+                        else -> throw Exception("${set::class.simpleName} cannot have set matching.")
+                    }
+                    updatedSet!!
                 }
-                updatedSet!!
-            }
-        )
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
     fun setCustomSetMatchSetGoal(workoutLiftId: Long, position: Int, newMatchSetGoal: Int) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
-                updatedSet = when (set) {
-                    is MyoRepSetDto -> set.copy(setGoal = newMatchSetGoal)
-                    else -> throw Exception("${set::class.simpleName} cannot have a match set goal.")
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                    updatedSet = when (set) {
+                        is MyoRepSetDto -> set.copy(setGoal = newMatchSetGoal)
+                        else -> throw Exception("${set::class.simpleName} cannot have a match set goal.")
+                    }
+                    updatedSet!!
                 }
-                updatedSet!!
-            }
-        )
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
     fun setCustomSetMaxSets(workoutLiftId: Long, position: Int, newMaxSets: Int?) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
-                updatedSet = when (set) {
-                    is MyoRepSetDto -> set.copy(maxSets = newMaxSets)
-                    else -> throw Exception("${set::class.simpleName} cannot have a max set limit.")
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                    updatedSet = when (set) {
+                        is MyoRepSetDto -> set.copy(maxSets = newMaxSets)
+                        else -> throw Exception("${set::class.simpleName} cannot have a max set limit.")
+                    }
+                    updatedSet!!
                 }
-                updatedSet!!
-            }
-        )
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
     fun setCustomSetDropPercentage(workoutLiftId: Long, position: Int, newDropPercentage: Float) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
-                updatedSet = when (set) {
-                    is DropSetDto -> set.copy(dropPercentage = newDropPercentage)
-                    else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                    updatedSet = when (set) {
+                        is DropSetDto -> set.copy(dropPercentage = newDropPercentage)
+                        else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
+                    }
+                    updatedSet!!
                 }
-                updatedSet!!
-            }
-        )
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
     fun changeCustomSetType(workoutLiftId: Long, position: Int, newSetType: SetType) {
-        var updatedSet: GenericLiftSet? = null
-        val updatedStateCopy = _state.value.copy(
-            workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
-                updatedSet = when (set) {
-                    is StandardSetDto -> if (newSetType != SetType.STANDARD) {
-                        transformCustomLiftSet(
-                            set,
-                            newSetType
-                        )
-                    } else set
+        executeInTransactionScope {
+            var updatedSet: GenericLiftSet? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                    updatedSet = when (set) {
+                        is StandardSetDto -> if (newSetType != SetType.STANDARD) {
+                            transformCustomLiftSet(
+                                set,
+                                newSetType
+                            )
+                        } else set
 
-                    is DropSetDto -> if (newSetType != SetType.DROP_SET) {
-                        transformCustomLiftSet(
-                            set,
-                            newSetType
-                        )
-                    } else set
+                        is DropSetDto -> if (newSetType != SetType.DROP_SET) {
+                            transformCustomLiftSet(
+                                set,
+                                newSetType
+                            )
+                        } else set
 
-                    is MyoRepSetDto -> if (newSetType != SetType.MYOREP) {
-                        transformCustomLiftSet(
-                            set,
-                            newSetType
-                        )
-                    } else set
+                        is MyoRepSetDto -> if (newSetType != SetType.MYOREP) {
+                            transformCustomLiftSet(
+                                set,
+                                newSetType
+                            )
+                        } else set
 
-                    else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
-                }
-                updatedSet!!
-            },
-        )
+                        else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
+                    }
+                    updatedSet!!
+                },
+            )
 
-        if (updatedSet != null) {
-            debounceSetUpdate(updatedSet!!)
-            _state.update { updatedStateCopy }
+            if (updatedSet != null) {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
@@ -975,31 +988,6 @@ class WorkoutBuilderViewModel(
             newRepRangeTop
         } else {
             repRangeBottom + 1
-        }
-    }
-
-    private fun debounceSetUpdate(updatedSet: GenericLiftSet) {
-        viewModelScope.launch {
-            _state.debounce(300L, this) { state ->
-                (state.workout!!.lifts
-                    .find { it.id == updatedSet.workoutLiftId } as? CustomWorkoutLiftDto)
-                    ?.customLiftSets
-                    ?.find { it.id == updatedSet.id }
-            }.collect { set ->
-                if (set != null) {
-                    customLiftSetsRepository.update(set)
-                }
-            }
-        }
-    }
-
-    private suspend fun debounceWorkoutLiftUpdate(coroutineScope: CoroutineScope, updatedLift: GenericWorkoutLift) {
-        _state.debounce(300L, coroutineScope) { state ->
-            state.workout!!.lifts.find { it.id == updatedLift.id }
-        }.collect { workoutLift ->
-            if (workoutLift != null) {
-                workoutLiftsRepository.update(workoutLift)
-            }
         }
     }
 }

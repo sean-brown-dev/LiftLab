@@ -146,19 +146,7 @@ private fun SetRow(
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
             errorOnEmpty = false,
             maxValue = 2000f,
-            onValueChanged = {
-                if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                } else {
-                    onWeightChanged(it)
-                }
-            },
-            onLeftFocusBlank = {
-                onWeightChanged(null)
-                if (complete) {
-                    onUndoCompletion()
-                }
-            },
+            onValueChanged = onWeightChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
         IntegerTextField(
@@ -166,19 +154,7 @@ private fun SetRow(
             value = completedReps,
             placeholder = repRangePlaceholder,
             errorOnEmpty = false,
-            onValueChanged = {
-                if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                } else {
-                    onRepsChanged(it)
-                }
-            },
-            onLeftFocusBlank = {
-                onRepsChanged(null)
-                if (complete) {
-                    onUndoCompletion()
-                }
-            },
+            onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
         val rpePlaceholder = remember(rpeTarget) {
@@ -200,11 +176,6 @@ private fun SetRow(
             placeholder = rpePlaceholder,
             disableSystemKeyboard = true,
             errorOnEmpty = false,
-            onValueChanged = {
-                if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                }
-            },
             onFocusChanged = { toggleRpePicker(it) },
             onPixelOverflowChanged = onAddSpacer,
         )
@@ -216,14 +187,8 @@ private fun SetRow(
         ) {
             mutableStateOf(completedWeight != null && completedReps != null && completedRpe != null)
         }
-        LaunchedEffect(enabled) {
-            if (!enabled && complete) {
-                onUndoCompletion()
-            }
-        }
-        var checked by remember(complete) { mutableStateOf(complete) }
         Checkbox(
-            checked = checked,
+            checked = complete,
             enabled = enabled,
             colors = CheckboxDefaults.colors(
                 uncheckedColor = MaterialTheme.colorScheme.outline,
@@ -231,10 +196,9 @@ private fun SetRow(
                 checkmarkColor = MaterialTheme.colorScheme.onPrimary,
             ),
             onCheckedChange = {
-                checked = checked
                 if (it) {
                     onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                } else {
+                } else if (complete) {
                     onUndoCompletion()
                 }
             }

@@ -82,7 +82,7 @@ fun DropSet(
                 label = "Rep Range Bottom",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
-                onValueChanged = onRepRangeBottomChanged,
+                onNonNullValueChanged = onRepRangeBottomChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
                 onFocusChanged = {
                     if (!it) onConfirmRepRangeBottom()
@@ -96,7 +96,7 @@ fun DropSet(
                 label = "Rep Range Top",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
-                onValueChanged = onRepRangeTopChanged,
+                onNonNullValueChanged = onRepRangeTopChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
                 onFocusChanged = {
                     if (!it) onConfirmRepRangeTop()

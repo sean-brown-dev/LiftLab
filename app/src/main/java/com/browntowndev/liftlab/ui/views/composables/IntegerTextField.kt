@@ -27,7 +27,8 @@ fun IntegerTextField(
     disableSystemKeyboard: Boolean = false,
     onFocusChanged: (Boolean) -> Unit = {},
     onLeftFocusBlank: () -> Unit = {},
-    onValueChanged: (Int) -> Unit,
+    onValueChanged: (Int?) -> Unit = {},
+    onNonNullValueChanged: (Int) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
     ScrollableTextField(
@@ -49,11 +50,13 @@ fun IntegerTextField(
             if (newValueAsInt != null && newValueAsInt <= maxValue) {
                 newValueAsInt = if (newValueAsInt >= minValue) newValueAsInt else minValue
                 onValueChanged(newValueAsInt)
+                onNonNullValueChanged(newValueAsInt)
                 newValueAsInt.toString()
             } else if (newValue.isEmpty()) {
+                onValueChanged(null)
                 newValue
             } else {
-                value.toString()
+                ""
             }
         },
         onPixelOverflowChanged = onPixelOverflowChanged,

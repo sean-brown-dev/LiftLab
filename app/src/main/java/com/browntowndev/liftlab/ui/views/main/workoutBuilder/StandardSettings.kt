@@ -95,7 +95,7 @@ private fun StandardSettingRow(
             maxValue = 10,
             value = setCount,
             label = "Sets",
-            onValueChanged = onSetCountChanged
+            onNonNullValueChanged = onSetCountChanged,
         )
         Spacer(modifier = Modifier.width(2.dp))
         IntegerTextField(
@@ -103,7 +103,7 @@ private fun StandardSettingRow(
             listState = listState,
             value = repRangeBottom,
             label = "Rep Range Bottom",
-            onValueChanged = onRepRangeBottomChanged,
+            onNonNullValueChanged = onRepRangeBottomChanged,
             onFocusChanged = {
                 if (!it) onConfirmRepRangeBottom()
             },
@@ -114,7 +114,7 @@ private fun StandardSettingRow(
             listState = listState,
             value = repRangeTop,
             label = "Rep Range Top",
-            onValueChanged = onRepRangeTopChanged,
+            onNonNullValueChanged = onRepRangeTopChanged,
             onFocusChanged = {
                 if (!it) onConfirmRepRangeTop()
             },

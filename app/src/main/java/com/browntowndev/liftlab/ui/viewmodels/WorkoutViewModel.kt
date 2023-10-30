@@ -50,7 +50,7 @@ class WorkoutViewModel(
     private val loggingRepository: LoggingRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
-    private val onWorkoutFinished: () -> Unit,
+    private val stopRestTimer: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -140,53 +140,100 @@ class WorkoutViewModel(
         }
     }
 
+    private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, set: GenericLoggingSet) {
+        if (set.complete &&
+            set.completedWeight != null &&
+            set.completedReps != null &&
+            set.completedRpe != null
+        ) {
+            val liftPosition = _state.value.workout!!.lifts.find { it.id == workoutLiftId }!!.position
+            val currentResult = _state.value.inProgressWorkout!!.completedSets
+                .find {
+                    it.liftPosition == liftPosition &&
+                            it.setPosition == set.setPosition
+                } ?: throw Exception("Completed set was not in completedSets")
+            val updatedResult = when (currentResult) {
+                is StandardSetResultDto -> currentResult.copy(
+                    weight = set.completedWeight!!,
+                    reps = set.completedReps!!,
+                    rpe = set.completedRpe!!,
+                )
+                is MyoRepSetResultDto -> currentResult.copy(
+                    weight = set.completedWeight!!,
+                    reps = set.completedReps!!,
+                    rpe = set.completedRpe!!,
+                )
+                is LinearProgressionSetResultDto -> currentResult.copy(
+                    weight = set.completedWeight!!,
+                    reps = set.completedReps!!,
+                    rpe = set.completedRpe!!,
+                )
+                else -> throw Exception("${currentResult::class.simpleName} is not defined.")
+            }
+            completeSet(0L, false, updatedResult)
+        } else if (set.complete) {
+            val workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId }!!
+            undoSetCompletion(
+                liftId = workoutLift.liftId,
+                setPosition = set.setPosition,
+                myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+            )
+        }
+    }
+
     fun setWeight(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newWeight: Float?) {
-        // Don't persist this. Persistence happens when entire set is completed
+        // Don't persist this unless already completed. Persistence happens when entire set is completed
         completeLogEntryItem(
             workoutLiftId = workoutLiftId,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
             copySet = { set ->
-                when (set) {
+                val updatedSet = when (set) {
                     is LoggingStandardSetDto -> set.copy(completedWeight = newWeight)
                     is LoggingDropSetDto -> set.copy(completedWeight = newWeight)
                     is LoggingMyoRepSetDto -> set.copy(completedWeight = newWeight)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
+                updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+                updatedSet
             }
         )
     }
 
     fun setReps(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newReps: Int?) {
-        // Don't persist this. Persistence happens when entire set is completed
+        // Don't persist this unless already completed. Persistence happens when entire set is completed
         completeLogEntryItem(
             workoutLiftId = workoutLiftId,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
             copySet = { set ->
-                when (set) {
+                val updatedSet = when (set) {
                     is LoggingStandardSetDto -> set.copy(completedReps = newReps)
                     is LoggingDropSetDto -> set.copy(completedReps = newReps)
                     is LoggingMyoRepSetDto -> set.copy(completedReps = newReps)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
+                updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+                updatedSet
             }
         )
     }
 
     fun setRpe(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) {
-        // Don't persist this. Persistence happens when entire set is completed
+        // Don't persist this unless already completed. Persistence happens when entire set is completed
         completeLogEntryItem(
             workoutLiftId = workoutLiftId,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
             copySet = { set ->
-                when (set) {
+                val updatedSet = when (set) {
                     is LoggingStandardSetDto -> set.copy(completedRpe = newRpe)
                     is LoggingDropSetDto -> set.copy(completedRpe = newRpe)
                     is LoggingMyoRepSetDto -> set.copy(completedRpe = newRpe)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
+                updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+                updatedSet
             }
         )
     }
@@ -437,6 +484,7 @@ class WorkoutViewModel(
 
     fun undoSetCompletion(liftId: Long, setPosition: Int, myoRepSetPosition: Int?) {
         executeInTransactionScope {
+            stopRestTimer()
             setResultsRepository.delete(
                 workoutId = _state.value.workout!!.id,
                 liftId = liftId,
@@ -557,7 +605,7 @@ class WorkoutViewModel(
             // modifying results.
             updateLinearProgressionFailures()
 
-            onWorkoutFinished()
+            stopRestTimer()
 
             // TODO: have summary pop up as dialog and close this on completion instead
             _state.update {

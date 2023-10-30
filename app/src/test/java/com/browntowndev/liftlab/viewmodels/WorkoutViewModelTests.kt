@@ -172,7 +172,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -306,7 +306,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -438,7 +438,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -569,7 +569,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -718,7 +718,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -877,7 +877,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1007,7 +1007,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1134,7 +1134,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1254,7 +1254,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1368,7 +1368,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1482,7 +1482,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1633,7 +1633,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1796,7 +1796,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1941,7 +1941,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2083,7 +2083,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = liftsRepository,
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2221,7 +2221,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                onWorkoutFinished = {},
+                stopRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
