@@ -530,7 +530,7 @@ class WorkoutViewModel(
             )
 
             // Delete all set results from the previous workout
-            setResultsRepository.deleteAllNotForWorkout(
+            setResultsRepository.deleteAllForPreviousWorkout(
                 workoutId = workout.id,
                 mesoCycle = programMetadata.currentMesocycle,
                 microCycle = programMetadata.currentMicrocycle,

@@ -1237,7 +1237,7 @@ class WorkoutViewModelTests {
             coEvery { restTimerInProgramsRepository.deleteAll() } just Runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
-            coEvery { setResultsRepository.deleteAllNotForWorkout(any(), any(), any()) } just Runs
+            coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any()) } just Runs
 
             val transactionScope = mockk<TransactionScope>()
             coEvery { transactionScope.execute(any()) } coAnswers {
@@ -1351,7 +1351,7 @@ class WorkoutViewModelTests {
             coEvery { restTimerInProgramsRepository.deleteAll() } just Runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
-            coEvery { setResultsRepository.deleteAllNotForWorkout(any(), any(), any()) } just Runs
+            coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any()) } just Runs
 
             val transactionScope = mockk<TransactionScope>()
             coEvery { transactionScope.execute(any()) } coAnswers {
@@ -1465,7 +1465,7 @@ class WorkoutViewModelTests {
             coEvery { restTimerInProgramsRepository.deleteAll() } just Runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
-            coEvery { setResultsRepository.deleteAllNotForWorkout(any(), any(), any()) } just Runs
+            coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any()) } just Runs
 
             val transactionScope = mockk<TransactionScope>()
             coEvery { transactionScope.execute(any()) } coAnswers {
@@ -1608,7 +1608,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
-            coEvery { setResultsRepository.deleteAllNotForWorkout(any(), any(), any()) } just Runs
+            coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any()) } just Runs
             coEvery { setResultsRepository.upsertMany(any()) } coAnswers {
                 val results = args[0] as List<LinearProgressionSetResultDto>
                 Assert.assertEquals(2, results.size)
@@ -1771,7 +1771,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
-            coEvery { setResultsRepository.deleteAllNotForWorkout(any(), any(), any()) } just Runs
+            coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any()) } just Runs
             coEvery { setResultsRepository.upsertMany(any()) } coAnswers {
                 val results = args[0] as List<LinearProgressionSetResultDto>
                 Assert.assertEquals(2, results.size)

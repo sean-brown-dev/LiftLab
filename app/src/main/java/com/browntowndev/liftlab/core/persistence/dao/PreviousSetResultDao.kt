@@ -8,13 +8,10 @@ import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 
 @Dao
 interface PreviousSetResultDao {
-    @Query("SELECT * FROM previousSetResults WHERE workoutId = :workoutId")
-    fun getByWorkoutId(workoutId: Long): List<PreviousSetResult>
-    
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
-            "mesoCycle != :mesoCycle AND " +
-            "microCycle != :microCycle")
+            "(mesoCycle != :mesoCycle OR " +
+            "microCycle != :microCycle)")
     suspend fun getByWorkoutIdExcludingGivenMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResult>
 
     @Query("SELECT * FROM previousSetResults " +
@@ -37,13 +34,13 @@ interface PreviousSetResultDao {
     suspend fun insertMany(result: List<PreviousSetResult>): List<Long>
 
     @Query("DELETE FROM previousSetResults " +
-            "WHERE previously_completed_set_id NOT IN (" +
+            "WHERE previously_completed_set_id IN (" +
             "SELECT previously_completed_set_id " +
             "FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
-            "mesoCycle = :mesoCycle AND " +
-            "microCycle = :microCycle)")
-    suspend fun deleteAllNotForWorkoutMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): Int
+            "(mesoCycle != :mesoCycle OR " +
+            "microCycle != :microCycle))")
+    suspend fun deleteAllForPreviousWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): Int
 
     @Query("DELETE FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +

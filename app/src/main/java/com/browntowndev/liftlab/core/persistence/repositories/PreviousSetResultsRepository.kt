@@ -20,12 +20,6 @@ class PreviousSetResultsRepository(
         }
     }
 
-    suspend fun getForLift(liftId: Long): List<SetResult> {
-        return previousSetResultDao.getForLift(liftId).map {
-            setResultsMapper.map(it)
-        }
-    }
-
     suspend fun upsert(setResult: SetResult): Long {
         return previousSetResultDao.upsert(setResultsMapper.map(setResult))
     }
@@ -34,8 +28,8 @@ class PreviousSetResultsRepository(
         return previousSetResultDao.upsertMany(setResults.map { setResult -> setResultsMapper.map(setResult) })
     }
 
-    suspend fun deleteAllNotForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
-        previousSetResultDao.deleteAllNotForWorkoutMesoAndMicro(workoutId, mesoCycle, microCycle)
+    suspend fun deleteAllForPreviousWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
+        previousSetResultDao.deleteAllForPreviousWorkout(workoutId, mesoCycle, microCycle)
     }
 
     suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
