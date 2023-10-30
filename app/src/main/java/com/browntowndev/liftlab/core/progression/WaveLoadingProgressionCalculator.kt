@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
-class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int): BaseProgressionCalculator() {
+class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int, private val microCycle: Int): BaseProgressionCalculator() {
     override fun calculate(
         workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>,
@@ -32,7 +32,7 @@ class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int): Base
                     getRepRangePlaceholder(
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
-                        microCycle = result?.microCycle ?: 0)
+                        microCycle = microCycle)
                } else {
                       workoutLift.repRangeBottom.toString()
                 },
