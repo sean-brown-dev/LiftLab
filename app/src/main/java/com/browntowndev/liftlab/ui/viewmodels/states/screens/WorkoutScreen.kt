@@ -20,7 +20,7 @@ data class WorkoutScreen(
     override val isOverflowMenuExpanded: Boolean = false,
     override val isOverflowMenuIconVisible: Boolean = false,
     override val navigationIconVisible: Boolean = false,
-    override val title: String = navigation.title,
+    override val title: String = "",
     override val subtitle: String = navigation.subtitle,
     private val restTimerControlVisible: Boolean = false,
     private val restTimerRunning: Boolean = false,
@@ -29,7 +29,7 @@ data class WorkoutScreen(
     private val timerRequestId: String = "",
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("", "", R.drawable.dumbbell_icon, "workout")
+        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
         const val REST_TIMER = "restTimer"
         const val FINISH_BUTTON = "finishButton"
     }

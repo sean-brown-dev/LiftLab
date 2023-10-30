@@ -135,9 +135,17 @@ class LiftLibraryViewModel(
     }
 
     private fun navigateBackToWorkoutBuilder() {
+        // Pop back one prior to workout builder
+        while (navHostController.previousBackStackEntry?.destination?.route?.startsWith(WorkoutBuilderScreen.navigation.route) == false) {
+            navHostController.popBackStack()
+        }
+
+        // Pop back to worker builder then lab
+        navHostController.popBackStack()
+        navHostController.popBackStack()
+
+        // Go back to workout builder
         val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
-        navHostController.popBackStack()
-        navHostController.popBackStack()
         navHostController.navigate(workoutBuilderRoute)
     }
 

@@ -84,10 +84,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                         rpeTarget = workoutLift.rpeTarget,
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
-                        previousSetResultLabel =
-                        if (result != null) {
-                            "${result.weight}x${result.reps} @${result.rpe}"
-                        } else "—",
+                        previousSetResultLabel = getPreviousSetResultLabel(result),
                         repRangePlaceholder = if (!isDeloadWeek) {
                            "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                         } else workoutLift.repRangeBottom.toString(),
@@ -117,10 +114,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel =
-                            if (result != null) {
-                                "${result.weight}x${result.reps} @${result.rpe}"
-                            } else "—",
+                            previousSetResultLabel = getPreviousSetResultLabel(result),
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
@@ -143,10 +137,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel =
-                            if (result != null) {
-                                "${result.weight}x${result.reps} @${result.rpe}"
-                            } else "—",
+                            previousSetResultLabel = getPreviousSetResultLabel(result),
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
@@ -170,7 +161,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                     setMatching = set.setMatching,
                                     repFloor = set.repFloor,
                                     maxSets = set.maxSets,
-                                    previousSetResultLabel = "${it.weight}x${it.reps} @${it.rpe}",
+                                    previousSetResultLabel = getPreviousSetResultLabel(result = it),
                                     repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
                                         "${set.repRangeBottom}-${set.repRangeTop}"
                                     } else if (!isDeloadWeek && set.repFloor != null) {
@@ -201,7 +192,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                             setMatching = set.setMatching,
                                             repFloor = set.repFloor,
                                             maxSets = set.maxSets,
-                                            previousSetResultLabel = "—",
+                                            previousSetResultLabel = getPreviousSetResultLabel(result = null),
                                             repRangePlaceholder = if (!isDeloadWeek) {
                                                 "${set.repRangeBottom}-${set.repRangeTop}"
                                             } else {

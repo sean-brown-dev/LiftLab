@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState

@@ -24,10 +24,7 @@ class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int, priva
                 rpeTarget = workoutLift.rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
-                previousSetResultLabel =
-                if (result != null) {
-                    "${result.weight}x${result.reps} @${result.rpe}"
-                } else "—",
+                previousSetResultLabel = getPreviousSetResultLabel(result),
                 repRangePlaceholder = if (!isDeloadWeek) {
                     getRepRangePlaceholder(
                         repRangeBottom = workoutLift.repRangeBottom,

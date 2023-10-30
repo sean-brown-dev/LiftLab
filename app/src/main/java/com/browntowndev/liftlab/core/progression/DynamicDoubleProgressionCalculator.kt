@@ -47,11 +47,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 rpeTarget = workoutLift.rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
-                previousSetResultLabel =
-                if (result != null) {
-                    "${result.weight}x${result.reps} @${result.rpe}"
-                }
-                else "—",
+                previousSetResultLabel = getPreviousSetResultLabel(result),
                 repRangePlaceholder = if (!isDeloadWeek) {
                     "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                 } else workoutLift.repRangeBottom.toString(),
@@ -92,7 +88,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel = "${it.weight}x${it.reps} @${it.rpe}",
+                            previousSetResultLabel = getPreviousSetResultLabel(result = it),
                             weightRecommendation = weightRecommendation,
                             repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
@@ -115,7 +111,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                     setMatching = set.setMatching,
                                     maxSets = set.maxSets,
                                     repFloor = set.repFloor,
-                                    previousSetResultLabel = "—",
+                                    previousSetResultLabel = getPreviousSetResultLabel(result = null),
                                     repRangePlaceholder = if (!isDeloadWeek) {
                                         "${set.repRangeBottom}-${set.repRangeTop}"
                                     } else {
@@ -137,9 +133,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel = if (result != null) {
-                                "${result.weight}x${result.reps} @${result.rpe}"
-                            } else "—",
+                            previousSetResultLabel = getPreviousSetResultLabel(result),
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
@@ -158,10 +152,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel =
-                            if (result != null) {
-                                "${result.weight}x${result.reps} @${result.rpe}"
-                            } else "—",
+                            previousSetResultLabel = getPreviousSetResultLabel(result),
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),

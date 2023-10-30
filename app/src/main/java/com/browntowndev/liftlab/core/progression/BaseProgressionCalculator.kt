@@ -55,4 +55,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             set.setGoal <= myoRepSets.size
         }
     }
+
+    protected fun getPreviousSetResultLabel(result: SetResult?): String {
+        return if (result != null) {
+            "${result.weight.toString().removeSuffix(".0")}x${result.reps} @${result.rpe}"
+        } else {
+            "—"
+        }
+    }
 }

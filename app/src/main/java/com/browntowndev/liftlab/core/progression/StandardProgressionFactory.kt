@@ -21,9 +21,11 @@ class StandardProgressionFactory: ProgressionFactory {
         )
 
         workout.lifts.fastForEach { workoutLift ->
+            val isDeloadWeek = (microCycle + 1) == (workoutLift.deloadWeek ?: programDeloadWeek)
+            val resultsForLift = previousSetResults.filter { it.liftPosition == workoutLift.position && it.liftId == workoutLift.liftId }
+
             loggingWorkout = loggingWorkout.copy(
                 lifts = loggingWorkout.lifts.toMutableList().apply {
-                    val isDeloadWeek = (microCycle + 1) == (workoutLift.deloadWeek ?: programDeloadWeek)
                     add(
                         LoggingWorkoutLiftDto(
                             id = workoutLift.id,
@@ -46,7 +48,7 @@ class StandardProgressionFactory: ProgressionFactory {
                                 ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek, microCycle)
                             }.calculate(
                                 workoutLift = workoutLift,
-                                previousSetResults = previousSetResults,
+                                previousSetResults = resultsForLift,
                                 isDeloadWeek = isDeloadWeek,
                             )
                         )
