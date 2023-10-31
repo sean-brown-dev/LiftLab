@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
@@ -31,6 +32,7 @@ abstract class BaseWorkoutViewModel(
 
     protected open fun stopRestTimer() { }
     protected open suspend fun insertRestTimerInProgress(restTime: Long) { }
+    protected abstract suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long>
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
     protected abstract suspend fun deleteSetResult(workoutId: Long, liftId: Long, setPosition: Int, myoRepSetPosition: Int?)
 
@@ -471,6 +473,40 @@ abstract class BaseWorkoutViewModel(
                     }
                 )
             }
+        }
+    }
+
+    protected suspend fun updateLinearProgressionFailures() {
+        val resultsByLift = mutableState.value.inProgressWorkout!!.completedSets.associateBy {
+            "${it.liftId}-${it.setPosition}"
+        }
+        val setResultsToUpdate = mutableListOf<SetResult>()
+        mutableState.value.workout!!.lifts
+            .filter { workoutLift -> workoutLift.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
+            .fastForEach { workoutLift ->
+                workoutLift.sets.fastForEach { set ->
+                    val result = resultsByLift["${workoutLift.liftId}-${set.setPosition}"]
+                    if (result != null &&
+                        ((set.completedReps ?: -1) < set.repRangeBottom ||
+                                (set.completedRpe ?: -1f) > set.rpeTarget)) {
+                        val lpResults = result as LinearProgressionSetResultDto
+                        setResultsToUpdate.add(
+                            lpResults.copy(
+                                missedLpGoals = lpResults.missedLpGoals + 1
+                            )
+                        )
+                    } else if (result != null && (result as LinearProgressionSetResultDto).missedLpGoals > 0) {
+                        setResultsToUpdate.add(
+                            result.copy(
+                                missedLpGoals = 0
+                            )
+                        )
+                    }
+                }
+            }
+
+        if (setResultsToUpdate.isNotEmpty()) {
+            upsertManySetResults(setResultsToUpdate)
         }
     }
 }
