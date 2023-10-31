@@ -31,12 +31,10 @@ import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressR
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
@@ -58,17 +56,23 @@ class WorkoutViewModel(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            initialize()
-        }
+        initialize()
     }
 
-    private suspend fun initialize() {
-            val programMetadata = programsRepository.getActiveProgramMetadata()
+    private fun initialize() {
+        restTimerInProgressRepository.getLive().observeForever { restTimerInProgress ->
+            _state.update { currentState ->
+                currentState.copy(
+                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
+                    restTime = restTimerInProgress?.restTime ?: 0L,
+                )
+            }
+        }
+        programsRepository.getActiveProgramMetadata().observeForever { programMetadata ->
             if (programMetadata != null) {
-                workoutsRepository.getNextToPerform(programMetadata)
-                    .observeForever { workout ->
-                        viewModelScope.launch {
+                viewModelScope.launch {
+                    workoutsRepository.getNextToPerform(programMetadata).observeForever { workout ->
+                        executeInTransactionScope {
                             val inProgressWorkout = workoutInProgressRepository.get(
                                 programMetadata.currentMesocycle,
                                 programMetadata.currentMicrocycle
@@ -81,19 +85,11 @@ class WorkoutViewModel(
                                     workout = workout,
                                 )
                             }
-
-                            restTimerInProgressRepository.getLive()
-                                .observeForever { restTimerInProgress ->
-                                    _state.update { currentState ->
-                                        currentState.copy(
-                                            restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
-                                            restTime = restTimerInProgress?.restTime ?: 0L,
-                                        )
-                                    }
-                                }
                         }
                     }
+                }
             }
+        }
     }
 
     @Subscribe
@@ -596,7 +592,11 @@ class WorkoutViewModel(
             }
 
             // Copy all of the set results from this workout into the set history table
-            loggingRepository.insertFromPreviousSetResults(workoutLogEntryId, excludeFromCopy)
+            loggingRepository.insertFromPreviousSetResults(
+                workoutLogEntryId = workoutLogEntryId,
+                workoutId = _state.value.workout!!.id,
+                excludeFromCopy = excludeFromCopy
+            )
 
             // Update any Linear Progression failures
             // The reason this is done when the workout is completed is because if it were done on the fly
@@ -610,10 +610,6 @@ class WorkoutViewModel(
             // TODO: have summary pop up as dialog and close this on completion instead
             _state.update {
                 it.copy(workoutLogVisible = false)
-            }
-
-            withContext(Dispatchers.Main) {
-                initialize()
             }
         }
     }

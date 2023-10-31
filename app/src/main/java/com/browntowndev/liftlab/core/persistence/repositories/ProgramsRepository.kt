@@ -69,8 +69,8 @@ class ProgramsRepository(
         return programsDao.getDeloadWeek(id)
     }
 
-    suspend fun getActiveProgramMetadata(): ActiveProgramMetadataDto? {
-        return programsDao.getActiveProgramMetadata()
+    fun getActiveProgramMetadata(): LiveData<ActiveProgramMetadataDto?> {
+        return programsDao.getActiveProgramMetadata().asLiveData()
     }
 
     suspend fun delete(id: Long) {

@@ -29,8 +29,9 @@ interface LoggingDao {
             "setPosition, myoRepSetPosition, weight, " +
             "reps, rpe, mesoCycle, microCycle " +
             "FROM previousSetResults " +
-            "WHERE previously_completed_set_id NOT IN (:excludeFromCopy)")
-    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, excludeFromCopy: List<Long>)
+            "WHERE workoutId = :workoutId AND " +
+            "previously_completed_set_id NOT IN (:excludeFromCopy)")
+    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, workoutId: Long, excludeFromCopy: List<Long>)
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +

@@ -102,8 +102,6 @@ abstract class LiftLabDatabase : RoomDatabase() {
                 WorkManager
                     .getInstance(context)
                     .enqueueUniqueWork("init_db", ExistingWorkPolicy.KEEP, request)
-
-                WorkManager.getInstance(context).getWorkInfoByIdLiveData(request.id)
             } else {
                 initialized = true
             }
