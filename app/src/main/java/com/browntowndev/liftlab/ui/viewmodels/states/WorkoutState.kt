@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.LiveData
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
@@ -13,7 +12,6 @@ import java.util.Date
 data class WorkoutState(
     val programMetadata: ActiveProgramMetadataDto? = null,
     val workout: LoggingWorkoutDto? = null,
-    val workoutFlow: LiveData<LoggingWorkoutDto>? = null,
     val inProgressWorkout: WorkoutInProgressDto? = null,
     val workoutLogVisible: Boolean = false,
     val restTimerStartedAt: Date? = null,

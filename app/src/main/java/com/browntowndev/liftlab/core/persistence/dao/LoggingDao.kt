@@ -42,4 +42,16 @@ interface LoggingDao {
             "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id " +
             "WHERE setResult.liftId = :liftId")
     suspend fun getLogsByLiftId(liftId: Long): List<FlattenedWorkoutLogEntryDto>
+
+    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.setPosition, setResult.myoRepSetPosition, " +
+            "setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
+            "FROM workoutLogEntries log " +
+            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
+            "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
+            "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id " +
+            "WHERE histWorkoutName.workoutId = :workoutId AND " +
+            "log.mesocycle = :mesoCycle AND " +
+            "log.microcycle = :microCycle")
+    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<FlattenedWorkoutLogEntryDto>
 }

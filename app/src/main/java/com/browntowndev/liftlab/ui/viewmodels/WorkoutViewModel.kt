@@ -49,6 +49,7 @@ class WorkoutViewModel(
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
     private val stopRestTimer: () -> Unit,
+    //private val editingWorkout: ActiveProgramMetadataDto?,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -60,36 +61,59 @@ class WorkoutViewModel(
     }
 
     private fun initialize() {
-        restTimerInProgressRepository.getLive().observeForever { restTimerInProgress ->
-            _state.update { currentState ->
-                currentState.copy(
-                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
-                    restTime = restTimerInProgress?.restTime ?: 0L,
-                )
-            }
-        }
-        programsRepository.getActiveProgramMetadata().observeForever { programMetadata ->
-            if (programMetadata != null) {
-                viewModelScope.launch {
-                    workoutsRepository.getNextToPerform(programMetadata).observeForever { workout ->
-                        executeInTransactionScope {
-                            val inProgressWorkout = workoutInProgressRepository.get(
-                                programMetadata.currentMesocycle,
-                                programMetadata.currentMicrocycle
+        /*if (editingWorkout != null) {
+            viewModelScope.launch {
+                workoutsRepository.getNextToPerform(editingWorkout).value?.let { workout ->
+                    val setResults = loggingRepository.getForWorkout(
+                        workoutId = workout.id,
+                        mesoCycle = editingWorkout.currentMesocycle,
+                        microCycle = editingWorkout.currentMicrocycle,
+                    )
+                    _state.update { currentState ->
+                        currentState.copy(
+                            programMetadata = editingWorkout,
+                            workout = workout,
+                            inProgressWorkout = WorkoutInProgressDto(
+                                workoutId = workout.id,
+                                startTime = Utils.getCurrentDate(),
+                                completedSets = listOf(),
                             )
-
-                            _state.update { currentState ->
-                                currentState.copy(
-                                    inProgressWorkout = inProgressWorkout,
-                                    programMetadata = programMetadata,
-                                    workout = workout,
+                        )
+                    }
+                }
+            }
+        } else {*/
+            restTimerInProgressRepository.getLive().observeForever { restTimerInProgress ->
+                _state.update { currentState ->
+                    currentState.copy(
+                        restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
+                        restTime = restTimerInProgress?.restTime ?: 0L,
+                    )
+                }
+            }
+            programsRepository.getActiveProgramMetadata().observeForever { programMetadata ->
+                if (programMetadata != null) {
+                    viewModelScope.launch {
+                        workoutsRepository.getNextToPerform(programMetadata).observeForever { workout ->
+                            executeInTransactionScope {
+                                val inProgressWorkout = workoutInProgressRepository.get(
+                                    programMetadata.currentMesocycle,
+                                    programMetadata.currentMicrocycle
                                 )
+
+                                _state.update { currentState ->
+                                    currentState.copy(
+                                        inProgressWorkout = inProgressWorkout,
+                                        programMetadata = programMetadata,
+                                        workout = workout,
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+        //}
     }
 
     @Subscribe

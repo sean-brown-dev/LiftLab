@@ -24,6 +24,11 @@ class LoggingRepository(
         }.asLiveData()
     }
 
+    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): WorkoutLogEntryDto? {
+        val log = loggingDao.getForWorkout(workoutId, mesoCycle, microCycle)
+        return workoutLogEntryMapper.map(log).singleOrNull()
+    }
+
     suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntryDto> {
         val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getLogsByLiftId(liftId)
         return workoutLogEntryMapper.map(flattenedLogEntries)

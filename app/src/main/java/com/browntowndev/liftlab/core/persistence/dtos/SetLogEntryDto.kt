@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 data class SetLogEntryDto(
     val liftId: Long,
     val liftName: String,
-    val setType: SetType? = null,
+    val setType: SetType,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,
     val weight: Float,

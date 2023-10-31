@@ -55,7 +55,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
-import com.browntowndev.liftlab.ui.views.composables.RpePicker
+import com.browntowndev.liftlab.ui.views.composables.RpeKeyboard
 import org.koin.androidx.compose.getViewModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -283,7 +283,7 @@ fun WorkoutLog(
                     }
                 }
             }
-            RpePicker(
+            RpeKeyboard(
                 visible = pickerState.type == PickerType.Rpe,
                 onRpeSelected = {
                     onRpeSelected(pickerState.workoutLiftId!!, pickerState.setPosition!!, pickerState.myoRepSetPosition, it)

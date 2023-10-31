@@ -52,7 +52,7 @@ import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.views.composables.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.views.composables.RpePicker
+import com.browntowndev.liftlab.ui.views.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.views.composables.TextFieldModal
 import com.browntowndev.liftlab.ui.views.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
@@ -438,7 +438,7 @@ fun WorkoutBuilder(
                         }
                     }
 
-                    RpePicker(
+                    RpeKeyboard(
                         visible = state.pickerState?.type == PickerType.Rpe,
                         onRpeSelected = {
                             if (state.pickerState!!.setPosition == null) {

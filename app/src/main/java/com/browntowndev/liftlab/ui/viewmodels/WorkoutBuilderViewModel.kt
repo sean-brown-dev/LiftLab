@@ -51,7 +51,7 @@ class WorkoutBuilderViewModel(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        executeInTransactionScope {
             _state.update {
                 val workout = workoutsRepository.get(workoutId)
                 val deloadWeek = programsRepository.getDeloadWeek(workout.programId)

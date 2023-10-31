@@ -176,6 +176,7 @@ private fun SetRow(
             value = completedRpe,
             placeholder = rpePlaceholder,
             disableSystemKeyboard = true,
+            hideCursor = true,
             errorOnEmpty = false,
             onFocusChanged = { toggleRpePicker(it) },
             onPixelOverflowChanged = onAddSpacer,
