@@ -35,12 +35,14 @@ interface WorkoutsDao {
 
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
-    suspend fun get(id: Long) : ProgramWithRelationships.WorkoutWithRelationships
+    suspend fun get(id: Long) : ProgramWithRelationships.WorkoutWithRelationships?
 
     @Query("SELECT MAX(position) FROM workouts WHERE programId = :programId")
     suspend fun getFinalPosition(programId: Long): Int
 
     @Transaction
-    @Query("SELECT * FROM workouts WHERE position = :microcyclePosition")
-    fun getByMicrocyclePosition(microcyclePosition: Int): Flow<WorkoutWithRelationships?>
+    @Query("SELECT * FROM workouts " +
+            "WHERE position = :microcyclePosition AND " +
+            "programId = :programId")
+    fun getByMicrocyclePosition(programId: Long, microcyclePosition: Int): Flow<WorkoutWithRelationships?>
 }

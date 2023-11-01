@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.dtos.interfaces
 
 interface GenericLoggingSet {
-    val setPosition: Int
+    val position: Int
     val rpeTarget: Float
     val repRangeBottom: Int
     val repRangeTop: Int

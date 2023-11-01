@@ -28,6 +28,7 @@ data class SetLogEntry(
     val workoutLogEntryId: Long,
     val liftId: Long,
     val setType: SetType? = null,
+    val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,
     val weight: Float,

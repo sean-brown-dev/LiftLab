@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.persistence.TransactionScope
@@ -15,7 +14,6 @@ abstract class LiftLabViewModel(
     fun registerEventBus() {
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
         }
     }
 

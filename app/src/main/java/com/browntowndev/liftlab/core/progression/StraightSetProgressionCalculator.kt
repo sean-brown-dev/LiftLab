@@ -80,7 +80,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                 List(workoutLift.setCount) {
                     val result = resultsByPosition[it]
                     LoggingStandardSetDto(
-                        setPosition = it,
+                        position = it,
                         rpeTarget = workoutLift.rpeTarget,
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
@@ -105,12 +105,12 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             is CustomWorkoutLiftDto -> {
                 var lastWeightRecommendation: Float? = null
                 workoutLift.customLiftSets.flatMap { set ->
-                    val result = resultsByPosition[set.setPosition]
-                    val currSetMyoRepResults = myoRepSetResults[set.setPosition]
+                    val result = resultsByPosition[set.position]
+                    val currSetMyoRepResults = myoRepSetResults[set.position]
                     when (set) {
                         is StandardSetDto -> listOf(
                             LoggingStandardSetDto(
-                            setPosition = set.setPosition,
+                            position = set.position,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
@@ -133,7 +133,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
 
                         is DropSetDto -> listOf(
                             LoggingDropSetDto(
-                            setPosition = set.setPosition,
+                            position = set.position,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
@@ -145,7 +145,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                 lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
                                 lastWeightRecommendation
                             } else if (previousSetResults.isNotEmpty()) {
-                                previousSetResults[set.setPosition].weight
+                                previousSetResults[set.position].weight
                             } else null,
                             dropPercentage = set.dropPercentage,
                         ))
@@ -153,7 +153,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                         is MyoRepSetDto -> {
                             (currSetMyoRepResults?.fastMap {
                                 LoggingMyoRepSetDto(
-                                    setPosition = set.setPosition,
+                                    position = set.position,
                                     myoRepSetPosition = it.myoRepSetPosition,
                                     rpeTarget = set.rpeTarget,
                                     repRangeBottom = set.repRangeBottom,
@@ -185,7 +185,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                 if (size == 0) {
                                     add(
                                         LoggingMyoRepSetDto(
-                                            setPosition = set.setPosition,
+                                            position = set.position,
                                             rpeTarget = set.rpeTarget,
                                             repRangeBottom = set.repRangeBottom,
                                             repRangeTop = set.repRangeTop,

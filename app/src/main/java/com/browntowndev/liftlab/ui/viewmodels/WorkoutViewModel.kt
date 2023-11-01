@@ -1,25 +1,16 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
@@ -29,7 +20,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -45,7 +35,7 @@ class WorkoutViewModel(
     private val loggingRepository: LoggingRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
-    private val stopRestTimer: () -> Unit,
+    private val cancelRestTimer: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
@@ -307,13 +297,13 @@ class WorkoutViewModel(
 
     override suspend fun deleteSetResult(
         workoutId: Long,
-        liftId: Long,
+        liftPosition: Int,
         setPosition: Int,
         myoRepSetPosition: Int?
     ) {
         setResultsRepository.delete(
             workoutId = workoutId,
-            liftId = liftId,
+            liftPosition = liftPosition,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition
         )
@@ -324,6 +314,6 @@ class WorkoutViewModel(
     }
 
     override fun stopRestTimer() {
-        stopRestTimer()
+        cancelRestTimer()
     }
 }

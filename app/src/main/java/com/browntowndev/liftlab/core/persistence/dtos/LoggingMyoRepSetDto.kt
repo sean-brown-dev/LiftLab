@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.displayNameShort
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 
 data class LoggingMyoRepSetDto(
-    override val setPosition: Int,
+    override val position: Int,
     override val rpeTarget: Float,
     override val repRangeBottom: Int,
     override val repRangeTop: Int,

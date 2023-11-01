@@ -118,7 +118,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
@@ -237,7 +237,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 repFloor = 5,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -250,7 +250,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 0,
                                 repFloor = 5,
                                 rpeTarget = 8f,
@@ -372,7 +372,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 repFloor = 5,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -385,7 +385,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 0,
                                 repFloor = 5,
                                 rpeTarget = 8f,
@@ -500,7 +500,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 repFloor = 5,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -513,7 +513,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 0,
                                 repFloor = 5,
                                 rpeTarget = 8f,
@@ -635,7 +635,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 setMatching = true,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -648,7 +648,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 0,
                                 setMatching = true,
                                 rpeTarget = 8f,
@@ -662,7 +662,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 1,
                                 setMatching = true,
                                 rpeTarget = 8f,
@@ -794,7 +794,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 setMatching = true,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -807,7 +807,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 0,
                                 setMatching = true,
                                 rpeTarget = 8f,
@@ -821,7 +821,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 1,
                                 setMatching = true,
                                 rpeTarget = 8f,
@@ -943,7 +943,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -955,7 +955,7 @@ class WorkoutViewModelTests {
                                 completedRpe = 8f,
                             ),
                             LoggingDropSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 dropPercentage = .1f,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -1069,7 +1069,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1082,7 +1082,7 @@ class WorkoutViewModelTests {
                                 completedWeight = 100f,
                             ),
                             LoggingDropSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 dropPercentage = .1f,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -1197,7 +1197,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1206,7 +1206,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingDropSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 dropPercentage = .1f,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -1311,7 +1311,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1320,7 +1320,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingDropSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 dropPercentage = .1f,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -1425,7 +1425,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1434,7 +1434,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingDropSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 dropPercentage = .1f,
                                 rpeTarget = 8f,
                                 repRangeBottom = 25,
@@ -1555,7 +1555,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1568,7 +1568,7 @@ class WorkoutViewModelTests {
                                 completedReps = 7,
                             ),
                             LoggingStandardSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1718,7 +1718,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1731,7 +1731,7 @@ class WorkoutViewModelTests {
                                 completedReps = 10,
                             ),
                             LoggingStandardSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1873,7 +1873,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1882,7 +1882,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -1891,7 +1891,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingDropSetDto(
-                                setPosition = 2,
+                                position = 2,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -2012,7 +2012,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingStandardSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -2021,7 +2021,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 1,
+                                position = 1,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -2030,7 +2030,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingDropSetDto(
-                                setPosition = 2,
+                                position = 2,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -2148,7 +2148,7 @@ class WorkoutViewModelTests {
                         deloadWeek = null,
                         sets = listOf(
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
@@ -2157,7 +2157,7 @@ class WorkoutViewModelTests {
                                 repRangePlaceholder = "",
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 0,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,
@@ -2168,7 +2168,7 @@ class WorkoutViewModelTests {
                                 complete = true,
                             ),
                             LoggingMyoRepSetDto(
-                                setPosition = 0,
+                                position = 0,
                                 myoRepSetPosition = 1,
                                 rpeTarget = 8f,
                                 repRangeBottom = 8,

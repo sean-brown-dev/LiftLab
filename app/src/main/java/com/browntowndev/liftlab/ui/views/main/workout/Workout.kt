@@ -189,9 +189,9 @@ fun Workout(
                     )
                 }
             },
-            undoCompleteSet = { liftId, setPosition, myoRepSetPosition ->
+            undoCompleteSet = { liftPosition, setPosition, myoRepSetPosition ->
                 workoutViewModel.undoSetCompletion(
-                    liftId = liftId,
+                    liftPosition = liftPosition,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition
                 )

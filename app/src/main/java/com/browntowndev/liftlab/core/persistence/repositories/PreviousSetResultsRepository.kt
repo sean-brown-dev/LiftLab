@@ -40,7 +40,7 @@ class PreviousSetResultsRepository(
         previousSetResultDao.delete(workoutId, liftId, setPosition)
     }
 
-    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int, myoRepSetPosition: Int?) {
-        previousSetResultDao.delete(workoutId, liftId, setPosition, myoRepSetPosition)
+    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
+        previousSetResultDao.delete(workoutId, liftPosition, setPosition, myoRepSetPosition)
     }
 }

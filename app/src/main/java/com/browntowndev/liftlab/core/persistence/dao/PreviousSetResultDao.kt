@@ -56,8 +56,8 @@ interface PreviousSetResultDao {
 
     @Query("DELETE FROM previousSetResults WHERE " +
             "workoutId = :workoutId AND " +
-            "liftId = :liftId AND " +
+            "liftPosition = :liftPosition AND " +
             "setPosition = :setPosition AND " +
             "myoRepSetPosition = :myoRepSetPosition")
-    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int, myoRepSetPosition: Int?)
+    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
 }

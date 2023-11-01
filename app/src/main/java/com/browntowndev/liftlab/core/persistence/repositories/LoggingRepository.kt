@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
+import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
@@ -53,6 +55,27 @@ class LoggingRepository(
                 date = date,
                 durationInMillis = durationInMillis,
             )
+        )
+    }
+
+    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
+        loggingDao.delete(
+            workoutId = workoutId,
+            liftPosition = liftPosition,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+        )
+    }
+
+    suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
+        return loggingDao.upsert(workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry))
+    }
+
+    suspend fun upsertMany(workoutLogEntryId: Long, setLogEntries: List<SetLogEntryDto>): List<Long> {
+        return loggingDao.upsertMany(
+            setLogEntries.fastMap { setLogEntry ->
+                workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
+            }
         )
     }
 }

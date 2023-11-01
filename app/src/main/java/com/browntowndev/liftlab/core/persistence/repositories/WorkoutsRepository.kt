@@ -8,12 +8,16 @@ import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
@@ -34,10 +38,6 @@ class WorkoutsRepository(
 ): Repository {
     suspend fun updateName(id: Long, newName: String) {
         workoutsDao.updateName(id, newName)
-    }
-
-    suspend fun get(id: Long): WorkoutDto {
-        return workoutMapper.map(workoutsDao.get(id))
     }
 
     suspend fun insert(workout: WorkoutDto): Long {
@@ -65,59 +65,166 @@ class WorkoutsRepository(
         customLiftSetsRepository.updateMany(updSets)
     }
 
+    suspend fun get(workoutId: Long): WorkoutDto? {
+        return workoutsDao.get(workoutId)?.let {
+             workoutMapper.map(it)
+        }
+    }
+
+    suspend fun getForLogging(workoutId: Long): LoggingWorkoutDto? {
+        return workoutsDao.get(workoutId)?.let { workoutEntity ->
+            val workout = workoutMapper.map(workoutEntity)
+            LoggingWorkoutDto(
+                id = workout.id,
+                name = workout.name,
+                lifts = workout.lifts.fastMap { lift ->
+                    when (lift) {
+                        is StandardWorkoutLiftDto ->
+                            LoggingWorkoutLiftDto(
+                                id = lift.id,
+                                liftId = lift.liftId,
+                                liftName = lift.liftName,
+                                liftMovementPattern = lift.liftMovementPattern,
+                                liftVolumeTypes = lift.liftVolumeTypes,
+                                liftSecondaryVolumeTypes = lift.liftSecondaryVolumeTypes,
+                                position = lift.position,
+                                setCount = lift.setCount,
+                                progressionScheme = lift.progressionScheme,
+                                deloadWeek = lift.deloadWeek,
+                                incrementOverride = lift.incrementOverride,
+                                restTime = lift.restTime,
+                                restTimerEnabled = false,
+                                sets = List(lift.setCount) { position ->
+                                    LoggingStandardSetDto(
+                                        position = position,
+                                        repRangeTop = lift.repRangeTop,
+                                        repRangeBottom = lift.repRangeBottom,
+                                        rpeTarget = lift.rpeTarget,
+                                        weightRecommendation = null,
+                                        previousSetResultLabel = "",
+                                        repRangePlaceholder = "${lift.repRangeBottom}-${lift.repRangeTop}",
+                                    )
+                                }
+                        )
+
+                        is CustomWorkoutLiftDto ->
+                            LoggingWorkoutLiftDto(
+                                id = lift.id,
+                                liftId = lift.liftId,
+                                liftName = lift.liftName,
+                                liftMovementPattern = lift.liftMovementPattern,
+                                liftVolumeTypes = lift.liftVolumeTypes,
+                                liftSecondaryVolumeTypes = lift.liftSecondaryVolumeTypes,
+                                position = lift.position,
+                                setCount = lift.setCount,
+                                progressionScheme = lift.progressionScheme,
+                                deloadWeek = lift.deloadWeek,
+                                incrementOverride = lift.incrementOverride,
+                                restTime = lift.restTime,
+                                restTimerEnabled = false,
+                                sets = lift.customLiftSets.fastMap { set ->
+                                    when (set) {
+                                        is StandardSetDto ->
+                                            LoggingStandardSetDto(
+                                                position = set.position,
+                                                repRangeTop = set.repRangeTop,
+                                                repRangeBottom = set.repRangeBottom,
+                                                rpeTarget = set.rpeTarget,
+                                                weightRecommendation = null,
+                                                previousSetResultLabel = "",
+                                                repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
+                                            )
+                                        is MyoRepSetDto ->
+                                            LoggingMyoRepSetDto(
+                                                position = set.position,
+                                                repRangeTop = set.repRangeTop,
+                                                repRangeBottom = set.repRangeBottom,
+                                                rpeTarget = set.rpeTarget,
+                                                weightRecommendation = null,
+                                                previousSetResultLabel = "",
+                                                repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
+                                                setMatching = set.setMatching,
+                                                maxSets = set.maxSets,
+                                                repFloor = set.repFloor,
+                                            )
+                                        is DropSetDto ->
+                                            LoggingDropSetDto(
+                                                position = set.position,
+                                                repRangeTop = set.repRangeTop,
+                                                repRangeBottom = set.repRangeBottom,
+                                                rpeTarget = set.rpeTarget,
+                                                weightRecommendation = null,
+                                                previousSetResultLabel = "",
+                                                repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
+                                                dropPercentage = set.dropPercentage,
+                                            )
+
+                                        else -> throw Exception("${set::class.simpleName} is not defined.")
+                                    }
+                                }
+                            )
+                        else -> throw Exception("${lift::class.simpleName} is not defined.")
+                    }
+                }
+            )
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun getNextToPerform(
         programMetadata: ActiveProgramMetadataDto,
     ): LiveData<LoggingWorkoutDto?> {
-        return workoutsDao.getByMicrocyclePosition(programMetadata.currentMicrocyclePosition)
-            .flatMapLatest { workout ->
-                val previousSetResults = if (workout != null) {
-                    previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
-                        workoutId = workout.workout.id,
-                        mesoCycle = programMetadata.currentMesocycle,
-                        microCycle = programMetadata.currentMicrocycle,
-                    )
-                } else listOf()
-
-                val loggingWorkout = if (workout!= null) {
-                    progressionFactory.calculate(
-                        workout = workoutMapper.map(workout),
-                        previousSetResults = previousSetResults,
-                        programDeloadWeek = programMetadata.deloadWeek,
-                        microCycle = programMetadata.currentMicrocycle,
-                    )
-                } else null
-
-                val inProgressCompletedSets = if (workout != null) {
-                    previousSetResultsRepository.getForWorkout(
-                        workoutId = workout.workout.id,
-                        mesoCycle = programMetadata.currentMesocycle,
-                        microCycle = programMetadata.currentMicrocycle
-                    ).associateBy { result ->
-                        "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
-                    }
-                } else mapOf()
-
-                flowOf(
-                    if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
-                        loggingWorkout.copy(
-                            lifts = loggingWorkout.lifts.fastMap { workoutLift ->
-                                workoutLift.copy(
-                                    sets = workoutLift.sets.flatMapIndexed { index, set ->
-                                        copyInProgressSet(
-                                            inProgressCompletedSets,
-                                            workoutLift,
-                                            set,
-                                            index,
-                                            programMetadata
-                                        )
-                                    }
-                                )
-                            }
-                        )
-                    } else loggingWorkout
+        return workoutsDao.getByMicrocyclePosition(
+            programId = programMetadata.programId,
+            microcyclePosition = programMetadata.currentMicrocyclePosition
+        ).flatMapLatest { workout ->
+            val previousSetResults = if (workout != null) {
+                previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
+                    workoutId = workout.workout.id,
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle,
                 )
-            }.asLiveData()
+            } else listOf()
+
+            val loggingWorkout = if (workout != null) {
+                progressionFactory.calculate(
+                    workout = workoutMapper.map(workout),
+                    previousSetResults = previousSetResults,
+                    programDeloadWeek = programMetadata.deloadWeek,
+                    microCycle = programMetadata.currentMicrocycle,
+                )
+            } else null
+
+            val inProgressCompletedSets = if (workout != null) {
+                previousSetResultsRepository.getForWorkout(
+                    workoutId = workout.workout.id,
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle
+                ).associateBy { result ->
+                    "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
+                }
+            } else mapOf()
+
+            flowOf(
+                if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
+                    loggingWorkout.copy(
+                        lifts = loggingWorkout.lifts.fastMap { workoutLift ->
+                            workoutLift.copy(
+                                sets = workoutLift.sets.flatMapIndexed { index, set ->
+                                    copyInProgressSet(
+                                        inProgressCompletedSets,
+                                        workoutLift,
+                                        set,
+                                        index,
+                                        programMetadata
+                                    )
+                                }
+                            )
+                        }
+                    )
+                } else loggingWorkout
+            )
+        }.asLiveData()
     }
 
     private fun copyInProgressSet(
@@ -128,10 +235,10 @@ class WorkoutsRepository(
         programMetadata: ActiveProgramMetadataDto
     ): List<GenericLoggingSet> {
         val completedSet = inProgressCompletedSets[
-            "${workoutLift.liftId}-${set.setPosition}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
+            "${workoutLift.liftId}-${set.position}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
         ]
         val prevCompletedSet = inProgressCompletedSets[
-            "${workoutLift.liftId}-${set.setPosition - 1}-null"
+            "${workoutLift.liftId}-${set.position - 1}-null"
         ]
 
         return if (completedSet != null) {
@@ -208,9 +315,9 @@ class WorkoutsRepository(
 
         val hasMoreSets = index < (workoutLift.sets.size - 1)
         val nextSet = if (hasMoreSets) workoutLift.sets[index + 1] else null
-        val isLast = !hasMoreSets || (nextSet!!.setPosition != set.setPosition)
+        val isLast = !hasMoreSets || (nextSet!!.position != set.position)
         var nextInProgressSetResult = inProgressCompletedSets[
-            "${workoutLift.liftId}-${set.setPosition}-${(set.myoRepSetPosition ?: -1) + 1}"
+            "${workoutLift.liftId}-${set.position}-${(set.myoRepSetPosition ?: -1) + 1}"
         ] as? MyoRepSetResultDto
 
         while (isLast && nextInProgressSetResult != null) {
@@ -241,7 +348,7 @@ class WorkoutsRepository(
             val lastCompletedSet = nextInProgressSetResult.copy()
             nextInProgressSetResult =
                 inProgressCompletedSets[
-                    "${workoutLift.liftId}-${set.setPosition}-${(nextInProgressSetResult.myoRepSetPosition ?: -1) + 1}"
+                    "${workoutLift.liftId}-${set.position}-${(nextInProgressSetResult.myoRepSetPosition ?: -1) + 1}"
                 ] as? MyoRepSetResultDto
 
             if (nextInProgressSetResult == null &&
@@ -254,7 +361,7 @@ class WorkoutsRepository(
             ) {
                 myoRepSets.add(
                     LoggingMyoRepSetDto(
-                        setPosition = set.setPosition,
+                        position = set.position,
                         myoRepSetPosition = myoRepSetPosition + 1,
                         rpeTarget = set.rpeTarget,
                         repRangeBottom = set.repRangeBottom,

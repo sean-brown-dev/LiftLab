@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.dependencyInjection
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
@@ -21,6 +22,7 @@ val viewModelModule = module {
     viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { params -> LiftLibraryViewModel(get(), get(), params.get(), get(), get()) }
     viewModel { params -> WorkoutViewModel(get(), get(), get(), get(), get(), get(), get(), get(), params[0], get(), get()) }
+    viewModel { params -> EditWorkoutViewModel(get(), get(), params[0], get(), get()) }
     viewModel { TopAppBarViewModel() }
     viewModel { BottomNavBarViewModel() }
     viewModel { BottomSheetViewModel() }

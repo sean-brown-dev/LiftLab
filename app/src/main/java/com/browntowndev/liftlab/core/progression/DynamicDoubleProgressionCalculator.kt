@@ -43,7 +43,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         return List(workoutLift.setCount) { setPosition ->
             val result = resultsMap[setPosition]
             LoggingStandardSetDto(
-                setPosition = setPosition,
+                position = setPosition,
                 rpeTarget = workoutLift.rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
@@ -77,13 +77,13 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         return workoutLift.customLiftSets.flatMap { set ->
             when (set) {
                 is MyoRepSetDto -> {
-                    val allMyoRepSets = myoRepSetResults[set.setPosition]
+                    val allMyoRepSets = myoRepSetResults[set.position]
                     val weightRecommendation =
-                        getWeightRecommendation(workoutLift, set, myoRepSetResults[set.setPosition])
+                        getWeightRecommendation(workoutLift, set, myoRepSetResults[set.position])
 
                     (allMyoRepSets?.fastMap {
                         LoggingMyoRepSetDto(
-                            setPosition = set.setPosition,
+                            position = set.position,
                             myoRepSetPosition = it.myoRepSetPosition,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
@@ -104,7 +104,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                         if (size == 0) {
                             add(
                                 LoggingMyoRepSetDto(
-                                    setPosition = set.setPosition,
+                                    position = set.position,
                                     rpeTarget = set.rpeTarget,
                                     repRangeBottom = set.repRangeBottom,
                                     repRangeTop = set.repRangeTop,
@@ -125,11 +125,11 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 }
 
                 is DropSetDto -> {
-                    val result = nonMyoRepSetResults[set.setPosition]
+                    val result = nonMyoRepSetResults[set.position]
                     listOf(
                         LoggingDropSetDto(
                             dropPercentage = set.dropPercentage,
-                            setPosition = set.setPosition,
+                            position = set.position,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
@@ -145,10 +145,10 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 }
 
                 is StandardSetDto -> {
-                    val result = nonMyoRepSetResults[set.setPosition]
+                    val result = nonMyoRepSetResults[set.position]
                     listOf(
                         LoggingStandardSetDto(
-                            setPosition = set.setPosition,
+                            position = set.position,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,

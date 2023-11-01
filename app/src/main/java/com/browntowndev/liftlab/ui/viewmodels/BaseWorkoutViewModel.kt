@@ -34,7 +34,7 @@ abstract class BaseWorkoutViewModel(
     protected open suspend fun insertRestTimerInProgress(restTime: Long) { }
     protected abstract suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long>
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
-    protected abstract suspend fun deleteSetResult(workoutId: Long, liftId: Long, setPosition: Int, myoRepSetPosition: Int?)
+    protected abstract suspend fun deleteSetResult(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
 
     private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, set: GenericLoggingSet) {
         if (set.complete &&
@@ -46,7 +46,7 @@ abstract class BaseWorkoutViewModel(
             val currentResult = mutableState.value.inProgressWorkout!!.completedSets
                 .find {
                     it.liftPosition == liftPosition &&
-                            it.setPosition == set.setPosition
+                            it.setPosition == set.position
                 } ?: throw Exception("Completed set was not in completedSets")
             val updatedResult = when (currentResult) {
                 is StandardSetResultDto -> currentResult.copy(
@@ -70,8 +70,8 @@ abstract class BaseWorkoutViewModel(
         } else if (set.complete) {
             val workoutLift = mutableState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             undoSetCompletion(
-                liftId = workoutLift.liftId,
-                setPosition = set.setPosition,
+                liftPosition = workoutLift.position,
+                setPosition = set.position,
                 myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
             )
         }
@@ -142,7 +142,7 @@ abstract class BaseWorkoutViewModel(
                         if (workoutLift.id == workoutLiftId) {
                             workoutLift.copy(
                                 sets = workoutLift.sets.fastMap { set ->
-                                    if (set.setPosition == setPosition &&
+                                    if (set.position == setPosition &&
                                         (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == myoRepSetPosition
                                     ) {
                                         copySet(set)
@@ -182,7 +182,7 @@ abstract class BaseWorkoutViewModel(
                 val myoRepSetIndex = if(thisMyoRepSet.myoRepSetPosition != null) {
                     thisMyoRepSet.myoRepSetPosition + 1
                 } else 0
-                val insertAtIndex = 1 + thisMyoRepSet.setPosition + myoRepSetIndex
+                val insertAtIndex = 1 + thisMyoRepSet.position + myoRepSetIndex
                 add(
                     index = insertAtIndex,
                     thisMyoRepSet.copy(
@@ -219,7 +219,7 @@ abstract class BaseWorkoutViewModel(
     ): List<GenericLoggingSet> {
         var completedSet: GenericLoggingSet? = null
         val mutableSetCopy = currentSets.fastMap { set ->
-            if (setPosition == set.setPosition &&
+            if (setPosition == set.position &&
                 myoRepSetPosition == (set as? LoggingMyoRepSetDto)?.myoRepSetPosition) {
                 completedSet = when (set) {
                     is LoggingStandardSetDto -> set.copy(complete = true)
@@ -228,7 +228,7 @@ abstract class BaseWorkoutViewModel(
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 completedSet!!
-            } else if (set.setPosition == (setPosition + 1)) {
+            } else if (set.position == (setPosition + 1)) {
                 when (set) {
                     is LoggingStandardSetDto -> set.copy(weightRecommendation = completedSet!!.completedWeight)
                     is LoggingMyoRepSetDto -> set.copy(weightRecommendation = completedSet!!.completedWeight)
@@ -378,12 +378,12 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    fun undoSetCompletion(liftId: Long, setPosition: Int, myoRepSetPosition: Int?) {
+    fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
         executeInTransactionScope {
             stopRestTimer()
             deleteSetResult(
                 workoutId = mutableState.value.workout!!.id,
-                liftId = liftId,
+                liftPosition = liftPosition,
                 setPosition = setPosition,
                 myoRepSetPosition = myoRepSetPosition
             )
@@ -394,10 +394,10 @@ abstract class BaseWorkoutViewModel(
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { workoutLift ->
                             var hasWeightRecommendation = false
-                            if (workoutLift.liftId == liftId) {
+                            if (workoutLift.position == liftPosition) {
                                 workoutLift.copy(
                                     sets = workoutLift.sets.fastMap { set ->
-                                        if (set.setPosition == setPosition &&
+                                        if (set.position == setPosition &&
                                             (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == myoRepSetPosition) {
                                             hasWeightRecommendation = set.weightRecommendation != null
                                             when (set) {
@@ -407,7 +407,7 @@ abstract class BaseWorkoutViewModel(
                                                 else -> throw Exception("${set::class.simpleName} is not defined.")
                                             }
                                         } else if (!hasWeightRecommendation &&
-                                            set.setPosition == (setPosition + 1)) {
+                                            set.position == (setPosition + 1)) {
                                             // undo the set's weight recommendation when its main
                                             // set is set as uncompleted and it had no recommendation
                                             when (set) {
@@ -430,17 +430,17 @@ abstract class BaseWorkoutViewModel(
     fun deleteMyoRepSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) {
         executeInTransactionScope {
             val workoutLift = mutableState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
-            val liftId = workoutLift.liftId
+            val liftPosition = workoutLift.position
             val isComplete = workoutLift.sets.find {
                 it is LoggingMyoRepSetDto &&
-                        it.setPosition == setPosition &&
+                        it.position == setPosition &&
                         it.myoRepSetPosition == myoRepSetPosition
             }?.complete
 
             if (isComplete == true) {
                 deleteSetResult(
                     workoutId = mutableState.value.workout!!.id,
-                    liftId = liftId,
+                    liftPosition = liftPosition,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition
                 )
@@ -455,7 +455,7 @@ abstract class BaseWorkoutViewModel(
                                     workoutLift.copy(
                                         sets = workoutLift.sets.toMutableList().apply {
                                             val toDelete = find { set ->
-                                                set.setPosition == setPosition &&
+                                                set.position == setPosition &&
                                                         (set as LoggingMyoRepSetDto).myoRepSetPosition == myoRepSetPosition
                                             }!!
 
@@ -485,7 +485,7 @@ abstract class BaseWorkoutViewModel(
             .filter { workoutLift -> workoutLift.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
             .fastForEach { workoutLift ->
                 workoutLift.sets.fastForEach { set ->
-                    val result = resultsByLift["${workoutLift.liftId}-${set.setPosition}"]
+                    val result = resultsByLift["${workoutLift.liftId}-${set.position}"]
                     if (result != null &&
                         ((set.completedReps ?: -1) < set.repRangeBottom ||
                                 (set.completedRpe ?: -1f) > set.rpeTarget)) {

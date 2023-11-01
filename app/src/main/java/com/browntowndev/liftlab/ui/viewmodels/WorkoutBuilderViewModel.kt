@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -27,11 +26,9 @@ import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
@@ -54,7 +51,7 @@ class WorkoutBuilderViewModel(
         executeInTransactionScope {
             _state.update {
                 val workout = workoutsRepository.get(workoutId)
-                val deloadWeek = programsRepository.getDeloadWeek(workout.programId)
+                val deloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
                 it.copy(
                     workout = workout,
                     programDeloadWeek = deloadWeek
@@ -241,7 +238,7 @@ class WorkoutBuilderViewModel(
                         customSets.add(
                             StandardSetDto(
                                 workoutLiftId = workoutLiftId,
-                                setPosition = i,
+                                position = i,
                                 rpeTarget = lift.rpeTarget,
                                 repRangeBottom = lift.repRangeBottom,
                                 repRangeTop = lift.repRangeTop
@@ -477,7 +474,7 @@ class WorkoutBuilderViewModel(
                     when (currentWorkoutLift) {
                         is CustomWorkoutLiftDto -> currentWorkoutLift.copy(
                             customLiftSets = currentWorkoutLift.customLiftSets.map { set ->
-                                if (copyAll || set.setPosition == position) copySet(set) else set
+                                if (copyAll || set.position == position) copySet(set) else set
                             }
                         )
                         else -> throw Exception("${currentWorkoutLift.liftName} doesn't have custom sets.")
@@ -501,7 +498,7 @@ class WorkoutBuilderViewModel(
                             customLiftSets = lift.customLiftSets.toMutableList().apply {
                                 addedSet = StandardSetDto(
                                     workoutLiftId = lift.id,
-                                    setPosition = lift.customLiftSets.count(),
+                                    position = lift.customLiftSets.count(),
                                     rpeTarget = 8f,
                                     repRangeBottom = 8,
                                     repRangeTop = 10,
@@ -525,9 +522,9 @@ class WorkoutBuilderViewModel(
                         val expansionStatesCopy = HashMap(expansionStates)
                         val setStates = expansionStatesCopy[workoutLiftId]
                         if (setStates != null) {
-                            setStates.add(addedSet!!.setPosition)
+                            setStates.add(addedSet!!.position)
                         } else {
-                            expansionStatesCopy[workoutLiftId] = hashSetOf(addedSet!!.setPosition)
+                            expansionStatesCopy[workoutLiftId] = hashSetOf(addedSet!!.position)
                         }
 
                         expansionStatesCopy
@@ -552,12 +549,12 @@ class WorkoutBuilderViewModel(
                                 updatedWorkoutLift = (workoutLift as CustomWorkoutLiftDto).copy(
                                     setCount = workoutLift.setCount - 1,
                                     customLiftSets = workoutLift.customLiftSets
-                                        .filter { it.setPosition != position }
+                                        .filter { it.position != position }
                                         .mapIndexed { index, customSet ->
                                             when (customSet) {
-                                                is StandardSetDto -> customSet.copy(setPosition = index)
-                                                is MyoRepSetDto -> customSet.copy(setPosition = index)
-                                                is DropSetDto -> customSet.copy(setPosition = index)
+                                                is StandardSetDto -> customSet.copy(position = index)
+                                                is MyoRepSetDto -> customSet.copy(position = index)
+                                                is DropSetDto -> customSet.copy(position = index)
                                                 else -> throw Exception("${customSet::class.simpleName} is not defined.")
                                             }
                                         }
@@ -791,7 +788,7 @@ class WorkoutBuilderViewModel(
                     SetType.DROP_SET -> DropSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
-                        setPosition = set.setPosition,
+                        position = set.position,
                         dropPercentage = .1f, // TODO: Add a "drop percentage" setting and use it here
                         rpeTarget = set.rpeTarget,
                         repRangeBottom = set.repRangeBottom,
@@ -800,7 +797,7 @@ class WorkoutBuilderViewModel(
                     SetType.MYOREP -> MyoRepSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
-                        setPosition = set.setPosition,
+                        position = set.position,
                         repFloor = 5, // TODO: Add a "myo-rep floor" setting and use it here
                         repRangeTop = set.repRangeTop,
                         repRangeBottom = set.repRangeBottom,
@@ -814,7 +811,7 @@ class WorkoutBuilderViewModel(
                     SetType.DROP_SET -> DropSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
-                        setPosition = set.setPosition,
+                        position = set.position,
                         dropPercentage = .1f, // TODO: Add a "drop percentage" setting and use it here
                         rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
                         repRangeBottom = set.repRangeBottom,
@@ -824,7 +821,7 @@ class WorkoutBuilderViewModel(
                     SetType.STANDARD -> StandardSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
-                        setPosition = set.setPosition,
+                        position = set.position,
                         rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
@@ -836,7 +833,7 @@ class WorkoutBuilderViewModel(
                     SetType.MYOREP -> MyoRepSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
-                        setPosition = set.setPosition,
+                        position = set.position,
                         repFloor = 5, // TODO: Add a "myo-rep floor" setting and use it here
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,
@@ -846,7 +843,7 @@ class WorkoutBuilderViewModel(
                     SetType.STANDARD -> StandardSetDto(
                         id = set.id,
                         workoutLiftId = set.workoutLiftId,
-                        setPosition = set.setPosition,
+                        position = set.position,
                         rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
                         repRangeBottom = set.repRangeBottom,
                         repRangeTop = set.repRangeTop,

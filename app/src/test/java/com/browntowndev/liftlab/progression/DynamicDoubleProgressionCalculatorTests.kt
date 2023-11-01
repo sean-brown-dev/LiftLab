@@ -156,7 +156,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if (p.setPosition != 3) 80f else null, p.weightRecommendation)
+            Assert.assertEquals(if (p.position != 3) 80f else null, p.weightRecommendation)
         }
     }
 
@@ -188,7 +188,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if(p.setPosition == 2) 75f else if (p.setPosition == 3) null else 80f, p.weightRecommendation)
+            Assert.assertEquals(if(p.position == 2) 75f else if (p.position == 3) null else 80f, p.weightRecommendation)
         }
     }
 
@@ -300,7 +300,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if(p.setPosition == 2) 75f else 80f, p.weightRecommendation)
+            Assert.assertEquals(if(p.position == 2) 75f else 80f, p.weightRecommendation)
         }
     }
 
@@ -395,7 +395,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            if (p.setPosition == 0)
+            if (p.position == 0)
                 Assert.assertEquals(75f, p.weightRecommendation)
             else
                 Assert.assertEquals(80f, p.weightRecommendation)
@@ -451,7 +451,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            if (p.setPosition == 0)
+            if (p.position == 0)
                 Assert.assertEquals(75f, p.weightRecommendation)
             else
                 Assert.assertEquals(80f,  p.weightRecommendation)

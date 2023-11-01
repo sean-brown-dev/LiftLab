@@ -20,7 +20,7 @@ class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int, priva
         return List(workoutLift.setCount) { setPosition ->
             val result = groupedSetData[setPosition]
             LoggingStandardSetDto(
-                setPosition = setPosition,
+                position = setPosition,
                 rpeTarget = workoutLift.rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,

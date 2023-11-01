@@ -13,6 +13,7 @@ data class FlattenedWorkoutLogEntryDto (
     val liftId: Long,
     val liftName: String,
     val setType: SetType,
+    val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int?,
     val weight: Float,
