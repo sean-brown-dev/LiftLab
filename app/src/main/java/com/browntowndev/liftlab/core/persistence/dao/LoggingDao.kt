@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkout
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 @Dao
 interface LoggingDao {
@@ -52,10 +53,20 @@ interface LoggingDao {
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
             "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id " +
-            "WHERE histWorkoutName.workoutId = :workoutId AND " +
-            "log.mesocycle = :mesoCycle AND " +
-            "log.microcycle = :microCycle")
-    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<FlattenedWorkoutLogEntryDto>
+            "WHERE log.workout_log_entry_id = :workoutLogEntryId")
+    suspend fun get(workoutLogEntryId: Long): List<FlattenedWorkoutLogEntryDto>
+
+    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
+            "log.durationInMillis, lift.lift_id as 'liftId', lift.name as 'liftName', setResult.setType, setResult.liftPosition, setResult.setPosition, " +
+            "setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle " +
+            "FROM workoutLogEntries log " +
+            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
+            "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
+            "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id " +
+            "WHERE histWorkoutName.historical_workout_name_id = :historicalWorkoutNameId AND " +
+            "log.date < :date " +
+            "ORDER BY log.date DESC ")
+    suspend fun getFirstPriorToDate(historicalWorkoutNameId: Long, date: Date): List<FlattenedWorkoutLogEntryDto>
 
     @Query("DELETE FROM setLogEntries " +
             "WHERE set_log_entry_id IN (" +

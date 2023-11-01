@@ -24,7 +24,7 @@ fun EditWorkout(
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
 ) {
     val editingWorkoutMeta = EditWorkoutMetadataDto(
-        workoutId = workoutId,
+        workoutLogEntryId = workoutId,
         mesoCycle = mesoCycle,
         microCycle = microCycle,
     )

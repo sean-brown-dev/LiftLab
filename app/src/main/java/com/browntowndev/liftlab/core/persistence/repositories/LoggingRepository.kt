@@ -26,8 +26,8 @@ class LoggingRepository(
         }.asLiveData()
     }
 
-    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): WorkoutLogEntryDto? {
-        val log = loggingDao.getForWorkout(workoutId, mesoCycle, microCycle)
+    suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryDto? {
+        val log: List<FlattenedWorkoutLogEntryDto> = loggingDao.get(workoutLogEntryId = workoutLogEntryId)
         return workoutLogEntryMapper.map(log).singleOrNull()
     }
 
@@ -76,6 +76,12 @@ class LoggingRepository(
             setLogEntries.fastMap { setLogEntry ->
                 workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
             }
+        )
+    }
+
+    suspend fun getFirstPriorToDate(historicalWorkoutNameId: Long, date: Date): Any {
+        return workoutLogEntryMapper.map(
+            loggingDao.getFirstPriorToDate(historicalWorkoutNameId = historicalWorkoutNameId, date = date)
         )
     }
 }

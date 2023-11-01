@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
-class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int, private val microCycle: Int): BaseProgressionCalculator() {
+class WaveLoadingProgressionCalculator(private val microCycle: Int): BaseProgressionCalculator() {
     override fun calculate(
         workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>,
@@ -15,7 +15,6 @@ class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int, priva
     ): List<GenericLoggingSet> {
         if (workoutLift !is StandardWorkoutLiftDto) throw Exception ("Wave Loading progression cannot have custom sets")
         val groupedSetData = previousSetResults.sortedBy { it.setPosition }.associateBy { it.setPosition }
-        val deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek
 
         return List(workoutLift.setCount) { setPosition ->
             val result = groupedSetData[setPosition]
@@ -36,7 +35,7 @@ class WaveLoadingProgressionCalculator(private val programDeloadWeek: Int, priva
                 weightRecommendation = if (!isDeloadWeek && result != null)
                     incrementWeight(workoutLift, result)
                 else if (result != null)
-                    decrementForDeload(lift = workoutLift, setData = result, deloadWeek = deloadWeek)
+                    decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek)
                 else null
             )
         }

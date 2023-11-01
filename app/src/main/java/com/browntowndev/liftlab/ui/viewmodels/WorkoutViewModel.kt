@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import java.lang.Integer.max
 import kotlin.time.Duration
 
 class WorkoutViewModel(
@@ -136,7 +137,8 @@ class WorkoutViewModel(
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val deloadWeekComplete = microCycleComplete && (programMetadata.deloadWeek - 1) == programMetadata.currentMicrocycle
+            val lastDeloadWeek = max(programMetadata.deloadWeek, workout.lifts.maxOf { it.deloadWeek })
+            val deloadWeekComplete = microCycleComplete && (lastDeloadWeek - 1) == programMetadata.currentMicrocycle
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1

@@ -41,7 +41,7 @@ class WorkoutLogEntryMapper {
                         setResults = workoutLog.value.fastMap {
                             SetLogEntryDto(
                                 liftId = it.liftId,
-                                liftName = it.liftName,
+                                liftName = it.liftName,,
                                 setType = it.setType,
                                 liftPosition = it.liftPosition,
                                 setPosition = it.setPosition,

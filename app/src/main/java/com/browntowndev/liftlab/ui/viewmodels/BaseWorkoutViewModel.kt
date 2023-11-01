@@ -254,7 +254,7 @@ abstract class BaseWorkoutViewModel(
     fun buildSetResult(
         liftId: Long,
         setType: SetType,
-        progressionScheme: ProgressionScheme,
+        progressionScheme: ProgressionScheme? = null,
         liftPosition: Int,
         setPosition: Int,
         myoRepSetPosition: Int?,

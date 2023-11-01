@@ -19,7 +19,7 @@ data class StandardWorkoutLiftDto(
     override val incrementOverride: Float?,
     override val restTime: Duration?,
     override val restTimerEnabled: Boolean,
-    override val deloadWeek: Int?,
+    override val deloadWeek: Int,
     val rpeTarget: Float,
     val repRangeBottom: Int,
     val repRangeTop: Int,

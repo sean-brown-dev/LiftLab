@@ -21,7 +21,8 @@ class StandardProgressionFactory: ProgressionFactory {
         )
 
         workout.lifts.fastForEach { workoutLift ->
-            val isDeloadWeek = (microCycle + 1) == (workoutLift.deloadWeek ?: programDeloadWeek)
+            val deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek
+            val isDeloadWeek = (microCycle + 1) == deloadWeek
             val resultsForLift = previousSetResults.filter { it.liftPosition == workoutLift.position && it.liftId == workoutLift.liftId }
 
             loggingWorkout = loggingWorkout.copy(
@@ -34,7 +35,7 @@ class StandardProgressionFactory: ProgressionFactory {
                             liftMovementPattern = workoutLift.liftMovementPattern,
                             liftVolumeTypes = workoutLift.liftVolumeTypes,
                             liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
-                            deloadWeek = workoutLift.deloadWeek,
+                            deloadWeek = deloadWeek,
                             incrementOverride = workoutLift.incrementOverride,
                             position = workoutLift.position,
                             progressionScheme = workoutLift.progressionScheme,
@@ -45,7 +46,7 @@ class StandardProgressionFactory: ProgressionFactory {
                                 ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
                                 ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
                                 ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
-                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek, microCycle)
+                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(microCycle)
                             }.calculate(
                                 workoutLift = workoutLift,
                                 previousSetResults = resultsForLift,

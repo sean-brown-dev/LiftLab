@@ -17,7 +17,7 @@ data class CustomWorkoutLiftDto(
     override val position: Int,
     override val setCount: Int,
     override val progressionScheme: ProgressionScheme,
-    override val deloadWeek: Int?,
+    override val deloadWeek: Int,
     override val incrementOverride: Float?,
     override val restTime: Duration?,
     override val restTimerEnabled: Boolean,
