@@ -39,7 +39,7 @@ fun EditWorkout(
     if (state.workout != null) {
         WorkoutLog(
             paddingValues = paddingValues,
-            visible = state.workoutLogVisible,
+            visible = true,
             lifts = state.workout!!.lifts,
             duration = durationState,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->

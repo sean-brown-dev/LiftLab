@@ -270,6 +270,38 @@ abstract class BaseWorkoutViewModel(
             ?.get(setPosition)
             ?.weightRecommendation
 
+        return buildSetResult(
+            workoutId = workoutId,
+            currentMesocycle = currentMesocycle,
+            currentMicrocycle = currentMicrocycle,
+            weightRecommendation = weightRecommendation,
+            liftId = liftId,
+            setType = setType,
+            progressionScheme = progressionScheme,
+            liftPosition = liftPosition,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+            weight = weight,
+            reps = reps,
+            rpe = rpe,
+        )
+    }
+
+    protected fun buildSetResult(
+        workoutId: Long,
+        currentMesocycle: Int,
+        currentMicrocycle: Int,
+        weightRecommendation: Float?,
+        liftId: Long,
+        setType: SetType,
+        progressionScheme: ProgressionScheme? = null,
+        liftPosition: Int,
+        setPosition: Int,
+        myoRepSetPosition: Int?,
+        weight: Float,
+        reps: Int,
+        rpe: Float,
+    ): SetResult {
         return when (setType) {
             SetType.STANDARD,
             SetType.DROP_SET -> {

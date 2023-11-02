@@ -49,7 +49,6 @@ class EditWorkoutViewModel(
     }
 
     init {
-
         executeInTransactionScope {
             val workoutLog = loggingRepository.get(workoutLogEntryId = workoutLogEntryId)
             val previousWorkoutLog = loggingRepository.getFirstPriorToDate(
@@ -57,9 +56,9 @@ class EditWorkoutViewModel(
                 date = workoutLog.date
             )
             val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
+            val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
 
             _duration.update { workoutLog.durationInMillis.toTimeString() }
-
             mutableState.update { currentState ->
                 currentState.copy(
                     programMetadata = ActiveProgramMetadataDto(
@@ -75,7 +74,7 @@ class EditWorkoutViewModel(
                     inProgressWorkout = WorkoutInProgressDto(
                         workoutId = workoutLogEntryId,
                         startTime = Utils.getCurrentDate(),
-                        completedSets = listOf(),
+                        completedSets = completedSetResults,
                     )
                 )
             }
@@ -194,24 +193,24 @@ class EditWorkoutViewModel(
         )
     }
 
-    private fun buildInProgressWorkoutFromWorkoutLog(workoutLog: WorkoutLogEntryDto): WorkoutInProgressDto {
-        return WorkoutInProgressDto(
-            workoutId = workoutLogEntryId,
-            startTime = Utils.getCurrentDate(),
-            completedSets = workoutLog.setResults.fastMap { setLogEntry ->
-                super.buildSetResult(
-                    liftId = setLogEntry.liftId,
-                    setType = setLogEntry.setType,
-                    progressionScheme = setLogEntry.progressionScheme,
-                    liftPosition = setLogEntry.liftPosition,
-                    setPosition = setLogEntry.setPosition,
-                    myoRepSetPosition = setLogEntry.myoRepSetPosition,
-                    weight = setLogEntry.weight,
-                    reps = setLogEntry.reps,
-                    rpe = setLogEntry.rpe,
-                )
-            }
-        )
+    private fun buildCompletedSetResultsFromLog(workoutLog: WorkoutLogEntryDto): List<SetResult> {
+        return workoutLog.setResults.fastMap { setLogEntry ->
+            super.buildSetResult(
+                workoutId = workoutLog.workoutId,
+                currentMesocycle = workoutLog.mesocycle,
+                currentMicrocycle = workoutLog.microcycle,
+                weightRecommendation = setLogEntry.weightRecommendation,
+                liftId = setLogEntry.liftId,
+                setType = setLogEntry.setType,
+                progressionScheme = setLogEntry.progressionScheme,
+                liftPosition = setLogEntry.liftPosition,
+                setPosition = setLogEntry.setPosition,
+                myoRepSetPosition = setLogEntry.myoRepSetPosition,
+                weight = setLogEntry.weight,
+                reps = setLogEntry.reps,
+                rpe = setLogEntry.rpe,
+            )
+        }
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
