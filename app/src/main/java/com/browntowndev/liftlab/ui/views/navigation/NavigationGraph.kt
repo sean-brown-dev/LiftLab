@@ -107,11 +107,12 @@ fun NavigationGraph(
             route = LiftDetailsScreen.navigation.route,
             arguments = listOf(
                 navArgument("id") {
+                    type = NavType.LongType
                     nullable = false
                 },
             )
         ) {
-            val id = it.arguments?.getString("id")?.toLongOrNull()
+            val id = it.arguments?.getLong("id")
 
             if (screen as? LiftDetailsScreen != null) {
                 LaunchedEffect(key1 = screen) {
@@ -145,17 +146,17 @@ fun NavigationGraph(
                 )
             }
         }
-
         composable(
             route = EditWorkoutScreen.navigation.route,
             arguments = listOf(
                 navArgument("workoutLogEntryId") {
+                    type = NavType.LongType
                     nullable = false
                 },
             )
         ) {
             if (screen as? EditWorkoutScreen != null) {
-                val workoutLogEntryId = it.arguments?.getString("workoutLogEntryId")?.toLong()
+                val workoutLogEntryId = it.arguments?.getLong("workoutLogEntryId")
                 LaunchedEffect(key1 = screen) {
                     setBottomNavBarVisibility(false)
                 }

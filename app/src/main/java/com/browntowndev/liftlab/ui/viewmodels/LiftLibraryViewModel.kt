@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,21 +33,19 @@ class LiftLibraryViewModel(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            liftsRepository.getAll()
-                .observeForever { lifts ->
-                    _state.update { currentState ->
-                        currentState.copy(allLifts = lifts.sortedBy { it.name })
-                    }
+        liftsRepository.getAll()
+            .observeForever { lifts ->
+                _state.update { currentState ->
+                    currentState.copy(allLifts = lifts.sortedBy { it.name })
                 }
-        }
+            }
     }
 
     @Subscribe
     fun handleTopAppBarActionEvent(event: TopAppBarEvent.ActionEvent) {
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
-            TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState(true)
+            TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState()
             TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
             TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
@@ -128,6 +127,8 @@ class LiftLibraryViewModel(
         workoutLiftId: Long,
         replacementLiftId: Long,
     ) {
+        _state.update { it.copy(replacingLift = true) }
+
         viewModelScope.launch {
             workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
             navigateBackToWorkoutBuilder()
@@ -135,29 +136,28 @@ class LiftLibraryViewModel(
     }
 
     private fun navigateBackToWorkoutBuilder() {
-        // Pop back one prior to workout builder
-        while (navHostController.previousBackStackEntry?.destination?.route?.startsWith(WorkoutBuilderScreen.navigation.route) == false) {
+        // Pop back to lab
+        while (navHostController.currentBackStackEntry?.destination?.route != LabScreen.navigation.route) {
             navHostController.popBackStack()
         }
-
-        // Pop back to worker builder then lab
-        navHostController.popBackStack()
-        navHostController.popBackStack()
 
         // Go back to workout builder
         val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
         navHostController.navigate(workoutBuilderRoute)
     }
 
-    private fun setNavigateBackIconClickedState(clicked: Boolean) {
+    private fun setNavigateBackIconClickedState() {
         _state.update {
-            it.copy(backNavigationClicked = clicked)
+            it.copy(backNavigationClicked = true)
         }
     }
 
     private fun toggleFilterSelection() {
         _state.update {
-            it.copy(showFilterSelection = !_state.value.showFilterSelection)
+            it.copy(
+                showFilterSelection = !_state.value.showFilterSelection,
+                backNavigationClicked = false,
+            )
         }
     }
 

@@ -49,9 +49,10 @@ class WorkoutBuilderViewModel(
 
     init {
         executeInTransactionScope {
+            val workout = workoutsRepository.get(workoutId)
+            val deloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
+
             _state.update {
-                val workout = workoutsRepository.get(workoutId)
-                val deloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
                 it.copy(
                     workout = workout,
                     programDeloadWeek = deloadWeek
@@ -65,7 +66,6 @@ class WorkoutBuilderViewModel(
         when (actionEvent.action) {
             TopAppBarAction.NavigatedBack -> {
                 navHostController.popBackStack()
-                navHostController.navigate(LabScreen.navigation.route)
             }
             TopAppBarAction.RenameWorkout -> toggleWorkoutRenameModal()
             TopAppBarAction.ReorderLifts -> toggleReorderLifts()

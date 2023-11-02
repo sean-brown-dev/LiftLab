@@ -100,7 +100,7 @@ fun LiftLibrary(
         }
     }
 
-    if (!state.showFilterSelection) {
+    if (!state.showFilterSelection && !state.replacingLift) {
         setTopAppBarCollapsed(false)
         Column(
             modifier = Modifier.padding(paddingValues),
@@ -175,7 +175,7 @@ fun LiftLibrary(
                 }
             }
         }
-    } else {
+    } else if (!state.replacingLift) {
         setTopAppBarCollapsed(true)
         val filterOptionSections = remember {
             listOf(
