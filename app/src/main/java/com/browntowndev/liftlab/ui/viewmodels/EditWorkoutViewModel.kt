@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
@@ -13,11 +14,15 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
+import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,24 +32,33 @@ import java.lang.Integer.max
 class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
     private val loggingRepository: LoggingRepository,
+    private val programsRepository: ProgramsRepository,
+    private val setResultsRepository: PreviousSetResultsRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
-    private val _duration = MutableStateFlow("00:00:00")
-    val duration = _duration.asStateFlow()
+    private val _editWorkoutState = MutableStateFlow(EditWorkoutState())
+    val editWorkoutState = _editWorkoutState.asStateFlow()
 
     private val _liftsById by lazy {
-        mutableState.value.workout!!.lifts.associateBy { it.liftId }
+        mutableWorkoutState.value.workout!!.lifts.associateBy { it.liftId }
     }
 
     private val _setsByPosition by lazy {
-        mutableState.value.workout!!.lifts
+        mutableWorkoutState.value.workout!!.lifts
             .associate { lift ->
                 lift.position to
-                        lift.sets.associateBy { set -> set.position }
+                        lift.sets.associateBy { set -> "${set.position}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}" }
+            }
+    }
+
+    private val _setResultsByPosition by lazy {
+        _editWorkoutState.value.setResults
+            .associateBy { setResult ->
+                "${setResult.liftPosition}-${setResult.setPosition}"
             }
     }
 
@@ -57,9 +71,25 @@ class EditWorkoutViewModel(
             )
             val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
             val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
+            val activeProgramMetadata = programsRepository.getActiveProgramMetadata().value
+            val isMostRecentlyCompletedWorkout = activeProgramMetadata?.currentMesocycle == workoutLog.mesocycle &&
+                    activeProgramMetadata.currentMicrocycle == workoutLog.microcycle &&
+                    activeProgramMetadata.currentMicrocyclePosition == workoutLog.microcyclePosition
 
-            _duration.update { workoutLog.durationInMillis.toTimeString() }
-            mutableState.update { currentState ->
+            _editWorkoutState.update {
+                it.copy(
+                    isMostRecentlyCompletedWorkout = isMostRecentlyCompletedWorkout,
+                    duration = workoutLog.durationInMillis.toTimeString(),
+                    setResults = if (isMostRecentlyCompletedWorkout) {
+                        setResultsRepository.getForWorkout(
+                            workoutId = workoutLog.workoutId,
+                            mesoCycle = workoutLog.mesocycle,
+                            microCycle = workoutLog.microcycle
+                        )
+                    } else listOf()
+                )
+            }
+            mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     programMetadata = ActiveProgramMetadataDto(
                         programId = 0L,
@@ -103,13 +133,15 @@ class EditWorkoutViewModel(
                 lift.key to
                         lift.value.associateBy { it.setPosition }
             }
+        var fauxWorkoutLiftId = 0L
         return LoggingWorkoutDto(
             id = workoutLog.workoutId,
             name = workoutLog.workoutName,
             lifts = workoutLog.setResults.groupBy { it.liftPosition }.map { groupedResults ->
+                fauxWorkoutLiftId++
                 val lift = groupedResults.value[0]
                 LoggingWorkoutLiftDto(
-                    id = 0L,
+                    id = fauxWorkoutLiftId,
                     liftId = lift.liftId,
                     liftName = lift.liftName,
                     liftMovementPattern = lift.liftMovementPattern,
@@ -196,6 +228,7 @@ class EditWorkoutViewModel(
     private fun buildCompletedSetResultsFromLog(workoutLog: WorkoutLogEntryDto): List<SetResult> {
         return workoutLog.setResults.fastMap { setLogEntry ->
             super.buildSetResult(
+                id = setLogEntry.id,
                 workoutId = workoutLog.workoutId,
                 currentMesocycle = workoutLog.mesocycle,
                 currentMicrocycle = workoutLog.microcycle,
@@ -214,6 +247,12 @@ class EditWorkoutViewModel(
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
+        if (_editWorkoutState.value.isMostRecentlyCompletedWorkout) {
+            updatedResults.fastMap { setResult ->
+                updateSetResult(updatedResult = setResult)
+            }
+        }
+
         return loggingRepository.upsertMany(
             workoutLogEntryId = workoutLogEntryId,
             updatedResults.fastMap { setResult ->
@@ -221,7 +260,11 @@ class EditWorkoutViewModel(
             }
         )
     }
+
     override suspend fun upsertSetResult(updatedResult: SetResult): Long {
+        if (_editWorkoutState.value.isMostRecentlyCompletedWorkout) {
+            updateSetResult(updatedResult = updatedResult)
+        }
         return loggingRepository.upsert(
             workoutLogEntryId = workoutLogEntryId,
             getSetLogEntryFromSetResult(setResult = updatedResult),
@@ -242,16 +285,53 @@ class EditWorkoutViewModel(
         )
     }
 
-    private fun getSet(liftPosition: Int, setPosition: Int): GenericLoggingSet {
+    private suspend fun updateSetResult(updatedResult: SetResult) {
+        // The id on updatedResult is for setLogEntry so you can't just call upsert
+        val exists = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"] != null
+        if (exists) {
+            setResultsRepository.update(
+                liftId = updatedResult.liftId,
+                liftPosition = updatedResult.liftPosition,
+                setPosition = updatedResult.setPosition,
+                myoRepSetPosition = (updatedResult as? MyoRepSetResultDto)?.myoRepSetPosition,
+                weight = updatedResult.weight,
+                reps = updatedResult.reps,
+                rpe = updatedResult.rpe,
+            )
+            updatedResult.id
+        } else {
+            val newId = setResultsRepository.upsert(updatedResult)
+            val resultWithId = when (updatedResult) {
+                is MyoRepSetResultDto -> updatedResult.copy(id = newId)
+                is StandardSetResultDto -> updatedResult.copy(id = newId)
+                is LinearProgressionSetResultDto -> updatedResult.copy(id = newId)
+                else -> throw Exception("${updatedResult::class.simpleName} is not defined.")
+            }
+            _editWorkoutState.update {
+                it.copy(
+                    setResults = it.setResults.toMutableList().apply {
+                        add(resultWithId)
+                    }
+                )
+            }
+        }
+    }
+
+    private fun getSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {
         val setsForLift = _setsByPosition[liftPosition]!!
-        return setsForLift[setPosition]!!
+        return setsForLift["$setPosition-$myoRepSetPosition"]!!
     }
 
     private fun getSetLogEntryFromSetResult(setResult: SetResult): SetLogEntryDto {
         val lift = _liftsById[setResult.liftId]!!
-        val set = getSet(setResult.liftPosition, setResult.liftPosition)
+        val set = getSet(
+            liftPosition = setResult.liftPosition,
+            setPosition = setResult.setPosition,
+            myoRepSetPosition = (setResult as? MyoRepSetResultDto)?.myoRepSetPosition
+        )
 
         return SetLogEntryDto(
+            id = setResult.id,
             liftId = setResult.liftId,
             liftName = lift.liftName,
             liftMovementPattern = lift.liftMovementPattern,
@@ -267,8 +347,8 @@ class EditWorkoutViewModel(
             weight = setResult.weight,
             reps = setResult.reps,
             rpe = setResult.rpe,
-            mesoCycle = mutableState.value.programMetadata!!.currentMesocycle,
-            microCycle = mutableState.value.programMetadata!!.currentMesocycle!!,
+            mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
+            microCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
         )
     }
 

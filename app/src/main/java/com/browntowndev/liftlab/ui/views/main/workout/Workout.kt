@@ -42,7 +42,7 @@ fun Workout(
             )
         })
     }
-    val state by workoutViewModel.state.collectAsState()
+    val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
 
     LaunchedEffect(state.restTimerStartedAt) {

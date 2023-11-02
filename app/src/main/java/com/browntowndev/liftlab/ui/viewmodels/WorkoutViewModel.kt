@@ -49,7 +49,7 @@ class WorkoutViewModel(
 
     private fun initialize() {
         restTimerInProgressRepository.getLive().observeForever { restTimerInProgress ->
-            mutableState.update { currentState ->
+            mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
                     restTime = restTimerInProgress?.restTime ?: 0L,
@@ -66,7 +66,7 @@ class WorkoutViewModel(
                                 programMetadata.currentMicrocycle
                             )
 
-                            mutableState.update { currentState ->
+                            mutableWorkoutState.update { currentState ->
                                 currentState.copy(
                                     inProgressWorkout = inProgressWorkout,
                                     programMetadata = programMetadata,
@@ -83,13 +83,13 @@ class WorkoutViewModel(
     @Subscribe
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> mutableState.update {
+            TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
                 it.copy(workoutLogVisible = false)
             }
             TopAppBarAction.RestTimerCompleted -> {
                 executeInTransactionScope {
                     restTimerInProgressRepository.deleteAll()
-                    mutableState.update {
+                    mutableWorkoutState.update {
                         it.copy(restTimerStartedAt = null)
                     }
                 }
@@ -103,11 +103,11 @@ class WorkoutViewModel(
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressDto(
                 startTime = Utils.getCurrentDate(),
-                workoutId = mutableState.value.workout!!.id,
+                workoutId = mutableWorkoutState.value.workout!!.id,
                 completedSets = listOf(),
             )
             workoutInProgressRepository.insert(inProgressWorkout)
-            mutableState.update {
+            mutableWorkoutState.update {
                 it.copy(
                     inProgressWorkout = inProgressWorkout,
                     workoutLogVisible = true,
@@ -117,7 +117,7 @@ class WorkoutViewModel(
     }
 
     fun setWorkoutLogVisibility(visible: Boolean) {
-        mutableState.update {
+        mutableWorkoutState.update {
             it.copy(
                 workoutLogVisible = visible
             )
@@ -126,10 +126,10 @@ class WorkoutViewModel(
 
     fun finishWorkout() {
         executeInTransactionScope {
-            val startTimeInMillis = mutableState.value.inProgressWorkout!!.startTime.time
+            val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
             val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
-            val programMetadata = mutableState.value.programMetadata!!
-            val workout = mutableState.value.workout!!
+            val programMetadata = mutableWorkoutState.value.programMetadata!!
+            val workout = mutableWorkoutState.value.workout!!
 
             // Remove the workout from in progress
             workoutInProgressRepository.delete()
@@ -181,11 +181,11 @@ class WorkoutViewModel(
                 microCycle = programMetadata.currentMicrocycle,
             )
 
-            val liftsAndPositions = mutableState.value.workout!!.lifts.associate {
+            val liftsAndPositions = mutableWorkoutState.value.workout!!.lifts.associate {
                 it.liftId to it.position
             }
             // If any lifts were changed and had completed results do not copy them
-            val excludeFromCopy = mutableState.value.inProgressWorkout!!.completedSets.filter { result ->
+            val excludeFromCopy = mutableWorkoutState.value.inProgressWorkout!!.completedSets.filter { result ->
                 val liftPosition = liftsAndPositions[result.liftId]
                 liftPosition != result.liftPosition
             }.map {
@@ -195,7 +195,7 @@ class WorkoutViewModel(
             // Copy all of the set results from this workout into the set history table
             loggingRepository.insertFromPreviousSetResults(
                 workoutLogEntryId = workoutLogEntryId,
-                workoutId = mutableState.value.workout!!.id,
+                workoutId = mutableWorkoutState.value.workout!!.id,
                 excludeFromCopy = excludeFromCopy
             )
 
@@ -209,7 +209,7 @@ class WorkoutViewModel(
             stopRestTimer()
 
             // TODO: have summary pop up as dialog and close this on completion instead
-            mutableState.update {
+            mutableWorkoutState.update {
                 it.copy(workoutLogVisible = false)
             }
         }
@@ -221,14 +221,14 @@ class WorkoutViewModel(
             workoutInProgressRepository.delete()
 
             // Delete all set results from the workout
-            val programMetadata = mutableState.value.programMetadata!!
+            val programMetadata = mutableWorkoutState.value.programMetadata!!
             setResultsRepository.deleteAllForWorkout(
-                workoutId = mutableState.value.workout!!.id,
+                workoutId = mutableWorkoutState.value.workout!!.id,
                 mesoCycle = programMetadata.currentMesocycle,
                 microCycle = programMetadata.currentMicrocycle,
             )
 
-            mutableState.update {
+            mutableWorkoutState.update {
                 it.copy(
                     workoutLogVisible = false,
                     inProgressWorkout = null,
@@ -271,7 +271,7 @@ class WorkoutViewModel(
 
     fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) {
         executeInTransactionScope {
-            mutableState.update { currentState ->
+            mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { lift ->

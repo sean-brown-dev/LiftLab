@@ -27,8 +27,8 @@ abstract class BaseWorkoutViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
-    protected var mutableState = MutableStateFlow(WorkoutState())
-    val state = mutableState.asStateFlow()
+    protected var mutableWorkoutState = MutableStateFlow(WorkoutState())
+    val workoutState = mutableWorkoutState.asStateFlow()
 
     protected open fun stopRestTimer() { }
     protected open suspend fun insertRestTimerInProgress(restTime: Long) { }
@@ -42,8 +42,8 @@ abstract class BaseWorkoutViewModel(
             set.completedReps != null &&
             set.completedRpe != null
         ) {
-            val liftPosition = mutableState.value.workout!!.lifts.find { it.id == workoutLiftId }!!.position
-            val currentResult = mutableState.value.inProgressWorkout!!.completedSets
+            val liftPosition = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!.position
+            val currentResult = mutableWorkoutState.value.inProgressWorkout!!.completedSets
                 .find {
                     it.liftPosition == liftPosition &&
                             it.setPosition == set.position
@@ -68,7 +68,7 @@ abstract class BaseWorkoutViewModel(
             }
             completeSet(0L, false, updatedResult)
         } else if (set.complete) {
-            val workoutLift = mutableState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
+            val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             undoSetCompletion(
                 liftPosition = workoutLift.position,
                 setPosition = set.position,
@@ -135,7 +135,7 @@ abstract class BaseWorkoutViewModel(
     }
 
     private fun completeLogEntryItem(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, copySet: (set: GenericLoggingSet) -> GenericLoggingSet) {
-        mutableState.update { currentState ->
+        mutableWorkoutState.update { currentState ->
             currentState.copy(
                 workout = currentState.workout!!.copy(
                     lifts = currentState.workout.lifts.fastMap { workoutLift ->
@@ -262,10 +262,10 @@ abstract class BaseWorkoutViewModel(
         reps: Int,
         rpe: Float,
     ): SetResult {
-        val workoutId = mutableState.value.workout!!.id
-        val currentMesocycle = mutableState.value.programMetadata!!.currentMesocycle
-        val currentMicrocycle = mutableState.value.programMetadata!!.currentMicrocycle
-        val weightRecommendation = mutableState.value.setsByPositions
+        val workoutId = mutableWorkoutState.value.workout!!.id
+        val currentMesocycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle
+        val currentMicrocycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle
+        val weightRecommendation = mutableWorkoutState.value.setsByPositions
             ?.get(liftPosition)
             ?.get(setPosition)
             ?.weightRecommendation
@@ -288,6 +288,7 @@ abstract class BaseWorkoutViewModel(
     }
 
     protected fun buildSetResult(
+        id: Long = 0L,
         workoutId: Long,
         currentMesocycle: Int,
         currentMicrocycle: Int,
@@ -307,6 +308,7 @@ abstract class BaseWorkoutViewModel(
             SetType.DROP_SET -> {
                 if (progressionScheme != ProgressionScheme.LINEAR_PROGRESSION) {
                     StandardSetResultDto(
+                        id = id,
                         workoutId = workoutId,
                         setType = setType,
                         liftId = liftId,
@@ -322,6 +324,7 @@ abstract class BaseWorkoutViewModel(
                 } else {
                     // LP can only be standard lift, so no myo
                     LinearProgressionSetResultDto(
+                        id = id,
                         workoutId = workoutId,
                         liftId = liftId,
                         mesoCycle = currentMesocycle,
@@ -339,6 +342,7 @@ abstract class BaseWorkoutViewModel(
 
             SetType.MYOREP ->
                 MyoRepSetResultDto(
+                    id = id,
                     workoutId = workoutId,
                     liftId = liftId,
                     mesoCycle = currentMesocycle,
@@ -359,7 +363,7 @@ abstract class BaseWorkoutViewModel(
             if (restTimerEnabled) {
                 insertRestTimerInProgress(restTime)
             }
-            mutableState.update { currentState ->
+            mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTime = if (restTimerEnabled) restTime else currentState.restTime,
                     restTimerStartedAt = if(restTimerEnabled) Utils.getCurrentDate() else currentState.restTimerStartedAt,
@@ -421,13 +425,13 @@ abstract class BaseWorkoutViewModel(
         executeInTransactionScope {
             stopRestTimer()
             deleteSetResult(
-                workoutId = mutableState.value.workout!!.id,
+                workoutId = mutableWorkoutState.value.workout!!.id,
                 liftPosition = liftPosition,
                 setPosition = setPosition,
                 myoRepSetPosition = myoRepSetPosition
             )
 
-            mutableState.update { currentState ->
+            mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTimerStartedAt = null,
                     workout = currentState.workout!!.copy(
@@ -468,7 +472,7 @@ abstract class BaseWorkoutViewModel(
 
     fun deleteMyoRepSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) {
         executeInTransactionScope {
-            val workoutLift = mutableState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
+            val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             val liftPosition = workoutLift.position
             val isComplete = workoutLift.sets.find {
                 it is LoggingMyoRepSetDto &&
@@ -478,14 +482,14 @@ abstract class BaseWorkoutViewModel(
 
             if (isComplete == true) {
                 deleteSetResult(
-                    workoutId = mutableState.value.workout!!.id,
+                    workoutId = mutableWorkoutState.value.workout!!.id,
                     liftPosition = liftPosition,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition
                 )
             }
 
-            mutableState.update { currentState ->
+            mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.let { workout ->
                         workout.copy(
@@ -516,11 +520,11 @@ abstract class BaseWorkoutViewModel(
     }
 
     protected suspend fun updateLinearProgressionFailures() {
-        val resultsByLift = mutableState.value.inProgressWorkout!!.completedSets.associateBy {
+        val resultsByLift = mutableWorkoutState.value.inProgressWorkout!!.completedSets.associateBy {
             "${it.liftId}-${it.setPosition}"
         }
         val setResultsToUpdate = mutableListOf<SetResult>()
-        mutableState.value.workout!!.lifts
+        mutableWorkoutState.value.workout!!.lifts
             .filter { workoutLift -> workoutLift.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
             .fastForEach { workoutLift ->
                 workoutLift.sets.fastForEach { set ->

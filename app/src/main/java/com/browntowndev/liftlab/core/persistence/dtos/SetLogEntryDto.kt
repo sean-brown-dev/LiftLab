@@ -5,6 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 
 data class SetLogEntryDto(
+    val id: Long,
     val liftId: Long,
     val workoutLiftDeloadWeek: Int? = null,
     val liftName: String,

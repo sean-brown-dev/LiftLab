@@ -22,26 +22,26 @@ fun EditWorkout(
     val editWorkoutViewModel: EditWorkoutViewModel = koinViewModel {
         parametersOf(workoutLogEntryId)
     }
-    val state by editWorkoutViewModel.state.collectAsState()
-    val durationState by editWorkoutViewModel.duration.collectAsState()
+    val workoutState by editWorkoutViewModel.workoutState.collectAsState()
+    val editWorkoutState by editWorkoutViewModel.editWorkoutState.collectAsState()
 
-    LaunchedEffect(key1 = state.workout) {
-        if (state.workout != null) {
+    LaunchedEffect(key1 = workoutState.workout) {
+        if (workoutState.workout != null) {
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,
-                    "Edit ${state.workout!!.name}".left()
+                    "Edit ${workoutState.workout!!.name}".left()
                 )
             )
         }
     }
 
-    if (state.workout != null) {
+    if (workoutState.workout != null) {
         WorkoutLog(
             paddingValues = paddingValues,
             visible = true,
-            lifts = state.workout!!.lifts,
-            duration = durationState,
+            lifts = workoutState.workout!!.lifts,
+            duration = editWorkoutState.duration,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
                 editWorkoutViewModel.setWeight(
                     workoutLiftId = workoutLiftId,

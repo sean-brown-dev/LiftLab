@@ -9,6 +9,7 @@ data class FlattenedWorkoutLogEntryDto (
     val id: Long,
     val historicalWorkoutNameId: Long,
     val workoutId: Long,
+    val setLogEntryId: Long,
     val programName: String,
     val workoutName: String,
     val programWorkoutCount: Int,

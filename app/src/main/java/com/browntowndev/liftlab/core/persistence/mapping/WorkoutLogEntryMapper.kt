@@ -9,6 +9,7 @@ import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 class WorkoutLogEntryMapper {
     fun map(workoutLogEntryId: Long, setLogEntryDto: SetLogEntryDto): SetLogEntry {
         return SetLogEntry(
+            id = setLogEntryDto.id,
             workoutLogEntryId = workoutLogEntryId,
             liftId = setLogEntryDto.liftId,
             liftName = setLogEntryDto.liftName,
@@ -54,6 +55,7 @@ class WorkoutLogEntryMapper {
                         durationInMillis = firstEntry.durationInMillis,
                         setResults = workoutLog.value.fastMap {
                             SetLogEntryDto(
+                                id = it.setLogEntryId,
                                 liftId = it.liftId,
                                 liftName = it.liftName,
                                 liftMovementPattern = it.liftMovementPattern,

@@ -194,7 +194,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(2, sets.size)
             Assert.assertTrue(sets[1] is LoggingMyoRepSetDto)
             Assert.assertEquals(0, (sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
@@ -330,7 +330,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
@@ -462,7 +462,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(2, sets.size)
             Assert.assertEquals(0, (sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
         }
@@ -595,7 +595,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(2, sets.size)
             Assert.assertTrue(sets[1] is LoggingMyoRepSetDto)
             Assert.assertEquals(0, (sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
@@ -745,7 +745,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(4, sets.size)
             Assert.assertTrue(sets[3] is LoggingMyoRepSetDto)
 
@@ -905,7 +905,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
@@ -1036,7 +1036,7 @@ class WorkoutViewModelTests {
                 )
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertEquals(90f, sets[1].weightRecommendation)
         }
 
@@ -1152,7 +1152,7 @@ class WorkoutViewModelTests {
                 null,
             )
 
-            val sets = viewModel.state.value.workout!!.lifts[0].sets
+            val sets = viewModel.workoutState.value.workout!!.lifts[0].sets
             Assert.assertNull(sets[1].weightRecommendation)
         }
 
@@ -1963,13 +1963,13 @@ class WorkoutViewModelTests {
             )
 
             viewModel.setRpe(0L, 0, null, 8.5f)
-            Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[0].completedRpe)
+            Assert.assertEquals(8.5f, viewModel.workoutState.value.workout!!.lifts[0].sets[0].completedRpe)
 
             viewModel.setRpe(0L, 1, null, 8.5f)
-            Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[1].completedRpe)
+            Assert.assertEquals(8.5f, viewModel.workoutState.value.workout!!.lifts[0].sets[1].completedRpe)
 
             viewModel.setRpe(0L, 2, null, 8.5f)
-            Assert.assertEquals(8.5f, viewModel.state.value.workout!!.lifts[0].sets[2].completedRpe)
+            Assert.assertEquals(8.5f, viewModel.workoutState.value.workout!!.lifts[0].sets[2].completedRpe)
         }
 
     @Test
@@ -2108,7 +2108,7 @@ class WorkoutViewModelTests {
             )
 
             viewModel.updateRestTime(0L, 120000L.toDuration(DurationUnit.MILLISECONDS), true)
-            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.state.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
+            Assert.assertEquals(120000L.toDuration(DurationUnit.MILLISECONDS).inWholeMilliseconds, viewModel.workoutState.value.workout!!.lifts[0].restTime?.inWholeMilliseconds)
         }
 
     @Test
@@ -2249,9 +2249,9 @@ class WorkoutViewModelTests {
             )
 
             viewModel.deleteMyoRepSet(0L, 0, 0)
-            Assert.assertEquals(2, viewModel.state.value.workout!!.lifts[0].sets.size)
-            Assert.assertEquals(null, (viewModel.state.value.workout!!.lifts[0].sets[0] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(0, (viewModel.state.value.workout!!.lifts[0].sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
+            Assert.assertEquals(2, viewModel.workoutState.value.workout!!.lifts[0].sets.size)
+            Assert.assertEquals(null, (viewModel.workoutState.value.workout!!.lifts[0].sets[0] as LoggingMyoRepSetDto).myoRepSetPosition)
+            Assert.assertEquals(0, (viewModel.workoutState.value.workout!!.lifts[0].sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
 
             coVerify(exactly = 1) { setResultsRepository.delete(any(), any(), any(), any()) }
         }

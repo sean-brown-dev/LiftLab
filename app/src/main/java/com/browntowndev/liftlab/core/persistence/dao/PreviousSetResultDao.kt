@@ -60,4 +60,14 @@ interface PreviousSetResultDao {
             "setPosition = :setPosition AND " +
             "myoRepSetPosition = :myoRepSetPosition")
     suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
+
+    @Query("UPDATE previousSetResults " +
+            "SET weight = :weight, " +
+            "reps = :reps, " +
+            "rpe = :rpe " +
+            "WHERE liftId = :liftId AND " +
+            "liftPosition = :liftPosition AND " +
+            "setPosition = :setPosition AND " +
+            "myoRepSetPosition = :myoRepSetPosition")
+    suspend fun update(liftId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?, weight: Float, reps: Int, rpe: Float)
 }

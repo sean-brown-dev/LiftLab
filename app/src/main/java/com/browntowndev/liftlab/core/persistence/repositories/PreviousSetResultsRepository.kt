@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
+import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 
@@ -42,5 +43,17 @@ class PreviousSetResultsRepository(
 
     suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
         previousSetResultDao.delete(workoutId, liftPosition, setPosition, myoRepSetPosition)
+    }
+
+    suspend fun update(liftId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?, weight: Float, reps: Int, rpe: Float) {
+        previousSetResultDao.update(
+            liftId = liftId,
+            liftPosition = liftPosition,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+            weight = weight,
+            reps = reps,
+            rpe = rpe,
+        )
     }
 }
