@@ -519,7 +519,7 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    protected suspend fun updateLinearProgressionFailures() {
+    protected open suspend fun updateLinearProgressionFailures() {
         val resultsByLift = mutableWorkoutState.value.inProgressWorkout!!.completedSets.associateBy {
             "${it.liftId}-${it.setPosition}"
         }

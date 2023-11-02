@@ -159,11 +159,13 @@ fun NavigationGraph(
                 val workoutLogEntryId = it.arguments?.getLong("workoutLogEntryId")
                 LaunchedEffect(key1 = screen) {
                     setBottomNavBarVisibility(false)
+                    setTopAppBarCollapsed(true)
                 }
 
                 EditWorkout(
                     workoutLogEntryId = workoutLogEntryId!!,
                     paddingValues = paddingValues,
+                    navHostController = navHostController,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                 )
             }

@@ -55,7 +55,7 @@ data class WorkoutBuilderScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: Either<ImageVector, Int>?
+    override val navigationIcon: Either<ImageVector, Int>
         get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
