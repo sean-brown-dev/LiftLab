@@ -95,7 +95,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -172,7 +172,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -185,6 +185,7 @@ class WorkoutViewModelTests {
                     liftId = 0L,
                     liftPosition = 0,
                     setPosition = 0,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 30,
                     rpe = 8f,
@@ -214,7 +215,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -306,7 +307,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -320,6 +321,7 @@ class WorkoutViewModelTests {
                     liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 0,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 20,
                     rpe = 8f,
@@ -349,7 +351,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -438,7 +440,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -451,6 +453,7 @@ class WorkoutViewModelTests {
                     liftId = 0L,
                     liftPosition = 0,
                     setPosition = 0,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 20,
                     rpe = 8f,
@@ -477,7 +480,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -569,7 +572,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -583,6 +586,7 @@ class WorkoutViewModelTests {
                     liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 0,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 5,
                     rpe = 8f,
@@ -612,7 +616,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -718,7 +722,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -732,6 +736,7 @@ class WorkoutViewModelTests {
                     liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 1,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 5,
                     rpe = 8f,
@@ -771,7 +776,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -877,7 +882,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -891,6 +896,7 @@ class WorkoutViewModelTests {
                     liftPosition = 0,
                     setPosition = 0,
                     myoRepSetPosition = 1,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 5,
                     rpe = 8f,
@@ -920,7 +926,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1007,7 +1013,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1021,6 +1027,7 @@ class WorkoutViewModelTests {
                     liftPosition = 0,
                     setPosition = 0,
                     setType = SetType.STANDARD,
+                    weightRecommendation = null,
                     weight = 100f,
                     reps = 10,
                     rpe = 8f,
@@ -1046,7 +1053,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1134,13 +1141,13 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = mockk(),
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
 
             viewModel.undoSetCompletion(
-                0L,
+                0,
                 0,
                 null,
             )
@@ -1162,7 +1169,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(0, args[1])
                 Assert.assertEquals(0, args[2])
@@ -1173,8 +1180,8 @@ class WorkoutViewModelTests {
             coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1254,7 +1261,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1276,7 +1283,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(1, args[1])
                 Assert.assertEquals(0, args[2])
@@ -1287,8 +1294,8 @@ class WorkoutViewModelTests {
             coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1368,7 +1375,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1390,7 +1397,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(0, args[1])
                 Assert.assertEquals(1, args[2])
@@ -1401,8 +1408,8 @@ class WorkoutViewModelTests {
             coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1482,7 +1489,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1504,7 +1511,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1529,10 +1536,13 @@ class WorkoutViewModelTests {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1633,7 +1643,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1641,13 +1651,13 @@ class WorkoutViewModelTests {
             viewModel.completeSet(
                 0L,
                 true,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0,0, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0,0, null, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
             )
 
             viewModel.completeSet(
                 0L,
                 true,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0,1, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0,1, null, 100f, 7, 8f, 0, 0, SetType.STANDARD, 0)
             )
             viewModel.finishWorkout()
 
@@ -1667,7 +1677,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1692,10 +1702,13 @@ class WorkoutViewModelTests {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1796,7 +1809,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1804,13 +1817,13 @@ class WorkoutViewModelTests {
             viewModel.completeSet(
                 0L,
                 true,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 0, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 0, null, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
             )
 
             viewModel.completeSet(
                 0L,
                 true,
-                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 1, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
+                LinearProgressionSetResultDto(0L, 0L, 0L, 0, 1, null, 100f, 10, 8f, 0, 0, SetType.STANDARD, 2)
             )
             viewModel.finishWorkout()
 
@@ -1830,7 +1843,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1847,10 +1860,13 @@ class WorkoutViewModelTests {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -1941,7 +1957,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1969,7 +1985,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1986,10 +2002,13 @@ class WorkoutViewModelTests {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -2083,7 +2102,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = liftsRepository,
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2105,7 +2124,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns activeProgramMetadata
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2122,10 +2141,13 @@ class WorkoutViewModelTests {
                     any(),
                     any(),
                     any(),
-                    any()
+                    any(),
+                    any(),
+                    any(),
+                    any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any()) } just Runs
+            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any()) } just Runs
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = LoggingWorkoutDto(
@@ -2221,7 +2243,7 @@ class WorkoutViewModelTests {
                 historicalWorkoutNamesRepository = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
-                stopRestTimer = {},
+                cancelRestTimer = {},
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )

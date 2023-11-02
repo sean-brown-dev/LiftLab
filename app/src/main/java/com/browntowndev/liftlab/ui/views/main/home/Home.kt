@@ -16,13 +16,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.SectionLabel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun Home(paddingValues: PaddingValues) {
+fun Home(
+    paddingValues: PaddingValues,
+    navHostController: NavHostController,
+) {
     val homeViewModel: HomeViewModel = koinViewModel()
     val state by homeViewModel.state.collectAsState()
 
@@ -70,6 +75,10 @@ fun Home(paddingValues: PaddingValues) {
                 workoutDuration = workoutLog.durationInMillis,
                 setResults = workoutLog.setResults,
                 topSets = state.topSets[workoutLog.id],
+                onEditWorkout = {
+                    val editWorkoutRoute = EditWorkoutScreen.navigation.route.replace("{workoutLogEntryId}", workoutLog.id.toString())
+                    navHostController.navigate(editWorkoutRoute)
+                }
             )
         }
     }

@@ -137,7 +137,7 @@ class WorkoutViewModel(
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val lastDeloadWeek = max(programMetadata.deloadWeek, workout.lifts.maxOf { it.deloadWeek })
+            val lastDeloadWeek = max(programMetadata.deloadWeek, workout.lifts.maxOf { it.deloadWeek ?: 0 })
             val deloadWeekComplete = microCycleComplete && (lastDeloadWeek - 1) == programMetadata.currentMicrocycle
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
@@ -165,8 +165,11 @@ class WorkoutViewModel(
             }
             val workoutLogEntryId = loggingRepository.insertWorkoutLogEntry(
                 historicalWorkoutNameId = historicalWorkoutNameId,
+                programDeloadWeek = programMetadata.deloadWeek,
+                programWorkoutCount = programMetadata.workoutCount,
                 mesoCycle = programMetadata.currentMesocycle,
                 microCycle = programMetadata.currentMicrocycle,
+                microcyclePosition = programMetadata.currentMicrocyclePosition,
                 date = Utils.getCurrentDate(),
                 durationInMillis = durationInMillis,
             )

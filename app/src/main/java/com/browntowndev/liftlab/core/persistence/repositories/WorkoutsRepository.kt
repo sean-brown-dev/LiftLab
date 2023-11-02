@@ -8,16 +8,12 @@ import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult

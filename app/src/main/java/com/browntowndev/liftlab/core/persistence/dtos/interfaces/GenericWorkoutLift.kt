@@ -15,7 +15,7 @@ interface GenericWorkoutLift {
     val position: Int
     val setCount: Int
     val progressionScheme: ProgressionScheme
-    val deloadWeek: Int
+    val deloadWeek: Int?
     val incrementOverride: Float?
     val restTime: Duration?
     val restTimerEnabled: Boolean

@@ -42,16 +42,22 @@ class LoggingRepository(
 
     suspend fun insertWorkoutLogEntry(
         historicalWorkoutNameId: Long,
+        programDeloadWeek: Int,
+        programWorkoutCount: Int,
         mesoCycle: Int,
         microCycle: Int,
+        microcyclePosition: Int,
         date: Date,
         durationInMillis: Long,
     ): Long {
         return loggingDao.insert(
             WorkoutLogEntry(
                 historicalWorkoutNameId = historicalWorkoutNameId,
+                programDeloadWeek = programDeloadWeek,
+                programWorkoutCount = programWorkoutCount,
                 mesocycle = mesoCycle,
                 microcycle = microCycle,
+                microcyclePosition = microcyclePosition,
                 date = date,
                 durationInMillis = durationInMillis,
             )
@@ -79,9 +85,9 @@ class LoggingRepository(
         )
     }
 
-    suspend fun getFirstPriorToDate(historicalWorkoutNameId: Long, date: Date): Any {
+    suspend fun getFirstPriorToDate(historicalWorkoutNameId: Long, date: Date): WorkoutLogEntryDto? {
         return workoutLogEntryMapper.map(
             loggingDao.getFirstPriorToDate(historicalWorkoutNameId = historicalWorkoutNameId, date = date)
-        )
+        ).firstOrNull()
     }
 }

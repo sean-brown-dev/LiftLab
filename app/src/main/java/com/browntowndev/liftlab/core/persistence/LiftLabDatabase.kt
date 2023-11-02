@@ -53,7 +53,7 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
         WorkoutInProgress::class,
         RestTimerInProgress::class,
    ],
-    version = 4,
+    version = 6,
     exportSchema = false)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao

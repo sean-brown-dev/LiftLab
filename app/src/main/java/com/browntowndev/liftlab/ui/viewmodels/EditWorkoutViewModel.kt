@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -18,20 +18,24 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import java.lang.Integer.max
 
 class EditWorkoutViewModel(
-    private val loggingRepository: LoggingRepository,
     private val workoutLogEntryId: Long,
+    private val loggingRepository: LoggingRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
+    private val _duration = MutableStateFlow("00:00:00")
+    val duration = _duration.asStateFlow()
+
     private val _liftsById by lazy {
         mutableState.value.workout!!.lifts.associateBy { it.liftId }
     }
@@ -45,14 +49,18 @@ class EditWorkoutViewModel(
     }
 
     init {
-        viewModelScope.launch {
+
+        executeInTransactionScope {
+            val workoutLog = loggingRepository.get(workoutLogEntryId = workoutLogEntryId)
+            val previousWorkoutLog = loggingRepository.getFirstPriorToDate(
+                historicalWorkoutNameId = workoutLog!!.historicalWorkoutNameId,
+                date = workoutLog.date
+            )
+            val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
+
+            _duration.update { workoutLog.durationInMillis.toTimeString() }
+
             mutableState.update { currentState ->
-                val workoutLog = loggingRepository.get(workoutLogEntryId = workoutLogEntryId)
-                val previousWorkoutLog = loggingRepository.getFirstPriorToDate(
-                    historicalWorkoutNameId = workoutLog!!.historicalWorkoutNameId,
-                    date = workoutLog.date
-                )
-                val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
                 currentState.copy(
                     programMetadata = ActiveProgramMetadataDto(
                         programId = 0L,
@@ -74,14 +82,35 @@ class EditWorkoutViewModel(
         }
     }
 
-    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntryDto, previousWorkoutLog: Any): LoggingWorkoutDto {
+    private fun getPreviousSetResultLabel(
+        previousSetResults: Map<String, Map<Int, SetLogEntryDto>>?,
+        liftId: Long,
+        liftPosition: Int,
+        setPosition: Int,
+    ): String {
+        val result = previousSetResults?.get("${liftId}-${liftPosition}")?.get(setPosition)
+        return if (result != null) {
+            "${result.weight.toString().removeSuffix(".0")}x${result.reps} @${result.rpe}"
+        } else {
+            "—"
+        }
+    }
+
+    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntryDto, previousWorkoutLog: WorkoutLogEntryDto?): LoggingWorkoutDto {
+        val previousSetResults = previousWorkoutLog?.setResults
+            ?.groupBy { "${it.liftId}-${it.liftPosition}" }
+            ?.entries
+            ?.associate {  lift ->
+                lift.key to
+                        lift.value.associateBy { it.setPosition }
+            }
         return LoggingWorkoutDto(
             id = workoutLog.workoutId,
             name = workoutLog.workoutName,
             lifts = workoutLog.setResults.groupBy { it.liftPosition }.map { groupedResults ->
                 val lift = groupedResults.value[0]
                 LoggingWorkoutLiftDto(
-                    id = -1L,
+                    id = 0L,
                     liftId = lift.liftId,
                     liftName = lift.liftName,
                     liftMovementPattern = lift.liftMovementPattern,
@@ -103,7 +132,12 @@ class EditWorkoutViewModel(
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = setLogEntry.weightRecommendation,
-                                    previousSetResultLabel = "",
+                                    previousSetResultLabel = getPreviousSetResultLabel(
+                                        previousSetResults = previousSetResults,
+                                        liftId = lift.liftId,
+                                        liftPosition = lift.liftPosition,
+                                        setPosition = setLogEntry.setPosition,
+                                    ),
                                     repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                     complete = true,
                                     completedWeight = setLogEntry.weight,
@@ -118,7 +152,12 @@ class EditWorkoutViewModel(
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = null,
-                                    previousSetResultLabel = "",
+                                    previousSetResultLabel = getPreviousSetResultLabel(
+                                        previousSetResults = previousSetResults,
+                                        liftId = lift.liftId,
+                                        liftPosition = lift.liftPosition,
+                                        setPosition = setLogEntry.setPosition,
+                                    ),
                                     repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                     setMatching = setLogEntry.setMatching!!,
                                     maxSets = setLogEntry.maxSets,
@@ -135,7 +174,12 @@ class EditWorkoutViewModel(
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = null,
-                                    previousSetResultLabel = "",
+                                    previousSetResultLabel = getPreviousSetResultLabel(
+                                        previousSetResults = previousSetResults,
+                                        liftId = lift.liftId,
+                                        liftPosition = lift.liftPosition,
+                                        setPosition = setLogEntry.setPosition,
+                                    ),
                                     repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                     dropPercentage = setLogEntry.dropPercentage!!,
                                     complete = true,

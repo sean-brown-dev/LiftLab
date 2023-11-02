@@ -8,6 +8,7 @@ interface SetResult {
     val liftId: Long
     val liftPosition: Int
     val setPosition: Int
+    val weightRecommendation: Float?
     val weight: Float
     val reps: Int
     val rpe: Float

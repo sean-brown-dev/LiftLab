@@ -39,6 +39,7 @@ fun WorkoutHistoryCard(
     workoutDuration: Long,
     setResults: List<SetLogEntryDto>,
     topSets: Map<Long, Pair<Int, SetLogEntryDto>>?,
+    onEditWorkout: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -48,7 +49,7 @@ fun WorkoutHistoryCard(
         colors = CardDefaults.outlinedCardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
         ),
-        onClick = { /*TODO*/ }
+        onClick = onEditWorkout,
     ) {
         val totalPersonalRecords = remember(topSets) { topSets?.values?.count { it.second.isPersonalRecord } ?: 0 }
         Text(

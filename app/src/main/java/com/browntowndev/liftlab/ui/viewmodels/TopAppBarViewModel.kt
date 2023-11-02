@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
@@ -52,6 +53,7 @@ class TopAppBarViewModel: ViewModel() {
         LiftLibraryScreen.navigation.route-> LiftLibraryScreen()
         LiftDetailsScreen.navigation.route -> LiftDetailsScreen()
         WorkoutScreen.navigation.route -> WorkoutScreen()
+        EditWorkoutScreen.navigation.route -> EditWorkoutScreen()
         LabScreen.navigation.route -> LabScreen()
         HomeScreen.navigation.route -> HomeScreen()
         WorkoutBuilderScreen.navigation.route -> WorkoutBuilderScreen()

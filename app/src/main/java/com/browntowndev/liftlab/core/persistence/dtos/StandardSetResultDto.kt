@@ -9,6 +9,7 @@ data class StandardSetResultDto(
     override val liftId: Long,
     override val liftPosition: Int,
     override val setPosition: Int,
+    override val weightRecommendation: Float?,
     override val weight: Float,
     override val reps: Int,
     override val rpe: Float,

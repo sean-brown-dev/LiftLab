@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
@@ -23,6 +24,7 @@ import com.browntowndev.liftlab.ui.views.main.home.Home
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.LiftDetails
+import com.browntowndev.liftlab.ui.views.main.workout.EditWorkout
 import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
 
@@ -45,7 +47,10 @@ fun NavigationGraph(
             LaunchedEffect(key1 = screen) {
                 setBottomNavBarVisibility(true)
             }
-            Home(paddingValues)
+            Home(
+                paddingValues = paddingValues,
+                navHostController = navHostController
+            )
         }
         composable(
             route = LiftLibraryScreen.navigation.route,
@@ -137,6 +142,28 @@ fun NavigationGraph(
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
+                )
+            }
+        }
+
+        composable(
+            route = EditWorkoutScreen.navigation.route,
+            arguments = listOf(
+                navArgument("workoutLogEntryId") {
+                    nullable = false
+                },
+            )
+        ) {
+            if (screen as? EditWorkoutScreen != null) {
+                val workoutLogEntryId = it.arguments?.getString("workoutLogEntryId")?.toLong()
+                LaunchedEffect(key1 = screen) {
+                    setBottomNavBarVisibility(false)
+                }
+
+                EditWorkout(
+                    workoutLogEntryId = workoutLogEntryId!!,
+                    paddingValues = paddingValues,
+                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                 )
             }
         }

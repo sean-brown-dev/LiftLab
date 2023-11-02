@@ -265,6 +265,10 @@ abstract class BaseWorkoutViewModel(
         val workoutId = mutableState.value.workout!!.id
         val currentMesocycle = mutableState.value.programMetadata!!.currentMesocycle
         val currentMicrocycle = mutableState.value.programMetadata!!.currentMicrocycle
+        val weightRecommendation = mutableState.value.setsByPositions
+            ?.get(liftPosition)
+            ?.get(setPosition)
+            ?.weightRecommendation
 
         return when (setType) {
             SetType.STANDARD,
@@ -278,6 +282,7 @@ abstract class BaseWorkoutViewModel(
                         microCycle = currentMicrocycle,
                         liftPosition = liftPosition,
                         setPosition = setPosition,
+                        weightRecommendation = weightRecommendation,
                         weight = weight,
                         reps = reps,
                         rpe = rpe,
@@ -291,6 +296,7 @@ abstract class BaseWorkoutViewModel(
                         microCycle = currentMicrocycle,
                         liftPosition = liftPosition,
                         setPosition = setPosition,
+                        weightRecommendation = weightRecommendation,
                         weight = weight,
                         reps = reps,
                         rpe = rpe,
@@ -307,6 +313,7 @@ abstract class BaseWorkoutViewModel(
                     microCycle = currentMicrocycle,
                     liftPosition = liftPosition,
                     setPosition = setPosition,
+                    weightRecommendation = weightRecommendation,
                     weight = weight,
                     reps = reps,
                     rpe = rpe,

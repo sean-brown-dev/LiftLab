@@ -31,6 +31,7 @@ data class PreviousSetResult(
     val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,
+    val weightRecommendation: Float?,
     val weight: Float,
     val reps: Int,
     val rpe: Float,

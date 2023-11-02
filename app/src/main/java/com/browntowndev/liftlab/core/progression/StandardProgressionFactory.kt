@@ -46,7 +46,7 @@ class StandardProgressionFactory: ProgressionFactory {
                                 ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
                                 ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
                                 ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
-                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(microCycle)
+                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek, microCycle)
                             }.calculate(
                                 workoutLift = workoutLift,
                                 previousSetResults = resultsForLift,
