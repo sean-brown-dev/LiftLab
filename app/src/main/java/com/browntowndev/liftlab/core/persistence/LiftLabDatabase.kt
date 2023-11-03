@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -53,8 +54,11 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
         WorkoutInProgress::class,
         RestTimerInProgress::class,
    ],
-    version = 6,
-    exportSchema = false)
+    version = 1,
+    exportSchema = true,
+    /*autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+    ]*/)
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
     abstract fun programsDao(): ProgramsDao
