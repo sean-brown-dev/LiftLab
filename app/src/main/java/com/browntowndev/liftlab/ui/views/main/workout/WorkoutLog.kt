@@ -66,6 +66,7 @@ import kotlin.time.toDuration
 fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
+    cancelWorkoutVisible: Boolean = true,
     lifts: List<LoggingWorkoutLiftDto>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
@@ -262,17 +263,21 @@ fun WorkoutLog(
                     }
                 }
                 item {
-                    TextButton(
-                        modifier = Modifier.padding(20.dp),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        onClick = cancelWorkout
-                    ) {
-                        Text(
-                            text = "Cancel Workout",
-                            fontSize = 18.sp,
-                        )
+                    if (cancelWorkoutVisible) {
+                        TextButton(
+                            modifier = Modifier.padding(20.dp),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            onClick = cancelWorkout
+                        ) {
+                            Text(
+                                text = "Cancel Workout",
+                                fontSize = 18.sp,
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
 
                     Spacer(modifier = Modifier.height(pickerSpacer))

@@ -1,10 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
-import androidx.compose.material3.Text
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
+import arrow.core.left
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -16,7 +16,7 @@ import org.koin.core.component.inject
 data class EditWorkoutScreen(
     override val isOverflowMenuExpanded: Boolean = false,
     override val isOverflowMenuIconVisible: Boolean = false,
-    override val navigationIconVisible: Boolean = false,
+    override val navigationIconVisible: Boolean = true,
     override val title: String = navigation.title,
 ) : BaseScreen() {
     companion object {
@@ -45,24 +45,12 @@ data class EditWorkoutScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: Either<ImageVector, Int>?
-        get() = null
+    override val navigationIcon: Either<ImageVector, Int>
+        get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
+    override val onNavigationIconClick: (() -> Unit)
         get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
-    override val actions: List<ActionMenuItem> by derivedStateOf {
-        listOf(
-            ActionMenuItem.ButtonMenuItem.AlwaysShown(
-                isVisible = true,
-                controlName = WorkoutScreen.FINISH_BUTTON,
-                buttonContent = {
-                    Text("Finish")
-                },
-                onClick = {
-                    _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.FinishWorkout))
-                }
-            )
-        )
-    }
+    override val actions: List<ActionMenuItem>
+        get() = listOf()
 }

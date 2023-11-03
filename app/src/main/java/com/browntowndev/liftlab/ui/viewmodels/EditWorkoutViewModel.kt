@@ -1,8 +1,11 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
@@ -21,19 +24,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 import java.lang.Integer.max
 
 class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
     private val loggingRepository: LoggingRepository,
-    private val programsRepository: ProgramsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
+    private val navHostController: NavHostController,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
@@ -71,22 +74,15 @@ class EditWorkoutViewModel(
             )
             val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
             val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
-            val activeProgramMetadata = programsRepository.getActiveProgramMetadata().value
-            val isMostRecentlyCompletedWorkout = activeProgramMetadata?.currentMesocycle == workoutLog.mesocycle &&
-                    activeProgramMetadata.currentMicrocycle == workoutLog.microcycle &&
-                    activeProgramMetadata.currentMicrocyclePosition == workoutLog.microcyclePosition
 
             _editWorkoutState.update {
                 it.copy(
-                    isMostRecentlyCompletedWorkout = isMostRecentlyCompletedWorkout,
                     duration = workoutLog.durationInMillis.toTimeString(),
-                    setResults = if (isMostRecentlyCompletedWorkout) {
-                        setResultsRepository.getForWorkout(
-                            workoutId = workoutLog.workoutId,
-                            mesoCycle = workoutLog.mesocycle,
-                            microCycle = workoutLog.microcycle
-                        )
-                    } else listOf()
+                    setResults = setResultsRepository.getForWorkout(
+                        workoutId = workoutLog.workoutId,
+                        mesoCycle = workoutLog.mesocycle,
+                        microCycle = workoutLog.microcycle
+                    )
                 )
             }
             mutableWorkoutState.update { currentState ->
@@ -108,6 +104,19 @@ class EditWorkoutViewModel(
                     )
                 )
             }
+        }
+    }
+
+    @Subscribe
+    fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
+        when (actionEvent.action) {
+            TopAppBarAction.NavigatedBack -> {
+                executeInTransactionScope {
+                    updateLinearProgressionFailures()
+                }
+                navHostController.popBackStack()
+            }
+            else -> {}
         }
     }
 
@@ -247,7 +256,7 @@ class EditWorkoutViewModel(
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
-        if (_editWorkoutState.value.isMostRecentlyCompletedWorkout) {
+        if (_editWorkoutState.value.setResults.isNotEmpty()) {
             updatedResults.fastMap { setResult ->
                 updateSetResult(updatedResult = setResult)
             }
@@ -262,7 +271,7 @@ class EditWorkoutViewModel(
     }
 
     override suspend fun upsertSetResult(updatedResult: SetResult): Long {
-        if (_editWorkoutState.value.isMostRecentlyCompletedWorkout) {
+        if (_editWorkoutState.value.setResults.isNotEmpty()) {
             updateSetResult(updatedResult = updatedResult)
         }
         return loggingRepository.upsert(
@@ -315,6 +324,10 @@ class EditWorkoutViewModel(
                 )
             }
         }
+    }
+
+    public override suspend fun updateLinearProgressionFailures() {
+        super.updateLinearProgressionFailures()
     }
 
     private fun getSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {
