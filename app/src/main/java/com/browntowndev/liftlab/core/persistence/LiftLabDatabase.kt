@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,12 @@ import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 
 @TypeConverters(Converters::class)
 @Database(
@@ -109,6 +116,40 @@ abstract class LiftLabDatabase : RoomDatabase() {
             } else {
                 initialized = true
             }
+        }
+
+        fun exportDatabase(context: Context, uri: Uri) {
+            val dbFile = context.getDatabasePath(DATABASE_NAME)
+            val dbFileInputStream = FileInputStream(dbFile)
+
+            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                copy(dbFileInputStream, outputStream)
+            }
+        }
+
+        fun importDatabase(context: Context, uri: Uri) {
+            val dbFile = context.getDatabasePath(DATABASE_NAME)
+            val dbFileOutputStream = FileOutputStream(dbFile)
+
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                copy(inputStream, dbFileOutputStream)
+            }
+
+            instance = null
+            getInstance(context)
+        }
+
+        @Throws(IOException::class)
+        private fun copy(inputStream: InputStream, outputStream: OutputStream) {
+            val buffer = ByteArray(1024)
+            var length: Int
+            while (inputStream.read(buffer).also { length = it } > 0) {
+                outputStream.write(buffer, 0, length)
+            }
+
+            outputStream.flush()
+            outputStream.close()
+            inputStream.close()
         }
     }
 }
