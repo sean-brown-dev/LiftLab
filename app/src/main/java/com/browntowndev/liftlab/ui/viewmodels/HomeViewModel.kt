@@ -2,6 +2,9 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
@@ -13,6 +16,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeScreenState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.entry.ChartEntryModel
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -33,6 +38,7 @@ import kotlin.math.roundToInt
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
+    private val navHostController: NavHostController,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -70,6 +76,14 @@ class HomeViewModel(
                     }
                 }
             }
+        }
+    }
+
+    @Subscribe
+    fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
+        when (actionEvent.action) {
+            TopAppBarAction.OpenSettingsMenu -> navHostController.navigate(SettingsScreen.navigation.route)
+            else -> { }
         }
     }
 

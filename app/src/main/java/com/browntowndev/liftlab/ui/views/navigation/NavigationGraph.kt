@@ -18,21 +18,24 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.views.main.home.Home
+import com.browntowndev.liftlab.ui.views.main.home.Settings
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.LiftDetails
 import com.browntowndev.liftlab.ui.views.main.workout.EditWorkout
 import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
-
+import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 
 
 @ExperimentalFoundationApi
 @Composable
 fun NavigationGraph(
+    roomBackup: RoomBackup,
     navHostController: NavHostController,
     paddingValues: PaddingValues,
     screen: Screen?,
@@ -45,9 +48,23 @@ fun NavigationGraph(
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(HomeScreen.navigation.route) {
             LaunchedEffect(key1 = screen) {
-                setBottomNavBarVisibility(true)
+                if (screen as? HomeScreen != null) {
+                    setBottomNavBarVisibility(true)
+                }
             }
             Home(
+                paddingValues = paddingValues,
+                navHostController = navHostController
+            )
+        }
+        composable(SettingsScreen.navigation.route) {
+            LaunchedEffect(key1 = screen) {
+                if (screen as? SettingsScreen != null) {
+                    setBottomNavBarVisibility(false)
+                }
+            }
+            Settings(
+                roomBackup = roomBackup,
                 paddingValues = paddingValues,
                 navHostController = navHostController
             )

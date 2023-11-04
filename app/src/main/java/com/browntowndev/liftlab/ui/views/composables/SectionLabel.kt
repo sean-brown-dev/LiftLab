@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
+package com.browntowndev.liftlab.ui.views.composables
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme

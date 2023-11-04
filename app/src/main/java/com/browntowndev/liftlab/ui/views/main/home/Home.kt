@@ -19,17 +19,24 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
+import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.SectionLabel
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
-import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.SectionLabel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun Home(
     paddingValues: PaddingValues,
     navHostController: NavHostController,
 ) {
-    val homeViewModel: HomeViewModel = koinViewModel()
+    val homeViewModel: HomeViewModel = koinViewModel {
+        parametersOf(navHostController)
+    }
     val state by homeViewModel.state.collectAsState()
+
+    homeViewModel.registerEventBus()
+    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = homeViewModel)
 
     LazyColumn(
         modifier = Modifier

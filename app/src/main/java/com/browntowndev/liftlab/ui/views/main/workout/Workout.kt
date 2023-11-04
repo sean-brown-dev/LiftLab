@@ -63,7 +63,7 @@ fun Workout(
     workoutViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutViewModel)
 
-    LaunchedEffect(key1 = state.workout != null, key2 = state.workoutLogVisible) {
+    LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible) {
         if (state.workout != null) {
             if (!state.workoutLogVisible) {
                 mutateTopAppBarControlValue(
@@ -102,7 +102,7 @@ fun Workout(
             if (!state.inProgress) {
                 timerViewModel.stop()
             }
-        } else {
+        } else if (state.initialized) {
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,

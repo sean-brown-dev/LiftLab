@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.views.composables.SectionLabel
 import com.browntowndev.liftlab.ui.views.composables.rememberChartStyle
-import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.SectionLabel
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart

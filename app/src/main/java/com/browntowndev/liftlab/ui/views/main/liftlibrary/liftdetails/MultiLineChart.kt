@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
+import com.browntowndev.liftlab.ui.views.composables.SectionLabel
 import com.browntowndev.liftlab.ui.views.composables.rememberLegend
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis

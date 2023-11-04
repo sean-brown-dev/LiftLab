@@ -71,10 +71,15 @@ class WorkoutViewModel(
                                     inProgressWorkout = inProgressWorkout,
                                     programMetadata = programMetadata,
                                     workout = workout,
+                                    initialized = true,
                                 )
                             }
                         }
                     }
+                }
+            } else {
+                mutableWorkoutState.update {
+                    it.copy(initialized = true)
                 }
             }
         }

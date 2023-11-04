@@ -1,12 +1,9 @@
 package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
-import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -39,12 +36,6 @@ import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 
 @TypeConverters(Converters::class)
 @Database(
@@ -61,7 +52,7 @@ import java.io.OutputStream
         WorkoutInProgress::class,
         RestTimerInProgress::class,
    ],
-    version = 1,
+    version = 2,
     exportSchema = true,
     /*autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -102,10 +93,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
         }
 
         private fun submitDataInitializationJob(context: Context) {
-            Log.w("TRACE", "Entered submitDataInitializationJob()")
-
             val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
-            if (!isDatabaseInitialized) {
+            if (isDatabaseInitialized) {
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()
@@ -116,40 +105,6 @@ abstract class LiftLabDatabase : RoomDatabase() {
             } else {
                 initialized = true
             }
-        }
-
-        fun exportDatabase(context: Context, uri: Uri) {
-            val dbFile = context.getDatabasePath(DATABASE_NAME)
-            val dbFileInputStream = FileInputStream(dbFile)
-
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                copy(dbFileInputStream, outputStream)
-            }
-        }
-
-        fun importDatabase(context: Context, uri: Uri) {
-            val dbFile = context.getDatabasePath(DATABASE_NAME)
-            val dbFileOutputStream = FileOutputStream(dbFile)
-
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                copy(inputStream, dbFileOutputStream)
-            }
-
-            instance = null
-            getInstance(context)
-        }
-
-        @Throws(IOException::class)
-        private fun copy(inputStream: InputStream, outputStream: OutputStream) {
-            val buffer = ByteArray(1024)
-            var length: Int
-            while (inputStream.read(buffer).also { length = it } > 0) {
-                outputStream.write(buffer, 0, length)
-            }
-
-            outputStream.flush()
-            outputStream.close()
-            inputStream.close()
         }
     }
 }

@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,6 +57,7 @@ class TopAppBarViewModel: ViewModel() {
         EditWorkoutScreen.navigation.route -> EditWorkoutScreen()
         LabScreen.navigation.route -> LabScreen()
         HomeScreen.navigation.route -> HomeScreen()
+        SettingsScreen.navigation.route -> SettingsScreen()
         WorkoutBuilderScreen.navigation.route -> WorkoutBuilderScreen()
         else -> null
     }

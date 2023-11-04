@@ -1,13 +1,9 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -23,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.views.composables.SectionLabel
 
 @Composable
 fun VolumeTypeMenu(

@@ -10,6 +10,7 @@ import java.util.Date
 
 @Stable
 data class WorkoutState(
+    val initialized: Boolean = false,
     val programMetadata: ActiveProgramMetadataDto? = null,
     val workout: LoggingWorkoutDto? = null,
     val inProgressWorkout: WorkoutInProgressDto? = null,
