@@ -10,6 +10,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -65,7 +67,8 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 }
 
         setContent {
-            if(LiftLabDatabase.initialized) {
+            val isDbInitialized by LiftLabDatabase.initialized.collectAsState()
+            if(isDbInitialized) {
                 KoinAndroidContext {
                     LiftLab(roomBackup)
                 }

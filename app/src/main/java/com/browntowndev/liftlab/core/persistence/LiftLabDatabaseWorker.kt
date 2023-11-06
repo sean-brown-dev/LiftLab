@@ -57,7 +57,7 @@ class LiftLabDatabaseWorker(
             Log.e(TAG, "Error seeding database", ex)
             Result.failure()
         } finally {
-            LiftLabDatabase.initialized = true
+            LiftLabDatabase.setAsInitialized()
         }
     }
 

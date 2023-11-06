@@ -36,6 +36,9 @@ import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 @TypeConverters(Converters::class)
 @Database(
@@ -73,7 +76,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
         private const val LIFTS_DATA_FILENAME = "lifts.json"
         private const val DATABASE_NAME = "liftlab_database"
         @Volatile private var instance: LiftLabDatabase? = null
-        var initialized by mutableStateOf(false)
+        private val _initialized = MutableStateFlow(false)
+        val initialized = _initialized.asStateFlow()
 
         fun getInstance(context: Context): LiftLabDatabase {
             return instance ?: synchronized(this) {
@@ -94,7 +98,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
 
         private fun submitDataInitializationJob(context: Context) {
             val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
-            if (isDatabaseInitialized) {
+            if (!isDatabaseInitialized) {
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()
@@ -103,8 +107,12 @@ abstract class LiftLabDatabase : RoomDatabase() {
                     .getInstance(context)
                     .enqueueUniqueWork("init_db", ExistingWorkPolicy.KEEP, request)
             } else {
-                initialized = true
+                _initialized.update { true }
             }
+        }
+
+        fun setAsInitialized() {
+            _initialized.update { true }
         }
     }
 }
