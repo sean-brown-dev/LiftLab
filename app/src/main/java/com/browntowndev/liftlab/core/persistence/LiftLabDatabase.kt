@@ -1,15 +1,18 @@
 package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Observer
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -99,19 +102,36 @@ abstract class LiftLabDatabase : RoomDatabase() {
         private fun submitDataInitializationJob(context: Context) {
             val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
             if (!isDatabaseInitialized) {
+                val workManager = WorkManager.getInstance(context)
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
                     .setInputData(workDataOf(KEY_FILENAME to LIFTS_DATA_FILENAME))
                     .build()
 
-                WorkManager
-                    .getInstance(context)
-                    .enqueueUniqueWork("init_db", ExistingWorkPolicy.KEEP, request)
+                workManager.enqueueUniqueWork("init_db", ExistingWorkPolicy.KEEP, request)
+
+                val liveWorkInfo = workManager.getWorkInfoByIdLiveData(request.id)
+                var workInfoObserver: Observer<WorkInfo>? = null
+                workInfoObserver = Observer { workInfo ->
+                    Log.d(Log.DEBUG.toString(), "db worker finished: ${workInfo.state.isFinished}. state: ${workInfo.state}")
+                    if (workInfo.state.isFinished) {
+                        val success = workInfo.state == WorkInfo.State.SUCCEEDED
+                        setAsInitialized(success)
+
+                        workInfoObserver?.let { observer ->
+                            liveWorkInfo.removeObserver(observer)
+                        }
+                    }
+                }
+
+                liveWorkInfo.observeForever(workInfoObserver)
+
             } else {
                 _initialized.update { true }
             }
         }
 
-        fun setAsInitialized() {
+        private fun setAsInitialized(success: Boolean) {
+            SettingsManager.setSetting(DB_INITIALIZED, success)
             _initialized.update { true }
         }
     }
