@@ -49,7 +49,6 @@ fun Settings(
     paddingValues: PaddingValues,
     navHostController: NavHostController,
 ) {
-    val context = LocalContext.current
     val settingsViewModel: SettingsViewModel = koinViewModel {
         parametersOf(roomBackup, navHostController)
     }
@@ -88,7 +87,7 @@ fun Settings(
                 ConfirmationModal(
                     header = "Warning!",
                     body = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
-                    onConfirm = { settingsViewModel.importDatabase(context) },
+                    onConfirm = { settingsViewModel.importDatabase() },
                     onCancel = { settingsViewModel.toggleImportConfirmationDialog() }
                 )
             }
@@ -101,7 +100,7 @@ fun Settings(
                 Text("Export Database", fontSize = 18.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = {
-                    settingsViewModel.exportDatabase(context)
+                    settingsViewModel.exportDatabase()
                 }) {
                     Icon(
                         modifier = Modifier.size(32.dp),

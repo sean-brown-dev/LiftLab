@@ -50,7 +50,7 @@ class SettingsViewModel(
         }
     }
 
-    fun exportDatabase(context: Context) {
+    fun exportDatabase() {
         roomBackup.backup()
     }
 
@@ -62,7 +62,7 @@ class SettingsViewModel(
         }
     }
 
-    fun importDatabase(context: Context) {
+    fun importDatabase() {
         toggleImportConfirmationDialog()
         roomBackup.restore()
     }
