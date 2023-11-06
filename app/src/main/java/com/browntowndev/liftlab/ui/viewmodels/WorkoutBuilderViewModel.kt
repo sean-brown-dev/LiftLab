@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.ui.util.fastMap
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
@@ -398,27 +399,43 @@ class WorkoutBuilderViewModel(
     }
 
     fun setLiftRepRangeBottom(workoutLiftId: Long, newRepRangeBottom: Int) {
-        val updatedStateCopy = _state.value.copy(
-            workout = updateLiftProperty(_state.value, workoutLiftId) {
-                when (it) {
-                    is StandardWorkoutLiftDto -> it.copy(repRangeBottom = newRepRangeBottom)
-                    else -> throw Exception("${it::class.simpleName} cannot have a bottom rep range.")
+        executeInTransactionScope {
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateLiftProperty(_state.value, workoutLiftId) {
+                    updatedWorkoutLift = when (it) {
+                        is StandardWorkoutLiftDto -> it.copy(repRangeBottom = newRepRangeBottom)
+                        else -> throw Exception("${it::class.simpleName} cannot have a top rep range.")
+                    }
+                    updatedWorkoutLift!!
                 }
+            )
+
+            if (updatedWorkoutLift != null) {
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                _state.update { updatedStateCopy }
             }
-        )
-        _state.update { updatedStateCopy }
+        }
     }
 
     fun setLiftRepRangeTop(workoutLiftId: Long, newRepRangeTop: Int) {
-        val updatedStateCopy = _state.value.copy(
-            workout = updateLiftProperty(_state.value, workoutLiftId) {
-                when (it) {
-                    is StandardWorkoutLiftDto -> it.copy(repRangeTop = newRepRangeTop)
-                    else -> throw Exception("${it::class.simpleName} cannot have a top rep range.")
+        executeInTransactionScope {
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedStateCopy = _state.value.copy(
+                workout = updateLiftProperty(_state.value, workoutLiftId) {
+                    updatedWorkoutLift = when (it) {
+                        is StandardWorkoutLiftDto -> it.copy(repRangeTop = newRepRangeTop)
+                        else -> throw Exception("${it::class.simpleName} cannot have a top rep range.")
+                    }
+                    updatedWorkoutLift!!
                 }
+            )
+
+            if (updatedWorkoutLift != null) {
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                _state.update { updatedStateCopy }
             }
-        )
-        _state.update { updatedStateCopy }
+        }
     }
 
     fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Float) {
@@ -861,9 +878,8 @@ class WorkoutBuilderViewModel(
             if (validatedRepRangeBottom != workoutLift.repRangeBottom) {
                 workoutLift = workoutLift.copy(repRangeBottom = validatedRepRangeBottom)
                 workoutLiftsRepository.update(workoutLift)
+                updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
             }
-
-            updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
         }
     }
 
@@ -875,9 +891,8 @@ class WorkoutBuilderViewModel(
             if (validatedRepRangeTop != workoutLift.repRangeBottom) {
                 workoutLift = workoutLift.copy(repRangeTop = validatedRepRangeTop)
                 workoutLiftsRepository.update(workoutLift)
+                updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
             }
-
-            updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
         }
     }
 
@@ -913,14 +928,14 @@ class WorkoutBuilderViewModel(
                     is DropSetDto -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
                     else -> throw Exception("${customSet::class.simpleName} is not defined")
                 }
-                customLiftSetsRepository.update(customSet)
-            }
 
-            updateStateWithCustomSet(
-                workoutLiftId = workoutLiftId,
-                workoutLift = workoutLift,
-                customSet = customSet
-            )
+                customLiftSetsRepository.update(customSet)
+                updateStateWithCustomSet(
+                    workoutLiftId = workoutLiftId,
+                    workoutLift = workoutLift,
+                    customSet = customSet
+                )
+            }
         }
     }
 
@@ -937,14 +952,14 @@ class WorkoutBuilderViewModel(
                     is DropSetDto -> customSet.copy(repRangeTop = validatedRepRangeTop)
                     else -> throw Exception("${customSet::class.simpleName} is not defined")
                 }
-                customLiftSetsRepository.update(customSet)
-            }
 
-            updateStateWithCustomSet(
-                workoutLiftId = workoutLiftId,
-                workoutLift = workoutLift,
-                customSet = customSet
-            )
+                customLiftSetsRepository.update(customSet)
+                updateStateWithCustomSet(
+                    workoutLiftId = workoutLiftId,
+                    workoutLift = workoutLift,
+                    customSet = customSet
+                )
+            }
         }
     }
 
