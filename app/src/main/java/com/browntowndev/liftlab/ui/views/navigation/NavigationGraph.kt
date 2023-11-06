@@ -124,12 +124,12 @@ fun NavigationGraph(
             route = LiftDetailsScreen.navigation.route,
             arguments = listOf(
                 navArgument("id") {
-                    type = NavType.LongType
-                    nullable = false
+                    type = NavType.StringType
+                    nullable = true
                 },
             )
         ) {
-            val id = it.arguments?.getLong("id")
+            val id = it.arguments?.getString("id")?.toLongOrNull()
 
             if (screen as? LiftDetailsScreen != null) {
                 LaunchedEffect(key1 = screen) {
