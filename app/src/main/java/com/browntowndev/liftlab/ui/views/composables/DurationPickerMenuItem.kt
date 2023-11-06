@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
 import kotlin.time.Duration
 
 
@@ -23,7 +24,7 @@ import kotlin.time.Duration
 fun DurationPickerMenuItem(
     enabled: Boolean,
     time: Duration,
-    rangeInMinutes: LongRange = 0L..6L,
+    rangeInMinutes: LongRange = REST_TIME_RANGE,
     secondsStepSize: Int = 5,
     onRestTimeChanged: (Duration) -> Unit,
     onCancel: () -> Unit,

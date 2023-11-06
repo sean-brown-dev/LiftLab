@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.ui.views.composables.NumberPickerMenuItem
 
 @Composable
@@ -14,7 +15,7 @@ fun IncrementPicker(
         NumberPickerMenuItem(
             initialValue = increment,
             label = "Weight Increment",
-            options = listOf(.5f, 1f, 2.5f, 5f, 10f),
+            options = INCREMENT_OPTIONS,
             onChanged = {
                 onChangeIncrement(it)
             },
