@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -9,6 +11,7 @@ import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
@@ -42,6 +45,7 @@ class HomeViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
+    private var _loggingLiveData:  LiveData<List<WorkoutLogEntryDto>>? = null
     private var _state = MutableStateFlow(HomeScreenState())
     val state = _state.asStateFlow()
 
@@ -56,21 +60,35 @@ class HomeViewModel(
                         program = activeProgram
                     )
                 }
+                if (_loggingLiveData == null) {
+                    _loggingLiveData = loggingRepository.getAll()
+                    _loggingLiveData!!.observeForever{ workoutLogs ->
+                        val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs = workoutLogs)
+                        val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
 
-                loggingRepository.getAll().observeForever { workoutLogs ->
-                    val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs = workoutLogs)
-                    val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
-
+                        _state.update {
+                            it.copy(
+                                dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                                topSets = getTopSets(dateOrderedWorkoutLogs),
+                                workoutCompletionChart = getWeeklyCompletionChart(
+                                    workoutCompletionRange = workoutCompletionRange,
+                                    workoutsInDateRange = workoutsInDateRange,
+                                ),
+                                microCycleCompletionChart = getMicroCycleCompletionChart(
+                                    dateOrderedWorkoutLogs = dateOrderedWorkoutLogs
+                                )
+                            )
+                        }
+                    }
+                } else {
                     _state.update {
                         it.copy(
-                            dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
-                            topSets = getTopSets(dateOrderedWorkoutLogs),
                             workoutCompletionChart = getWeeklyCompletionChart(
                                 workoutCompletionRange = workoutCompletionRange,
-                                workoutsInDateRange = workoutsInDateRange,
+                                workoutsInDateRange = getWorkoutsInDateRange(_state.value.dateOrderedWorkoutLogs, dateRange),
                             ),
                             microCycleCompletionChart = getMicroCycleCompletionChart(
-                                dateOrderedWorkoutLogs = dateOrderedWorkoutLogs
+                                dateOrderedWorkoutLogs = _state.value.dateOrderedWorkoutLogs
                             )
                         )
                     }

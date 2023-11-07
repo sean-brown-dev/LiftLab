@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -10,6 +12,7 @@ import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
@@ -43,6 +46,9 @@ class WorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
+    private var _workoutLiveData: LiveData<LoggingWorkoutDto?>? = null
+    private var _workoutObserver: Observer<LoggingWorkoutDto?>? = null
+
     init {
         initialize()
     }
@@ -59,7 +65,8 @@ class WorkoutViewModel(
         programsRepository.getActiveProgramMetadata().observeForever { programMetadata ->
             if (programMetadata != null) {
                 viewModelScope.launch {
-                    workoutsRepository.getNextToPerform(programMetadata).observeForever { workout ->
+                    _workoutLiveData?.removeObserver(_workoutObserver!!)
+                    _workoutObserver = Observer { workout ->
                         executeInTransactionScope {
                             val inProgressWorkout = workoutInProgressRepository.get(
                                 programMetadata.currentMesocycle,
@@ -76,6 +83,9 @@ class WorkoutViewModel(
                             }
                         }
                     }
+
+                    _workoutLiveData = workoutsRepository.getNextToPerform(programMetadata)
+                    _workoutLiveData!!.observeForever(_workoutObserver!!)
                 }
             } else {
                 mutableWorkoutState.update {
