@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
+import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -22,7 +23,7 @@ val viewModelModule = module {
     viewModel { params -> LiftDetailsViewModel(params[0], params.get(), get(), get(), get(), get()) }
     viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { params -> LiftLibraryViewModel(get(), get(), params.get(), get(), get()) }
-    viewModel { params -> WorkoutViewModel(get(), get(), get(), get(), get(), get(), get(), get(), params[0], get(), get()) }
+    viewModel { params -> WorkoutViewModel(params[0], get(), get(), get(), get(), get(), get(), get(), get(), params[1], get(), get()) }
     viewModel { params -> EditWorkoutViewModel(params[0], get(), get(), params[1], get(), get()) }
     viewModel { TopAppBarViewModel() }
     viewModel { BottomNavBarViewModel() }
@@ -32,4 +33,5 @@ val viewModelModule = module {
     viewModel { PickerViewModel() }
     viewModel { params -> HomeViewModel(get(), get(), params[0], get(), get()) }
     viewModel { params -> SettingsViewModel(params[0], params[1], get(), get()) }
+    viewModel { params -> WorkoutHistoryViewModel(params[0], get(), get(), get()) }
 }

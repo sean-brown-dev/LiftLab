@@ -1,8 +1,13 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
@@ -14,28 +19,44 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 
 class WorkoutHistoryViewModel(
+    private val navHostController: NavHostController,
     private val loggingRepository: LoggingRepository,
-    navHostController: NavHostController,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
+    private var _loggingLiveData: LiveData<List<WorkoutLogEntryDto>>? = null
+    private var _logObserver: Observer<List<WorkoutLogEntryDto>>? = null
     private val _state = MutableStateFlow(WorkoutHistoryState())
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            val workoutLogs = loggingRepository.getAll().value ?: listOf()
+        _logObserver = Observer { workoutLogs ->
             val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
             val topSets = getTopSets(workoutLogs)
-
             _state.update {
                 it.copy(
                     dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
                     topSets = topSets,
                 )
             }
+        }
+        _loggingLiveData = loggingRepository.getAll()
+        _loggingLiveData!!.observeForever(_logObserver!!)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        _loggingLiveData?.removeObserver(_logObserver!!)
+    }
+
+    @Subscribe
+    fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
+        when (actionEvent.action) {
+            TopAppBarAction.NavigatedBack -> navHostController.popBackStack()
+            else -> { }
         }
     }
 

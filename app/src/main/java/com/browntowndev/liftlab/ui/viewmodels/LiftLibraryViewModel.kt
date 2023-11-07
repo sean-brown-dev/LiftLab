@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -29,16 +31,25 @@ class LiftLibraryViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
+    private var _liftsLiveData: LiveData<List<LiftDto>>? = null
+    private var _liftsObserver: Observer<List<LiftDto>>? = null
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 
     init {
-        liftsRepository.getAll()
-            .observeForever { lifts ->
-                _state.update { currentState ->
-                    currentState.copy(allLifts = lifts.sortedBy { it.name })
-                }
+        _liftsLiveData = liftsRepository.getAll()
+        _liftsObserver = Observer { lifts ->
+            _state.update { currentState ->
+                currentState.copy(allLifts = lifts.sortedBy { it.name })
             }
+        }
+
+        _liftsLiveData!!.observeForever(_liftsObserver!!)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        _liftsLiveData?.removeObserver(_liftsObserver!!)
     }
 
     @Subscribe

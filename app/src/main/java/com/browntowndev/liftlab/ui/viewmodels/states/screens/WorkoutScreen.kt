@@ -32,6 +32,7 @@ data class WorkoutScreen(
         val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
         const val REST_TIMER = "restTimer"
         const val FINISH_BUTTON = "finishButton"
+        const val WORKOUT_HISTORY_BUTTON = "workoutHistoryButton"
     }
 
     private val _eventBus: EventBus by inject()
@@ -118,7 +119,17 @@ data class WorkoutScreen(
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.FinishWorkout))
                 }
-            )
+            ),
+            ActionMenuItem.IconMenuItem.NeverShown (
+                title = "",
+                trailingIconText = "View & Edit History",
+                isVisible = !restTimerControlVisible,
+                controlName = WORKOUT_HISTORY_BUTTON,
+                icon = R.drawable.history_icon.right(),
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.OpenWorkoutHistory))
+                }
+            ),
         )
     }
 }

@@ -4,15 +4,18 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
@@ -23,6 +26,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -31,9 +35,10 @@ import java.lang.Integer.max
 import kotlin.time.Duration
 
 class WorkoutViewModel(
+    private val navHostController: NavHostController,
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
-    val setResultsRepository: PreviousSetResultsRepository,
+    private val setResultsRepository: PreviousSetResultsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
     private val loggingRepository: LoggingRepository,
@@ -46,6 +51,10 @@ class WorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
+    private var _restTimerLiveData: LiveData<RestTimerInProgressDto?>? = null
+    private var _restTimerObserver: Observer<RestTimerInProgressDto?>? = null
+    private var _programLiveData: LiveData<ActiveProgramMetadataDto?>? = null
+    private var _programObserver: Observer<ActiveProgramMetadataDto?>? = null
     private var _workoutLiveData: LiveData<LoggingWorkoutDto?>? = null
     private var _workoutObserver: Observer<LoggingWorkoutDto?>? = null
 
@@ -54,7 +63,7 @@ class WorkoutViewModel(
     }
 
     private fun initialize() {
-        restTimerInProgressRepository.getLive().observeForever { restTimerInProgress ->
+        _restTimerObserver = Observer { restTimerInProgress ->
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
@@ -62,7 +71,10 @@ class WorkoutViewModel(
                 )
             }
         }
-        programsRepository.getActiveProgramMetadata().observeForever { programMetadata ->
+        _restTimerLiveData = restTimerInProgressRepository.getLive()
+        _restTimerLiveData!!.observeForever(_restTimerObserver!!)
+
+        _programObserver = Observer { programMetadata ->
             if (programMetadata != null) {
                 viewModelScope.launch {
                     _workoutLiveData?.removeObserver(_workoutObserver!!)
@@ -93,6 +105,16 @@ class WorkoutViewModel(
                 }
             }
         }
+        _programLiveData = programsRepository.getActiveProgramMetadata()
+        _programLiveData!!.observeForever(_programObserver!!)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        _restTimerLiveData?.removeObserver(_restTimerObserver!!)
+        _programLiveData?.removeObserver(_programObserver!!)
+        _workoutLiveData?.removeObserver(_workoutObserver!!)
     }
 
     @Subscribe
@@ -109,7 +131,8 @@ class WorkoutViewModel(
                     }
                 }
             }
-            TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm
+            TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm,
+            TopAppBarAction.OpenWorkoutHistory -> navHostController.navigate(WorkoutHistoryScreen.navigation.route)
             else -> {}
         }
     }

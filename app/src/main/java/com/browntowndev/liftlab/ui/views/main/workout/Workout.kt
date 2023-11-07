@@ -36,11 +36,14 @@ fun Workout(
 
     val timerViewModel: TimerViewModel = koinViewModel()
     val workoutViewModel: WorkoutViewModel = koinViewModel {
-        parametersOf({
-            mutateTopAppBarControlValue(
-                AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
-            )
-        })
+        parametersOf(
+            navHostController,
+            {
+                mutateTopAppBarControlValue(
+                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
+                )
+            }
+        )
     }
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
