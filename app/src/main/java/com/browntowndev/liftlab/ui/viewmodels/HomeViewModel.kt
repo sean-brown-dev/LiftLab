@@ -63,13 +63,11 @@ class HomeViewModel(
                 if (_loggingLiveData == null) {
                     _loggingLiveData = loggingRepository.getAll()
                     _loggingLiveData!!.observeForever{ workoutLogs ->
-                        val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs = workoutLogs)
+                        val dateOrderedWorkoutLogs = workoutLogs.sortedByDescending { it.date }
                         val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
 
                         _state.update {
                             it.copy(
-                                dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
-                                topSets = getTopSets(dateOrderedWorkoutLogs),
                                 workoutCompletionChart = getWeeklyCompletionChart(
                                     workoutCompletionRange = workoutCompletionRange,
                                     workoutsInDateRange = workoutsInDateRange,
@@ -109,56 +107,6 @@ class HomeViewModel(
         val today = LocalDate.now()
         val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
-    }
-
-    private fun getTopSets(workoutLogs: List<WorkoutLogEntryDto>): Map<Long, Map<Long, Pair<Int, SetLogEntryDto>>> {
-        return workoutLogs.associate { workoutLog ->
-            workoutLog.id to getTopSetsForWorkout(workoutLog)
-        }
-    }
-
-    private fun getTopSetsForWorkout(workoutLog: WorkoutLogEntryDto): Map<Long, Pair<Int, SetLogEntryDto>> {
-        return workoutLog.setResults
-            .groupBy { it.liftId }
-            .filterValues { set -> set.isNotEmpty() }
-            .mapValues { (_, sets) ->
-                val setSize = sets.size
-                val topSet = sets.maxBy {
-                    CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                }
-                setSize to topSet
-            }
-    }
-
-    private fun sortAndSetPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): List<WorkoutLogEntryDto> {
-        val personalRecords = getPersonalRecords(workoutLogs)
-        val updatedLogs = workoutLogs
-            .sortedByDescending { it.date }
-            .fastMap { workoutLog ->
-                workoutLog.copy(
-                    setResults = workoutLog.setResults.fastMap { setLog ->
-                        if (personalRecords.contains(setLog)) {
-                            setLog.copy(
-                                isPersonalRecord = true
-                            )
-                        } else setLog
-                    }
-                )
-            }
-
-        return updatedLogs
-    }
-
-    private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): HashSet<SetLogEntryDto> {
-        return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults
-                .groupBy { it.liftId }
-                .map { liftSetResults ->
-                    liftSetResults.value.maxBy {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
-                }
-        }.toHashSet()
     }
 
     private fun getWorkoutsInDateRange(

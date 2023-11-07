@@ -8,7 +8,6 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 data class HomeScreenState(
     val program: ProgramDto? = null,
     val dateOrderedWorkoutLogs: List<WorkoutLogEntryDto> = listOf(),
-    val topSets: Map<Long, Map<Long, Pair<Int, SetLogEntryDto>>> = mapOf(),
     val workoutCompletionChart: ChartModel? = null,
     val microCycleCompletionChart: ChartModel? = null,
 )

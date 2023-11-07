@@ -35,7 +35,7 @@ class WorkoutHistoryViewModel(
     init {
         _logObserver = Observer { workoutLogs ->
             val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
-            val topSets = getTopSets(workoutLogs)
+            val topSets = getTopSets(dateOrderedWorkoutLogs)
             _state.update {
                 it.copy(
                     dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,

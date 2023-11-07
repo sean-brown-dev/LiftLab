@@ -36,7 +36,10 @@ fun Home(
     val state by homeViewModel.state.collectAsState()
 
     homeViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = homeViewModel)
+    EventBusDisposalEffect(
+        navHostController = navHostController,
+        viewModelToUnregister = homeViewModel
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -56,7 +59,8 @@ fun Home(
                 )
                 Spacer(modifier = Modifier.height(15.dp))
             }
-
+        }
+        item {
             if (state.microCycleCompletionChart != null) {
                 HomeColumnChart(
                     modifier = Modifier
@@ -67,26 +71,6 @@ fun Home(
                     marker = rememberMarker(),
                 )
             }
-
-            SectionLabel(
-                modifier = Modifier.padding(top = 10.dp),
-                text = "HISTORY",
-                fontSize = 14.sp,
-            )
-        }
-
-        items(state.dateOrderedWorkoutLogs) { workoutLog ->
-            WorkoutHistoryCard(
-                workoutName = workoutLog.workoutName,
-                workoutDate = workoutLog.date,
-                workoutDuration = workoutLog.durationInMillis,
-                setResults = workoutLog.setResults,
-                topSets = state.topSets[workoutLog.id],
-                onEditWorkout = {
-                    val editWorkoutRoute = EditWorkoutScreen.navigation.route.replace("{workoutLogEntryId}", workoutLog.id.toString())
-                    navHostController.navigate(editWorkoutRoute)
-                }
-            )
         }
     }
 }

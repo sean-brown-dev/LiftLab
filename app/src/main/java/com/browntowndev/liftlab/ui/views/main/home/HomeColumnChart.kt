@@ -38,15 +38,16 @@ fun HomeColumnChart(
     chartModel: ChartModel,
     marker: Marker? = null,
 ) {
-    SectionLabel(
-        modifier = Modifier.padding(top = 10.dp),
-        text = label,
-        fontSize = 14.sp,
-    )
     Card(
         modifier = Modifier.padding(10.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
+        SectionLabel(
+            modifier = Modifier.padding(top = 10.dp),
+            text = label,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontSize = 14.sp,
+        )
         if (chartModel.hasData) {
             val scrollState = rememberChartScrollState()
             val scrollSpec = rememberChartScrollSpec(
