@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
@@ -9,6 +10,7 @@ import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.PROGRAM
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.WORKOUT
+import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
@@ -41,11 +43,45 @@ class WorkoutHistoryViewModel(
         _logObserver = Observer { workoutLogs ->
             val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
             val topSets = getTopSets(dateOrderedWorkoutLogs)
+            val workoutNamesById = dateOrderedWorkoutLogs
+                .distinctBy { workoutLog -> workoutLog.workoutId }
+                .associate { workoutLog ->
+                    workoutLog.workoutId to workoutLog.workoutName
+                }
+            val programNamesById = dateOrderedWorkoutLogs
+                .distinctBy { workoutLog -> workoutLog.programId }
+                .associate { workoutLog ->
+                    workoutLog.programId to workoutLog.programName
+                }
             _state.update {
                 it.copy(
                     dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
                     filteredWorkoutLogs = dateOrderedWorkoutLogs,
                     topSets = topSets,
+                    workoutNamesById = workoutNamesById,
+                    programNamesById = programNamesById,
+                    programAndWorkoutFilterSections = listOf(
+                        object : FlowRowFilterChipSection {
+                            override val sectionName: String
+                                get() = "Programs"
+                            override val filterChipOptions: Lazy<List<FilterChipOption>>
+                                get() = lazy {
+                                    programNamesById.map { program ->
+                                        FilterChipOption(type = PROGRAM, value = program.value, key = program.key)
+                                    }
+                                }
+                        },
+                        object : FlowRowFilterChipSection {
+                            override val sectionName: String
+                                get() = "Workouts"
+                            override val filterChipOptions: Lazy<List<FilterChipOption>>
+                                get() = lazy {
+                                    workoutNamesById.map { workout ->
+                                        FilterChipOption(type = WORKOUT, value = workout.value, key = workout.key)
+                                    }
+                                }
+                        },
+                    )
                 )
             }
         }
@@ -63,6 +99,7 @@ class WorkoutHistoryViewModel(
         when (actionEvent.action) {
             TopAppBarAction.NavigatedBack -> onBackNavigationIconPressed()
             TopAppBarAction.EditDateRange -> toggleDateRangePicker()
+            TopAppBarAction.FilterStarted -> _state.update { it.copy(isProgramAndWorkoutFilterVisible = true) }
             else -> { }
         }
     }
@@ -86,37 +123,55 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun removeFilterChip(filterChip: FilterChipOption) {
-        val isDateRangeChip = filterChip.type == DATE_RANGE
-        val isWorkoutChip = filterChip.type == WORKOUT
-        val isProgramChip = filterChip.type == PROGRAM
+    fun addWorkoutOrProgramFilter(filterChip: FilterChipOption) {
+        _state.update {
+            it.copy(
+                programAndWorkoutFilters = it.programAndWorkoutFilters.toMutableList().apply {
+                    add(filterChip)
+                }
+            )
+        }
+    }
+
+    fun removeWorkoutOrProgramFilter(toRemove: FilterChipOption) {
+        _state.update {
+            it.copy(
+                programAndWorkoutFilters = it.programAndWorkoutFilters.toMutableList().apply {
+                    remove(toRemove)
+                }
+            )
+        }
+    }
+
+    fun removeFilterChip(toRemove: FilterChipOption) {
+        val isDateRangeChip = toRemove.type == DATE_RANGE
         _state.update {
             it.copy(
                 startDateInMillis = if (isDateRangeChip) null else it.startDateInMillis,
                 endDateInMillis = if (isDateRangeChip) null else it.endDateInMillis,
-                programIdFilters = if (isProgramChip) {
-                    it.programIdFilters.toMutableList().apply {
-                        remove(filterChip.value.toLong())
-                    }
-                } else it.programIdFilters,
-                workoutIdFilters = if (isWorkoutChip) {
-                    it.workoutIdFilters.toMutableList().apply {
-                        remove(filterChip.value.toLong())
-                    }
-                } else it.workoutIdFilters
+                programAndWorkoutFilters = if (!isDateRangeChip) {
+                    it.programAndWorkoutFilters.toMutableList().apply { remove(toRemove) }
+                } else it.programAndWorkoutFilters
             )
         }
 
         applyFilters()
     }
 
-    private fun applyFilters() {
+    fun applyFilters() {
         _state.update { currentState ->
             currentState.copy(
+                isProgramAndWorkoutFilterVisible = false,
                 filteredWorkoutLogs = currentState.dateOrderedWorkoutLogs.filter { workoutLog ->
-                    currentState.dateRangeFilter.contains(workoutLog.date.time) ||
-                            currentState.workoutIdFilters.contains(workoutLog.workoutId) ||
-                            currentState.programIdFilters.contains(workoutLog.programId)
+                    currentState.dateRangeFilter.contains(workoutLog.date.time) &&
+                            (currentState.programAndWorkoutFilters.isEmpty() ||
+                                    currentState.programAndWorkoutFilters.fastAny {
+                                        val workoutMatches =
+                                            it.type == WORKOUT && it.key == workoutLog.workoutId
+                                        val programMatches =
+                                            it.type == PROGRAM && it.key == workoutLog.programId
+                                        workoutMatches || programMatches
+                                    })
                 },
                 filterChips = currentState.filterChips.toMutableList().apply {
                     clear()
@@ -128,13 +183,8 @@ class WorkoutHistoryViewModel(
                                 secondDateInUtcMillis.toDate().toSimpleDateString(utcZoneId)
                         add(FilterChipOption(type = DATE_RANGE, value = dateRange))
                     }
-                    currentState.workoutIdFilters.fastForEach { workoutId ->
-                        val workoutName = currentState.workoutNamesById[workoutId]
-                        add(FilterChipOption(type = WORKOUT, value = workoutName!!))
-                    }
-                    currentState.programIdFilters.fastForEach { programId ->
-                        val programName = currentState.programNamesById[programId]
-                        add(FilterChipOption(type = PROGRAM, value = programName!!))
+                    currentState.programAndWorkoutFilters.fastForEach { filterChip ->
+                        add(filterChip)
                     }
                 }
             )
@@ -194,6 +244,8 @@ class WorkoutHistoryViewModel(
     private fun onBackNavigationIconPressed() {
         if (_state.value.isDatePickerVisible) {
             toggleDateRangePicker()
+        } else if (_state.value.isProgramAndWorkoutFilterVisible) {
+            applyFilters()
         } else {
             navHostController.popBackStack()
         }

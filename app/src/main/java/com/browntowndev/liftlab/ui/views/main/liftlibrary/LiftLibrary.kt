@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
@@ -39,7 +40,6 @@ import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.FilterSelector
 import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow
-import org.koin.androidx.compose.getViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -88,7 +88,8 @@ fun LiftLibrary(
 
     LaunchedEffect(key1 = movementPattern) {
         if (movementPattern.isNotEmpty()) {
-            liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPattern))
+            liftLibraryViewModel.addMovementPatternFilter(FilterChipOption(type = MOVEMENT_PATTERN, value = movementPattern))
+            liftLibraryViewModel.applyFilters()
         }
     }
 
@@ -111,7 +112,7 @@ fun LiftLibrary(
                     if (it.type == FilterChipOption.NAME) {
                         onClearTopAppBarFilterText()
                     } else {
-                        liftLibraryViewModel.removeMovementPatternFilter(it.value)
+                        liftLibraryViewModel.removeMovementPatternFilter(it)
                     }
                 },
             )
@@ -177,21 +178,21 @@ fun LiftLibrary(
         }
     } else if (!state.replacingLift) {
         setTopAppBarCollapsed(true)
-        val filterOptionSections = remember {
-            listOf(
-                MovementPatternFilterSection.UpperCompound,
-                MovementPatternFilterSection.UpperAccessory,
-                MovementPatternFilterSection.LowerCompound,
-                MovementPatternFilterSection.LowerAccessory,
-            )
-        }
         FilterSelector(
             modifier = Modifier.padding(paddingValues),
-            navigateBackClicked = state.backNavigationClicked,
-            filterOptionSections = filterOptionSections,
+            filterOptionSections = remember {
+                listOf(
+                    MovementPatternFilterSection.UpperCompound,
+                    MovementPatternFilterSection.UpperAccessory,
+                    MovementPatternFilterSection.LowerCompound,
+                    MovementPatternFilterSection.LowerAccessory,
+                )
+            },
             selectedFilters = state.movementPatternFilters,
+            onAddFilter = { liftLibraryViewModel.addMovementPatternFilter(it) },
+            onRemoveFilter = { liftLibraryViewModel.removeMovementPatternFilter(it) },
             onConfirmSelections = {
-                liftLibraryViewModel.filterLiftsByMovementPatterns(it)
+                liftLibraryViewModel.applyFilters()
             },
         )
     }

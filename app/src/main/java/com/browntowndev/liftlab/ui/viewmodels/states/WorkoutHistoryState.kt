@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
@@ -13,29 +15,17 @@ data class WorkoutHistoryState(
     val filteredWorkoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val topSets: Map<Long, Map<Long, Pair<Int, SetLogEntryDto>>> = mapOf(),
     val isDatePickerVisible: Boolean = false,
+    val isProgramAndWorkoutFilterVisible: Boolean = false,
     val startDateInMillis: Long? = null,
     val endDateInMillis: Long? = null,
-    val programIdFilters: List<Long> = listOf(),
-    val workoutIdFilters: List<Long> = listOf(),
+    val programAndWorkoutFilters: List<FilterChipOption> = listOf(),
+    val workoutIdFilters: List<FilterChipOption> = listOf(),
+    val workoutNamesById: Map<Long, String> = mapOf(),
+    val programNamesById: Map<Long, String> = mapOf(),
+    val programAndWorkoutFilterSections: List<FlowRowFilterChipSection> = listOf(),
 ) {
     val dateRangeFilter by lazy {
         val endDateInclusive = endDateInMillis?.toDate()?.toLocalDate()?.plusDays(1)?.toEndOfDate()?.toInstant()?.toEpochMilli()
         (startDateInMillis ?: 0)..(endDateInclusive ?: Long.MAX_VALUE)
-    }
-
-    val workoutNamesById by lazy {
-        dateOrderedWorkoutLogs
-            .distinctBy { it.workoutId }
-            .associate {
-                it.workoutId to it.workoutName
-            }
-    }
-
-    val programNamesById by lazy {
-        dateOrderedWorkoutLogs
-            .distinctBy { it.programId }
-            .associate {
-                it.programId to it.programName
-            }
     }
 }

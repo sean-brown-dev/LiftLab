@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.common.enums
 
+import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -31,54 +33,108 @@ enum class MovementPattern {
 
 sealed class MovementPatternFilterSection(
     override val sectionName: String,
-    override val filterChipOptions: Lazy<List<String>>,
+    override val filterChipOptions: Lazy<List<FilterChipOption>>,
 ): FlowRowFilterChipSection {
-    object UpperCompound: MovementPatternFilterSection(
+    data object UpperCompound: MovementPatternFilterSection(
         sectionName = "Upper Compound",
         filterChipOptions = lazy {
             listOf(
-                MovementPattern.HORIZONTAL_PULL.displayName(),
-                MovementPattern.VERTICAL_PULL.displayName(),
-                MovementPattern.HORIZONTAL_PUSH.displayName(),
-                MovementPattern.INCLINE_PUSH.displayName(),
-                MovementPattern.VERTICAL_PUSH.displayName(),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.HORIZONTAL_PULL.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.VERTICAL_PULL.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.HORIZONTAL_PUSH.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.INCLINE_PUSH.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.VERTICAL_PUSH.displayName()
+                ),
             )
         }
     )
 
-    object UpperAccessory: MovementPatternFilterSection(
+    data object UpperAccessory: MovementPatternFilterSection(
         sectionName = "Upper Accessory",
         filterChipOptions = lazy {
             listOf(
-                MovementPattern.CHEST_ISO.displayName(),
-                MovementPattern.TRICEP_ISO.displayName(),
-                MovementPattern.BICEP_ISO.displayName(),
-                MovementPattern.DELT_ISO.displayName(),
-                MovementPattern.FOREARM_ISO.displayName(),
-                MovementPattern.TRAP_ISO.displayName(),
-                MovementPattern.AB_ISO.displayName(),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.CHEST_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.TRICEP_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.BICEP_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.DELT_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.FOREARM_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.TRAP_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.AB_ISO.displayName()
+                ),
             )
         }
     )
 
-    object LowerCompound: MovementPatternFilterSection(
+    data object LowerCompound: MovementPatternFilterSection(
         sectionName = "Lower Compound",
         filterChipOptions = lazy {
             listOf(
-                MovementPattern.HIP_HINGE.displayName(),
-                MovementPattern.LEG_PUSH.displayName(),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.HIP_HINGE.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.LEG_PUSH.displayName()
+                ),
             )
         }
     )
 
-    object LowerAccessory: MovementPatternFilterSection(
+    data object LowerAccessory: MovementPatternFilterSection(
         sectionName = "Lower Accessory",
         filterChipOptions = lazy {
             listOf(
-                MovementPattern.QUAD_ISO.displayName(),
-                MovementPattern.HAMSTRING_ISO.displayName(),
-                MovementPattern.GLUTE_ISO.displayName(),
-                MovementPattern.CALVES.displayName(),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.QUAD_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.HAMSTRING_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.GLUTE_ISO.displayName()
+                ),
+                FilterChipOption(
+                    type = MOVEMENT_PATTERN,
+                    value = MovementPattern.CALVES.displayName()
+                ),
             )
         }
     )

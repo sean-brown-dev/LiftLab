@@ -170,8 +170,12 @@ fun NavigationGraph(
                 LaunchedEffect(key1 = screen) {
                     setBottomNavBarVisibility(false)
                 }
-                
-                WorkoutHistory(paddingValues = paddingValues, navHostController = navHostController)
+
+                WorkoutHistory(
+                    paddingValues = paddingValues,
+                    navHostController = navHostController,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed
+                )
             }
         }
         composable(

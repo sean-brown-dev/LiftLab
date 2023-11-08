@@ -15,36 +15,33 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FilterSelector(
     modifier: Modifier = Modifier,
-    navigateBackClicked: Boolean,
     filterOptionSections: List<FlowRowFilterChipSection>,
-    selectedFilters: List<String>,
-    onConfirmSelections: (List<String>) -> Unit,
+    selectedFilters: List<FilterChipOption>,
+    onAddFilter: (FilterChipOption) -> Unit,
+    onRemoveFilter: (FilterChipOption) -> Unit,
+    onConfirmSelections: () -> Unit,
 ) {
-    val mutableSelectedFilters = remember { selectedFilters.toMutableList() }
-
     BackHandler(true) {
-        onConfirmSelections(mutableSelectedFilters)
-    }
-
-    LaunchedEffect(navigateBackClicked) {
-        if (navigateBackClicked) {
-            onConfirmSelections(mutableSelectedFilters)
-        }
+        onConfirmSelections()
     }
 
     Column(
@@ -63,18 +60,14 @@ fun FilterSelector(
                 horizontalArrangement = Arrangement.Start,
                 verticalArrangement = Arrangement.Center,
             ) {
-                section.filterChipOptions.value.fastForEach { movementPattern ->
-                    var isSelected by remember {
-                        mutableStateOf(
-                            mutableSelectedFilters.contains(
-                                movementPattern
-                            )
-                        )
+                section.filterChipOptions.value.fastForEach { filterOption ->
+                    val isSelected = remember(selectedFilters) {
+                        selectedFilters.contains(filterOption)
                     }
                     FilterChip(
                         modifier = Modifier.padding(start = 3.dp, end = 3.dp),
                         selected = isSelected,
-                        label = { Text(movementPattern) },
+                        label = { Text(filterOption.value) },
                         shape = RoundedCornerShape(24.dp),
                         colors = FilterChipDefaults.filterChipColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -87,12 +80,10 @@ fun FilterSelector(
                             selectedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
                         ),
                         onClick = {
-                            isSelected = if (mutableSelectedFilters.contains(movementPattern)) {
-                                mutableSelectedFilters.remove(movementPattern)
-                                false
+                            if (isSelected) {
+                                onRemoveFilter(filterOption)
                             } else {
-                                mutableSelectedFilters.add(movementPattern)
-                                true
+                                onAddFilter(filterOption)
                             }
                         }
                     )

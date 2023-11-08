@@ -5,6 +5,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -56,7 +58,7 @@ class LiftLibraryViewModel(
     fun handleTopAppBarActionEvent(event: TopAppBarEvent.ActionEvent) {
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
-            TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState()
+            TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
             TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
             TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
@@ -66,7 +68,7 @@ class LiftLibraryViewModel(
     @Subscribe
     fun handleTopAppBarPayloadEvent(payloadEvent: TopAppBarEvent.PayloadActionEvent<String>) {
         when (payloadEvent.action) {
-            TopAppBarAction.SearchTextChanged -> filterLiftsByName(payloadEvent.payload)
+            TopAppBarAction.SearchTextChanged -> setNameFilter(payloadEvent.payload)
             else -> {}
         }
     }
@@ -157,35 +159,58 @@ class LiftLibraryViewModel(
         navHostController.navigate(workoutBuilderRoute)
     }
 
-    private fun setNavigateBackIconClickedState() {
-        _state.update {
-            it.copy(backNavigationClicked = true)
-        }
-    }
-
     private fun toggleFilterSelection() {
         _state.update {
             it.copy(
-                showFilterSelection = !_state.value.showFilterSelection,
-                backNavigationClicked = false,
+                showFilterSelection = !_state.value.showFilterSelection
             )
         }
     }
 
-    private fun filterLiftsByName(filter: String) {
+    private fun setNameFilter(filter: String) {
         _state.update {
             it.copy(nameFilter = filter)
         }
+
+        applyFilters()
     }
 
-    fun filterLiftsByMovementPatterns(movementPatterns: List<String>) {
+    fun addMovementPatternFilter(movementPattern: FilterChipOption) {
         _state.update {
-            it.copy(movementPatternFilters = movementPatterns, showFilterSelection = false, backNavigationClicked = false)
+            it.copy(
+                movementPatternFilters = it.movementPatternFilters
+                    .toMutableList()
+                    .apply { add(movementPattern) }
+            )
         }
     }
 
-    fun removeMovementPatternFilter(movementPattern: String) {
-        this.filterLiftsByMovementPatterns(_state.value.movementPatternFilters.filter { it != movementPattern })
+    fun removeMovementPatternFilter(movementPattern: FilterChipOption) {
+        _state.update {
+            it.copy(
+                movementPatternFilters = _state.value.movementPatternFilters
+                    .toMutableList()
+                    .apply { remove(movementPattern) }
+            )
+        }
+    }
+
+    fun applyFilters() {
+        val nameFilter = _state.value.nameFilter
+        val movementPatternFilters = _state.value.movementPatternFilters
+        val allLifts = _state.value.allLifts
+        val nameFilteredLifts = if (nameFilter?.isNotEmpty() == true) {
+            allLifts.filter { lift -> lift.name.contains(nameFilter, true) }
+        } else allLifts
+
+        _state.update {
+            it.copy(
+                showFilterSelection = false,
+                filteredLifts = if (movementPatternFilters.isNotEmpty()) {
+                    nameFilteredLifts.filter { lift -> movementPatternFilters.any { filter -> filter.value == lift.movementPatternDisplayName } }
+                } else nameFilteredLifts
+            )
+        }
     }
 
     fun hideLift(lift: LiftDto) {

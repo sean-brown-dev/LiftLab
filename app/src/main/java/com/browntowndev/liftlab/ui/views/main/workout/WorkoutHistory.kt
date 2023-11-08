@@ -22,10 +22,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.FilterSelector
 import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -35,6 +37,7 @@ import org.koin.core.parameter.parametersOf
 fun WorkoutHistory(
     paddingValues: PaddingValues,
     navHostController: NavHostController,
+    setTopAppBarCollapsed: (Boolean) -> Unit,
 ) {
     val workoutHistoryViewModel: WorkoutHistoryViewModel = koinViewModel {
         parametersOf(navHostController)
@@ -48,6 +51,7 @@ fun WorkoutHistory(
     }
 
     if (state.isDatePickerVisible) {
+        setTopAppBarCollapsed(true)
         val oldestLogEntry = remember(state.dateOrderedWorkoutLogs) { state.dateOrderedWorkoutLogs.lastOrNull()?.date }
         val newestLogEntry = remember(state.dateOrderedWorkoutLogs) { state.dateOrderedWorkoutLogs.firstOrNull()?.date }
         val dateRangePickerState = rememberDateRangePickerState(
@@ -80,7 +84,20 @@ fun WorkoutHistory(
                 )
             }
         )
+    } else if (state.isProgramAndWorkoutFilterVisible) {
+        setTopAppBarCollapsed(true)
+        FilterSelector(
+            modifier = Modifier.padding(paddingValues),
+            filterOptionSections = state.programAndWorkoutFilterSections,
+            selectedFilters = state.programAndWorkoutFilters,
+            onAddFilter = { workoutHistoryViewModel.addWorkoutOrProgramFilter(it) },
+            onRemoveFilter = { workoutHistoryViewModel.removeWorkoutOrProgramFilter(it) },
+            onConfirmSelections = {
+                workoutHistoryViewModel.applyFilters()
+            },
+        )
     } else {
+        setTopAppBarCollapsed(false)
         LazyColumn(
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
