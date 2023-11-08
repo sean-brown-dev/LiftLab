@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.views.main.home
+package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

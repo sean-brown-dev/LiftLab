@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,10 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,15 +36,13 @@ fun WorkoutCard(
     showEditWorkoutNameModal: () -> Unit,
     beginDeleteWorkout: () -> Unit,
 ) {
-    OutlinedCard(
-        modifier = modifier.then(
-            Modifier
+    Card(
+        modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 5.dp, horizontal = 10.dp)),
+            .padding(vertical = 5.dp, horizontal = 10.dp),
         shape = CardDefaults.shape,
-        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.outline),
         colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
         ),
         onClick = {
             val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
@@ -60,7 +57,7 @@ fun WorkoutCard(
             Text(
                 text = workoutName,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.tertiary,
                 fontSize = 20.sp,
                 modifier = Modifier.padding(15.dp, 0.dp, 0.dp, 0.dp)
             )
@@ -73,7 +70,7 @@ fun WorkoutCard(
         lifts.fastForEach {
             Text(
                 text = "${it.setCount} x ${it.liftName}",
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 modifier = Modifier.padding(horizontal = 15.dp)

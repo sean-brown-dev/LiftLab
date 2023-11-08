@@ -11,12 +11,10 @@ import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
+import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeScreenState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
@@ -45,7 +43,10 @@ class HomeViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
+    private var _programLiveData: LiveData<ProgramDto?>? = null
+    private var _programObserver: Observer<ProgramDto?>? = null
     private var _loggingLiveData:  LiveData<List<WorkoutLogEntryDto>>? = null
+    private var _loggingObserver: Observer<List<WorkoutLogEntryDto>>? = null
     private var _state = MutableStateFlow(HomeScreenState())
     val state = _state.asStateFlow()
 
@@ -54,15 +55,9 @@ class HomeViewModel(
             val dateRange = getSevenWeeksDateRange()
             val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
 
-            programsRepository.getActive().observeForever { activeProgram ->
-                _state.update {
-                    it.copy(
-                        program = activeProgram
-                    )
-                }
+            _programObserver = Observer { activeProgram ->
                 if (_loggingLiveData == null) {
-                    _loggingLiveData = loggingRepository.getAll()
-                    _loggingLiveData!!.observeForever{ workoutLogs ->
+                    _loggingObserver = Observer { workoutLogs ->
                         val dateOrderedWorkoutLogs = workoutLogs.sortedByDescending { it.date }
                         val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
 
@@ -71,28 +66,44 @@ class HomeViewModel(
                                 workoutCompletionChart = getWeeklyCompletionChart(
                                     workoutCompletionRange = workoutCompletionRange,
                                     workoutsInDateRange = workoutsInDateRange,
+                                    program = activeProgram,
                                 ),
                                 microCycleCompletionChart = getMicroCycleCompletionChart(
-                                    dateOrderedWorkoutLogs = dateOrderedWorkoutLogs
+                                    dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                                    program = activeProgram,
                                 )
                             )
                         }
                     }
+
+                    _loggingLiveData = loggingRepository.getAll()
+                    _loggingLiveData!!.observeForever(_loggingObserver!!)
                 } else {
                     _state.update {
                         it.copy(
                             workoutCompletionChart = getWeeklyCompletionChart(
                                 workoutCompletionRange = workoutCompletionRange,
                                 workoutsInDateRange = getWorkoutsInDateRange(_state.value.dateOrderedWorkoutLogs, dateRange),
+                                program = activeProgram,
                             ),
                             microCycleCompletionChart = getMicroCycleCompletionChart(
-                                dateOrderedWorkoutLogs = _state.value.dateOrderedWorkoutLogs
+                                dateOrderedWorkoutLogs = _state.value.dateOrderedWorkoutLogs,
+                                program = activeProgram,
                             )
                         )
                     }
                 }
             }
+            _programLiveData = programsRepository.getActive()
+            _programLiveData!!.observeForever(_programObserver!!)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        _programLiveData?.removeObserver(_programObserver!!)
+        _loggingLiveData?.removeObserver(_loggingObserver!!)
     }
 
     @Subscribe
@@ -130,9 +141,10 @@ class HomeViewModel(
 
     private fun getWeeklyCompletionChart(
         workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-        workoutsInDateRange: List<WorkoutLogEntryDto>
+        workoutsInDateRange: List<WorkoutLogEntryDto>,
+        program: ProgramDto?,
     ): ChartModel {
-        val workoutCount = _state.value.program?.workouts?.size
+        val workoutCount = program?.workouts?.size
         val completedWorkoutsByWeek = workoutCompletionRange.fastMap { week ->
             week.first to
                     workoutsInDateRange.filter { workoutLog ->
@@ -167,8 +179,11 @@ class HomeViewModel(
         )
     }
 
-    private fun getMicroCycleCompletionChart(dateOrderedWorkoutLogs: List<WorkoutLogEntryDto>): ChartModel {
-        val setCount = _state.value.program?.workouts?.sumOf { workout ->
+    private fun getMicroCycleCompletionChart(
+        dateOrderedWorkoutLogs: List<WorkoutLogEntryDto>,
+        program: ProgramDto?,
+    ): ChartModel {
+        val setCount = program?.workouts?.sumOf { workout ->
             workout.lifts.sumOf { it.setCount }
         }?.toFloat() ?: 1f
 

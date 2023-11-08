@@ -51,11 +51,6 @@ fun MultiLineChart(
     selectedWorkoutFilters: Set<Long>,
     onApplyWorkoutFilters: (historicalWorkoutIds: Set<Long>) -> Unit,
 ) {
-    SectionLabel(
-        modifier = Modifier.padding(top = 10.dp),
-        text = label,
-        fontSize = 14.sp,
-    )
     Card(
         modifier = Modifier.padding(10.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -70,8 +65,15 @@ fun MultiLineChart(
                 initialScroll = InitialScroll.End
             )
             Column(horizontalAlignment = Alignment.End) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Row {
+                Spacer(modifier = Modifier.height(5.dp))
+                Row (verticalAlignment = Alignment.CenterVertically) {
+                    SectionLabel(
+                        modifier = Modifier.padding(top = 10.dp),
+                        text = label,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        fontSize = 14.sp,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
                     WorkoutFilterDropdown(
                         selectedFilters = selectedWorkoutFilters,
                         filterOptions = workoutFilterOptions,

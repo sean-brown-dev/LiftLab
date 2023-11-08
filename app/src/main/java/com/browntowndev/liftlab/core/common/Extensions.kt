@@ -25,11 +25,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
-import java.time.Duration
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.ZoneId
 import java.util.Date
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -240,13 +239,15 @@ fun LocalDate.toEndOfDate(): Date {
     return Date.from(endOfDay.toInstant())
 }
 
-fun Date.toSimpleDateString(): String {
+fun Date.toSimpleDateString(zoneId: ZoneId = ZoneId.systemDefault()): String {
     val formatter = getDateInstance()
+    formatter.timeZone = TimeZone.getTimeZone(zoneId)
     return formatter.format(this)
 }
 
-fun Date.toSimpleDateTimeString(): String {
+fun Date.toSimpleDateTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
     val formatter = getDateTimeInstance()
+    formatter.timeZone = TimeZone.getTimeZone(zoneId)
     return formatter.format(this)
 }
 

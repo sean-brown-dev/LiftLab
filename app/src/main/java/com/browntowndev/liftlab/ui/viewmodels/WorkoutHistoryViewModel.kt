@@ -1,13 +1,18 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.DATE_RANGE
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.PROGRAM
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.WORKOUT
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.core.common.toDate
+import com.browntowndev.liftlab.core.common.toSimpleDateString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
@@ -17,9 +22,9 @@ import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import java.time.ZoneId
 
 class WorkoutHistoryViewModel(
     private val navHostController: NavHostController,
@@ -39,6 +44,7 @@ class WorkoutHistoryViewModel(
             _state.update {
                 it.copy(
                     dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                    filteredWorkoutLogs = dateOrderedWorkoutLogs,
                     topSets = topSets,
                 )
             }
@@ -55,8 +61,83 @@ class WorkoutHistoryViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> navHostController.popBackStack()
+            TopAppBarAction.NavigatedBack -> onBackNavigationIconPressed()
+            TopAppBarAction.EditDateRange -> toggleDateRangePicker()
             else -> { }
+        }
+    }
+
+    fun setDateRangeFilter(start: Long?, end: Long?) {
+        _state.update {
+            it.copy(
+                startDateInMillis = start,
+                endDateInMillis = end,
+            )
+        }
+    }
+
+    fun toggleDateRangePicker() {
+        _state.update {
+            it.copy(isDatePickerVisible = !it.isDatePickerVisible)
+        }
+
+        if (!_state.value.isDatePickerVisible) {
+            applyFilters()
+        }
+    }
+
+    fun removeFilterChip(filterChip: FilterChipOption) {
+        val isDateRangeChip = filterChip.type == DATE_RANGE
+        val isWorkoutChip = filterChip.type == WORKOUT
+        val isProgramChip = filterChip.type == PROGRAM
+        _state.update {
+            it.copy(
+                startDateInMillis = if (isDateRangeChip) null else it.startDateInMillis,
+                endDateInMillis = if (isDateRangeChip) null else it.endDateInMillis,
+                programIdFilters = if (isProgramChip) {
+                    it.programIdFilters.toMutableList().apply {
+                        remove(filterChip.value.toLong())
+                    }
+                } else it.programIdFilters,
+                workoutIdFilters = if (isWorkoutChip) {
+                    it.workoutIdFilters.toMutableList().apply {
+                        remove(filterChip.value.toLong())
+                    }
+                } else it.workoutIdFilters
+            )
+        }
+
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        _state.update { currentState ->
+            currentState.copy(
+                filteredWorkoutLogs = currentState.dateOrderedWorkoutLogs.filter { workoutLog ->
+                    currentState.dateRangeFilter.contains(workoutLog.date.time) ||
+                            currentState.workoutIdFilters.contains(workoutLog.workoutId) ||
+                            currentState.programIdFilters.contains(workoutLog.programId)
+                },
+                filterChips = currentState.filterChips.toMutableList().apply {
+                    clear()
+                    if (currentState.startDateInMillis != null || currentState.endDateInMillis != null) {
+                        val utcZoneId = ZoneId.of("UTC")
+                        val firstDateInUtcMillis = currentState.dateRangeFilter.first
+                        val secondDateInUtcMillis = currentState.endDateInMillis!!
+                        val dateRange = "${firstDateInUtcMillis.toDate().toSimpleDateString(utcZoneId)} - " +
+                                secondDateInUtcMillis.toDate().toSimpleDateString(utcZoneId)
+                        add(FilterChipOption(type = DATE_RANGE, value = dateRange))
+                    }
+                    currentState.workoutIdFilters.fastForEach { workoutId ->
+                        val workoutName = currentState.workoutNamesById[workoutId]
+                        add(FilterChipOption(type = WORKOUT, value = workoutName!!))
+                    }
+                    currentState.programIdFilters.fastForEach { programId ->
+                        val programName = currentState.programNamesById[programId]
+                        add(FilterChipOption(type = PROGRAM, value = programName!!))
+                    }
+                }
+            )
         }
     }
 
@@ -108,5 +189,13 @@ class WorkoutHistoryViewModel(
                 }
                 setSize to topSet
             }
+    }
+
+    private fun onBackNavigationIconPressed() {
+        if (_state.value.isDatePickerVisible) {
+            toggleDateRangePicker()
+        } else {
+            navHostController.popBackStack()
+        }
     }
 }

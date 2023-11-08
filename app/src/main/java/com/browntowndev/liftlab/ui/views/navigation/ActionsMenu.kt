@@ -52,13 +52,14 @@ fun ActionsMenu(
             IconButton(onClick = item.onClick) {
                 item.icon?.onLeft {
                     Icon(
+                        modifier = Modifier.size(24.dp),
                         imageVector = it,
                         contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }?.onRight {
                     Icon(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(24.dp),
                         painter = painterResource(id = it),
                         contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
                         tint = MaterialTheme.colorScheme.primary,
@@ -88,6 +89,7 @@ fun ActionsMenu(
     if (menuItems.overflowItems.isNotEmpty()) {
         IconButton(onClick = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, true) }) {
             Icon(
+                modifier = Modifier.size(24.dp),
                 imageVector = Icons.Filled.MoreVert,
                 contentDescription = stringResource(id = R.string.accessibility_overflow),
                 tint = MaterialTheme.colorScheme.primary,

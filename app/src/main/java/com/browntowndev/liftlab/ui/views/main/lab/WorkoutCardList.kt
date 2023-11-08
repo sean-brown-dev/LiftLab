@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +41,8 @@ fun WorkoutCardList(
         modifier = Modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.background)
-            .padding(paddingValues)
+            .padding(paddingValues),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         items(workouts, { it.id }) { workout ->
             WorkoutCard(

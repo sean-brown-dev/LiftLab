@@ -120,9 +120,8 @@ data class WorkoutScreen(
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.FinishWorkout))
                 }
             ),
-            ActionMenuItem.IconMenuItem.NeverShown (
-                title = "",
-                trailingIconText = "View & Edit History",
+            ActionMenuItem.IconMenuItem.AlwaysShown (
+                title = "View/Edit History",
                 isVisible = !restTimerControlVisible,
                 controlName = WORKOUT_HISTORY_BUTTON,
                 icon = R.drawable.history_icon.right(),

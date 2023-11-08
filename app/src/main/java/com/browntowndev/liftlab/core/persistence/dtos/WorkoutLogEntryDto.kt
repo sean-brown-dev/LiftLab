@@ -9,6 +9,7 @@ data class WorkoutLogEntryDto(
     val programDeloadWeek: Int,
     val programName: String,
     val workoutName: String,
+    val programId: Long,
     val workoutId: Long,
     val mesocycle: Int,
     val microcycle: Int,

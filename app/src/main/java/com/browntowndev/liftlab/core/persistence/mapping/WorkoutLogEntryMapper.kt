@@ -42,6 +42,7 @@ class WorkoutLogEntryMapper {
                     val firstEntry = workoutLog.value[0]
                     WorkoutLogEntryDto(
                         id = firstEntry.id,
+                        programId = firstEntry.programId,
                         workoutId = firstEntry.workoutId,
                         historicalWorkoutNameId = firstEntry.historicalWorkoutNameId,
                         workoutName = firstEntry.workoutName,

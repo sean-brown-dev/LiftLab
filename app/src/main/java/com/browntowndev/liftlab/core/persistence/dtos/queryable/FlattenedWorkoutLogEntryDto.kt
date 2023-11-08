@@ -5,9 +5,10 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import java.util.Date
 
-data class FlattenedWorkoutLogEntryDto (
+data class FlattenedWorkoutLogEntryDto(
     val id: Long,
     val historicalWorkoutNameId: Long,
+    val programId: Long,
     val workoutId: Long,
     val setLogEntryId: Long,
     val programName: String,
