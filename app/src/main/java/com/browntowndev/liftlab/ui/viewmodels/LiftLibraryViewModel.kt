@@ -6,7 +6,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -41,8 +40,12 @@ class LiftLibraryViewModel(
     init {
         _liftsLiveData = liftsRepository.getAll()
         _liftsObserver = Observer { lifts ->
+            val sortedLifts = lifts.sortedBy { it.name }
             _state.update { currentState ->
-                currentState.copy(allLifts = lifts.sortedBy { it.name })
+                currentState.copy(
+                    allLifts = sortedLifts,
+                    filteredLifts = sortedLifts,
+                )
             }
         }
 

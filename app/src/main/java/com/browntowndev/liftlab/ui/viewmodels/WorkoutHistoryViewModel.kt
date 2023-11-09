@@ -158,20 +158,24 @@ class WorkoutHistoryViewModel(
         applyFilters()
     }
 
+    private fun isInProgramFilters(state: WorkoutHistoryState, workoutLog: WorkoutLogEntryDto): Boolean {
+        return state.programAndWorkoutFilters.none { it.type == PROGRAM } ||
+                state.programAndWorkoutFilters.fastAny { it.key == workoutLog.programId }
+    }
+
+    private fun isInWorkoutFilters(state: WorkoutHistoryState, workoutLog: WorkoutLogEntryDto): Boolean {
+        return state.programAndWorkoutFilters.none { it.type == WORKOUT } ||
+                state.programAndWorkoutFilters.fastAny { it.key == workoutLog.workoutId }
+    }
+
     fun applyFilters() {
         _state.update { currentState ->
             currentState.copy(
                 isProgramAndWorkoutFilterVisible = false,
                 filteredWorkoutLogs = currentState.dateOrderedWorkoutLogs.filter { workoutLog ->
                     currentState.dateRangeFilter.contains(workoutLog.date.time) &&
-                            (currentState.programAndWorkoutFilters.isEmpty() ||
-                                    currentState.programAndWorkoutFilters.fastAny {
-                                        val workoutMatches =
-                                            it.type == WORKOUT && it.key == workoutLog.workoutId
-                                        val programMatches =
-                                            it.type == PROGRAM && it.key == workoutLog.programId
-                                        workoutMatches || programMatches
-                                    })
+                            isInProgramFilters(currentState, workoutLog) &&
+                            isInWorkoutFilters(currentState, workoutLog)
                 },
                 filterChips = currentState.filterChips.toMutableList().apply {
                     clear()
