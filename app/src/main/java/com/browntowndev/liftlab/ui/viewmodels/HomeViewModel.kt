@@ -63,6 +63,7 @@ class HomeViewModel(
 
                         _state.update {
                             it.copy(
+                                dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
                                 workoutCompletionChart = getWeeklyCompletionChart(
                                     workoutCompletionRange = workoutCompletionRange,
                                     workoutsInDateRange = workoutsInDateRange,
