@@ -7,4 +7,6 @@ data class HomeScreenState(
     val dateOrderedWorkoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val workoutCompletionChart: ChartModel? = null,
     val microCycleCompletionChart: ChartModel? = null,
+    val showLiftChartPicker: Boolean = false,
+    val liftChartTypeSelections: List<String> = listOf(),
 )

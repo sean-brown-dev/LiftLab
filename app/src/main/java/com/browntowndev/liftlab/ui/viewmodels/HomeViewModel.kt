@@ -221,4 +221,24 @@ class HomeViewModel(
             startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 11),
         )
     }
+
+    fun toggleLiftChartPicker() {
+        _state.update {
+            it.copy(showLiftChartPicker = !it.showLiftChartPicker)
+        }
+    }
+
+    fun updateLiftChartTypeSelections(type: String, selected: Boolean) {
+        _state.update {
+            it.copy(
+                liftChartTypeSelections = it.liftChartTypeSelections.toMutableList().apply {
+                    if (selected) {
+                        add(type)
+                    } else {
+                        remove(type)
+                    }
+                }
+            )
+        }
+    }
 }

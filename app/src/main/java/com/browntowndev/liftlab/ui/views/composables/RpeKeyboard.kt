@@ -64,11 +64,15 @@ fun RpeKeyboard(
         ) + fadeOut(),
     ) {
         ElevatedCard(
-            modifier = modifier
+            modifier = modifier.then(
+                Modifier
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp.times(.30f)),
+                .height(LocalConfiguration.current.screenHeightDp.dp.times(.30f))),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
+            elevation = CardDefaults.elevatedCardElevation(
+                defaultElevation = 5.dp
             ),
             shape = RoundedCornerShape(
                 topStart = 10.dp,
@@ -153,7 +157,7 @@ fun RpeKeyboard(
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             ) {
                 Row(
@@ -197,7 +201,7 @@ private fun RpeOption(
         modifier = modifier
             .height(60.dp)
             .clickable { selected() },
-        color = if(isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surface,
+        color = if(isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.background,
         shape = RoundedCornerShape(
                 topStart = if (isFirst) 16.dp else 0.dp,
                 topEnd = if (isLast) 16.dp else 0.dp,
@@ -213,7 +217,7 @@ private fun RpeOption(
                 text = rpe,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onSurface
+                color = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onBackground
             )
         }
     }
