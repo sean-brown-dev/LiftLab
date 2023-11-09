@@ -6,6 +6,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -29,6 +30,9 @@ class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val navHostController: NavHostController,
+    workoutId: Long?,
+    addAtPosition: Int?,
+    initialMovementPatternFilter: String,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -38,13 +42,25 @@ class LiftLibraryViewModel(
     val state = _state.asStateFlow()
 
     init {
+        _state.update {
+            it.copy(
+                workoutId = workoutId,
+                addAtPosition = addAtPosition,
+                movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
+                    listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
+                } else {
+                    it.movementPatternFilters
+                }
+            )
+        }
+
         _liftsLiveData = liftsRepository.getAll()
         _liftsObserver = Observer { lifts ->
             val sortedLifts = lifts.sortedBy { it.name }
             _state.update { currentState ->
                 currentState.copy(
                     allLifts = sortedLifts,
-                    filteredLifts = sortedLifts,
+                    filteredLifts = getFilteredLifts(sortedLifts)
                 )
             }
         }
@@ -73,18 +89,6 @@ class LiftLibraryViewModel(
         when (payloadEvent.action) {
             TopAppBarAction.SearchTextChanged -> setNameFilter(payloadEvent.payload)
             else -> {}
-        }
-    }
-
-    fun setWorkoutId(workoutId: Long?) {
-        _state.update {
-            it.copy(workoutId = workoutId)
-        }
-    }
-
-    fun setAddAtPosition(position: Int?) {
-        _state.update {
-            it.copy(addAtPosition = position)
         }
     }
 
@@ -188,7 +192,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun removeMovementPatternFilter(movementPattern: FilterChipOption) {
+    fun removeMovementPatternFilter(movementPattern: FilterChipOption, apply: Boolean) {
         _state.update {
             it.copy(
                 movementPatternFilters = _state.value.movementPatternFilters
@@ -196,22 +200,45 @@ class LiftLibraryViewModel(
                     .apply { remove(movementPattern) }
             )
         }
+
+        if (apply) {
+            applyFilters()
+        }
+    }
+
+    private fun getFilteredLifts(liftsToFilter: List<LiftDto>): List<LiftDto> {
+        val nameFilter = _state.value.nameFilter
+        val movementPatternFilters = _state.value.movementPatternFilters
+
+        return liftsToFilter.let { lifts ->
+            val hasNameFilter = nameFilter?.isNotEmpty() == true
+            val hasMovementPatternFilters = movementPatternFilters.isNotEmpty()
+
+            if (hasNameFilter || hasMovementPatternFilters) {
+                lifts.filter { lift ->
+                    val nameMatches = if (hasNameFilter) {
+                        lift.name.contains(nameFilter!!, true)
+                    } else true
+
+                    nameMatches && if (hasMovementPatternFilters) {
+                        val movementPatternFilter = FilterChipOption(
+                            type = MOVEMENT_PATTERN,
+                            value = lift.movementPatternDisplayName
+                        )
+                        movementPatternFilters.contains(movementPatternFilter)
+                    } else true
+                }
+            } else lifts
+        }
+
     }
 
     fun applyFilters() {
-        val nameFilter = _state.value.nameFilter
-        val movementPatternFilters = _state.value.movementPatternFilters
-        val allLifts = _state.value.allLifts
-        val nameFilteredLifts = if (nameFilter?.isNotEmpty() == true) {
-            allLifts.filter { lift -> lift.name.contains(nameFilter, true) }
-        } else allLifts
-
+        val filteredLifts = getFilteredLifts(_state.value.allLifts)
         _state.update {
             it.copy(
                 showFilterSelection = false,
-                filteredLifts = if (movementPatternFilters.isNotEmpty()) {
-                    nameFilteredLifts.filter { lift -> movementPatternFilters.any { filter -> filter.value == lift.movementPatternDisplayName } }
-                } else nameFilteredLifts
+                filteredLifts = filteredLifts,
             )
         }
     }

@@ -59,11 +59,8 @@ fun LiftLibrary(
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
-    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController) }
+    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController, workoutId, addAtPosition, movementPattern) }
     val state by liftLibraryViewModel.state.collectAsState()
-
-    liftLibraryViewModel.setWorkoutId(workoutId)
-    liftLibraryViewModel.setAddAtPosition(addAtPosition)
 
     val isReplacingWorkout by remember(key1 = workoutId, key2 = workoutLiftId) {
         mutableStateOf(workoutId != null && workoutLiftId != null)
@@ -86,13 +83,6 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
     }
 
-    LaunchedEffect(key1 = movementPattern) {
-        if (movementPattern.isNotEmpty()) {
-            liftLibraryViewModel.addMovementPatternFilter(FilterChipOption(type = MOVEMENT_PATTERN, value = movementPattern))
-            liftLibraryViewModel.applyFilters()
-        }
-    }
-
     LaunchedEffect(key1 = state.selectedNewLifts) {
         if (state.selectedNewLifts.isEmpty()) {
             onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, false)
@@ -112,7 +102,7 @@ fun LiftLibrary(
                     if (it.type == FilterChipOption.NAME) {
                         onClearTopAppBarFilterText()
                     } else {
-                        liftLibraryViewModel.removeMovementPatternFilter(it)
+                        liftLibraryViewModel.removeMovementPatternFilter(it, true)
                     }
                 },
             )
@@ -190,7 +180,7 @@ fun LiftLibrary(
             },
             selectedFilters = state.movementPatternFilters,
             onAddFilter = { liftLibraryViewModel.addMovementPatternFilter(it) },
-            onRemoveFilter = { liftLibraryViewModel.removeMovementPatternFilter(it) },
+            onRemoveFilter = { liftLibraryViewModel.removeMovementPatternFilter(it, false) },
             onConfirmSelections = {
                 liftLibraryViewModel.applyFilters()
             },
