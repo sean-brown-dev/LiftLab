@@ -19,10 +19,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,7 +69,7 @@ fun CheckBoxPicker(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp.times(.40f)),
+                .height(LocalConfiguration.current.screenHeightDp.dp.times(.45f)),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface,
             ),
@@ -83,6 +88,7 @@ fun CheckBoxPicker(
                     .fillMaxWidth()
                     .padding(start = 10.dp, top = 10.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = title,
@@ -91,6 +97,14 @@ fun CheckBoxPicker(
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyLarge,
                 )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = onCancel) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        contentDescription = null,
+                    )
+                }
             }
             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             Spacer(modifier = Modifier.padding(5.dp))
@@ -103,7 +117,7 @@ fun CheckBoxPicker(
                     Row (
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(color = if(isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
+                            .background(color = if (isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
                             .clickable {
                                 onSelectionChanged(option, !isChecked)
                             },
@@ -121,7 +135,7 @@ fun CheckBoxPicker(
                 }
             }
             Row (
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 confirmationButton()
