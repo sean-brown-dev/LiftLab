@@ -31,7 +31,7 @@ val viewModelModule = module {
     viewModel { params -> CountdownTimerViewModel(params.get()) }
     viewModel { TimerViewModel() }
     viewModel { PickerViewModel() }
-    viewModel { params -> HomeViewModel(get(), get(), params.get(), get(), get()) }
+    viewModel { params -> HomeViewModel(get(), get(), get(), params.get(), get(), get()) }
     viewModel { params -> SettingsViewModel(params.get(), params.get(), get(), get()) }
     viewModel { params -> WorkoutHistoryViewModel(params.get(), get(), get(), get()) }
 }

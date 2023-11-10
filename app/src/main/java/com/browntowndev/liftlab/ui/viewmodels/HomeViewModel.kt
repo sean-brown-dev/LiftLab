@@ -5,18 +5,27 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
+import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.ui.models.BaseChartModel
 import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.viewmodels.states.HomeScreenState
+import com.browntowndev.liftlab.ui.models.getIntensityChartModel
+import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
+import com.browntowndev.liftlab.ui.models.getVolumeChartModel
+import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
@@ -39,6 +48,7 @@ import kotlin.math.roundToInt
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
+    private val liftMetricChartRepository: LiftMetricChartRepository,
     private val navHostController: NavHostController,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -47,13 +57,14 @@ class HomeViewModel(
     private var _programObserver: Observer<ProgramDto?>? = null
     private var _loggingLiveData:  LiveData<List<WorkoutLogEntryDto>>? = null
     private var _loggingObserver: Observer<List<WorkoutLogEntryDto>>? = null
-    private var _state = MutableStateFlow(HomeScreenState())
+    private var _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
             val dateRange = getSevenWeeksDateRange()
             val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
+            val liftMetricCharts = liftMetricChartRepository.getAll()
 
             _programObserver = Observer { activeProgram ->
                 if (_loggingLiveData == null) {
@@ -64,6 +75,10 @@ class HomeViewModel(
                         _state.update {
                             it.copy(
                                 dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                                liftMetricCharts = getLiftMetricCharts(
+                                    liftMetricCharts = liftMetricCharts,
+                                    workoutLogs = dateOrderedWorkoutLogs
+                                ),
                                 workoutCompletionChart = getWeeklyCompletionChart(
                                     workoutCompletionRange = workoutCompletionRange,
                                     workoutsInDateRange = workoutsInDateRange,
@@ -222,6 +237,44 @@ class HomeViewModel(
         )
     }
 
+    private fun getLiftMetricCharts(
+        liftMetricCharts: List<LiftMetricChartDto>,
+        workoutLogs: List<WorkoutLogEntryDto>
+    ): List<Pair<String, List<BaseChartModel>>> {
+        return liftMetricCharts.groupBy { it.liftId }.mapNotNull { liftCharts ->
+
+            // Filter the workout logs to only include results for the current chart's lift
+            val resultsForLift = workoutLogs.mapNotNull { workoutLog ->
+                workoutLog.setResults
+                    .filter { it.liftId == liftCharts.key }
+                    .let { filteredResults ->
+                        if (filteredResults.isNotEmpty()) {
+                            workoutLog.copy(
+                                setResults = filteredResults
+                            )
+                        } else {
+                            null
+                        }
+                    }
+            }
+
+            // Build all the selected charts for the lift
+            val liftName = resultsForLift.firstOrNull()?.setResults?.get(0)?.liftName
+            if (liftName != null) {
+                val chartModels = liftCharts.value.fastMap { chart ->
+                    when (chart.chartType) {
+                        LiftMetricChartType.ESTIMATED_ONE_REP_MAX -> getOneRepMaxChartModel(resultsForLift, setOf())
+                        LiftMetricChartType.VOLUME -> getVolumeChartModel(resultsForLift, setOf())
+                        LiftMetricChartType.RELATIVE_INTENSITY -> getIntensityChartModel(resultsForLift, setOf())
+                    }
+                }
+                liftName to chartModels // Use the infix function to create a pair
+            } else {
+                null // Return null if there are no results for the lift
+            }
+        }
+    }
+
     fun toggleLiftChartPicker() {
         _state.update {
             it.copy(showLiftChartPicker = !it.showLiftChartPicker)
@@ -239,6 +292,20 @@ class HomeViewModel(
                     }
                 }
             )
+        }
+    }
+
+    fun selectLiftForMetricCharts() {
+        executeInTransactionScope {
+            val charts = _state.value.liftChartTypeSelections.fastMap {
+                LiftMetricChartDto(
+                    chartType = it.toLiftMetricChartType()
+                )
+            }
+            // Clear out table of charts with no lifts in case any get stranded somehow
+            liftMetricChartRepository.deleteAllWithNoLifts()
+            liftMetricChartRepository.upsertMany(charts)
+            navHostController.navigate(LiftLibraryScreen.navigation.route)
         }
     }
 }

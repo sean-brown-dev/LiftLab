@@ -33,6 +33,7 @@ import org.koin.core.component.inject
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
+
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

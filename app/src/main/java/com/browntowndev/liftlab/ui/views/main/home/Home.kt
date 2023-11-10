@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.ui.views.main.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,9 +29,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
+import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import com.browntowndev.liftlab.ui.views.composables.CheckBoxPicker
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -101,15 +102,19 @@ fun Home(
             }
         }
 
-        CheckBoxPicker(
+        RowMultiSelect(
             visible = state.showLiftChartPicker,
             title = "ADD LIFT METRIC CHARTS",
-            options = listOf("1RM", "Volume", "Intensity"),
+            options = listOf(
+                LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName(),
+                LiftMetricChartType.VOLUME.displayName(),
+                LiftMetricChartType.RELATIVE_INTENSITY.displayName()
+            ),
             selections = state.liftChartTypeSelections,
             onSelectionChanged = { type, selected ->
                 homeViewModel.updateLiftChartTypeSelections(
-                    type,
-                    selected
+                    type = type,
+                    selected = selected
                 )
             },
             onCancel = { homeViewModel.toggleLiftChartPicker() }

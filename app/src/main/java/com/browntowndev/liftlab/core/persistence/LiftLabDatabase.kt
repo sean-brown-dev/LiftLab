@@ -2,10 +2,8 @@ package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.Observer
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -20,6 +18,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INIT
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
+import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
@@ -31,6 +30,7 @@ import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.persistence.entities.Lift
+import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
@@ -57,12 +57,14 @@ import kotlinx.coroutines.flow.update
         WorkoutLift::class,
         WorkoutInProgress::class,
         RestTimerInProgress::class,
+        LiftMetricChart::class,
    ],
-    version = 2,
+    version = 3,
     exportSchema = true,
-    /*autoMigrations = [
+    autoMigrations = [
         AutoMigration(from = 1, to = 2),
-    ]*/)
+        AutoMigration(from = 2, to = 3),
+    ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
     abstract fun programsDao(): ProgramsDao
@@ -74,6 +76,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
     abstract fun loggingDao(): LoggingDao
     abstract fun restTimerInProgressDao(): RestTimerInProgressDao
+    abstract fun liftMetricChartsDao(): LiftMetricChartsDao
 
     companion object {
         private const val LIFTS_DATA_FILENAME = "lifts.json"
