@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -22,21 +23,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import java.util.Locale
 
 @Composable
 fun Home(
@@ -97,6 +103,33 @@ fun Home(
                         label = "MICROCYCLE SETS COMPLETED",
                         chartModel = state.microCycleCompletionChart!!,
                         marker = rememberMarker(),
+                    )
+                }
+            }
+            items(state.liftMetricChartModels) { chart ->
+                val label = remember(chart.liftName) {
+                    "${chart.liftName} - ${chart.type.displayName()}".uppercase()
+                }
+                when (val chartModel = chart.chartModel) {
+                    is ChartModel -> HomeSingleLineChart(
+                        chartModel = chartModel,
+                        label = label,
+                        onDelete = {
+                            homeViewModel.deleteLiftMetricChart(
+                                liftName = chart.liftName,
+                                chartType = chart.type
+                            )
+                        },
+                    )
+                    is ComposedChartModel -> HomeMultiLineChart(
+                        chartModel = chartModel,
+                        label = label,
+                        onDelete = {
+                            homeViewModel.deleteLiftMetricChart(
+                                liftName = chart.liftName,
+                                chartType = chart.type
+                            )
+                        },
                     )
                 }
             }

@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
@@ -9,6 +10,10 @@ import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
 class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChartsDao): Repository {
     suspend fun deleteAllWithNoLifts() {
         liftMetricChartsDao.deleteAllWithNoLift()
+    }
+
+    suspend fun deleteForLift(liftName: String, chartType: LiftMetricChartType) {
+        liftMetricChartsDao.deleteForLift(liftName, chartType)
     }
 
     suspend fun upsertMany(liftMetricCharts: List<LiftMetricChartDto>): List<Long> {

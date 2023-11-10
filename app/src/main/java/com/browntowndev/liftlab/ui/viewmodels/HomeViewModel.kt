@@ -22,6 +22,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.ui.models.BaseChartModel
 import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getVolumeChartModel
@@ -76,7 +77,7 @@ class HomeViewModel(
                         _state.update {
                             it.copy(
                                 dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
-                                liftMetricCharts = getLiftMetricCharts(
+                                liftMetricChartModels = getLiftMetricCharts(
                                     liftMetricCharts = liftMetricCharts,
                                     workoutLogs = dateOrderedWorkoutLogs
                                 ),
@@ -240,10 +241,9 @@ class HomeViewModel(
 
     private fun getLiftMetricCharts(
         liftMetricCharts: List<LiftMetricChartDto>,
-        workoutLogs: List<WorkoutLogEntryDto>
-    ): List<Pair<String, List<BaseChartModel>>> {
-        return liftMetricCharts.groupBy { it.liftId }.mapNotNull { liftCharts ->
-
+        workoutLogs: List<WorkoutLogEntryDto>,
+    ): List<LiftMetricChartModel> {
+        return liftMetricCharts.groupBy { it.liftId }.flatMap { liftCharts ->
             // Filter the workout logs to only include results for the current chart's lift
             val resultsForLift = workoutLogs.mapNotNull { workoutLog ->
                 workoutLog.setResults
@@ -262,17 +262,29 @@ class HomeViewModel(
             // Build all the selected charts for the lift
             val liftName = resultsForLift.firstOrNull()?.setResults?.get(0)?.liftName
             if (liftName != null) {
-                val chartModels = liftCharts.value.fastMap { chart ->
-                    when (chart.chartType) {
-                        LiftMetricChartType.ESTIMATED_ONE_REP_MAX -> getOneRepMaxChartModel(resultsForLift, setOf())
-                        LiftMetricChartType.VOLUME -> getVolumeChartModel(resultsForLift, setOf())
-                        LiftMetricChartType.RELATIVE_INTENSITY -> getIntensityChartModel(resultsForLift, setOf())
-                    }
+                liftCharts.value.fastMap { chart ->
+                    LiftMetricChartModel(
+                        liftName = liftName,
+                        type = chart.chartType,
+                        chartModel = when (chart.chartType) {
+                            LiftMetricChartType.ESTIMATED_ONE_REP_MAX -> getOneRepMaxChartModel(
+                                resultsForLift,
+                                setOf()
+                            )
+
+                            LiftMetricChartType.VOLUME -> getVolumeChartModel(
+                                resultsForLift,
+                                setOf()
+                            )
+
+                            LiftMetricChartType.RELATIVE_INTENSITY -> getIntensityChartModel(
+                                resultsForLift,
+                                setOf()
+                            )
+                        }
+                    )
                 }
-                liftName to chartModels // Use the infix function to create a pair
-            } else {
-                null // Return null if there are no results for the lift
-            }
+            } else listOf()
         }
     }
 
@@ -308,6 +320,19 @@ class HomeViewModel(
             val chartIds = liftMetricChartRepository.upsertMany(charts)
             navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
             navHostController.navigate(LiftLibraryScreen.navigation.route)
+        }
+    }
+
+    fun deleteLiftMetricChart(liftName: String, chartType: LiftMetricChartType) {
+        executeInTransactionScope {
+            liftMetricChartRepository.deleteForLift(liftName, chartType)
+            _state.update {
+                it.copy(
+                    liftMetricChartModels = it.liftMetricChartModels.toMutableList().apply {
+                        removeIf { chart -> chart.liftName == liftName && chart.type == chartType }
+                    }
+                )
+            }
         }
     }
 }

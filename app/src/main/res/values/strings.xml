@@ -9,4 +9,5 @@
     <string name="import_database">import database</string>
     <string name="db_encryption_key">TW%LK*HnE6434!#e9euM</string>
     <string name="add_lift_chart">Add lift chart.</string>
+    <string name="delete_lift_metric_chart">Delete lift metric chart.</string>
 </resources>

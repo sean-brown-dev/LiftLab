@@ -8,7 +8,7 @@ enum class LiftMetricChartType {
 
 fun LiftMetricChartType.displayName(): String {
     return when (this) {
-        LiftMetricChartType.ESTIMATED_ONE_REP_MAX -> "Estimated One-Rep Max"
+        LiftMetricChartType.ESTIMATED_ONE_REP_MAX -> "Estimated 1RM"
         LiftMetricChartType.VOLUME -> "Volume"
         LiftMetricChartType.RELATIVE_INTENSITY -> "Relative Intensity"
     }
