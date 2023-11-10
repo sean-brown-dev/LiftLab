@@ -51,14 +51,17 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 repRangePlaceholder = if (!isDeloadWeek) {
                     "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                 } else workoutLift.repRangeBottom.toString(),
-                weightRecommendation =
-                if ((result?.reps ?: 0) >= workoutLift.repRangeTop &&
-                    result?.rpe == workoutLift.rpeTarget
-                ) {
-                    incrementWeight(workoutLift, result)
+                weightRecommendation = if (setMetCriterion(result, workoutLift)) {
+                    incrementWeight(workoutLift, result!!)
                 } else result?.weight
             )
         }
+    }
+
+    private fun setMetCriterion(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
+        return result != null &&
+                result.reps >= goals.repRangeTop &&
+                result.rpe <= goals.rpeTarget
     }
 
     private fun getCustomSetProgressions(
