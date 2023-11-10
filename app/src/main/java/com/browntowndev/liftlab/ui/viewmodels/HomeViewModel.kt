@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
@@ -296,7 +297,7 @@ class HomeViewModel(
     }
 
     fun selectLiftForMetricCharts() {
-        executeInTransactionScope {
+        viewModelScope.launch {
             val charts = _state.value.liftChartTypeSelections.fastMap {
                 LiftMetricChartDto(
                     chartType = it.toLiftMetricChartType()
@@ -304,7 +305,8 @@ class HomeViewModel(
             }
             // Clear out table of charts with no lifts in case any get stranded somehow
             liftMetricChartRepository.deleteAllWithNoLifts()
-            liftMetricChartRepository.upsertMany(charts)
+            val chartIds = liftMetricChartRepository.upsertMany(charts)
+            navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
             navHostController.navigate(LiftLibraryScreen.navigation.route)
         }
     }

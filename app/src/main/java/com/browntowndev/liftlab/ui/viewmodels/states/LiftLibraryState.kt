@@ -13,6 +13,7 @@ data class LiftLibraryState (
     val addAtPosition: Int? = null,
     val workoutId: Long? = null,
     val nameFilter: String? = null,
+    val liftMetricChartIds: List<Long> = listOf(),
     val movementPatternFilters: List<FilterChipOption> = listOf(),
     val showFilterSelection: Boolean = false,
     val replacingLift: Boolean = false,

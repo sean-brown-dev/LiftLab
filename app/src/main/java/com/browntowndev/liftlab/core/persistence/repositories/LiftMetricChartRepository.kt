@@ -11,7 +11,7 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
         liftMetricChartsDao.deleteAllWithNoLift()
     }
 
-    suspend fun upsertMany(liftMetricCharts: List<LiftMetricChartDto>) {
+    suspend fun upsertMany(liftMetricCharts: List<LiftMetricChartDto>): List<Long> {
         val charts = liftMetricCharts.fastMap { liftMetricChart ->
             LiftMetricChart(
                 id = liftMetricChart.id,
@@ -20,11 +20,11 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
             )
         }
 
-        liftMetricChartsDao.upsertMany(charts)
+        return liftMetricChartsDao.upsertMany(charts)
     }
 
-    suspend fun upsert(liftMetricChart: LiftMetricChartDto) {
-        liftMetricChartsDao.upsert(
+    suspend fun upsert(liftMetricChart: LiftMetricChartDto): Long {
+        return liftMetricChartsDao.upsert(
             LiftMetricChart(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
@@ -34,7 +34,17 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
     }
 
     suspend fun getAll(): List<LiftMetricChartDto> {
-        return liftMetricChartsDao.getAll().map {
+        return liftMetricChartsDao.getAll().fastMap {
+            LiftMetricChartDto(
+                id = it.id,
+                liftId = it.liftId,
+                chartType = it.chartType,
+            )
+        }
+    }
+
+    suspend fun getMany(ids: List<Long>): List<LiftMetricChartDto> {
+        return liftMetricChartsDao.getMany(ids).fastMap {
             LiftMetricChartDto(
                 id = it.id,
                 liftId = it.liftId,

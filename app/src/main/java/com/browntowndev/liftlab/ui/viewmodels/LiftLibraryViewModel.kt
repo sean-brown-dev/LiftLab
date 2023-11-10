@@ -4,6 +4,7 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
@@ -12,10 +13,13 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
@@ -29,10 +33,12 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val liftMetricChartRepository: LiftMetricChartRepository,
     private val navHostController: NavHostController,
     workoutId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
+    liftMetricChartIds: List<Long>,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -46,6 +52,7 @@ class LiftLibraryViewModel(
             it.copy(
                 workoutId = workoutId,
                 addAtPosition = addAtPosition,
+                liftMetricChartIds = liftMetricChartIds,
                 movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
                     listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
                 } else {
@@ -78,7 +85,7 @@ class LiftLibraryViewModel(
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
-            TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
+            TopAppBarAction.ConfirmAddLift -> if (_state.value.liftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
             TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
         }
@@ -107,6 +114,30 @@ class LiftLibraryViewModel(
             })
         }
     }
+
+    private fun updateLiftMetricChartsWithSelectedLiftIds() {
+        viewModelScope.launch {
+            val newLiftIds = _state.value.selectedNewLiftsHashSet
+            var liftMetricCharts = liftMetricChartRepository.getMany(_state.value.liftMetricChartIds)
+
+            liftMetricCharts = newLiftIds.flatMap { currLiftId ->
+                liftMetricCharts.fastMap { chart ->
+                    updateChart(chart, currLiftId, newLiftIds.first())
+                }
+            }
+
+            liftMetricChartRepository.upsertMany(liftMetricCharts = liftMetricCharts)
+            navigateBackToHome()
+        }
+    }
+
+    private fun updateChart(chart: LiftMetricChartDto, liftId: Long, firstLiftId: Long): LiftMetricChartDto {
+        return chart.copy(
+            id = if (liftId == firstLiftId) chart.id else 0L,
+            liftId = liftId
+        )
+    }
+
 
     private fun addWorkoutLifts() {
         viewModelScope.launch {
@@ -153,6 +184,16 @@ class LiftLibraryViewModel(
             workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
             navigateBackToWorkoutBuilder()
         }
+    }
+
+    private fun navigateBackToHome() {
+        // Pop back to before Home
+        while (navHostController.previousBackStackEntry?.destination?.route != HomeScreen.navigation.route) {
+            navHostController.popBackStack()
+        }
+
+        // Go back to Home
+        navHostController.navigate(HomeScreen.navigation.route)
     }
 
     private fun navigateBackToWorkoutBuilder() {

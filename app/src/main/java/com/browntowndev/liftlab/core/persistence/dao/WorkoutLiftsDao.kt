@@ -13,6 +13,7 @@ interface WorkoutLiftsDao {
     @Insert
     suspend fun insert(workoutLift: WorkoutLift): Long
 
+    @Transaction
     @Insert
     suspend fun insertAll(workoutLifts: List<WorkoutLift>): List<Long>
 

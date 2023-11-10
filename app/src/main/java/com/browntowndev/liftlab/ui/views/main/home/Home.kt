@@ -119,7 +119,7 @@ fun Home(
             },
             onCancel = { homeViewModel.toggleLiftChartPicker() }
         ) {
-            TextButton(onClick = { /*TODO*/ }) {
+            TextButton(onClick = { homeViewModel.selectLiftForMetricCharts() }) {
                 Row (verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Select Lift",

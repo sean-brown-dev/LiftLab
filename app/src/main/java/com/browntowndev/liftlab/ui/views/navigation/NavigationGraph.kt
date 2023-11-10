@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
+import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
@@ -92,6 +93,9 @@ fun NavigationGraph(
             val workoutLiftId = it.arguments?.getString("workoutLiftId")?.toLongOrNull()
             val movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
             val addAtPosition = it.arguments?.getString("addAtPosition")?.toIntOrNull()
+            val liftMetricChartIds = navHostController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<List<Long>>(LIFT_METRIC_CHART_IDS) ?: listOf()
 
             if (screen as? LiftLibraryScreen != null) {
                 LaunchedEffect(key1 = screen) {
@@ -109,6 +113,7 @@ fun NavigationGraph(
                     workoutLiftId = workoutLiftId,
                     movementPattern = movementPatternParam,
                     addAtPosition = addAtPosition,
+                    liftMetricChartIds = liftMetricChartIds,
                     isSearchBarVisible = screen.isSearchBarVisible,
                     onNavigateBack = onNavigateBack,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,

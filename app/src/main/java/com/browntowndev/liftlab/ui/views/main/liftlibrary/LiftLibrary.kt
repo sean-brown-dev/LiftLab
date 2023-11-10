@@ -52,6 +52,7 @@ fun LiftLibrary(
     workoutId: Long? = null,
     workoutLiftId: Long? = null,
     movementPattern: String = "",
+    liftMetricChartIds: List<Long>,
     addAtPosition: Int? = null,
     onNavigateBack: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
@@ -59,15 +60,16 @@ fun LiftLibrary(
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
-    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController, workoutId, addAtPosition, movementPattern) }
+    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController, workoutId, addAtPosition, movementPattern, liftMetricChartIds) }
     val state by liftLibraryViewModel.state.collectAsState()
 
-    val isReplacingWorkout by remember(key1 = workoutId, key2 = workoutLiftId) {
-        mutableStateOf(workoutId != null && workoutLiftId != null)
+    val isReplacingWorkout = remember(key1 = workoutId, key2 = workoutLiftId) {
+        workoutId != null && workoutLiftId != null
     }
-    val isAddingToWorkout by remember(key1 = workoutId, key2 = addAtPosition) {
-        mutableStateOf(workoutId != null && addAtPosition != null)
+    val isAddingToWorkout = remember(key1 = workoutId, key2 = addAtPosition) {
+        workoutId != null && addAtPosition != null
     }
+    val isCreatingLiftMetricCharts = remember(liftMetricChartIds) { liftMetricChartIds.isNotEmpty() }
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
@@ -122,14 +124,14 @@ fun LiftLibrary(
                         DeleteableOnSwipeLeft(
                             confirmationDialogHeader = "Delete Lift?",
                             confirmationDialogBody = "Deleting this lift will hide it from the Lifts menu. It can be restored from the Settings menu.",
-                            enabled = !isAddingToWorkout && !isReplacingWorkout,
+                            enabled = !isAddingToWorkout && !isReplacingWorkout && !isCreatingLiftMetricCharts,
                             onDelete = { liftLibraryViewModel.hideLift(lift) },
                         ) {
                             ListItem(
                                 modifier = Modifier.clickable {
                                     if(isAddingToWorkout && selected) {
                                         liftLibraryViewModel.removeSelectedLift(lift.id)
-                                    } else if (isAddingToWorkout) {
+                                    } else if (isAddingToWorkout || isCreatingLiftMetricCharts) {
                                         liftLibraryViewModel.addSelectedLift(lift.id)
                                     } else if (isReplacingWorkout) {
                                         liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
