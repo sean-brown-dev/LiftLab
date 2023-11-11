@@ -179,7 +179,7 @@ fun Double.roundToNearestFactor(factor: Float): Float {
 }
 
 fun Float.roundToNearestFactor(factor: Float): Float {
-    return abs((this / factor).roundToInt()) * factor
+    return if (factor != 0f) abs((this / factor).roundToInt()) * factor else this
 }
 
 fun Long.toTimeString(): String {

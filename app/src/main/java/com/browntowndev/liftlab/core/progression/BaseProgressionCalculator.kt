@@ -33,8 +33,34 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()
     }
 
+    protected fun decreaseWeight(
+        incrementOverride: Float?,
+        repRangeBottom: Int,
+        rpeGoal: Float,
+        prevSet: SetResult
+    ): Float {
+        val roundingFactor = (incrementOverride
+            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f))
+
+        return CalculationEngine.calculateSuggestedWeight(
+            completedWeight = prevSet.weight,
+            completedReps = prevSet.reps,
+            completedRpe = prevSet.rpe,
+            repGoal = repRangeBottom,
+            rpeGoal = rpeGoal,
+            roundingFactor = roundingFactor)
+    }
+
     protected fun customSetMeetsCriterion(set: GenericLiftSet, previousSet: SetResult?): Boolean {
         return previousSet != null && set.rpeTarget >= previousSet.rpe && set.repRangeTop <= previousSet.reps
+    }
+
+    protected fun customSetShouldDecreaseWeight(set: GenericLiftSet, previousSet: SetResult?): Boolean {
+        return if (previousSet != null) {
+            val minRepsRequired = set.repRangeBottom - 1
+            val repsConsideringRpe = previousSet.reps + (10 - previousSet.rpe)
+            repsConsideringRpe < minRepsRequired
+        } else false
     }
 
     protected fun customSetMeetsCriterion(
