@@ -4,7 +4,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
@@ -38,7 +37,7 @@ class LiftLibraryViewModel(
     workoutId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
-    liftMetricChartIds: List<Long>,
+    newLiftMetricChartIds: List<Long>,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -48,17 +47,20 @@ class LiftLibraryViewModel(
     val state = _state.asStateFlow()
 
     init {
-        _state.update {
-            it.copy(
-                workoutId = workoutId,
-                addAtPosition = addAtPosition,
-                liftMetricChartIds = liftMetricChartIds,
-                movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
-                    listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
-                } else {
-                    it.movementPatternFilters
-                }
-            )
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    workoutId = workoutId,
+                    addAtPosition = addAtPosition,
+                    newLiftMetricChartIds = newLiftMetricChartIds,
+                    liftIdFilters = getLiftIdFilters(newLiftMetricChartIds.isNotEmpty(), workoutId),
+                    movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
+                        listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
+                    } else {
+                        it.movementPatternFilters
+                    }
+                )
+            }
         }
 
         _liftsLiveData = liftsRepository.getAll()
@@ -85,7 +87,7 @@ class LiftLibraryViewModel(
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
-            TopAppBarAction.ConfirmAddLift -> if (_state.value.liftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
+            TopAppBarAction.ConfirmAddLift -> if (_state.value.newLiftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
             TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
         }
@@ -97,6 +99,19 @@ class LiftLibraryViewModel(
             TopAppBarAction.SearchTextChanged -> setNameFilter(payloadEvent.payload)
             else -> {}
         }
+    }
+
+    private suspend fun getLiftIdFilters(
+        shouldGetLiftMetricChartLiftIds: Boolean,
+        workoutId: Long?,
+    ): HashSet<Long> {
+        return if (shouldGetLiftMetricChartLiftIds) {
+            liftMetricChartRepository.getAll()
+                .mapNotNull { it.liftId }
+                .toHashSet()
+        } else if (workoutId != null) {
+            workoutLiftsRepository.getLiftIdsForWorkout(workoutId).toHashSet()
+        } else hashSetOf()
     }
 
     fun addSelectedLift(id: Long) {
@@ -118,7 +133,7 @@ class LiftLibraryViewModel(
     private fun updateLiftMetricChartsWithSelectedLiftIds() {
         viewModelScope.launch {
             val newLiftIds = _state.value.selectedNewLiftsHashSet
-            var liftMetricCharts = liftMetricChartRepository.getMany(_state.value.liftMetricChartIds)
+            var liftMetricCharts = liftMetricChartRepository.getMany(_state.value.newLiftMetricChartIds)
 
             liftMetricCharts = newLiftIds.flatMap { currLiftId ->
                 liftMetricCharts.fastMap { chart ->
@@ -141,7 +156,6 @@ class LiftLibraryViewModel(
 
     private fun addWorkoutLifts() {
         viewModelScope.launch {
-            // TODO: Block duplicate lift from being added
             val newLiftHashSet = _state.value.selectedNewLiftsHashSet
             val workoutId = _state.value.workoutId!!
             var position = _state.value.addAtPosition!! - 1
@@ -250,28 +264,33 @@ class LiftLibraryViewModel(
     private fun getFilteredLifts(liftsToFilter: List<LiftDto>): List<LiftDto> {
         val nameFilter = _state.value.nameFilter
         val movementPatternFilters = _state.value.movementPatternFilters
+        val liftIdFilters = _state.value.liftIdFilters
 
         return liftsToFilter.let { lifts ->
             val hasNameFilter = nameFilter?.isNotEmpty() == true
             val hasMovementPatternFilters = movementPatternFilters.isNotEmpty()
+            val hasLiftIdFilter = liftIdFilters.isNotEmpty()
 
-            if (hasNameFilter || hasMovementPatternFilters) {
+            if (hasNameFilter || hasMovementPatternFilters || hasLiftIdFilter) {
                 lifts.filter { lift ->
-                    val nameMatches = if (hasNameFilter) {
+                    var matches = if (hasNameFilter) {
                         lift.name.contains(nameFilter!!, true)
                     } else true
 
-                    nameMatches && if (hasMovementPatternFilters) {
+                    matches = matches && if (hasMovementPatternFilters) {
                         val movementPatternFilter = FilterChipOption(
                             type = MOVEMENT_PATTERN,
                             value = lift.movementPatternDisplayName
                         )
                         movementPatternFilters.contains(movementPatternFilter)
                     } else true
+
+                    matches && if(hasLiftIdFilter) {
+                        !liftIdFilters.contains(lift.id)
+                    } else true
                 }
             } else lifts
         }
-
     }
 
     fun applyFilters() {

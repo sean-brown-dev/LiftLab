@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 
@@ -13,7 +12,8 @@ data class LiftLibraryState (
     val addAtPosition: Int? = null,
     val workoutId: Long? = null,
     val nameFilter: String? = null,
-    val liftMetricChartIds: List<Long> = listOf(),
+    val newLiftMetricChartIds: List<Long> = listOf(),
+    val liftIdFilters: HashSet<Long> = hashSetOf(),
     val movementPatternFilters: List<FilterChipOption> = listOf(),
     val showFilterSelection: Boolean = false,
     val replacingLift: Boolean = false,

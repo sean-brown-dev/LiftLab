@@ -20,7 +20,6 @@ import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import org.greenrobot.eventbus.EventBus
-import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 data class LiftLibraryScreen(
@@ -126,7 +125,7 @@ data class LiftLibraryScreen(
                 controlName = SEARCH_ICON,
                 title = "Search",
                 icon = Icons.Filled.Search.left(),
-                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isSearchIconVisible,
+                isVisible = !isSearchBarVisible && isSearchIconVisible,
                 onClick = {
                     isSearchBarVisible = true
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.SearchStarted))
@@ -136,7 +135,7 @@ data class LiftLibraryScreen(
             ActionMenuItem.TextInputMenuItem.AlwaysShown(
                 controlName = LIFT_NAME_FILTER_TEXTVIEW,
                 icon = Icons.Filled.Search.left(),
-                isVisible = !isConfirmAddLiftVisible && isSearchBarVisible,
+                isVisible = isSearchBarVisible,
                 value = mutableFilterText,
                 onValueChange = {
                     mutableFilterText = it
@@ -153,12 +152,22 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = LIFT_MOVEMENT_PATTERN_FILTER_ICON,
                 title = "Filter",
-                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible &&  isFilterIconVisible,
+                isVisible = !isSearchBarVisible && isFilterIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.FilterStarted))
                 },
                 icon = R.drawable.filter_icon.right(),
                 contentDescriptionResourceId = R.string.accessibility_filter,
+            ),
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = CREATE_NEW_LIFT_ICON,
+                title = "Create Lift",
+                isVisible = !isSearchBarVisible && isFilterIconVisible && isCreateNewLiftIconVisible,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewLift))
+                },
+                icon = Icons.Filled.Add.left(),
+                contentDescriptionResourceId = R.string.create_a_new_lift,
             ),
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CONFIRM_ADD_LIFT_ICON,
@@ -170,16 +179,6 @@ data class LiftLibraryScreen(
                 },
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,
-            ),
-            ActionMenuItem.IconMenuItem.AlwaysShown(
-                controlName = CREATE_NEW_LIFT_ICON,
-                title = "Create Lift",
-                isVisible = !isSearchBarVisible && !isConfirmAddLiftVisible && isFilterIconVisible && isCreateNewLiftIconVisible,
-                onClick = {
-                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewLift))
-                },
-                icon = Icons.Filled.Add.left(),
-                contentDescriptionResourceId = R.string.create_a_new_lift,
             ),
         )
     }

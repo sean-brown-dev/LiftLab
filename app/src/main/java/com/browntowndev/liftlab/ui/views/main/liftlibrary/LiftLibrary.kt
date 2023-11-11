@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
@@ -129,9 +128,10 @@ fun LiftLibrary(
                         ) {
                             ListItem(
                                 modifier = Modifier.clickable {
-                                    if(isAddingToWorkout && selected) {
+                                    val multiselectEnabled = isAddingToWorkout || isCreatingLiftMetricCharts
+                                    if(multiselectEnabled && selected) {
                                         liftLibraryViewModel.removeSelectedLift(lift.id)
-                                    } else if (isAddingToWorkout || isCreatingLiftMetricCharts) {
+                                    } else if (multiselectEnabled) {
                                         liftLibraryViewModel.addSelectedLift(lift.id)
                                     } else if (isReplacingWorkout) {
                                         liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
