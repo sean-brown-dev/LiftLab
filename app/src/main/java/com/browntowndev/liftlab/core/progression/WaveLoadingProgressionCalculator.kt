@@ -1,7 +1,9 @@
 package com.browntowndev.liftlab.core.progression
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
@@ -36,12 +38,49 @@ class WaveLoadingProgressionCalculator(
                       workoutLift.repRangeBottom.toString()
                 },
                 weightRecommendation = if (!isDeloadWeek && result != null)
-                    incrementWeight(workoutLift, result)
+                    getWeightRecommendation(workoutLift, result)
                 else if (result != null)
                     decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek)
                 else null
             )
+        }.flattenWeightRecommendations()
+    }
+
+    private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult): Float {
+        return if (result.microCycle == 0 ||
+            !shouldDecreaseWeight(result, workoutLift as StandardWorkoutLiftDto)
+        ) {
+            incrementWeight(workoutLift, result)
+        } else {
+            getRepsForPreviousWorkout(
+                repRangeBottom = workoutLift.repRangeBottom,
+                repRangeTop = workoutLift.repRangeTop,
+                microCycle = result.microCycle,
+            )?.let { reps ->
+                val optimalWeightFromPreviousCompletion = decreaseWeight(
+                    incrementOverride = workoutLift.incrementOverride,
+                    repRangeBottom = reps,
+                    rpeTarget = workoutLift.rpeTarget,
+                    prevSet = result
+                )
+                val optimalResult = (result as StandardSetResultDto).copy(
+                    weight = optimalWeightFromPreviousCompletion,
+                    reps = reps,
+                    rpe = workoutLift.rpeTarget,
+                )
+                incrementWeight(workoutLift, optimalResult)
+            } ?: incrementWeight(workoutLift, result)
         }
+    }
+
+    private fun getRepsForPreviousWorkout(repRangeBottom: Int, repRangeTop: Int, microCycle: Int): Int? {
+        val fullRepRange = (repRangeTop downTo repRangeBottom).toList()
+
+        return if (fullRepRange.isNotEmpty()) {
+            val previousMicroCycle = microCycle - 1
+            val index = previousMicroCycle % fullRepRange.size
+            fullRepRange[index]
+        } else null
     }
 
     private fun getRepRangePlaceholder(repRangeBottom: Int, repRangeTop: Int, microCycle: Int): String {
@@ -56,7 +95,7 @@ class WaveLoadingProgressionCalculator(
     private fun decrementForDeload(
         lift: GenericWorkoutLift,
         setData: SetResult,
-        deloadWeek: Int
+        deloadWeek: Int,
     ): Float {
         val increment =  (lift.incrementOverride ?:
             SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()

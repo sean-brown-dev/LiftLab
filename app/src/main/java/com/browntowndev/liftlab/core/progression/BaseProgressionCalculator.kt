@@ -1,10 +1,13 @@
 package com.browntowndev.liftlab.core.progression
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
@@ -28,6 +31,22 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else null
     }
 
+    protected fun List<LoggingStandardSetDto>.flattenWeightRecommendations(): List<LoggingStandardSetDto> {
+        return if (this.distinctBy { it.weightRecommendation }.size > 1) {
+            val minWeight = this.minOf { it.weightRecommendation ?: Float.MAX_VALUE }
+            this.fastMap { it.copy(weightRecommendation = minWeight) }
+        } else this
+    }
+
+    protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
+        return if (result != null) {
+            val minimumRepsAllowed = goals.repRangeBottom - 1
+            val repsConsideringRpe = result.reps + (10 - result.rpe)
+
+            repsConsideringRpe < minimumRepsAllowed
+        } else false
+    }
+
     protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
         return prevSet.weight + (lift.incrementOverride
             ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()
@@ -36,7 +55,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected fun decreaseWeight(
         incrementOverride: Float?,
         repRangeBottom: Int,
-        rpeGoal: Float,
+        rpeTarget: Float,
         prevSet: SetResult
     ): Float {
         val roundingFactor = (incrementOverride
@@ -47,7 +66,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             completedReps = prevSet.reps,
             completedRpe = prevSet.rpe,
             repGoal = repRangeBottom,
-            rpeGoal = rpeGoal,
+            rpeGoal = rpeTarget,
             roundingFactor = roundingFactor)
     }
 

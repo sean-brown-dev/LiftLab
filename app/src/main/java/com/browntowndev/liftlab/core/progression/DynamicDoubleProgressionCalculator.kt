@@ -53,7 +53,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 } else workoutLift.repRangeBottom.toString(),
                 weightRecommendation = if (setMetCriterion(result, workoutLift)) {
                     incrementWeight(workoutLift, result!!)
-                } else if (setShouldDecreaseWeight(result, workoutLift)) {
+                } else if (shouldDecreaseWeight(result, workoutLift)) {
                     decreaseWeight(workoutLift.incrementOverride, workoutLift.repRangeBottom, workoutLift.rpeTarget, result!!)
                 } else result?.weight
             )
@@ -64,15 +64,6 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         return result != null &&
                 result.reps >= goals.repRangeTop &&
                 result.rpe <= goals.rpeTarget
-    }
-
-    private fun setShouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
-        return if (result != null) {
-            val minimumRepsAllowed = goals.repRangeBottom - 1
-            val repsConsideringRpe = result.reps + (10 - result.rpe)
-
-            repsConsideringRpe < minimumRepsAllowed
-        } else false
     }
 
     private fun getCustomSetProgressions(

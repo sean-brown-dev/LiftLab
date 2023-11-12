@@ -54,15 +54,11 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
         workoutLift: StandardWorkoutLiftDto,
         result: SetResult,
     ): Float {
-        val minimumRepsAllowed = workoutLift.repRangeBottom - 1
-        val repsConsideringRpe = result.reps + (10 - result.rpe)
-        val missedBottomRepRange = repsConsideringRpe < minimumRepsAllowed
-
-        return if (missedBottomRepRange) {
+        return if (shouldDecreaseWeight(result, workoutLift)) {
             decreaseWeight(
                 incrementOverride = workoutLift.incrementOverride,
                 repRangeBottom = workoutLift.repRangeBottom,
-                rpeGoal = workoutLift.rpeTarget,
+                rpeTarget = workoutLift.rpeTarget,
                 prevSet = result
             )
         } else {
@@ -83,7 +79,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             decreaseWeight(
                 incrementOverride = incrementOverride,
                 repRangeBottom = set.repRangeBottom,
-                rpeGoal = set.rpeTarget,
+                rpeTarget = set.rpeTarget,
                 prevSet = result
             )
         } else {
@@ -163,7 +159,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                             )
                         } else null
                     )
-                }
+                }.flattenWeightRecommendations()
             }
 
             is CustomWorkoutLiftDto -> {
