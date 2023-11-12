@@ -35,7 +35,7 @@ class CalculationEngine {
                             val dLanderCalc = weight / (1.013f - .0267123f * roundedReps)
                             val dEpleyCalc = weight * (1.0f + roundedReps / 30.0f)
                             val dLombardiCalc: Float = weight * roundedReps.toFloat().pow(.10f)
-                            (dBrzyckiCalc + dBaechleCalc + dLanderCalc + dEpleyCalc + dLombardiCalc) / 5f
+                            (dBrzyckiCalc + dBaechleCalc + dLanderCalc + dEpleyCalc + dLombardiCalc) / 5
                         }
                     }.average().toFloat()
             }

@@ -36,7 +36,8 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
 
     override fun getFailureWeight(
         workoutLift: GenericWorkoutLift,
-        previousSetResults: List<SetResult>
+        previousSetResults: List<SetResult>,
+        position: Int?,
     ): Float? {
         val previouslyFailedSet = previousSetResults.firstOrNull {
             (it as LinearProgressionSetResultDto).missedLpGoals > 1 // cast validated already by allSetsMetCriteria()
@@ -49,6 +50,6 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
                     5f
                 )
             (previouslyFailedSet.weight * .9).roundToNearestFactor(factor)
-        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults)
+        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null)
     }
 }

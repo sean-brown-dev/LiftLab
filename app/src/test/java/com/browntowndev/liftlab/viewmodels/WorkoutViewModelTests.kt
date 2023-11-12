@@ -164,6 +164,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -299,6 +300,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -432,6 +434,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -564,6 +567,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -714,6 +718,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -874,6 +879,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1005,6 +1011,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1133,6 +1140,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1253,6 +1261,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1367,6 +1376,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1481,6 +1491,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1635,6 +1646,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1801,6 +1813,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1949,6 +1962,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -2094,6 +2108,7 @@ class WorkoutViewModelTests {
             coEvery { liftsRepository.updateRestTime(any(), any(), any()) } just Runs
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -2235,6 +2250,7 @@ class WorkoutViewModelTests {
             coEvery { setResultsRepository.delete(any(), any(), any(), any()) } just Runs
 
             val viewModel = WorkoutViewModel(
+                navHostController = mockk(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,

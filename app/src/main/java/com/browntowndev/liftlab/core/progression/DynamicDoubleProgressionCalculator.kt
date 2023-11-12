@@ -72,7 +72,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
             val repsConsideringRpe = result.reps + (10 - result.rpe)
 
             repsConsideringRpe < minimumRepsAllowed
-        } else true
+        } else false
     }
 
     private fun getCustomSetProgressions(
