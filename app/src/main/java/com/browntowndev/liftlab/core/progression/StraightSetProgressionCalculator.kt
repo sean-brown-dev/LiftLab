@@ -87,18 +87,6 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
         }
     }
 
-    private fun getDropSetFailureWeight(
-        dropPercentage: Float,
-        result: SetResult?,
-        previousSetResults: List<SetResult>,
-        prevSetPosition: Int,
-    ): Float? {
-        return result?.weight
-            ?: previousSetResults.getOrNull(prevSetPosition)?.weight?.let { prevSetWeight ->
-                prevSetWeight * (1 - dropPercentage)
-            }
-    }
-
     protected abstract fun allSetsMetCriterion(
         lift: StandardWorkoutLiftDto,
         previousSetResults: List<SetResult>,
@@ -127,7 +115,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         val criterionMet = allSetsMetCriterion(workoutLift, previousSetResults)
-        val resultsByPosition = previousSetResults
+        val nonMyoRepSetResults = previousSetResults
             .filterNot { it is MyoRepSetResultDto }
             .associateBy { it.setPosition }
         val myoRepSetResults = previousSetResults
@@ -138,7 +126,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
         return when (workoutLift) {
             is StandardWorkoutLiftDto -> {
                 List(workoutLift.setCount) {
-                    val result = resultsByPosition[it]
+                    val result = nonMyoRepSetResults[it]
                     LoggingStandardSetDto(
                         position = it,
                         rpeTarget = workoutLift.rpeTarget,
@@ -159,13 +147,13 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                             )
                         } else null
                     )
-                }.flattenWeightRecommendations()
+                }
             }
 
             is CustomWorkoutLiftDto -> {
                 var lastWeightRecommendation: Float? = null
                 workoutLift.customLiftSets.flatMap { set ->
-                    val result = resultsByPosition[set.position]
+                    val result = nonMyoRepSetResults[set.position]
                     val currSetMyoRepResults = myoRepSetResults[set.position]
                     when (set) {
                         is StandardSetDto -> listOf(
@@ -206,10 +194,13 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                     lastWeightRecommendation
                                 } else if (previousSetResults.isNotEmpty()) {
                                     getDropSetFailureWeight(
+                                        incrementOverride = workoutLift.incrementOverride,
+                                        repRangeBottom = set.repRangeBottom,
+                                        rpeTarget = set.rpeTarget,
                                         dropPercentage = set.dropPercentage,
                                         result = result,
-                                        previousSetResults = previousSetResults,
-                                        prevSetPosition = set.position - 1,
+                                        droppedFromSetResult = nonMyoRepSetResults
+                                            .getOrDefault(set.position - 1, null),
                                     )
                                 } else null,
                                 dropPercentage = set.dropPercentage,
@@ -275,6 +266,6 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             }
 
             else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
-        }
+        }.flattenWeightRecommendations()
     }
 }

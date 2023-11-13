@@ -143,7 +143,11 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
                             weightRecommendation = getWeightRecommendation(
-                                workoutLift, set, result
+                                lift = workoutLift,
+                                set = set,
+                                setData = result,
+                                droppedFromSetResult = nonMyoRepSetResults
+                                    .getOrDefault(set.position - 1, null)
                             )
                         )
                     )
@@ -184,6 +188,26 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
             decreaseWeight(lift.incrementOverride, set.repRangeBottom,set.rpeTarget, setData!!)
         } else setData?.weight
     }
+
+        private fun getWeightRecommendation(
+            lift: CustomWorkoutLiftDto,
+            set: DropSetDto,
+            setData: SetResult?,
+            droppedFromSetResult: SetResult?,
+        ) : Float? {
+            return if (customSetMeetsCriterion(set, setData)) {
+                incrementWeight(lift, setData!!)
+            } else if (customSetShouldDecreaseWeight(set, setData)) {
+                getDropSetFailureWeight(
+                    incrementOverride = lift.incrementOverride,
+                    repRangeBottom = set.repRangeBottom,
+                    rpeTarget = set.rpeTarget,
+                    dropPercentage = set.dropPercentage,
+                    result = setData,
+                    droppedFromSetResult = droppedFromSetResult,
+                )
+            } else setData?.weight
+        }
 
     private fun getWeightRecommendation(
         lift: CustomWorkoutLiftDto,

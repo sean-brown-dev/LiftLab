@@ -9,6 +9,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
@@ -32,10 +33,24 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     }
 
     protected fun List<LoggingStandardSetDto>.flattenWeightRecommendations(): List<LoggingStandardSetDto> {
+        // Flattens out weight recommendations for all sets that use the same rep range and RPE target
         return if (this.distinctBy { it.weightRecommendation }.size > 1) {
-            val minWeight = this.minOf { it.weightRecommendation ?: Float.MAX_VALUE }
-            this.fastMap { it.copy(weightRecommendation = minWeight) }
+            this.groupBy {
+                "${it.repRangeBottom}-${it.repRangeTop}-${it.rpeTarget}"
+            }.flatMap {
+                val minWeight = it.value.minOf { set -> set.weightRecommendation ?: Float.MAX_VALUE }
+                it.value.fastMap { set ->
+                    set.copy(weightRecommendation = minWeight)
+                }
+            }
         } else this
+    }
+
+    protected fun List<GenericLoggingSet>.flattenWeightRecommendations(): List<GenericLoggingSet> {
+        // Flattens out weight recommendations for all standard sets that use the same rep range and RPE target
+        // Not really a good way I can think of to handle drop and myo rep sets, so let them be
+        val standardSets = this.filterIsInstance<LoggingStandardSetDto>()
+        return standardSets.flattenWeightRecommendations()
     }
 
     protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
@@ -68,6 +83,28 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             repGoal = repRangeBottom,
             rpeGoal = rpeTarget,
             roundingFactor = roundingFactor)
+    }
+
+    protected fun getDropSetFailureWeight(
+        incrementOverride: Float?,
+        repRangeBottom: Int,
+        rpeTarget: Float,
+        dropPercentage: Float,
+        result: SetResult?,
+        droppedFromSetResult: SetResult?,
+    ): Float? {
+        return if (result != null) {
+            decreaseWeight(
+                incrementOverride = incrementOverride,
+                repRangeBottom = repRangeBottom,
+                rpeTarget = rpeTarget,
+                prevSet = result,
+            )
+        } else {
+            droppedFromSetResult?.weight?.let { droppedFromSetWeight ->
+                droppedFromSetWeight * (1 - dropPercentage)
+            }
+        }
     }
 
     protected fun customSetMeetsCriterion(set: GenericLiftSet, previousSet: SetResult?): Boolean {
