@@ -32,7 +32,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else null
     }
 
-    protected fun List<LoggingStandardSetDto>.flattenWeightRecommendations(): List<LoggingStandardSetDto> {
+    protected fun List<LoggingStandardSetDto>.flattenWeightRecommendationsStandard(): List<LoggingStandardSetDto> {
         // Flattens out weight recommendations for all sets that use the same rep range and RPE target
         return if (this.distinctBy { it.weightRecommendation }.size > 1) {
             this.groupBy {
@@ -46,11 +46,11 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else this
     }
 
-    protected fun List<GenericLoggingSet>.flattenWeightRecommendations(): List<GenericLoggingSet> {
+    protected fun List<GenericLoggingSet>.flattenWeightRecommendationsGeneric(): List<GenericLoggingSet> {
         // Flattens out weight recommendations for all standard sets that use the same rep range and RPE target
         // Not really a good way I can think of to handle drop and myo rep sets, so let them be
         val standardSets = this.filterIsInstance<LoggingStandardSetDto>()
-        return standardSets.flattenWeightRecommendations()
+        return standardSets.flattenWeightRecommendationsGeneric()
     }
 
     protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {

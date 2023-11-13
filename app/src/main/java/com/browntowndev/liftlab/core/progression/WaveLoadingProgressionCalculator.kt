@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.core.progression
 
-import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
@@ -43,7 +42,7 @@ class WaveLoadingProgressionCalculator(
                     decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek)
                 else null
             )
-        }.flattenWeightRecommendations()
+        }.flattenWeightRecommendationsStandard()
     }
 
     private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult): Float {

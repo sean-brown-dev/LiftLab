@@ -266,6 +266,6 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             }
 
             else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
-        }.flattenWeightRecommendations()
+        }.flattenWeightRecommendationsGeneric()
     }
 }
