@@ -186,6 +186,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                 rpeTarget = set.rpeTarget,
                                 repRangeBottom = set.repRangeBottom,
                                 repRangeTop = set.repRangeTop,
+                                dropPercentage = set.dropPercentage,
                                 previousSetResultLabel = getPreviousSetResultLabel(result),
                                 repRangePlaceholder = if (!isDeloadWeek) {
                                     "${set.repRangeBottom}-${set.repRangeTop}"
@@ -204,7 +205,6 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                             .getOrDefault(set.position - 1, null),
                                     )
                                },
-                                dropPercentage = set.dropPercentage,
                         ))
 
                         is MyoRepSetDto -> {
