@@ -171,11 +171,12 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                 lastWeightRecommendation = incrementWeight(workoutLift, result ?: previousSetResults.last())
                                 lastWeightRecommendation
                             } else if (previousSetResults.isNotEmpty()) {
-                                getFailureWeight(
+                                lastWeightRecommendation = getFailureWeight(
                                     workoutLift = workoutLift,
                                     previousSetResults = previousSetResults,
                                     position = set.position,
                                 )
+                                lastWeightRecommendation
                             } else null
                         ))
 
@@ -192,7 +193,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                 weightRecommendation = if (criterionMet) {
                                     lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
                                     lastWeightRecommendation
-                                } else if (previousSetResults.isNotEmpty()) {
+                                } else {
                                     getDropSetFailureWeight(
                                         incrementOverride = workoutLift.incrementOverride,
                                         repRangeBottom = set.repRangeBottom,
@@ -202,7 +203,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                         droppedFromSetResult = nonMyoRepSetResults
                                             .getOrDefault(set.position - 1, null),
                                     )
-                                } else null,
+                               },
                                 dropPercentage = set.dropPercentage,
                         ))
 

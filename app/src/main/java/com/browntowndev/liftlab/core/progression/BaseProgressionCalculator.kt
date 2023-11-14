@@ -20,16 +20,24 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         previousSetWeight: Float?,
     ): Float? {
         return if (previousSetWeight != null) {
-            val incrementAmount = lift.incrementOverride
-                ?: SettingsManager.getSetting(
-                    SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                    5f
-                )
-
-            (previousSetWeight * (1 - set.dropPercentage)).roundToNearestFactor(
-                incrementAmount
-            )
+            getDropSetWeight(lift.incrementOverride, previousSetWeight, set.dropPercentage)
         } else null
+    }
+
+    private fun getDropSetWeight(
+        incrementOverride: Float?,
+        previousSetWeight: Float,
+        dropPercentage: Float,
+    ): Float {
+        val incrementAmount = incrementOverride
+            ?: SettingsManager.getSetting(
+                SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                5f
+            )
+
+        return (previousSetWeight * (1 - dropPercentage)).roundToNearestFactor(
+            incrementAmount
+        )
     }
 
     protected fun List<LoggingStandardSetDto>.flattenWeightRecommendationsStandard(): List<LoggingStandardSetDto> {
@@ -50,12 +58,21 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         // Flattens out weight recommendations for all standard sets that use the same rep range and RPE target
         // Not really a good way I can think of to handle drop and myo rep sets, so let them be
         val standardSets = this.filterIsInstance<LoggingStandardSetDto>()
-        return standardSets.flattenWeightRecommendationsGeneric()
+        return standardSets.flattenWeightRecommendationsStandard()
     }
 
     protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
         return if (result != null) {
             val minimumRepsAllowed = goals.repRangeBottom - 1
+            val repsConsideringRpe = result.reps + (10 - result.rpe)
+
+            repsConsideringRpe < minimumRepsAllowed
+        } else false
+    }
+
+    protected fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int): Boolean {
+        return if (result != null) {
+            val minimumRepsAllowed = repRangeBottom - 1
             val repsConsideringRpe = result.reps + (10 - result.rpe)
 
             repsConsideringRpe < minimumRepsAllowed
@@ -93,17 +110,21 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         result: SetResult?,
         droppedFromSetResult: SetResult?,
     ): Float? {
-        return if (result != null) {
-            decreaseWeight(
-                incrementOverride = incrementOverride,
-                repRangeBottom = repRangeBottom,
-                rpeTarget = rpeTarget,
-                prevSet = result,
-            )
-        } else {
-            droppedFromSetResult?.weight?.let { droppedFromSetWeight ->
-                droppedFromSetWeight * (1 - dropPercentage)
-            }
+        return shouldDecreaseWeight(result, repRangeBottom).let { shouldDecrease ->
+            if (shouldDecrease && result != null) {
+                decreaseWeight(
+                    incrementOverride = incrementOverride,
+                    repRangeBottom = repRangeBottom,
+                    rpeTarget = rpeTarget,
+                    prevSet = result,
+                )
+            } else result?.weight
+                ?: if (droppedFromSetResult?.weight != null) {
+                    getDropSetWeight(
+                        incrementOverride = incrementOverride,
+                        previousSetWeight = droppedFromSetResult.weight,
+                        dropPercentage = dropPercentage)
+                } else null
         }
     }
 
