@@ -32,4 +32,8 @@ class WorkoutLiftsRepository (
     suspend fun delete(workoutLift: GenericWorkoutLift) {
         workoutLiftsDao.delete(workoutLiftMapper.map(workoutLift))
     }
+
+    suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long> {
+        return workoutLiftsDao.getLiftIdsForWorkout(workoutId)
+    }
 }

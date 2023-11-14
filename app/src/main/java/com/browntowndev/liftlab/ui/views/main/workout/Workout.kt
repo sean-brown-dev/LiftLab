@@ -9,11 +9,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.util.fastAny
 import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -21,6 +23,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun Workout(
@@ -34,8 +37,17 @@ fun Workout(
     var restTimerRestarted by remember { mutableStateOf(false) }
 
     val timerViewModel: TimerViewModel = koinViewModel()
-    val workoutViewModel: WorkoutViewModel = koinViewModel()
-    val state by workoutViewModel.state.collectAsState()
+    val workoutViewModel: WorkoutViewModel = koinViewModel {
+        parametersOf(
+            navHostController,
+            {
+                mutateTopAppBarControlValue(
+                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
+                )
+            }
+        )
+    }
+    val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
 
     LaunchedEffect(state.restTimerStartedAt) {
@@ -56,7 +68,7 @@ fun Workout(
     workoutViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutViewModel)
 
-    LaunchedEffect(key1 = state.workout != null, key2 = state.workoutLogVisible) {
+    LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible) {
         if (state.workout != null) {
             if (!state.workoutLogVisible) {
                 mutateTopAppBarControlValue(
@@ -95,6 +107,19 @@ fun Workout(
             if (!state.inProgress) {
                 timerViewModel.stop()
             }
+        } else if (state.initialized) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.TITLE,
+                    "Workout".left()
+                )
+            )
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.SUBTITLE,
+                    "".left()
+                )
+            )
         }
     }
 
@@ -147,14 +172,21 @@ fun Workout(
                     myoRepSetPosition = myoRepSetPosition,
                 )
             },
-            onSetCompleted = { setType, progressionScheme, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
+            onSetCompleted = { setType, progressionScheme, liftPosition, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
+                val hasDropSetAfter = state.workout!!.lifts[liftPosition].sets.fastAny { set ->
+                    set.position == (setPosition + 1) &&
+                            set is LoggingDropSetDto
+                }
+                val startRestTimer = !hasDropSetAfter && restTimerEnabled
+
                 workoutViewModel.completeSet(
                     restTime = restTime,
-                    restTimerEnabled = restTimerEnabled,
+                    restTimerEnabled = startRestTimer,
                     result = workoutViewModel.buildSetResult(
                         liftId = liftId,
                         setType = setType,
                         progressionScheme = progressionScheme,
+                        liftPosition = liftPosition,
                         setPosition = setPosition,
                         myoRepSetPosition = myoRepSetPosition,
                         weight = weight,
@@ -162,20 +194,17 @@ fun Workout(
                         rpe = rpe,
                     ))
 
-                if (restTimerEnabled) {
+                if (startRestTimer) {
                     mutateTopAppBarControlValue(
                         AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
                     )
                 }
             },
-            undoCompleteSet = { liftId, setPosition, myoRepSetPosition ->
+            undoCompleteSet = { liftPosition, setPosition, myoRepSetPosition ->
                 workoutViewModel.undoSetCompletion(
-                    liftId = liftId,
+                    liftPosition = liftPosition,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition
-                )
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
             },
             cancelWorkout = {

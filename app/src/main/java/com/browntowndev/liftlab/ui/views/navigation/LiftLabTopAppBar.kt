@@ -194,7 +194,7 @@ private fun Title(
         val context = LocalContext.current
         val restTimerAction = state.actions
             .filterIsInstance<ActionMenuItem.TimerMenuItem.AlwaysShown>()
-            .firstOrNull()
+            .firstOrNull { it.isVisible }
 
         if (restTimerAction != null) {
             Box (

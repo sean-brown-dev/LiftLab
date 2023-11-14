@@ -29,7 +29,7 @@ fun RestTimePicker(
     Column {
         DurationPickerMenuItem(
             enabled = enable,
-            startTime = restTime,
+            time = restTime,
             onRestTimeChanged = { newRestTime -> onChangeRestTime(newRestTime, enable) },
             onCancel = onHide,
         ) {

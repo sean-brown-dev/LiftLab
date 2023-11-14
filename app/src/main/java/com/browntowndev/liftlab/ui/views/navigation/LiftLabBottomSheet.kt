@@ -62,7 +62,7 @@ fun LiftLabBottomSheet(
 
     BottomSheetScaffold(
         sheetContainerColor = MaterialTheme.colorScheme.surface,
-        sheetContentColor = MaterialTheme.colorScheme.surface,
+        sheetContentColor = MaterialTheme.colorScheme.background,
         scaffoldState = scaffoldState,
         sheetPeekHeight = sheetPeekHeight,
         content = content,
@@ -109,7 +109,7 @@ fun LiftLabBottomSheet(
                 ) {
                     options.fastForEach { option ->
                         RadioButton(
-                            selected = selectedOption == option,
+                            selected = remember(selectedOption) { selectedOption == option },
                             onClick = {
                                 selectedOption = option
                                 selectedVolumeTypes = when (option) {

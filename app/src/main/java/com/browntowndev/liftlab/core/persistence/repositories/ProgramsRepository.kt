@@ -34,7 +34,7 @@ class ProgramsRepository(
                                 .map { lift ->
                                     when (lift) {
                                         is CustomWorkoutLiftDto -> lift.copy(
-                                            customLiftSets = lift.customLiftSets.sortedBy { it.setPosition }
+                                            customLiftSets = lift.customLiftSets.sortedBy { it.position }
                                         )
                                         else -> lift
                                     }
@@ -69,8 +69,8 @@ class ProgramsRepository(
         return programsDao.getDeloadWeek(id)
     }
 
-    suspend fun getActiveProgramMetadata(): ActiveProgramMetadataDto? {
-        return programsDao.getActiveProgramMetadata()
+    fun getActiveProgramMetadata(): LiveData<ActiveProgramMetadataDto?> {
+        return programsDao.getActiveProgramMetadata().asLiveData()
     }
 
     suspend fun delete(id: Long) {

@@ -55,7 +55,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
-import com.browntowndev.liftlab.ui.views.composables.RpePicker
+import com.browntowndev.liftlab.ui.views.composables.RpeKeyboard
 import org.koin.androidx.compose.getViewModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -66,15 +66,16 @@ import kotlin.time.toDuration
 fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
+    cancelWorkoutVisible: Boolean = true,
     lifts: List<LoggingWorkoutLiftDto>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
     onRpeSelected: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) -> Unit,
-    onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, setPosition: Int,
+    onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, liftPosition: Int, setPosition: Int,
                      myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float,
                      restTime: Long, restTimeEnabled: Boolean) -> Unit,
-    undoCompleteSet: (liftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
+    undoCompleteSet: (liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
@@ -181,7 +182,7 @@ fun WorkoutLog(
                                     confirmationDialogHeader = "Delete Myorep Set?",
                                     confirmationDialogBody = "Confirm to delete the myorep set.",
                                     onDelete = {
-                                        onDeleteMyoRepSet(lift.id, set.setPosition, (set as LoggingMyoRepSetDto).myoRepSetPosition!!)
+                                        onDeleteMyoRepSet(lift.id, set.position, (set as LoggingMyoRepSetDto).myoRepSetPosition!!)
                                     },
                                     dismissContent = {
                                         val animateVisibility = remember(lift.sets.size) {
@@ -192,7 +193,7 @@ fun WorkoutLog(
                                         LoggableSet(
                                             lazyListState = lazyListState,
                                             animateVisibility = animateVisibility,
-                                            position = set.setPosition,
+                                            position = set.position,
                                             progressionScheme = lift.progressionScheme,
                                             setNumberLabel = set.setNumberLabel,
                                             weightRecommendation = set.weightRecommendation,
@@ -204,16 +205,16 @@ fun WorkoutLog(
                                             previousSetResultLabel = set.previousSetResultLabel,
                                             repRangePlaceholder = set.repRangePlaceholder,
                                             onWeightChanged = {
-                                                onWeightChanged(lift.id, set.setPosition, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
+                                                onWeightChanged(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
                                             },
                                             onRepsChanged = {
-                                                onRepsChanged(lift.id, set.setPosition, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
+                                                onRepsChanged(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
                                             },
                                             toggleRpePicker = {
                                                 if (it) {
                                                     pickerViewModel.showRpePicker(
                                                         workoutLiftId = lift.id,
-                                                        setPosition = set.setPosition,
+                                                        setPosition = set.position,
                                                         myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                                                     )
                                                 } else {
@@ -230,7 +231,8 @@ fun WorkoutLog(
                                                 onSetCompleted(
                                                     setType,
                                                     lift.progressionScheme,
-                                                    set.setPosition,
+                                                    lift.position,
+                                                    set.position,
                                                     (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                                                     lift.liftId,
                                                     weight,
@@ -243,8 +245,8 @@ fun WorkoutLog(
                                             },
                                             onUndoCompletion = {
                                                 undoCompleteSet(
-                                                    lift.liftId,
-                                                    set.setPosition,
+                                                    lift.position,
+                                                    set.position,
                                                     (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                                                 )
                                             },
@@ -261,17 +263,21 @@ fun WorkoutLog(
                     }
                 }
                 item {
-                    TextButton(
-                        modifier = Modifier.padding(20.dp),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        onClick = cancelWorkout
-                    ) {
-                        Text(
-                            text = "Cancel Workout",
-                            fontSize = 18.sp,
-                        )
+                    if (cancelWorkoutVisible) {
+                        TextButton(
+                            modifier = Modifier.padding(20.dp),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            ),
+                            onClick = cancelWorkout
+                        ) {
+                            Text(
+                                text = "Cancel Workout",
+                                fontSize = 18.sp,
+                            )
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
 
                     Spacer(modifier = Modifier.height(pickerSpacer))
@@ -282,7 +288,7 @@ fun WorkoutLog(
                     }
                 }
             }
-            RpePicker(
+            RpeKeyboard(
                 visible = pickerState.type == PickerType.Rpe,
                 onRpeSelected = {
                     onRpeSelected(pickerState.workoutLiftId!!, pickerState.setPosition!!, pickerState.myoRepSetPosition, it)

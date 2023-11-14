@@ -50,7 +50,7 @@ interface ProgramsDao {
             "(SELECT COUNT(*) FROM workouts WHERE programId = program_id) AS workoutCount " +
             "FROM programs " +
             "WHERE isActive = 1")
-    suspend fun getActiveProgramMetadata(): ActiveProgramMetadataDto?
+    fun getActiveProgramMetadata(): Flow<ActiveProgramMetadataDto?>
 
     @Query("UPDATE programs " +
             "SET currentMesocycle = :mesoCycle, " +

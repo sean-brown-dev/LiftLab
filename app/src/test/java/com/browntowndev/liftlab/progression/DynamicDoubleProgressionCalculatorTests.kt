@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.progression
 
+import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
@@ -13,12 +15,26 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.progression.DynamicDoubleProgressionCalculator
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 
 class DynamicDoubleProgressionCalculatorTests {
     private val calculator = DynamicDoubleProgressionCalculator()
     private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
+
+    @Before
+    fun setup() {
+        // Set the main dispatcher to the test dispatcher
+        val sharedPrefs = mockk<SharedPreferences>()
+        every { sharedPrefs.getBoolean(any(), any()) } returns true
+        every { sharedPrefs.getLong(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_REST_TIME
+        every { sharedPrefs.getFloat(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+
+        SettingsManager.initialize(sharedPrefs)
+    }
 
     @Test
     fun `weight should increment by lift increment override when set goals are met for a standard lift`() {
@@ -32,7 +48,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -41,9 +56,9 @@ class DynamicDoubleProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -65,7 +80,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -93,7 +107,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -102,10 +115,10 @@ class DynamicDoubleProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 3, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -127,7 +140,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -136,15 +148,15 @@ class DynamicDoubleProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if (p.setPosition != 3) 80f else null, p.weightRecommendation)
+            Assert.assertEquals(if (p.position != 3) 80f else null, p.weightRecommendation)
         }
     }
 
@@ -160,7 +172,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -169,15 +180,15 @@ class DynamicDoubleProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if(p.setPosition == 2) 75f else if (p.setPosition == 3) null else 80f, p.weightRecommendation)
+            Assert.assertEquals(if(p.position == 2) 75f else if (p.position == 3) null else 80f, p.weightRecommendation)
         }
     }
 
@@ -191,7 +202,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 3,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -226,9 +236,9 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -248,7 +258,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 3,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -283,15 +292,15 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if(p.setPosition == 2) 75f else 80f, p.weightRecommendation)
+            Assert.assertEquals(if(p.position == 2) 75f else 80f, p.weightRecommendation)
         }
     }
 
@@ -305,7 +314,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -326,10 +334,10 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, setPosition = 0, myoRepSetPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 0, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, setPosition = 0, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -349,7 +357,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -378,17 +385,17 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 1, myoRepSetPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, setPosition = 1, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 3, rpe = 8f, setPosition = 1, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 3, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            if (p.setPosition == 0)
+            if (p.position == 0)
                 Assert.assertEquals(75f, p.weightRecommendation)
             else
                 Assert.assertEquals(80f, p.weightRecommendation)
@@ -405,7 +412,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -434,18 +440,18 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, setPosition = 1, myoRepSetPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 1, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, setPosition = 1, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, setPosition = 1, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 3, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
 
         result.fastForEach { p ->
-            if (p.setPosition == 0)
+            if (p.position == 0)
                 Assert.assertEquals(75f, p.weightRecommendation)
             else
                 Assert.assertEquals(80f,  p.weightRecommendation)
@@ -462,7 +468,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -483,12 +488,11 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, setPosition = 1, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 2, rpe = 8f, setPosition = 1, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 2, rpe = 8f, setPosition = 1, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 2, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 2, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -508,7 +512,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -529,11 +532,10 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 14, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, setPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, setPosition = 1, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, setPosition = 1, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -555,7 +557,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -581,7 +582,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 2,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -627,7 +627,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -648,9 +647,9 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, setPosition = 0, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
@@ -670,7 +669,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 position = 0,
                 setCount = 1,
                 repRangeTop = 8,
-                incrementOverride = 5f,
             ),
             lift = Lift(
                 name = "",
@@ -691,10 +689,10 @@ class DynamicDoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf(
-            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, setPosition = 0, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, setPosition = 0, myoRepSetPosition = 1, weight = 75f, microCycle = 0, mesoCycle = 0),
-            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 1, rpe = 9f, setPosition = 0, myoRepSetPosition = 2, weight = 75f, microCycle = 0, mesoCycle = 0),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
+            MyoRepSetResultDto(workoutId = 0, liftId = 0, reps = 1, rpe = 9f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0),
         )
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)

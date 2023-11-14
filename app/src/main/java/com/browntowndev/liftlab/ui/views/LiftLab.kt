@@ -20,6 +20,7 @@ import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
+import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,7 +29,7 @@ import org.koin.androidx.compose.getViewModel
 @ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LiftLab() {
+fun LiftLab(roomBackup: RoomBackup) {
     LiftLabTheme {
         val navController = rememberNavController()
         val scope = rememberCoroutineScope()
@@ -65,6 +66,7 @@ fun LiftLab() {
             }
         ) { scaffoldPaddingValues ->
             NavigationGraph(
+                roomBackup = roomBackup,
                 navHostController = navController,
                 paddingValues = scaffoldPaddingValues,
                 screen = topAppBarState.currentScreen,

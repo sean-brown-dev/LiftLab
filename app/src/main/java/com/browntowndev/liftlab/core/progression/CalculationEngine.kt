@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.progression
 
 import com.browntowndev.liftlab.core.common.isWholeNumber
+import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.common.toFloorAndCeiling
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -34,7 +35,7 @@ class CalculationEngine {
                             val dLanderCalc = weight / (1.013f - .0267123f * roundedReps)
                             val dEpleyCalc = weight * (1.0f + roundedReps / 30.0f)
                             val dLombardiCalc: Float = weight * roundedReps.toFloat().pow(.10f)
-                            (dBrzyckiCalc + dBaechleCalc + dLanderCalc + dEpleyCalc + dLombardiCalc) / 5f
+                            (dBrzyckiCalc + dBaechleCalc + dLanderCalc + dEpleyCalc + dLombardiCalc) / 5
                         }
                     }.average().toFloat()
             }
@@ -48,17 +49,26 @@ class CalculationEngine {
             return getOneRepMax(weight, repsConsideringRpe)
         }
 
-        fun calculateSuggestedWeight (weight: Float, reps: Int, rpe: Float, roundingFactor: Float): Int {
-            val repsConsideringRpe = reps + (10 - rpe)
-            val oneRepMax = getOneRepMax(weight, repsConsideringRpe)
+        fun calculateSuggestedWeight(
+            completedWeight: Float,
+            completedReps: Int,
+            completedRpe: Float,
+            repGoal: Int,
+            rpeGoal: Float,
+            roundingFactor: Float,
+        ): Float {
+            val completedRepsConsideringRpe = completedReps + (10 - completedRpe)
+            val oneRepMax = getOneRepMax(completedWeight, completedRepsConsideringRpe)
 
-            val brzyckiCalc = oneRepMax * ((37.0f - repsConsideringRpe) / 36.0f)
-            val baechleCalc = oneRepMax / (1.0f + (0.033f * repsConsideringRpe))
-            val landerCalc = oneRepMax * (1.013f - (0.0267123f * repsConsideringRpe))
-            val epleyCalc = (oneRepMax * 30f) / (repsConsideringRpe + 30f)
-            val lombardiCalc = oneRepMax / repsConsideringRpe.pow(0.10f)
+            val repGoalConsideringRpe = repGoal + (10 - rpeGoal)
+            val brzyckiCalc = oneRepMax * ((37.0f - repGoalConsideringRpe) / 36.0f)
+            val baechleCalc = oneRepMax / (1.0f + (0.033f * repGoalConsideringRpe))
+            val landerCalc = oneRepMax * (1.013f - (0.0267123f * repGoalConsideringRpe))
+            val epleyCalc = (oneRepMax * 30f) / (repGoalConsideringRpe + 30f)
+            val lombardiCalc = oneRepMax / repGoalConsideringRpe.pow(0.10f)
 
-            return ((brzyckiCalc + baechleCalc + landerCalc + epleyCalc + lombardiCalc) / roundingFactor).toInt()
+            val averageWeightRecommendation = (brzyckiCalc + baechleCalc + landerCalc + epleyCalc + lombardiCalc) / 5
+            return averageWeightRecommendation.roundToNearestFactor(roundingFactor)
         }
 
     }

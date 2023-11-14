@@ -20,8 +20,11 @@ data class WorkoutLogEntry(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "workout_log_entry_id")
     val id: Long = 0,
     val historicalWorkoutNameId: Long,
+    val programWorkoutCount: Int,
+    val programDeloadWeek: Int,
     val mesocycle: Int,
     val microcycle: Int,
+    val microcyclePosition: Int,
     val date: Date,
     val durationInMillis: Long,
 )

@@ -14,3 +14,10 @@ const val DOUBLE_MINUTES_SECONDS_FORMAT = "%02d:%02d"
 const val SINGLE_HOURS_MINUTES_SECONDS_FORMAT = "%01d:%02d:%02d"
 const val DOUBLE_HOURS_MINUTES_SECONDS_FORMAT = "%02d:%02d:%02d"
 const val DAYS_HOURS_MINUTES_SECONDS_FORMAT = "%dd:%02d:%02d:%02d"
+
+// Increment
+val INCREMENT_OPTIONS = listOf(.5f, 1f, 2.5f, 5f, 10f, 20f)
+val REST_TIME_RANGE = 0..6L
+
+// Navigation
+const val LIFT_METRIC_CHART_IDS = "liftMetricChartIds"

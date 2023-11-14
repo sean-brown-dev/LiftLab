@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
+import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
@@ -24,30 +26,68 @@ class LoggingRepository(
         }.asLiveData()
     }
 
+    suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryDto? {
+        val log: List<FlattenedWorkoutLogEntryDto> = loggingDao.get(workoutLogEntryId = workoutLogEntryId)
+        return workoutLogEntryMapper.map(log).singleOrNull()
+    }
+
     suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntryDto> {
         val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getLogsByLiftId(liftId)
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
-    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long) {
-        loggingDao.insertFromPreviousSetResults(workoutLogEntryId)
+    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, workoutId: Long, excludeFromCopy: List<Long>) {
+        loggingDao.insertFromPreviousSetResults(workoutLogEntryId, workoutId, excludeFromCopy)
     }
 
     suspend fun insertWorkoutLogEntry(
         historicalWorkoutNameId: Long,
+        programDeloadWeek: Int,
+        programWorkoutCount: Int,
         mesoCycle: Int,
         microCycle: Int,
+        microcyclePosition: Int,
         date: Date,
         durationInMillis: Long,
     ): Long {
         return loggingDao.insert(
             WorkoutLogEntry(
                 historicalWorkoutNameId = historicalWorkoutNameId,
+                programDeloadWeek = programDeloadWeek,
+                programWorkoutCount = programWorkoutCount,
                 mesocycle = mesoCycle,
                 microcycle = microCycle,
+                microcyclePosition = microcyclePosition,
                 date = date,
                 durationInMillis = durationInMillis,
             )
         )
+    }
+
+    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
+        loggingDao.delete(
+            workoutId = workoutId,
+            liftPosition = liftPosition,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+        )
+    }
+
+    suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
+        return loggingDao.upsert(workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry))
+    }
+
+    suspend fun upsertMany(workoutLogEntryId: Long, setLogEntries: List<SetLogEntryDto>): List<Long> {
+        return loggingDao.upsertMany(
+            setLogEntries.fastMap { setLogEntry ->
+                workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
+            }
+        )
+    }
+
+    suspend fun getFirstPriorToDate(historicalWorkoutNameId: Long, date: Date): WorkoutLogEntryDto? {
+        return workoutLogEntryMapper.map(
+            loggingDao.getFirstPriorToDate(historicalWorkoutNameId = historicalWorkoutNameId, date = date)
+        ).firstOrNull()
     }
 }

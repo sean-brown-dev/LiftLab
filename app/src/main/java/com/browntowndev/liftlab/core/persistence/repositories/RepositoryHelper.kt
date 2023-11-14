@@ -73,4 +73,8 @@ class RepositoryHelper(context: Context): KoinComponent {
     val restTimer get() = RestTimerInProgressRepository(
         database.restTimerInProgressDao()
     )
+
+    val liftMetricCharts get() = LiftMetricChartRepository(
+        database.liftMetricChartsDao()
+    )
 }

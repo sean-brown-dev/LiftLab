@@ -6,8 +6,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.room.withTransaction
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.MovementPatternDeserializer
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -42,8 +40,6 @@ class LiftLabDatabaseWorker(
                             database.clearAllTables()
                             database.liftsDao().insertAll(lifts)
                             populateDefaultProgram(db = database)
-
-                            SettingsManager.setSetting(DB_INITIALIZED, true)
                         }
 
                         Result.success()
@@ -56,8 +52,6 @@ class LiftLabDatabaseWorker(
         } catch (ex: Exception) {
             Log.e(TAG, "Error seeding database", ex)
             Result.failure()
-        } finally {
-            LiftLabDatabase.initialized = true
         }
     }
 

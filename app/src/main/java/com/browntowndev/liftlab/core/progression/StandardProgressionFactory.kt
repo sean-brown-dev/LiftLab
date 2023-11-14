@@ -21,9 +21,12 @@ class StandardProgressionFactory: ProgressionFactory {
         )
 
         workout.lifts.fastForEach { workoutLift ->
+            val deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek
+            val isDeloadWeek = (microCycle + 1) == deloadWeek
+            val resultsForLift = previousSetResults.filter { it.liftPosition == workoutLift.position && it.liftId == workoutLift.liftId }
+
             loggingWorkout = loggingWorkout.copy(
                 lifts = loggingWorkout.lifts.toMutableList().apply {
-                    val isDeloadWeek = (microCycle + 1) == (workoutLift.deloadWeek ?: programDeloadWeek)
                     add(
                         LoggingWorkoutLiftDto(
                             id = workoutLift.id,
@@ -32,7 +35,7 @@ class StandardProgressionFactory: ProgressionFactory {
                             liftMovementPattern = workoutLift.liftMovementPattern,
                             liftVolumeTypes = workoutLift.liftVolumeTypes,
                             liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
-                            deloadWeek = workoutLift.deloadWeek,
+                            deloadWeek = deloadWeek,
                             incrementOverride = workoutLift.incrementOverride,
                             position = workoutLift.position,
                             progressionScheme = workoutLift.progressionScheme,
@@ -43,10 +46,10 @@ class StandardProgressionFactory: ProgressionFactory {
                                 ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
                                 ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
                                 ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
-                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek)
+                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek, microCycle)
                             }.calculate(
                                 workoutLift = workoutLift,
-                                previousSetResults = previousSetResults,
+                                previousSetResults = resultsForLift,
                                 isDeloadWeek = isDeloadWeek,
                             )
                         )

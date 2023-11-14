@@ -15,6 +15,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.takeOrElse
@@ -33,6 +34,7 @@ fun LiftLabOutlinedTextField(
     enabled: Boolean = true,
     readOnly: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
+    hideCursor: Boolean = false,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -60,15 +62,14 @@ fun LiftLabOutlinedTextField(
     BasicTextField(
         value = value,
         modifier = if (label != null) {
+            // Merge semantics at the beginning of the modifier chain to ensure padding is
+            // considered part of the text field.
             modifier
-                // Merge semantics at the beginning of the modifier chain to ensure padding is
-                // considered part of the text field.
                 .semantics(mergeDescendants = true) {}
                 .padding(top = 5.dp)
         } else {
             modifier
-        }
-            .defaultMinSize(
+        }.defaultMinSize(
                 minWidth = OutlinedTextFieldDefaults.MinWidth,
                 minHeight = OutlinedTextFieldDefaults.MinHeight
             ),
@@ -76,7 +77,11 @@ fun LiftLabOutlinedTextField(
         enabled = enabled,
         readOnly = readOnly,
         textStyle = mergedTextStyle,
-        cursorBrush = SolidColor(if(isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary),
+        cursorBrush = SolidColor(
+            if (isError) MaterialTheme.colorScheme.error
+            else if (hideCursor) Color.Unspecified
+            else MaterialTheme.colorScheme.primary
+        ),
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,

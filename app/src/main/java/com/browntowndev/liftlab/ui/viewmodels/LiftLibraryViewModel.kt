@@ -1,17 +1,25 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
+import com.browntowndev.liftlab.core.common.FilterChipOption
+import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,30 +32,62 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val liftMetricChartRepository: LiftMetricChartRepository,
     private val navHostController: NavHostController,
+    workoutId: Long?,
+    addAtPosition: Int?,
+    initialMovementPatternFilter: String,
+    newLiftMetricChartIds: List<Long>,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
+    private var _liftsLiveData: LiveData<List<LiftDto>>? = null
+    private var _liftsObserver: Observer<List<LiftDto>>? = null
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
-            liftsRepository.getAll()
-                .observeForever { lifts ->
-                    _state.update { currentState ->
-                        currentState.copy(allLifts = lifts.sortedBy { it.name })
+            _state.update {
+                it.copy(
+                    workoutId = workoutId,
+                    addAtPosition = addAtPosition,
+                    newLiftMetricChartIds = newLiftMetricChartIds,
+                    liftIdFilters = getLiftIdFilters(newLiftMetricChartIds.isNotEmpty(), workoutId),
+                    movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
+                        listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
+                    } else {
+                        it.movementPatternFilters
                     }
-                }
+                )
+            }
         }
+
+        _liftsLiveData = liftsRepository.getAll()
+        _liftsObserver = Observer { lifts ->
+            val sortedLifts = lifts.sortedBy { it.name }
+            _state.update { currentState ->
+                currentState.copy(
+                    allLifts = sortedLifts,
+                    filteredLifts = getFilteredLifts(sortedLifts)
+                )
+            }
+        }
+
+        _liftsLiveData!!.observeForever(_liftsObserver!!)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        _liftsLiveData?.removeObserver(_liftsObserver!!)
     }
 
     @Subscribe
     fun handleTopAppBarActionEvent(event: TopAppBarEvent.ActionEvent) {
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
-            TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) setNavigateBackIconClickedState(true)
-            TopAppBarAction.ConfirmAddLift -> addWorkoutLifts()
+            TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
+            TopAppBarAction.ConfirmAddLift -> if (_state.value.newLiftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
             TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
             else -> {}
         }
@@ -56,21 +96,22 @@ class LiftLibraryViewModel(
     @Subscribe
     fun handleTopAppBarPayloadEvent(payloadEvent: TopAppBarEvent.PayloadActionEvent<String>) {
         when (payloadEvent.action) {
-            TopAppBarAction.SearchTextChanged -> filterLiftsByName(payloadEvent.payload)
+            TopAppBarAction.SearchTextChanged -> setNameFilter(payloadEvent.payload)
             else -> {}
         }
     }
 
-    fun setWorkoutId(workoutId: Long?) {
-        _state.update {
-            it.copy(workoutId = workoutId)
-        }
-    }
-
-    fun setAddAtPosition(position: Int?) {
-        _state.update {
-            it.copy(addAtPosition = position)
-        }
+    private suspend fun getLiftIdFilters(
+        shouldGetLiftMetricChartLiftIds: Boolean,
+        workoutId: Long?,
+    ): HashSet<Long> {
+        return if (shouldGetLiftMetricChartLiftIds) {
+            liftMetricChartRepository.getAll()
+                .mapNotNull { it.liftId }
+                .toHashSet()
+        } else if (workoutId != null) {
+            workoutLiftsRepository.getLiftIdsForWorkout(workoutId).toHashSet()
+        } else hashSetOf()
     }
 
     fun addSelectedLift(id: Long) {
@@ -89,9 +130,32 @@ class LiftLibraryViewModel(
         }
     }
 
+    private fun updateLiftMetricChartsWithSelectedLiftIds() {
+        viewModelScope.launch {
+            val newLiftIds = _state.value.selectedNewLiftsHashSet
+            var liftMetricCharts = liftMetricChartRepository.getMany(_state.value.newLiftMetricChartIds)
+
+            liftMetricCharts = newLiftIds.flatMap { currLiftId ->
+                liftMetricCharts.fastMap { chart ->
+                    updateChart(chart, currLiftId, newLiftIds.first())
+                }
+            }
+
+            liftMetricChartRepository.upsertMany(liftMetricCharts = liftMetricCharts)
+            navigateBackToHome()
+        }
+    }
+
+    private fun updateChart(chart: LiftMetricChartDto, liftId: Long, firstLiftId: Long): LiftMetricChartDto {
+        return chart.copy(
+            id = if (liftId == firstLiftId) chart.id else 0L,
+            liftId = liftId
+        )
+    }
+
+
     private fun addWorkoutLifts() {
         viewModelScope.launch {
-            // TODO: Block duplicate lift from being added
             val newLiftHashSet = _state.value.selectedNewLiftsHashSet
             val workoutId = _state.value.workoutId!!
             var position = _state.value.addAtPosition!! - 1
@@ -128,45 +192,115 @@ class LiftLibraryViewModel(
         workoutLiftId: Long,
         replacementLiftId: Long,
     ) {
+        _state.update { it.copy(replacingLift = true) }
+
         viewModelScope.launch {
             workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
             navigateBackToWorkoutBuilder()
         }
     }
 
-    private fun navigateBackToWorkoutBuilder() {
-        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
-        navHostController.popBackStack()
-        navHostController.popBackStack()
-        navHostController.navigate(workoutBuilderRoute)
+    private fun navigateBackToHome() {
+        // Pop back to before Home
+        while (navHostController.previousBackStackEntry?.destination?.route != HomeScreen.navigation.route) {
+            navHostController.popBackStack()
+        }
+
+        // Go back to Home
+        navHostController.navigate(HomeScreen.navigation.route)
     }
 
-    private fun setNavigateBackIconClickedState(clicked: Boolean) {
-        _state.update {
-            it.copy(backNavigationClicked = clicked)
+    private fun navigateBackToWorkoutBuilder() {
+        // Pop back to lab
+        while (navHostController.currentBackStackEntry?.destination?.route != LabScreen.navigation.route) {
+            navHostController.popBackStack()
         }
+
+        // Go back to workout builder
+        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
+        navHostController.navigate(workoutBuilderRoute)
     }
 
     private fun toggleFilterSelection() {
         _state.update {
-            it.copy(showFilterSelection = !_state.value.showFilterSelection)
+            it.copy(
+                showFilterSelection = !_state.value.showFilterSelection
+            )
         }
     }
 
-    private fun filterLiftsByName(filter: String) {
+    private fun setNameFilter(filter: String) {
         _state.update {
             it.copy(nameFilter = filter)
         }
+
+        applyFilters()
     }
 
-    fun filterLiftsByMovementPatterns(movementPatterns: List<String>) {
+    fun addMovementPatternFilter(movementPattern: FilterChipOption) {
         _state.update {
-            it.copy(movementPatternFilters = movementPatterns, showFilterSelection = false, backNavigationClicked = false)
+            it.copy(
+                movementPatternFilters = it.movementPatternFilters
+                    .toMutableList()
+                    .apply { add(movementPattern) }
+            )
         }
     }
 
-    fun removeMovementPatternFilter(movementPattern: String) {
-        this.filterLiftsByMovementPatterns(_state.value.movementPatternFilters.filter { it != movementPattern })
+    fun removeMovementPatternFilter(movementPattern: FilterChipOption, apply: Boolean) {
+        _state.update {
+            it.copy(
+                movementPatternFilters = _state.value.movementPatternFilters
+                    .toMutableList()
+                    .apply { remove(movementPattern) }
+            )
+        }
+
+        if (apply) {
+            applyFilters()
+        }
+    }
+
+    private fun getFilteredLifts(liftsToFilter: List<LiftDto>): List<LiftDto> {
+        val nameFilter = _state.value.nameFilter
+        val movementPatternFilters = _state.value.movementPatternFilters
+        val liftIdFilters = _state.value.liftIdFilters
+
+        return liftsToFilter.let { lifts ->
+            val hasNameFilter = nameFilter?.isNotEmpty() == true
+            val hasMovementPatternFilters = movementPatternFilters.isNotEmpty()
+            val hasLiftIdFilter = liftIdFilters.isNotEmpty()
+
+            if (hasNameFilter || hasMovementPatternFilters || hasLiftIdFilter) {
+                lifts.filter { lift ->
+                    var matches = if (hasNameFilter) {
+                        lift.name.contains(nameFilter!!, true)
+                    } else true
+
+                    matches = matches && if (hasMovementPatternFilters) {
+                        val movementPatternFilter = FilterChipOption(
+                            type = MOVEMENT_PATTERN,
+                            value = lift.movementPatternDisplayName
+                        )
+                        movementPatternFilters.contains(movementPatternFilter)
+                    } else true
+
+                    matches && if(hasLiftIdFilter) {
+                        !liftIdFilters.contains(lift.id)
+                    } else true
+                }
+            } else lifts
+        }
+    }
+
+    fun applyFilters() {
+        val filteredLifts = getFilteredLifts(_state.value.allLifts)
+        _state.update {
+            it.copy(
+                showFilterSelection = false,
+                filteredLifts = filteredLifts,
+            )
+        }
     }
 
     fun hideLift(lift: LiftDto) {

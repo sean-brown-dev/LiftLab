@@ -5,4 +5,9 @@
     <string name="accessibility_filter">Filter</string>
     <string name="create_a_new_lift">create a new lift</string>
     <string name="settings">Settings</string>
+    <string name="export_database">export database</string>
+    <string name="import_database">import database</string>
+    <string name="db_encryption_key">TW%LK*HnE6434!#e9euM</string>
+    <string name="add_lift_chart">Add lift chart.</string>
+    <string name="delete_lift_metric_chart">Delete lift metric chart.</string>
 </resources>

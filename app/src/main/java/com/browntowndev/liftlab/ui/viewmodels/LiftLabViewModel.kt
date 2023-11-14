@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 
@@ -14,11 +14,10 @@ abstract class LiftLabViewModel(
     fun registerEventBus() {
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this)
-            Log.d(Log.DEBUG.toString(), "Registered event bus for ${this::class.simpleName}")
         }
     }
 
-    protected fun executeInTransactionScope(action: suspend () -> Unit) {
+    protected fun executeInTransactionScope(action: suspend CoroutineScope.() -> Unit) {
         viewModelScope.launch {
             transactionScope.execute {
                 action()

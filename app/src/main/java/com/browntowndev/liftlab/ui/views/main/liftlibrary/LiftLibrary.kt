@@ -39,7 +39,6 @@ import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.FilterSelector
 import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow
-import org.koin.androidx.compose.getViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -52,6 +51,7 @@ fun LiftLibrary(
     workoutId: Long? = null,
     workoutLiftId: Long? = null,
     movementPattern: String = "",
+    liftMetricChartIds: List<Long>,
     addAtPosition: Int? = null,
     onNavigateBack: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
@@ -59,18 +59,16 @@ fun LiftLibrary(
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
-    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController) }
+    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController, workoutId, addAtPosition, movementPattern, liftMetricChartIds) }
     val state by liftLibraryViewModel.state.collectAsState()
 
-    liftLibraryViewModel.setWorkoutId(workoutId)
-    liftLibraryViewModel.setAddAtPosition(addAtPosition)
-
-    val isReplacingWorkout by remember(key1 = workoutId, key2 = workoutLiftId) {
-        mutableStateOf(workoutId != null && workoutLiftId != null)
+    val isReplacingWorkout = remember(key1 = workoutId, key2 = workoutLiftId) {
+        workoutId != null && workoutLiftId != null
     }
-    val isAddingToWorkout by remember(key1 = workoutId, key2 = addAtPosition) {
-        mutableStateOf(workoutId != null && addAtPosition != null)
+    val isAddingToWorkout = remember(key1 = workoutId, key2 = addAtPosition) {
+        workoutId != null && addAtPosition != null
     }
+    val isCreatingLiftMetricCharts = remember(liftMetricChartIds) { liftMetricChartIds.isNotEmpty() }
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
@@ -86,12 +84,6 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
     }
 
-    LaunchedEffect(key1 = movementPattern) {
-        if (movementPattern.isNotEmpty()) {
-            liftLibraryViewModel.filterLiftsByMovementPatterns(listOf(movementPattern))
-        }
-    }
-
     LaunchedEffect(key1 = state.selectedNewLifts) {
         if (state.selectedNewLifts.isEmpty()) {
             onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, false)
@@ -100,7 +92,7 @@ fun LiftLibrary(
         }
     }
 
-    if (!state.showFilterSelection) {
+    if (!state.showFilterSelection && !state.replacingLift) {
         setTopAppBarCollapsed(false)
         Column(
             modifier = Modifier.padding(paddingValues),
@@ -111,7 +103,7 @@ fun LiftLibrary(
                     if (it.type == FilterChipOption.NAME) {
                         onClearTopAppBarFilterText()
                     } else {
-                        liftLibraryViewModel.removeMovementPatternFilter(it.value)
+                        liftLibraryViewModel.removeMovementPatternFilter(it, true)
                     }
                 },
             )
@@ -131,14 +123,15 @@ fun LiftLibrary(
                         DeleteableOnSwipeLeft(
                             confirmationDialogHeader = "Delete Lift?",
                             confirmationDialogBody = "Deleting this lift will hide it from the Lifts menu. It can be restored from the Settings menu.",
-                            enabled = !isAddingToWorkout && !isReplacingWorkout,
+                            enabled = !isAddingToWorkout && !isReplacingWorkout && !isCreatingLiftMetricCharts,
                             onDelete = { liftLibraryViewModel.hideLift(lift) },
                         ) {
                             ListItem(
                                 modifier = Modifier.clickable {
-                                    if(isAddingToWorkout && selected) {
+                                    val multiselectEnabled = isAddingToWorkout || isCreatingLiftMetricCharts
+                                    if(multiselectEnabled && selected) {
                                         liftLibraryViewModel.removeSelectedLift(lift.id)
-                                    } else if (isAddingToWorkout) {
+                                    } else if (multiselectEnabled) {
                                         liftLibraryViewModel.addSelectedLift(lift.id)
                                     } else if (isReplacingWorkout) {
                                         liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
@@ -175,23 +168,23 @@ fun LiftLibrary(
                 }
             }
         }
-    } else {
+    } else if (!state.replacingLift) {
         setTopAppBarCollapsed(true)
-        val filterOptionSections = remember {
-            listOf(
-                MovementPatternFilterSection.UpperCompound,
-                MovementPatternFilterSection.UpperAccessory,
-                MovementPatternFilterSection.LowerCompound,
-                MovementPatternFilterSection.LowerAccessory,
-            )
-        }
         FilterSelector(
             modifier = Modifier.padding(paddingValues),
-            navigateBackClicked = state.backNavigationClicked,
-            filterOptionSections = filterOptionSections,
+            filterOptionSections = remember {
+                listOf(
+                    MovementPatternFilterSection.UpperCompound,
+                    MovementPatternFilterSection.UpperAccessory,
+                    MovementPatternFilterSection.LowerCompound,
+                    MovementPatternFilterSection.LowerAccessory,
+                )
+            },
             selectedFilters = state.movementPatternFilters,
+            onAddFilter = { liftLibraryViewModel.addMovementPatternFilter(it) },
+            onRemoveFilter = { liftLibraryViewModel.removeMovementPatternFilter(it, false) },
             onConfirmSelections = {
-                liftLibraryViewModel.filterLiftsByMovementPatterns(it)
+                liftLibraryViewModel.applyFilters()
             },
         )
     }

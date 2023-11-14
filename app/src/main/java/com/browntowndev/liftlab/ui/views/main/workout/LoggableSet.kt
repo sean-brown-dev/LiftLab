@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
@@ -145,20 +146,8 @@ private fun SetRow(
             value = completedWeight,
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
             errorOnEmpty = false,
-            maxValue = Float.MAX_VALUE,
-            onValueChanged = {
-                if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                } else {
-                    onWeightChanged(it)
-                }
-            },
-            onLeftFocusBlank = {
-                onWeightChanged(null)
-                if (complete) {
-                    onUndoCompletion()
-                }
-            },
+            maxValue = 2000f,
+            onValueChanged = onWeightChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
         IntegerTextField(
@@ -166,19 +155,7 @@ private fun SetRow(
             value = completedReps,
             placeholder = repRangePlaceholder,
             errorOnEmpty = false,
-            onValueChanged = {
-                if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                } else {
-                    onRepsChanged(it)
-                }
-            },
-            onLeftFocusBlank = {
-                onRepsChanged(null)
-                if (complete) {
-                    onUndoCompletion()
-                }
-            },
+            onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
         val rpePlaceholder = remember(rpeTarget) {
@@ -199,12 +176,8 @@ private fun SetRow(
             value = completedRpe,
             placeholder = rpePlaceholder,
             disableSystemKeyboard = true,
+            hideCursor = true,
             errorOnEmpty = false,
-            onValueChanged = {
-                if (complete) {
-                    onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                }
-            },
             onFocusChanged = { toggleRpePicker(it) },
             onPixelOverflowChanged = onAddSpacer,
         )
@@ -216,14 +189,8 @@ private fun SetRow(
         ) {
             mutableStateOf(completedWeight != null && completedReps != null && completedRpe != null)
         }
-        LaunchedEffect(enabled) {
-            if (!enabled && complete) {
-                onUndoCompletion()
-            }
-        }
-        var checked by remember(complete) { mutableStateOf(complete) }
         Checkbox(
-            checked = checked,
+            checked = complete,
             enabled = enabled,
             colors = CheckboxDefaults.colors(
                 uncheckedColor = MaterialTheme.colorScheme.outline,
@@ -231,10 +198,9 @@ private fun SetRow(
                 checkmarkColor = MaterialTheme.colorScheme.onPrimary,
             ),
             onCheckedChange = {
-                checked = checked
                 if (it) {
                     onCompleted(completedWeight!!, completedReps!!, completedRpe!!)
-                } else {
+                } else if (complete) {
                     onUndoCompletion()
                 }
             }

@@ -10,6 +10,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
@@ -27,16 +28,63 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
 
     protected open fun getFailureWeight(
         workoutLift: GenericWorkoutLift,
-        previousSetResults: List<SetResult>
+        previousSetResults: List<SetResult>,
+        position: Int? = null,
     ): Float? {
-        return previousSetResults.firstOrNull()?.weight
+        val result = previousSetResults.getOrNull(position ?: -1)
+        return if (result == null) {
+            previousSetResults.firstOrNull()?.weight
+        } else {
+            when (workoutLift) {
+                is StandardWorkoutLiftDto -> getStandardWorkoutLiftFailureWeight(
+                    workoutLift = workoutLift,
+                    result = result,
+                )
+                is CustomWorkoutLiftDto -> getCustomWorkoutLiftFailureWeight(
+                    incrementOverride = workoutLift.incrementOverride,
+                    set = workoutLift.customLiftSets[position!!],
+                    result = result,
+                )
+                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
+            }
+        }
     }
 
-    protected open fun getFailureWeight(
-        workoutLift: GenericWorkoutLift,
+    private fun getStandardWorkoutLiftFailureWeight(
+        workoutLift: StandardWorkoutLiftDto,
         result: SetResult,
-    ): Float? {
-        return null
+    ): Float {
+        return if (shouldDecreaseWeight(result, workoutLift)) {
+            decreaseWeight(
+                incrementOverride = workoutLift.incrementOverride,
+                repRangeBottom = workoutLift.repRangeBottom,
+                rpeTarget = workoutLift.rpeTarget,
+                prevSet = result
+            )
+        } else {
+            result.weight
+        }
+    }
+
+    private fun getCustomWorkoutLiftFailureWeight(
+        incrementOverride: Float?,
+        set: GenericLiftSet,
+        result: SetResult,
+    ): Float {
+        val minimumRepsAllowed = set.repRangeBottom - 1
+        val repsConsideringRpe = result.reps + (10 - result.rpe)
+        val missedBottomRepRange = repsConsideringRpe < minimumRepsAllowed
+
+        return if (missedBottomRepRange) {
+            decreaseWeight(
+                incrementOverride = incrementOverride,
+                repRangeBottom = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                prevSet = result
+            )
+        } else {
+            result.weight
+        }
     }
 
     protected abstract fun allSetsMetCriterion(
@@ -67,7 +115,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         val criterionMet = allSetsMetCriterion(workoutLift, previousSetResults)
-        val resultsByPosition = previousSetResults
+        val nonMyoRepSetResults = previousSetResults
             .filterNot { it is MyoRepSetResultDto }
             .associateBy { it.setPosition }
         val myoRepSetResults = previousSetResults
@@ -78,28 +126,25 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
         return when (workoutLift) {
             is StandardWorkoutLiftDto -> {
                 List(workoutLift.setCount) {
-                    val result = resultsByPosition[it]
+                    val result = nonMyoRepSetResults[it]
                     LoggingStandardSetDto(
-                        setPosition = it,
+                        position = it,
                         rpeTarget = workoutLift.rpeTarget,
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
-                        previousSetResultLabel =
-                        if (result != null) {
-                            "${result.weight}x${result.reps} @${result.rpe}"
-                        } else "—",
+                        previousSetResultLabel = getPreviousSetResultLabel(result),
                         repRangePlaceholder = if (!isDeloadWeek) {
                            "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                         } else workoutLift.repRangeBottom.toString(),
                         weightRecommendation =
                         if (criterionMet) {
                             incrementWeight(workoutLift, result ?: previousSetResults.last())
-                        } else if (result != null) {
-                            getFailureWeight(workoutLift = workoutLift, result = result)
-                                ?: getFailureWeight(
-                                    workoutLift = workoutLift,
-                                    previousSetResults = previousSetResults
-                                )
+                        } else if (previousSetResults.isNotEmpty()) {
+                            getFailureWeight(
+                                workoutLift = workoutLift,
+                                previousSetResults = previousSetResults,
+                                position = it,
+                            )
                         } else null
                     )
                 }
@@ -108,19 +153,16 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             is CustomWorkoutLiftDto -> {
                 var lastWeightRecommendation: Float? = null
                 workoutLift.customLiftSets.flatMap { set ->
-                    val result = resultsByPosition[set.setPosition]
-                    val currSetMyoRepResults = myoRepSetResults[set.setPosition]
+                    val result = nonMyoRepSetResults[set.position]
+                    val currSetMyoRepResults = myoRepSetResults[set.position]
                     when (set) {
                         is StandardSetDto -> listOf(
                             LoggingStandardSetDto(
-                            setPosition = set.setPosition,
+                            position = set.position,
                             rpeTarget = set.rpeTarget,
                             repRangeBottom = set.repRangeBottom,
                             repRangeTop = set.repRangeTop,
-                            previousSetResultLabel =
-                            if (result != null) {
-                                "${result.weight}x${result.reps} @${result.rpe}"
-                            } else "—",
+                            previousSetResultLabel = getPreviousSetResultLabel(result),
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
@@ -129,40 +171,46 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                 lastWeightRecommendation = incrementWeight(workoutLift, result ?: previousSetResults.last())
                                 lastWeightRecommendation
                             } else if (previousSetResults.isNotEmpty()) {
-                                getFailureWeight(workoutLift = workoutLift, result = result ?: previousSetResults.last())
-                                    ?: getFailureWeight(
-                                        workoutLift = workoutLift,
-                                        previousSetResults = previousSetResults
-                                    )
+                                lastWeightRecommendation = getFailureWeight(
+                                    workoutLift = workoutLift,
+                                    previousSetResults = previousSetResults,
+                                    position = set.position,
+                                )
+                                lastWeightRecommendation
                             } else null
                         ))
 
                         is DropSetDto -> listOf(
                             LoggingDropSetDto(
-                            setPosition = set.setPosition,
-                            rpeTarget = set.rpeTarget,
-                            repRangeBottom = set.repRangeBottom,
-                            repRangeTop = set.repRangeTop,
-                            previousSetResultLabel =
-                            if (result != null) {
-                                "${result.weight}x${result.reps} @${result.rpe}"
-                            } else "—",
-                            repRangePlaceholder = if (!isDeloadWeek) {
-                                "${set.repRangeBottom}-${set.repRangeTop}"
-                            } else set.repRangeBottom.toString(),
-                            weightRecommendation = if (criterionMet) {
-                                lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
-                                lastWeightRecommendation
-                            } else if (previousSetResults.isNotEmpty()) {
-                                previousSetResults[set.setPosition].weight
-                            } else null,
-                            dropPercentage = set.dropPercentage,
+                                position = set.position,
+                                rpeTarget = set.rpeTarget,
+                                repRangeBottom = set.repRangeBottom,
+                                repRangeTop = set.repRangeTop,
+                                dropPercentage = set.dropPercentage,
+                                previousSetResultLabel = getPreviousSetResultLabel(result),
+                                repRangePlaceholder = if (!isDeloadWeek) {
+                                    "${set.repRangeBottom}-${set.repRangeTop}"
+                                } else set.repRangeBottom.toString(),
+                                weightRecommendation = if (criterionMet) {
+                                    lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
+                                    lastWeightRecommendation
+                                } else {
+                                    getDropSetFailureWeight(
+                                        incrementOverride = workoutLift.incrementOverride,
+                                        repRangeBottom = set.repRangeBottom,
+                                        rpeTarget = set.rpeTarget,
+                                        dropPercentage = set.dropPercentage,
+                                        result = result,
+                                        droppedFromSetResult = nonMyoRepSetResults
+                                            .getOrDefault(set.position - 1, null),
+                                    )
+                               },
                         ))
 
                         is MyoRepSetDto -> {
                             (currSetMyoRepResults?.fastMap {
                                 LoggingMyoRepSetDto(
-                                    setPosition = set.setPosition,
+                                    position = set.position,
                                     myoRepSetPosition = it.myoRepSetPosition,
                                     rpeTarget = set.rpeTarget,
                                     repRangeBottom = set.repRangeBottom,
@@ -170,7 +218,7 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                     setMatching = set.setMatching,
                                     repFloor = set.repFloor,
                                     maxSets = set.maxSets,
-                                    previousSetResultLabel = "${it.weight}x${it.reps} @${it.rpe}",
+                                    previousSetResultLabel = getPreviousSetResultLabel(result = it),
                                     repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
                                         "${set.repRangeBottom}-${set.repRangeTop}"
                                     } else if (!isDeloadWeek && set.repFloor != null) {
@@ -183,25 +231,24 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
                                     weightRecommendation = if (criterionMet) {
                                         incrementWeight(workoutLift, it)
                                     } else {
-                                        getFailureWeight(workoutLift = workoutLift, result = it)
-                                            ?: getFailureWeight(
-                                                workoutLift = workoutLift,
-                                                previousSetResults = previousSetResults
-                                            )
+                                        getFailureWeight(
+                                            workoutLift = workoutLift,
+                                            previousSetResults = previousSetResults
+                                        )
                                     }
                                 )
                             }?.toMutableList() ?: mutableListOf()).apply {
                                 if (size == 0) {
                                     add(
                                         LoggingMyoRepSetDto(
-                                            setPosition = set.setPosition,
+                                            position = set.position,
                                             rpeTarget = set.rpeTarget,
                                             repRangeBottom = set.repRangeBottom,
                                             repRangeTop = set.repRangeTop,
                                             setMatching = set.setMatching,
                                             repFloor = set.repFloor,
                                             maxSets = set.maxSets,
-                                            previousSetResultLabel = "—",
+                                            previousSetResultLabel = getPreviousSetResultLabel(result = null),
                                             repRangePlaceholder = if (!isDeloadWeek) {
                                                 "${set.repRangeBottom}-${set.repRangeTop}"
                                             } else {
@@ -220,6 +267,6 @@ abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
             }
 
             else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
-        }
+        }.flattenWeightRecommendationsGeneric()
     }
 }

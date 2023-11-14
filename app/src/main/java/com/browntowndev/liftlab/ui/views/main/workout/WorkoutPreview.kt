@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -11,10 +10,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,7 +45,6 @@ import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.views.composables.VolumeChipBottomSheet
 
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun WorkoutPreview(
     paddingValues: PaddingValues,
@@ -152,11 +148,12 @@ fun WorkoutPreview(
                     )
                 }
                 items(lifts) { lift ->
-                    val movementPatternDisplayName =
-                        remember { lift.liftMovementPattern.displayName() }
-                    val liftFirstLetter = remember { lift.liftName[0].toString() }
-                    val hasMyoRepSets = remember { lift.sets.any { it is LoggingMyoRepSetDto } }
-                    val liftNameWithSetCount = remember {
+                    val movementPatternDisplayName =remember(lift.liftMovementPattern) {
+                        lift.liftMovementPattern.displayName()
+                    }
+                    val liftFirstLetter = remember(lift.liftName) { lift.liftName[0].toString() }
+                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSetDto } }
+                    val liftNameWithSetCount = remember(key1 = lift.setCount, key2 = lift.liftName) {
                         val setCountAndName = "${lift.setCount} x ${lift.liftName}"
                         if (hasMyoRepSets) setCountAndName.insertSuperscript(
                             "+myo",

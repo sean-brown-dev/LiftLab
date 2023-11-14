@@ -59,6 +59,7 @@ fun ScrollableTextField(
     disableSystemKeyboard: Boolean = true,
     value: String,
     label: String = "",
+    hideCursor: Boolean = false,
     errorOnEmptyString: Boolean = true,
     labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
@@ -123,6 +124,7 @@ fun ScrollableTextField(
             LiftLabOutlinedTextField(
                 modifier = txtMod,
                 value = text,
+                hideCursor = hideCursor,
                 isError = errorOnEmptyString && text.isEmpty(),
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),

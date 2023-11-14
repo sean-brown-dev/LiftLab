@@ -20,7 +20,7 @@ data class WorkoutScreen(
     override val isOverflowMenuExpanded: Boolean = false,
     override val isOverflowMenuIconVisible: Boolean = false,
     override val navigationIconVisible: Boolean = false,
-    override val title: String = navigation.title,
+    override val title: String = "",
     override val subtitle: String = navigation.subtitle,
     private val restTimerControlVisible: Boolean = false,
     private val restTimerRunning: Boolean = false,
@@ -32,6 +32,7 @@ data class WorkoutScreen(
         val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
         const val REST_TIMER = "restTimer"
         const val FINISH_BUTTON = "finishButton"
+        const val WORKOUT_HISTORY_BUTTON = "workoutHistoryButton"
     }
 
     private val _eventBus: EventBus by inject()
@@ -118,7 +119,16 @@ data class WorkoutScreen(
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.FinishWorkout))
                 }
-            )
+            ),
+            ActionMenuItem.IconMenuItem.AlwaysShown (
+                title = "View/Edit History",
+                isVisible = !restTimerControlVisible,
+                controlName = WORKOUT_HISTORY_BUTTON,
+                icon = R.drawable.history_icon.right(),
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.OpenWorkoutHistory))
+                }
+            ),
         )
     }
 }

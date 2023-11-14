@@ -11,26 +11,34 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
+import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.views.main.home.Home
+import com.browntowndev.liftlab.ui.views.main.home.Settings
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.LiftLibrary
 import com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails.LiftDetails
+import com.browntowndev.liftlab.ui.views.main.workout.EditWorkout
 import com.browntowndev.liftlab.ui.views.main.workout.Workout
+import com.browntowndev.liftlab.ui.views.main.workout.WorkoutHistory
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
-
+import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 
 
 @ExperimentalFoundationApi
 @Composable
 fun NavigationGraph(
+    roomBackup: RoomBackup,
     navHostController: NavHostController,
     paddingValues: PaddingValues,
     screen: Screen?,
@@ -43,9 +51,26 @@ fun NavigationGraph(
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(HomeScreen.navigation.route) {
             LaunchedEffect(key1 = screen) {
-                setBottomNavBarVisibility(true)
+                if (screen as? HomeScreen != null) {
+                    setBottomNavBarVisibility(true)
+                }
             }
-            Home(paddingValues)
+            Home(
+                paddingValues = paddingValues,
+                navHostController = navHostController
+            )
+        }
+        composable(SettingsScreen.navigation.route) {
+            LaunchedEffect(key1 = screen) {
+                if (screen as? SettingsScreen != null) {
+                    setBottomNavBarVisibility(false)
+                }
+            }
+            Settings(
+                roomBackup = roomBackup,
+                paddingValues = paddingValues,
+                navHostController = navHostController
+            )
         }
         composable(
             route = LiftLibraryScreen.navigation.route,
@@ -68,6 +93,9 @@ fun NavigationGraph(
             val workoutLiftId = it.arguments?.getString("workoutLiftId")?.toLongOrNull()
             val movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
             val addAtPosition = it.arguments?.getString("addAtPosition")?.toIntOrNull()
+            val liftMetricChartIds = navHostController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<List<Long>>(LIFT_METRIC_CHART_IDS) ?: listOf()
 
             if (screen as? LiftLibraryScreen != null) {
                 LaunchedEffect(key1 = screen) {
@@ -85,6 +113,7 @@ fun NavigationGraph(
                     workoutLiftId = workoutLiftId,
                     movementPattern = movementPatternParam,
                     addAtPosition = addAtPosition,
+                    liftMetricChartIds = liftMetricChartIds,
                     isSearchBarVisible = screen.isSearchBarVisible,
                     onNavigateBack = onNavigateBack,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
@@ -102,7 +131,8 @@ fun NavigationGraph(
             route = LiftDetailsScreen.navigation.route,
             arguments = listOf(
                 navArgument("id") {
-                    nullable = false
+                    type = NavType.StringType
+                    nullable = true
                 },
             )
         ) {
@@ -137,6 +167,43 @@ fun NavigationGraph(
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
+                )
+            }
+        }
+        composable(WorkoutHistoryScreen.navigation.route) {
+            if (screen as? WorkoutHistoryScreen != null) {
+                LaunchedEffect(key1 = screen) {
+                    setBottomNavBarVisibility(false)
+                }
+
+                WorkoutHistory(
+                    paddingValues = paddingValues,
+                    navHostController = navHostController,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed
+                )
+            }
+        }
+        composable(
+            route = EditWorkoutScreen.navigation.route,
+            arguments = listOf(
+                navArgument("workoutLogEntryId") {
+                    type = NavType.LongType
+                    nullable = false
+                },
+            )
+        ) {
+            if (screen as? EditWorkoutScreen != null) {
+                val workoutLogEntryId = it.arguments?.getLong("workoutLogEntryId")
+                LaunchedEffect(key1 = screen) {
+                    setBottomNavBarVisibility(false)
+                    setTopAppBarCollapsed(true)
+                }
+
+                EditWorkout(
+                    workoutLogEntryId = workoutLogEntryId!!,
+                    paddingValues = paddingValues,
+                    navHostController = navHostController,
+                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                 )
             }
         }

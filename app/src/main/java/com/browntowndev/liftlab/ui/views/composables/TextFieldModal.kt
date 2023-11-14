@@ -21,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,16 +46,14 @@ fun TextFieldModal(
     onConfirm: (Int) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var text by remember { mutableStateOf(initialTextFieldValue) }
-    LaunchedEffect(key1 = initialTextFieldValue) {
-        text = initialTextFieldValue
-    }
+    var text by remember(initialTextFieldValue) { mutableStateOf<Int?>(initialTextFieldValue) }
+    var textAsInt by remember(initialTextFieldValue) { mutableIntStateOf(initialTextFieldValue) }
 
     GenericTextFieldModal(
         header = header,
         subtext = subtext,
         value = initialTextFieldValue,
-        onConfirm = { onConfirm(text) },
+        onConfirm = { onConfirm(textAsInt) },
         onCancel = onCancel
     ) {
         IntegerTextField(
@@ -63,6 +62,7 @@ fun TextFieldModal(
             value = text,
             onValueChanged = {
                 text = it
+                textAsInt = it ?: 1
             }
         )
     }

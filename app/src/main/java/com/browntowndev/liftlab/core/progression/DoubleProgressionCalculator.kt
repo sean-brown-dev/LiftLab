@@ -31,13 +31,13 @@ class DoubleProgressionCalculator: StraightSetProgressionCalculator() {
                             is MyoRepSetDto -> {
                                 customSetMeetsCriterion(
                                     set = set,
-                                    setData = groupedSetData[set.setPosition]?.filterIsInstance<MyoRepSetResultDto>()
+                                    setData = groupedSetData[set.position]?.filterIsInstance<MyoRepSetResultDto>()
                                 )
                             }
                             else -> {
                                 customSetMeetsCriterion(
                                     set = set,
-                                    previousSet = groupedSetData[set.setPosition]?.firstOrNull()
+                                    previousSet = groupedSetData[set.position]?.firstOrNull()
                                 )
                             }
                         }

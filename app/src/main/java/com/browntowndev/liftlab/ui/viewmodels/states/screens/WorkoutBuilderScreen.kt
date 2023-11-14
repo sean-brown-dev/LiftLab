@@ -29,7 +29,7 @@ data class WorkoutBuilderScreen(
         const val REORDER_LIFTS = "reorderLifts"
     }
 
-    private val eventBus: EventBus by inject()
+    private val _eventBus: EventBus by inject()
 
     override fun copySetOverflowIconVisibility(isVisible: Boolean): Screen {
         return if (isVisible != this.isOverflowMenuIconVisible) copy(isOverflowMenuIconVisible = isVisible) else this
@@ -55,12 +55,12 @@ data class WorkoutBuilderScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: Either<ImageVector, Int>?
+    override val navigationIcon: Either<ImageVector, Int>
         get() = Icons.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)?
-        get() = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
+        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
     override val actions: List<ActionMenuItem>
         get() = listOf(
             ActionMenuItem.IconMenuItem.NeverShown(
@@ -68,14 +68,14 @@ data class WorkoutBuilderScreen(
                 title = "Rename Workout",
                 icon = Icons.Filled.Edit.left(),
                 isVisible = true,
-                onClick = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameWorkout)) },
+                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameWorkout)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_LIFTS,
                 title = "Reorder Lifts",
                 icon = R.drawable.reorder_icon.right(),
                 isVisible = true,
-                onClick = { eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts)) },
+                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts)) },
             ),
         )
 }

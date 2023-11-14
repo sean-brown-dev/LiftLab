@@ -19,4 +19,6 @@ enum class TopAppBarAction {
     CreateNewLift,
     ConfirmCreateNewLift,
     OpenSettingsMenu,
+    OpenWorkoutHistory,
+    EditDateRange,
 }
