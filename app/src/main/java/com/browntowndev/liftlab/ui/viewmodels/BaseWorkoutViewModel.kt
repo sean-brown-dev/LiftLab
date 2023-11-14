@@ -16,6 +16,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -201,13 +202,28 @@ abstract class BaseWorkoutViewModel(
     }
 
     private fun copyDropSetWithUpdatedWeightRecommendation(
-        completedWeight: Float,
+        dropFromSet: GenericLoggingSet,
         dropSet: LoggingDropSetDto,
         increment: Float,
     ): LoggingDropSetDto {
+        val isDropFromSetSuccess =
+            (dropFromSet.repRangeBottom >= dropFromSet.completedReps!!) &&
+                    (dropFromSet.rpeTarget >= dropFromSet.completedRpe!!)
+
+        val percentageOfDroppedSet = (1 - dropSet.dropPercentage)
         return dropSet.copy(
-            weightRecommendation = (completedWeight * (1 - dropSet.dropPercentage))
-                .roundToNearestFactor(increment)
+            weightRecommendation = if (isDropFromSetSuccess) {
+                (dropFromSet.completedWeight!! * percentageOfDroppedSet).roundToNearestFactor(increment)
+            } else {
+                (CalculationEngine.calculateSuggestedWeight(
+                    completedWeight = dropFromSet.completedWeight!!,
+                    completedReps = dropFromSet.completedReps!!,
+                    completedRpe = dropFromSet.completedRpe!!,
+                    repGoal = dropFromSet.repRangeTop,
+                    rpeGoal = dropFromSet.rpeTarget,
+                    roundingFactor = increment,
+                ) * percentageOfDroppedSet).roundToNearestFactor(increment)
+            }
         )
     }
 
@@ -229,12 +245,15 @@ abstract class BaseWorkoutViewModel(
                 }
                 completedSet!!
             } else if (set.position == (setPosition + 1)) {
-//TODO: only update if completed weight is different from recommendation & it's a drop set or recommendation is null
                 when (set) {
-                    is LoggingStandardSetDto -> set.copy(weightRecommendation = completedSet!!.completedWeight)
-                    is LoggingMyoRepSetDto -> set.copy(weightRecommendation = completedSet!!.completedWeight)
+                    is LoggingStandardSetDto -> set.copy(
+                        weightRecommendation = set.weightRecommendation ?: completedSet!!.completedWeight
+                    )
+                    is LoggingMyoRepSetDto -> set.copy(
+                        weightRecommendation = set.weightRecommendation ?: completedSet!!.completedWeight
+                    )
                     is LoggingDropSetDto -> copyDropSetWithUpdatedWeightRecommendation(
-                        completedWeight = currentSets[setPosition].completedWeight!!,
+                        dropFromSet = currentSets[setPosition],
                         dropSet = set,
                         increment = increment,
                     )

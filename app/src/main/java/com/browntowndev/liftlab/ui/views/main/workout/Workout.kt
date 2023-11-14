@@ -9,11 +9,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.util.fastAny
 import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -171,9 +173,15 @@ fun Workout(
                 )
             },
             onSetCompleted = { setType, progressionScheme, liftPosition, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
+                val hasDropSetAfter = state.workout!!.lifts[liftPosition].sets.fastAny { set ->
+                    set.position == (setPosition + 1) &&
+                            set is LoggingDropSetDto
+                }
+                val startRestTimer = !hasDropSetAfter && restTimerEnabled
+
                 workoutViewModel.completeSet(
                     restTime = restTime,
-                    restTimerEnabled = restTimerEnabled,
+                    restTimerEnabled = startRestTimer,
                     result = workoutViewModel.buildSetResult(
                         liftId = liftId,
                         setType = setType,
@@ -186,7 +194,7 @@ fun Workout(
                         rpe = rpe,
                     ))
 
-                if (restTimerEnabled) {
+                if (startRestTimer) {
                     mutateTopAppBarControlValue(
                         AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
                     )
