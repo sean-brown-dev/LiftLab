@@ -229,6 +229,7 @@ abstract class BaseWorkoutViewModel(
                 }
                 completedSet!!
             } else if (set.position == (setPosition + 1)) {
+//TODO: only update if completed weight is different from recommendation & it's a drop set or recommendation is null
                 when (set) {
                     is LoggingStandardSetDto -> set.copy(weightRecommendation = completedSet!!.completedWeight)
                     is LoggingMyoRepSetDto -> set.copy(weightRecommendation = completedSet!!.completedWeight)
