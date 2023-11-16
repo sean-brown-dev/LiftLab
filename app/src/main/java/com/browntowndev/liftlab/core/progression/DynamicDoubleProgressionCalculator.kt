@@ -236,6 +236,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         // Iterate top sets since dropSetGroups is by top set
         return sets.filterIsInstance<StandardSetDto>().flatMap { set ->
             dropSetGroups[set.position]?.let { results ->
+                val droppedFromSetResult = results.find { it.setType == SetType.STANDARD }
                 val allSetsMetCriterion = results.fastAll { result ->
                     val setForResult = setsByPosition[result.setPosition]!!
                     customSetMeetsCriterion(set = setForResult, previousSet = result)
@@ -244,7 +245,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     getWeightRecommendation(
                         lift = workoutLift,
                         set = set,
-                        setData = results.find { it.setType == SetType.STANDARD },
+                        setData = droppedFromSetResult,
                     )?.let { topSetWeightRecommendation ->
                         results.fastMap { result ->
                             if (result.setType == SetType.DROP_SET) {
@@ -263,16 +264,23 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     results.fastMap { result ->
                         val setForResult = setsByPosition[result.setPosition]!!
                         setForResult.id to
-                                if (customSetShouldDecreaseWeight(set, result)) {
+                                if (setForResult is DropSetDto) {
+                                    getDropSetFailureWeight(
+                                        incrementOverride = workoutLift.incrementOverride,
+                                        repRangeBottom = setForResult.repRangeBottom,
+                                        rpeTarget = setForResult.rpeTarget,
+                                        dropPercentage = setForResult.dropPercentage,
+                                        result = result,
+                                        droppedFromSetResult = droppedFromSetResult,
+                                    )!!
+                                } else if (customSetShouldDecreaseWeight(set, result)) {
                                     decreaseWeight(
-                                        incrementOverride = increment,
+                                        incrementOverride = workoutLift.incrementOverride,
                                         repRangeBottom = set.repRangeBottom,
                                         rpeTarget = set.rpeTarget,
-                                        prevSet = result,
+                                        result = result
                                     )
-                                } else {
-                                    result.weight
-                                }
+                                } else result.weight
                     }
                 }
             } ?: listOf()

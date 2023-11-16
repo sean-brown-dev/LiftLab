@@ -60,7 +60,7 @@ class WaveLoadingProgressionCalculator(
                     incrementOverride = workoutLift.incrementOverride,
                     repRangeBottom = reps,
                     rpeTarget = workoutLift.rpeTarget,
-                    prevSet = result
+                    result = result
                 )
                 val optimalResult = (result as StandardSetResultDto).copy(
                     weight = optimalWeightFromPreviousCompletion,

@@ -59,7 +59,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                 incrementOverride = workoutLift.incrementOverride,
                 repRangeBottom = workoutLift.repRangeBottom,
                 rpeTarget = workoutLift.rpeTarget,
-                prevSet = result
+                result = result
             )
         } else {
             result.weight
@@ -71,16 +71,19 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         set: GenericLiftSet,
         result: SetResult,
     ): Float {
-        val minimumRepsAllowed = set.repRangeBottom - 1
-        val repsConsideringRpe = result.reps + (10 - result.rpe)
-        val missedBottomRepRange = repsConsideringRpe < minimumRepsAllowed
-
-        return if (missedBottomRepRange) {
+        return if (
+            missedBottomRepRange(
+                repRangeBottom = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
+        ) {
             decreaseWeight(
                 incrementOverride = incrementOverride,
                 repRangeBottom = set.repRangeBottom,
                 rpeTarget = set.rpeTarget,
-                prevSet = result
+                result = result
             )
         } else {
             result.weight

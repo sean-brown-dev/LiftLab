@@ -70,13 +70,26 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else false
     }
 
-    private fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int): Boolean {
+    private fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
         return if (result != null) {
-            val minimumRepsAllowed = repRangeBottom - 1
-            val repsConsideringRpe = result.reps + (10 - result.rpe)
-
-            repsConsideringRpe < minimumRepsAllowed
+            missedBottomRepRange(
+                repRangeBottom = repRangeBottom,
+                rpeTarget = rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
         } else false
+    }
+
+    protected fun missedBottomRepRange(
+        repRangeBottom: Int,
+        rpeTarget: Float,
+        completedReps: Int,
+        completedRpe: Float,
+    ): Boolean {
+        val minRepsRequiredConsideringRpe = (repRangeBottom + (10 - rpeTarget)) - 1
+        val repsConsideringRpe = completedReps + (10 - completedRpe)
+        return repsConsideringRpe < minRepsRequiredConsideringRpe
     }
 
     protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
@@ -88,15 +101,15 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         incrementOverride: Float?,
         repRangeBottom: Int,
         rpeTarget: Float,
-        prevSet: SetResult
+        result: SetResult
     ): Float {
         val roundingFactor = (incrementOverride
             ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f))
 
         return CalculationEngine.calculateSuggestedWeight(
-            completedWeight = prevSet.weight,
-            completedReps = prevSet.reps,
-            completedRpe = prevSet.rpe,
+            completedWeight = result.weight,
+            completedReps = result.reps,
+            completedRpe = result.rpe,
             repGoal = repRangeBottom,
             rpeGoal = rpeTarget,
             roundingFactor = roundingFactor)
@@ -110,13 +123,13 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         result: SetResult?,
         droppedFromSetResult: SetResult?,
     ): Float? {
-        return shouldDecreaseWeight(result, repRangeBottom).let { shouldDecrease ->
+        return shouldDecreaseWeight(result, repRangeBottom, rpeTarget).let { shouldDecrease ->
             if (shouldDecrease && result != null) {
                 decreaseWeight(
                     incrementOverride = incrementOverride,
                     repRangeBottom = repRangeBottom,
                     rpeTarget = rpeTarget,
-                    prevSet = result,
+                    result = result,
                 )
             } else result?.weight
                 ?: if (droppedFromSetResult?.weight != null) {
@@ -134,9 +147,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun customSetShouldDecreaseWeight(set: GenericLiftSet, previousSet: SetResult?): Boolean {
         return if (previousSet != null) {
-            val minRepsRequiredConsideringRpe = (set.repRangeBottom + (10 - set.rpeTarget)) - 1
-            val repsConsideringRpe = previousSet.reps + (10 - previousSet.rpe)
-            repsConsideringRpe < minRepsRequiredConsideringRpe
+            missedBottomRepRange(
+                repRangeBottom = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                completedReps = previousSet.reps,
+                completedRpe = previousSet.rpe,
+            )
         } else false
     }
 
