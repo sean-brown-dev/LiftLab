@@ -46,7 +46,7 @@ class WaveLoadingProgressionCalculator(
     }
 
     private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult): Float {
-        return if (result.microCycle == 0 ||
+        return if (microCycle == 0 ||
             !shouldDecreaseWeight(result, workoutLift as StandardWorkoutLiftDto)
         ) {
             incrementWeight(workoutLift, result)
@@ -54,13 +54,13 @@ class WaveLoadingProgressionCalculator(
             getRepsForPreviousWorkout(
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
-                microCycle = result.microCycle,
+                microCycle = microCycle,
             )?.let { reps ->
                 val optimalWeightFromPreviousCompletion = decreaseWeight(
                     incrementOverride = workoutLift.incrementOverride,
                     repRangeBottom = reps,
                     rpeTarget = workoutLift.rpeTarget,
-                    result = result
+                    result = result,
                 )
                 val optimalResult = (result as StandardSetResultDto).copy(
                     weight = optimalWeightFromPreviousCompletion,

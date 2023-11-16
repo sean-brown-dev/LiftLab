@@ -63,10 +63,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
         return if (result != null) {
-            val minimumRepsAllowed = goals.repRangeBottom - 1
-            val repsConsideringRpe = result.reps + (10 - result.rpe)
-
-            repsConsideringRpe < minimumRepsAllowed
+            missedBottomRepRange(
+                repRangeBottom = goals.repRangeBottom,
+                rpeTarget = goals.rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
         } else false
     }
 

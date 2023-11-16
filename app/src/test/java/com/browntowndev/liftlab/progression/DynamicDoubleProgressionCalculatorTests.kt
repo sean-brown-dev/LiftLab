@@ -902,4 +902,71 @@ class DynamicDoubleProgressionCalculatorTests {
             }
         }
     }
+
+    @Test
+    fun `weight should decrease ONLY for top set that fails to meet minimum reps for lift with double drop sets`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLift = WorkoutLift(
+                id = 0,
+                workoutId = 0,
+                liftId = 0,
+                progressionScheme = ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
+                position = 0,
+                setCount = 3,
+                repRangeTop = 8,
+            ),
+            lift = Lift(
+                id = 0,
+                name = "",
+                movementPattern = MovementPattern.LEG_PUSH,
+                volumeTypesBitmask = 1
+            ),
+            customLiftSets = listOf(
+                CustomLiftSet(
+                    id = 0,
+                    workoutLiftId = 0,
+                    type = SetType.STANDARD,
+                    position = 0,
+                    rpeTarget = 8f,
+                    repRangeTop = 8,
+                    repRangeBottom = 6,
+                ),
+                CustomLiftSet(
+                    id = 1,
+                    workoutLiftId = 0,
+                    type = SetType.DROP_SET,
+                    dropPercentage = .1f,
+                    position = 1,
+                    rpeTarget = 8f,
+                    repRangeTop = 8,
+                    repRangeBottom = 6,
+                ),
+                CustomLiftSet(
+                    id = 2,
+                    workoutLiftId = 0,
+                    type = SetType.DROP_SET,
+                    dropPercentage = .1f,
+                    position = 2,
+                    rpeTarget = 8f,
+                    repRangeTop = 8,
+                    repRangeBottom = 6,
+                ),
+            )
+        )
+        val previousSetData = listOf(
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 3, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 90f, microCycle = 0, mesoCycle= 0, setType = SetType.DROP_SET),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 80f, microCycle = 0, mesoCycle= 0, setType = SetType.DROP_SET),
+        )
+
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
+
+        result.forEachIndexed { index, p ->
+            when (index) {
+                0 -> Assert.assertEquals(95f, p.weightRecommendation)
+                1 -> Assert.assertEquals(90f, p.weightRecommendation)
+                2 -> Assert.assertEquals(80f, p.weightRecommendation)
+            }
+        }
+    }
 }

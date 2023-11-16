@@ -65,6 +65,39 @@ class WaveLoadingProgressionCalculatorTests {
     }
 
     @Test
+    fun `all sets decrease weight when one fails`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLift = WorkoutLift(
+                workoutId = 0,
+                liftId = 0,
+                progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+                position = 0,
+                setCount = 3,
+                repRangeBottom = 6,
+                repRangeTop = 8,
+                rpeTarget = 8f,
+            ),
+            lift = Lift(
+                name = "",
+                movementPattern = MovementPattern.LEG_PUSH,
+                volumeTypesBitmask = 1
+            ),
+        )
+        val previousSetData = listOf(
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD),
+        )
+
+        val result = WaveLoadingProgressionCalculator(4, 1)
+            .calculate(workoutLiftMapper.map(lift), previousSetData, false)
+
+        result.forEach {
+            Assert.assertEquals(75f, it.weightRecommendation)
+        }
+    }
+
+    @Test
     fun `weight decrements on deload week`() {
         val lift = WorkoutLiftWithRelationships(
             workoutLift = WorkoutLift(
