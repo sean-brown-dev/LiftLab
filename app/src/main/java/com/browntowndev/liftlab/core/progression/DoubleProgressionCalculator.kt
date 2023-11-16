@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
-class DoubleProgressionCalculator: StraightSetProgressionCalculator() {
+class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
 
     override fun allSetsMetCriterion(
         lift: StandardWorkoutLiftDto,

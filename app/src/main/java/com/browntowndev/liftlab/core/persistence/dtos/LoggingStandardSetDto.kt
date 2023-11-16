@@ -1,7 +1,5 @@
 package com.browntowndev.liftlab.core.persistence.dtos
 
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
-
 data class LoggingStandardSetDto(
     override val position: Int,
     override val rpeTarget: Float,
@@ -15,4 +13,4 @@ data class LoggingStandardSetDto(
     override val completedWeight: Float? = null,
     override val completedReps: Int? = null,
     override val completedRpe: Float? = null,
-): GenericLoggingSet
+): BaseLoggingSet(weightRecommendation)

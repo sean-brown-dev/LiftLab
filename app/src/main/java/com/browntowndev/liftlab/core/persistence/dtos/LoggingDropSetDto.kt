@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.core.persistence.dtos
 
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 
 data class LoggingDropSetDto(
     override val position: Int,
@@ -18,4 +17,4 @@ data class LoggingDropSetDto(
     override val completedReps: Int? = null,
     override val completedRpe: Float? = null,
     val dropPercentage: Float,
-): GenericLoggingSet
+): BaseLoggingSet(weightRecommendation)

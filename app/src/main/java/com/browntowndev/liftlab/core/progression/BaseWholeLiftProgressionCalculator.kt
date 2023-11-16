@@ -15,7 +15,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
-abstract class StraightSetProgressionCalculator: BaseProgressionCalculator() {
+abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
         workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>,

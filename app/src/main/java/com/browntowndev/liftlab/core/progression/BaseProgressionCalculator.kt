@@ -70,7 +70,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else false
     }
 
-    protected fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int): Boolean {
+    private fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int): Boolean {
         return if (result != null) {
             val minimumRepsAllowed = repRangeBottom - 1
             val repsConsideringRpe = result.reps + (10 - result.rpe)
@@ -134,9 +134,9 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun customSetShouldDecreaseWeight(set: GenericLiftSet, previousSet: SetResult?): Boolean {
         return if (previousSet != null) {
-            val minRepsRequired = set.repRangeBottom - 1
+            val minRepsRequiredConsideringRpe = (set.repRangeBottom + (10 - set.rpeTarget)) - 1
             val repsConsideringRpe = previousSet.reps + (10 - previousSet.rpe)
-            repsConsideringRpe < minRepsRequired
+            repsConsideringRpe < minRepsRequiredConsideringRpe
         } else false
     }
 

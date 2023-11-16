@@ -320,7 +320,8 @@ class DoubleProgressionCalculatorTests {
                 ),
                 CustomLiftSet(
                     workoutLiftId = 0,
-                    type = SetType.STANDARD,
+                    type = SetType.DROP_SET,
+                    dropPercentage = .1f,
                     position = 2,
                     rpeTarget = 8f,
                     repRangeTop = 8,
