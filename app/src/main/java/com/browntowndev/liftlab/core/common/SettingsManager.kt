@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import kotlinx.coroutines.channels.awaitClose
@@ -18,10 +20,12 @@ object SettingsManager {
         const val DB_INITIALIZED = "database_initialized"
         const val REST_TIME = "rest_time"
         const val USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = "useAllWorkoutDataForRecommendations"
+        const val ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = "onlyUseResultsForLiftsInSamePosition"
         const val INCREMENT_AMOUNT = "increment_amount"
         const val DEFAULT_REST_TIME = 120000L
         const val DEFAULT_INCREMENT_AMOUNT = 5f
         const val DEFAULT_USE_ALL_WORKOUT_DATA = false
+        const val DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = true
     }
 
     private const val PREFERENCES_NAME = "LiftLabPreferences"
@@ -38,6 +42,7 @@ object SettingsManager {
                 USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
                 DEFAULT_USE_ALL_WORKOUT_DATA
             )
+            setDefaultSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION)
 
             sharedPreferences.edit().putBoolean("settings_initialized", true).apply()
         }

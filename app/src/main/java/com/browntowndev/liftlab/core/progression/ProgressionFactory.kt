@@ -10,5 +10,6 @@ interface ProgressionFactory {
         previousSetResults: List<SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
+        onlyUseResultsForLiftsInSamePosition: Boolean,
     ): LoggingWorkoutDto
 }

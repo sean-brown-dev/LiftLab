@@ -5,7 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
@@ -86,44 +88,50 @@ class WorkoutsRepository(
         ).flatMapLatest { workout ->
             getSetResults(workout, programMetadata)
                 .flatMapLatest { previousSetResults ->
-                    val loggingWorkout = if (workout != null) {
-                        progressionFactory.calculate(
-                            workout = workoutMapper.map(workout),
-                            previousSetResults = previousSetResults,
-                            programDeloadWeek = programMetadata.deloadWeek,
-                            microCycle = programMetadata.currentMicrocycle,
-                        )
-                    } else null
-
-                    val inProgressCompletedSets = if (workout != null) {
-                        previousSetResultsRepository.getForWorkout(
-                            workoutId = workout.workout.id,
-                            mesoCycle = programMetadata.currentMesocycle,
-                            microCycle = programMetadata.currentMicrocycle
-                        ).associateBy { result ->
-                            "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
-                        }
-                    } else mapOf()
-
-                    flowOf(
-                        if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
-                            loggingWorkout.copy(
-                                lifts = loggingWorkout.lifts.fastMap { workoutLift ->
-                                    workoutLift.copy(
-                                        sets = workoutLift.sets.flatMapIndexed { index, set ->
-                                            copyInProgressSet(
-                                                inProgressCompletedSets,
-                                                workoutLift,
-                                                set,
-                                                index,
-                                                programMetadata
-                                            )
-                                        }
-                                    )
-                                }
+                    SettingsManager.getSettingFlow(
+                        ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                        DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+                    ).flatMapLatest { onlyUseResultsForLiftsInSamePosition ->
+                        val loggingWorkout = if (workout != null) {
+                            progressionFactory.calculate(
+                                workout = workoutMapper.map(workout),
+                                previousSetResults = previousSetResults,
+                                programDeloadWeek = programMetadata.deloadWeek,
+                                microCycle = programMetadata.currentMicrocycle,
+                                onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
                             )
-                        } else loggingWorkout
-                    )
+                        } else null
+
+                        val inProgressCompletedSets = if (workout != null) {
+                            previousSetResultsRepository.getForWorkout(
+                                workoutId = workout.workout.id,
+                                mesoCycle = programMetadata.currentMesocycle,
+                                microCycle = programMetadata.currentMicrocycle
+                            ).associateBy { result ->
+                                "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
+                            }
+                        } else mapOf()
+
+                        flowOf(
+                            if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
+                                loggingWorkout.copy(
+                                    lifts = loggingWorkout.lifts.fastMap { workoutLift ->
+                                        workoutLift.copy(
+                                            sets = workoutLift.sets.flatMapIndexed { index, set ->
+                                                copyInProgressSet(
+                                                    inProgressCompletedSets,
+                                                    workoutLift,
+                                                    set,
+                                                    index,
+                                                    programMetadata
+                                                )
+                                            }
+                                        )
+                                    }
+                                )
+                            } else loggingWorkout
+                        )
+                    }
                 }
         }.asLiveData()
     }

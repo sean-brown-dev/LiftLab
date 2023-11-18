@@ -13,6 +13,7 @@ class StandardProgressionFactory: ProgressionFactory {
         previousSetResults: List<SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
+        onlyUseResultsForLiftsInSamePosition: Boolean,
     ): LoggingWorkoutDto {
         var loggingWorkout = LoggingWorkoutDto(
             id = workout.id,
@@ -23,7 +24,10 @@ class StandardProgressionFactory: ProgressionFactory {
         workout.lifts.fastForEach { workoutLift ->
             val deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek
             val isDeloadWeek = (microCycle + 1) == deloadWeek
-            val resultsForLift = previousSetResults.filter { it.liftPosition == workoutLift.position && it.liftId == workoutLift.liftId }
+            val resultsForLift = previousSetResults.filter { result ->
+                (!onlyUseResultsForLiftsInSamePosition || result.liftPosition == workoutLift.position)
+                        && result.liftId == workoutLift.liftId
+            }
 
             loggingWorkout = loggingWorkout.copy(
                 lifts = loggingWorkout.lifts.toMutableList().apply {

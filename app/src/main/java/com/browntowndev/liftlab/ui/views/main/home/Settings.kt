@@ -36,8 +36,10 @@ import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
@@ -145,9 +147,15 @@ fun Settings(
                     color = MaterialTheme.colorScheme.tertiary
                 )
             }
-            SectionLabel(text = "GENERAL", fontSize = 14.sp)
+            SectionLabel(text = "PROGRESSION", fontSize = 14.sp)
+            Text(
+                modifier = Modifier.padding(start = 10.dp),
+                text = "WARNING: Disabling may reduce weight recommendation accuracy.",
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.outline,
+            )
             Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                modifier = Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
@@ -171,6 +179,45 @@ fun Settings(
                     onCheckedChange = {
                         useAllData = !it
                         SettingsManager.setSetting(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, !it)
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedBorderColor = MaterialTheme.colorScheme.secondary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                    )
+                )
+            }
+        }
+        item {
+            Row (
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        text = "Weight Recommendations",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = "Only Sets from Lifts in Same Order Position",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                var enforcePosition by remember {
+                    mutableStateOf(
+                        SettingsManager.getSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                            DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION))
+                }
+                Switch(
+                    checked = enforcePosition,
+                    onCheckedChange = {
+                        enforcePosition = it
+                        SettingsManager.setSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, it)
                     },
                     colors = SwitchDefaults.colors(
                         checkedTrackColor = MaterialTheme.colorScheme.secondary,
