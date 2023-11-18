@@ -4,6 +4,7 @@ import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
@@ -226,7 +227,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
 
         val increment: Float = workoutLift.incrementOverride ?: SettingsManager.getSetting(
             INCREMENT_AMOUNT,
-            5f
+            DEFAULT_INCREMENT_AMOUNT
         )
         val dropSetGroups: Map<Int, List<SetResult>> =
             groupDropSetResultsByTopSetPosition(setResults)

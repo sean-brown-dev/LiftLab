@@ -97,7 +97,9 @@ class WaveLoadingProgressionCalculator(
         deloadWeek: Int,
     ): Float {
         val increment =  (lift.incrementOverride ?:
-            SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()
+            SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+            )).toInt()
 
         return setData.weight - (increment * (deloadWeek - 2))
     }

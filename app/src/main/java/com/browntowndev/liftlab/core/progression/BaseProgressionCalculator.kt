@@ -2,6 +2,8 @@ package com.browntowndev.liftlab.core.progression
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
@@ -32,7 +34,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         val incrementAmount = incrementOverride
             ?: SettingsManager.getSetting(
                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                5f
+                DEFAULT_INCREMENT_AMOUNT
             )
 
         return (previousSetWeight * (1 - dropPercentage)).roundToNearestFactor(
@@ -96,7 +98,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
         return prevSet.weight + (lift.incrementOverride
-            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f)).toInt()
+            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
     }
 
     protected fun decreaseWeight(
@@ -106,7 +108,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         result: SetResult
     ): Float {
         val roundingFactor = (incrementOverride
-            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, 5f))
+            ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT))
 
         return CalculationEngine.calculateSuggestedWeight(
             completedWeight = result.weight,

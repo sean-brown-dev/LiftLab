@@ -430,7 +430,7 @@ abstract class BaseWorkoutViewModel(
                                         increment = workoutLift.incrementOverride
                                             ?: SettingsManager.getSetting(
                                                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                                5f
+                                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                                             ))
                                 )
                             } else workoutLift

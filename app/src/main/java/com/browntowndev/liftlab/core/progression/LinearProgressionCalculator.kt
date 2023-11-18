@@ -47,7 +47,7 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
             val factor =
                 workoutLift.incrementOverride ?: SettingsManager.getSetting(
                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                    5f
+                    SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                 )
             (previouslyFailedSet.weight * .9).roundToNearestFactor(factor)
         } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null)

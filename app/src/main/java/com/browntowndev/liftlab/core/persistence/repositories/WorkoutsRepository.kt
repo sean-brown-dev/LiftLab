@@ -4,6 +4,10 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
@@ -17,10 +21,13 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutWithRelationships
+import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.core.progression.ProgressionFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
@@ -28,7 +35,9 @@ class WorkoutsRepository(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val customLiftSetsRepository: CustomLiftSetsRepository,
     private val previousSetResultsRepository: PreviousSetResultsRepository,
+    private val loggingRepository: LoggingRepository,
     private val workoutMapper: WorkoutMapper,
+    private val setResultMapper: SetResultMapper,
     private val workoutsDao: WorkoutsDao,
     private val progressionFactory: ProgressionFactory,
 ): Repository {
@@ -75,53 +84,109 @@ class WorkoutsRepository(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
         ).flatMapLatest { workout ->
-            val previousSetResults = if (workout != null) {
-                previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
-                    workoutId = workout.workout.id,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle,
-                )
-            } else listOf()
+            getSetResults(workout, programMetadata)
+                .flatMapLatest { previousSetResults ->
+                    val loggingWorkout = if (workout != null) {
+                        progressionFactory.calculate(
+                            workout = workoutMapper.map(workout),
+                            previousSetResults = previousSetResults,
+                            programDeloadWeek = programMetadata.deloadWeek,
+                            microCycle = programMetadata.currentMicrocycle,
+                        )
+                    } else null
 
-            val loggingWorkout = if (workout != null) {
-                progressionFactory.calculate(
-                    workout = workoutMapper.map(workout),
-                    previousSetResults = previousSetResults,
-                    programDeloadWeek = programMetadata.deloadWeek,
-                    microCycle = programMetadata.currentMicrocycle,
-                )
-            } else null
+                    val inProgressCompletedSets = if (workout != null) {
+                        previousSetResultsRepository.getForWorkout(
+                            workoutId = workout.workout.id,
+                            mesoCycle = programMetadata.currentMesocycle,
+                            microCycle = programMetadata.currentMicrocycle
+                        ).associateBy { result ->
+                            "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
+                        }
+                    } else mapOf()
 
-            val inProgressCompletedSets = if (workout != null) {
-                previousSetResultsRepository.getForWorkout(
-                    workoutId = workout.workout.id,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle
-                ).associateBy { result ->
-                    "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
-                }
-            } else mapOf()
-
-            flowOf(
-                if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
-                    loggingWorkout.copy(
-                        lifts = loggingWorkout.lifts.fastMap { workoutLift ->
-                            workoutLift.copy(
-                                sets = workoutLift.sets.flatMapIndexed { index, set ->
-                                    copyInProgressSet(
-                                        inProgressCompletedSets,
-                                        workoutLift,
-                                        set,
-                                        index,
-                                        programMetadata
+                    flowOf(
+                        if (inProgressCompletedSets.isNotEmpty() && loggingWorkout != null) {
+                            loggingWorkout.copy(
+                                lifts = loggingWorkout.lifts.fastMap { workoutLift ->
+                                    workoutLift.copy(
+                                        sets = workoutLift.sets.flatMapIndexed { index, set ->
+                                            copyInProgressSet(
+                                                inProgressCompletedSets,
+                                                workoutLift,
+                                                set,
+                                                index,
+                                                programMetadata
+                                            )
+                                        }
                                     )
                                 }
                             )
-                        }
+                        } else loggingWorkout
                     )
-                } else loggingWorkout
-            )
+                }
         }.asLiveData()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun getSetResults(
+        workout: WorkoutWithRelationships?,
+        programMetadata: ActiveProgramMetadataDto
+    ): Flow<List<SetResult>> {
+        return SettingsManager.getSettingFlow(
+            USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+            DEFAULT_USE_ALL_WORKOUT_DATA
+        ).flatMapLatest { useAllData ->
+            flowOf(
+                if (workout != null) {
+                    val resultsFromLastWorkout =
+                        previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
+                            workoutId = workout.workout.id,
+                            mesoCycle = programMetadata.currentMesocycle,
+                            microCycle = programMetadata.currentMicrocycle,
+                        )
+
+                    if (useAllData) {
+                        getResultsWithAllWorkoutDataAppended(resultsFromLastWorkout, workout)
+                    } else resultsFromLastWorkout
+                } else listOf()
+            )
+        }
+    }
+
+    private suspend fun getResultsWithAllWorkoutDataAppended(
+        resultsFromLastWorkout: List<SetResult>,
+        workout: WorkoutWithRelationships
+    ): List<SetResult> {
+        val liftIdsOfResults = resultsFromLastWorkout.map { it.liftId }.toHashSet()
+        val liftIdsToSearchFor = workout.lifts
+            .filter { !liftIdsOfResults.contains(it.lift.id) }
+            .map { workoutLift -> workoutLift.lift.id }
+
+        return if (liftIdsToSearchFor.isNotEmpty()) {
+            val linearProgressionLiftIds = workout.lifts
+                .filter {
+                    it.workoutLift.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION
+                }.map { it.lift.id }
+                .toHashSet()
+
+            resultsFromLastWorkout.toMutableList().apply {
+                val resultsFromOtherWorkouts =
+                    loggingRepository.getMostRecentLogsForLiftIds(liftIdsToSearchFor)
+                        .flatMap { workoutLog ->
+                            workoutLog.setResults.fastMap { setLogEntry ->
+                                setResultMapper.map(
+                                    from = setLogEntry,
+                                    workoutId = workout.workout.id,
+                                    isLinearProgression = linearProgressionLiftIds.contains(
+                                        setLogEntry.liftId
+                                    )
+                                )
+                            }
+                        }
+                addAll(resultsFromOtherWorkouts)
+            }
+        } else resultsFromLastWorkout
     }
 
     private fun copyInProgressSet(
@@ -178,7 +243,7 @@ class WorkoutsRepository(
                         val increment = workoutLift.incrementOverride
                             ?: SettingsManager.getSetting(
                                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                5f
+                                DEFAULT_INCREMENT_AMOUNT
                             )
 
                         val weightRecommendation = (prevCompletedSet.weight * (1 - set.dropPercentage))
