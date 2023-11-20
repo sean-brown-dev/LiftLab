@@ -19,7 +19,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -201,25 +200,31 @@ class LiftLibraryViewModel(
     }
 
     private fun navigateBackToHome() {
-        // Pop back to before Home
-        while (navHostController.previousBackStackEntry?.destination?.route != HomeScreen.navigation.route) {
-            navHostController.popBackStack()
+        // Pop back to the start destination
+        navHostController.navigate(navHostController.graph.startDestinationRoute!!) {
+            popUpTo(navHostController.graph.startDestinationRoute!!) {
+                inclusive = true
+            }
         }
 
         // Go back to Home
         navHostController.navigate(HomeScreen.navigation.route)
     }
 
+
     private fun navigateBackToWorkoutBuilder() {
         // Pop back to lab
-        while (navHostController.currentBackStackEntry?.destination?.route != LabScreen.navigation.route) {
-            navHostController.popBackStack()
+        navHostController.navigate("lab") {
+            popUpTo(navHostController.graph.startDestinationRoute!!) {
+                inclusive = false
+            }
         }
 
         // Go back to workout builder
         val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
         navHostController.navigate(workoutBuilderRoute)
     }
+
 
     private fun toggleFilterSelection() {
         _state.update {
