@@ -45,11 +45,13 @@ class WorkoutHistoryViewModel(
             val topSets = getTopSets(dateOrderedWorkoutLogs)
             val workoutNamesById = dateOrderedWorkoutLogs
                 .distinctBy { workoutLog -> workoutLog.workoutId }
+                .sortedBy { it.workoutName }
                 .associate { workoutLog ->
                     workoutLog.workoutId to workoutLog.workoutName
                 }
             val programNamesById = dateOrderedWorkoutLogs
                 .distinctBy { workoutLog -> workoutLog.programId }
+                .sortedBy { it.programName }
                 .associate { workoutLog ->
                     workoutLog.programId to workoutLog.programName
                 }
