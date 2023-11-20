@@ -20,7 +20,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.ui.models.BaseChartModel
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
@@ -325,11 +324,15 @@ class HomeViewModel(
 
     fun deleteLiftMetricChart(liftName: String, chartType: LiftMetricChartType) {
         executeInTransactionScope {
-            liftMetricChartRepository.deleteForLift(liftName, chartType)
+            liftMetricChartRepository.deleteFirstForLift(liftName, chartType)
             _state.update {
                 it.copy(
                     liftMetricChartModels = it.liftMetricChartModels.toMutableList().apply {
-                        removeIf { chart -> chart.liftName == liftName && chart.type == chartType }
+                        find { chart ->
+                            chart.liftName == liftName && chart.type == chartType
+                        }?.let { firstMatch ->
+                            remove(firstMatch)
+                        }
                     }
                 )
             }

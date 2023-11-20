@@ -16,7 +16,11 @@ interface LiftMetricChartsDao {
     @Upsert
     suspend fun upsert(chart: LiftMetricChart): Long
 
-    @Query("SELECT * FROM liftMetricCharts WHERE liftId IS NOT NULL")
+    @Query("SELECT c.* " +
+            "FROM liftMetricCharts c " +
+            "INNER JOIN lifts l ON c.liftId = l.lift_id " +
+            "WHERE liftId IS NOT NULL " +
+            "ORDER BY l.name, c.chartType")
     suspend fun getAll(): List<LiftMetricChart>
 
     @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id IN (:ids)")
@@ -28,11 +32,12 @@ interface LiftMetricChartsDao {
     @Query(
         "DELETE FROM liftMetricCharts " +
         "WHERE lift_metric_chart_id IN (" +
-        "SELECT lift_metric_chart_id " +
-        "FROM liftMetricCharts c " +
-        "INNER JOIN lifts l ON l.lift_id = c.liftId " +
-        "WHERE l.name = :liftName AND " +
-        "c.chartType = :chartType)"
+            "SELECT lift_metric_chart_id " +
+            "FROM liftMetricCharts c " +
+            "INNER JOIN lifts l ON l.lift_id = c.liftId " +
+            "WHERE l.name = :liftName AND " +
+            "c.chartType = :chartType " +
+            "LIMIT 1)"
     )
-    suspend fun deleteForLift(liftName: String, chartType: LiftMetricChartType)
+    suspend fun deleteFirstForLift(liftName: String, chartType: LiftMetricChartType)
 }
