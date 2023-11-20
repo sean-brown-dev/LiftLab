@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -42,7 +40,6 @@ import com.browntowndev.liftlab.ui.views.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import java.util.Locale
 
 @Composable
 fun Home(
@@ -91,7 +88,6 @@ fun Home(
                         label = "WORKOUTS COMPLETED",
                         chartModel = state.workoutCompletionChart!!
                     )
-                    Spacer(modifier = Modifier.height(15.dp))
                 }
             }
             item {
