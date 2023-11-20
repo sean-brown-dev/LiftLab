@@ -219,12 +219,14 @@ class WorkoutHistoryViewModel(
     private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): HashSet<SetLogEntryDto> {
         return workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults
-                .groupBy { it.liftId }
-                .map { liftSetResults ->
-                    liftSetResults.value.maxBy {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
-                }
+        }.groupBy { result ->
+            result.liftId
+        }.map { liftSetResults ->
+            liftSetResults.value.maxBy {
+                // Set to a non-zero weight so 1RM gets calculated
+                val weight = if (it.weight == 0f) 1f else it.weight
+                CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
+            }
         }.toHashSet()
     }
 
