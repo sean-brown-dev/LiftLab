@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
+import java.util.Locale
 
 @Composable
 fun ChartsTab(
@@ -35,7 +36,7 @@ fun ChartsTab(
     ) {
         SingleLineWorkoutFilterableChart(
             label = remember(oneRepMaxChartModel) {
-                "${LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName()} " +
+                "${LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName().uppercase(Locale.ROOT)} " +
                         if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
             },
             oneRepMaxChartModel = oneRepMaxChartModel,
@@ -44,7 +45,7 @@ fun ChartsTab(
             onApplyWorkoutFilters = onFilterOneRepMaxChartByWorkouts,
         )
         MultiLineWorkoutFilterableChart(
-            label = remember(volumeChartModel) { "${LiftMetricChartType.VOLUME.displayName()} " +
+            label = remember(volumeChartModel) { "${LiftMetricChartType.VOLUME.displayName().uppercase(Locale.ROOT)} " +
                     if(volumeChartModel?.hasData != true) "- NO DATA" else ""
             },
             volumeChartModel = volumeChartModel,
@@ -53,7 +54,9 @@ fun ChartsTab(
             onApplyWorkoutFilters = onFilterVolumeChartByWorkouts,
         )
         SingleLineWorkoutFilterableChart(
-            label = remember(oneRepMaxChartModel) { "${LiftMetricChartType.RELATIVE_INTENSITY.displayName()} " +
+            label = remember(oneRepMaxChartModel) { "${
+                LiftMetricChartType.RELATIVE_INTENSITY.displayName().uppercase(Locale.ROOT)
+            } " +
                     if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
             },
             oneRepMaxChartModel = intensityChartModel,
