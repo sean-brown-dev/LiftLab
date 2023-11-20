@@ -52,7 +52,7 @@ class LiftLibraryViewModel(
                     workoutId = workoutId,
                     addAtPosition = addAtPosition,
                     newLiftMetricChartIds = newLiftMetricChartIds,
-                    liftIdFilters = getLiftIdFilters(newLiftMetricChartIds.isNotEmpty(), workoutId),
+                    liftIdFilters = getLiftIdFilters(workoutId),
                     movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
                         listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
                     } else {
@@ -101,14 +101,9 @@ class LiftLibraryViewModel(
     }
 
     private suspend fun getLiftIdFilters(
-        shouldGetLiftMetricChartLiftIds: Boolean,
         workoutId: Long?,
     ): HashSet<Long> {
-        return if (shouldGetLiftMetricChartLiftIds) {
-            liftMetricChartRepository.getAll()
-                .mapNotNull { it.liftId }
-                .toHashSet()
-        } else if (workoutId != null) {
+        return if (workoutId != null) {
             workoutLiftsRepository.getLiftIdsForWorkout(workoutId).toHashSet()
         } else hashSetOf()
     }
