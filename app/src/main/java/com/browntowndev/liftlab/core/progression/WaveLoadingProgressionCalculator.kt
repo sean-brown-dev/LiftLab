@@ -22,6 +22,11 @@ class WaveLoadingProgressionCalculator(
 
         return List(workoutLift.setCount) { setPosition ->
             val result = groupedSetData[setPosition]
+            val weightRecommendation = if (!isDeloadWeek && result != null)
+                getWeightRecommendation(workoutLift, result)
+            else if (result != null)
+                decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek)
+            else null
             LoggingStandardSetDto(
                 position = setPosition,
                 rpeTarget = workoutLift.rpeTarget,
@@ -36,11 +41,8 @@ class WaveLoadingProgressionCalculator(
                } else {
                       workoutLift.repRangeBottom.toString()
                 },
-                weightRecommendation = if (!isDeloadWeek && result != null)
-                    getWeightRecommendation(workoutLift, result)
-                else if (result != null)
-                    decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek)
-                else null
+                weightRecommendation = weightRecommendation,
+                hadInitialWeightRecommendation = weightRecommendation != null,
             )
         }.flattenWeightRecommendationsStandard()
     }

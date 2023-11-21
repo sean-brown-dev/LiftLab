@@ -6,7 +6,7 @@ interface GenericLoggingSet {
     val repRangeBottom: Int
     val repRangeTop: Int
     val weightRecommendation: Float?
-    val hadInitialWeightRecommendation: Boolean?
+    val hadInitialWeightRecommendation: Boolean
     val previousSetResultLabel: String
     val repRangePlaceholder: String
     val setNumberLabel: String

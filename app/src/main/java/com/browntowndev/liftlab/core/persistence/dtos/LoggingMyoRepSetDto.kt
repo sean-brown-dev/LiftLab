@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 
 data class LoggingMyoRepSetDto(
     override val position: Int,
@@ -9,6 +10,7 @@ data class LoggingMyoRepSetDto(
     override val repRangeBottom: Int,
     override val repRangeTop: Int,
     override val weightRecommendation: Float?,
+    override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
     override val repRangePlaceholder: String,
     override val setNumberLabel: String = SetType.MYOREP.displayNameShort(),
@@ -20,4 +22,4 @@ data class LoggingMyoRepSetDto(
     val setMatching: Boolean = false,
     val maxSets: Int? = null,
     val repFloor: Int? = null,
-): BaseLoggingSet(weightRecommendation)
+): GenericLoggingSet

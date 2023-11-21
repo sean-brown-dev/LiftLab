@@ -130,6 +130,15 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
             is StandardWorkoutLiftDto -> {
                 List(workoutLift.setCount) {
                     val result = nonMyoRepSetResults[it]
+                    val weightRecommendation = if (criterionMet) {
+                        incrementWeight(workoutLift, result ?: previousSetResults.last())
+                    } else if (previousSetResults.isNotEmpty()) {
+                        getFailureWeight(
+                            workoutLift = workoutLift,
+                            previousSetResults = previousSetResults,
+                            position = it,
+                        )
+                    } else null
                     LoggingStandardSetDto(
                         position = it,
                         rpeTarget = workoutLift.rpeTarget,
@@ -139,16 +148,9 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         repRangePlaceholder = if (!isDeloadWeek) {
                            "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                         } else workoutLift.repRangeBottom.toString(),
-                        weightRecommendation =
-                        if (criterionMet) {
-                            incrementWeight(workoutLift, result ?: previousSetResults.last())
-                        } else if (previousSetResults.isNotEmpty()) {
-                            getFailureWeight(
-                                workoutLift = workoutLift,
-                                previousSetResults = previousSetResults,
-                                position = it,
-                            )
-                        } else null
+                        weightRecommendation = weightRecommendation,
+                        hadInitialWeightRecommendation = weightRecommendation != null,
+
                     )
                 }
             }
@@ -159,59 +161,76 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                     val result = nonMyoRepSetResults[set.position]
                     val currSetMyoRepResults = myoRepSetResults[set.position]
                     when (set) {
-                        is StandardSetDto -> listOf(
-                            LoggingStandardSetDto(
-                            position = set.position,
-                            rpeTarget = set.rpeTarget,
-                            repRangeBottom = set.repRangeBottom,
-                            repRangeTop = set.repRangeTop,
-                            previousSetResultLabel = getPreviousSetResultLabel(result),
-                            repRangePlaceholder = if (!isDeloadWeek) {
-                                "${set.repRangeBottom}-${set.repRangeTop}"
-                            } else set.repRangeBottom.toString(),
-                            weightRecommendation =
-                            if (criterionMet) {
-                                lastWeightRecommendation = incrementWeight(workoutLift, result ?: previousSetResults.last())
-                                lastWeightRecommendation
-                            } else if (previousSetResults.isNotEmpty()) {
-                                lastWeightRecommendation = getFailureWeight(
-                                    workoutLift = workoutLift,
-                                    previousSetResults = previousSetResults,
-                                    position = set.position,
-                                )
-                                lastWeightRecommendation
-                            } else null
-                        ))
-
-                        is DropSetDto -> listOf(
-                            LoggingDropSetDto(
-                                position = set.position,
-                                rpeTarget = set.rpeTarget,
-                                repRangeBottom = set.repRangeBottom,
-                                repRangeTop = set.repRangeTop,
-                                dropPercentage = set.dropPercentage,
-                                previousSetResultLabel = getPreviousSetResultLabel(result),
-                                repRangePlaceholder = if (!isDeloadWeek) {
-                                    "${set.repRangeBottom}-${set.repRangeTop}"
-                                } else set.repRangeBottom.toString(),
-                                weightRecommendation = if (criterionMet) {
-                                    lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
+                        is StandardSetDto -> {
+                            val weightRecommendation =
+                                if (criterionMet) {
+                                    lastWeightRecommendation = incrementWeight(workoutLift, result ?: previousSetResults.last())
                                     lastWeightRecommendation
-                                } else {
-                                    getDropSetFailureWeight(
-                                        incrementOverride = workoutLift.incrementOverride,
-                                        repRangeBottom = set.repRangeBottom,
-                                        rpeTarget = set.rpeTarget,
-                                        dropPercentage = set.dropPercentage,
-                                        result = result,
-                                        droppedFromSetResult = nonMyoRepSetResults
-                                            .getOrDefault(set.position - 1, null),
+                                } else if (previousSetResults.isNotEmpty()) {
+                                    lastWeightRecommendation = getFailureWeight(
+                                        workoutLift = workoutLift,
+                                        previousSetResults = previousSetResults,
+                                        position = set.position,
                                     )
-                               },
-                        ))
+                                    lastWeightRecommendation
+                                } else null
+
+                            listOf(
+                                LoggingStandardSetDto(
+                                    position = set.position,
+                                    rpeTarget = set.rpeTarget,
+                                    repRangeBottom = set.repRangeBottom,
+                                    repRangeTop = set.repRangeTop,
+                                    previousSetResultLabel = getPreviousSetResultLabel(result),
+                                    repRangePlaceholder = if (!isDeloadWeek) {
+                                        "${set.repRangeBottom}-${set.repRangeTop}"
+                                    } else set.repRangeBottom.toString(),
+                                    weightRecommendation = weightRecommendation,
+                                    hadInitialWeightRecommendation = weightRecommendation != null,
+                                ))
+                        }
+
+                        is DropSetDto -> {
+                            val weightRecommendation = if (criterionMet) {
+                                lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
+                                lastWeightRecommendation
+                            } else {
+                                getDropSetFailureWeight(
+                                    incrementOverride = workoutLift.incrementOverride,
+                                    repRangeBottom = set.repRangeBottom,
+                                    rpeTarget = set.rpeTarget,
+                                    dropPercentage = set.dropPercentage,
+                                    result = result,
+                                    droppedFromSetResult = nonMyoRepSetResults
+                                        .getOrDefault(set.position - 1, null),
+                                )
+                            }
+                            listOf(
+                                LoggingDropSetDto(
+                                    position = set.position,
+                                    rpeTarget = set.rpeTarget,
+                                    repRangeBottom = set.repRangeBottom,
+                                    repRangeTop = set.repRangeTop,
+                                    dropPercentage = set.dropPercentage,
+                                    previousSetResultLabel = getPreviousSetResultLabel(result),
+                                    repRangePlaceholder = if (!isDeloadWeek) {
+                                        "${set.repRangeBottom}-${set.repRangeTop}"
+                                    } else set.repRangeBottom.toString(),
+                                    weightRecommendation = weightRecommendation,
+                                    hadInitialWeightRecommendation = weightRecommendation != null,
+                                ))
+                        }
 
                         is MyoRepSetDto -> {
                             (currSetMyoRepResults?.fastMap {
+                                val weightRecommendation = if (criterionMet) {
+                                    incrementWeight(workoutLift, it)
+                                } else {
+                                    getFailureWeight(
+                                        workoutLift = workoutLift,
+                                        previousSetResults = previousSetResults
+                                    )
+                                }
                                 LoggingMyoRepSetDto(
                                     position = set.position,
                                     myoRepSetPosition = it.myoRepSetPosition,
@@ -231,14 +250,8 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                     } else {
                                         set.repRangeBottom.toString()
                                     },
-                                    weightRecommendation = if (criterionMet) {
-                                        incrementWeight(workoutLift, it)
-                                    } else {
-                                        getFailureWeight(
-                                            workoutLift = workoutLift,
-                                            previousSetResults = previousSetResults
-                                        )
-                                    }
+                                    weightRecommendation = weightRecommendation,
+                                    hadInitialWeightRecommendation = weightRecommendation != null,
                                 )
                             }?.toMutableList() ?: mutableListOf()).apply {
                                 if (size == 0) {
@@ -258,6 +271,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                                 set.repRangeBottom.toString()
                                             },
                                             weightRecommendation = null,
+                                            hadInitialWeightRecommendation = false,
                                         )
                                     )
                                 }

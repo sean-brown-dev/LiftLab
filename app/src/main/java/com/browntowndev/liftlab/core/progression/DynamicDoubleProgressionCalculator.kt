@@ -51,6 +51,16 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         val resultsMap = sortedSetData.associateBy { it.setPosition }
         return List(workoutLift.setCount) { setPosition ->
             val result = resultsMap[setPosition]
+            val weightRecommendation = if (setMetCriterion(result, workoutLift)) {
+                incrementWeight(workoutLift, result!!)
+            } else if (shouldDecreaseWeight(result, workoutLift)) {
+                decreaseWeight(
+                    workoutLift.incrementOverride,
+                    workoutLift.repRangeBottom,
+                    workoutLift.rpeTarget,
+                    result!!
+                )
+            } else result?.weight
             LoggingStandardSetDto(
                 position = setPosition,
                 rpeTarget = workoutLift.rpeTarget,
@@ -60,16 +70,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 repRangePlaceholder = if (!isDeloadWeek) {
                     "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                 } else workoutLift.repRangeBottom.toString(),
-                weightRecommendation = if (setMetCriterion(result, workoutLift)) {
-                    incrementWeight(workoutLift, result!!)
-                } else if (shouldDecreaseWeight(result, workoutLift)) {
-                    decreaseWeight(
-                        workoutLift.incrementOverride,
-                        workoutLift.repRangeBottom,
-                        workoutLift.rpeTarget,
-                        result!!
-                    )
-                } else result?.weight
+                weightRecommendation = weightRecommendation,
+                hadInitialWeightRecommendation = weightRecommendation != null,
             )
         }
     }
@@ -114,6 +116,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             repRangeTop = set.repRangeTop,
                             previousSetResultLabel = getPreviousSetResultLabel(result = it),
                             weightRecommendation = weightRecommendation,
+                            hadInitialWeightRecommendation = weightRecommendation != null,
                             repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else if (!isDeloadWeek && set.repFloor != null) {
@@ -142,6 +145,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                         set.repRangeBottom.toString()
                                     },
                                     weightRecommendation = weightRecommendation,
+                                    hadInitialWeightRecommendation = weightRecommendation != null,
                                 )
                             )
                         }
@@ -150,6 +154,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
 
                 is DropSetDto -> {
                     val result = standardSetResults[set.position]
+                    val weightRecommendation = dropSetResults[set.id]
                     listOf(
                         LoggingDropSetDto(
                             dropPercentage = set.dropPercentage,
@@ -161,13 +166,20 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
-                            weightRecommendation = dropSetResults[set.id],
+                            weightRecommendation = weightRecommendation,
+                            hadInitialWeightRecommendation = weightRecommendation != null,
                         )
                     )
                 }
 
                 is StandardSetDto -> {
                     val result = standardSetResults[set.position]
+                    val weightRecommendation = dropSetResults[set.id]
+                        ?: getWeightRecommendation(
+                            lift = workoutLift,
+                            set = set,
+                            setData = result,
+                        )
                     listOf(
                         LoggingStandardSetDto(
                             position = set.position,
@@ -178,12 +190,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             repRangePlaceholder = if (!isDeloadWeek) {
                                 "${set.repRangeBottom}-${set.repRangeTop}"
                             } else set.repRangeBottom.toString(),
-                            weightRecommendation = dropSetResults[set.id]
-                                ?: getWeightRecommendation(
-                                    lift = workoutLift,
-                                    set = set,
-                                    setData = result,
-                                )
+                            weightRecommendation = weightRecommendation,
+                            hadInitialWeightRecommendation = weightRecommendation != null,
                         )
                     )
                 }

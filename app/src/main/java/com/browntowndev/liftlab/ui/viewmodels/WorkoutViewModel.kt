@@ -282,18 +282,21 @@ class WorkoutViewModel(
                                                 completedWeight = null,
                                                 completedReps = null,
                                                 completedRpe = null,
+                                                complete = false,
                                             )
 
                                             is LoggingDropSetDto -> set.copy(
                                                 completedWeight = null,
                                                 completedReps = null,
                                                 completedRpe = null,
+                                                complete = false,
                                             )
 
                                             is LoggingMyoRepSetDto -> set.copy(
                                                 completedWeight = null,
                                                 completedReps = null,
                                                 completedRpe = null,
+                                                complete = false,
                                             )
 
                                             else -> throw Exception("${set::class.simpleName} is not defined.")

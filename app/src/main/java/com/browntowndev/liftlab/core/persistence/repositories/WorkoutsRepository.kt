@@ -344,6 +344,7 @@ class WorkoutsRepository(
                             set.repRangeBottom.toString()
                         },
                         weightRecommendation = completedSet.weight,
+                        hadInitialWeightRecommendation = true,
                     )
                 )
             }

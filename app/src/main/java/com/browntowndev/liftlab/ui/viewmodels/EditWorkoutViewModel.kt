@@ -172,6 +172,7 @@ class EditWorkoutViewModel(
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = setLogEntry.weightRecommendation,
+                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
@@ -191,7 +192,8 @@ class EditWorkoutViewModel(
                                     repRangeTop = setLogEntry.repRangeTop,
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = null,
+                                    weightRecommendation = setLogEntry.weightRecommendation,
+                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
@@ -213,7 +215,8 @@ class EditWorkoutViewModel(
                                     repRangeTop = setLogEntry.repRangeTop,
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = null,
+                                    weightRecommendation = setLogEntry.weightRecommendation,
+                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,

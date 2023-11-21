@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 
 data class LoggingDropSetDto(
     override val position: Int,
@@ -9,6 +10,7 @@ data class LoggingDropSetDto(
     override val repRangeBottom: Int,
     override val repRangeTop: Int,
     override val weightRecommendation: Float?,
+    override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
     override val repRangePlaceholder: String,
     override val setNumberLabel: String = SetType.DROP_SET.displayNameShort(),
@@ -17,4 +19,4 @@ data class LoggingDropSetDto(
     override val completedReps: Int? = null,
     override val completedRpe: Float? = null,
     val dropPercentage: Float,
-): BaseLoggingSet(weightRecommendation)
+): GenericLoggingSet
