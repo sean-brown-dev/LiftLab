@@ -5,7 +5,6 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.PROGRAM
@@ -29,8 +28,8 @@ import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
 
 class WorkoutHistoryViewModel(
-    private val navHostController: NavHostController,
-    private val loggingRepository: LoggingRepository,
+    loggingRepository: LoggingRepository,
+    private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -255,7 +254,7 @@ class WorkoutHistoryViewModel(
         } else if (_state.value.isProgramAndWorkoutFilterVisible) {
             applyFilters()
         } else {
-            navHostController.popBackStack()
+            onNavigateBack()
         }
     }
 }

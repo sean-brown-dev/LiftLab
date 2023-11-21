@@ -20,9 +20,9 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { LabViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { params -> LiftDetailsViewModel(params[0], params.get(), get(), get(), get(), get()) }
+    viewModel { params -> LiftDetailsViewModel(params.get(), params[0], get(), get(), get(), get()) }
     viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { params -> LiftLibraryViewModel(get(), get(), get(), params.get(), params[1], params[2], params.get(), params.get(), get(), get()) }
+    viewModel { params -> LiftLibraryViewModel(get(), get(), get(), params[0], params[1], params[2], params[3], params[4], params.get(), params.get(), get(), get()) }
     viewModel { params -> WorkoutViewModel(params.get(), get(), get(), get(), get(), get(), get(), get(), get(), params.get(), get(), get()) }
     viewModel { params -> EditWorkoutViewModel(params.get(), get(), get(), params.get(), get(), get()) }
     viewModel { TopAppBarViewModel() }
@@ -31,7 +31,7 @@ val viewModelModule = module {
     viewModel { params -> CountdownTimerViewModel(params.get()) }
     viewModel { TimerViewModel() }
     viewModel { PickerViewModel() }
-    viewModel { params -> HomeViewModel(get(), get(), get(), params.get(), get(), get()) }
+    viewModel { params -> HomeViewModel(get(), get(), get(), params.get(), params.get(), get(), get()) }
     viewModel { params -> SettingsViewModel(params.get(), params.get(), get(), get()) }
-    viewModel { params -> WorkoutHistoryViewModel(params.get(), get(), get(), get()) }
+    viewModel { params -> WorkoutHistoryViewModel(get(), params.get(), get(), get()) }
 }

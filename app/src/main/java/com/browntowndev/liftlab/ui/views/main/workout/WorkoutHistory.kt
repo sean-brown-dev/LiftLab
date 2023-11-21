@@ -36,15 +36,17 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun WorkoutHistory(
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateBack: () -> Unit,
+    onNavigateToEditWorkoutScreen: (workoutLogEntryId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
 ) {
     val workoutHistoryViewModel: WorkoutHistoryViewModel = koinViewModel {
-        parametersOf(navHostController)
+        parametersOf(onNavigateBack)
     }
     val state by workoutHistoryViewModel.state.collectAsState()
     workoutHistoryViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutHistoryViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutHistoryViewModel)
 
     BackHandler(state.isDatePickerVisible) {
         workoutHistoryViewModel.toggleDateRangePicker()
@@ -121,8 +123,7 @@ fun WorkoutHistory(
                     setResults = workoutLog.setResults,
                     topSets = state.topSets[workoutLog.id],
                     onEditWorkout = {
-                        val editWorkoutRoute = EditWorkoutScreen.navigation.route.replace("{workoutLogEntryId}", workoutLog.id.toString())
-                        navHostController.navigate(editWorkoutRoute)
+                        onNavigateToEditWorkoutScreen(workoutLog.id)
                     }
                 )
             }

@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
@@ -46,7 +44,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
@@ -69,24 +66,20 @@ import kotlin.time.toDuration
 fun WorkoutBuilder(
     paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateBack: () -> Unit,
+    onNavigateToLiftLibrary: (route: String) -> Unit,
     workoutId: Long,
-    workoutBuilderViewModel: WorkoutBuilderViewModel = koinViewModel {
-        parametersOf(
-            workoutId,
-            navHostController
-        )
-    },
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
+    val workoutBuilderViewModel: WorkoutBuilderViewModel = koinViewModel {
+        parametersOf(
+            workoutId,
+            onNavigateBack,
+        )
+    }
     val state by workoutBuilderViewModel.state.collectAsState()
     val listState = rememberLazyListState()
-
-    BackHandler(true) {
-        navHostController.popBackStack()
-        navHostController.popBackStack()
-        navHostController.navigate(LabScreen.navigation.route)
-    }
 
     LaunchedEffect(state.workout) {
         if (state.workout != null) {
@@ -100,7 +93,7 @@ fun WorkoutBuilder(
     }
 
     workoutBuilderViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutBuilderViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutBuilderViewModel)
 
     if(!state.isReordering) {
         VolumeChipBottomSheet(
@@ -186,7 +179,7 @@ fun WorkoutBuilder(
                                         workoutLift.liftMovementPattern.displayName()
                                     )
 
-                                navHostController.navigate(liftLibraryRoute)
+                                onNavigateToLiftLibrary(liftLibraryRoute)
                             },
                             onDeleteLift = {
                                 workoutBuilderViewModel.toggleMovementPatternDeletionModal(
@@ -449,7 +442,7 @@ fun WorkoutBuilder(
                                             "{addAtPosition}",
                                             state.workout!!.lifts.count().toString()
                                         )
-                                    navHostController.navigate(liftLibraryRoute)
+                                    onNavigateToLiftLibrary(liftLibraryRoute)
                                 }
                             ) {
                                 Text(

@@ -7,13 +7,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavHostController
 import org.greenrobot.eventbus.EventBus
 
 @Composable
-fun EventBusDisposalEffect(navHostController: NavHostController, viewModelToUnregister: ViewModel) {
+fun EventBusDisposalEffect(screenId: String?, viewModelToUnregister: ViewModel) {
     val eventBus by remember { mutableStateOf(EventBus.getDefault()) }
-    DisposableEffect(key1 = navHostController.currentBackStackEntry?.id) {
+    DisposableEffect(key1 = screenId) {
         onDispose {
             if (eventBus.isRegistered(viewModelToUnregister)) {
                 eventBus.unregister(viewModelToUnregister)

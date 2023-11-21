@@ -7,7 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.util.fastMap
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
@@ -24,7 +23,8 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun Lab(
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
@@ -58,7 +58,7 @@ fun Lab(
     }
 
     labViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = labViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = labViewModel)
 
     if (!state.isReordering) {
         if (state.program?.workouts?.isEmpty() == false) {
@@ -74,7 +74,7 @@ fun Lab(
                     workouts = state.program!!.workouts,
                     showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
                     beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
-                    navigationController = navHostController
+                    onNavigateToWorkoutBuilder = onNavigateToWorkoutBuilder,
                 )
             }
         }

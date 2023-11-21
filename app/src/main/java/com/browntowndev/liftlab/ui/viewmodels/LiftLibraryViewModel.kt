@@ -32,7 +32,9 @@ class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val liftMetricChartRepository: LiftMetricChartRepository,
-    private val navHostController: NavHostController,
+    private val onNavigateHome: () -> Unit,
+    private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
+    private val onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     workoutId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
@@ -87,7 +89,7 @@ class LiftLibraryViewModel(
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
             TopAppBarAction.ConfirmAddLift -> if (_state.value.newLiftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
-            TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
+            TopAppBarAction.CreateNewLift -> onNavigateToLiftDetails(null)
             else -> {}
         }
     }
@@ -136,7 +138,7 @@ class LiftLibraryViewModel(
             }
 
             liftMetricChartRepository.upsertMany(liftMetricCharts = liftMetricCharts)
-            navigateBackToHome()
+            onNavigateHome()
         }
     }
 
@@ -194,30 +196,8 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun navigateBackToHome() {
-        // Pop back to the start destination
-        navHostController.navigate(navHostController.graph.startDestinationRoute!!) {
-            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                inclusive = true
-            }
-        }
-
-        // Go back to Home
-        navHostController.navigate(HomeScreen.navigation.route)
-    }
-
-
     private fun navigateBackToWorkoutBuilder() {
-        // Pop back to lab
-        navHostController.navigate("lab") {
-            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                inclusive = false
-            }
-        }
-
-        // Go back to workout builder
-        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
-        navHostController.navigate(workoutBuilderRoute)
+        onNavigateToWorkoutBuilder(_state.value.workoutId!!)
     }
 
 
@@ -308,9 +288,5 @@ class LiftLibraryViewModel(
             // No need to update state. The lifts are retrieved via Flow
             liftsRepository.update(lift.copy(isHidden = true))
         }
-    }
-
-    private fun navigateToCreateLiftMenu() {
-        navHostController.navigate(LiftDetailsScreen.navigation.route)
     }
 }

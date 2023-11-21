@@ -57,7 +57,12 @@ fun NavigationGraph(
             }
             Home(
                 paddingValues = paddingValues,
-                navHostController = navHostController
+                screenId = navHostController.currentBackStackEntry?.id,
+                onNavigateToSettingsMenu = { navHostController.navigate(SettingsScreen.navigation.route) },
+                onNavigateToLiftLibrary = { chartIds ->
+                    navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
+                    navHostController.navigate(LiftLibraryScreen.navigation.route)
+                },
             )
         }
         composable(SettingsScreen.navigation.route) {
@@ -69,7 +74,8 @@ fun NavigationGraph(
             Settings(
                 roomBackup = roomBackup,
                 paddingValues = paddingValues,
-                navHostController = navHostController
+                screenId = navHostController.currentBackStackEntry?.id,
+                onNavigateBack = { navHostController.popBackStack() },
             )
         }
         composable(
@@ -108,7 +114,7 @@ fun NavigationGraph(
 
                 LiftLibrary(
                     paddingValues = paddingValues,
-                    navHostController = navHostController,
+                    screenId = navHostController.currentBackStackEntry?.id,
                     workoutId = workoutId,
                     workoutLiftId = workoutLiftId,
                     movementPattern = movementPatternParam,
@@ -123,6 +129,37 @@ fun NavigationGraph(
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW, "".left())
                         )
+                    },
+                    onNavigateHome = {
+                        // Pop back to the start destination
+                        navHostController.navigate(navHostController.graph.startDestinationRoute!!) {
+                            popUpTo(navHostController.graph.startDestinationRoute!!) {
+                                inclusive = true
+                            }
+                        }
+
+                        // Go back to Home
+                        navHostController.navigate(HomeScreen.navigation.route)
+                    },
+                    onNavigateToLiftDetails = { liftId ->
+                        val liftDetailsRoute = if (liftId != null) {
+                            LiftDetailsScreen.navigation.route
+                                .replace("{id}", liftId.toString())
+                        } else LiftDetailsScreen.navigation.route
+
+                        navHostController.navigate(liftDetailsRoute)
+                    },
+                    onNavigateToWorkoutBuilder = { workoutId ->
+                        // Pop back to lab
+                        navHostController.navigate("lab") {
+                            popUpTo(navHostController.graph.startDestinationRoute!!) {
+                                inclusive = false
+                            }
+                        }
+
+                        // Go back to workout builder
+                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
+                        navHostController.navigate(workoutBuilderRoute)
                     }
                 )
             }
@@ -146,9 +183,10 @@ fun NavigationGraph(
 
                 LiftDetails(
                     id = id,
-                    navHostController = navHostController,
+                    screenId = navHostController.currentBackStackEntry?.id,
                     paddingValues = paddingValues,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
+                    onNavigateBack = { navHostController.popBackStack() },
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -162,11 +200,14 @@ fun NavigationGraph(
             if (screen as? WorkoutScreen != null) {
                 Workout(
                     paddingValues = paddingValues,
-                    navHostController = navHostController,
+                    screenId = navHostController.currentBackStackEntry?.id,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
+                    onNavigateToWorkoutHistory = {
+                        navHostController.navigate(WorkoutHistoryScreen.navigation.route)
+                    }
                 )
             }
         }
@@ -178,8 +219,15 @@ fun NavigationGraph(
 
                 WorkoutHistory(
                     paddingValues = paddingValues,
-                    navHostController = navHostController,
-                    setTopAppBarCollapsed = setTopAppBarCollapsed
+                    screenId = navHostController.currentBackStackEntry?.id,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed,
+                    onNavigateBack = {
+                        navHostController.popBackStack()
+                    },
+                    onNavigateToEditWorkoutScreen = { workoutLogEntryId ->
+                        val editWorkoutRoute = EditWorkoutScreen.navigation.route.replace("{workoutLogEntryId}", workoutLogEntryId.toString())
+                        navHostController.navigate(editWorkoutRoute)
+                    }
                 )
             }
         }
@@ -202,8 +250,11 @@ fun NavigationGraph(
                 EditWorkout(
                     workoutLogEntryId = workoutLogEntryId!!,
                     paddingValues = paddingValues,
-                    navHostController = navHostController,
+                    screenId = navHostController.currentBackStackEntry?.id,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    onNavigateBack = {
+                        navHostController.popBackStack()
+                    }
                 )
             }
         }
@@ -215,7 +266,7 @@ fun NavigationGraph(
 
                 Lab(
                     paddingValues,
-                    navHostController = navHostController,
+                    screenId = navHostController.currentBackStackEntry?.id,
                     mutateTopAppBarControlValue = {
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -224,6 +275,10 @@ fun NavigationGraph(
                     },
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
+                    onNavigateToWorkoutBuilder = { workoutId ->
+                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
+                        navHostController.navigate(workoutBuilderRoute)
+                    }
                 )
             }
         }
@@ -246,13 +301,19 @@ fun NavigationGraph(
                 WorkoutBuilder(
                     workoutId = workoutId,
                     paddingValues = paddingValues,
-                    navHostController = navHostController,
+                    screenId = navHostController.currentBackStackEntry?.id,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
                                 request.controlName,
                                 request.payload.left()))
                     },
+                    onNavigateBack = {
+                        navHostController.popBackStack()
+                    },
+                    onNavigateToLiftLibrary = { route ->
+                        navHostController.navigate(route)
+                    }
                 )
             }
         }

@@ -20,21 +20,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutCard(
-    modifier: Modifier = Modifier,
-    navigationController: NavHostController,
     workoutId: Long,
     workoutName: String,
     lifts: List<GenericWorkoutLift>,
     showEditWorkoutNameModal: () -> Unit,
     beginDeleteWorkout: () -> Unit,
+    onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -45,8 +42,7 @@ fun WorkoutCard(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
         ),
         onClick = {
-            val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
-            navigationController.navigate(workoutBuilderRoute)
+            onNavigateToWorkoutBuilder(workoutId)
         }
     ) {
         Row (

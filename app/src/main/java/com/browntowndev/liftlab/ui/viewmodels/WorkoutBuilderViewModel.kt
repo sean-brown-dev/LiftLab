@@ -1,9 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.ui.util.fastMap
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
@@ -26,7 +24,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -36,7 +33,7 @@ import kotlin.time.Duration
 
 class WorkoutBuilderViewModel(
     private val workoutId: Long,
-    private val navHostController: NavHostController,
+    private val onNavigateBack: () -> Unit,
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
@@ -65,9 +62,7 @@ class WorkoutBuilderViewModel(
     @Subscribe
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> {
-                navHostController.popBackStack()
-            }
+            TopAppBarAction.NavigatedBack -> onNavigateBack()
             TopAppBarAction.RenameWorkout -> toggleWorkoutRenameModal()
             TopAppBarAction.ReorderLifts -> toggleReorderLifts()
             else -> {}

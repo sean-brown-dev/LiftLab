@@ -30,7 +30,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
@@ -57,15 +56,16 @@ import kotlin.time.toDuration
 fun Settings(
     roomBackup: RoomBackup,
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateBack: () -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
-        parametersOf(roomBackup, navHostController)
+        parametersOf(roomBackup, onNavigateBack)
     }
     val state by settingsViewModel.state.collectAsState()
 
     settingsViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = settingsViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = settingsViewModel)
 
     LazyColumn(
         modifier = Modifier

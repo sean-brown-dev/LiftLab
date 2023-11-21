@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.displayName
@@ -44,16 +43,18 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun Home(
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateToSettingsMenu: () -> Unit,
+    onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
 ) {
     val homeViewModel: HomeViewModel = koinViewModel {
-        parametersOf(navHostController)
+        parametersOf(onNavigateToSettingsMenu, onNavigateToLiftLibrary)
     }
     val state by homeViewModel.state.collectAsState()
 
     homeViewModel.registerEventBus()
     EventBusDisposalEffect(
-        navHostController = navHostController,
+        screenId = screenId,
         viewModelToUnregister = homeViewModel
     )
 
