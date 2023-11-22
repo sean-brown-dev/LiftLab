@@ -9,7 +9,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
-class LinearProgressionCalculator: StraightSetProgressionCalculator() {
+class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     override fun allSetsMetCriterion(
         lift: StandardWorkoutLiftDto,
         previousSetResults: List<SetResult>
@@ -47,7 +47,7 @@ class LinearProgressionCalculator: StraightSetProgressionCalculator() {
             val factor =
                 workoutLift.incrementOverride ?: SettingsManager.getSetting(
                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                    5f
+                    SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                 )
             (previouslyFailedSet.weight * .9).roundToNearestFactor(factor)
         } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null)

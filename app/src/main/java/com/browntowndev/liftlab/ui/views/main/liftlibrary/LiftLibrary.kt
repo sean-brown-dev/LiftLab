@@ -26,11 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
@@ -46,7 +44,10 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun LiftLibrary(
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateHome: () -> Unit,
+    onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
+    onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     isSearchBarVisible: Boolean,
     workoutId: Long? = null,
     workoutLiftId: Long? = null,
@@ -59,7 +60,10 @@ fun LiftLibrary(
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
-    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel { parametersOf(navHostController, workoutId, addAtPosition, movementPattern, liftMetricChartIds) }
+    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel {
+        parametersOf(onNavigateHome, onNavigateToWorkoutBuilder, onNavigateToLiftDetails,
+            workoutId, addAtPosition, movementPattern, liftMetricChartIds)
+    }
     val state by liftLibraryViewModel.state.collectAsState()
 
     val isReplacingWorkout = remember(key1 = workoutId, key2 = workoutLiftId) {
@@ -71,7 +75,7 @@ fun LiftLibrary(
     val isCreatingLiftMetricCharts = remember(liftMetricChartIds) { liftMetricChartIds.isNotEmpty() }
 
     liftLibraryViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftLibraryViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = liftLibraryViewModel)
 
     BackHandler(isSearchBarVisible) {
         onNavigateBack.invoke()
@@ -136,10 +140,7 @@ fun LiftLibrary(
                                     } else if (isReplacingWorkout) {
                                         liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
                                     } else {
-                                        val liftDetailsRoute = LiftDetailsScreen.navigation.route
-                                            .replace("{id}", lift.id.toString())
-
-                                        navHostController.navigate(liftDetailsRoute)
+                                        onNavigateToLiftDetails(lift.id)
                                     }
                                 },
                                 headlineContent = { Text(lift.name) },

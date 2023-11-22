@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
@@ -34,8 +33,8 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration
 
 class LiftDetailsViewModel(
+    private val onNavigateBack: () -> Unit,
     private val liftId: Long?,
-    private val navHostController: NavHostController,
     private val liftsRepository: LiftsRepository,
     private val loggingRepository: LoggingRepository,
     transactionScope: TransactionScope,
@@ -179,7 +178,7 @@ class LiftDetailsViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(event: TopAppBarEvent.ActionEvent) {
         when (event.action) {
-            TopAppBarAction.NavigatedBack -> navHostController.popBackStack()
+            TopAppBarAction.NavigatedBack -> onNavigateBack()
             TopAppBarAction.ConfirmCreateNewLift -> createNewLift()
             else -> {}
         }
@@ -342,7 +341,7 @@ class LiftDetailsViewModel(
             } else lift
 
             liftsRepository.createLift(liftToCreate)
-            navHostController.popBackStack()
+            onNavigateBack()
         }
     }
 

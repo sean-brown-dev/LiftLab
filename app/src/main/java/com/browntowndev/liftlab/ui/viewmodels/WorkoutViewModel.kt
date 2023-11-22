@@ -4,7 +4,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -26,7 +25,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -35,7 +33,7 @@ import java.lang.Integer.max
 import kotlin.time.Duration
 
 class WorkoutViewModel(
-    private val navHostController: NavHostController,
+    private val navigateToWorkoutHistory: () -> Unit,
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
@@ -132,7 +130,7 @@ class WorkoutViewModel(
                 }
             }
             TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm,
-            TopAppBarAction.OpenWorkoutHistory -> navHostController.navigate(WorkoutHistoryScreen.navigation.route)
+            TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
             else -> {}
         }
     }
@@ -282,18 +280,21 @@ class WorkoutViewModel(
                                                 completedWeight = null,
                                                 completedReps = null,
                                                 completedRpe = null,
+                                                complete = false,
                                             )
 
                                             is LoggingDropSetDto -> set.copy(
                                                 completedWeight = null,
                                                 completedReps = null,
                                                 completedRpe = null,
+                                                complete = false,
                                             )
 
                                             is LoggingMyoRepSetDto -> set.copy(
                                                 completedWeight = null,
                                                 completedReps = null,
                                                 completedRpe = null,
+                                                complete = false,
                                             )
 
                                             else -> throw Exception("${set::class.simpleName} is not defined.")

@@ -18,15 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 
 
 @Composable
 fun WorkoutCardList(
     paddingValues: PaddingValues,
-    navigationController: NavHostController,
     workouts: List<WorkoutDto>,
     showEditWorkoutNameModal: (WorkoutDto) -> Unit,
     beginDeleteWorkout: (WorkoutDto) -> Unit,
+    onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
     var workoutsState = remember { workouts }
@@ -49,7 +50,7 @@ fun WorkoutCardList(
                 workoutName = workout.name,
                 workoutId = workout.id,
                 lifts = workout.lifts,
-                navigationController = navigationController,
+                onNavigateToWorkoutBuilder = onNavigateToWorkoutBuilder,
                 showEditWorkoutNameModal = { showEditWorkoutNameModal(workout) },
                 beginDeleteWorkout = { beginDeleteWorkout(workout) },
             )

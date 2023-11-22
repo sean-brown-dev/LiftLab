@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -36,7 +35,7 @@ class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
     private val loggingRepository: LoggingRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
-    private val navHostController: NavHostController,
+    private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
@@ -114,7 +113,7 @@ class EditWorkoutViewModel(
                 executeInTransactionScope {
                     updateLinearProgressionFailures()
                 }
-                navHostController.popBackStack()
+                onNavigateBack()
             }
             else -> {}
         }
@@ -172,6 +171,7 @@ class EditWorkoutViewModel(
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = setLogEntry.weightRecommendation,
+                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
@@ -191,7 +191,8 @@ class EditWorkoutViewModel(
                                     repRangeTop = setLogEntry.repRangeTop,
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = null,
+                                    weightRecommendation = setLogEntry.weightRecommendation,
+                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
@@ -213,7 +214,8 @@ class EditWorkoutViewModel(
                                     repRangeTop = setLogEntry.repRangeTop,
                                     repRangeBottom = setLogEntry.repRangeBottom,
                                     rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = null,
+                                    weightRecommendation = setLogEntry.weightRecommendation,
+                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,

@@ -18,7 +18,7 @@ class RepositoryHelper(context: Context): KoinComponent {
     private val workoutLiftMapper: WorkoutLiftMapper by inject()
     private val workoutMapper: WorkoutMapper by inject()
     private val programMapper: ProgramMapper by inject()
-    private val setResultsMapper: SetResultMapper by inject()
+    private val setResultMapper: SetResultMapper by inject()
     private val workoutLogEntryMapper: WorkoutLogEntryMapper by inject()
     private val progressionFactory: ProgressionFactory by inject<StandardProgressionFactory>()
     private val database: LiftLabDatabase = LiftLabDatabase.getInstance(context)
@@ -35,14 +35,16 @@ class RepositoryHelper(context: Context): KoinComponent {
 
     val previousSetResults get() = PreviousSetResultsRepository(
         previousSetResultDao = database.previousSetResultsDao(),
-        setResultsMapper = setResultsMapper,
+        setResultsMapper = setResultMapper,
     )
 
     val workouts get() = WorkoutsRepository(
         workoutLiftsRepository = workoutLifts,
         customLiftSetsRepository = customLiftSets,
         previousSetResultsRepository = previousSetResults,
+        loggingRepository = logging,
         workoutMapper = workoutMapper,
+        setResultMapper = setResultMapper,
         workoutsDao = database.workoutsDao(),
         progressionFactory = progressionFactory,
     )

@@ -15,7 +15,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
@@ -29,15 +28,16 @@ import org.koin.core.parameter.parametersOf
 fun LiftDetails(
     id: Long?,
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateBack: () -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
 ) {
-    val liftDetailsViewModel: LiftDetailsViewModel = koinViewModel { parametersOf(id, navHostController) }
+    val liftDetailsViewModel: LiftDetailsViewModel = koinViewModel { parametersOf(id, onNavigateBack) }
     val state by liftDetailsViewModel.state.collectAsState()
 
     liftDetailsViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = liftDetailsViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = liftDetailsViewModel)
 
     LaunchedEffect(key1 = id) {
         if (id == null) {

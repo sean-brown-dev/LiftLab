@@ -244,13 +244,13 @@ abstract class BaseWorkoutViewModel(
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 completedSet!!
-            } else if (set.position == (setPosition + 1)) {
+            } else if (set.position == (setPosition + 1) && set.hadInitialWeightRecommendation == false) {
                 when (set) {
                     is LoggingStandardSetDto -> set.copy(
-                        weightRecommendation = set.weightRecommendation ?: completedSet!!.completedWeight
+                        weightRecommendation = completedSet!!.completedWeight
                     )
                     is LoggingMyoRepSetDto -> set.copy(
-                        weightRecommendation = set.weightRecommendation ?: completedSet!!.completedWeight
+                        weightRecommendation = completedSet!!.completedWeight
                     )
                     is LoggingDropSetDto -> copyDropSetWithUpdatedWeightRecommendation(
                         dropFromSet = currentSets[setPosition],
@@ -430,7 +430,7 @@ abstract class BaseWorkoutViewModel(
                                         increment = workoutLift.incrementOverride
                                             ?: SettingsManager.getSetting(
                                                 SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                                5f
+                                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                                             ))
                                 )
                             } else workoutLift

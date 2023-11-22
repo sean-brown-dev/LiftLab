@@ -19,7 +19,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +32,9 @@ class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val liftMetricChartRepository: LiftMetricChartRepository,
-    private val navHostController: NavHostController,
+    private val onNavigateHome: () -> Unit,
+    private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
+    private val onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     workoutId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
@@ -53,7 +54,7 @@ class LiftLibraryViewModel(
                     workoutId = workoutId,
                     addAtPosition = addAtPosition,
                     newLiftMetricChartIds = newLiftMetricChartIds,
-                    liftIdFilters = getLiftIdFilters(newLiftMetricChartIds.isNotEmpty(), workoutId),
+                    liftIdFilters = getLiftIdFilters(workoutId),
                     movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
                         listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
                     } else {
@@ -88,7 +89,7 @@ class LiftLibraryViewModel(
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
             TopAppBarAction.ConfirmAddLift -> if (_state.value.newLiftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
-            TopAppBarAction.CreateNewLift -> navigateToCreateLiftMenu()
+            TopAppBarAction.CreateNewLift -> onNavigateToLiftDetails(null)
             else -> {}
         }
     }
@@ -102,14 +103,9 @@ class LiftLibraryViewModel(
     }
 
     private suspend fun getLiftIdFilters(
-        shouldGetLiftMetricChartLiftIds: Boolean,
         workoutId: Long?,
     ): HashSet<Long> {
-        return if (shouldGetLiftMetricChartLiftIds) {
-            liftMetricChartRepository.getAll()
-                .mapNotNull { it.liftId }
-                .toHashSet()
-        } else if (workoutId != null) {
+        return if (workoutId != null) {
             workoutLiftsRepository.getLiftIdsForWorkout(workoutId).toHashSet()
         } else hashSetOf()
     }
@@ -142,7 +138,7 @@ class LiftLibraryViewModel(
             }
 
             liftMetricChartRepository.upsertMany(liftMetricCharts = liftMetricCharts)
-            navigateBackToHome()
+            onNavigateHome()
         }
     }
 
@@ -200,26 +196,10 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun navigateBackToHome() {
-        // Pop back to before Home
-        while (navHostController.previousBackStackEntry?.destination?.route != HomeScreen.navigation.route) {
-            navHostController.popBackStack()
-        }
-
-        // Go back to Home
-        navHostController.navigate(HomeScreen.navigation.route)
-    }
-
     private fun navigateBackToWorkoutBuilder() {
-        // Pop back to lab
-        while (navHostController.currentBackStackEntry?.destination?.route != LabScreen.navigation.route) {
-            navHostController.popBackStack()
-        }
-
-        // Go back to workout builder
-        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", _state.value.workoutId.toString())
-        navHostController.navigate(workoutBuilderRoute)
+        onNavigateToWorkoutBuilder(_state.value.workoutId!!)
     }
+
 
     private fun toggleFilterSelection() {
         _state.update {
@@ -308,9 +288,5 @@ class LiftLibraryViewModel(
             // No need to update state. The lifts are retrieved via Flow
             liftsRepository.update(lift.copy(isHidden = true))
         }
-    }
-
-    private fun navigateToCreateLiftMenu() {
-        navHostController.navigate(LiftDetailsScreen.navigation.route)
     }
 }

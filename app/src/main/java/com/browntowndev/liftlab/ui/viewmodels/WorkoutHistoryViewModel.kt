@@ -5,7 +5,6 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.PROGRAM
@@ -29,8 +28,8 @@ import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
 
 class WorkoutHistoryViewModel(
-    private val navHostController: NavHostController,
-    private val loggingRepository: LoggingRepository,
+    loggingRepository: LoggingRepository,
+    private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -45,11 +44,13 @@ class WorkoutHistoryViewModel(
             val topSets = getTopSets(dateOrderedWorkoutLogs)
             val workoutNamesById = dateOrderedWorkoutLogs
                 .distinctBy { workoutLog -> workoutLog.workoutId }
+                .sortedBy { it.workoutName }
                 .associate { workoutLog ->
                     workoutLog.workoutId to workoutLog.workoutName
                 }
             val programNamesById = dateOrderedWorkoutLogs
                 .distinctBy { workoutLog -> workoutLog.programId }
+                .sortedBy { it.programName }
                 .associate { workoutLog ->
                     workoutLog.programId to workoutLog.programName
                 }
@@ -217,12 +218,14 @@ class WorkoutHistoryViewModel(
     private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntryDto>): HashSet<SetLogEntryDto> {
         return workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults
-                .groupBy { it.liftId }
-                .map { liftSetResults ->
-                    liftSetResults.value.maxBy {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
-                }
+        }.groupBy { result ->
+            result.liftId
+        }.map { liftSetResults ->
+            liftSetResults.value.maxBy {
+                // Set to a non-zero weight so 1RM gets calculated
+                val weight = if (it.weight == 0f) 1f else it.weight
+                CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
+            }
         }.toHashSet()
     }
 
@@ -251,7 +254,7 @@ class WorkoutHistoryViewModel(
         } else if (_state.value.isProgramAndWorkoutFilterVisible) {
             applyFilters()
         } else {
-            navHostController.popBackStack()
+            onNavigateBack()
         }
     }
 }

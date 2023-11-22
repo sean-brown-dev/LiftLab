@@ -10,6 +10,7 @@ data class LoggingDropSetDto(
     override val repRangeBottom: Int,
     override val repRangeTop: Int,
     override val weightRecommendation: Float?,
+    override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
     override val repRangePlaceholder: String,
     override val setNumberLabel: String = SetType.DROP_SET.displayNameShort(),

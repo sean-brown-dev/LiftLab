@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.main.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,22 +15,31 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
+import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
@@ -46,15 +56,16 @@ import kotlin.time.toDuration
 fun Settings(
     roomBackup: RoomBackup,
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
+    onNavigateBack: () -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
-        parametersOf(roomBackup, navHostController)
+        parametersOf(roomBackup, onNavigateBack)
     }
     val state by settingsViewModel.state.collectAsState()
 
     settingsViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = settingsViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = settingsViewModel)
 
     LazyColumn(
         modifier = Modifier
@@ -64,6 +75,18 @@ fun Settings(
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 25.dp, bottom = 25.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Divider(
+                    modifier = Modifier.fillMaxWidth(.95f),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
             SectionLabel(text = "DATA MANAGEMENT", fontSize = 14.sp)
             Row (
                 modifier = Modifier.padding(start = 10.dp, end = 10.dp),
@@ -124,12 +147,108 @@ fun Settings(
                     color = MaterialTheme.colorScheme.tertiary
                 )
             }
+            SectionLabel(text = "PROGRESSION", fontSize = 14.sp)
+            Text(
+                modifier = Modifier.padding(start = 10.dp),
+                text = "WARNING: Disabling may reduce weight recommendation accuracy.",
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.outline,
+            )
+            Row (
+                modifier = Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        text = "Weight Recommendations",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = "Only Sets from Previous Workout",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                var useAllData by remember {
+                    mutableStateOf(SettingsManager.getSetting(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, DEFAULT_USE_ALL_WORKOUT_DATA))
+                }
+                Switch(
+                    checked = !useAllData,
+                    onCheckedChange = {
+                        useAllData = !it
+                        SettingsManager.setSetting(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, !it)
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedBorderColor = MaterialTheme.colorScheme.secondary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                    )
+                )
+            }
+        }
+        item {
+            Row (
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(
+                        text = "Weight Recommendations",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = "Only Sets from Lifts in Same Order Position",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                var enforcePosition by remember {
+                    mutableStateOf(
+                        SettingsManager.getSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                            DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION))
+                }
+                Switch(
+                    checked = enforcePosition,
+                    onCheckedChange = {
+                        enforcePosition = it
+                        SettingsManager.setSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, it)
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedBorderColor = MaterialTheme.colorScheme.secondary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                    )
+                )
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 25.dp, bottom = 25.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Divider(
+                    modifier = Modifier.fillMaxWidth(.95f),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
             SectionLabel(text = "DEFAULTS", fontSize = 14.sp)
             Row (
                 modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Default Increment", fontSize = 18.sp)
+                Text("Weight Increment", fontSize = 18.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 NumberPickerSpinner(
                     modifier = Modifier.padding(start = 165.dp),
@@ -151,6 +270,18 @@ fun Settings(
                     onTimeChanged = { settingsViewModel.updateDefaultRestTime(it) },
                     rangeInMinutes = REST_TIME_RANGE,
                     secondsStepSize = 5,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 25.dp, bottom = 25.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Divider(
+                    modifier = Modifier.fillMaxWidth(.95f),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
         }

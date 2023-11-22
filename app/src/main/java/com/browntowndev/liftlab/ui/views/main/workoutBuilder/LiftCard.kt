@@ -54,7 +54,10 @@ fun LiftCard(
                 .fillMaxWidth()
                 .padding(0.dp, 5.dp),
             shape = RectangleShape,
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp, pressedElevation = 0.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 16.dp,
+                pressedElevation = 0.dp
+            ),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         ) {
             LiftCardHeader(

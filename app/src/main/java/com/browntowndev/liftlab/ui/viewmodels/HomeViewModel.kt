@@ -4,8 +4,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
-import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
@@ -20,15 +18,12 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.ui.models.BaseChartModel
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.entry.ChartEntryModel
@@ -51,7 +46,8 @@ class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
     private val liftMetricChartRepository: LiftMetricChartRepository,
-    private val navHostController: NavHostController,
+    private val onNavigateToSettingsMenu: () -> Unit,
+    private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -127,7 +123,7 @@ class HomeViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.OpenSettingsMenu -> navHostController.navigate(SettingsScreen.navigation.route)
+            TopAppBarAction.OpenSettingsMenu -> onNavigateToSettingsMenu()
             else -> { }
         }
     }
@@ -318,18 +314,21 @@ class HomeViewModel(
             // Clear out table of charts with no lifts in case any get stranded somehow
             liftMetricChartRepository.deleteAllWithNoLifts()
             val chartIds = liftMetricChartRepository.upsertMany(charts)
-            navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
-            navHostController.navigate(LiftLibraryScreen.navigation.route)
+            onNavigateToLiftLibrary(chartIds)
         }
     }
 
     fun deleteLiftMetricChart(liftName: String, chartType: LiftMetricChartType) {
         executeInTransactionScope {
-            liftMetricChartRepository.deleteForLift(liftName, chartType)
+            liftMetricChartRepository.deleteFirstForLift(liftName, chartType)
             _state.update {
                 it.copy(
                     liftMetricChartModels = it.liftMetricChartModels.toMutableList().apply {
-                        removeIf { chart -> chart.liftName == liftName && chart.type == chartType }
+                        find { chart ->
+                            chart.liftName == liftName && chart.type == chartType
+                        }?.let { firstMatch ->
+                            remove(firstMatch)
+                        }
                     }
                 )
             }

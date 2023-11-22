@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.rememberNavController
@@ -22,8 +21,6 @@ import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.compose.getViewModel
 
 @ExperimentalFoundationApi
@@ -32,22 +29,20 @@ import org.koin.androidx.compose.getViewModel
 fun LiftLab(roomBackup: RoomBackup) {
     LiftLabTheme {
         val navController = rememberNavController()
-        val scope = rememberCoroutineScope()
         val bottomNavBarViewModel: BottomNavBarViewModel = getViewModel()
         val topAppBarViewModel: TopAppBarViewModel = getViewModel()
-        val topAppBarState by topAppBarViewModel.state.collectAsState()
+        val liftLabTopAppBarState by topAppBarViewModel.state.collectAsState()
         val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
-        val scrollBehavior =
-            TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        val topAppBarState = rememberTopAppBarState()
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
         LaunchedEffect(key1 = Unit) {
             navController.currentBackStackEntryFlow
                 .distinctUntilChanged()
-                .onEach { backStackEntry ->
+                .collect { backStackEntry ->
                     val route = backStackEntry.destination.route
                     topAppBarViewModel.setScreen(route)
                 }
-                .launchIn(scope)
         }
 
         Scaffold(
@@ -60,7 +55,7 @@ fun LiftLab(roomBackup: RoomBackup) {
             },
             topBar = {
                 LiftLabTopAppBar(
-                    state = topAppBarState,
+                    state = liftLabTopAppBarState,
                     scrollBehavior = scrollBehavior,
                 )
             }
@@ -69,8 +64,8 @@ fun LiftLab(roomBackup: RoomBackup) {
                 roomBackup = roomBackup,
                 navHostController = navController,
                 paddingValues = scaffoldPaddingValues,
-                screen = topAppBarState.currentScreen,
-                onNavigateBack = { topAppBarState.onNavigationIconClick?.invoke() },
+                screen = liftLabTopAppBarState.currentScreen,
+                onNavigateBack = { liftLabTopAppBarState.onNavigationIconClick?.invoke() },
                 setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
                 setTopAppBarControlVisibility = { control, visible ->
                     topAppBarViewModel.setControlVisibility(
@@ -95,7 +90,8 @@ fun LiftLab(roomBackup: RoomBackup) {
                         )
                     }
                 },
-            ) { bottomNavBarViewModel.setVisibility(it) }
+                setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) }
+            )
         }
     }
 }

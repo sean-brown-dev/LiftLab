@@ -7,7 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -22,17 +21,18 @@ import org.koin.core.parameter.parametersOf
 fun EditWorkout(
     workoutLogEntryId: Long,
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
+    onNavigateBack: () -> Unit,
 ) {
     val editWorkoutViewModel: EditWorkoutViewModel = koinViewModel {
-        parametersOf(workoutLogEntryId, navHostController)
+        parametersOf(workoutLogEntryId, onNavigateBack)
     }
     val workoutState by editWorkoutViewModel.workoutState.collectAsState()
     val editWorkoutState by editWorkoutViewModel.editWorkoutState.collectAsState()
 
     editWorkoutViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = editWorkoutViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = editWorkoutViewModel)
 
     LaunchedEffect(key1 = workoutState.workout) {
         if (workoutState.workout != null) {
@@ -50,7 +50,7 @@ fun EditWorkout(
         coroutineScope.launch {
             editWorkoutViewModel.updateLinearProgressionFailures()
         }
-        navHostController.popBackStack()
+        onNavigateBack()
     }
 
     if (workoutState.workout != null) {

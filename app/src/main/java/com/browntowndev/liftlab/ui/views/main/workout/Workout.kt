@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastAny
-import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
@@ -28,18 +27,19 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun Workout(
     paddingValues: PaddingValues,
-    navHostController: NavHostController,
+    screenId: String?,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
+    onNavigateToWorkoutHistory: () -> Unit,
 ) {
     var restTimerRestarted by remember { mutableStateOf(false) }
 
     val timerViewModel: TimerViewModel = koinViewModel()
     val workoutViewModel: WorkoutViewModel = koinViewModel {
         parametersOf(
-            navHostController,
+            onNavigateToWorkoutHistory,
             {
                 mutateTopAppBarControlValue(
                     AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
@@ -66,7 +66,7 @@ fun Workout(
     }
 
     workoutViewModel.registerEventBus()
-    EventBusDisposalEffect(navHostController = navHostController, viewModelToUnregister = workoutViewModel)
+    EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutViewModel)
 
     LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible) {
         if (state.workout != null) {

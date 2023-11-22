@@ -23,7 +23,7 @@ import kotlin.time.toDuration
 
 class SettingsViewModel(
     private val roomBackup: RoomBackup,
-    private val navHostController: NavHostController,
+    private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -45,7 +45,7 @@ class SettingsViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> navHostController.popBackStack()
+            TopAppBarAction.NavigatedBack -> onNavigateBack()
             else -> { }
         }
     }
