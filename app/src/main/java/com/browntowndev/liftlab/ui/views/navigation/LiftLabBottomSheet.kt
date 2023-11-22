@@ -22,7 +22,6 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,18 +46,17 @@ fun LiftLabBottomSheet(
     secondaryVolumeChipLabels: List<CharSequence> = listOf(),
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    var rememberedLabel by remember { mutableStateOf(label) }
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = remember { SheetState(
+    val rememberedLabel by remember(label) { mutableStateOf(label) }
+    val bottomSheetState = remember {
+        SheetState(
             initialValue = SheetValue.PartiallyExpanded,
             skipPartiallyExpanded = false,
             skipHiddenState = true
-        ) }
-    )
-
-    LaunchedEffect(key1 = label) {
-        rememberedLabel = label
+        )
     }
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = bottomSheetState
+    )
 
     BottomSheetScaffold(
         sheetContainerColor = MaterialTheme.colorScheme.surface,

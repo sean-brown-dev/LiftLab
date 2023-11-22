@@ -4,10 +4,14 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
@@ -50,33 +54,48 @@ fun NavigationGraph(
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(HomeScreen.navigation.route) {
-            LaunchedEffect(key1 = screen) {
-                if (screen as? HomeScreen != null) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isHomeScreen = remember(screen, currentRoute) {
+                screen is HomeScreen &&
+                        currentRoute == HomeScreen.navigation.route
+            }
+            if (isHomeScreen) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(true)
                 }
+                Home(
+                    paddingValues = paddingValues,
+                    screenId = navHostController.currentBackStackEntry?.id,
+                    onNavigateToSettingsMenu = { navHostController.navigate(SettingsScreen.navigation.route) },
+                    onNavigateToLiftLibrary = { chartIds ->
+                        navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
+                        navHostController.navigate(LiftLibraryScreen.navigation.route)
+                    },
+                )
             }
-            Home(
-                paddingValues = paddingValues,
-                screenId = navHostController.currentBackStackEntry?.id,
-                onNavigateToSettingsMenu = { navHostController.navigate(SettingsScreen.navigation.route) },
-                onNavigateToLiftLibrary = { chartIds ->
-                    navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
-                    navHostController.navigate(LiftLibraryScreen.navigation.route)
-                },
-            )
         }
         composable(SettingsScreen.navigation.route) {
-            LaunchedEffect(key1 = screen) {
-                if (screen as? SettingsScreen != null) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isSettingsScreen = remember(screen, currentRoute) {
+                screen is SettingsScreen &&
+                        currentRoute == SettingsScreen.navigation.route
+            }
+            if (isSettingsScreen) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                 }
+
+                Settings(
+                    roomBackup = roomBackup,
+                    paddingValues = paddingValues,
+                    screenId = navHostController.currentBackStackEntry?.id,
+                    onNavigateBack = { navHostController.popBackStack() },
+                )
             }
-            Settings(
-                roomBackup = roomBackup,
-                paddingValues = paddingValues,
-                screenId = navHostController.currentBackStackEntry?.id,
-                onNavigateBack = { navHostController.popBackStack() },
-            )
         }
         composable(
             route = LiftLibraryScreen.navigation.route,
@@ -103,8 +122,15 @@ fun NavigationGraph(
                 ?.savedStateHandle
                 ?.get<List<Long>>(LIFT_METRIC_CHART_IDS) ?: listOf()
 
-            if (screen as? LiftLibraryScreen != null) {
-                LaunchedEffect(key1 = screen) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isLiftLibraryScreen = remember(screen, currentRoute) {
+                screen is LiftLibraryScreen &&
+                        (currentRoute?.startsWith(LiftLibraryScreen.navigation.route) ?: false)
+            }
+            if (isLiftLibraryScreen) {
+                LaunchedEffect(key1 = Unit) {
                     if (workoutId != null) {
                         setBottomNavBarVisibility(false)
                     } else {
@@ -120,7 +146,7 @@ fun NavigationGraph(
                     movementPattern = movementPatternParam,
                     addAtPosition = addAtPosition,
                     liftMetricChartIds = liftMetricChartIds,
-                    isSearchBarVisible = screen.isSearchBarVisible,
+                    isSearchBarVisible = (screen as LiftLibraryScreen).isSearchBarVisible,
                     onNavigateBack = onNavigateBack,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onChangeTopAppBarTitle = { mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, it.left())) },
@@ -174,9 +200,16 @@ fun NavigationGraph(
             )
         ) {
             val id = it.arguments?.getString("id")?.toLongOrNull()
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
 
-            if (screen as? LiftDetailsScreen != null) {
-                LaunchedEffect(key1 = screen) {
+            val isLiftDetailsScreen = remember(screen, currentRoute) {
+                screen is LiftDetailsScreen &&
+                        (currentRoute?.startsWith(LiftDetailsScreen.navigation.route) ?: false)
+            }
+
+            if (isLiftDetailsScreen) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                     setTopAppBarCollapsed(true)
                 }
@@ -197,7 +230,15 @@ fun NavigationGraph(
             }
         }
         composable(WorkoutScreen.navigation.route) {
-            if (screen as? WorkoutScreen != null) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isWorkoutScreen = remember(screen, currentRoute) {
+                screen is WorkoutScreen &&
+                        currentRoute == WorkoutScreen.navigation.route
+            }
+
+            if (isWorkoutScreen) {
                 Workout(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
@@ -212,8 +253,15 @@ fun NavigationGraph(
             }
         }
         composable(WorkoutHistoryScreen.navigation.route) {
-            if (screen as? WorkoutHistoryScreen != null) {
-                LaunchedEffect(key1 = screen) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isWorkoutHistoryScreen = remember(screen, currentRoute) {
+                screen is WorkoutHistoryScreen &&
+                        currentRoute == WorkoutHistoryScreen.navigation.route
+            }
+            if (isWorkoutHistoryScreen) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                 }
 
@@ -240,9 +288,16 @@ fun NavigationGraph(
                 },
             )
         ) {
-            if (screen as? EditWorkoutScreen != null) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isEditWorkoutScreen = remember(screen, currentRoute) {
+                screen is EditWorkoutScreen &&
+                        currentRoute == EditWorkoutScreen.navigation.route
+            }
+            if (isEditWorkoutScreen) {
                 val workoutLogEntryId = it.arguments?.getLong("workoutLogEntryId")
-                LaunchedEffect(key1 = screen) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                     setTopAppBarCollapsed(true)
                 }
@@ -259,8 +314,15 @@ fun NavigationGraph(
             }
         }
         composable(LabScreen.navigation.route) {
-            if (screen as? LabScreen != null) {
-                LaunchedEffect(key1 = screen) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isLabScreen = remember(screen, currentRoute) {
+                screen is LabScreen &&
+                        currentRoute == LabScreen.navigation.route
+            }
+            if (isLabScreen) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(true)
                 }
 
@@ -291,8 +353,15 @@ fun NavigationGraph(
             )
         ) {
             val workoutId = it.arguments?.getLong("id")
-            if (screen as? WorkoutBuilderScreen != null && workoutId != null) {
-                LaunchedEffect(key1 = screen) {
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val currentRoute = currentScreen?.destination?.route
+
+            val isWorkoutBuilderScreen = remember(screen, currentRoute) {
+                screen is WorkoutBuilderScreen &&
+                    (currentRoute?.startsWith(WorkoutBuilderScreen.navigation.route) ?: false)
+            }
+            if (isWorkoutBuilderScreen && workoutId != null) {
+                LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                     setTopAppBarCollapsed(true)
                     setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, true)
