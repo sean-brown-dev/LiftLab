@@ -123,6 +123,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedWeight = 100f,
@@ -164,7 +165,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = { },
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -245,6 +246,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 30,
@@ -259,6 +261,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedWeight = 100f,
@@ -300,7 +303,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -382,6 +385,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 30,
@@ -396,6 +400,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -434,7 +439,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -512,6 +517,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 30,
@@ -526,6 +532,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedWeight = 100f,
@@ -567,7 +574,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -649,6 +656,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 30,
@@ -663,6 +671,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 20,
@@ -677,6 +686,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedWeight = 100f,
@@ -718,7 +728,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -810,6 +820,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 30,
@@ -824,6 +835,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedReps = 25,
@@ -838,6 +850,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 25,
                                 repRangeTop = 30,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedWeight = 100f,
@@ -879,7 +892,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -960,6 +973,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedWeight = 100f,
@@ -975,6 +989,7 @@ class WorkoutViewModelTests {
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 weightRecommendation = null,
+                                hadInitialWeightRecommendation = false,
                             ),
                         )
                     )
@@ -1011,7 +1026,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1088,6 +1103,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = null,
+                                hadInitialWeightRecommendation = false,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 complete = true,
@@ -1104,6 +1120,7 @@ class WorkoutViewModelTests {
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 weightRecommendation = 90f,
+                                hadInitialWeightRecommendation = true,
                             ),
                         )
                     )
@@ -1140,7 +1157,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1217,6 +1234,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -1229,6 +1247,7 @@ class WorkoutViewModelTests {
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 weightRecommendation = null,
+                                hadInitialWeightRecommendation = false,
                             ),
                         )
                     )
@@ -1261,7 +1280,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1332,6 +1351,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -1344,6 +1364,7 @@ class WorkoutViewModelTests {
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 weightRecommendation = null,
+                                hadInitialWeightRecommendation = false,
                             ),
                         )
                     )
@@ -1376,7 +1397,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1447,6 +1468,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -1459,6 +1481,7 @@ class WorkoutViewModelTests {
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 weightRecommendation = null,
+                                hadInitialWeightRecommendation = false,
                             ),
                         )
                     )
@@ -1491,7 +1514,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1581,6 +1604,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 complete = true,
@@ -1594,6 +1618,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedRpe = 8f,
@@ -1646,7 +1671,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1748,6 +1773,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 complete = true,
@@ -1761,6 +1787,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 completedRpe = 8f,
@@ -1813,7 +1840,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -1907,6 +1934,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -1916,6 +1944,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -1925,6 +1954,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 dropPercentage = .1f,
@@ -1962,7 +1992,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -2050,6 +2080,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -2059,6 +2090,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -2068,6 +2100,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 dropPercentage = .1f,
@@ -2108,7 +2141,7 @@ class WorkoutViewModelTests {
             coEvery { liftsRepository.updateRestTime(any(), any(), any()) } just Runs
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
@@ -2190,6 +2223,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -2200,6 +2234,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                                 complete = true,
@@ -2211,6 +2246,7 @@ class WorkoutViewModelTests {
                                 repRangeBottom = 8,
                                 repRangeTop = 10,
                                 weightRecommendation = 100f,
+                                hadInitialWeightRecommendation = true,
                                 previousSetResultLabel = "",
                                 repRangePlaceholder = "",
                             ),
@@ -2250,7 +2286,7 @@ class WorkoutViewModelTests {
             coEvery { setResultsRepository.delete(any(), any(), any(), any()) } just Runs
 
             val viewModel = WorkoutViewModel(
-                navHostController = mockk(),
+                navigateToWorkoutHistory = {},
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
                 workoutInProgressRepository = workoutInProgressRepository,
