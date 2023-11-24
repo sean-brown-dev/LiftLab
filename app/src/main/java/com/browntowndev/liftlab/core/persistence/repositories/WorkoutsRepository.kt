@@ -244,7 +244,11 @@ class WorkoutsRepository(
 
                 else -> throw Exception("${set::class.simpleName} is not defined.")
             }
-        } else if (set !is LoggingMyoRepSetDto && prevCompletedSet != null) {
+        } else if (
+            set !is LoggingMyoRepSetDto &&
+            set.weightRecommendation == null &&
+            prevCompletedSet != null
+        ) {
             listOf(
                 when (set) {
                     is LoggingDropSetDto -> {
