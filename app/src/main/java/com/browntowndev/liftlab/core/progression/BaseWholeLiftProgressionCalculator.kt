@@ -128,7 +128,8 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         // TODO: Unit tests
         return when (workoutLift) {
             is StandardWorkoutLiftDto -> {
-                List(workoutLift.setCount) {
+                val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
+                List(setCount) {
                     val result = nonMyoRepSetResults[it]
                     val weightRecommendation = if (criterionMet) {
                         incrementWeight(workoutLift, result ?: previousSetResults.last())
@@ -150,136 +151,173 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         } else workoutLift.repRangeBottom.toString(),
                         weightRecommendation = weightRecommendation,
                         hadInitialWeightRecommendation = weightRecommendation != null,
-
                     )
                 }
             }
 
             is CustomWorkoutLiftDto -> {
-                var lastWeightRecommendation: Float? = null
-                workoutLift.customLiftSets.flatMap { set ->
-                    val result = nonMyoRepSetResults[set.position]
-                    val currSetMyoRepResults = myoRepSetResults[set.position]
-                    when (set) {
-                        is StandardSetDto -> {
-                            val weightRecommendation =
-                                if (criterionMet) {
-                                    lastWeightRecommendation = incrementWeight(workoutLift, result ?: previousSetResults.last())
-                                    lastWeightRecommendation
-                                } else if (previousSetResults.isNotEmpty()) {
-                                    lastWeightRecommendation = getFailureWeight(
-                                        workoutLift = workoutLift,
-                                        previousSetResults = previousSetResults,
-                                        position = set.position,
-                                    )
-                                    lastWeightRecommendation
-                                } else null
-
-                            listOf(
-                                LoggingStandardSetDto(
-                                    position = set.position,
-                                    rpeTarget = set.rpeTarget,
-                                    repRangeBottom = set.repRangeBottom,
-                                    repRangeTop = set.repRangeTop,
-                                    previousSetResultLabel = getPreviousSetResultLabel(result),
-                                    repRangePlaceholder = if (!isDeloadWeek) {
-                                        "${set.repRangeBottom}-${set.repRangeTop}"
-                                    } else set.repRangeBottom.toString(),
-                                    weightRecommendation = weightRecommendation,
-                                    hadInitialWeightRecommendation = weightRecommendation != null,
-                                ))
-                        }
-
-                        is DropSetDto -> {
-                            val weightRecommendation = if (criterionMet) {
-                                lastWeightRecommendation = getDropSetRecommendation(workoutLift, set, lastWeightRecommendation)
-                                lastWeightRecommendation
-                            } else {
-                                getDropSetFailureWeight(
-                                    incrementOverride = workoutLift.incrementOverride,
-                                    repRangeBottom = set.repRangeBottom,
-                                    rpeTarget = set.rpeTarget,
-                                    dropPercentage = set.dropPercentage,
-                                    result = result,
-                                    droppedFromSetResult = nonMyoRepSetResults
-                                        .getOrDefault(set.position - 1, null),
-                                )
-                            }
-                            listOf(
-                                LoggingDropSetDto(
-                                    position = set.position,
-                                    rpeTarget = set.rpeTarget,
-                                    repRangeBottom = set.repRangeBottom,
-                                    repRangeTop = set.repRangeTop,
-                                    dropPercentage = set.dropPercentage,
-                                    previousSetResultLabel = getPreviousSetResultLabel(result),
-                                    repRangePlaceholder = if (!isDeloadWeek) {
-                                        "${set.repRangeBottom}-${set.repRangeTop}"
-                                    } else set.repRangeBottom.toString(),
-                                    weightRecommendation = weightRecommendation,
-                                    hadInitialWeightRecommendation = weightRecommendation != null,
-                                ))
-                        }
-
-                        is MyoRepSetDto -> {
-                            (currSetMyoRepResults?.fastMap {
-                                val weightRecommendation = if (criterionMet) {
-                                    incrementWeight(workoutLift, it)
-                                } else {
-                                    getFailureWeight(
-                                        workoutLift = workoutLift,
-                                        previousSetResults = previousSetResults
-                                    )
-                                }
-                                LoggingMyoRepSetDto(
-                                    position = set.position,
-                                    myoRepSetPosition = it.myoRepSetPosition,
-                                    rpeTarget = set.rpeTarget,
-                                    repRangeBottom = set.repRangeBottom,
-                                    repRangeTop = set.repRangeTop,
-                                    setMatching = set.setMatching,
-                                    repFloor = set.repFloor,
-                                    maxSets = set.maxSets,
-                                    previousSetResultLabel = getPreviousSetResultLabel(result = it),
-                                    repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
-                                        "${set.repRangeBottom}-${set.repRangeTop}"
-                                    } else if (!isDeloadWeek && set.repFloor != null) {
-                                        ">${set.repFloor}"
-                                    } else if (!isDeloadWeek) {
-                                        "—"
-                                    } else {
-                                        set.repRangeBottom.toString()
-                                    },
-                                    weightRecommendation = weightRecommendation,
-                                    hadInitialWeightRecommendation = weightRecommendation != null,
-                                )
-                            }?.toMutableList() ?: mutableListOf()).apply {
-                                if (size == 0) {
-                                    add(
-                                        LoggingMyoRepSetDto(
-                                            position = set.position,
-                                            rpeTarget = set.rpeTarget,
-                                            repRangeBottom = set.repRangeBottom,
-                                            repRangeTop = set.repRangeTop,
-                                            setMatching = set.setMatching,
-                                            repFloor = set.repFloor,
-                                            maxSets = set.maxSets,
-                                            previousSetResultLabel = getPreviousSetResultLabel(result = null),
-                                            repRangePlaceholder = if (!isDeloadWeek) {
-                                                "${set.repRangeBottom}-${set.repRangeTop}"
-                                            } else {
-                                                set.repRangeBottom.toString()
-                                            },
-                                            weightRecommendation = null,
-                                            hadInitialWeightRecommendation = false,
+                if (!isDeloadWeek) {
+                    var lastWeightRecommendation: Float? = null
+                    workoutLift.customLiftSets.flatMap { set ->
+                        val result = nonMyoRepSetResults[set.position]
+                        val currSetMyoRepResults = myoRepSetResults[set.position]
+                        when (set) {
+                            is StandardSetDto -> {
+                                val weightRecommendation =
+                                    if (criterionMet) {
+                                        lastWeightRecommendation = incrementWeight(
+                                            workoutLift,
+                                            result ?: previousSetResults.last()
                                         )
+                                        lastWeightRecommendation
+                                    } else if (previousSetResults.isNotEmpty()) {
+                                        lastWeightRecommendation = getFailureWeight(
+                                            workoutLift = workoutLift,
+                                            previousSetResults = previousSetResults,
+                                            position = set.position,
+                                        )
+                                        lastWeightRecommendation
+                                    } else null
+
+                                listOf(
+                                    LoggingStandardSetDto(
+                                        position = set.position,
+                                        rpeTarget = set.rpeTarget,
+                                        repRangeBottom = set.repRangeBottom,
+                                        repRangeTop = set.repRangeTop,
+                                        previousSetResultLabel = getPreviousSetResultLabel(result),
+                                        repRangePlaceholder = if (!isDeloadWeek) {
+                                            "${set.repRangeBottom}-${set.repRangeTop}"
+                                        } else set.repRangeBottom.toString(),
+                                        weightRecommendation = weightRecommendation,
+                                        hadInitialWeightRecommendation = weightRecommendation != null,
+                                    )
+                                )
+                            }
+
+                            is DropSetDto -> {
+                                val weightRecommendation = if (criterionMet) {
+                                    lastWeightRecommendation = getDropSetRecommendation(
+                                        workoutLift,
+                                        set,
+                                        lastWeightRecommendation
+                                    )
+                                    lastWeightRecommendation
+                                } else {
+                                    getDropSetFailureWeight(
+                                        incrementOverride = workoutLift.incrementOverride,
+                                        repRangeBottom = set.repRangeBottom,
+                                        rpeTarget = set.rpeTarget,
+                                        dropPercentage = set.dropPercentage,
+                                        result = result,
+                                        droppedFromSetResult = nonMyoRepSetResults
+                                            .getOrDefault(set.position - 1, null),
                                     )
                                 }
+                                listOf(
+                                    LoggingDropSetDto(
+                                        position = set.position,
+                                        rpeTarget = set.rpeTarget,
+                                        repRangeBottom = set.repRangeBottom,
+                                        repRangeTop = set.repRangeTop,
+                                        dropPercentage = set.dropPercentage,
+                                        previousSetResultLabel = getPreviousSetResultLabel(result),
+                                        repRangePlaceholder = if (!isDeloadWeek) {
+                                            "${set.repRangeBottom}-${set.repRangeTop}"
+                                        } else set.repRangeBottom.toString(),
+                                        weightRecommendation = weightRecommendation,
+                                        hadInitialWeightRecommendation = weightRecommendation != null,
+                                    )
+                                )
                             }
-                        }
 
-                        else -> throw Exception("${set::class.simpleName} is not defined.")
+                            is MyoRepSetDto -> {
+                                (currSetMyoRepResults?.fastMap {
+                                    val weightRecommendation = if (criterionMet) {
+                                        incrementWeight(workoutLift, it)
+                                    } else {
+                                        getFailureWeight(
+                                            workoutLift = workoutLift,
+                                            previousSetResults = previousSetResults
+                                        )
+                                    }
+                                    LoggingMyoRepSetDto(
+                                        position = set.position,
+                                        myoRepSetPosition = it.myoRepSetPosition,
+                                        rpeTarget = set.rpeTarget,
+                                        repRangeBottom = set.repRangeBottom,
+                                        repRangeTop = set.repRangeTop,
+                                        setMatching = set.setMatching,
+                                        repFloor = set.repFloor,
+                                        maxSets = set.maxSets,
+                                        previousSetResultLabel = getPreviousSetResultLabel(result = it),
+                                        repRangePlaceholder = if (!isDeloadWeek && it.myoRepSetPosition == null) {
+                                            "${set.repRangeBottom}-${set.repRangeTop}"
+                                        } else if (!isDeloadWeek && set.repFloor != null) {
+                                            ">${set.repFloor}"
+                                        } else if (!isDeloadWeek) {
+                                            "—"
+                                        } else {
+                                            set.repRangeBottom.toString()
+                                        },
+                                        weightRecommendation = weightRecommendation,
+                                        hadInitialWeightRecommendation = weightRecommendation != null,
+                                    )
+                                }?.toMutableList() ?: mutableListOf()).apply {
+                                    if (size == 0) {
+                                        add(
+                                            LoggingMyoRepSetDto(
+                                                position = set.position,
+                                                rpeTarget = set.rpeTarget,
+                                                repRangeBottom = set.repRangeBottom,
+                                                repRangeTop = set.repRangeTop,
+                                                setMatching = set.setMatching,
+                                                repFloor = set.repFloor,
+                                                maxSets = set.maxSets,
+                                                previousSetResultLabel = getPreviousSetResultLabel(
+                                                    result = null
+                                                ),
+                                                repRangePlaceholder = if (!isDeloadWeek) {
+                                                    "${set.repRangeBottom}-${set.repRangeTop}"
+                                                } else {
+                                                    set.repRangeBottom.toString()
+                                                },
+                                                weightRecommendation = null,
+                                                hadInitialWeightRecommendation = false,
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
+                            else -> throw Exception("${set::class.simpleName} is not defined.")
+                        }
                     }
+                } else {
+                    val topStandard = workoutLift.customLiftSets.filterIsInstance<StandardSetDto>().firstOrNull()
+                    return calculateProgressions(
+                        workoutLift = StandardWorkoutLiftDto(
+                            id = workoutLift.id,
+                            workoutId = workoutLift.workoutId,
+                            liftId = workoutLift.liftId,
+                            liftName = workoutLift.liftName,
+                            liftMovementPattern = workoutLift.liftMovementPattern,
+                            liftVolumeTypes = workoutLift.liftVolumeTypes,
+                            liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
+                            position = workoutLift.position,
+                            setCount = workoutLift.setCount,
+                            progressionScheme = workoutLift.progressionScheme,
+                            incrementOverride = workoutLift.incrementOverride,
+                            restTime = workoutLift.restTime,
+                            restTimerEnabled = workoutLift.restTimerEnabled,
+                            deloadWeek = workoutLift.deloadWeek,
+                            rpeTarget = 6f,
+                            repRangeBottom = topStandard?.repRangeBottom ?: 8,
+                            repRangeTop = topStandard?.repRangeTop ?: 10,
+                        ),
+                        previousSetResults = previousSetResults,
+                        isDeloadWeek =  true,
+                    )
                 }
             }
 

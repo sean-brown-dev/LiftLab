@@ -19,17 +19,20 @@ class WaveLoadingProgressionCalculator(
     ): List<GenericLoggingSet> {
         if (workoutLift !is StandardWorkoutLiftDto) throw Exception ("Wave Loading progression cannot have custom sets")
         val groupedSetData = previousSetResults.sortedBy { it.setPosition }.associateBy { it.setPosition }
+        val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
+        val rpeTarget = if (isDeloadWeek) 6f else workoutLift.rpeTarget
 
-        return List(workoutLift.setCount) { setPosition ->
+        return List(setCount) { setPosition ->
             val result = groupedSetData[setPosition]
             val weightRecommendation = if (!isDeloadWeek && result != null)
                 getWeightRecommendation(workoutLift, result)
             else if (result != null)
                 decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek)
             else null
+
             LoggingStandardSetDto(
                 position = setPosition,
-                rpeTarget = workoutLift.rpeTarget,
+                rpeTarget = rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
                 previousSetResultLabel = getPreviousSetResultLabel(result),
