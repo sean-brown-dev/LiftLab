@@ -30,7 +30,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.progression.StandardProgressionFactory
+import com.browntowndev.liftlab.core.progression.ProgressionFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -43,7 +43,7 @@ import java.lang.Integer.max
 import kotlin.time.Duration
 
 class WorkoutViewModel(
-    private val progressionFactory: StandardProgressionFactory,
+    private val progressionFactory: ProgressionFactory,
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,

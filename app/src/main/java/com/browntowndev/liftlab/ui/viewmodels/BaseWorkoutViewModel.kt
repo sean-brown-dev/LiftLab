@@ -37,6 +37,24 @@ abstract class BaseWorkoutViewModel(
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
     protected abstract suspend fun deleteSetResult(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
 
+    fun updateNote(workoutLiftId: Long, note: String) {
+        executeInTransactionScope {
+            mutableWorkoutState.update { currentState ->
+                currentState.copy(
+                    workout = currentState.workout!!.copy(
+                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
+                            if (workoutLift.id == workoutLiftId) {
+                                workoutLift.copy(
+                                    note = note.ifEmpty { null },
+                                )
+                            } else workoutLift
+                        }
+                    )
+                )
+            }
+        }
+    }
+
     private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, set: GenericLoggingSet) {
         if (set.complete &&
             set.completedWeight != null &&

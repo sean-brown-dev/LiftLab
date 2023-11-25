@@ -116,7 +116,10 @@ fun EditWorkout(
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition,
                 )
-            }
+            },
+            onNoteChanged = { workoutLiftId, note ->
+                editWorkoutViewModel.updateNote(workoutLiftId = workoutLiftId, note = note)
+            },
         )
     }
 }
