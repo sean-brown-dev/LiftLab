@@ -6,8 +6,10 @@ import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
@@ -16,7 +18,8 @@ import java.util.Date
 
 class LoggingRepository(
     private val loggingDao: LoggingDao,
-    private val workoutLogEntryMapper: WorkoutLogEntryMapper
+    private val workoutLogEntryMapper: WorkoutLogEntryMapper,
+    private val setResultMapper: SetResultMapper,
 ): Repository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,6 +42,25 @@ class LoggingRepository(
     suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>): List<WorkoutLogEntryDto> {
         val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getMostRecentLogsForLiftIds(liftIds)
         return workoutLogEntryMapper.map(flattenedLogEntries)
+    }
+
+    suspend fun getMostRecentSetResultsForLiftIds(
+        liftIds: List<Long>,
+        workoutId: Long,
+        linearProgressionLiftIds: Set<Long>
+    ): List<SetResult> {
+        return getMostRecentLogsForLiftIds(liftIds)
+            .flatMap { workoutLog ->
+                workoutLog.setResults.fastMap { setLogEntry ->
+                    setResultMapper.map(
+                        from = setLogEntry,
+                        workoutId = workoutId,
+                        isLinearProgression = linearProgressionLiftIds.contains(
+                            setLogEntry.liftId
+                        )
+                    )
+                }
+            }
     }
 
     suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, workoutId: Long, excludeFromCopy: List<Long>) {

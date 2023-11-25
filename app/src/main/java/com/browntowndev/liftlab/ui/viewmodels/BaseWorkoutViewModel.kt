@@ -244,7 +244,7 @@ abstract class BaseWorkoutViewModel(
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 completedSet!!
-            } else if (set.position == (setPosition + 1) && set.hadInitialWeightRecommendation == false) {
+            } else if (set.position == (setPosition + 1) && !set.hadInitialWeightRecommendation) {
                 when (set) {
                     is LoggingStandardSetDto -> set.copy(
                         weightRecommendation = completedSet!!.completedWeight

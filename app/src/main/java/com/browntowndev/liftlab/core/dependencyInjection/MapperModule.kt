@@ -15,6 +15,6 @@ val mapperModule = module {
     factory { WorkoutMapper(get()) }
     factory { ProgramMapper(get()) }
     factory { SetResultMapper() }
-    factory { StandardProgressionFactory() }
     factory { WorkoutLogEntryMapper() }
+    factory { StandardProgressionFactory() }
 }
