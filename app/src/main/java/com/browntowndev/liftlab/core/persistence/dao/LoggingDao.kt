@@ -30,8 +30,16 @@ interface LoggingDao {
             "INNER JOIN lifts l ON l.lift_id = wl.liftId " +
             "WHERE sr.workoutId = :workoutId AND " +
             "wl.workoutId = :workoutId AND " +
+            "sr.mesoCycle = :mesocycle AND " +
+            "sr.microCycle = :microcycle AND " +
             "sr.previously_completed_set_id NOT IN (:excludeFromCopy)")
-    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, workoutId: Long, excludeFromCopy: List<Long>)
+    suspend fun insertFromPreviousSetResults(
+        workoutLogEntryId: Long,
+        workoutId: Long,
+        mesocycle: Int,
+        microcycle: Int,
+        excludeFromCopy: List<Long>
+    )
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.workoutId, histWorkoutName.programName, histWorkoutName.workoutName, " +
             "log.programDeloadWeek, log.programWorkoutCount, log.microcyclePosition, log.date, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +

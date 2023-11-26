@@ -51,9 +51,11 @@ class WaveLoadingProgressionCalculator(
     }
 
     private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult): Float {
-        return if (microCycle == 0 ||
-            !shouldDecreaseWeight(result, workoutLift as StandardWorkoutLiftDto)
-        ) {
+        val decreaseWeight = shouldDecreaseWeight(result, workoutLift as StandardWorkoutLiftDto)
+
+        return if (microCycle == 0 && !decreaseWeight) {
+            decrementForNewMicrocycle(workoutLift, result)
+        } else if (!decreaseWeight) {
             incrementWeight(workoutLift, result)
         } else {
             getRepsForPreviousWorkout(
@@ -107,5 +109,17 @@ class WaveLoadingProgressionCalculator(
             )).toInt()
 
         return setData.weight - (increment * (deloadWeek - 2))
+    }
+
+    private fun decrementForNewMicrocycle(
+        lift: GenericWorkoutLift,
+        setData: SetResult,
+    ): Float {
+        val increment =  (lift.incrementOverride ?:
+        SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT,
+            SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+        )).toInt()
+
+        return setData.weight - increment
     }
 }

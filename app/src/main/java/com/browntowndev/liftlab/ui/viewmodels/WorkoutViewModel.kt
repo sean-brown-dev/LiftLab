@@ -314,29 +314,10 @@ class WorkoutViewModel(
                 durationInMillis = durationInMillis,
             )
 
-            // Delete all set results from the previous workout
-            setResultsRepository.deleteAllForPreviousWorkout(
-                workoutId = workout.id,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle,
-            )
-
-            val liftsAndPositions = mutableWorkoutState.value.workout!!.lifts.associate {
-                it.liftId to it.position
-            }
-            // If any lifts were changed and had completed results do not copy them
-            val excludeFromCopy = mutableWorkoutState.value.inProgressWorkout!!.completedSets.filter { result ->
-                val liftPosition = liftsAndPositions[result.liftId]
-                liftPosition != result.liftPosition
-            }.map {
-                it.id
-            }
-
-            // Copy all of the set results from this workout into the set history table
-            loggingRepository.insertFromPreviousSetResults(
+            moveSetResultsToLogHistory(
                 workoutLogEntryId = workoutLogEntryId,
-                workoutId = mutableWorkoutState.value.workout!!.id,
-                excludeFromCopy = excludeFromCopy
+                programMetadata = programMetadata,
+                workout = workout
             )
 
             // Update any Linear Progression failures
@@ -353,6 +334,59 @@ class WorkoutViewModel(
                 it.copy(workoutLogVisible = false)
             }
         }
+    }
+
+    private suspend fun moveSetResultsToLogHistory(
+        workoutLogEntryId: Long,
+        programMetadata: ActiveProgramMetadataDto,
+        workout: LoggingWorkoutDto
+    ) {
+        val liftsAndPositions = mutableWorkoutState.value.workout!!.lifts.associate {
+            it.liftId to it.position
+        }
+
+        // If any lifts were changed and had completed results do not copy them
+        val excludeFromCopy =
+            mutableWorkoutState.value.inProgressWorkout!!.completedSets.filter { result ->
+                val liftPosition = liftsAndPositions[result.liftId]
+                liftPosition != result.liftPosition
+            }.map {
+                it.id
+            }
+
+        // Copy all of the set results from this workout into the set history table
+        loggingRepository.insertFromPreviousSetResults(
+            workoutLogEntryId = workoutLogEntryId,
+            workoutId = mutableWorkoutState.value.workout!!.id,
+            mesocycle = programMetadata.currentMesocycle,
+            microcycle = programMetadata.currentMicrocycle,
+            excludeFromCopy = excludeFromCopy,
+        )
+
+        // Get all the set results for deloaded lifts
+        val deloadSetResults = mutableWorkoutState.value.workout!!.lifts
+            .filter { workoutLift ->
+                // workout lifts whose deload week it is
+                val deloadWeek = (workoutLift.deloadWeek ?: programMetadata.deloadWeek) - 1
+                deloadWeek == programMetadata.currentMicrocycle
+            }.fastMap {
+                // key that can be used to match set results
+                "${it.liftId}-${it.position}"
+            }.toHashSet().let { deloadedWorkoutLiftIds ->
+                // set results for deloaded workout lifts
+                mutableWorkoutState.value.inProgressWorkout!!.completedSets
+                    .filter { deloadedWorkoutLiftIds.contains("${it.liftId}-${it.liftPosition}") }
+                    .fastMap { it.id }
+            }
+
+        // Delete all set results from the previous workout OR ones that were deloaded. Deloaded
+        // ones are deleted so next progressions are calculated using most recent non-deload results
+        setResultsRepository.deleteAllForPreviousWorkout(
+            workoutId = workout.id,
+            currentMesocycle = programMetadata.currentMesocycle,
+            currentMicrocycle = programMetadata.currentMicrocycle,
+            currentResultsToDeleteInstead = deloadSetResults,
+        )
     }
 
     fun cancelWorkout() {

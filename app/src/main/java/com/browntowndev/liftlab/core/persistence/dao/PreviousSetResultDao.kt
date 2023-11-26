@@ -35,12 +35,33 @@ interface PreviousSetResultDao {
 
     @Query("DELETE FROM previousSetResults " +
             "WHERE previously_completed_set_id IN (" +
-            "SELECT previously_completed_set_id " +
-            "FROM previousSetResults " +
-            "WHERE workoutId = :workoutId AND " +
-            "(mesoCycle != :mesoCycle OR " +
-            "microCycle != :microCycle))")
-    suspend fun deleteAllForPreviousWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): Int
+                "SELECT sr.previously_completed_set_id " +
+                "FROM previousSetResults sr " +
+                "WHERE sr.workoutId = :workoutId AND " +
+                // Delete previous results or current ones in the list
+                "(" +
+                    "sr.previously_completed_set_id IN (:currentResultsToDelete) OR" +
+                    "(sr.mesoCycle != :currentMesocycle OR " +
+                    "sr.microCycle != :currentMicrocycle)" +
+                ") AND " +
+                // Preserve previous results whose lift & position match the current ones being deleted
+                "sr.previously_completed_set_id NOT IN (" +
+                    "SELECT psr.previously_completed_set_id " +
+                    "FROM previousSetResults dsr " +
+                    "INNER JOIN previousSetResults psr ON " +
+                        "dsr.liftId = psr.liftId AND " +
+                        "dsr.liftPosition = psr.liftPosition AND " +
+                        "dsr.workoutId = psr.workoutId " +
+                    "WHERE dsr.previously_completed_set_id IN (:currentResultsToDelete)" +
+                ")" +
+            ")"
+    )
+    suspend fun deleteAllForPreviousWorkout(
+        workoutId: Long,
+        currentMesocycle: Int,
+        currentMicrocycle: Int,
+        currentResultsToDelete: List<Long>,
+    ): Int
 
     @Query("DELETE FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +

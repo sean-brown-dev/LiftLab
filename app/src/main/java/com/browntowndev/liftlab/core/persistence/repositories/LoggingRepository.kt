@@ -63,8 +63,20 @@ class LoggingRepository(
             }
     }
 
-    suspend fun insertFromPreviousSetResults(workoutLogEntryId: Long, workoutId: Long, excludeFromCopy: List<Long>) {
-        loggingDao.insertFromPreviousSetResults(workoutLogEntryId, workoutId, excludeFromCopy)
+    suspend fun insertFromPreviousSetResults(
+        workoutLogEntryId: Long,
+        workoutId: Long,
+        mesocycle: Int,
+        microcycle: Int,
+        excludeFromCopy: List<Long>
+    ) {
+        loggingDao.insertFromPreviousSetResults(
+            workoutLogEntryId = workoutLogEntryId,
+            workoutId = workoutId,
+            mesocycle = mesocycle,
+            microcycle = microcycle,
+            excludeFromCopy = excludeFromCopy,
+        )
     }
 
     suspend fun insertWorkoutLogEntry(

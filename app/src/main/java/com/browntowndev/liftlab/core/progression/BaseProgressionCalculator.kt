@@ -105,7 +105,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
         return prevSet.weight + (lift.incrementOverride
-            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
+            ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
     }
 
     protected fun decreaseWeight(
