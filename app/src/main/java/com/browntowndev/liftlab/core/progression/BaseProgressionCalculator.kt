@@ -70,7 +70,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         }
     }
 
-    protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
+    protected fun missedBottomRepRange(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
         return if (result != null) {
             missedBottomRepRange(
                 repRangeBottom = goals.repRangeBottom,
@@ -81,7 +81,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else false
     }
 
-    private fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
+    private fun missedBottomRepRange(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
         return if (result != null) {
             missedBottomRepRange(
                 repRangeBottom = repRangeBottom,
@@ -108,20 +108,20 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
     }
 
-    protected fun decreaseWeight(
-        incrementOverride: Float?,
-        repRangeBottom: Int,
+    protected fun getCalculatedWeightRecommendation(
+        increment: Float?,
+        repGoal: Int,
         rpeTarget: Float,
         result: SetResult
     ): Float {
-        val roundingFactor = (incrementOverride
+        val roundingFactor = (increment
             ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT))
 
         return CalculationEngine.calculateSuggestedWeight(
             completedWeight = result.weight,
             completedReps = result.reps,
             completedRpe = result.rpe,
-            repGoal = repRangeBottom,
+            repGoal = repGoal,
             rpeGoal = rpeTarget,
             roundingFactor = roundingFactor)
     }
@@ -134,11 +134,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         result: SetResult?,
         droppedFromSetResult: SetResult?,
     ): Float? {
-        return shouldDecreaseWeight(result, repRangeBottom, rpeTarget).let { shouldDecrease ->
+        return missedBottomRepRange(result, repRangeBottom, rpeTarget)
+            .let { shouldDecrease ->
             if (shouldDecrease && result != null) {
-                decreaseWeight(
-                    incrementOverride = incrementOverride,
-                    repRangeBottom = repRangeBottom,
+                getCalculatedWeightRecommendation(
+                    increment = incrementOverride,
+                    repGoal = repRangeBottom,
                     rpeTarget = rpeTarget,
                     result = result,
                 )

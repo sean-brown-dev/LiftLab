@@ -55,8 +55,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
             val result = resultsMap[setPosition]
             val weightRecommendation = if (setMetCriterion(result, workoutLift)) {
                 incrementWeight(workoutLift, result!!)
-            } else if (shouldDecreaseWeight(result, workoutLift)) {
-                decreaseWeight(
+            } else if (missedBottomRepRange(result, workoutLift)) {
+                getCalculatedWeightRecommendation(
                     workoutLift.incrementOverride,
                     workoutLift.repRangeBottom,
                     workoutLift.rpeTarget,
@@ -230,7 +230,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         return if (customSetMeetsCriterion(set, setData)) {
             incrementWeight(lift, setData!!)
         } else if (customSetShouldDecreaseWeight(set, setData)) {
-            decreaseWeight(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, setData!!)
+            getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, setData!!)
         } else setData?.weight
     }
 
@@ -304,9 +304,9 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                         droppedFromSetResult = droppedFromSetResult,
                                     )!!
                                 } else if (customSetShouldDecreaseWeight(set, result)) {
-                                    decreaseWeight(
-                                        incrementOverride = workoutLift.incrementOverride,
-                                        repRangeBottom = set.repRangeBottom,
+                                    getCalculatedWeightRecommendation(
+                                        increment = workoutLift.incrementOverride,
+                                        repGoal = set.repRangeBottom,
                                         rpeTarget = set.rpeTarget,
                                         result = result
                                     )

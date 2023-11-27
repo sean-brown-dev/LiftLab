@@ -54,10 +54,10 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         workoutLift: StandardWorkoutLiftDto,
         result: SetResult,
     ): Float {
-        return if (shouldDecreaseWeight(result, workoutLift)) {
-            decreaseWeight(
-                incrementOverride = workoutLift.incrementOverride,
-                repRangeBottom = workoutLift.repRangeBottom,
+        return if (missedBottomRepRange(result, workoutLift)) {
+            getCalculatedWeightRecommendation(
+                increment = workoutLift.incrementOverride,
+                repGoal = workoutLift.repRangeBottom,
                 rpeTarget = workoutLift.rpeTarget,
                 result = result
             )
@@ -79,9 +79,9 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                 completedRpe = result.rpe,
             )
         ) {
-            decreaseWeight(
-                incrementOverride = incrementOverride,
-                repRangeBottom = set.repRangeBottom,
+            getCalculatedWeightRecommendation(
+                increment = incrementOverride,
+                repGoal = set.repRangeBottom,
                 rpeTarget = set.rpeTarget,
                 result = result
             )
