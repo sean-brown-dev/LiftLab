@@ -44,6 +44,7 @@ class WorkoutLiftMapper(private val customLiftSetMapper: CustomLiftSetMapper)  {
             repRangeTop = entity.workoutLift.repRangeTop!!,
             rpeTarget = entity.workoutLift.rpeTarget!!,
             progressionScheme = entity.workoutLift.progressionScheme,
+            note = entity.workoutLift.note,
         )
     }
 
@@ -63,6 +64,7 @@ class WorkoutLiftMapper(private val customLiftSetMapper: CustomLiftSetMapper)  {
             position = entity.workoutLift.position,
             setCount = entity.workoutLift.setCount,
             progressionScheme = entity.workoutLift.progressionScheme,
+            note = entity.workoutLift.note,
             customLiftSets = entity.customLiftSets.map { customLiftSetMapper.map(it) }
         )
     }

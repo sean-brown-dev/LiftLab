@@ -134,6 +134,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -188,6 +189,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -266,6 +268,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -321,6 +324,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -421,6 +425,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -477,6 +482,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -599,6 +605,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -654,6 +661,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -754,6 +762,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -810,6 +819,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -910,6 +920,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -966,6 +977,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1088,6 +1100,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             StandardSetDto(
                                 id = 0L,
@@ -1150,6 +1163,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1225,6 +1239,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             StandardSetDto(
                                 id = 0L,
@@ -1288,6 +1303,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1398,6 +1414,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1485,6 +1502,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1572,6 +1590,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1656,6 +1675,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 2,
                         deloadWeek = null,
+                        note = null,
                         repRangeTop = 10,
                         repRangeBottom = 8,
                         rpeTarget = 8f,
@@ -1713,6 +1733,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -1844,6 +1865,7 @@ class WorkoutViewModelTests {
                         repRangeTop = 10,
                         repRangeBottom = 8,
                         rpeTarget = 8f,
+                        note = null,
                     )
                 )
             )
@@ -1929,6 +1951,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -2049,6 +2072,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -2122,6 +2146,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -2204,6 +2229,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -2280,6 +2306,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
@@ -2356,6 +2383,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
+                        note = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -2412,6 +2440,7 @@ class WorkoutViewModelTests {
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
                 workoutInProgressRepository = workoutInProgressRepository,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,

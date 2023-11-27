@@ -29,6 +29,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResults
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.ProgressionFactory
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,6 +47,7 @@ class WorkoutViewModel(
     private val progressionFactory: ProgressionFactory,
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
+    private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
@@ -461,6 +463,26 @@ class WorkoutViewModel(
                                 )
                                 workoutLiftCopy
                             } else lift
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    fun updateNote(workoutLiftId: Long, note: String) {
+        executeInTransactionScope {
+            workoutLiftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
+
+            mutableWorkoutState.update { currentState ->
+                currentState.copy(
+                    workout = currentState.workout!!.copy(
+                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
+                            if (workoutLift.id == workoutLiftId) {
+                                workoutLift.copy(
+                                    note = note.ifEmpty { null },
+                                )
+                            } else workoutLift
                         }
                     )
                 )

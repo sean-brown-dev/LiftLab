@@ -214,6 +214,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     rpeTarget = 6f,
                     repRangeBottom = topStandard?.repRangeBottom ?: 8,
                     repRangeTop = topStandard?.repRangeTop ?: 10,
+                    note = workoutLift.note,
                 ),
                 sortedSetData = sortedSetData,
                 isDeloadWeek =  true,

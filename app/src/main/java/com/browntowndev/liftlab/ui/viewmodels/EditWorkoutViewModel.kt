@@ -23,6 +23,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -162,6 +163,7 @@ class EditWorkoutViewModel(
                     incrementOverride = null,
                     restTime = null,
                     restTimerEnabled = false,
+                    note = null,
                     sets = groupedResults.value.fastMap { setLogEntry ->
                         when (setLogEntry.setType) {
                             SetType.STANDARD ->

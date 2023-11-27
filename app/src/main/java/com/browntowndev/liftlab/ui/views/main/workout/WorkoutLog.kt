@@ -77,6 +77,7 @@ fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
     cancelWorkoutVisible: Boolean = true,
+    noteVisible: Boolean = true,
     lifts: List<LoggingWorkoutLiftDto>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
@@ -185,47 +186,49 @@ fun WorkoutLog(
                                     },
                                 )
                             }
-                            val localDensity = LocalDensity.current
-                            var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
-                            LiftLabOutlinedTextField(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(noteTextFieldHeight)
-                                    .padding(start = 15.dp, end = 10.dp),
-                                contentPadding = PaddingValues(start = 2.dp, top = 7.dp, bottom = 7.dp, end = 2.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                    focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                    unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                ),
-                                textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
-                                placeholder = {
-                                    Text(
-                                        text = remember { "Add note" },
-                                        color = MaterialTheme.colorScheme.outline,
-                                        fontSize = 18.sp,
-                                    )
-                                },
-                                value = remember(lift.note) { lift.note ?: "" },
-                                shape = RoundedCornerShape(10.dp),
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Filled.Edit,
-                                        contentDescription = stringResource(R.string.lift_note),
-                                        tint = MaterialTheme.colorScheme.outline,
-                                    )
-                                },
-                                onValueChange = { onNoteChanged(lift.id, it) },
-                                onRequiredHeightChanged = {
-                                    localDensity.run {
-                                        noteTextFieldHeight = it.toFloat().toDp() + 14.dp
-                                    }
-                                },
-                            )
-                            Spacer(modifier = Modifier.height(15.dp))
+                            if (noteVisible) {
+                                val localDensity = LocalDensity.current
+                                var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
+                                LiftLabOutlinedTextField(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(noteTextFieldHeight)
+                                        .padding(start = 15.dp, end = 10.dp),
+                                    contentPadding = PaddingValues(start = 2.dp, top = 7.dp, bottom = 7.dp, end = 2.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                    ),
+                                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+                                    placeholder = {
+                                        Text(
+                                            text = remember { "Add note" },
+                                            color = MaterialTheme.colorScheme.outline,
+                                            fontSize = 18.sp,
+                                        )
+                                    },
+                                    value = remember(lift.note) { lift.note ?: "" },
+                                    shape = RoundedCornerShape(10.dp),
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Edit,
+                                            contentDescription = stringResource(R.string.lift_note),
+                                            tint = MaterialTheme.colorScheme.outline,
+                                        )
+                                    },
+                                    onValueChange = { onNoteChanged(lift.id, it) },
+                                    onRequiredHeightChanged = {
+                                        localDensity.run {
+                                            noteTextFieldHeight = it.toFloat().toDp() + 14.dp
+                                        }
+                                    },
+                                )
+                                Spacer(modifier = Modifier.height(15.dp))
+                            }
                             LogHeaders()
 
                             lift.sets.fastForEachIndexed { index, set ->

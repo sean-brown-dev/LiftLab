@@ -58,6 +58,7 @@ fun EditWorkout(
             paddingValues = paddingValues,
             visible = true,
             cancelWorkoutVisible = false,
+            noteVisible = false,
             lifts = workoutState.workout!!.lifts,
             duration = editWorkoutState.duration,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
@@ -117,9 +118,7 @@ fun EditWorkout(
                     myoRepSetPosition = myoRepSetPosition,
                 )
             },
-            onNoteChanged = { workoutLiftId, note ->
-                editWorkoutViewModel.updateNote(workoutLiftId = workoutLiftId, note = note)
-            },
+            onNoteChanged = { _, _ -> },
         )
     }
 }

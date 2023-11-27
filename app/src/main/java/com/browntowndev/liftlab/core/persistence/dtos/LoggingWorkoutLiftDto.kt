@@ -12,7 +12,7 @@ data class LoggingWorkoutLiftDto(
     val liftMovementPattern: MovementPattern,
     val liftVolumeTypes: Int,
     val liftSecondaryVolumeTypes: Int?,
-    val note: String? = "",
+    val note: String?,
     val position: Int,
     val setCount: Int,
     val progressionScheme: ProgressionScheme,

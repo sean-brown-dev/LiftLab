@@ -36,4 +36,8 @@ class WorkoutLiftsRepository (
     suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long> {
         return workoutLiftsDao.getLiftIdsForWorkout(workoutId)
     }
+
+    suspend fun updateNote(workoutLiftId: Long, note: String?) {
+        workoutLiftsDao.updateNote(workoutLiftId, note)
+    }
 }

@@ -55,6 +55,7 @@ class StandardProgressionFactory: ProgressionFactory {
                             restTime = workoutLift.restTime,
                             restTimerEnabled = workoutLift.restTimerEnabled,
                             setCount = workoutLift.setCount,
+                            note = workoutLift.note,
                             sets = when (workoutLift.progressionScheme) {
                                 ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
                                 ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()

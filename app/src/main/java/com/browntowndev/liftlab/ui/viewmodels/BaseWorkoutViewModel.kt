@@ -16,6 +16,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -36,24 +37,6 @@ abstract class BaseWorkoutViewModel(
     protected abstract suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long>
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
     protected abstract suspend fun deleteSetResult(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
-
-    fun updateNote(workoutLiftId: Long, note: String) {
-        executeInTransactionScope {
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
-                            if (workoutLift.id == workoutLiftId) {
-                                workoutLift.copy(
-                                    note = note.ifEmpty { null },
-                                )
-                            } else workoutLift
-                        }
-                    )
-                )
-            }
-        }
-    }
 
     private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, set: GenericLoggingSet) {
         if (set.complete &&
