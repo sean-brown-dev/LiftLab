@@ -12,6 +12,9 @@ import java.util.Date
 
 @Dao
 interface LoggingDao {
+    @Query("UPDATE setLogEntries SET isDeload = 1 WHERE microCycle = 3")
+    suspend fun setDeloadsToTrue()
+
     @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 
@@ -19,11 +22,11 @@ interface LoggingDao {
             "(workoutLogEntryId, workoutLiftDeloadWeek, liftId, setType, liftPosition, progressionScheme, " +
             "setPosition, myoRepSetPosition, weight, liftName, liftMovementPattern, weightRecommendation, " +
             "reps, rpe, mesoCycle, microCycle, repRangeBottom, repRangeTop, rpeTarget, setMatching, maxSets, " +
-            "repFloor, dropPercentage) " +
+            "repFloor, dropPercentage, isDeload) " +
             "SELECT :workoutLogEntryId, wl.deloadWeek, sr.liftId, setType, liftPosition, wl.progressionScheme, " +
             "setPosition, myoRepSetPosition, weight, l.name, l.movementPattern, sr.weightRecommendation, " +
             "reps, rpe, mesoCycle, microCycle, wl.repRangeBottom, wl.repRangeTop, wl.rpeTarget, s.setMatching, s.maxSets, " +
-            "s.repFloor, s.dropPercentage " +
+            "s.repFloor, s.dropPercentage, sr.isDeload " +
             "FROM previousSetResults sr " +
             "INNER JOIN workoutLifts wl ON (wl.liftId = sr.liftId AND wl.position = sr.liftPosition) " +
             "LEFT JOIN sets s ON s.workoutLiftId = wl.workout_lift_id " +
@@ -45,7 +48,7 @@ interface LoggingDao {
             "log.programDeloadWeek, log.programWorkoutCount, log.microcyclePosition, log.date, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
-            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition " +
+            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id")
@@ -55,7 +58,7 @@ interface LoggingDao {
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
-            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition " +
+            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
@@ -66,7 +69,7 @@ interface LoggingDao {
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
-            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition " +
+            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
@@ -81,7 +84,7 @@ interface LoggingDao {
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
-            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition " +
+            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
@@ -93,7 +96,7 @@ interface LoggingDao {
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
-            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition " +
+            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +

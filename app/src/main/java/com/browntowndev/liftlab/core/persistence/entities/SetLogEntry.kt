@@ -50,4 +50,6 @@ data class SetLogEntry(
     val maxSets: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
+    @ColumnInfo(defaultValue = false.toString())
+    val isDeload: Boolean = false,
 )

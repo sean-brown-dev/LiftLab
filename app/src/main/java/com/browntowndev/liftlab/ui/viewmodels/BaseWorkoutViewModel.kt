@@ -16,7 +16,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -324,6 +323,11 @@ abstract class BaseWorkoutViewModel(
         reps: Int,
         rpe: Float,
     ): SetResult {
+        val isDeload = (mutableWorkoutState.value.workout!!.lifts
+            .find { it.liftId == liftId && it.position == liftPosition }
+            ?.deloadWeek ?: mutableWorkoutState.value.programMetadata!!.deloadWeek) ==
+                (currentMesocycle + 1)
+
         return when (setType) {
             SetType.STANDARD,
             SetType.DROP_SET -> {
@@ -341,6 +345,7 @@ abstract class BaseWorkoutViewModel(
                         weight = weight,
                         reps = reps,
                         rpe = rpe,
+                        isDeload = isDeload,
                     )
                 } else {
                     // LP can only be standard lift, so no myo
@@ -357,6 +362,7 @@ abstract class BaseWorkoutViewModel(
                         reps = reps,
                         rpe = rpe,
                         missedLpGoals = 0, // assigned on completion
+                        isDeload = isDeload,
                     )
                 }
             }
@@ -375,6 +381,7 @@ abstract class BaseWorkoutViewModel(
                     reps = reps,
                     rpe = rpe,
                     myoRepSetPosition = myoRepSetPosition,
+                    isDeload = isDeload,
                 )
         }
     }

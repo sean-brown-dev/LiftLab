@@ -220,6 +220,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -355,6 +356,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -377,6 +379,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -513,6 +516,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -535,6 +539,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -557,6 +562,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -692,6 +698,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -714,6 +721,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -850,6 +858,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -872,6 +881,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -1008,6 +1018,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -1030,6 +1041,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -1052,6 +1064,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -1195,6 +1208,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -1335,6 +1349,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
             viewModel.undoSetCompletion(0, 0, null)
@@ -1765,6 +1780,7 @@ class WorkoutViewModelTests {
                     mesoCycle = 0,
                     microCycle = 0,
                     missedLpGoals = 0,
+                    isDeload = false,
                 )
             )
 
@@ -1787,6 +1803,7 @@ class WorkoutViewModelTests {
                     mesoCycle = 0,
                     microCycle = 0,
                     missedLpGoals = 0,
+                    isDeload = false,
                 )
             )
             viewModel.finishWorkout()
@@ -1920,6 +1937,7 @@ class WorkoutViewModelTests {
                     microCycle = 0,
                     setType = SetType.STANDARD,
                     missedLpGoals = 2,
+                    isDeload = false,
                 ),
                 LinearProgressionSetResultDto(
                     id = 0L,
@@ -1935,6 +1953,7 @@ class WorkoutViewModelTests {
                     microCycle = 0,
                     setType = SetType.STANDARD,
                     missedLpGoals = 2,
+                    isDeload = false,
                 ),
             )
             coEvery {
@@ -1983,6 +2002,7 @@ class WorkoutViewModelTests {
                     mesoCycle = 0,
                     microCycle = 0,
                     missedLpGoals = 2,
+                    isDeload = false,
                 )
             )
 
@@ -2005,6 +2025,7 @@ class WorkoutViewModelTests {
                     mesoCycle = 0,
                     microCycle = 0,
                     missedLpGoals = 2,
+                    isDeload = false,
                 )
             )
             viewModel.finishWorkout()
@@ -2471,6 +2492,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 
@@ -2493,6 +2515,7 @@ class WorkoutViewModelTests {
                     rpe = 8f,
                     mesoCycle = 0,
                     microCycle = 0,
+                    isDeload = false,
                 )
             )
 

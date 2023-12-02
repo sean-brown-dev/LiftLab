@@ -29,4 +29,5 @@ data class SetLogEntryDto(
     val maxSets: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
+    val isDeload: Boolean,
 )

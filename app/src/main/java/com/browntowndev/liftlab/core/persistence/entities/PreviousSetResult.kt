@@ -38,4 +38,6 @@ data class PreviousSetResult(
     val mesoCycle: Int,
     val microCycle: Int,
     val missedLpGoals: Int? = null,
+    @ColumnInfo(defaultValue = false.toString())
+    val isDeload: Boolean = false,
 )

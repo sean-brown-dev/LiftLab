@@ -207,9 +207,17 @@ class HomeViewModel(
             ?.groupBy { it.microcycle }
             ?.asSequence()
             ?.associate { logsForMicro ->
-                logsForMicro.key + 1 to logsForMicro.value.sumOf {  workoutLog ->
+                val setCountConsideringDeloads = setCount - logsForMicro.value.sumOf { workoutLog ->
+                    workoutLog.setResults.groupBy { result ->
+                        result.liftPosition
+                    }.values.count { resultsForLift ->
+                        resultsForLift.any { it.isDeload }
+                    }
+                }
+
+                logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
                     workoutLog.setResults.size
-                }.div(setCount).times(100)
+                }.div(setCountConsideringDeloads).times(100)
             } ?: mapOf(1 to 0f)
 
         val chartEntryModel = entryModelOf(workoutsForCurrentMeso.keys.zip(workoutsForCurrentMeso.values, ::entryOf))

@@ -16,5 +16,6 @@ data class StandardSetResultDto(
     override val mesoCycle: Int,
     override val microCycle: Int,
     override val setType: SetType,
+    override val isDeload: Boolean,
     val missedLpGoals: Int? = null,
 ): SetResult
