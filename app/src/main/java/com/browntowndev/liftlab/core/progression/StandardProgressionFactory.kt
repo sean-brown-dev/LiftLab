@@ -40,6 +40,17 @@ class StandardProgressionFactory: ProgressionFactory {
 
             loggingWorkout = loggingWorkout.copy(
                 lifts = loggingWorkout.lifts.toMutableList().apply {
+                    val sets = when (workoutLift.progressionScheme) {
+                        ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
+                        ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
+                        ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
+                        ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek, microCycle)
+                    }.calculate(
+                        workoutLift = workoutLift,
+                        previousSetResults = resultsForLift,
+                        isDeloadWeek = isDeloadWeek,
+                    )
+                    
                     add(
                         LoggingWorkoutLiftDto(
                             id = workoutLift.id,
@@ -54,18 +65,9 @@ class StandardProgressionFactory: ProgressionFactory {
                             progressionScheme = workoutLift.progressionScheme,
                             restTime = workoutLift.restTime,
                             restTimerEnabled = workoutLift.restTimerEnabled,
-                            setCount = workoutLift.setCount,
+                            setCount = sets.size,
                             note = workoutLift.note,
-                            sets = when (workoutLift.progressionScheme) {
-                                ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
-                                ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
-                                ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
-                                ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(programDeloadWeek, microCycle)
-                            }.calculate(
-                                workoutLift = workoutLift,
-                                previousSetResults = resultsForLift,
-                                isDeloadWeek = isDeloadWeek,
-                            )
+                            sets = sets,
                         )
                     )
                 }
