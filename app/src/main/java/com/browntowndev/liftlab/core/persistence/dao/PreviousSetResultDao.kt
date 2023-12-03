@@ -52,7 +52,8 @@ interface PreviousSetResultDao {
                         "dsr.liftId = psr.liftId AND " +
                         "dsr.liftPosition = psr.liftPosition AND " +
                         "dsr.workoutId = psr.workoutId " +
-                    "WHERE dsr.previously_completed_set_id IN (:currentResultsToDelete)" +
+                    "WHERE dsr.previously_completed_set_id IN (:currentResultsToDelete) AND " +
+                    "psr.previously_completed_set_id NOT IN (:currentResultsToDelete)" +
                 ")" +
             ")"
     )

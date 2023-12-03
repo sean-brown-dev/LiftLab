@@ -39,7 +39,7 @@ class LoggingRepository(
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
-    suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>): List<WorkoutLogEntryDto> {
+    private suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>): List<WorkoutLogEntryDto> {
         val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getMostRecentLogsForLiftIds(liftIds)
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
