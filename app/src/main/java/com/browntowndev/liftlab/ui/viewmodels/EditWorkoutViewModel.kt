@@ -72,6 +72,9 @@ class EditWorkoutViewModel(
                 date = workoutLog.date
             )
             val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
+            mutableWorkoutState.update {
+                it.copy(workout = workout)
+            }
             val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
 
             _editWorkoutState.update {
@@ -95,7 +98,6 @@ class EditWorkoutViewModel(
                         currentMicrocycle = workoutLog.microcycle,
                         currentMicrocyclePosition = workoutLog.microcyclePosition,
                     ),
-                    workout = workout,
                     inProgressWorkout = WorkoutInProgressDto(
                         workoutId = workoutLogEntryId,
                         startTime = Utils.getCurrentDate(),

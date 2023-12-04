@@ -78,8 +78,10 @@ interface LoggingDao {
                 "(SELECT MAX(log2.date) " +
                 "FROM workoutLogEntries log2 " +
                 "INNER JOIN setLogEntries setResult2 ON setResult2.workoutLogEntryId = log2.workout_log_entry_id " +
-                "WHERE setResult2.liftId = setResult.liftId AND setResult2.isDeload = 0)")
-    suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>): List<FlattenedWorkoutLogEntryDto>
+                "WHERE setResult2.liftId = setResult.liftId AND " +
+                "setResult2.setPosition = setResult.setPosition AND " +
+                "setResult2.isDeload = :includeDeload)")
+    suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>, includeDeload: Boolean): List<FlattenedWorkoutLogEntryDto>
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +

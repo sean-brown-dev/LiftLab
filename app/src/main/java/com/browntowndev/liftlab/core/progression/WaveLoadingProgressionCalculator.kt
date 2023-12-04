@@ -16,15 +16,18 @@ class WaveLoadingProgressionCalculator(
     override fun calculate(
         workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>,
+        previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         if (workoutLift !is StandardWorkoutLiftDto) throw Exception ("Wave Loading progression cannot have custom sets")
-        val groupedSetData = previousSetResults.sortedBy { it.setPosition }.associateBy { it.setPosition }
+        val groupedSetData = previousSetResults.associateBy { it.setPosition }
+        val displaySetResults = previousResultsForDisplay.associateBy { it.setPosition }
         val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
         val rpeTarget = if (isDeloadWeek) 6f else workoutLift.rpeTarget
 
         return List(setCount) { setPosition ->
             val result = groupedSetData[setPosition]
+            val displayResult = displaySetResults[setPosition]
             val weightRecommendation = if (!isDeloadWeek && result != null)
                 getWeightRecommendation(workoutLift, result)
             else if (result != null)
@@ -36,7 +39,7 @@ class WaveLoadingProgressionCalculator(
                 rpeTarget = rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
-                previousSetResultLabel = getPreviousSetResultLabel(result),
+                previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                 repRangePlaceholder = if (!isDeloadWeek) {
                     getRepRangePlaceholder(
                         repRangeBottom = workoutLift.repRangeBottom,

@@ -39,17 +39,18 @@ class LoggingRepository(
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
-    private suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>): List<WorkoutLogEntryDto> {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getMostRecentLogsForLiftIds(liftIds)
+    private suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>, includeDeload: Boolean): List<WorkoutLogEntryDto> {
+        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getMostRecentLogsForLiftIds(liftIds, includeDeload)
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
     suspend fun getMostRecentSetResultsForLiftIds(
         liftIds: List<Long>,
         workoutId: Long,
-        linearProgressionLiftIds: Set<Long>
+        linearProgressionLiftIds: Set<Long>,
+        includeDeload: Boolean,
     ): List<SetResult> {
-        return getMostRecentLogsForLiftIds(liftIds)
+        return getMostRecentLogsForLiftIds(liftIds, includeDeload)
             .flatMap { workoutLog ->
                 workoutLog.setResults.fastMap { setLogEntry ->
                     setResultMapper.map(

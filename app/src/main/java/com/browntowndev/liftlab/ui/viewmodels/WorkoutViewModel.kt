@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -171,10 +172,15 @@ class WorkoutViewModel(
                                 ).associateBy { result ->
                                     "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
                                 }
+                                val previousResultsForDisplay = getPreviousSetResultsForDisplay(
+                                    resultsFromLastWorkout = previousSetResults,
+                                    workout = workout,
+                                )
 
                                 progressionFactory.calculate(
                                     workout = workout,
                                     previousSetResults = previousSetResults,
+                                    previousResultsForDisplay = previousResultsForDisplay,
                                     inProgressSetResults = inProgressSetResults,
                                     programDeloadWeek = programMetadata.deloadWeek,
                                     microCycle = programMetadata.currentMicrocycle,
@@ -213,6 +219,19 @@ class WorkoutViewModel(
         }
     }
 
+    private suspend fun getPreviousSetResultsForDisplay(
+        resultsFromLastWorkout: List<SetResult>,
+        workout: WorkoutDto,
+    ): List<SetResult> {
+        return getNewestResultsFromOtherWorkouts(
+            liftIdsToSearchFor = workout.lifts.map { it.liftId },
+            workout,
+            resultsFromLastWorkout,
+            includeDeload = true,
+            replaceExistingLiftData = true,
+        )
+    }
+
     private suspend fun getResultsWithAllWorkoutDataAppended(
         resultsFromLastWorkout: List<SetResult>,
         workout: WorkoutDto,
@@ -222,6 +241,22 @@ class WorkoutViewModel(
             .filter { !liftIdsOfResults.contains(it.liftId) }
             .map { workoutLift -> workoutLift.liftId }
 
+        return getNewestResultsFromOtherWorkouts(
+            liftIdsToSearchFor,
+            workout,
+            resultsFromLastWorkout,
+            includeDeload = false,
+            replaceExistingLiftData = false,
+        )
+    }
+
+    private suspend fun getNewestResultsFromOtherWorkouts(
+                    liftIdsToSearchFor: List<Long>,
+                workout: WorkoutDto,
+                resultsFromLastWorkout: List<SetResult>,
+                includeDeload: Boolean,
+                replaceExistingLiftData: Boolean,
+                ): List<SetResult> {
         return if (liftIdsToSearchFor.isNotEmpty()) {
             val linearProgressionLiftIds = workout.lifts
                 .filter {
@@ -234,9 +269,23 @@ class WorkoutViewModel(
                     loggingRepository.getMostRecentSetResultsForLiftIds(
                         liftIds = liftIdsToSearchFor,
                         workoutId = workout.id,
-                        linearProgressionLiftIds = linearProgressionLiftIds
+                        linearProgressionLiftIds = linearProgressionLiftIds,
+                        includeDeload = includeDeload,
                     )
-                addAll(resultsFromOtherWorkouts)
+
+                if (replaceExistingLiftData) {
+                    resultsFromOtherWorkouts.fastForEach { newResult ->
+                        val toReplace = indexOfFirst {
+                            it.liftId == newResult.liftId &&
+                                    it.setPosition == newResult.setPosition &&
+                                    (it as? MyoRepSetResultDto)?.myoRepSetPosition == (newResult as? MyoRepSetResultDto)?.myoRepSetPosition
+                        }
+                        removeAt(toReplace)
+                        add(newResult)
+                    }
+                } else {
+                    addAll(resultsFromOtherWorkouts)
+                }
             }
         } else resultsFromLastWorkout
     }

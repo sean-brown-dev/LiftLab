@@ -19,6 +19,7 @@ class StandardProgressionFactory: ProgressionFactory {
     override fun calculate(
         workout: WorkoutDto,
         previousSetResults: List<SetResult>,
+        previousResultsForDisplay: List<SetResult>,
         inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
@@ -37,6 +38,10 @@ class StandardProgressionFactory: ProgressionFactory {
                 (!onlyUseResultsForLiftsInSamePosition || result.liftPosition == workoutLift.position)
                         && result.liftId == workoutLift.liftId
             }
+            val displayResultsForLift = previousResultsForDisplay.filter { result ->
+                (!onlyUseResultsForLiftsInSamePosition || result.liftPosition == workoutLift.position)
+                        && result.liftId == workoutLift.liftId
+            }
 
             loggingWorkout = loggingWorkout.copy(
                 lifts = loggingWorkout.lifts.toMutableList().apply {
@@ -48,6 +53,7 @@ class StandardProgressionFactory: ProgressionFactory {
                     }.calculate(
                         workoutLift = workoutLift,
                         previousSetResults = resultsForLift,
+                        previousResultsForDisplay = displayResultsForLift,
                         isDeloadWeek = isDeloadWeek,
                     )
                     
