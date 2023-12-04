@@ -22,106 +22,8 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
-        val sortedSetData = previousSetResults.sortedBy { it.setPosition }
-        val sortedSetDisplayDay = previousResultsForDisplay.sortedBy { it.setPosition }
-
-        return calculateProgressions(workoutLift, sortedSetData, sortedSetDisplayDay, isDeloadWeek)
-    }
-
-    protected open fun getFailureWeight(
-        workoutLift: GenericWorkoutLift,
-        previousSetResults: List<SetResult>,
-        position: Int? = null,
-    ): Float? {
-        val result = previousSetResults.getOrNull(position ?: -1)
-        return if (result == null) {
-            previousSetResults.firstOrNull()?.weight
-        } else {
-            when (workoutLift) {
-                is StandardWorkoutLiftDto -> getStandardWorkoutLiftFailureWeight(
-                    workoutLift = workoutLift,
-                    result = result,
-                )
-                is CustomWorkoutLiftDto -> getCustomWorkoutLiftFailureWeight(
-                    incrementOverride = workoutLift.incrementOverride,
-                    set = workoutLift.customLiftSets[position!!],
-                    result = result,
-                )
-                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
-            }
-        }
-    }
-
-    private fun getStandardWorkoutLiftFailureWeight(
-        workoutLift: StandardWorkoutLiftDto,
-        result: SetResult,
-    ): Float {
-        return if (missedBottomRepRange(result, workoutLift)) {
-            getCalculatedWeightRecommendation(
-                increment = workoutLift.incrementOverride,
-                repGoal = workoutLift.repRangeBottom,
-                rpeTarget = workoutLift.rpeTarget,
-                result = result
-            )
-        } else {
-            result.weight
-        }
-    }
-
-    private fun getCustomWorkoutLiftFailureWeight(
-        incrementOverride: Float?,
-        set: GenericLiftSet,
-        result: SetResult,
-    ): Float {
-        return if (
-            missedBottomRepRange(
-                repRangeBottom = set.repRangeBottom,
-                rpeTarget = set.rpeTarget,
-                completedReps = result.reps,
-                completedRpe = result.rpe,
-            )
-        ) {
-            getCalculatedWeightRecommendation(
-                increment = incrementOverride,
-                repGoal = set.repRangeBottom,
-                rpeTarget = set.rpeTarget,
-                result = result
-            )
-        } else {
-            result.weight
-        }
-    }
-
-    protected abstract fun allSetsMetCriterion(
-        lift: StandardWorkoutLiftDto,
-        previousSetResults: List<SetResult>,
-    ): Boolean
-
-    protected abstract fun allSetsMetCriterion(
-        lift: CustomWorkoutLiftDto,
-        previousSetResults: List<SetResult>,
-    ): Boolean
-
-    private fun allSetsMetCriterion(
-        lift: GenericWorkoutLift,
-        previousSetResults: List<SetResult>,
-    ): Boolean {
-        return previousSetResults.isNotEmpty() &&
-                when (lift) {
-                    is StandardWorkoutLiftDto -> allSetsMetCriterion(lift, previousSetResults)
-                    is CustomWorkoutLiftDto -> allSetsMetCriterion(lift, previousSetResults)
-                    else -> throw Exception("${lift::class.simpleName} is not defined.")
-                }
-    }
-
-    private fun calculateProgressions(
-        workoutLift: GenericWorkoutLift,
-        previousSetResults: List<SetResult>,
-        resultsForDisplay: List<SetResult>,
-        isDeloadWeek: Boolean,
-    ): List<GenericLoggingSet> {
         val criterionMet = allSetsMetCriterion(workoutLift, previousSetResults)
-        val displayResults = resultsForDisplay
+        val displayResults = previousResultsForDisplay
             .associateBy { "${it.setPosition}-${(it as? MyoRepSetResultDto)?.myoRepSetPosition}" }
         val nonMyoRepSetResults = previousSetResults
             .filterNot { it is MyoRepSetResultDto }
@@ -153,7 +55,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         repRangeTop = workoutLift.repRangeTop,
                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                         repRangePlaceholder = if (!isDeloadWeek) {
-                           "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
+                            "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                         } else workoutLift.repRangeBottom.toString(),
                         weightRecommendation = weightRecommendation,
                         hadInitialWeightRecommendation = weightRecommendation != null,
@@ -293,7 +195,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                     }
                 } else {
                     val topStandard = workoutLift.customLiftSets.filterIsInstance<StandardSetDto>().firstOrNull()
-                    return calculateProgressions(
+                    return calculate(
                         workoutLift = StandardWorkoutLiftDto(
                             id = workoutLift.id,
                             workoutId = workoutLift.workoutId,
@@ -315,7 +217,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                             note = workoutLift.note,
                         ),
                         previousSetResults = previousSetResults,
-                        resultsForDisplay = resultsForDisplay,
+                        previousResultsForDisplay = previousResultsForDisplay,
                         isDeloadWeek =  true,
                     )
                 }
@@ -323,5 +225,91 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
 
             else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
         }.flattenWeightRecommendationsGeneric()
+    }
+
+    protected open fun getFailureWeight(
+        workoutLift: GenericWorkoutLift,
+        previousSetResults: List<SetResult>,
+        position: Int? = null,
+    ): Float? {
+        val result = previousSetResults.getOrNull(position ?: -1)
+        return if (result == null) {
+            previousSetResults.firstOrNull()?.weight
+        } else {
+            when (workoutLift) {
+                is StandardWorkoutLiftDto -> getStandardWorkoutLiftFailureWeight(
+                    workoutLift = workoutLift,
+                    result = result,
+                )
+                is CustomWorkoutLiftDto -> getCustomWorkoutLiftFailureWeight(
+                    incrementOverride = workoutLift.incrementOverride,
+                    set = workoutLift.customLiftSets[position!!],
+                    result = result,
+                )
+                else -> throw Exception("${workoutLift::class.simpleName} is not defined.")
+            }
+        }
+    }
+
+    private fun getStandardWorkoutLiftFailureWeight(
+        workoutLift: StandardWorkoutLiftDto,
+        result: SetResult,
+    ): Float {
+        return if (missedBottomRepRange(result, workoutLift)) {
+            getCalculatedWeightRecommendation(
+                increment = workoutLift.incrementOverride,
+                repGoal = workoutLift.repRangeBottom,
+                rpeTarget = workoutLift.rpeTarget,
+                result = result
+            )
+        } else {
+            result.weight
+        }
+    }
+
+    private fun getCustomWorkoutLiftFailureWeight(
+        incrementOverride: Float?,
+        set: GenericLiftSet,
+        result: SetResult,
+    ): Float {
+        return if (
+            missedBottomRepRange(
+                repRangeBottom = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
+        ) {
+            getCalculatedWeightRecommendation(
+                increment = incrementOverride,
+                repGoal = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                result = result
+            )
+        } else {
+            result.weight
+        }
+    }
+
+    protected abstract fun allSetsMetCriterion(
+        lift: StandardWorkoutLiftDto,
+        previousSetResults: List<SetResult>,
+    ): Boolean
+
+    protected abstract fun allSetsMetCriterion(
+        lift: CustomWorkoutLiftDto,
+        previousSetResults: List<SetResult>,
+    ): Boolean
+
+    private fun allSetsMetCriterion(
+        lift: GenericWorkoutLift,
+        previousSetResults: List<SetResult>,
+    ): Boolean {
+        return previousSetResults.isNotEmpty() &&
+                when (lift) {
+                    is StandardWorkoutLiftDto -> allSetsMetCriterion(lift, previousSetResults)
+                    is CustomWorkoutLiftDto -> allSetsMetCriterion(lift, previousSetResults)
+                    else -> throw Exception("${lift::class.simpleName} is not defined.")
+                }
     }
 }

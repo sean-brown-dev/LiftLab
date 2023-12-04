@@ -59,12 +59,12 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         isDeloadWeek: Boolean,
     ): List<LoggingStandardSetDto> {
         val resultsMap = setResults.associateBy { it.setPosition }
-        val displayResults = displayResults.associateBy { it.setPosition }
+        val displayResultsMap = displayResults.associateBy { it.setPosition }
         val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
 
         return List(setCount) { setPosition ->
             val result = resultsMap[setPosition]
-            val displayResult = displayResults[setPosition]
+            val displayResult = displayResultsMap[setPosition]
             val weightRecommendation = if (setMetCriterion(result, workoutLift)) {
                 incrementWeight(workoutLift, result!!)
             } else if (missedBottomRepRange(result, workoutLift)) {
