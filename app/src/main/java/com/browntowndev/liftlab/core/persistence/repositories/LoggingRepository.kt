@@ -40,7 +40,12 @@ class LoggingRepository(
     }
 
     private suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>, includeDeload: Boolean): List<WorkoutLogEntryDto> {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getMostRecentLogsForLiftIds(liftIds, includeDeload)
+        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = if(includeDeload) {
+            loggingDao.getMostRecentLogsForLiftIds(liftIds)
+        } else {
+            loggingDao.getMostRecentLogsForLiftIdsExcludingDeloads(liftIds)
+        }
+
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
