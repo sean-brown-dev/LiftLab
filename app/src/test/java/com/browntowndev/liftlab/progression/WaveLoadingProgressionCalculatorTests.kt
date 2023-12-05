@@ -59,7 +59,7 @@ class WaveLoadingProgressionCalculatorTests {
             StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, false)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
             Assert.assertEquals(80f, it.weightRecommendation)
         }
@@ -91,7 +91,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(4, 1)
-            .calculate(workoutLiftMapper.map(lift), previousSetData, false)
+            .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach {
             Assert.assertEquals(70f, it.weightRecommendation)
@@ -123,7 +123,7 @@ class WaveLoadingProgressionCalculatorTests {
             StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, true)
+        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, true)
         result.forEach {
             Assert.assertEquals(65f, it.weightRecommendation)
         }
@@ -155,7 +155,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(4, 0)
-            .calculate(workoutLiftMapper.map(lift), previousSetData, false)
+            .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.forEach {
             Assert.assertEquals(80f, it.weightRecommendation)
