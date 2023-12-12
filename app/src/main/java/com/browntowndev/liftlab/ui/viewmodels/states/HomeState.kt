@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 
 data class HomeState(
-    val dateOrderedWorkoutLogs: List<WorkoutLogEntryDto> = listOf(),
+    val workoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val workoutCompletionChart: ChartModel? = null,
     val microCycleCompletionChart: ChartModel? = null,
     val showLiftChartPicker: Boolean = false,

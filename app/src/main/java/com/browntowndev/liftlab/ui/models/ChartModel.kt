@@ -79,9 +79,11 @@ fun getOneRepMaxChartModel(
                     workoutLog.setResults.maxOf {
                         CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                     }
-        }.associate { (date, oneRepMax) ->
-            date to oneRepMax
         }
+        .associate { (date, oneRepMax) ->
+            date to oneRepMax
+        }.toSortedMap()
+
     val xValuesToDates = oneRepMaxesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
     val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(oneRepMaxesByLocalDate.values, ::entryOf))
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
@@ -130,7 +132,10 @@ fun getVolumeChartModel(
                             CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                         }),
             )
-        }.associateBy { volumes -> volumes.date }
+        }.associateBy { volumes ->
+            volumes.date
+        }.toSortedMap()
+
     val xValuesToDates = volumesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
     val workingSetVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.workingSetVolume }, ::entryOf))
     val relativeVolumeEntries = entryModelOf(xValuesToDates.keys.zip(volumesByLocalDate.map { it.value.relativeVolume }, ::entryOf))
@@ -191,7 +196,7 @@ fun getIntensityChartModel(
                     }
         }.associate { (date, relativeIntensity) ->
             date to relativeIntensity
-        }
+        }.toSortedMap()
     val xValuesToDates = relativeIntensitiesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
     val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(relativeIntensitiesByLocalDate.values, ::entryOf))
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
