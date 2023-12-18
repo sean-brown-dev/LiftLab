@@ -231,7 +231,7 @@ class WorkoutViewModelTests {
             Assert.assertEquals(2, sets.size)
             Assert.assertTrue(sets[1] is LoggingMyoRepSetDto)
             Assert.assertEquals(0, (sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(8f, (sets[1] as LoggingMyoRepSetDto).rpeTarget)
+            Assert.assertEquals(10f, (sets[1] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[1] as LoggingMyoRepSetDto).weightRecommendation)
         }
 
@@ -393,7 +393,7 @@ class WorkoutViewModelTests {
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(8f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
+            Assert.assertEquals(10f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[2] as LoggingMyoRepSetDto).weightRecommendation)
         }
 
@@ -579,7 +579,7 @@ class WorkoutViewModelTests {
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(8f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
+            Assert.assertEquals(10f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[2] as LoggingMyoRepSetDto).weightRecommendation)
         }
 
@@ -741,7 +741,7 @@ class WorkoutViewModelTests {
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(8f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
+            Assert.assertEquals(10f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[2] as LoggingMyoRepSetDto).weightRecommendation)
         }
 
@@ -904,7 +904,7 @@ class WorkoutViewModelTests {
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(8f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
+            Assert.assertEquals(10f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[2] as LoggingMyoRepSetDto).weightRecommendation)
         }
 
@@ -1090,7 +1090,7 @@ class WorkoutViewModelTests {
             Assert.assertEquals(3, sets.size)
             Assert.assertTrue(sets[2] is LoggingMyoRepSetDto)
             Assert.assertEquals(1, (sets[2] as LoggingMyoRepSetDto).myoRepSetPosition)
-            Assert.assertEquals(8f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
+            Assert.assertEquals(10f, (sets[2] as LoggingMyoRepSetDto).rpeTarget)
             Assert.assertEquals(100f, (sets[2] as LoggingMyoRepSetDto).weightRecommendation)
         }
 

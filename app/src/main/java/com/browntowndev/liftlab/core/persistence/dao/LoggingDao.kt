@@ -25,8 +25,9 @@ interface LoggingDao {
             "repFloor, dropPercentage, isDeload) " +
             "SELECT :workoutLogEntryId, wl.deloadWeek, sr.liftId, setType, liftPosition, wl.progressionScheme, " +
             "setPosition, myoRepSetPosition, weight, l.name, l.movementPattern, sr.weightRecommendation, " +
-            "reps, rpe, mesoCycle, microCycle, wl.repRangeBottom, wl.repRangeTop, wl.rpeTarget, s.setMatching, s.maxSets, " +
-            "s.repFloor, s.dropPercentage, sr.isDeload " +
+            "reps, rpe, mesoCycle, microCycle, wl.repRangeBottom, wl.repRangeTop, " +
+            "COALESCE(CASE WHEN sr.myoRepSetPosition IS NOT NULL THEN 10 ELSE NULL END, s.rpeTarget, wl.rpeTarget), " +
+            "s.setMatching, s.maxSets, s.repFloor, s.dropPercentage, sr.isDeload " +
             "FROM previousSetResults sr " +
             "INNER JOIN workoutLifts wl ON (wl.liftId = sr.liftId AND wl.position = sr.liftPosition) " +
             "LEFT JOIN sets s ON s.workoutLiftId = wl.workout_lift_id " +

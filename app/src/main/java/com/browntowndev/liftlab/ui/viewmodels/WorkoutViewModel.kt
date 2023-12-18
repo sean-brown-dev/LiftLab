@@ -265,6 +265,14 @@ class WorkoutViewModel(
         } else existingResults
     }
 
+    fun setWorkoutLogVisibility(visible: Boolean) {
+        mutableWorkoutState.update {
+            it.copy(
+                workoutLogVisible = visible
+            )
+        }
+    }
+
     fun startWorkout() {
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressDto(
@@ -279,14 +287,6 @@ class WorkoutViewModel(
                     workoutLogVisible = true,
                 )
             }
-        }
-    }
-
-    fun setWorkoutLogVisibility(visible: Boolean) {
-        mutableWorkoutState.update {
-            it.copy(
-                workoutLogVisible = visible
-            )
         }
     }
 

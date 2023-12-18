@@ -1,43 +1,47 @@
 package com.browntowndev.liftlab.core.progression
 
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 
 class MyoRepSetGoalValidator {
     companion object {
         fun shouldContinueMyoReps(
-                completedRpe: Float,
-                completedReps: Int,
-                myoRepSetGoals: LoggingMyoRepSetDto,
-                previousMyoRepSets: List<LoggingMyoRepSetDto>,
+            completedRpe: Float,
+            completedReps: Int,
+            myoRepSetGoals: LoggingMyoRepSetDto,
+            previousMyoRepSetResults: List<LoggingMyoRepSetDto>,
             ): Boolean {
-            val isActivationSet = previousMyoRepSets.isEmpty()
-            val metGoals = completedRpe == myoRepSetGoals.rpeTarget
+            val isActivationSet = previousMyoRepSetResults.isEmpty()
+            val metGoals = completedRpe <= myoRepSetGoals.rpeTarget
 
             return metGoals && if (isActivationSet) {
-                completedReps >= myoRepSetGoals.repRangeBottom
+                completedReps >= myoRepSetGoals.repRangeBottom!!
             } else if (myoRepSetGoals.setMatching) {
-                val totalSetsCompleted = previousMyoRepSets.sumOf { prevSet ->
+                val totalRepsCompleted = previousMyoRepSetResults.sumOf { prevSet ->
                     if (prevSet.myoRepSetPosition != null) {
                         prevSet.completedReps ?: 0
                     } else 0
                 } + completedReps
 
-                myoRepSetGoals.repRangeTop > totalSetsCompleted
+                previousMyoRepSetResults
+                    .find { it.myoRepSetPosition == null }!!
+                    .let { activationSet -> activationSet.repRangeTop!! > totalRepsCompleted }
             } else {
-                previousMyoRepSets.size + 1 < (myoRepSetGoals.maxSets ?: Int.MAX_VALUE) &&
+                previousMyoRepSetResults.size + 1 < (myoRepSetGoals.maxSets ?: Int.MAX_VALUE) &&
                         completedReps > myoRepSetGoals.repFloor!!
             }
         }
 
         fun shouldContinueMyoReps(
             completedSet: LoggingMyoRepSetDto,
-            previousMyoRepSets: List<LoggingMyoRepSetDto>,
+            myoRepSetResults: List<LoggingMyoRepSetDto>,
         ): Boolean {
             if (!completedSet.complete ||
                 completedSet.completedReps == null ||
                 completedSet.completedWeight == null ||
-                completedSet.completedRpe == null) {
+                completedSet.completedRpe == null ||
+                myoRepSetResults.any {
+                    (completedSet.myoRepSetPosition ?: -1) < (it.myoRepSetPosition ?: -1)
+                }) {
                 return false
             }
 
@@ -45,7 +49,10 @@ class MyoRepSetGoalValidator {
                 completedRpe = completedSet.completedRpe,
                 completedReps = completedSet.completedReps,
                 myoRepSetGoals = completedSet,
-                previousMyoRepSets = previousMyoRepSets)
+                previousMyoRepSetResults = if (completedSet.myoRepSetPosition != null)
+                    myoRepSetResults.filter { it.myoRepSetPosition != completedSet.myoRepSetPosition }
+                else listOf()
+            )
         }
     }
 }

@@ -138,7 +138,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
 
                             is MyoRepSetDto -> {
                                 (currSetMyoRepResults?.fastMap {
-                                    val displayResult = displayResults["${it.setPosition}-${it.myoRepSetPosition}"]
+                                    val myoRepDisplayResult = displayResults["${it.setPosition}-${it.myoRepSetPosition}"]
                                     val weightRecommendation = if (criterionMet) {
                                         incrementWeight(workoutLift, it)
                                     } else {
@@ -156,7 +156,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         setMatching = set.setMatching,
                                         repFloor = set.repFloor,
                                         maxSets = set.maxSets,
-                                        previousSetResultLabel = getPreviousSetResultLabel(result = displayResult),
+                                        previousSetResultLabel = getPreviousSetResultLabel(result = myoRepDisplayResult),
                                         repRangePlaceholder = if (it.myoRepSetPosition == null) {
                                             "${set.repRangeBottom}-${set.repRangeTop}"
                                         } else if (set.repFloor != null) {

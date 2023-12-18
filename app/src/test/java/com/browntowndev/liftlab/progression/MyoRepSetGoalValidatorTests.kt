@@ -64,7 +64,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)
@@ -129,7 +129,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)
@@ -194,7 +194,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(true, result)
@@ -221,7 +221,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = listOf(),
+            myoRepSetResults = listOf(),
         )
 
         Assert.assertEquals(true, result)
@@ -248,7 +248,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = listOf(),
+            myoRepSetResults = listOf(),
         )
 
         Assert.assertEquals(false, result)
@@ -312,7 +312,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)
@@ -373,7 +373,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)

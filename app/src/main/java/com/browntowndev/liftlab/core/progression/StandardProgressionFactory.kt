@@ -240,7 +240,7 @@ class StandardProgressionFactory: ProgressionFactory {
                     completedRpe = lastCompletedSet.rpe,
                     completedReps = lastCompletedSet.reps,
                     myoRepSetGoals = set,
-                    previousMyoRepSets = myoRepSets,
+                    previousMyoRepSetResults = myoRepSets,
                 )
             ) {
                 myoRepSets.add(

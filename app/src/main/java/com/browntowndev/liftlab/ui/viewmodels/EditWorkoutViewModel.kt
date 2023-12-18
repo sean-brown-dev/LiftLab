@@ -165,13 +165,13 @@ class EditWorkoutViewModel(
                     restTime = null,
                     restTimerEnabled = false,
                     note = null,
-                    sets = groupedResults.value.fastMap { setLogEntry ->
+                    sets = groupedResults.value.sortedBy { it.setPosition + (it.myoRepSetPosition ?: -1) }.fastMap { setLogEntry ->
                         when (setLogEntry.setType) {
                             SetType.STANDARD ->
                                 LoggingStandardSetDto(
                                     position = setLogEntry.setPosition,
-                                    repRangeTop = setLogEntry.repRangeTop,
-                                    repRangeBottom = setLogEntry.repRangeBottom,
+                                    repRangeTop = setLogEntry.repRangeTop!!,
+                                    repRangeBottom = setLogEntry.repRangeBottom!!,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = setLogEntry.weightRecommendation,
                                     hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
@@ -202,7 +202,9 @@ class EditWorkoutViewModel(
                                         liftPosition = lift.liftPosition,
                                         setPosition = setLogEntry.setPosition,
                                     ),
-                                    repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
+                                    repRangePlaceholder = if (setLogEntry.repRangeBottom != null && setLogEntry.repRangeTop != null) {
+                                        "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}"
+                                    } else "",
                                     setMatching = setLogEntry.setMatching!!,
                                     maxSets = setLogEntry.maxSets,
                                     repFloor = setLogEntry.repFloor,
@@ -214,8 +216,8 @@ class EditWorkoutViewModel(
                             SetType.DROP_SET ->
                                 LoggingDropSetDto(
                                     position = setLogEntry.setPosition,
-                                    repRangeTop = setLogEntry.repRangeTop,
-                                    repRangeBottom = setLogEntry.repRangeBottom,
+                                    repRangeTop = setLogEntry.repRangeTop!!,
+                                    repRangeBottom = setLogEntry.repRangeBottom!!,
                                     rpeTarget = setLogEntry.rpeTarget,
                                     weightRecommendation = setLogEntry.weightRecommendation,
                                     hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,

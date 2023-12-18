@@ -162,47 +162,39 @@ abstract class BaseWorkoutViewModel(
         thisMyoRepSet: LoggingMyoRepSetDto,
         completedWeight: Float,
     ): List<GenericLoggingSet> {
-        val myoRepSets = mutableLoggingSets.filterIsInstance<LoggingMyoRepSetDto>()
-        val previousMyoRepResults = myoRepSets
-            .filter {
-                (thisMyoRepSet.myoRepSetPosition ?: -1) > (it.myoRepSetPosition ?: -1)
-            }
 
-        val hasMyoRepSetsAfter = myoRepSets
-            .any {
-                (thisMyoRepSet.myoRepSetPosition ?: -1) < (it.myoRepSetPosition ?: -1)
-            }
+        val myoRepSetResults = mutableLoggingSets
+            .filterIsInstance<LoggingMyoRepSetDto>()
+            .filter { it.position == thisMyoRepSet.position }
 
-        return if (!hasMyoRepSetsAfter && // Don't add more myorep sets if it already has them
-            MyoRepSetGoalValidator.shouldContinueMyoReps(
-                completedSet = thisMyoRepSet,
-                previousMyoRepSets = previousMyoRepResults,
-            )
-        ) {
-            mutableLoggingSets.apply {
-                val myoRepSetIndex = if(thisMyoRepSet.myoRepSetPosition != null) {
-                    thisMyoRepSet.myoRepSetPosition + 1
-                } else 0
-                val insertAtIndex = 1 + thisMyoRepSet.position + myoRepSetIndex
-                add(
-                    index = insertAtIndex,
-                    thisMyoRepSet.copy(
-                        myoRepSetPosition = previousMyoRepResults.size,
-                        weightRecommendation = completedWeight,
-                        repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
-                        else "—",
-                        complete = false,
-                        completedWeight = null,
-                        completedReps = null,
-                        completedRpe = null,
+        return MyoRepSetGoalValidator.shouldContinueMyoReps(
+            completedSet = thisMyoRepSet,
+            myoRepSetResults = myoRepSetResults,
+        ).let { continueMyoReps ->
+            if (continueMyoReps) {
+                mutableLoggingSets.apply {
+                    val insertAtIndex = indexOf(thisMyoRepSet) + 1
+                    add(
+                        index = insertAtIndex,
+                        thisMyoRepSet.copy(
+                            myoRepSetPosition = myoRepSetResults.size - 1,
+                            weightRecommendation = completedWeight,
+                            repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
+                            else "—",
+                            complete = false,
+                            rpeTarget = 10f,
+                            completedWeight = null,
+                            completedReps = null,
+                            completedRpe = null,
+                        )
                     )
-                )
-            }
-        } else mutableLoggingSets
+                }
+            } else mutableLoggingSets
+        }
     }
 
     private fun copyDropSetWithUpdatedWeightRecommendation(
-        dropFromSet: GenericLoggingSet,
+        dropFromSet: LoggingStandardSetDto,
         dropSet: LoggingDropSetDto,
         increment: Float,
     ): LoggingDropSetDto {
@@ -217,7 +209,7 @@ abstract class BaseWorkoutViewModel(
             } else {
                 (CalculationEngine.calculateSuggestedWeight(
                     completedWeight = dropFromSet.completedWeight!!,
-                    completedReps = dropFromSet.completedReps!!,
+                    completedReps = dropFromSet.completedReps,
                     completedRpe = dropFromSet.completedRpe!!,
                     repGoal = dropFromSet.repRangeTop,
                     rpeGoal = dropFromSet.rpeTarget,
@@ -253,7 +245,7 @@ abstract class BaseWorkoutViewModel(
                         weightRecommendation = completedSet!!.completedWeight
                     )
                     is LoggingDropSetDto -> copyDropSetWithUpdatedWeightRecommendation(
-                        dropFromSet = currentSets[setPosition],
+                        dropFromSet = currentSets[setPosition] as LoggingStandardSetDto,
                         dropSet = set,
                         increment = increment,
                     )
@@ -558,7 +550,7 @@ abstract class BaseWorkoutViewModel(
                 workoutLift.sets.fastForEach { set ->
                     val result = resultsByLift["${workoutLift.liftId}-${set.position}"]
                     if (result != null &&
-                        ((set.completedReps ?: -1) < set.repRangeBottom ||
+                        ((set.completedReps ?: -1) < set.repRangeBottom!! ||
                                 (set.completedRpe ?: -1f) > set.rpeTarget)) {
                         val lpResults = result as LinearProgressionSetResultDto
                         setResultsToUpdate.add(

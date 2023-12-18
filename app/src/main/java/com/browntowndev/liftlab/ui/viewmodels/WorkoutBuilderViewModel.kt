@@ -604,7 +604,10 @@ class WorkoutBuilderViewModel(
         )
 
         if (updatedSet != null) {
-            _state.update { updatedStateCopy }
+            executeInTransactionScope {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
@@ -623,7 +626,10 @@ class WorkoutBuilderViewModel(
         )
 
         if (updatedSet != null) {
-            _state.update { updatedStateCopy }
+            executeInTransactionScope {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 

@@ -7,8 +7,8 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingS
 data class LoggingMyoRepSetDto(
     override val position: Int,
     override val rpeTarget: Float,
-    override val repRangeBottom: Int,
-    override val repRangeTop: Int,
+    override val repRangeBottom: Int?,
+    override val repRangeTop: Int?,
     override val weightRecommendation: Float?,
     override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
