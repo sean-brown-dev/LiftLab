@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -379,6 +381,19 @@ class WorkoutViewModel(
             }.map {
                 it.id
             }
+
+        val setResultsInDb = loggingRepository.psrSelector(
+            workoutLogEntryId = workoutLogEntryId,
+            workoutId = mutableWorkoutState.value.workout!!.id,
+            mesocycle = programMetadata.currentMesocycle,
+            microcycle = programMetadata.currentMicrocycle,
+            excludeFromCopy = excludeFromCopy,
+        )
+
+        Log.d(Log.DEBUG.toString(), setResultsInDb.size.toString())
+        setResultsInDb.fastForEach {
+            Log.d(Log.DEBUG.toString(), it.id.toString())
+        }
 
         // Copy all of the set results from this workout into the set history table
         loggingRepository.insertFromPreviousSetResults(

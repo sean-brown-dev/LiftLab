@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
+import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
@@ -67,6 +68,22 @@ class LoggingRepository(
                     )
                 }
             }
+    }
+
+    suspend fun psrSelector(
+        workoutLogEntryId: Long,
+        workoutId: Long,
+        mesocycle: Int,
+        microcycle: Int,
+        excludeFromCopy: List<Long>
+    ): List<SetLogEntry> {
+        return loggingDao.psrSelector(
+            workoutLogEntryId = workoutLogEntryId,
+            workoutId = workoutId,
+            mesocycle = mesocycle,
+            microcycle = microcycle,
+            excludeFromCopy = excludeFromCopy,
+        )
     }
 
     suspend fun insertFromPreviousSetResults(

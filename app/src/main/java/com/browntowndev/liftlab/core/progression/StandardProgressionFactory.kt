@@ -3,6 +3,8 @@ package com.browntowndev.liftlab.core.progression
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -93,83 +95,77 @@ class StandardProgressionFactory: ProgressionFactory {
         microCycle: Int,
     ): LoggingWorkoutDto {
         return if (inProgressSetResults.isNotEmpty()) {
-            loggingWorkout.copy(
+            val workoutWithInProgressResults = loggingWorkout.copy(
                 lifts = loggingWorkout.lifts.fastMap { workoutLift ->
                     workoutLift.copy(
-                        sets = workoutLift.sets.flatMapIndexed { index, set ->
-                            copyInProgressSet(
-                                inProgressSetResults,
-                                workoutLift,
-                                set,
-                                index,
-                                microCycle
-                            )
-                        }
+                        sets = copyInProgressSets(
+                            workoutLift = workoutLift,
+                            inProgressCompletedSets = inProgressSetResults,
+                            isDeloadWeek = (microCycle + 1) == workoutLift.deloadWeek,
+                        )
                     )
                 }
             )
+            workoutWithInProgressResults
         } else loggingWorkout
     }
 
-    private fun copyInProgressSet(
-        inProgressCompletedSets: Map<String, SetResult>,
+    private fun copyInProgressSets(
         workoutLift: LoggingWorkoutLiftDto,
-        set: GenericLoggingSet,
-        index: Int,
-        microCycle: Int,
+        inProgressCompletedSets: Map<String, SetResult>,
+        isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
-        val completedSet = inProgressCompletedSets[
-            "${workoutLift.liftId}-${set.position}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
-        ]
-        val prevCompletedSet = inProgressCompletedSets[
-            "${workoutLift.liftId}-${set.position - 1}-null"
-        ]
+        val remainingMyoRepSetResults = inProgressCompletedSets.filter { it.value is MyoRepSetResultDto }.toMutableMap()
 
-        return if (completedSet != null) {
-            when (set) {
-                is LoggingStandardSetDto -> listOf(
-                    set.copy(
-                        complete = true,
-                        completedWeight = completedSet.weight,
-                        completedReps = completedSet.reps,
-                        completedRpe = completedSet.rpe,
-                    )
-                )
+        return workoutLift.sets.map { set ->
+            val currSetKey = "${workoutLift.liftId}-${set.position}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
+            val completedSet = inProgressCompletedSets[currSetKey]
+            val prevCompletedSet = inProgressCompletedSets[
+                "${workoutLift.liftId}-${set.position - 1}-null"
+            ]
 
-                is LoggingDropSetDto -> listOf(
-                    set.copy(
-                        complete = true,
-                        completedWeight = completedSet.weight,
-                        completedReps = completedSet.reps,
-                        completedRpe = completedSet.rpe,
-                    )
-                )
+            if (completedSet != null) {
+                when (set) {
+                    is LoggingStandardSetDto ->
+                        set.copy(
+                            complete = true,
+                            completedWeight = completedSet.weight,
+                            completedReps = completedSet.reps,
+                            completedRpe = completedSet.rpe,
+                        )
 
-                is LoggingMyoRepSetDto -> {
-                    copyInProgressMyoRepSets(
-                        set,
-                        completedSet,
-                        index,
-                        workoutLift,
-                        inProgressCompletedSets,
-                        microCycle,
-                    )
+                    is LoggingDropSetDto ->
+                        set.copy(
+                            complete = true,
+                            completedWeight = completedSet.weight,
+                            completedReps = completedSet.reps,
+                            completedRpe = completedSet.rpe,
+                        )
+
+                    is LoggingMyoRepSetDto -> {
+                        remainingMyoRepSetResults.remove(currSetKey)
+
+                        set.copy(
+                            complete = true,
+                            completedWeight = completedSet.weight,
+                            completedReps = completedSet.reps,
+                            completedRpe = completedSet.rpe,
+                        )
+                    }
+
+                    else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
-
-                else -> throw Exception("${set::class.simpleName} is not defined.")
-            }
-        } else if (
-            set !is LoggingMyoRepSetDto &&
-            set.weightRecommendation == null &&
-            prevCompletedSet != null
-        ) {
-            listOf(
+            } else if (
+                set !is LoggingMyoRepSetDto &&
+                set.weightRecommendation == null &&
+                prevCompletedSet != null
+            ) {
                 when (set) {
                     is LoggingDropSetDto -> {
                         val increment = workoutLift.incrementOverride
                             ?: SettingsManager.getSetting(
-                                SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+                                INCREMENT_AMOUNT,
+                                DEFAULT_INCREMENT_AMOUNT
                             )
 
                         val weightRecommendation = (prevCompletedSet.weight * (1 - set.dropPercentage))
@@ -177,97 +173,132 @@ class StandardProgressionFactory: ProgressionFactory {
 
                         set.copy(weightRecommendation = weightRecommendation)
                     }
+
                     is LoggingStandardSetDto -> set.copy(weightRecommendation = prevCompletedSet.weight)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
-            )
-        } else listOf(set)
+            } else set
+        }.toMutableList().apply {
+            addMissingMyorepSetsFromInProgressResults(remainingMyoRepSetResults, isDeloadWeek, workoutLift)
+        }
     }
 
-    private fun copyInProgressMyoRepSets(
-        set: LoggingMyoRepSetDto,
-        completedSet: SetResult,
-        index: Int,
-        workoutLift: LoggingWorkoutLiftDto,
-        inProgressCompletedSets: Map<String, SetResult>,
-        microCycle: Int,
-    ): MutableList<LoggingMyoRepSetDto> {
-        val myoRepSets = mutableListOf(
-            set.copy(
-                complete = true,
-                completedWeight = completedSet.weight,
-                completedReps = completedSet.reps,
-                completedRpe = completedSet.rpe,
-            )
-        )
+    private fun MutableList<GenericLoggingSet>.addMissingMyorepSetsFromInProgressResults(
+        remainingMyoRepSetResults: MutableMap<String, SetResult>,
+        isDeloadWeek: Boolean,
+        workoutLift: LoggingWorkoutLiftDto
+    ) {
+        if (workoutLift.sets.none { it is LoggingMyoRepSetDto }) return
 
-        val hasMoreSets = index < (workoutLift.sets.size - 1)
-        val nextSet = if (hasMoreSets) workoutLift.sets[index + 1] else null
-        val isLast = !hasMoreSets || (nextSet!!.position != set.position)
-        var nextInProgressSetResult = inProgressCompletedSets[
-            "${workoutLift.liftId}-${set.position}-${(set.myoRepSetPosition ?: -1) + 1}"
-        ] as? MyoRepSetResultDto
+        remainingMyoRepSetResults.values
+            .filterIsInstance<MyoRepSetResultDto>()
+            .sortedWith(compareBy<MyoRepSetResultDto> { it.setPosition }.thenBy {
+                it.myoRepSetPosition ?: -1
+            })
+            .forEach { myoRepResult ->
+                // Try and find the logging myorep set that happened prior to this result. It should exist.
+                val myoRepSetIndexPreviousToThisResult = indexOfLast {
+                    it.position == myoRepResult.setPosition &&
+                            (it as? LoggingMyoRepSetDto)?.myoRepSetPosition ==
+                            when (myoRepResult.myoRepSetPosition) {
+                                null -> -1
+                                0 -> null
+                                else -> myoRepResult.myoRepSetPosition - 1
+                            }
+                }
 
-        while (isLast && nextInProgressSetResult != null) {
-            val myoRepSetPosition = nextInProgressSetResult.myoRepSetPosition!!
-            val isDeloadWeek = (microCycle + 1) == workoutLift.deloadWeek
+                if (myoRepSetIndexPreviousToThisResult > -1) {
+                    val lastMyoRepSet =
+                        this[myoRepSetIndexPreviousToThisResult] as? LoggingMyoRepSetDto
 
-            myoRepSets.add(
-                set.copy(
-                    complete = true,
-                    myoRepSetPosition = myoRepSetPosition,
-                    repRangePlaceholder = if (!isDeloadWeek && set.repFloor != null) {
-                        ">${set.repFloor}"
-                    } else if (!isDeloadWeek) {
-                        "—"
-                    } else {
-                        set.repRangeBottom.toString()
-                    },
-                    completedWeight = nextInProgressSetResult.weight,
-                    completedReps = nextInProgressSetResult.reps,
-                    completedRpe = nextInProgressSetResult.rpe,
-                )
-            )
+                    if (lastMyoRepSet != null) {
+                        add(
+                            index = myoRepSetIndexPreviousToThisResult + 1,
+                            lastMyoRepSet.copy(
+                                myoRepSetPosition = myoRepResult.myoRepSetPosition,
+                                repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
+                                    ">${lastMyoRepSet.repFloor}"
+                                } else if (!isDeloadWeek) {
+                                    "—"
+                                } else {
+                                    lastMyoRepSet.repRangeBottom.toString()
+                                },
+                                complete = true,
+                                completedWeight = myoRepResult.weight,
+                                completedReps = myoRepResult.reps,
+                                completedRpe = myoRepResult.rpe,
+                            )
+                        )
 
-            val lastCompletedSet = nextInProgressSetResult.copy()
-            nextInProgressSetResult =
-                inProgressCompletedSets[
-                    "${workoutLift.liftId}-${set.position}-${(nextInProgressSetResult.myoRepSetPosition ?: -1) + 1}"
-                ] as? MyoRepSetResultDto
+                        // If this was the last myorep for this set position add another one if need be
+                        if (!remainingMyoRepSetResults.containsKey("${workoutLift.liftId}-${myoRepResult.setPosition}-${(myoRepResult.myoRepSetPosition ?: -1) + 1}")) {
+                            val myoRepResults =
+                                filterIsInstance<LoggingMyoRepSetDto>().filter { it.position == myoRepResult.setPosition }
+                            MyoRepSetGoalValidator.shouldContinueMyoReps(
+                                completedSet = lastMyoRepSet,
+                                myoRepSetResults = myoRepResults,
+                            ).let { continueMyoReps ->
+                                if (continueMyoReps) {
+                                    add(
+                                        index = myoRepSetIndexPreviousToThisResult + 2,
+                                        lastMyoRepSet.copy(
+                                            myoRepSetPosition = if (myoRepResult.myoRepSetPosition == null) 0 else myoRepResult.myoRepSetPosition + 1,
+                                            repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
+                                                ">${lastMyoRepSet.repFloor}"
+                                            } else if (!isDeloadWeek) {
+                                                "—"
+                                            } else {
+                                                lastMyoRepSet.repRangeBottom.toString()
+                                            },
+                                            weightRecommendation = lastMyoRepSet.completedWeight,
+                                            complete = false,
+                                            completedWeight = null,
+                                            completedReps = null,
+                                            completedRpe = null,
+                                        )
+                                    )
+                                }
 
-            if (nextInProgressSetResult == null &&
-                MyoRepSetGoalValidator.shouldContinueMyoReps(
-                    completedRpe = lastCompletedSet.rpe,
-                    completedReps = lastCompletedSet.reps,
-                    myoRepSetGoals = set,
-                    previousMyoRepSetResults = myoRepSets,
-                )
-            ) {
-                myoRepSets.add(
-                    LoggingMyoRepSetDto(
-                        position = set.position,
-                        myoRepSetPosition = myoRepSetPosition + 1,
-                        rpeTarget = set.rpeTarget,
-                        repRangeBottom = set.repRangeBottom,
-                        repRangeTop = set.repRangeTop,
-                        setMatching = set.setMatching,
-                        maxSets = set.maxSets,
-                        repFloor = set.repFloor,
-                        previousSetResultLabel = "—",
-                        repRangePlaceholder = if (!isDeloadWeek && set.repFloor != null) {
-                            ">${set.repFloor}"
-                        } else if (!isDeloadWeek) {
-                            "—"
-                        } else {
-                            set.repRangeBottom.toString()
-                        },
-                        weightRecommendation = completedSet.weight,
-                        hadInitialWeightRecommendation = true,
-                    )
-                )
+                                if (!continueMyoReps &&
+                                    MyoRepSetGoalValidator.shouldContinueMyoReps(
+                                        completedSet = lastMyoRepSet,
+                                        myoRepSetResults = myoRepResults,
+                                        activationSetAlwaysSuccess = true,
+                                    )
+                                ) {
+                                    add(
+                                        lastMyoRepSet.copy(
+                                            myoRepSetPosition = myoRepSetIndexPreviousToThisResult + 2,
+                                            repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
+                                                ">${lastMyoRepSet.repFloor}"
+                                            } else if (!isDeloadWeek) {
+                                                "—"
+                                            } else {
+                                                lastMyoRepSet.repRangeBottom.toString()
+                                            },
+                                            weightRecommendation = CalculationEngine.calculateSuggestedWeight(
+                                                completedWeight = lastMyoRepSet.completedWeight!!,
+                                                completedReps = lastMyoRepSet.completedReps!!,
+                                                completedRpe = lastMyoRepSet.completedRpe!!,
+                                                repGoal = lastMyoRepSet.repRangeBottom!!,
+                                                rpeGoal = lastMyoRepSet.rpeTarget,
+                                                roundingFactor = workoutLift.incrementOverride
+                                                    ?: SettingsManager.getSetting(
+                                                        INCREMENT_AMOUNT,
+                                                        DEFAULT_INCREMENT_AMOUNT,
+                                                    ),
+                                            ),
+                                            complete = false,
+                                            completedWeight = null,
+                                            completedReps = null,
+                                            completedRpe = null,
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
-        }
-
-        return myoRepSets
     }
 }

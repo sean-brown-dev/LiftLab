@@ -165,7 +165,11 @@ class EditWorkoutViewModel(
                     restTime = null,
                     restTimerEnabled = false,
                     note = null,
-                    sets = groupedResults.value.sortedBy { it.setPosition + (it.myoRepSetPosition ?: -1) }.fastMap { setLogEntry ->
+                    sets = groupedResults.value
+                        .sortedWith(
+                            compareBy<SetLogEntryDto> { it.setPosition }
+                                .thenBy { it.myoRepSetPosition ?: -1 }
+                        ).fastMap { setLogEntry ->
                         when (setLogEntry.setType) {
                             SetType.STANDARD ->
                                 LoggingStandardSetDto(

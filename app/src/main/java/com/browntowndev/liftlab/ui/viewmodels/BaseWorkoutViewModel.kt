@@ -160,7 +160,7 @@ abstract class BaseWorkoutViewModel(
     private fun updateLoggingSetsOnMyoRepSetCompletion(
         mutableLoggingSets: MutableList<GenericLoggingSet>,
         thisMyoRepSet: LoggingMyoRepSetDto,
-        completedWeight: Float,
+        roundingFactor: Float,
     ): List<GenericLoggingSet> {
 
         val myoRepSetResults = mutableLoggingSets
@@ -178,7 +178,7 @@ abstract class BaseWorkoutViewModel(
                         index = insertAtIndex,
                         thisMyoRepSet.copy(
                             myoRepSetPosition = myoRepSetResults.size - 1,
-                            weightRecommendation = completedWeight,
+                            weightRecommendation = thisMyoRepSet.completedWeight,
                             repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
                             else "—",
                             complete = false,
@@ -189,7 +189,38 @@ abstract class BaseWorkoutViewModel(
                         )
                     )
                 }
-            } else mutableLoggingSets
+            } else if (MyoRepSetGoalValidator.shouldContinueMyoReps(
+                    completedSet = thisMyoRepSet,
+                    myoRepSetResults = myoRepSetResults,
+                    activationSetAlwaysSuccess = true
+            )) {
+                mutableLoggingSets.apply {
+                    val insertAtIndex = indexOf(thisMyoRepSet) + 1
+                    add(
+                        index = insertAtIndex,
+                        thisMyoRepSet.copy(
+                            myoRepSetPosition = myoRepSetResults.size - 1,
+                            weightRecommendation = CalculationEngine.calculateSuggestedWeight(
+                                completedWeight = thisMyoRepSet.completedWeight!!,
+                                completedReps = thisMyoRepSet.completedReps!!,
+                                completedRpe = thisMyoRepSet.completedRpe!!,
+                                repGoal = thisMyoRepSet.repRangeBottom!!,
+                                rpeGoal = thisMyoRepSet.rpeTarget,
+                                roundingFactor = roundingFactor,
+                            ),
+                            repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
+                            else "—",
+                            complete = false,
+                            rpeTarget = 10f,
+                            completedWeight = null,
+                            completedReps = null,
+                            completedRpe = null,
+                        )
+                    )
+                }
+            } else {
+                mutableLoggingSets
+            }
         }
     }
 
@@ -258,7 +289,7 @@ abstract class BaseWorkoutViewModel(
             updateLoggingSetsOnMyoRepSetCompletion(
                 mutableLoggingSets = mutableSetCopy,
                 thisMyoRepSet = completedSet as LoggingMyoRepSetDto,
-                completedWeight = completedSet!!.completedWeight!!,
+                roundingFactor = increment,
             )
         } else mutableSetCopy
     }
@@ -393,8 +424,7 @@ abstract class BaseWorkoutViewModel(
                                 existing.liftId == result.liftId &&
                                         existing.liftPosition == result.liftPosition &&
                                         existing.setPosition == result.setPosition &&
-                                        (existing as? MyoRepSetResultDto)?.myoRepSetPosition ==
-                                        (result as? MyoRepSetResultDto)?.myoRepSetPosition
+                                        (existing as? MyoRepSetResultDto)?.myoRepSetPosition == (result as? MyoRepSetResultDto)?.myoRepSetPosition
                             }
 
                             if (existingResult != null) {

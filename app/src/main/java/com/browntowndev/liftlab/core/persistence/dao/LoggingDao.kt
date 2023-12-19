@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
+import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
@@ -18,14 +19,36 @@ interface LoggingDao {
     @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 
+    @Query("SELECT sr.previously_completed_set_id as 'set_log_entry_id', :workoutLogEntryId as 'workoutLogEntryId', wl.deloadWeek, sr.liftId, sr.setType, sr.liftPosition, wl.progressionScheme, " +
+            "sr.setPosition, sr.myoRepSetPosition, sr.weight, l.name as 'liftName', l.movementPattern as 'liftMovementPattern', sr.weightRecommendation, " +
+            "sr.reps, sr.rpe, sr.mesoCycle, sr.microCycle, wl.repRangeBottom, wl.repRangeTop, " +
+            "COALESCE(CASE WHEN sr.myoRepSetPosition IS NOT NULL THEN 10 ELSE NULL END, s.rpeTarget, wl.rpeTarget) as 'rpeTarget'," +
+            "s.setMatching, s.maxSets, s.repFloor, s.dropPercentage, sr.isDeload " +
+            "FROM previousSetResults sr " +
+            "INNER JOIN workoutLifts wl ON (wl.liftId = sr.liftId AND wl.position = sr.liftPosition) " +
+            "LEFT JOIN sets s ON s.workoutLiftId = wl.workout_lift_id AND s.position = sr.setPosition " +
+            "INNER JOIN lifts l ON l.lift_id = wl.liftId " +
+            "WHERE sr.workoutId = :workoutId AND " +
+            "wl.workoutId = :workoutId AND " +
+            "sr.mesoCycle = :mesocycle AND " +
+            "sr.microCycle = :microcycle AND " +
+            "sr.previously_completed_set_id NOT IN (:excludeFromCopy)")
+    suspend fun psrSelector(
+        workoutLogEntryId: Long,
+        workoutId: Long,
+        mesocycle: Int,
+        microcycle: Int,
+        excludeFromCopy: List<Long>
+    ): List<SetLogEntry>
+
     @Query("INSERT INTO setLogEntries " +
             "(workoutLogEntryId, workoutLiftDeloadWeek, liftId, setType, liftPosition, progressionScheme, " +
             "setPosition, myoRepSetPosition, weight, liftName, liftMovementPattern, weightRecommendation, " +
             "reps, rpe, mesoCycle, microCycle, repRangeBottom, repRangeTop, rpeTarget, setMatching, maxSets, " +
             "repFloor, dropPercentage, isDeload) " +
-            "SELECT :workoutLogEntryId, wl.deloadWeek, sr.liftId, setType, liftPosition, wl.progressionScheme, " +
-            "setPosition, myoRepSetPosition, weight, l.name, l.movementPattern, sr.weightRecommendation, " +
-            "reps, rpe, mesoCycle, microCycle, wl.repRangeBottom, wl.repRangeTop, " +
+            "SELECT :workoutLogEntryId, wl.deloadWeek, sr.liftId, sr.setType, sr.liftPosition, wl.progressionScheme, " +
+            "sr.setPosition, sr.myoRepSetPosition, sr.weight, l.name, l.movementPattern, sr.weightRecommendation, " +
+            "sr.reps, sr.rpe, sr.mesoCycle, sr.microCycle, wl.repRangeBottom, wl.repRangeTop, " +
             "COALESCE(CASE WHEN sr.myoRepSetPosition IS NOT NULL THEN 10 ELSE NULL END, s.rpeTarget, wl.rpeTarget), " +
             "s.setMatching, s.maxSets, s.repFloor, s.dropPercentage, sr.isDeload " +
             "FROM previousSetResults sr " +
