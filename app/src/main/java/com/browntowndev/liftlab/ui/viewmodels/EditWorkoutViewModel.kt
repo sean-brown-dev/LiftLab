@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -67,11 +68,15 @@ class EditWorkoutViewModel(
     init {
         executeInTransactionScope {
             val workoutLog = loggingRepository.get(workoutLogEntryId = workoutLogEntryId)
-            val previousWorkoutLog = loggingRepository.getFirstPriorToDate(
-                historicalWorkoutNameId = workoutLog!!.historicalWorkoutNameId,
-                date = workoutLog.date
+            val previousResults = loggingRepository.getMostRecentSetResultsForLiftIdsPriorToDate(
+                liftIds = workoutLog!!.setResults.map { it.liftId },
+                linearProgressionLiftIds = workoutLog.setResults
+                    .filter { it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
+                    .map { it.liftId }
+                    .toSet(),
+                date = workoutLog.date,
             )
-            val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousWorkoutLog = previousWorkoutLog)
+            val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousResults = previousResults)
             mutableWorkoutState.update {
                 it.copy(workout = workout)
             }
@@ -122,12 +127,12 @@ class EditWorkoutViewModel(
     }
 
     private fun getPreviousSetResultLabel(
-        previousSetResults: Map<String, Map<Int, SetLogEntryDto>>?,
+        previousSetResults: Map<Long, Map<String, SetResult>>,
         liftId: Long,
-        liftPosition: Int,
         setPosition: Int,
+        myoRepSetPosition: Int?,
     ): String {
-        val result = previousSetResults?.get("${liftId}-${liftPosition}")?.get(setPosition)
+        val result = previousSetResults[liftId]?.get("$setPosition-$myoRepSetPosition")
         return if (result != null) {
             "${result.weight.toString().removeSuffix(".0")}x${result.reps} @${result.rpe}"
         } else {
@@ -135,13 +140,13 @@ class EditWorkoutViewModel(
         }
     }
 
-    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntryDto, previousWorkoutLog: WorkoutLogEntryDto?): LoggingWorkoutDto {
-        val previousSetResults = previousWorkoutLog?.setResults
-            ?.groupBy { "${it.liftId}-${it.liftPosition}" }
-            ?.entries
-            ?.associate {  lift ->
+    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntryDto, previousResults: List<SetResult>): LoggingWorkoutDto {
+        val previousSetResults = previousResults
+            .groupBy { it.liftId }
+            .entries
+            .associate {  lift ->
                 lift.key to
-                        lift.value.associateBy { it.setPosition }
+                        lift.value.associateBy { "${it.setPosition}-${(it as? MyoRepSetResultDto)?.myoRepSetPosition}" }
             }
         var fauxWorkoutLiftId = 0L
         return LoggingWorkoutDto(
@@ -182,8 +187,8 @@ class EditWorkoutViewModel(
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
-                                        liftPosition = lift.liftPosition,
                                         setPosition = setLogEntry.setPosition,
+                                        myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                     ),
                                     repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                     complete = true,
@@ -203,8 +208,8 @@ class EditWorkoutViewModel(
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
-                                        liftPosition = lift.liftPosition,
                                         setPosition = setLogEntry.setPosition,
+                                        myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                     ),
                                     repRangePlaceholder = if (setLogEntry.repRangeBottom != null && setLogEntry.repRangeTop != null) {
                                         "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}"
@@ -228,8 +233,8 @@ class EditWorkoutViewModel(
                                     previousSetResultLabel = getPreviousSetResultLabel(
                                         previousSetResults = previousSetResults,
                                         liftId = lift.liftId,
-                                        liftPosition = lift.liftPosition,
                                         setPosition = setLogEntry.setPosition,
+                                        myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                     ),
                                     repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                     dropPercentage = setLogEntry.dropPercentage!!,
@@ -297,7 +302,7 @@ class EditWorkoutViewModel(
         setPosition: Int,
         myoRepSetPosition: Int?
     ) {
-        loggingRepository.delete(
+        loggingRepository.deleteSetLogEntry(
             workoutId = workoutId,
             liftPosition = liftPosition,
             setPosition = setPosition,

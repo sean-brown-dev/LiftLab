@@ -14,6 +14,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
@@ -177,7 +178,8 @@ fun Workout(
                     set.position == (setPosition + 1) &&
                             set is LoggingDropSetDto
                 }
-                val startRestTimer = !hasDropSetAfter && restTimerEnabled
+                val startRestTimer = !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled
+                val setCountBeforeCompletion = state.workout!!.lifts.sumOf { it.setCount }
 
                 workoutViewModel.completeSet(
                     restTime = restTime,
@@ -194,7 +196,14 @@ fun Workout(
                         rpe = rpe,
                     ))
 
-                if (startRestTimer) {
+                val myoRepsCompleted = setType == SetType.MYOREP &&
+                        setCountBeforeCompletion == state.workout!!.lifts.sumOf { it.setCount }
+
+                if (startRestTimer || myoRepsCompleted) {
+                    if (myoRepsCompleted) {
+                        workoutViewModel.saveRestTimerInProgress(restTime)
+                    }
+
                     mutateTopAppBarControlValue(
                         AppBarMutateControlRequest(REST_TIMER, Triple(restTime, restTime, true).right())
                     )

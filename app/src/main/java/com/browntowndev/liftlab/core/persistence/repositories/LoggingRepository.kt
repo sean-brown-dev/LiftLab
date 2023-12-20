@@ -8,7 +8,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
@@ -52,7 +51,6 @@ class LoggingRepository(
 
     suspend fun getMostRecentSetResultsForLiftIds(
         liftIds: List<Long>,
-        workoutId: Long,
         linearProgressionLiftIds: Set<Long>,
         includeDeload: Boolean,
     ): List<SetResult> {
@@ -61,7 +59,7 @@ class LoggingRepository(
                 workoutLog.setResults.fastMap { setLogEntry ->
                     setResultMapper.map(
                         from = setLogEntry,
-                        workoutId = workoutId,
+                        workoutId = workoutLog.workoutId,
                         isLinearProgression = linearProgressionLiftIds.contains(
                             setLogEntry.liftId
                         )
@@ -70,20 +68,24 @@ class LoggingRepository(
             }
     }
 
-    suspend fun psrSelector(
-        workoutLogEntryId: Long,
-        workoutId: Long,
-        mesocycle: Int,
-        microcycle: Int,
-        excludeFromCopy: List<Long>
-    ): List<SetLogEntry> {
-        return loggingDao.psrSelector(
-            workoutLogEntryId = workoutLogEntryId,
-            workoutId = workoutId,
-            mesocycle = mesocycle,
-            microcycle = microcycle,
-            excludeFromCopy = excludeFromCopy,
-        )
+    suspend fun getMostRecentSetResultsForLiftIdsPriorToDate(
+        liftIds: List<Long>,
+        linearProgressionLiftIds: Set<Long>,
+        date: Date,
+    ): List<SetResult> {
+        return workoutLogEntryMapper.map(
+            loggingDao.getMostRecentLogsForLiftIdsPriorToDate(liftIds, date)
+        ).flatMap { workoutLog ->
+            workoutLog.setResults.fastMap { setLogEntry ->
+                setResultMapper.map(
+                    from = setLogEntry,
+                    workoutId = workoutLog.workoutId,
+                    isLinearProgression = linearProgressionLiftIds.contains(
+                        setLogEntry.liftId
+                    )
+                )
+            }
+        }
     }
 
     suspend fun insertFromPreviousSetResults(
@@ -126,8 +128,8 @@ class LoggingRepository(
         )
     }
 
-    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
-        loggingDao.delete(
+    suspend fun deleteSetLogEntry(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
+        loggingDao.deleteSetLogEntry(
             workoutId = workoutId,
             liftPosition = liftPosition,
             setPosition = setPosition,
@@ -145,11 +147,5 @@ class LoggingRepository(
                 workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
             }
         )
-    }
-
-    suspend fun getFirstPriorToDate(historicalWorkoutNameId: Long, date: Date): WorkoutLogEntryDto? {
-        return workoutLogEntryMapper.map(
-            loggingDao.getFirstPriorToDate(historicalWorkoutNameId = historicalWorkoutNameId, date = date)
-        ).firstOrNull()
     }
 }

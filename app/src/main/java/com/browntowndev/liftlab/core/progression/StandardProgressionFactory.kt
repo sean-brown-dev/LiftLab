@@ -231,7 +231,8 @@ class StandardProgressionFactory: ProgressionFactory {
                         )
 
                         // If this was the last myorep for this set position add another one if need be
-                        if (!remainingMyoRepSetResults.containsKey("${workoutLift.liftId}-${myoRepResult.setPosition}-${(myoRepResult.myoRepSetPosition ?: -1) + 1}")) {
+                        val nextMyoRepSetPosition = (myoRepResult.myoRepSetPosition ?: -1) + 1
+                        if (!remainingMyoRepSetResults.containsKey("${workoutLift.liftId}-${myoRepResult.setPosition}-$nextMyoRepSetPosition")) {
                             val myoRepResults =
                                 filterIsInstance<LoggingMyoRepSetDto>().filter { it.position == myoRepResult.setPosition }
                             MyoRepSetGoalValidator.shouldContinueMyoReps(
@@ -242,7 +243,7 @@ class StandardProgressionFactory: ProgressionFactory {
                                     add(
                                         index = myoRepSetIndexPreviousToThisResult + 2,
                                         lastMyoRepSet.copy(
-                                            myoRepSetPosition = if (myoRepResult.myoRepSetPosition == null) 0 else myoRepResult.myoRepSetPosition + 1,
+                                            myoRepSetPosition = nextMyoRepSetPosition,
                                             repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
                                                 ">${lastMyoRepSet.repFloor}"
                                             } else if (!isDeloadWeek) {
@@ -267,8 +268,9 @@ class StandardProgressionFactory: ProgressionFactory {
                                     )
                                 ) {
                                     add(
+                                        index = myoRepSetIndexPreviousToThisResult + 2,
                                         lastMyoRepSet.copy(
-                                            myoRepSetPosition = myoRepSetIndexPreviousToThisResult + 2,
+                                            myoRepSetPosition = nextMyoRepSetPosition,
                                             repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
                                                 ">${lastMyoRepSet.repFloor}"
                                             } else if (!isDeloadWeek) {
