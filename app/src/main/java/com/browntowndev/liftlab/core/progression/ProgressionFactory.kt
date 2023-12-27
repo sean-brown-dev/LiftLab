@@ -8,6 +8,8 @@ interface ProgressionFactory {
     fun calculate(
         workout: WorkoutDto,
         previousSetResults: List<SetResult>,
+        previousResultsForDisplay: List<SetResult>,
+        inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
         onlyUseResultsForLiftsInSamePosition: Boolean,

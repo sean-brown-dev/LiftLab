@@ -15,4 +15,5 @@ interface SetResult {
     val mesoCycle: Int
     val microCycle: Int
     val setType: SetType
+    val isDeload: Boolean
 }

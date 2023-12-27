@@ -7,7 +7,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 
 class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
-
     override fun allSetsMetCriterion(
         lift: StandardWorkoutLiftDto,
         previousSetResults: List<SetResult>,

@@ -168,6 +168,7 @@ class LiftLibraryViewModel(
                         liftSecondaryVolumeTypes = newLift.secondaryVolumeTypesBitmask,
                         position = position,
                         deloadWeek = null,
+                        note = null,
                         setCount = 3,
                         incrementOverride = newLift.incrementOverride,
                         restTime = newLift.restTime,

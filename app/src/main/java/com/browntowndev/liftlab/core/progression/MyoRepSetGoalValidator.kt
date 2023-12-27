@@ -1,51 +1,49 @@
 package com.browntowndev.liftlab.core.progression
 
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 
 class MyoRepSetGoalValidator {
     companion object {
         fun shouldContinueMyoReps(
-                completedRpe: Float,
-                completedReps: Int,
-                myoRepSetGoals: LoggingMyoRepSetDto,
-                previousMyoRepSets: List<LoggingMyoRepSetDto>,
-            ): Boolean {
-            val isActivationSet = previousMyoRepSets.isEmpty()
-            val metGoals = completedRpe == myoRepSetGoals.rpeTarget
+            completedSet: LoggingMyoRepSetDto,
+            myoRepSetResults: List<LoggingMyoRepSetDto>,
+            activationSetAlwaysSuccess: Boolean = false,
+        ): Boolean {
+            return myoRepSetResults.last() == completedSet &&
+                    allSetsCompleted(myoRepSetResults = myoRepSetResults) &&
+                    shouldContinueMyoReps(myoRepSetResults = myoRepSetResults, activationSetAlwaysSuccess = activationSetAlwaysSuccess)
+        }
 
-            return metGoals && if (isActivationSet) {
-                completedReps >= myoRepSetGoals.repRangeBottom
-            } else if (myoRepSetGoals.setMatching) {
-                val totalSetsCompleted = previousMyoRepSets.sumOf { prevSet ->
-                    if (prevSet.myoRepSetPosition != null) {
-                        prevSet.completedReps ?: 0
-                    } else 0
-                } + completedReps
-
-                myoRepSetGoals.repRangeTop > totalSetsCompleted
-            } else {
-                previousMyoRepSets.size + 1 < (myoRepSetGoals.maxSets ?: Int.MAX_VALUE) &&
-                        completedReps > myoRepSetGoals.repFloor!!
+        private fun allSetsCompleted(myoRepSetResults: List<LoggingMyoRepSetDto>): Boolean {
+            return myoRepSetResults.all {
+                it.complete &&
+                        it.completedReps != null &&
+                        it.completedWeight != null &&
+                        it.completedRpe != null
             }
         }
 
-        fun shouldContinueMyoReps(
-            completedSet: LoggingMyoRepSetDto,
-            previousMyoRepSets: List<LoggingMyoRepSetDto>,
+        private fun shouldContinueMyoReps(
+            myoRepSetResults: List<LoggingMyoRepSetDto>,
+            activationSetAlwaysSuccess: Boolean,
         ): Boolean {
-            if (!completedSet.complete ||
-                completedSet.completedReps == null ||
-                completedSet.completedWeight == null ||
-                completedSet.completedRpe == null) {
-                return false
-            }
+            val completedSet = myoRepSetResults.last()
+            val isActivationSet = myoRepSetResults.size == 1
 
-            return shouldContinueMyoReps(
-                completedRpe = completedSet.completedRpe,
-                completedReps = completedSet.completedReps,
-                myoRepSetGoals = completedSet,
-                previousMyoRepSets = previousMyoRepSets)
+            return if (isActivationSet) {
+                activationSetAlwaysSuccess || (completedSet.completedReps!! + (10 - completedSet.completedRpe!!)) >=
+                        (completedSet.repRangeBottom!! + (10 - completedSet.rpeTarget))
+            } else if (completedSet.setMatching) {
+                val myoRepSetsExcludingActivation = myoRepSetResults.filter { it.myoRepSetPosition != null }
+                val totalRepsCompleted = myoRepSetsExcludingActivation.sumOf { it.completedReps ?: 0 }
+
+                myoRepSetResults
+                    .find { it.myoRepSetPosition == null }!!
+                    .let { activationSet -> activationSet.completedReps!! > totalRepsCompleted }
+            } else {
+                myoRepSetResults.size < (completedSet.maxSets ?: Int.MAX_VALUE) &&
+                        completedSet.completedReps!! > completedSet.repFloor!!
+            }
         }
     }
 }

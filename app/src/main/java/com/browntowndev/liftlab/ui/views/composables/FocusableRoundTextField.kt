@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.composables
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -19,6 +20,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
@@ -40,6 +42,7 @@ fun FocusableRoundTextField(
     ),
     placeholder: String = "",
     focus: Boolean = true,
+    textStyle: TextStyle = LocalTextStyle.current,
     onValueChange: (String) -> Unit = { },
     onTextFieldValueChange: (TextFieldValue) -> Unit = { },
     leadingIcon: @Composable (() -> Unit)? = null,
@@ -69,6 +72,7 @@ fun FocusableRoundTextField(
                         isFocused = it.isFocused
                     }
             ),
+            textStyle = textStyle,
             supportingText = supportingText,
             colors = colors,
             singleLine = true,
@@ -92,6 +96,7 @@ fun FocusableRoundTextField(
                         isFocused = it.isFocused
                     }
             ),
+            textStyle = textStyle,
             colors = colors,
             supportingText = supportingText,
             singleLine = true,

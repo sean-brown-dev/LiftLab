@@ -16,5 +16,6 @@ data class LinearProgressionSetResultDto(
     override val mesoCycle: Int,
     override val microCycle: Int,
     override val setType: SetType = SetType.STANDARD,
+    override val isDeload: Boolean,
     val missedLpGoals: Int,
 ): SetResult

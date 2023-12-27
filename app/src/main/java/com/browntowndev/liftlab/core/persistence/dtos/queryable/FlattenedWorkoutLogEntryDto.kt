@@ -25,8 +25,8 @@ data class FlattenedWorkoutLogEntryDto(
     val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int?,
-    val repRangeTop: Int,
-    val repRangeBottom: Int,
+    val repRangeTop: Int?,
+    val repRangeBottom: Int?,
     val rpeTarget: Float,
     val weightRecommendation: Float?,
     val weight: Float,
@@ -39,4 +39,5 @@ data class FlattenedWorkoutLogEntryDto(
     val maxSets: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
+    val isDeload: Boolean,
 )

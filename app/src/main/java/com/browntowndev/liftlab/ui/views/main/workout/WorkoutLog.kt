@@ -23,10 +23,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,12 +45,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
@@ -55,6 +64,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.views.composables.LiftLabOutlinedTextField
 import com.browntowndev.liftlab.ui.views.composables.RpeKeyboard
 import org.koin.androidx.compose.getViewModel
 import kotlin.time.Duration
@@ -67,6 +77,7 @@ fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
     cancelWorkoutVisible: Boolean = true,
+    noteVisible: Boolean = true,
     lifts: List<LoggingWorkoutLiftDto>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
@@ -79,6 +90,7 @@ fun WorkoutLog(
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
+    onNoteChanged: (workoutLiftId: Long, note: String) -> Unit,
 ) {
     // Remember the myo rep set indices from the previous composition. Below they will
     // animate if they're not found in this set (they are new)
@@ -173,6 +185,49 @@ fun WorkoutLog(
                                         onChangeRestTime(lift.id, restTime, enabled)
                                     },
                                 )
+                            }
+                            if (noteVisible) {
+                                val localDensity = LocalDensity.current
+                                var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
+                                LiftLabOutlinedTextField(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(noteTextFieldHeight)
+                                        .padding(start = 15.dp, end = 10.dp),
+                                    contentPadding = PaddingValues(start = 2.dp, top = 7.dp, bottom = 7.dp, end = 2.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                        focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer
+                                    ),
+                                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
+                                    placeholder = {
+                                        Text(
+                                            text = remember { "Add note" },
+                                            color = MaterialTheme.colorScheme.outline,
+                                            fontSize = 18.sp,
+                                        )
+                                    },
+                                    value = remember(lift.note) { lift.note ?: "" },
+                                    shape = RoundedCornerShape(10.dp),
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Edit,
+                                            contentDescription = stringResource(R.string.lift_note),
+                                            tint = MaterialTheme.colorScheme.outline,
+                                        )
+                                    },
+                                    onValueChange = { onNoteChanged(lift.id, it) },
+                                    onRequiredHeightChanged = {
+                                        localDensity.run {
+                                            noteTextFieldHeight = it.toFloat().toDp() + 14.dp
+                                        }
+                                    },
+                                )
+                                Spacer(modifier = Modifier.height(15.dp))
                             }
                             LogHeaders()
 

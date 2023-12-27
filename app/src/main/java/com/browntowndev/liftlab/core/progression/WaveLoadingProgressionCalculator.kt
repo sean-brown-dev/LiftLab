@@ -1,8 +1,9 @@
 package com.browntowndev.liftlab.core.progression
 
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
@@ -15,29 +16,38 @@ class WaveLoadingProgressionCalculator(
     override fun calculate(
         workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>,
+        previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         if (workoutLift !is StandardWorkoutLiftDto) throw Exception ("Wave Loading progression cannot have custom sets")
-        val groupedSetData = previousSetResults.sortedBy { it.setPosition }.associateBy { it.setPosition }
+        val groupedSetData = previousSetResults.associateBy { it.setPosition }
+        val displaySetResults = previousResultsForDisplay.associateBy { it.setPosition }
+        val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
+        val rpeTarget = if (isDeloadWeek) 6f else workoutLift.rpeTarget
+        val deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek
 
-        return List(workoutLift.setCount) { setPosition ->
+        return List(setCount) { setPosition ->
             val result = groupedSetData[setPosition]
+            val displayResult = displaySetResults[setPosition]
             val weightRecommendation = if (!isDeloadWeek && result != null)
-                getWeightRecommendation(workoutLift, result)
+                getWeightRecommendation(workoutLift, result, deloadWeek)
             else if (result != null)
                 decrementForDeload(lift = workoutLift, setData = result, deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek)
             else null
+
             LoggingStandardSetDto(
                 position = setPosition,
-                rpeTarget = workoutLift.rpeTarget,
+                rpeTarget = rpeTarget,
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
-                previousSetResultLabel = getPreviousSetResultLabel(result),
+                previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                 repRangePlaceholder = if (!isDeloadWeek) {
                     getRepRangePlaceholder(
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
-                        microCycle = microCycle)
+                        microCycle = microCycle,
+                        deloadWeek = deloadWeek,
+                    )
                } else {
                       workoutLift.repRangeBottom.toString()
                 },
@@ -47,62 +57,100 @@ class WaveLoadingProgressionCalculator(
         }.flattenWeightRecommendationsStandard()
     }
 
-    private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult): Float {
-        return if (microCycle == 0 ||
-            !shouldDecreaseWeight(result, workoutLift as StandardWorkoutLiftDto)
-        ) {
+    private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult, deloadWeek: Int): Float? {
+        val recalculateWeight = shouldRecalculateWeight(result, workoutLift as StandardWorkoutLiftDto, deloadWeek)
+
+        return if (microCycle == 0 && !recalculateWeight) {
+            decrementForNewMicrocycle(workoutLift, result)
+        } else if (!recalculateWeight) {
             incrementWeight(workoutLift, result)
         } else {
-            getRepsForPreviousWorkout(
+            getRepsForMicrocycle(
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
                 microCycle = microCycle,
+                deloadWeek = deloadWeek,
             )?.let { reps ->
-                val optimalWeightFromPreviousCompletion = decreaseWeight(
-                    incrementOverride = workoutLift.incrementOverride,
-                    repRangeBottom = reps,
+                getCalculatedWeightRecommendation(
+                    increment = workoutLift.incrementOverride,
+                    repGoal = reps,
                     rpeTarget = workoutLift.rpeTarget,
                     result = result,
                 )
-                val optimalResult = (result as StandardSetResultDto).copy(
-                    weight = optimalWeightFromPreviousCompletion,
-                    reps = reps,
-                    rpe = workoutLift.rpeTarget,
-                )
-                incrementWeight(workoutLift, optimalResult)
-            } ?: incrementWeight(workoutLift, result)
+            }
         }
     }
 
-    private fun getRepsForPreviousWorkout(repRangeBottom: Int, repRangeTop: Int, microCycle: Int): Int? {
+    private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int): Int? {
         val fullRepRange = (repRangeTop downTo repRangeBottom).toList()
 
         return if (fullRepRange.isNotEmpty()) {
-            val previousMicroCycle = microCycle - 1
-            val index = previousMicroCycle % fullRepRange.size
+            val repsToStep = fullRepRange.size - 1
+            val stepSize = maxOf(1, repsToStep / (deloadWeek - 2))
+
+            // Make sure to always end on rep range bottom in case
+            // step size is uneven and can't traverse all
+            val index = if (microCycle < deloadWeek - 1) {
+                (microCycle * stepSize).coerceIn(0, repsToStep)
+            } else repsToStep
+
             fullRepRange[index]
         } else null
     }
 
-    private fun getRepRangePlaceholder(repRangeBottom: Int, repRangeTop: Int, microCycle: Int): String {
-        val fullRepRange = (repRangeTop downTo repRangeBottom).toList()
-
-        return if (fullRepRange.isNotEmpty()) {
-            val index = microCycle % fullRepRange.size
-            fullRepRange[index].toString()
-        } else ""
+    private fun getRepRangePlaceholder(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int): String {
+        return getRepsForMicrocycle(
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+            microCycle = microCycle,
+            deloadWeek = deloadWeek,
+        )?.toString() ?: ""
     }
 
     private fun decrementForDeload(
-        lift: GenericWorkoutLift,
+        lift: StandardWorkoutLiftDto,
         setData: SetResult,
         deloadWeek: Int,
     ): Float {
-        val increment =  (lift.incrementOverride ?:
-            SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
-            )).toInt()
+        val increment = lift.incrementOverride ?:
+            SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
 
-        return setData.weight - (increment * (deloadWeek - 2))
+        return if (!shouldRecalculateWeight(result = setData, workoutLift = lift, deloadWeek = deloadWeek)) {
+            return setData.weight - (increment * (deloadWeek - 2))
+        } else {
+            getCalculatedWeightRecommendation(
+                increment = increment,
+                repGoal = lift.repRangeBottom,
+                rpeTarget = 6f,
+                result = setData,
+            )
+        }
+    }
+
+    private fun decrementForNewMicrocycle(
+        lift: GenericWorkoutLift,
+        setData: SetResult,
+    ): Float {
+        val increment =  lift.incrementOverride ?:
+            SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
+
+        return setData.weight - increment
+    }
+
+    private fun shouldRecalculateWeight(result: SetResult, workoutLift: StandardWorkoutLiftDto, deloadWeek: Int): Boolean {
+        return if (microCycle == 0 && result.reps == workoutLift.repRangeBottom) {
+            false
+        } else if (microCycle > 0) {
+            val repsForPreviousMicro = getRepsForMicrocycle(
+                repRangeBottom = workoutLift.repRangeBottom,
+                repRangeTop = workoutLift.repRangeTop,
+                microCycle = microCycle - 1,
+                deloadWeek = deloadWeek,
+            )
+            repsForPreviousMicro != result.reps
+        } else {
+            // new microcycle but result's reps were not rep range bottom
+            true
+        }
     }
 }

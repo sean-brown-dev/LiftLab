@@ -8,6 +8,7 @@ interface ProgressionCalculator {
     fun calculate(
         workoutLift: GenericWorkoutLift,
         previousSetResults: List<SetResult>,
+        previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet>
 }

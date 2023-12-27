@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,33 +10,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.views.composables.SectionLabel
 import com.browntowndev.liftlab.ui.views.composables.SingleLineChart
-import com.browntowndev.liftlab.ui.views.composables.rememberMarker
-import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
-import com.patrykandpatrick.vico.compose.chart.Chart
-import com.patrykandpatrick.vico.compose.chart.line.lineChart
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
-import com.patrykandpatrick.vico.compose.component.shapeComponent
-import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
-import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
-import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
-import com.patrykandpatrick.vico.compose.style.currentChartStyle
-import com.patrykandpatrick.vico.core.chart.copy
-import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
-import com.patrykandpatrick.vico.core.component.shape.Shapes
-import com.patrykandpatrick.vico.core.scroll.AutoScrollCondition
-import com.patrykandpatrick.vico.core.scroll.InitialScroll
 
 
 @Composable

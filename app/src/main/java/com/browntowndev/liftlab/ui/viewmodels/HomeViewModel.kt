@@ -67,15 +67,14 @@ class HomeViewModel(
             _programObserver = Observer { activeProgram ->
                 if (_loggingLiveData == null) {
                     _loggingObserver = Observer { workoutLogs ->
-                        val dateOrderedWorkoutLogs = workoutLogs.sortedByDescending { it.date }
-                        val workoutsInDateRange = getWorkoutsInDateRange(dateOrderedWorkoutLogs, dateRange)
+                        val workoutsInDateRange = getWorkoutsInDateRange(workoutLogs, dateRange)
 
                         _state.update {
                             it.copy(
-                                dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                                workoutLogs = workoutLogs,
                                 liftMetricChartModels = getLiftMetricCharts(
                                     liftMetricCharts = liftMetricCharts,
-                                    workoutLogs = dateOrderedWorkoutLogs
+                                    workoutLogs = workoutLogs
                                 ),
                                 workoutCompletionChart = getWeeklyCompletionChart(
                                     workoutCompletionRange = workoutCompletionRange,
@@ -83,7 +82,7 @@ class HomeViewModel(
                                     program = activeProgram,
                                 ),
                                 microCycleCompletionChart = getMicroCycleCompletionChart(
-                                    dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                                    workoutLogs = workoutLogs,
                                     program = activeProgram,
                                 )
                             )
@@ -97,11 +96,11 @@ class HomeViewModel(
                         it.copy(
                             workoutCompletionChart = getWeeklyCompletionChart(
                                 workoutCompletionRange = workoutCompletionRange,
-                                workoutsInDateRange = getWorkoutsInDateRange(_state.value.dateOrderedWorkoutLogs, dateRange),
+                                workoutsInDateRange = getWorkoutsInDateRange(_state.value.workoutLogs, dateRange),
                                 program = activeProgram,
                             ),
                             microCycleCompletionChart = getMicroCycleCompletionChart(
-                                dateOrderedWorkoutLogs = _state.value.dateOrderedWorkoutLogs,
+                                workoutLogs = _state.value.workoutLogs,
                                 program = activeProgram,
                             )
                         )
@@ -135,10 +134,10 @@ class HomeViewModel(
     }
 
     private fun getWorkoutsInDateRange(
-        dateOrderedWorkoutLogs: List<WorkoutLogEntryDto>,
+        workoutLogs: List<WorkoutLogEntryDto>,
         dateRange: Pair<Date, Date>
     ): List<WorkoutLogEntryDto> {
-        return dateOrderedWorkoutLogs
+        return workoutLogs
             .filter { workoutLog ->
                 dateRange.first <= workoutLog.date &&
                         workoutLog.date <= dateRange.second
@@ -159,15 +158,18 @@ class HomeViewModel(
         program: ProgramDto?,
     ): ChartModel {
         val workoutCount = program?.workouts?.size
-        val completedWorkoutsByWeek = workoutCompletionRange.fastMap { week ->
-            week.first to
-                    workoutsInDateRange.filter { workoutLog ->
-                        week.first <= workoutLog.date.toLocalDate() &&
-                                workoutLog.date.toLocalDate() <= week.second
-                    }.size
-        }.associate { (date, completionCount) ->
-            date to completionCount
-        }
+        val completedWorkoutsByWeek = workoutCompletionRange
+            .fastMap { week ->
+                week.first to
+                        workoutsInDateRange.filter { workoutLog ->
+                            week.first <= workoutLog.date.toLocalDate() &&
+                                    workoutLog.date.toLocalDate() <= week.second
+                        }.size
+            }
+            .sortedBy { it.first }
+            .associate { (date, completionCount) ->
+                date to completionCount
+            }
 
         val xValuesToDates = completedWorkoutsByWeek.keys.associateBy { it.toEpochDay().toFloat() }
         val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(completedWorkoutsByWeek.values, ::entryOf))
@@ -194,23 +196,31 @@ class HomeViewModel(
     }
 
     private fun getMicroCycleCompletionChart(
-        dateOrderedWorkoutLogs: List<WorkoutLogEntryDto>,
+        workoutLogs: List<WorkoutLogEntryDto>,
         program: ProgramDto?,
     ): ChartModel {
         val setCount = program?.workouts?.sumOf { workout ->
             workout.lifts.sumOf { it.setCount }
         }?.toFloat() ?: 1f
 
-        val workoutsForCurrentMeso = dateOrderedWorkoutLogs
-            .groupBy { it.mesocycle }
-            .values.firstOrNull()
-            ?.groupBy { it.microcycle }
-            ?.asSequence()
-            ?.associate { logsForMicro ->
-                logsForMicro.key + 1 to logsForMicro.value.sumOf {  workoutLog ->
+        val workoutsForCurrentMeso = workoutLogs
+            .filter { it.mesocycle == program?.currentMesocycle }
+            .groupBy { it.microcycle }
+            .toSortedMap()
+            .asSequence()
+            .associate { logsForMicro ->
+                val setCountConsideringDeloads = setCount - logsForMicro.value.sumOf { workoutLog ->
+                    workoutLog.setResults.groupBy { result ->
+                        result.liftPosition
+                    }.values.count { resultsForLift ->
+                        resultsForLift.any { it.isDeload }
+                    }
+                }
+
+                logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
                     workoutLog.setResults.size
-                }.div(setCount).times(100)
-            } ?: mapOf(1 to 0f)
+                }.div(setCountConsideringDeloads).times(100)
+            }.ifEmpty { mapOf(1 to 0f) }
 
         val chartEntryModel = entryModelOf(workoutsForCurrentMeso.keys.zip(workoutsForCurrentMeso.values, ::entryOf))
 
