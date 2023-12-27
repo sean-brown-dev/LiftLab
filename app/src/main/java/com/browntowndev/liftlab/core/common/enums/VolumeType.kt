@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.core.common.enums
 
-enum class VolumeTypeImpact {
-    PRIMARY,
-    SECONDARY,
-    COMBINED,
+enum class VolumeTypeImpact(val bitmask: Int) {
+    PRIMARY(1),
+    SECONDARY(2),
+    COMBINED(4),
 }
 
 enum class VolumeType(val bitMask: Int) {
@@ -24,8 +24,42 @@ enum class VolumeType(val bitMask: Int) {
     LOWER_BACK(16384),
 }
 
+fun String.toVolumeType(): VolumeType {
+    return when (this) {
+        VolumeType.CHEST.displayName() -> VolumeType.CHEST
+        VolumeType.BACK.displayName() -> VolumeType.BACK
+        VolumeType.QUAD.displayName() -> VolumeType.QUAD
+        VolumeType.HAMSTRING.displayName() -> VolumeType.HAMSTRING
+        VolumeType.GLUTE.displayName() -> VolumeType.GLUTE
+        VolumeType.POSTERIOR_DELTOID.displayName() -> VolumeType.POSTERIOR_DELTOID
+        VolumeType.LATERAL_DELTOID.displayName() -> VolumeType.LATERAL_DELTOID
+        VolumeType.ANTERIOR_DELTOID.displayName() -> VolumeType.ANTERIOR_DELTOID
+        VolumeType.TRICEP.displayName() -> VolumeType.TRICEP
+        VolumeType.BICEP.displayName() -> VolumeType.BICEP
+        VolumeType.TRAP.displayName() -> VolumeType.TRAP
+        VolumeType.CALF.displayName() -> VolumeType.CALF
+        VolumeType.FOREARM.displayName() -> VolumeType.FOREARM
+        VolumeType.AB.displayName() -> VolumeType.AB
+        VolumeType.LOWER_BACK.displayName() -> VolumeType.LOWER_BACK
+        else -> throw IllegalArgumentException("Unknown volume type: $this")
+    }
+}
+
+fun String.toVolumeTypeImpact(): VolumeTypeImpact {
+    return when (this) {
+        VolumeTypeImpact.PRIMARY.displayName() -> VolumeTypeImpact.PRIMARY
+        VolumeTypeImpact.SECONDARY.displayName() -> VolumeTypeImpact.SECONDARY
+        VolumeTypeImpact.COMBINED.displayName() -> VolumeTypeImpact.COMBINED
+        else -> throw IllegalArgumentException("Unknown volume type impact: $this")
+    }
+}
+
 fun Int.getVolumeTypes(): List<VolumeType> {
-    return VolumeType.values().filter { (this and it.bitMask) != 0 }
+    return VolumeType.entries.filter { (this and it.bitMask) != 0 }
+}
+
+fun Int.getVolumeTypeImpacts(): List<VolumeTypeImpact> {
+    return VolumeTypeImpact.entries.filter { (this and it.bitmask) != 0 }
 }
 
 fun VolumeType.displayName(): String {
@@ -45,5 +79,13 @@ fun VolumeType.displayName(): String {
         VolumeType.FOREARM -> "Forearms"
         VolumeType.AB -> "Abs"
         VolumeType.LOWER_BACK -> "Lower Back"
+    }
+}
+
+fun VolumeTypeImpact.displayName(): String {
+    return when (this) {
+        VolumeTypeImpact.PRIMARY -> "Primary"
+        VolumeTypeImpact.SECONDARY -> "Secondary"
+        VolumeTypeImpact.COMBINED -> "All"
     }
 }

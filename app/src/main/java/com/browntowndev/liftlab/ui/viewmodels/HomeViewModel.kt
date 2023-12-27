@@ -1,12 +1,20 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.common.enums.VolumeType
+import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
+import com.browntowndev.liftlab.core.common.enums.toVolumeType
+import com.browntowndev.liftlab.core.common.enums.toVolumeTypeImpact
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
@@ -14,12 +22,14 @@ import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
+import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
+import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getVolumeChartModel
@@ -60,6 +70,48 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    liftMetricOptions = listOf(
+                        LiftMetricOptions(
+                            options = listOf("Lift Metrics"),
+                            child = LiftMetricOptions(
+                                options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
+                                multiSelect = true,
+                                completionButtonText = "Choose Lift",
+                                completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                                onCompletion = { selectLiftForMetricCharts() },
+                                onSelectionChanged = { type, selected -> updateLiftChartTypeSelections(type, selected) }
+                            ),
+                            completionButtonText = "Next",
+                            completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                        ),
+                        LiftMetricOptions(
+                            options = listOf("Volume Metrics"),
+                            child = LiftMetricOptions(
+                                options = VolumeType.entries.map { volumeType ->
+                                    volumeType.displayName()
+                                },
+                                child = LiftMetricOptions(
+                                    options = VolumeTypeImpact.entries.map { volumeTypeImpact ->  volumeTypeImpact.displayName() },
+                                    multiSelect = true,
+                                    completionButtonText = "Confirm",
+                                    completionButtonIcon = Icons.Filled.Check,
+                                    onCompletion = { addVolumeMetricChart() },
+                                    onSelectionChanged = { type, selected -> updateVolumeCategorySelections(type, selected) },
+                                ),
+                                multiSelect = true,
+                                completionButtonText = "Next",
+                                completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                                onSelectionChanged = { type, selected -> updateVolumeTypeSelections(type, selected) },
+                            ),
+                            completionButtonText = "Next",
+                            completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                        ),
+                    )
+                )
+            }
+
             val dateRange = getSevenWeeksDateRange()
             val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
             val liftMetricCharts = liftMetricChartRepository.getAll()
@@ -286,7 +338,52 @@ class HomeViewModel(
 
     fun toggleLiftChartPicker() {
         _state.update {
-            it.copy(showLiftChartPicker = !it.showLiftChartPicker)
+            it.copy(
+                showLiftChartPicker = !it.showLiftChartPicker,
+                volumeTypeSelections = listOf(),
+                volumeImpactSelections = listOf(),
+                liftChartTypeSelections = listOf(),
+            )
+        }
+    }
+
+    private fun updateVolumeTypeSelections(type: String, selected: Boolean) {
+        _state.update {
+            it.copy(
+                volumeTypeSelections = it.volumeTypeSelections.toMutableList().apply {
+                    if (selected) {
+                        add(type)
+                    } else {
+                        remove(type)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun updateVolumeCategorySelections(type: String, selected: Boolean) {
+        _state.update {
+            it.copy(
+                volumeImpactSelections = it.volumeImpactSelections.toMutableList().apply {
+                    if (selected) {
+                        add(type)
+                    } else {
+                        remove(type)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun addVolumeMetricChart() {
+        executeInTransactionScope {
+            val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
+                VolumeMetricChartDto(
+                    volumeType = volumeTypeStr.toVolumeType(),
+                    volumeTypeImpacts = _state.value.volumeImpactSelections.fastMap { it.toVolumeTypeImpact() }
+                )
+            }
+            toggleLiftChartPicker()
         }
     }
 

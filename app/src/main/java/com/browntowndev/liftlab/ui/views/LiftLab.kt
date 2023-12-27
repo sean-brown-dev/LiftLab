@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.compose.rememberNavController
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
@@ -21,7 +22,10 @@ import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.flow.distinctUntilChanged
+import org.koin.androidx.compose.defaultExtras
 import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.rememberCurrentKoinScope
 
 @ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,8 +33,8 @@ import org.koin.androidx.compose.getViewModel
 fun LiftLab(roomBackup: RoomBackup) {
     LiftLabTheme {
         val navController = rememberNavController()
-        val bottomNavBarViewModel: BottomNavBarViewModel = getViewModel()
-        val topAppBarViewModel: TopAppBarViewModel = getViewModel()
+        val bottomNavBarViewModel: BottomNavBarViewModel = koinViewModel()
+        val topAppBarViewModel: TopAppBarViewModel = koinViewModel()
         val liftLabTopAppBarState by topAppBarViewModel.state.collectAsState()
         val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
         val topAppBarState = rememberTopAppBarState()

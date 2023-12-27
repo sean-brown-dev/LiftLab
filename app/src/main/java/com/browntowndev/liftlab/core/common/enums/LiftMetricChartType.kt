@@ -19,6 +19,6 @@ fun String.toLiftMetricChartType(): LiftMetricChartType {
         LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName() -> LiftMetricChartType.ESTIMATED_ONE_REP_MAX
         LiftMetricChartType.VOLUME.displayName() -> LiftMetricChartType.VOLUME
         LiftMetricChartType.RELATIVE_INTENSITY.displayName() -> LiftMetricChartType.RELATIVE_INTENSITY
-        else -> throw Exception("$this is not defined.")
+        else -> throw IllegalArgumentException("Unknown lift metric chart type: $this")
     }
 }

@@ -175,7 +175,7 @@ fun NavigationGraph(
 
                         navHostController.navigate(liftDetailsRoute)
                     },
-                    onNavigateToWorkoutBuilder = { workoutId ->
+                    onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
                         // Pop back to lab
                         navHostController.navigate("lab") {
                             popUpTo(navHostController.graph.startDestinationRoute!!) {
@@ -184,7 +184,7 @@ fun NavigationGraph(
                         }
 
                         // Go back to workout builder
-                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
+                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutBuilderWorkoutId.toString())
                         navHostController.navigate(workoutBuilderRoute)
                     }
                 )
