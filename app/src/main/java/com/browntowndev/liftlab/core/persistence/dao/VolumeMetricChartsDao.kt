@@ -6,16 +6,16 @@ import androidx.room.Upsert
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 
 @Dao
-interface VolumeMetricChartDao {
+interface VolumeMetricChartsDao {
     @Upsert
-    fun upsert(chart: VolumeMetricChart): Long
+    suspend fun upsert(chart: VolumeMetricChart): Long
 
     @Upsert
-    fun upsertMany(chart: List<VolumeMetricChart>): List<Long>
+    suspend fun upsertMany(chart: List<VolumeMetricChart>): List<Long>
 
     @Query("DELETE FROM volumeMetricCharts WHERE lift_volume_chart_id = :id")
-    fun delete(id: Long)
+    suspend fun delete(id: Long)
 
     @Query("SELECT * FROM volumeMetricCharts")
-    fun getAll(): List<VolumeMetricChart>
+    suspend fun getAll(): List<VolumeMetricChart>
 }

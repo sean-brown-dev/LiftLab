@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 class LiftMetricOptions(
     val options: List<String>,
     val child: LiftMetricOptions? = null,
-    val multiSelect: Boolean = false,
     val completionButtonText: String,
     val completionButtonIcon: ImageVector,
     val onCompletion: (() -> Unit)? = null,

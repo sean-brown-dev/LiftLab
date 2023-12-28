@@ -12,8 +12,8 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
         liftMetricChartsDao.deleteAllWithNoLift()
     }
 
-    suspend fun deleteFirstForLift(liftName: String, chartType: LiftMetricChartType) {
-        liftMetricChartsDao.deleteFirstForLift(liftName, chartType)
+    suspend fun delete(id: Long) {
+        liftMetricChartsDao.delete(id)
     }
 
     suspend fun upsertMany(liftMetricCharts: List<LiftMetricChartDto>): List<Long> {

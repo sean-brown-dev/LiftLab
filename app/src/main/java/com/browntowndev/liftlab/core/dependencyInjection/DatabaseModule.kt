@@ -17,5 +17,6 @@ val repositoryModule = module {
     factory { RepositoryHelper(get()).logging }
     factory { RepositoryHelper(get()).restTimer }
     factory { RepositoryHelper(get()).liftMetricCharts }
+    factory { RepositoryHelper(get()).volumemetricCharts }
     single { TransactionScope(LiftLabDatabase.getInstance(get())) }
 }

@@ -68,6 +68,7 @@ fun NavigationGraph(
                 Home(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateToSettingsMenu = { navHostController.navigate(SettingsScreen.navigation.route) },
                     onNavigateToLiftLibrary = { chartIds ->
                         navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds

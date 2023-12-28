@@ -112,7 +112,7 @@ fun getOneRepMaxChartModel(
     )
 }
 
-fun getVolumeChartModel(
+fun getPerWorkoutVolumeChartModel(
     workoutLogs: List<WorkoutLogEntryDto>,
     workoutFilters: Set<Long>
 ): ComposedChartModel {
@@ -124,13 +124,13 @@ fun getVolumeChartModel(
         .fastMap { workoutLog ->
             val repVolume = workoutLog.setResults.sumOf { it.reps.toFloat() }.roundToInt()
             val totalWeight = workoutLog.setResults.sumOf { it.weight }
+            val totalWeightIfLifting1RmEachTime = workoutLog.setResults.maxOf {
+                CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+            } * workoutLog.setResults.size
             VolumeTypesForDate(
                 date = workoutLog.date.toLocalDate(),
                 workingSetVolume = workoutLog.setResults.filter { it.rpe >= 7f }.size,
-                relativeVolume = repVolume *
-                        (totalWeight / workoutLog.setResults.maxOf {
-                            CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                        }),
+                relativeVolume = repVolume * (totalWeight / totalWeightIfLifting1RmEachTime),
             )
         }.associateBy { volumes ->
             volumes.date
@@ -158,6 +158,79 @@ fun getVolumeChartModel(
         },
         bottomAxisValueFormatter = { value, _ ->
             (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
+        },
+        startAxisValueFormatter = { value, _ ->
+            value.roundToInt().toString()
+        },
+        endAxisValueFormatter = { value, _ ->
+            value.roundToInt().toString()
+        },
+        startAxisItemPlacer = AxisItemPlacer.Vertical.default(
+            maxItemCount =  if(workingSetVolumeEntries.entries.first().isNotEmpty()) {
+                ((workingSetVolumeEntries.entries.first().maxOf { it.y } + 1) -
+                        (workingSetVolumeEntries.entries.first().maxOf { it.y } - 1)).roundToInt() + 1
+            } else 0
+        ),
+        endAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 9),
+        persistentMarkers = { null }
+    )
+}
+
+fun getPerMicrocycleVolumeChartModel(
+    workoutLogs: List<WorkoutLogEntryDto>,
+): ComposedChartModel {
+    val volumesForEachMesoAndMicro = workoutLogs
+        .groupBy { Pair(it.mesocycle, it.microcycle) } // Group by both mesocycle and microcycle
+        .toSortedMap(compareBy<Pair<Int, Int>> { it.first }.thenBy { it.second })
+        .asSequence()
+        .associate { logsForMesoAndMicro ->
+            val volumeForMicro = logsForMesoAndMicro.value.map { workoutLog ->
+                workoutLog.setResults
+                    .groupBy { it.liftId }
+                    .values.map { liftResults ->
+                        val repVolume = liftResults.sumOf { it.reps.toFloat() }.roundToInt()
+                        val totalWeight = liftResults.sumOf { it.weight }
+                        val totalWeightIfLifting1RmEachTime = liftResults.maxOf {
+                            CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                        } * liftResults.size
+                        val workingSetVolume = liftResults.filter { it.rpe >= 7f }.size
+                        val relativeVolume = repVolume * (totalWeight / totalWeightIfLifting1RmEachTime)
+
+                        Pair(workingSetVolume, relativeVolume)
+                    }.reduce { summedPair, currPair ->
+                        Pair(summedPair.first + currPair.first, summedPair.second + currPair.second)
+                    }
+            }.reduce { summedPair, currPair ->
+                Pair(summedPair.first + currPair.first, summedPair.second + currPair.second)
+            }
+
+            logsForMesoAndMicro.key to volumeForMicro
+        }.ifEmpty { mapOf(Pair(0, 0) to Pair(0, 0f)) }
+
+    val xValuesToMesoMicroPair = volumesForEachMesoAndMicro.keys.mapIndexed { index, key -> Pair(index, key) }.associate { it.first.toFloat() to it.second }
+    val workingSetVolumeEntries = entryModelOf(xValuesToMesoMicroPair.keys.zip(volumesForEachMesoAndMicro.map { it.value.first }, ::entryOf))
+    val relativeVolumeEntries = entryModelOf(xValuesToMesoMicroPair.keys.zip(volumesForEachMesoAndMicro.map { it.value.second }, ::entryOf))
+    val chartEntryModel = workingSetVolumeEntries + relativeVolumeEntries
+
+    return ComposedChartModel(
+        composedChartEntryModel = chartEntryModel,
+        axisValuesOverrider = object: AxisValuesOverrider<ChartEntryModel> {
+            override fun getMinY(model: ChartEntryModel): Float {
+                return model.entries.first().minOf {
+                    it.y
+                } - 1
+            }
+            override fun getMaxY(model: ChartEntryModel): Float {
+                return model.entries.first().maxOf {
+                    it.y
+                } + 1
+            }
+        },
+        bottomAxisLabelRotationDegrees = 45f,
+        bottomAxisValueFormatter = { value, _ ->
+            xValuesToMesoMicroPair[value]?.let {
+                "${it.first + 1}-${it.second + 1}"
+            } ?: "N/A"
         },
         startAxisValueFormatter = { value, _ ->
             value.roundToInt().toString()

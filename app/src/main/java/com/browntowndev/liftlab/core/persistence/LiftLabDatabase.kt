@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
+import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
@@ -35,6 +36,7 @@ import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
+import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
@@ -58,8 +60,9 @@ import kotlinx.coroutines.flow.update
         WorkoutInProgress::class,
         RestTimerInProgress::class,
         LiftMetricChart::class,
+        VolumeMetricChart::class,
    ],
-    version = 8,
+    version = 9,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -69,6 +72,7 @@ import kotlinx.coroutines.flow.update
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
         AutoMigration(from = 7, to = 8),
+        AutoMigration(from = 8, to = 9),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -82,6 +86,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun loggingDao(): LoggingDao
     abstract fun restTimerInProgressDao(): RestTimerInProgressDao
     abstract fun liftMetricChartsDao(): LiftMetricChartsDao
+    abstract fun volumeMetricChartsDao(): VolumeMetricChartsDao
 
     companion object {
         private const val LIFTS_DATA_FILENAME = "lifts.json"

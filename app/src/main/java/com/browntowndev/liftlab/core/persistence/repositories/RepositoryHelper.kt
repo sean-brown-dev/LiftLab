@@ -20,7 +20,6 @@ class RepositoryHelper(context: Context): KoinComponent {
     private val programMapper: ProgramMapper by inject()
     private val setResultMapper: SetResultMapper by inject()
     private val workoutLogEntryMapper: WorkoutLogEntryMapper by inject()
-    private val progressionFactory: ProgressionFactory by inject<StandardProgressionFactory>()
     private val database: LiftLabDatabase = LiftLabDatabase.getInstance(context)
 
     val programs get() = ProgramsRepository(
@@ -75,5 +74,9 @@ class RepositoryHelper(context: Context): KoinComponent {
 
     val liftMetricCharts get() = LiftMetricChartRepository(
         database.liftMetricChartsDao()
+    )
+
+    val volumemetricCharts get() = VolumeMetricChartRepository(
+        database.volumeMetricChartsDao()
     )
 }

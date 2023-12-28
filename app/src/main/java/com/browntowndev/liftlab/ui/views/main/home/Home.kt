@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,11 +35,13 @@ import com.browntowndev.liftlab.ui.views.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import java.lang.Exception
 
 @Composable
 fun Home(
     paddingValues: PaddingValues,
     screenId: String?,
+    setTopAppBarCollapsed: (Boolean) -> Unit,
     onNavigateToSettingsMenu: () -> Unit,
     onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
 ) {
@@ -98,8 +101,23 @@ fun Home(
                     )
                 }
             }
-            items(state.liftMetricChartModels) { chart ->
-                val label = remember(chart.liftName) {
+            items(state.volumeMetricChartModels, key = { it.id }) { chart ->
+                val label = remember(chart.volumeType, chart.volumeTypeImpact) {
+                    "${chart.volumeType} - ${chart.volumeTypeImpact}".uppercase()
+                }
+                when (val chartModel = chart.chartModel) {
+                    is ComposedChartModel -> HomeMultiLineChart(
+                        chartModel = chartModel,
+                        label = label,
+                        onDelete = {
+                            homeViewModel.deleteVolumeMetricChart(id = chart.id)
+                        },
+                    )
+                    else -> throw Exception("Unrecognized volume chart type: ${chartModel::class.simpleName}")
+                }
+            }
+            items(state.liftMetricChartModels, key = { it.id }) { chart ->
+                val label = remember(chart.liftName, chart.type) {
                     "${chart.liftName} - ${chart.type.displayName()}".uppercase()
                 }
                 when (val chartModel = chart.chartModel) {
@@ -107,20 +125,14 @@ fun Home(
                         chartModel = chartModel,
                         label = label,
                         onDelete = {
-                            homeViewModel.deleteLiftMetricChart(
-                                liftName = chart.liftName,
-                                chartType = chart.type
-                            )
+                            homeViewModel.deleteLiftMetricChart(id = chart.id)
                         },
                     )
                     is ComposedChartModel -> HomeMultiLineChart(
                         chartModel = chartModel,
                         label = label,
                         onDelete = {
-                            homeViewModel.deleteLiftMetricChart(
-                                liftName = chart.liftName,
-                                chartType = chart.type
-                            )
+                            homeViewModel.deleteLiftMetricChart(id = chart.id)
                         },
                     )
                 }
@@ -128,11 +140,15 @@ fun Home(
         }
 
         if (state.liftMetricOptions != null) {
+            LaunchedEffect(key1 = state.showLiftChartPicker) {
+                setTopAppBarCollapsed(state.showLiftChartPicker)
+            }
+
             RowMultiSelect(
                 visible = state.showLiftChartPicker,
                 title = "ADD METRIC CHARTS",
                 optionTree = state.liftMetricOptions!!,
-                selections = state.liftChartTypeSelections,
+                selections = state.chartSelections,
                 onCancel = { homeViewModel.toggleLiftChartPicker() }
             )
         }

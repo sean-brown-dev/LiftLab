@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.toVolumeType
 import com.browntowndev.liftlab.core.common.enums.toVolumeTypeImpact
@@ -20,11 +21,13 @@ import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.VolumeMetricChartRepository
@@ -32,9 +35,11 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
+import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
-import com.browntowndev.liftlab.ui.models.getVolumeChartModel
+import com.browntowndev.liftlab.ui.models.getPerMicrocycleVolumeChartModel
+import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
@@ -59,6 +64,7 @@ class HomeViewModel(
     private val loggingRepository: LoggingRepository,
     private val liftMetricChartRepository: LiftMetricChartRepository,
     private val volumeMetricChartRepository: VolumeMetricChartRepository,
+    private val liftsRepository: LiftsRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
     transactionScope: TransactionScope,
@@ -68,6 +74,8 @@ class HomeViewModel(
     private var _programObserver: Observer<ProgramDto?>? = null
     private var _loggingLiveData:  LiveData<List<WorkoutLogEntryDto>>? = null
     private var _loggingObserver: Observer<List<WorkoutLogEntryDto>>? = null
+    private var _liftLiveData: LiveData<List<LiftDto>>? = null
+    private var _liftObserver: Observer<List<LiftDto>>? = null
     private var _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
@@ -83,48 +91,53 @@ class HomeViewModel(
             val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
             val liftMetricCharts = liftMetricChartRepository.getAll()
             val volumeMetricCharts = volumeMetricChartRepository.getAll()
+                .sortedWith(compareBy<VolumeMetricChartDto> { it.volumeType.bitMask }
+                    .thenBy { it.volumeTypeImpact.bitmask }
+                )
 
             _programObserver = Observer { activeProgram ->
-                if (_loggingLiveData == null) {
-                    _loggingObserver = Observer { workoutLogs ->
-                        val workoutsInDateRange = getWorkoutsInDateRange(workoutLogs, dateRange)
-
+                if (_liftLiveData == null) {
+                    _liftObserver = Observer { lifts ->
                         _state.update {
                             it.copy(
-                                workoutLogs = workoutLogs,
-                                liftMetricChartModels = getLiftMetricCharts(
-                                    liftMetricCharts = liftMetricCharts,
-                                    workoutLogs = workoutLogs
-                                ),
-                                workoutCompletionChart = getWeeklyCompletionChart(
-                                    workoutCompletionRange = workoutCompletionRange,
-                                    workoutsInDateRange = workoutsInDateRange,
-                                    program = activeProgram,
-                                ),
-                                microCycleCompletionChart = getMicroCycleCompletionChart(
+                                lifts = lifts,
+                                volumeMetricCharts = volumeMetricCharts,
+                            )
+                        }
+
+                        if (_loggingLiveData == null) {
+                            _loggingObserver = Observer { workoutLogs ->
+                                onWorkoutLogsChanged(
                                     workoutLogs = workoutLogs,
-                                    program = activeProgram,
+                                    dateRange = dateRange,
+                                    volumeMetricCharts = volumeMetricCharts,
+                                    liftMetricCharts = liftMetricCharts,
+                                    workoutCompletionRange = workoutCompletionRange,
+                                    activeProgram = activeProgram
                                 )
+                            }
+
+                            _loggingLiveData = loggingRepository.getAll()
+                            _loggingLiveData!!.observeForever(_loggingObserver!!)
+                        } else {
+                            onActiveProgramOrLiftsChanged(
+                                workoutCompletionRange = workoutCompletionRange,
+                                dateRange = dateRange,
+                                activeProgram = activeProgram,
+                                volumeMetricCharts = volumeMetricCharts
                             )
                         }
                     }
 
-                    _loggingLiveData = loggingRepository.getAll()
-                    _loggingLiveData!!.observeForever(_loggingObserver!!)
+                    _liftLiveData = liftsRepository.getAllAsLiveData()
+                    _liftLiveData!!.observeForever(_liftObserver!!)
                 } else {
-                    _state.update {
-                        it.copy(
-                            workoutCompletionChart = getWeeklyCompletionChart(
-                                workoutCompletionRange = workoutCompletionRange,
-                                workoutsInDateRange = getWorkoutsInDateRange(_state.value.workoutLogs, dateRange),
-                                program = activeProgram,
-                            ),
-                            microCycleCompletionChart = getMicroCycleCompletionChart(
-                                workoutLogs = _state.value.workoutLogs,
-                                program = activeProgram,
-                            )
-                        )
-                    }
+                    onActiveProgramOrLiftsChanged(
+                        workoutCompletionRange = workoutCompletionRange,
+                        dateRange = dateRange,
+                        activeProgram = activeProgram,
+                        volumeMetricCharts = volumeMetricCharts
+                    )
                 }
             }
             _programLiveData = programsRepository.getActive()
@@ -156,7 +169,6 @@ class HomeViewModel(
                     options = listOf("Lift Metrics"),
                     child = LiftMetricOptions(
                         options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
-                        multiSelect = true,
                         completionButtonText = "Choose Lift",
                         completionButtonIcon = Icons.Filled.KeyboardArrowRight,
                         onCompletion = { selectLiftForMetricCharts() },
@@ -178,18 +190,16 @@ class HomeViewModel(
                         },
                         child = LiftMetricOptions(
                             options = VolumeTypeImpact.entries.map { volumeTypeImpact -> volumeTypeImpact.displayName() },
-                            multiSelect = true,
                             completionButtonText = "Confirm",
                             completionButtonIcon = Icons.Filled.Check,
                             onCompletion = { addVolumeMetricChart() },
                             onSelectionChanged = { type, selected ->
-                                updateVolumeCategorySelections(
+                                updateVolumeTypeImpactSelection(
                                     type,
                                     selected
                                 )
                             },
                         ),
-                        multiSelect = true,
                         completionButtonText = "Next",
                         completionButtonIcon = Icons.Filled.KeyboardArrowRight,
                         onSelectionChanged = { type, selected ->
@@ -204,6 +214,69 @@ class HomeViewModel(
                 ),
             )
         )
+    }
+
+    private fun onWorkoutLogsChanged(
+        workoutLogs: List<WorkoutLogEntryDto>,
+        dateRange: Pair<Date, Date>,
+        volumeMetricCharts: List<VolumeMetricChartDto>,
+        liftMetricCharts: List<LiftMetricChartDto>,
+        workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
+        activeProgram: ProgramDto?
+    ) {
+        val workoutsInDateRange = getWorkoutsInDateRange(workoutLogs, dateRange)
+        _state.update {
+            it.copy(
+                workoutLogs = workoutLogs,
+                volumeMetricChartModels = getVolumeMetricCharts(
+                    volumeMetricCharts = volumeMetricCharts,
+                    workoutLogs = workoutLogs,
+                    lifts = _state.value.lifts,
+                ),
+                liftMetricChartModels = getLiftMetricCharts(
+                    liftMetricCharts = liftMetricCharts,
+                    workoutLogs = workoutLogs,
+                ),
+                workoutCompletionChart = getWeeklyCompletionChart(
+                    workoutCompletionRange = workoutCompletionRange,
+                    workoutsInDateRange = workoutsInDateRange,
+                    program = activeProgram,
+                ),
+                microCycleCompletionChart = getMicroCycleCompletionChart(
+                    workoutLogs = workoutLogs,
+                    program = activeProgram,
+                )
+            )
+        }
+    }
+
+    private fun onActiveProgramOrLiftsChanged(
+        workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
+        dateRange: Pair<Date, Date>,
+        activeProgram: ProgramDto?,
+        volumeMetricCharts: List<VolumeMetricChartDto>
+    ) {
+        _state.update {
+            it.copy(
+                workoutCompletionChart = getWeeklyCompletionChart(
+                    workoutCompletionRange = workoutCompletionRange,
+                    workoutsInDateRange = getWorkoutsInDateRange(
+                        _state.value.workoutLogs,
+                        dateRange
+                    ),
+                    program = activeProgram,
+                ),
+                microCycleCompletionChart = getMicroCycleCompletionChart(
+                    workoutLogs = _state.value.workoutLogs,
+                    program = activeProgram,
+                ),
+                volumeMetricChartModels = getVolumeMetricCharts(
+                    volumeMetricCharts = volumeMetricCharts,
+                    workoutLogs = _state.value.workoutLogs,
+                    lifts = _state.value.lifts,
+                ),
+            )
+        }
     }
 
     private fun getSevenWeeksDateRange(): Pair<Date, Date> {
@@ -349,6 +422,7 @@ class HomeViewModel(
             if (liftName != null) {
                 liftCharts.value.fastMap { chart ->
                     LiftMetricChartModel(
+                        id = chart.id,
                         liftName = liftName,
                         type = chart.chartType,
                         chartModel = when (chart.chartType) {
@@ -357,7 +431,7 @@ class HomeViewModel(
                                 setOf()
                             )
 
-                            LiftMetricChartType.VOLUME -> getVolumeChartModel(
+                            LiftMetricChartType.VOLUME -> getPerWorkoutVolumeChartModel(
                                 resultsForLift,
                                 setOf()
                             )
@@ -373,12 +447,54 @@ class HomeViewModel(
         }
     }
 
+    private fun getVolumeMetricCharts(
+        volumeMetricCharts: List<VolumeMetricChartDto>,
+        workoutLogs: List<WorkoutLogEntryDto>,
+        lifts: List<LiftDto>,
+    ): List<VolumeMetricChartModel> {
+        val primaryVolumeTypesById = lifts.associate { it.id to it.volumeTypesBitmask }
+        val secondaryVolumeTypesById = lifts.associate { it.id to it.secondaryVolumeTypesBitmask }
+
+        return volumeMetricCharts.mapNotNull { volumeChart ->
+            val workoutLogsForChart = workoutLogs.mapNotNull { workoutLog ->
+                workoutLog.setResults.filter { setLog ->
+                    val primaryVolumeTypes = primaryVolumeTypesById[setLog.liftId]?.getVolumeTypes()?.toHashSet()
+                    val secondaryVolumeTypes = secondaryVolumeTypesById[setLog.liftId]?.getVolumeTypes()?.toHashSet()
+
+                    when (volumeChart.volumeTypeImpact) {
+                        VolumeTypeImpact.COMBINED -> {
+                            primaryVolumeTypes?.contains(volumeChart.volumeType) == true &&
+                                    secondaryVolumeTypes?.contains(volumeChart.volumeType) == true
+                        }
+                        VolumeTypeImpact.PRIMARY -> primaryVolumeTypes?.contains(volumeChart.volumeType) == true
+                        VolumeTypeImpact.SECONDARY -> secondaryVolumeTypes?.contains(volumeChart.volumeType) == true
+                    }
+                }.let { filteredSetLogs ->
+                    if (filteredSetLogs.any()) {
+                        workoutLog.copy(setResults = filteredSetLogs)
+                    } else {
+                        null
+                    }
+                }
+            }
+
+            if (workoutLogsForChart.isNotEmpty()) {
+                VolumeMetricChartModel(
+                    id = volumeChart.id,
+                    volumeType = volumeChart.volumeType.displayName(),
+                    volumeTypeImpact = volumeChart.volumeTypeImpact.displayName(),
+                    chartModel = getPerMicrocycleVolumeChartModel(workoutLogs = workoutLogsForChart)
+                )
+            } else null
+        }
+    }
+
     fun toggleLiftChartPicker() {
         _state.update {
             it.copy(
                 showLiftChartPicker = !it.showLiftChartPicker,
                 volumeTypeSelections = listOf(),
-                volumeImpactSelections = listOf(),
+                volumeImpactSelection = null,
                 liftChartTypeSelections = listOf(),
             )
         }
@@ -398,15 +514,13 @@ class HomeViewModel(
         }
     }
 
-    private fun updateVolumeCategorySelections(type: String, selected: Boolean) {
+    private fun updateVolumeTypeImpactSelection(type: String, selected: Boolean) {
         _state.update {
             it.copy(
-                volumeImpactSelections = it.volumeImpactSelections.toMutableList().apply {
-                    if (selected) {
-                        add(type)
-                    } else {
-                        remove(type)
-                    }
+                volumeImpactSelection = if (selected) {
+                    type
+                } else {
+                    null
                 }
             )
         }
@@ -417,10 +531,24 @@ class HomeViewModel(
             val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
                 VolumeMetricChartDto(
                     volumeType = volumeTypeStr.toVolumeType(),
-                    volumeTypeImpacts = _state.value.volumeImpactSelections.fastMap { it.toVolumeTypeImpact() }
+                    volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
                 )
             }
             volumeMetricChartRepository.upsertMany(charts)
+
+            val chartsWithNewAdded = _state.value.volumeMetricCharts.toMutableList().apply {
+                addAll(charts)
+            }
+            _state.update {
+                it.copy(
+                    volumeMetricCharts = chartsWithNewAdded,
+                    volumeMetricChartModels = getVolumeMetricCharts(
+                        volumeMetricCharts = chartsWithNewAdded,
+                        workoutLogs = _state.value.workoutLogs,
+                        lifts = _state.value.lifts,
+                    )
+                )
+            }
             toggleLiftChartPicker()
         }
     }
@@ -453,18 +581,24 @@ class HomeViewModel(
         }
     }
 
-    fun deleteLiftMetricChart(liftName: String, chartType: LiftMetricChartType) {
+    fun deleteLiftMetricChart(id: Long) {
         executeInTransactionScope {
-            liftMetricChartRepository.deleteFirstForLift(liftName, chartType)
+            liftMetricChartRepository.delete(id)
             _state.update {
                 it.copy(
-                    liftMetricChartModels = it.liftMetricChartModels.toMutableList().apply {
-                        find { chart ->
-                            chart.liftName == liftName && chart.type == chartType
-                        }?.let { firstMatch ->
-                            remove(firstMatch)
-                        }
-                    }
+                    liftMetricChartModels = it.liftMetricChartModels.filter { chart -> chart.id != id }
+                )
+            }
+        }
+    }
+
+    fun deleteVolumeMetricChart(id: Long) {
+        executeInTransactionScope {
+            volumeMetricChartRepository.delete(id)
+            _state.update {
+                it.copy(
+                    volumeMetricCharts = it.volumeMetricCharts.filter { chart -> chart.id != id },
+                    volumeMetricChartModels = it.volumeMetricChartModels.filter { chart -> chart.id != id }
                 )
             }
         }

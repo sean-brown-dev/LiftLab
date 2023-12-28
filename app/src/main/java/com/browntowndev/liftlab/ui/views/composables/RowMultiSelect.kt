@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAny
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 
@@ -111,26 +112,42 @@ fun RowMultiSelect(
 
             var currentLeaf: LiftMetricOptions? by remember { mutableStateOf(null)}
             var nextLeaf: LiftMetricOptions? by remember { mutableStateOf(null) }
+            var selectionsState by remember(selections) { mutableStateOf(selections) }
             val options = remember(currentLeaf) {
                 currentLeaf?.options ?: optionTree.options.flatMap { it.options }
             }
+            val isAnySelected by remember(selectionsState) {
+                mutableStateOf(selectionsState.fastAny { options.contains(it) })
+            }
             LazyColumn (
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(200.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 items(options) { option ->
-                    val isChecked = remember(selections) { selections.contains(option) }
+                    val isChecked by remember(selectionsState, option) { mutableStateOf(selectionsState.contains(option)) }
                     Row (
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(color = if (isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
                             .clickable {
-                                if (currentLeaf?.onSelectionChanged != null) {
-                                    currentLeaf!!.onSelectionChanged!!(option, !isChecked)
+                                nextLeaf = if (currentLeaf != null) {
+                                    if (currentLeaf?.onSelectionChanged != null) {
+                                        currentLeaf!!.onSelectionChanged!!(option, !isChecked)
+                                    }
+
+                                    currentLeaf!!.child
                                 } else {
-                                    nextLeaf = optionTree.options.find { rootLeaf ->
+                                    val selectedRootLeaf = optionTree.options.find { rootLeaf ->
                                         rootLeaf.options.contains(option)
                                     }
+                                    selectionsState = selectionsState.toMutableList().apply {
+                                        if (contains(option)) {
+                                            remove(option)
+                                        } else {
+                                            add(option)
+                                        }
+                                    }
+                                    selectedRootLeaf?.child
                                 }
                             },
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -145,18 +162,17 @@ fun RowMultiSelect(
                         )
                     }
                 }
-                item {
-                    Row (
-                        modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        ConfirmationButton(
-                            text = currentLeaf?.completionButtonText ?: optionTree.completionButtonText,
-                            trailingIcon = currentLeaf?.completionButtonIcon ?: optionTree.completionButtonIcon,
-                            onClick = currentLeaf?.onCompletion ?: { currentLeaf = nextLeaf },
-                        )
-                    }
-                }
+            }
+            Row (
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                ConfirmationButton(
+                    enabled = isAnySelected,
+                    text = currentLeaf?.completionButtonText ?: optionTree.completionButtonText,
+                    trailingIcon = currentLeaf?.completionButtonIcon ?: optionTree.completionButtonIcon,
+                    onClick = currentLeaf?.onCompletion ?: { currentLeaf = nextLeaf },
+                )
             }
         }
     }
@@ -165,10 +181,11 @@ fun RowMultiSelect(
 @Composable
 fun ConfirmationButton(
     text: String,
+    enabled: Boolean,
     trailingIcon: ImageVector,
     onClick: () -> Unit,
 ) {
-    TextButton(onClick = onClick) {
+    TextButton(enabled = enabled, onClick = onClick) {
         Row (verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = text,

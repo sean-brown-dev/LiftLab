@@ -1,45 +1,44 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.enums.getVolumeTypeImpacts
-import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartDao
+import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 
-class VolumeMetricChartRepository(private val volumeMetricChartDao: VolumeMetricChartDao) {
-    fun upsert(volumeMetricChart: VolumeMetricChartDto): Long {
-        return volumeMetricChartDao.upsert(
+class VolumeMetricChartRepository(private val volumeMetricChartsDao: VolumeMetricChartsDao) {
+    suspend fun upsert(volumeMetricChart: VolumeMetricChartDto): Long {
+        return volumeMetricChartsDao.upsert(
             VolumeMetricChart(
                 id = volumeMetricChart.id,
                 volumeType = volumeMetricChart.volumeType,
-                volumeTypeImpactBitmask = volumeMetricChart.volumeTypeImpactsBitmask,
+                volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
             )
         )
     }
 
-    fun upsertMany(volumeMetricCharts: List<VolumeMetricChartDto>): List<Long> {
-        return volumeMetricChartDao.upsertMany(
+    suspend fun upsertMany(volumeMetricCharts: List<VolumeMetricChartDto>): List<Long> {
+        return volumeMetricChartsDao.upsertMany(
             volumeMetricCharts.fastMap { volumeMetricChart ->
                 VolumeMetricChart(
                     id = volumeMetricChart.id,
                     volumeType = volumeMetricChart.volumeType,
-                    volumeTypeImpactBitmask = volumeMetricChart.volumeTypeImpactsBitmask,
+                    volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
                 )
             }
         )
     }
 
-    fun getAll(): List<VolumeMetricChartDto> {
-        return volumeMetricChartDao.getAll().fastMap {
+    suspend fun getAll(): List<VolumeMetricChartDto> {
+        return volumeMetricChartsDao.getAll().fastMap {
             VolumeMetricChartDto(
                 id = it.id,
                 volumeType = it.volumeType,
-                volumeTypeImpacts = it.volumeTypeImpactBitmask.getVolumeTypeImpacts(),
+                volumeTypeImpact = it.volumeTypeImpact,
             )
         }
     }
 
-    fun delete(id: Long) {
-        volumeMetricChartDao.delete(id)
+    suspend fun delete(id: Long) {
+        volumeMetricChartsDao.delete(id)
     }
 }

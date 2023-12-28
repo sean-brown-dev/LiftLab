@@ -16,5 +16,5 @@ data class VolumeMetricChart(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("lift_volume_chart_id")
     val id: Long = 0,
     val volumeType: VolumeType,
-    val volumeTypeImpactBitmask: Int,
+    val volumeTypeImpact: VolumeTypeImpact,
 )
