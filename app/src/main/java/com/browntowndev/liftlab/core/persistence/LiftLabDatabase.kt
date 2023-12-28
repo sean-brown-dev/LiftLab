@@ -59,7 +59,7 @@ import kotlinx.coroutines.flow.update
         RestTimerInProgress::class,
         LiftMetricChart::class,
    ],
-    version = 7,
+    version = 8,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.update
         AutoMigration(from = 4, to = 5),
         AutoMigration(from = 5, to = 6),
         AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 7, to = 8),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao

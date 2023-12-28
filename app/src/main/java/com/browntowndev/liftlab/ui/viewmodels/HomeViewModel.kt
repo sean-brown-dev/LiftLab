@@ -27,8 +27,10 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.VolumeMetricChartRepository
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
+import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
@@ -56,6 +58,7 @@ class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
     private val liftMetricChartRepository: LiftMetricChartRepository,
+    private val volumeMetricChartRepository: VolumeMetricChartRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
     transactionScope: TransactionScope,
@@ -72,49 +75,14 @@ class HomeViewModel(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    liftMetricOptions = listOf(
-                        LiftMetricOptions(
-                            options = listOf("Lift Metrics"),
-                            child = LiftMetricOptions(
-                                options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
-                                multiSelect = true,
-                                completionButtonText = "Choose Lift",
-                                completionButtonIcon = Icons.Filled.KeyboardArrowRight,
-                                onCompletion = { selectLiftForMetricCharts() },
-                                onSelectionChanged = { type, selected -> updateLiftChartTypeSelections(type, selected) }
-                            ),
-                            completionButtonText = "Next",
-                            completionButtonIcon = Icons.Filled.KeyboardArrowRight,
-                        ),
-                        LiftMetricOptions(
-                            options = listOf("Volume Metrics"),
-                            child = LiftMetricOptions(
-                                options = VolumeType.entries.map { volumeType ->
-                                    volumeType.displayName()
-                                },
-                                child = LiftMetricOptions(
-                                    options = VolumeTypeImpact.entries.map { volumeTypeImpact ->  volumeTypeImpact.displayName() },
-                                    multiSelect = true,
-                                    completionButtonText = "Confirm",
-                                    completionButtonIcon = Icons.Filled.Check,
-                                    onCompletion = { addVolumeMetricChart() },
-                                    onSelectionChanged = { type, selected -> updateVolumeCategorySelections(type, selected) },
-                                ),
-                                multiSelect = true,
-                                completionButtonText = "Next",
-                                completionButtonIcon = Icons.Filled.KeyboardArrowRight,
-                                onSelectionChanged = { type, selected -> updateVolumeTypeSelections(type, selected) },
-                            ),
-                            completionButtonText = "Next",
-                            completionButtonIcon = Icons.Filled.KeyboardArrowRight,
-                        ),
-                    )
+                    liftMetricOptions = getLiftMetricChartOptions()
                 )
             }
 
             val dateRange = getSevenWeeksDateRange()
             val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
             val liftMetricCharts = liftMetricChartRepository.getAll()
+            val volumeMetricCharts = volumeMetricChartRepository.getAll()
 
             _programObserver = Observer { activeProgram ->
                 if (_loggingLiveData == null) {
@@ -177,6 +145,65 @@ class HomeViewModel(
             TopAppBarAction.OpenSettingsMenu -> onNavigateToSettingsMenu()
             else -> { }
         }
+    }
+
+    private fun getLiftMetricChartOptions(): LiftMetricOptionTree {
+        return LiftMetricOptionTree(
+            completionButtonText = "Next",
+            completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+            options = listOf(
+                LiftMetricOptions(
+                    options = listOf("Lift Metrics"),
+                    child = LiftMetricOptions(
+                        options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
+                        multiSelect = true,
+                        completionButtonText = "Choose Lift",
+                        completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                        onCompletion = { selectLiftForMetricCharts() },
+                        onSelectionChanged = { type, selected ->
+                            updateLiftChartTypeSelections(
+                                type,
+                                selected
+                            )
+                        }
+                    ),
+                    completionButtonText = "Next",
+                    completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                ),
+                LiftMetricOptions(
+                    options = listOf("Volume Metrics"),
+                    child = LiftMetricOptions(
+                        options = VolumeType.entries.map { volumeType ->
+                            volumeType.displayName()
+                        },
+                        child = LiftMetricOptions(
+                            options = VolumeTypeImpact.entries.map { volumeTypeImpact -> volumeTypeImpact.displayName() },
+                            multiSelect = true,
+                            completionButtonText = "Confirm",
+                            completionButtonIcon = Icons.Filled.Check,
+                            onCompletion = { addVolumeMetricChart() },
+                            onSelectionChanged = { type, selected ->
+                                updateVolumeCategorySelections(
+                                    type,
+                                    selected
+                                )
+                            },
+                        ),
+                        multiSelect = true,
+                        completionButtonText = "Next",
+                        completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                        onSelectionChanged = { type, selected ->
+                            updateVolumeTypeSelections(
+                                type,
+                                selected
+                            )
+                        },
+                    ),
+                    completionButtonText = "Next",
+                    completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                ),
+            )
+        )
     }
 
     private fun getSevenWeeksDateRange(): Pair<Date, Date> {
@@ -393,11 +420,12 @@ class HomeViewModel(
                     volumeTypeImpacts = _state.value.volumeImpactSelections.fastMap { it.toVolumeTypeImpact() }
                 )
             }
+            volumeMetricChartRepository.upsertMany(charts)
             toggleLiftChartPicker()
         }
     }
 
-    fun updateLiftChartTypeSelections(type: String, selected: Boolean) {
+    private fun updateLiftChartTypeSelections(type: String, selected: Boolean) {
         _state.update {
             it.copy(
                 liftChartTypeSelections = it.liftChartTypeSelections.toMutableList().apply {
@@ -411,7 +439,7 @@ class HomeViewModel(
         }
     }
 
-    fun selectLiftForMetricCharts() {
+    private fun selectLiftForMetricCharts() {
         viewModelScope.launch {
             val charts = _state.value.liftChartTypeSelections.fastMap {
                 LiftMetricChartDto(

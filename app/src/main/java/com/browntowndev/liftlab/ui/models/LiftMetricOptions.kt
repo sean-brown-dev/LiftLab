@@ -8,6 +8,12 @@ class LiftMetricOptions(
     val multiSelect: Boolean = false,
     val completionButtonText: String,
     val completionButtonIcon: ImageVector,
-    val onCompletion: () -> Unit = {},
-    val onSelectionChanged: (value: String, selected: Boolean) -> Unit = {_, _ ->},
+    val onCompletion: (() -> Unit)? = null,
+    val onSelectionChanged: ((value: String, selected: Boolean) -> Unit)? = null,
+)
+
+class LiftMetricOptionTree(
+    val options: List<LiftMetricOptions>,
+    val completionButtonText: String,
+    val completionButtonIcon: ImageVector,
 )

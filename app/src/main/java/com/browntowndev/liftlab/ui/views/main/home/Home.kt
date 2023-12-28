@@ -13,12 +13,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,9 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
@@ -132,37 +127,14 @@ fun Home(
             }
         }
 
-        RowMultiSelect(
-            visible = state.showLiftChartPicker,
-            title = "ADD LIFT METRIC CHARTS",
-            options = listOf(
-                LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName(),
-                LiftMetricChartType.VOLUME.displayName(),
-                LiftMetricChartType.RELATIVE_INTENSITY.displayName()
-            ),
-            selections = state.liftChartTypeSelections,
-            onSelectionChanged = { type, selected ->
-                homeViewModel.updateLiftChartTypeSelections(
-                    type = type,
-                    selected = selected
-                )
-            },
-            onCancel = { homeViewModel.toggleLiftChartPicker() }
-        ) {
-            TextButton(onClick = { homeViewModel.selectLiftForMetricCharts() }) {
-                Row (verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Select Lift",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 20.sp
-                    )
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowRight,
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = null
-                    )
-                }
-            }
+        if (state.liftMetricOptions != null) {
+            RowMultiSelect(
+                visible = state.showLiftChartPicker,
+                title = "ADD METRIC CHARTS",
+                optionTree = state.liftMetricOptions!!,
+                selections = state.liftChartTypeSelections,
+                onCancel = { homeViewModel.toggleLiftChartPicker() }
+            )
         }
     }
 }

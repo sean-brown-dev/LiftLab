@@ -10,12 +10,13 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -26,25 +27,29 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 
 @Composable
 fun RowMultiSelect(
     visible: Boolean,
     title: String,
-    options: List<String>,
+    optionTree: LiftMetricOptionTree,
     selections: List<String>,
-    onSelectionChanged: (type: String, selected: Boolean) -> Unit,
     onCancel: () -> Unit,
-    confirmationButton: @Composable () -> Unit,
 ) {
     BackHandler(visible) {
         onCancel()
@@ -103,18 +108,30 @@ fun RowMultiSelect(
             }
             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             Spacer(modifier = Modifier.padding(5.dp))
-            Column (
+
+            var currentLeaf: LiftMetricOptions? by remember { mutableStateOf(null)}
+            var nextLeaf: LiftMetricOptions? by remember { mutableStateOf(null) }
+            val options = remember(currentLeaf) {
+                currentLeaf?.options ?: optionTree.options.flatMap { it.options }
+            }
+            LazyColumn (
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
-                options.fastForEach { option ->
+                items(options) { option ->
                     val isChecked = remember(selections) { selections.contains(option) }
                     Row (
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(color = if (isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
                             .clickable {
-                                onSelectionChanged(option, !isChecked)
+                                if (currentLeaf?.onSelectionChanged != null) {
+                                    currentLeaf!!.onSelectionChanged!!(option, !isChecked)
+                                } else {
+                                    nextLeaf = optionTree.options.find { rootLeaf ->
+                                        rootLeaf.options.contains(option)
+                                    }
+                                }
                             },
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -128,13 +145,41 @@ fun RowMultiSelect(
                         )
                     }
                 }
+                item {
+                    Row (
+                        modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        ConfirmationButton(
+                            text = currentLeaf?.completionButtonText ?: optionTree.completionButtonText,
+                            trailingIcon = currentLeaf?.completionButtonIcon ?: optionTree.completionButtonIcon,
+                            onClick = currentLeaf?.onCompletion ?: { currentLeaf = nextLeaf },
+                        )
+                    }
+                }
             }
-            Row (
-                modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                confirmationButton()
-            }
+        }
+    }
+}
+
+@Composable
+fun ConfirmationButton(
+    text: String,
+    trailingIcon: ImageVector,
+    onClick: () -> Unit,
+) {
+    TextButton(onClick = onClick) {
+        Row (verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = text,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 20.sp
+            )
+            Icon(
+                imageVector = trailingIcon,
+                tint = MaterialTheme.colorScheme.primary,
+                contentDescription = null
+            )
         }
     }
 }

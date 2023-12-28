@@ -3,7 +3,8 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
-import com.browntowndev.liftlab.ui.models.LiftMetricOptions
+import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
 
 data class HomeState(
     val workoutLogs: List<WorkoutLogEntryDto> = listOf(),
@@ -13,6 +14,7 @@ data class HomeState(
     val volumeTypeSelections: List<String> = listOf(),
     val volumeImpactSelections: List<String> = listOf(),
     val liftChartTypeSelections: List<String> = listOf(),
-    val liftMetricOptions: List<LiftMetricOptions> = listOf(),
+    val liftMetricOptions: LiftMetricOptionTree? = null,
     val liftMetricChartModels: List<LiftMetricChartModel> = listOf(),
+    val volumeMetricChartModels: List<VolumeMetricChartModel> = listOf(),
 )
