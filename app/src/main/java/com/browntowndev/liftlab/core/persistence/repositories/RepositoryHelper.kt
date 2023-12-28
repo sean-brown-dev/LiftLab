@@ -41,12 +41,8 @@ class RepositoryHelper(context: Context): KoinComponent {
     val workouts get() = WorkoutsRepository(
         workoutLiftsRepository = workoutLifts,
         customLiftSetsRepository = customLiftSets,
-        previousSetResultsRepository = previousSetResults,
-        loggingRepository = logging,
         workoutMapper = workoutMapper,
-        setResultMapper = setResultMapper,
         workoutsDao = database.workoutsDao(),
-        progressionFactory = progressionFactory,
     )
 
     val lifts get() = LiftsRepository(
@@ -70,6 +66,7 @@ class RepositoryHelper(context: Context): KoinComponent {
     val logging get() = LoggingRepository(
         database.loggingDao(),
         workoutLogEntryMapper,
+        setResultMapper,
     )
 
     val restTimer get() = RestTimerInProgressRepository(

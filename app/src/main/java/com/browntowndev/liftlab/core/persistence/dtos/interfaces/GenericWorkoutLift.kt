@@ -19,4 +19,5 @@ interface GenericWorkoutLift {
     val incrementOverride: Float?
     val restTime: Duration?
     val restTimerEnabled: Boolean
+    val note: String?
 }

@@ -62,6 +62,7 @@ class SetResultMapper {
             rpe = from.rpe,
             reps = from.reps,
             missedLpGoals = from.missedLpGoals!!,
+            isDeload = from.isDeload,
         )
     }
 
@@ -79,6 +80,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            isDeload = from.isDeload,
         )
     }
 
@@ -96,6 +98,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            isDeload = from.isDeload,
         )
     }
 
@@ -113,6 +116,7 @@ class SetResultMapper {
             rpe = from.rpe,
             reps = from.reps,
             missedLpGoals = 0,
+            isDeload = from.isDeload,
         )
     }
 
@@ -130,6 +134,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            isDeload = from.isDeload,
         )
     }
 
@@ -147,6 +152,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            isDeload = from.isDeload,
         )
     }
 
@@ -164,6 +170,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            isDeload = from.isDeload,
         )
     }
 
@@ -182,6 +189,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            isDeload = from.isDeload,
         )
     }
 
@@ -200,6 +208,7 @@ class SetResultMapper {
             rpe = from.rpe,
             reps = from.reps,
             missedLpGoals = from.missedLpGoals,
+            isDeload = from.isDeload,
         )
     }
 }

@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.core.persistence.dtos.interfaces
 interface GenericLoggingSet {
     val position: Int
     val rpeTarget: Float
-    val repRangeBottom: Int
-    val repRangeTop: Int
+    val repRangeBottom: Int?
+    val repRangeTop: Int?
     val weightRecommendation: Float?
     val hadInitialWeightRecommendation: Boolean
     val previousSetResultLabel: String

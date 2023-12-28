@@ -37,8 +37,8 @@ data class SetLogEntry(
     val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,
-    val repRangeTop: Int,
-    val repRangeBottom: Int,
+    val repRangeTop: Int?,
+    val repRangeBottom: Int?,
     val rpeTarget: Float,
     val weightRecommendation: Float?,
     val weight: Float,
@@ -50,4 +50,6 @@ data class SetLogEntry(
     val maxSets: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
+    @ColumnInfo(defaultValue = false.toString())
+    val isDeload: Boolean = false,
 )

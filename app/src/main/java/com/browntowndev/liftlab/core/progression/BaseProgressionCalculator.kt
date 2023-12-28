@@ -33,7 +33,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     ): Float {
         val incrementAmount = incrementOverride
             ?: SettingsManager.getSetting(
-                SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                INCREMENT_AMOUNT,
                 DEFAULT_INCREMENT_AMOUNT
             )
 
@@ -59,11 +59,18 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected fun List<GenericLoggingSet>.flattenWeightRecommendationsGeneric(): List<GenericLoggingSet> {
         // Flattens out weight recommendations for all standard sets that use the same rep range and RPE target
         // Not really a good way I can think of to handle drop and myo rep sets, so let them be
-        val standardSets = this.filterIsInstance<LoggingStandardSetDto>()
-        return standardSets.flattenWeightRecommendationsStandard()
+        val standardSetRecommendations = this.filterIsInstance<LoggingStandardSetDto>()
+            .flattenWeightRecommendationsStandard()
+            .associate { it.position to it.weightRecommendation }
+
+        return this.fastMap { set ->
+            if (set is LoggingStandardSetDto) {
+                set.copy(weightRecommendation = standardSetRecommendations[set.position] ?: set.weightRecommendation)
+            } else set
+        }
     }
 
-    protected fun shouldDecreaseWeight(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
+    protected fun missedBottomRepRange(result: SetResult?, goals: StandardWorkoutLiftDto): Boolean {
         return if (result != null) {
             missedBottomRepRange(
                 repRangeBottom = goals.repRangeBottom,
@@ -74,7 +81,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else false
     }
 
-    private fun shouldDecreaseWeight(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
+    private fun missedBottomRepRange(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
         return if (result != null) {
             missedBottomRepRange(
                 repRangeBottom = repRangeBottom,
@@ -98,23 +105,23 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
         return prevSet.weight + (lift.incrementOverride
-            ?: SettingsManager.getSetting(SettingsManager.SettingNames.INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
+            ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
     }
 
-    protected fun decreaseWeight(
-        incrementOverride: Float?,
-        repRangeBottom: Int,
+    protected fun getCalculatedWeightRecommendation(
+        increment: Float?,
+        repGoal: Int,
         rpeTarget: Float,
         result: SetResult
     ): Float {
-        val roundingFactor = (incrementOverride
+        val roundingFactor = (increment
             ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT))
 
         return CalculationEngine.calculateSuggestedWeight(
             completedWeight = result.weight,
             completedReps = result.reps,
             completedRpe = result.rpe,
-            repGoal = repRangeBottom,
+            repGoal = repGoal,
             rpeGoal = rpeTarget,
             roundingFactor = roundingFactor)
     }
@@ -127,11 +134,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         result: SetResult?,
         droppedFromSetResult: SetResult?,
     ): Float? {
-        return shouldDecreaseWeight(result, repRangeBottom, rpeTarget).let { shouldDecrease ->
+        return missedBottomRepRange(result, repRangeBottom, rpeTarget)
+            .let { shouldDecrease ->
             if (shouldDecrease && result != null) {
-                decreaseWeight(
-                    incrementOverride = incrementOverride,
-                    repRangeBottom = repRangeBottom,
+                getCalculatedWeightRecommendation(
+                    increment = incrementOverride,
+                    repGoal = repRangeBottom,
                     rpeTarget = rpeTarget,
                     result = result,
                 )
@@ -164,7 +172,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         set: MyoRepSetDto,
         setData: List<MyoRepSetResultDto>?,
     ) : Boolean {
-        if (setData == null) return false
+        if (setData.isNullOrEmpty()) return false
 
         val activationSet = setData.first()
         val myoRepSets = setData.filter { it.myoRepSetPosition != null }

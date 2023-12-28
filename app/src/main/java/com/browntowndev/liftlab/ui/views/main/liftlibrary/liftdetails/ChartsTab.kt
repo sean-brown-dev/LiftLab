@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
@@ -28,41 +29,45 @@ fun ChartsTab(
     onFilterVolumeChartByWorkouts: (historicalWorkoutIds: Set<Long>) -> Unit,
     onFilterIntensityChartByWorkouts: (historicalWorkoutIds: Set<Long>) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        SingleLineWorkoutFilterableChart(
-            label = remember(oneRepMaxChartModel) {
-                "${LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName().uppercase(Locale.ROOT)} " +
+        item {
+            SingleLineWorkoutFilterableChart(
+                label = remember(oneRepMaxChartModel) {
+                    "${LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName().uppercase(Locale.ROOT)} " +
+                            if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
+                },
+                oneRepMaxChartModel = oneRepMaxChartModel,
+                workoutFilterOptions = workoutFilterOptions,
+                selectedWorkoutFilters = selectedOneRepMaxWorkoutFilters,
+                onApplyWorkoutFilters = onFilterOneRepMaxChartByWorkouts,
+            )
+        }
+        item {
+            MultiLineWorkoutFilterableChart(
+                label = remember(volumeChartModel) { "${LiftMetricChartType.VOLUME.displayName().uppercase(Locale.ROOT)} " +
+                        if(volumeChartModel?.hasData != true) "- NO DATA" else ""
+                },
+                volumeChartModel = volumeChartModel,
+                workoutFilterOptions = workoutFilterOptions,
+                selectedWorkoutFilters = selectedVolumeWorkoutFilters,
+                onApplyWorkoutFilters = onFilterVolumeChartByWorkouts,
+            )
+        }
+        item {
+            SingleLineWorkoutFilterableChart(
+                label = remember(oneRepMaxChartModel) { "${
+                    LiftMetricChartType.RELATIVE_INTENSITY.displayName().uppercase(Locale.ROOT)
+                } " +
                         if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
-            },
-            oneRepMaxChartModel = oneRepMaxChartModel,
-            workoutFilterOptions = workoutFilterOptions,
-            selectedWorkoutFilters = selectedOneRepMaxWorkoutFilters,
-            onApplyWorkoutFilters = onFilterOneRepMaxChartByWorkouts,
-        )
-        MultiLineWorkoutFilterableChart(
-            label = remember(volumeChartModel) { "${LiftMetricChartType.VOLUME.displayName().uppercase(Locale.ROOT)} " +
-                    if(volumeChartModel?.hasData != true) "- NO DATA" else ""
-            },
-            volumeChartModel = volumeChartModel,
-            workoutFilterOptions = workoutFilterOptions,
-            selectedWorkoutFilters = selectedVolumeWorkoutFilters,
-            onApplyWorkoutFilters = onFilterVolumeChartByWorkouts,
-        )
-        SingleLineWorkoutFilterableChart(
-            label = remember(oneRepMaxChartModel) { "${
-                LiftMetricChartType.RELATIVE_INTENSITY.displayName().uppercase(Locale.ROOT)
-            } " +
-                    if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
-            },
-            oneRepMaxChartModel = intensityChartModel,
-            workoutFilterOptions = workoutFilterOptions,
-            selectedWorkoutFilters = selectedIntensityWorkoutFilters,
-            onApplyWorkoutFilters = onFilterIntensityChartByWorkouts,
-        )
+                },
+                oneRepMaxChartModel = intensityChartModel,
+                workoutFilterOptions = workoutFilterOptions,
+                selectedWorkoutFilters = selectedIntensityWorkoutFilters,
+                onApplyWorkoutFilters = onFilterIntensityChartByWorkouts,
+            )
+        }
     }
 }

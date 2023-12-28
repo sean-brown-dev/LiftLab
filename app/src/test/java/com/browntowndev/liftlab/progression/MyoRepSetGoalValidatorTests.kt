@@ -7,7 +7,7 @@ import org.junit.Test
 
 class MyoRepSetGoalValidatorTests {
     @Test
-    fun `returns false when myorep set goals are not achieved`() {
+    fun `returns false when rep floor is hit`() {
          val justCompletedSet = LoggingMyoRepSetDto(
              position = 0,
              myoRepSetPosition = 2,
@@ -59,12 +59,107 @@ class MyoRepSetGoalValidatorTests {
                 completedReps = 20,
                 completedRpe = 8f,
                 completedWeight = 100f,
-            )
+            ),
+            justCompletedSet,
         )
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
+        )
+
+        Assert.assertEquals(false, result)
+    }
+
+    @Test
+    fun `returns true when rep floor not hit`() {
+        val justCompletedSet = LoggingMyoRepSetDto(
+            position = 0,
+            myoRepSetPosition = 2,
+            rpeTarget = 8f,
+            repRangeBottom = 25,
+            repRangeTop = 30,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "",
+            setNumberLabel = "",
+            repFloor = 5,
+            complete = true,
+            completedReps = 6,
+            completedRpe = 8f,
+            completedWeight = 100f,
+        )
+
+        val previouslyCompletedSets = listOf(
+            LoggingMyoRepSetDto(
+                position = 0,
+                rpeTarget = 8f,
+                repRangeBottom = 25,
+                repRangeTop = 30,
+                weightRecommendation = 100f,
+                hadInitialWeightRecommendation = true,
+                previousSetResultLabel = "",
+                repRangePlaceholder = "",
+                setNumberLabel = "",
+                repFloor = 5,
+                complete = true,
+                completedReps = 30,
+                completedRpe = 8f,
+                completedWeight = 100f,
+            ),
+            LoggingMyoRepSetDto(
+                position = 0,
+                myoRepSetPosition = 1,
+                rpeTarget = 8f,
+                repRangeBottom = 25,
+                repRangeTop = 30,
+                weightRecommendation = 100f,
+                hadInitialWeightRecommendation = true,
+                previousSetResultLabel = "",
+                repRangePlaceholder = "",
+                setNumberLabel = "",
+                repFloor = 5,
+                complete = true,
+                completedReps = 20,
+                completedRpe = 8f,
+                completedWeight = 100f,
+            ),
+            justCompletedSet,
+        )
+
+        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
+            completedSet = justCompletedSet,
+            myoRepSetResults = previouslyCompletedSets,
+        )
+
+        Assert.assertEquals(true, result)
+    }
+
+    @Test
+    fun `returns false when RPE target is missed on activation set`() {
+        val previouslyCompletedSets = listOf(
+            LoggingMyoRepSetDto(
+                position = 0,
+                rpeTarget = 8f,
+                repRangeBottom = 25,
+                repRangeTop = 30,
+                weightRecommendation = 100f,
+                hadInitialWeightRecommendation = true,
+                previousSetResultLabel = "",
+                repRangePlaceholder = "",
+                setNumberLabel = "",
+                repFloor = 5,
+                complete = true,
+                completedReps = 25,
+                completedRpe = 9f,
+                completedWeight = 100f,
+            ),
+        )
+
+        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
+            completedSet = previouslyCompletedSets[0],
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)
@@ -124,12 +219,13 @@ class MyoRepSetGoalValidatorTests {
                 completedReps = 20,
                 completedRpe = 8f,
                 completedWeight = 100f,
-            )
+            ),
+            justCompletedSet,
         )
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)
@@ -139,7 +235,7 @@ class MyoRepSetGoalValidatorTests {
     fun `returns true when set matching myorep set goals are not achieved`() {
         val justCompletedSet = LoggingMyoRepSetDto(
             position = 0,
-            myoRepSetPosition = 2,
+            myoRepSetPosition = 1,
             setMatching = true,
             rpeTarget = 8f,
             repRangeBottom = 25,
@@ -159,6 +255,7 @@ class MyoRepSetGoalValidatorTests {
         val previouslyCompletedSets = listOf(
             LoggingMyoRepSetDto(
                 position = 0,
+                setMatching = true,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
                 repRangeTop = 30,
@@ -175,7 +272,8 @@ class MyoRepSetGoalValidatorTests {
             ),
             LoggingMyoRepSetDto(
                 position = 0,
-                myoRepSetPosition = 1,
+                myoRepSetPosition = 0,
+                setMatching = true,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
                 repRangeTop = 30,
@@ -189,12 +287,13 @@ class MyoRepSetGoalValidatorTests {
                 completedReps = 20,
                 completedRpe = 8f,
                 completedWeight = 100f,
-            )
+            ),
+            justCompletedSet,
         )
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(true, result)
@@ -221,7 +320,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = listOf(),
+            myoRepSetResults = listOf(justCompletedSet),
         )
 
         Assert.assertEquals(true, result)
@@ -248,71 +347,7 @@ class MyoRepSetGoalValidatorTests {
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = listOf(),
-        )
-
-        Assert.assertEquals(false, result)
-    }
-
-    @Test
-    fun `returns false when myorep set goals are achieved`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
-            position = 0,
-            myoRepSetPosition = 2,
-            rpeTarget = 8f,
-            repRangeBottom = 25,
-            repRangeTop = 30,
-            weightRecommendation = 100f,
-            hadInitialWeightRecommendation = true,
-            previousSetResultLabel = "",
-            repRangePlaceholder = "",
-            setNumberLabel = "",
-            repFloor = 5,
-            complete = true,
-            completedReps = 5,
-            completedRpe = 8f,
-            completedWeight = 100f,
-        )
-
-        val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
-                position = 0,
-                rpeTarget = 8f,
-                repRangeBottom = 25,
-                repRangeTop = 30,
-                weightRecommendation = 100f,
-                hadInitialWeightRecommendation = true,
-                previousSetResultLabel = "",
-                repRangePlaceholder = "",
-                setNumberLabel = "",
-                repFloor = 5,
-                complete = true,
-                completedReps = 30,
-                completedRpe = 8f,
-                completedWeight = 100f,
-            ),
-            LoggingMyoRepSetDto(
-                position = 0,
-                myoRepSetPosition = 1,
-                rpeTarget = 8f,
-                repRangeBottom = 25,
-                repRangeTop = 30,
-                weightRecommendation = 100f,
-                hadInitialWeightRecommendation = true,
-                previousSetResultLabel = "",
-                repRangePlaceholder = "",
-                setNumberLabel = "",
-                repFloor = 5,
-                complete = true,
-                completedReps = 20,
-                completedRpe = 8f,
-                completedWeight = 100f,
-            )
-        )
-
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = listOf(justCompletedSet),
         )
 
         Assert.assertEquals(false, result)
@@ -368,12 +403,13 @@ class MyoRepSetGoalValidatorTests {
                 completedReps = 20,
                 completedRpe = 8f,
                 completedWeight = 100f,
-            )
+            ),
+            justCompletedSet,
         )
 
         val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = justCompletedSet,
-            previousMyoRepSets = previouslyCompletedSets,
+            myoRepSetResults = previouslyCompletedSets,
         )
 
         Assert.assertEquals(false, result)

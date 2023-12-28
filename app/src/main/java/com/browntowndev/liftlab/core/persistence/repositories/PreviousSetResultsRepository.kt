@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 
@@ -29,8 +28,18 @@ class PreviousSetResultsRepository(
         return previousSetResultDao.upsertMany(setResults.map { setResult -> setResultsMapper.map(setResult) })
     }
 
-    suspend fun deleteAllForPreviousWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
-        previousSetResultDao.deleteAllForPreviousWorkout(workoutId, mesoCycle, microCycle)
+    suspend fun deleteAllForPreviousWorkout(
+        workoutId: Long,
+        currentMesocycle: Int,
+        currentMicrocycle: Int,
+        currentResultsToDeleteInstead: List<Long>,
+    ) {
+        previousSetResultDao.deleteAllForPreviousWorkout(
+            workoutId = workoutId,
+            currentMesocycle = currentMesocycle,
+            currentMicrocycle = currentMicrocycle,
+            currentResultsToDelete = currentResultsToDeleteInstead,
+        )
     }
 
     suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {

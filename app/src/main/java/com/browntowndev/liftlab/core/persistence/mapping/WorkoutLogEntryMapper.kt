@@ -77,6 +77,7 @@ class WorkoutLogEntryMapper {
                                 rpe = it.rpe,
                                 mesoCycle = it.mesoCycle,
                                 microCycle = it.microCycle,
+                                isDeload = it.isDeload,
                             )
                         }
                     )

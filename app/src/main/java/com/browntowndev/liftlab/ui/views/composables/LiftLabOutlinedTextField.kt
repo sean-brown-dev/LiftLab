@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.composables
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
@@ -13,12 +14,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
@@ -51,16 +59,26 @@ fun LiftLabOutlinedTextField(
     minLines: Int = 1,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     shape: Shape = OutlinedTextFieldDefaults.shape,
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors()
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
+    onRequiredHeightChanged: (lineCount: Int) -> Unit = { },
 ) {
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    var isFocused by remember { mutableStateOf(false) }
+
     // If color is not provided via the text style, use content color as a default
     val textColor = textStyle.color.takeOrElse {
         MaterialTheme.colorScheme.onBackground
     }
     val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
 
+    BackHandler(enabled = isFocused) {
+        focusManager.clearFocus()
+    }
+
+    var text by remember(value) { mutableStateOf(value) }
     BasicTextField(
-        value = value,
+        value = text,
         modifier = if (label != null) {
             // Merge semantics at the beginning of the modifier chain to ensure padding is
             // considered part of the text field.
@@ -70,10 +88,21 @@ fun LiftLabOutlinedTextField(
         } else {
             modifier
         }.defaultMinSize(
-                minWidth = OutlinedTextFieldDefaults.MinWidth,
-                minHeight = OutlinedTextFieldDefaults.MinHeight
-            ),
-        onValueChange = onValueChange,
+            minWidth = OutlinedTextFieldDefaults.MinWidth,
+            minHeight = OutlinedTextFieldDefaults.MinHeight
+        ).then(
+            Modifier.focusRequester(focusRequester)
+                .onFocusChanged {
+                    isFocused = it.isFocused
+                }
+        ),
+        onValueChange = {
+            text = it
+            onValueChange(it)
+        },
+        onTextLayout = {
+            onRequiredHeightChanged(it.size.height)
+        },
         enabled = enabled,
         readOnly = readOnly,
         textStyle = mergedTextStyle,

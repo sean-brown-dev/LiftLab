@@ -11,7 +11,9 @@ class WorkoutMapper(private val workoutLiftMapper: WorkoutLiftMapper) {
             programId = from.workout.programId,
             name = from.workout.name,
             position = from.workout.position,
-            lifts = from.lifts.map { workoutLiftMapper.map(it) }
+            lifts = from.lifts
+                .sortedBy { it.workoutLift.position }
+                .map { workoutLiftMapper.map(it) }
         )
     }
 

@@ -16,5 +16,6 @@ data class MyoRepSetResultDto(
     override val mesoCycle: Int,
     override val microCycle: Int,
     override val setType: SetType = SetType.MYOREP,
+    override val isDeload: Boolean,
     val myoRepSetPosition: Int? = null,
 ): SetResult

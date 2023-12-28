@@ -185,6 +185,7 @@ class WorkoutBuilderViewModel(
                                 liftVolumeTypes = lift.liftVolumeTypes,
                                 liftSecondaryVolumeTypes = lift.liftSecondaryVolumeTypes,
                                 deloadWeek = lift.deloadWeek,
+                                note = null,
                                 position = lift.position,
                                 setCount = lift.setCount,
                                 repRangeBottom = topCustomLiftSet?.repRangeBottom ?: 8,
@@ -254,6 +255,7 @@ class WorkoutBuilderViewModel(
                         setCount = lift.setCount,
                         progressionScheme = lift.progressionScheme,
                         deloadWeek = lift.deloadWeek,
+                        note = null,
                         incrementOverride = lift.incrementOverride,
                         restTime = lift.restTime,
                         restTimerEnabled = lift.restTimerEnabled,
@@ -602,7 +604,10 @@ class WorkoutBuilderViewModel(
         )
 
         if (updatedSet != null) {
-            _state.update { updatedStateCopy }
+            executeInTransactionScope {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
@@ -621,7 +626,10 @@ class WorkoutBuilderViewModel(
         )
 
         if (updatedSet != null) {
-            _state.update { updatedStateCopy }
+            executeInTransactionScope {
+                customLiftSetsRepository.update(updatedSet!!)
+                _state.update { updatedStateCopy }
+            }
         }
     }
 
