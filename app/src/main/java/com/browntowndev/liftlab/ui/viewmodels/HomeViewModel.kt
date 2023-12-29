@@ -37,15 +37,13 @@ import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
+import com.browntowndev.liftlab.ui.models.getMicroCycleCompletionChart
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getPerMicrocycleVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
+import com.browntowndev.liftlab.ui.models.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
-import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
-import com.patrykandpatrick.vico.core.entry.ChartEntryModel
-import com.patrykandpatrick.vico.core.entry.entryModelOf
-import com.patrykandpatrick.vico.core.entry.entryOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -302,99 +300,6 @@ class HomeViewModel(
             val sunday = monday.plusDays(6L)
             monday to sunday
         }
-    }
-
-    private fun getWeeklyCompletionChart(
-        workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-        workoutsInDateRange: List<WorkoutLogEntryDto>,
-        program: ProgramDto?,
-    ): ChartModel {
-        val workoutCount = program?.workouts?.size
-        val completedWorkoutsByWeek = workoutCompletionRange
-            .fastMap { week ->
-                week.first to
-                        workoutsInDateRange.filter { workoutLog ->
-                            week.first <= workoutLog.date.toLocalDate() &&
-                                    workoutLog.date.toLocalDate() <= week.second
-                        }.size
-            }
-            .sortedBy { it.first }
-            .associate { (date, completionCount) ->
-                date to completionCount
-            }
-
-        val xValuesToDates = completedWorkoutsByWeek.keys.associateBy { it.toEpochDay().toFloat() }
-        val chartEntryModel = entryModelOf(xValuesToDates.keys.zip(completedWorkoutsByWeek.values, ::entryOf))
-        val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d")
-
-        return ChartModel(
-            chartEntryModel = chartEntryModel,
-            axisValuesOverrider = object: AxisValuesOverrider<ChartEntryModel> {
-                override fun getMinY(model: ChartEntryModel): Float {
-                    return 0f
-                }
-                override fun getMaxY(model: ChartEntryModel): Float {
-                    return workoutCount?.toFloat() ?: 7f
-                }
-            },
-            bottomAxisValueFormatter = { value, _ ->
-                (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
-            },
-            startAxisValueFormatter = { value, _ ->
-                value.roundToInt().toString()
-            },
-            startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = (workoutCount ?: 6) + 1),
-        )
-    }
-
-    private fun getMicroCycleCompletionChart(
-        workoutLogs: List<WorkoutLogEntryDto>,
-        program: ProgramDto?,
-    ): ChartModel {
-        val setCount = program?.workouts?.sumOf { workout ->
-            workout.lifts.sumOf { it.setCount }
-        }?.toFloat() ?: 1f
-
-        val workoutsForCurrentMeso = workoutLogs
-            .filter { it.mesocycle == program?.currentMesocycle }
-            .groupBy { it.microcycle }
-            .toSortedMap()
-            .asSequence()
-            .associate { logsForMicro ->
-                val setCountConsideringDeloads = setCount - logsForMicro.value.sumOf { workoutLog ->
-                    workoutLog.setResults.groupBy { result ->
-                        result.liftPosition
-                    }.values.count { resultsForLift ->
-                        resultsForLift.any { it.isDeload }
-                    }
-                }
-
-                logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
-                    workoutLog.setResults.size
-                }.div(setCountConsideringDeloads).times(100)
-            }.ifEmpty { mapOf(1 to 0f) }
-
-        val chartEntryModel = entryModelOf(workoutsForCurrentMeso.keys.zip(workoutsForCurrentMeso.values, ::entryOf))
-
-        return ChartModel(
-            chartEntryModel = chartEntryModel,
-            axisValuesOverrider = object: AxisValuesOverrider<ChartEntryModel> {
-                override fun getMinY(model: ChartEntryModel): Float {
-                    return 0f
-                }
-                override fun getMaxY(model: ChartEntryModel): Float {
-                    return 100f
-                }
-            },
-            bottomAxisLabelRotationDegrees = 0f,
-            bottomAxisValueFormatter = { value, _ ->
-                value.roundToInt().toString()
-            },
-            startAxisValueFormatter = { value, _ ->
-                "${value.roundToInt()}%"
-            },
-            startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 11),
-        )
     }
 
     private fun getLiftMetricCharts(

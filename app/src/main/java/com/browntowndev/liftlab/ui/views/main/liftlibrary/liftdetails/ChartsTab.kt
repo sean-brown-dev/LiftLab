@@ -1,11 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -14,13 +11,14 @@ import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
+import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 import java.util.Locale
 
 @Composable
 fun ChartsTab(
-    oneRepMaxChartModel: ChartModel?,
-    volumeChartModel: ComposedChartModel?,
-    intensityChartModel: ChartModel?,
+    oneRepMaxChartModel: ChartModel<LineCartesianLayerModel>?,
+    volumeChartModel: ComposedChartModel<LineCartesianLayerModel>?,
+    intensityChartModel: ChartModel<LineCartesianLayerModel>?,
     workoutFilterOptions: Map<Long, String>,
     selectedOneRepMaxWorkoutFilters: Set<Long>,
     selectedVolumeWorkoutFilters: Set<Long>,

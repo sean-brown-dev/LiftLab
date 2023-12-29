@@ -33,9 +33,9 @@ import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.views.composables.rememberMarker
+import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import java.lang.Exception
 
 @Composable
 fun Home(
@@ -106,7 +106,7 @@ fun Home(
                     "${chart.volumeType} - ${chart.volumeTypeImpact}".uppercase()
                 }
                 when (val chartModel = chart.chartModel) {
-                    is ComposedChartModel -> HomeMultiLineChart(
+                    is ComposedChartModel<LineCartesianLayerModel> -> HomeMultiLineChart(
                         chartModel = chartModel,
                         label = label,
                         onDelete = {
@@ -121,14 +121,14 @@ fun Home(
                     "${chart.liftName} - ${chart.type.displayName()}".uppercase()
                 }
                 when (val chartModel = chart.chartModel) {
-                    is ChartModel -> HomeSingleLineChart(
+                    is ChartModel<LineCartesianLayerModel> -> HomeSingleLineChart(
                         chartModel = chartModel,
                         label = label,
                         onDelete = {
                             homeViewModel.deleteLiftMetricChart(id = chart.id)
                         },
                     )
-                    is ComposedChartModel -> HomeMultiLineChart(
+                    is ComposedChartModel<LineCartesianLayerModel> -> HomeMultiLineChart(
                         chartModel = chartModel,
                         label = label,
                         onDelete = {

@@ -7,13 +7,14 @@ import androidx.compose.ui.Modifier
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.views.composables.ColumnChart
 import com.patrykandpatrick.vico.core.marker.Marker
+import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
 
 
 @Composable
 fun HomeColumnChart(
     modifier: Modifier = Modifier,
     label: String,
-    chartModel: ChartModel,
+    chartModel: ChartModel<ColumnCartesianLayerModel>,
     marker: Marker? = null,
 ) {
     ChartCard(label = label) {

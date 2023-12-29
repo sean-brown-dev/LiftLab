@@ -3,10 +3,11 @@ package com.browntowndev.liftlab.ui.views.main.home
 import androidx.compose.runtime.Composable
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.views.composables.SingleLineChart
+import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 
 @Composable
 fun HomeSingleLineChart(
-    chartModel: ChartModel,
+    chartModel: ChartModel<LineCartesianLayerModel>,
     label: String,
     onDelete: () -> Unit,
 ) {

@@ -17,12 +17,13 @@ import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.views.composables.SectionLabel
 import com.browntowndev.liftlab.ui.views.composables.SingleLineChart
+import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 
 
 @Composable
 fun SingleLineWorkoutFilterableChart(
     label: String,
-    oneRepMaxChartModel: ChartModel?,
+    oneRepMaxChartModel: ChartModel<LineCartesianLayerModel>?,
     workoutFilterOptions: Map<Long, String>,
     selectedWorkoutFilters: Set<Long>,
     onApplyWorkoutFilters: (historicalWorkoutIds: Set<Long>) -> Unit,

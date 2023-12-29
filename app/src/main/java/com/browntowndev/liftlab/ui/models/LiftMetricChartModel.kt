@@ -1,10 +1,11 @@
 package com.browntowndev.liftlab.ui.models
 
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
+import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 
 class LiftMetricChartModel(
     val id: Long,
     val liftName: String,
     val type: LiftMetricChartType,
-    val chartModel: BaseChartModel,
+    val chartModel: BaseChartModel<LineCartesianLayerModel>,
 )

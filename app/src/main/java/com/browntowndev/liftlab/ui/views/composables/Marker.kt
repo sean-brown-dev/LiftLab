@@ -10,10 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.isWholeNumber
-import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.compose.component.overlayingComponent
-import com.patrykandpatrick.vico.compose.component.shapeComponent
-import com.patrykandpatrick.vico.compose.component.textComponent
+import com.patrykandpatrick.vico.compose.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
 import com.patrykandpatrick.vico.core.chart.dimensions.HorizontalDimensions
 import com.patrykandpatrick.vico.core.chart.insets.Insets
@@ -30,6 +30,7 @@ import com.patrykandpatrick.vico.core.extension.copyColor
 import com.patrykandpatrick.vico.core.extension.transformToSpannable
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
+import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 import kotlin.math.roundToInt
 
 @Composable
@@ -42,15 +43,15 @@ internal fun rememberMarker(): Marker {
             applyElevationOverlay = true,
         )
     }
-    val label = textComponent(
+    val label = rememberTextComponent(
         background = labelBackground,
         lineCount = LABEL_LINE_COUNT,
         padding = labelPadding,
         typeface = Typeface.MONOSPACE,
     )
-    val indicatorInnerComponent = shapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.surface)
-    val indicatorCenterComponent = shapeComponent(Shapes.pillShape, Color.White)
-    val indicatorOuterComponent = shapeComponent(Shapes.pillShape, Color.White)
+    val indicatorInnerComponent = rememberShapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.surface)
+    val indicatorCenterComponent = rememberShapeComponent(Shapes.pillShape, Color.White)
+    val indicatorOuterComponent = rememberShapeComponent(Shapes.pillShape, Color.White)
     val indicator = overlayingComponent(
         outer = indicatorOuterComponent,
         inner = overlayingComponent(
@@ -60,7 +61,7 @@ internal fun rememberMarker(): Marker {
         ),
         innerPaddingAll = indicatorCenterAndOuterComponentPaddingValue,
     )
-    val guideline = lineComponent(
+    val guideline = rememberLineComponent(
         MaterialTheme.colorScheme.onSurface.copy(GUIDELINE_ALPHA),
         guidelineThickness,
         guidelineShape,
@@ -75,7 +76,7 @@ internal fun rememberMarker(): Marker {
                     )
                     with(indicatorCenterComponent) {
                         color = entryColor
-                                    setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = entryColor)
+                        setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = entryColor)
                     }
                 }
                 labelFormatter = object: MarkerLabelFormatter {
@@ -86,9 +87,10 @@ internal fun rememberMarker(): Marker {
                     ): CharSequence = markedEntries.transformToSpannable(
                         separator = "  ",
                     ) { model ->
+                        val y = (model.entry as? LineCartesianLayerModel.Entry)?.y ?: model.location.y
                         appendCompat(
-                            if (model.entry.y.isWholeNumber()) model.entry.y.roundToInt().toString()
-                            else PATTERN.format(model.entry.y),
+                            if (y.isWholeNumber()) y.roundToInt().toString()
+                            else PATTERN.format(y),
                             ForegroundColorSpan(model.color),
                             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
                         )

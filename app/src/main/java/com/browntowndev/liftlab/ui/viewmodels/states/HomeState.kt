@@ -7,12 +7,13 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
+import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
 
 data class HomeState(
     val workoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val lifts: List<LiftDto> = listOf(),
-    val workoutCompletionChart: ChartModel? = null,
-    val microCycleCompletionChart: ChartModel? = null,
+    val workoutCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,
+    val microCycleCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,
     val showLiftChartPicker: Boolean = false,
     val volumeMetricCharts: List<VolumeMetricChartDto> = listOf(),
     val volumeTypeSelections: List<String> = listOf(),
