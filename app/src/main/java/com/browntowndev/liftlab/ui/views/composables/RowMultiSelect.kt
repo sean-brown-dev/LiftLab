@@ -70,7 +70,7 @@ fun RowMultiSelect(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp.times(.45f)),
+                .height(LocalConfiguration.current.screenHeightDp.dp.times(.5f)),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface,
             ),
@@ -116,11 +116,11 @@ fun RowMultiSelect(
             val options = remember(currentLeaf) {
                 currentLeaf?.options ?: optionTree.options.flatMap { it.options }
             }
-            val isAnySelected by remember(selectionsState) {
-                mutableStateOf(selectionsState.fastAny { options.contains(it) })
+            val isAnySelected = remember(selectionsState, options) {
+                selectionsState.fastAny { options.contains(it) }
             }
             LazyColumn (
-                modifier = Modifier.fillMaxWidth().height(200.dp),
+                modifier = Modifier.fillMaxWidth().height(233.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 items(options) { option ->
@@ -185,16 +185,22 @@ fun ConfirmationButton(
     trailingIcon: ImageVector,
     onClick: () -> Unit,
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val color = remember(enabled) {
+        if (enabled) primaryColor else outlineColor
+    }
+
     TextButton(enabled = enabled, onClick = onClick) {
         Row (verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = text,
-                color = MaterialTheme.colorScheme.primary,
+                color = color,
                 fontSize = 20.sp
             )
             Icon(
                 imageVector = trailingIcon,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = color,
                 contentDescription = null
             )
         }
