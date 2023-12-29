@@ -76,7 +76,7 @@ fun MultiLineChart(
                     )
                 }
             },
-            spacing = 80.dp,
+            spacing = 65.dp,
             axisValueOverrider = chartModel.startAxisValueOverrider,
             verticalAxisPosition = AxisPosition.Vertical.Start,
         )
@@ -90,7 +90,7 @@ fun MultiLineChart(
                     )
                 }
             },
-            spacing = 80.dp,
+            spacing = 65.dp,
             axisValueOverrider = chartModel.endAxisValueOverrider,
             verticalAxisPosition = AxisPosition.Vertical.End,
         )

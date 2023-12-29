@@ -58,7 +58,6 @@ class ComposedChartModel<T>(
     }
 }
 
-
 fun getOneRepMaxChartModel(
     workoutLogs: List<WorkoutLogEntryDto>,
     workoutFilters: Set<Long>
@@ -138,6 +137,8 @@ fun getPerWorkoutVolumeChartModel(
     val chartEntryModel = CartesianChartModel(
         LineCartesianLayerModel.build {
             series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.workingSetVolume })
+        },
+        LineCartesianLayerModel.build {
             series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.relativeVolume })
         }
     )
@@ -155,10 +156,10 @@ fun getPerWorkoutVolumeChartModel(
         },
         endAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
             override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.last().minOf { it.y } - 1
+                return model.series.first().minOf { it.y } - 1
             }
             override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.last().maxOf { it.y } + 1
+                return model.series.first().maxOf { it.y } + 1
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -216,6 +217,8 @@ fun getPerMicrocycleVolumeChartModel(
     val chartEntryModel = CartesianChartModel(
         LineCartesianLayerModel.build {
             series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.first })
+        },
+        LineCartesianLayerModel.build {
             series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.second })
         }
     )
@@ -232,10 +235,10 @@ fun getPerMicrocycleVolumeChartModel(
         },
         endAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
             override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.last().minOf { it.y } - 1
+                return model.series.first().minOf { it.y } - 1
             }
             override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.last().maxOf { it.y } + 1
+                return model.series.first().maxOf { it.y } + 1
             }
         },
         bottomAxisLabelRotationDegrees = 45f,
@@ -344,7 +347,6 @@ fun getWeeklyCompletionChart(
             override fun getMinY(model: ColumnCartesianLayerModel): Float {
                 return 0f
             }
-
             override fun getMaxY(model: ColumnCartesianLayerModel): Float {
                 return workoutCount?.toFloat() ?: 7f
             }

@@ -57,7 +57,7 @@ fun SingleLineChart(
                 .padding(top = 5.dp, bottom = 5.dp),
             chart = rememberCartesianChart(
                 rememberLineCartesianLayer(
-                    spacing = 73.dp,
+                    spacing = 70.dp,
                     lines = remember(defaultLines) {
                         defaultLines.map { defaultLine ->
                             defaultLine.copy(

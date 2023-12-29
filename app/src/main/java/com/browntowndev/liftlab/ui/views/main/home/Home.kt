@@ -62,7 +62,7 @@ fun Home(
                 .background(color = MaterialTheme.colorScheme.background)
                 .fillMaxSize()
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(15.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item {
                 Row(
