@@ -130,9 +130,12 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                             LoggingMyoRepSetDto(
                                 position = set.position,
                                 myoRepSetPosition = it.myoRepSetPosition,
-                                rpeTarget = set.rpeTarget,
+                                rpeTarget = if (it.myoRepSetPosition == null) set.rpeTarget else 10f,
                                 repRangeBottom = set.repRangeBottom,
                                 repRangeTop = set.repRangeTop,
+                                setMatching = set.setMatching,
+                                repFloor = set.repFloor,
+                                maxSets = set.maxSets,
                                 previousSetResultLabel = getPreviousSetResultLabel(result = displayResult),
                                 weightRecommendation = weightRecommendation,
                                 hadInitialWeightRecommendation = weightRecommendation != null,

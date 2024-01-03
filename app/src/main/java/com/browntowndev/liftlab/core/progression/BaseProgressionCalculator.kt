@@ -178,7 +178,11 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         val myoRepSets = setData.filter { it.myoRepSetPosition != null }
         val criterionMet = set.repRangeTop <= activationSet.reps &&
                 set.rpeTarget >= activationSet.rpe &&
-                (myoRepSets.all { set.rpeTarget >= it.rpe && it.weight == activationSet.weight })
+                myoRepSets.all {
+                    val rpeTarget = if (it.myoRepSetPosition == null) set.rpeTarget else 10f
+                    rpeTarget >= it.rpe &&
+                            it.weight == activationSet.weight
+                }
 
         return criterionMet && if (set.setMatching) {
             set.setGoal >= myoRepSets.size && myoRepSets.sumOf { it.reps } >= set.repRangeTop
