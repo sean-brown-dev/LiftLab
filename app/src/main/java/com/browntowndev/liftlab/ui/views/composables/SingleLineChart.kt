@@ -22,6 +22,7 @@ import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
 import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.compose.style.currentChartStyle
+import com.patrykandpatrick.vico.core.axis.Axis
 import com.patrykandpatrick.vico.core.chart.copy
 import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
 import com.patrykandpatrick.vico.core.component.shape.Shapes
@@ -50,6 +51,7 @@ fun SingleLineChart(
             strokeWidth = 3.dp,
             strokeColor = MaterialTheme.colorScheme.primary,
         )
+        val primaryColor = MaterialTheme.colorScheme.primary
 
         CartesianChartHost(
             modifier = Modifier
@@ -78,7 +80,8 @@ fun SingleLineChart(
                 ),
                 bottomAxis = rememberBottomAxis(
                     valueFormatter = model.bottomAxisValueFormatter,
-                    labelRotationDegrees = model.bottomAxisLabelRotationDegrees
+                    labelRotationDegrees = model.bottomAxisLabelRotationDegrees,
+                    sizeConstraint = Axis.SizeConstraint.Exact(75f),
                 ),
             ),
             model = model.chartEntryModel,

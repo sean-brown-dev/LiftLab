@@ -77,7 +77,10 @@ fun getOneRepMaxChartModel(
             date to oneRepMax
         }.toSortedMap()
 
-    val xValuesToDates = oneRepMaxesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
+    val xValuesToDates = oneRepMaxesByLocalDate.keys
+        .mapIndexed { index, localDate -> Pair(index, localDate) }
+        .associate { it.first.toFloat() to it.second }
+
     val chartEntryModel = CartesianChartModel(
         LineCartesianLayerModel.build {
             series(x = xValuesToDates.keys, y = oneRepMaxesByLocalDate.values)
@@ -133,7 +136,10 @@ fun getPerWorkoutVolumeChartModel(
             volumes.date
         }.toSortedMap()
 
-    val xValuesToDates = volumesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
+    val xValuesToDates = volumesByLocalDate.keys
+        .mapIndexed { index, localDate -> Pair(index, localDate) }
+        .associate { it.first.toFloat() to it.second }
+
     val chartEntryModel = CartesianChartModel(
         LineCartesianLayerModel.build {
             series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.workingSetVolume })
@@ -148,10 +154,22 @@ fun getPerWorkoutVolumeChartModel(
         composedChartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
             override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.first().minOf { it.y } - 1
+                val minVal = model.series.first().minOf { it.y } - 1
+                return if (minVal < 0) {
+                    0f
+                } else {
+                    minVal
+                }
             }
             override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.first().maxOf { it.y } + 1
+                val maxVal = model.series.first().maxOf { it.y } + 1
+                val minVal = getMinY(model)
+                return if (maxVal - minVal < 4) {
+                    val difference = maxVal - minVal
+                    maxVal + (4 - difference)
+                } else {
+                    maxVal
+                }
             }
         },
         endAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
@@ -194,10 +212,13 @@ fun getPerMicrocycleVolumeChartModel(
                         val repVolume = liftResults.sumOf { it.reps.toFloat() }.roundToInt()
                         val totalWeight = liftResults.sumOf { it.weight }
                         val totalWeightIfLifting1RmEachTime = liftResults.maxOf {
-                            CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                            // if 0 weight was used for all then just use 1lb for each one
+                            // so a 1RM can be calculated
+                            val weight = if (totalWeight == 0f) 1f else it.weight
+                            CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
                         } * liftResults.size
                         val workingSetVolume = liftResults.filter { it.rpe >= 7f }.size
-                        val averageIntensity = if (totalWeight > 0 && totalWeightIfLifting1RmEachTime > 0) (totalWeight / totalWeightIfLifting1RmEachTime) else 1f
+                        val averageIntensity = (totalWeight / totalWeightIfLifting1RmEachTime)
                         val relativeVolume = repVolume * averageIntensity
 
                         Pair(workingSetVolume, relativeVolume)
@@ -228,7 +249,7 @@ fun getPerMicrocycleVolumeChartModel(
         composedChartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
             override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.first().minOf { it.y } - 1
+                return  (model.series.first().minOf { it.y } - 1)
             }
             override fun getMaxY(model: LineCartesianLayerModel): Float {
                 return model.series.first().maxOf { it.y } + 1
@@ -283,7 +304,11 @@ fun getIntensityChartModel(
         }.associate { (date, relativeIntensity) ->
             date to relativeIntensity
         }.toSortedMap()
-    val xValuesToDates = relativeIntensitiesByLocalDate.keys.associateBy { it.toEpochDay().toFloat() }
+
+    val xValuesToDates = relativeIntensitiesByLocalDate.keys
+        .mapIndexed { index, localDate -> Pair(index, localDate) }
+        .associate { it.first.toFloat() to it.second }
+
     val chartEntryModel = CartesianChartModel(
         LineCartesianLayerModel.build {
             series(x = xValuesToDates.keys, y = relativeIntensitiesByLocalDate.values)
@@ -334,7 +359,10 @@ fun getWeeklyCompletionChart(
             date to completionCount
         }
 
-    val xValuesToDates = completedWorkoutsByWeek.keys.associateBy { it.toEpochDay().toFloat() }
+    val xValuesToDates = completedWorkoutsByWeek.keys
+        .mapIndexed { index, localDate -> Pair(index, localDate) }
+        .associate { it.first.toFloat() to it.second }
+
     val chartEntryModel = CartesianChartModel(
         ColumnCartesianLayerModel.build {
             series(x = xValuesToDates.keys, y = completedWorkoutsByWeek.values)
