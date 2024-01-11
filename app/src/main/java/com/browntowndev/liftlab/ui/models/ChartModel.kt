@@ -197,7 +197,8 @@ fun getPerMicrocycleVolumeChartModel(
                             CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
                         } * liftResults.size
                         val workingSetVolume = liftResults.filter { it.rpe >= 7f }.size
-                        val relativeVolume = repVolume * (totalWeight / totalWeightIfLifting1RmEachTime)
+                        val averageIntensity = if (totalWeight > 0 && totalWeightIfLifting1RmEachTime > 0) (totalWeight / totalWeightIfLifting1RmEachTime) else 1f
+                        val relativeVolume = repVolume * averageIntensity
 
                         Pair(workingSetVolume, relativeVolume)
                     }.reduce { summedPair, currPair ->
