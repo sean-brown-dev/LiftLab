@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 
@@ -17,8 +18,8 @@ abstract class LiftLabViewModel(
         }
     }
 
-    protected fun executeInTransactionScope(action: suspend CoroutineScope.() -> Unit) {
-        viewModelScope.launch {
+    protected fun executeInTransactionScope(action: suspend CoroutineScope.() -> Unit): Job {
+        return viewModelScope.launch {
             transactionScope.execute {
                 action()
             }

@@ -22,6 +22,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutL
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
@@ -270,4 +271,8 @@ fun BroadcastReceiver.executeInCoroutineScope(
             pendingResult.finish()
         }
     }
+}
+
+fun Job.runOnCompletion(action: () -> Unit) {
+    invokeOnCompletion { action() }
 }
