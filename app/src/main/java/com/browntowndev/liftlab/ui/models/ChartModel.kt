@@ -9,7 +9,6 @@ import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
-import com.patrykandpatrick.vico.core.extension.sumOf
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.model.CartesianChartModel
 import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
@@ -81,11 +80,14 @@ fun getOneRepMaxChartModel(
         .mapIndexed { index, localDate -> Pair(index, localDate) }
         .associate { it.first.toFloat() to it.second }
 
-    val chartEntryModel = CartesianChartModel(
-        LineCartesianLayerModel.build {
-            series(x = xValuesToDates.keys, y = oneRepMaxesByLocalDate.values)
-        }
-    )
+    val chartEntryModel = if(xValuesToDates.isNotEmpty()) {
+        CartesianChartModel(
+            LineCartesianLayerModel.build {
+                series(x = xValuesToDates.keys, y = oneRepMaxesByLocalDate.values)
+            }
+        )
+    } else CartesianChartModel.empty
+
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ChartModel(
@@ -122,8 +124,8 @@ fun getPerWorkoutVolumeChartModel(
                     workoutFilters.contains(workoutLog.historicalWorkoutNameId)
         }
         .fastMap { workoutLog ->
-            val repVolume = workoutLog.setResults.sumOf { it.reps.toFloat() }.roundToInt()
-            val totalWeight = workoutLog.setResults.sumOf { it.weight }
+            val repVolume = workoutLog.setResults.sumOf { it.reps }
+            val totalWeight = workoutLog.setResults.map { it.weight }.sum()
             val totalWeightIfLifting1RmEachTime = workoutLog.setResults.maxOf {
                 CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
             } * workoutLog.setResults.size
@@ -140,14 +142,17 @@ fun getPerWorkoutVolumeChartModel(
         .mapIndexed { index, localDate -> Pair(index, localDate) }
         .associate { it.first.toFloat() to it.second }
 
-    val chartEntryModel = CartesianChartModel(
-        LineCartesianLayerModel.build {
-            series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.workingSetVolume })
-        },
-        LineCartesianLayerModel.build {
-            series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.relativeVolume })
-        }
-    )
+    val chartEntryModel = if (xValuesToDates.isNotEmpty()) {
+        CartesianChartModel(
+            LineCartesianLayerModel.build {
+                series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.workingSetVolume })
+            },
+            LineCartesianLayerModel.build {
+                series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.relativeVolume })
+            }
+        )
+    } else CartesianChartModel.empty
+
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ComposedChartModel(
@@ -209,8 +214,8 @@ fun getPerMicrocycleVolumeChartModel(
                 workoutLog.setResults
                     .groupBy { it.liftId }
                     .values.map { liftResults ->
-                        val repVolume = liftResults.sumOf { it.reps.toFloat() }.roundToInt()
-                        val totalWeight = liftResults.sumOf { it.weight }
+                        val repVolume = liftResults.sumOf { it.reps }
+                        val totalWeight = liftResults.map { it.weight }.sum()
                         val totalWeightIfLifting1RmEachTime = liftResults.maxOf {
                             // if 0 weight was used for all then just use 1lb for each one
                             // so a 1RM can be calculated
@@ -236,14 +241,16 @@ fun getPerMicrocycleVolumeChartModel(
         .mapIndexed { index, key -> Pair(index, key) }
         .associate { it.first.toFloat() to it.second }
 
-    val chartEntryModel = CartesianChartModel(
-        LineCartesianLayerModel.build {
-            series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.first })
-        },
-        LineCartesianLayerModel.build {
-            series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.second })
-        }
-    )
+    val chartEntryModel = if(xValuesToMesoMicroPair.isNotEmpty()) {
+        CartesianChartModel(
+            LineCartesianLayerModel.build {
+                series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.first })
+            },
+            LineCartesianLayerModel.build {
+                series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.second })
+            }
+        )
+    } else CartesianChartModel.empty
 
     return ComposedChartModel(
         composedChartEntryModel = chartEntryModel,
@@ -309,11 +316,14 @@ fun getIntensityChartModel(
         .mapIndexed { index, localDate -> Pair(index, localDate) }
         .associate { it.first.toFloat() to it.second }
 
-    val chartEntryModel = CartesianChartModel(
-        LineCartesianLayerModel.build {
-            series(x = xValuesToDates.keys, y = relativeIntensitiesByLocalDate.values)
-        }
-    )
+    val chartEntryModel = if (xValuesToDates.isNotEmpty()) {
+        CartesianChartModel(
+            LineCartesianLayerModel.build {
+                series(x = xValuesToDates.keys, y = relativeIntensitiesByLocalDate.values)
+            }
+        )
+    } else CartesianChartModel.empty
+
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ChartModel(
@@ -363,11 +373,14 @@ fun getWeeklyCompletionChart(
         .mapIndexed { index, localDate -> Pair(index, localDate) }
         .associate { it.first.toFloat() to it.second }
 
-    val chartEntryModel = CartesianChartModel(
-        ColumnCartesianLayerModel.build {
-            series(x = xValuesToDates.keys, y = completedWorkoutsByWeek.values)
-        }
-    )
+    val chartEntryModel = if (xValuesToDates.isNotEmpty()) {
+        CartesianChartModel(
+            ColumnCartesianLayerModel.build {
+                series(x = xValuesToDates.keys, y = completedWorkoutsByWeek.values)
+            }
+        )
+    } else CartesianChartModel.empty
+
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d")
 
     return ChartModel(
@@ -400,8 +413,8 @@ fun getMicroCycleCompletionChart(
     program: ProgramDto?,
 ): ChartModel<ColumnCartesianLayerModel> {
     val setCount = program?.workouts?.sumOf { workout ->
-        workout.lifts.sumOf { it.setCount.toFloat() }
-    } ?: 1f
+        workout.lifts.sumOf { it.setCount }
+    } ?: 1
 
     val workoutsForCurrentMeso = workoutLogs
         .filter { it.mesocycle == program?.currentMesocycle }
@@ -414,12 +427,12 @@ fun getMicroCycleCompletionChart(
                     result.liftPosition
                 }.values.count { resultsForLift ->
                     resultsForLift.any { it.isDeload }
-                }.toFloat()
+                }
             }
 
             logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
-                workoutLog.setResults.size.toFloat()
-            }.div(setCountConsideringDeloads).times(100)
+                workoutLog.setResults.size
+            }.toFloat().div(setCountConsideringDeloads).times(100)
         }.ifEmpty { mapOf(1 to 0f) }
 
     val chartEntryModel = CartesianChartModel(

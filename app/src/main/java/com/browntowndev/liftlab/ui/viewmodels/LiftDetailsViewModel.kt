@@ -21,7 +21,6 @@ import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
-import com.patrykandpatrick.vico.core.extension.sumOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -248,8 +247,8 @@ class LiftDetailsViewModel(
             .apply {
                 this[index] = newVolumeType
             }.sumOf {
-                it.bitMask.toFloat()
-            }.roundToInt()
+                it.bitMask
+            }
 
         val newDisplayNames = _state.value.volumeTypeDisplayNames
             .toMutableList()
@@ -281,8 +280,8 @@ class LiftDetailsViewModel(
             .apply {
                 this[index] = newVolumeType
             }.sumOf {
-                it.bitMask.toFloat()
-            }.roundToInt()
+                it.bitMask
+            }
 
         val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
             .toMutableList()

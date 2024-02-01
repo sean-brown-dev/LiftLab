@@ -60,11 +60,11 @@ dependencies {
     def room_version = '2.6.1'
     def lifecycle_version = '2.7.0'
     def kotlin_coroutines_version = '1.7.3'
-    def compose_version = '1.5.4'
+    def compose_version = '1.6.0'
     def kotlin_reflect_version = '1.9.22'
     def eventbus_version = '3.3.1'
     def mockkVersion = '1.13.9'
-    def vico_version = '2.0.0-alpha.5'
+    def vico_version = '2.0.0-alpha.6'
     def koin_version = '3.5.3'
 
     implementation "org.greenrobot:eventbus:$eventbus_version"
@@ -74,7 +74,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
     implementation 'androidx.activity:activity-compose:1.8.2'
-    implementation platform('androidx.compose:compose-bom:2023.10.01')
+    implementation platform('androidx.compose:compose-bom:2024.01.00')
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
 
     // Compose
@@ -82,7 +82,7 @@ dependencies {
     implementation "androidx.compose.ui:ui-graphics:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.foundation:foundation:$compose_version"
-    implementation 'androidx.compose.runtime:runtime-livedata:1.5.4'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.6.0'
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     implementation "androidx.compose.material:material:$compose_version"
@@ -92,7 +92,7 @@ dependencies {
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
     implementation 'io.arrow-kt:arrow-core:1.2.1'
     implementation 'io.arrow-kt:arrow-fx-coroutines:1.2.1'
-    implementation 'de.raphaelebner:roomdatabasebackup:1.0.0-beta13'
+    implementation 'de.raphaelebner:roomdatabasebackup:1.0.0-beta14'
 
     // Work
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
@@ -135,10 +135,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2023.10.01')
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.5.4'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.5.4'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.5.4'
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.01.00')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.6.0'
+    debugImplementation 'androidx.compose.ui:ui-tooling:1.6.0'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.6.0'
 
     // Vico Charts
     // For Jetpack Compose.

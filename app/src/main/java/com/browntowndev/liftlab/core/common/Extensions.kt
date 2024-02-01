@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.core.common
 
 import android.content.BroadcastReceiver
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -275,4 +277,31 @@ fun BroadcastReceiver.executeInCoroutineScope(
 
 fun Job.runOnCompletion(action: () -> Unit) {
     invokeOnCompletion { action() }
+}
+
+fun SpannableStringBuilder.appendCompat(
+    text: CharSequence,
+    what: Any,
+    flags: Int,
+): SpannableStringBuilder =
+    append(text, what, flags)
+
+fun <T> Iterable<T>.transformToSpannable(
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "…",
+    transform: SpannableStringBuilder.(T) -> Unit,
+): Spannable {
+    val buffer = SpannableStringBuilder()
+    buffer.append(prefix)
+    var count = 0
+    for (element in this) {
+        if (++count > 1) buffer.append(separator)
+        if (limit < 0 || count <= limit) buffer.transform(element) else break
+    }
+    if (limit in 0..<count) buffer.append(truncated)
+    buffer.append(postfix)
+    return buffer
 }
