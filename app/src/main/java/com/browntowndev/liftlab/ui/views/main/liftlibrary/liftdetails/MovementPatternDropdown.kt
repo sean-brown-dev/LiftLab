@@ -1,13 +1,11 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,7 +37,7 @@ fun MovementPatternDropdown(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         var isExpanded by remember { mutableStateOf(false) }
-        val movementPatternOptions by remember { mutableStateOf(MovementPattern.values().sortedBy { it.displayName() }) }
+        val movementPatternOptions by remember { mutableStateOf(MovementPattern.entries.sortedBy { it.displayName() }) }
 
         Row(
             modifier = Modifier

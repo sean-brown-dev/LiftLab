@@ -8,8 +8,6 @@ import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
-import com.browntowndev.liftlab.core.progression.ProgressionFactory
-import com.browntowndev.liftlab.core.progression.StandardProgressionFactory
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 

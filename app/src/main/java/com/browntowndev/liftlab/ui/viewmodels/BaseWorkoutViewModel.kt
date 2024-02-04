@@ -240,7 +240,7 @@ abstract class BaseWorkoutViewModel(
                         .filter {
                             !it.complete &&
                                     (it.myoRepSetPosition ?: -1) > (thisMyoRepSet.myoRepSetPosition ?: -1)
-                        }.let { removeAll(it) }
+                        }.let { removeAll(it.toSet()) }
                 }
             } else {
                 mutableLoggingSets

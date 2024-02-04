@@ -37,7 +37,7 @@ fun ProgressionSchemeDropdown(
     onChangeProgressionScheme: (ProgressionScheme) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    val progressionSchemes by remember { mutableStateOf(ProgressionScheme.values().sortedBy { it.displayName() }) }
+    val progressionSchemes by remember { mutableStateOf(ProgressionScheme.entries.sortedBy { it.displayName() }) }
 
     Row(
         modifier = Modifier.animateContentSize(),

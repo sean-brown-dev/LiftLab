@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -31,7 +31,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.VolumeMetricChartRepository
-import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
@@ -43,7 +42,6 @@ import com.browntowndev.liftlab.ui.models.getPerMicrocycleVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
-import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -52,10 +50,8 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.TemporalAdjusters
 import java.util.Date
-import kotlin.math.roundToInt
 
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
@@ -161,14 +157,14 @@ class HomeViewModel(
     private fun getLiftMetricChartOptions(): LiftMetricOptionTree {
         return LiftMetricOptionTree(
             completionButtonText = "Next",
-            completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+            completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             options = listOf(
                 LiftMetricOptions(
                     options = listOf("Lift Metrics"),
                     child = LiftMetricOptions(
                         options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
                         completionButtonText = "Choose Lift",
-                        completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                        completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         onCompletion = { selectLiftForMetricCharts() },
                         onSelectionChanged = { type, selected ->
                             updateLiftChartTypeSelections(
@@ -178,7 +174,7 @@ class HomeViewModel(
                         }
                     ),
                     completionButtonText = "Next",
-                    completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                    completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 ),
                 LiftMetricOptions(
                     options = listOf("Volume Metrics"),
@@ -199,7 +195,7 @@ class HomeViewModel(
                             },
                         ),
                         completionButtonText = "Next",
-                        completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                        completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         onSelectionChanged = { type, selected ->
                             updateVolumeTypeSelections(
                                 type,
@@ -208,7 +204,7 @@ class HomeViewModel(
                         },
                     ),
                     completionButtonText = "Next",
-                    completionButtonIcon = Icons.Filled.KeyboardArrowRight,
+                    completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 ),
             )
         )

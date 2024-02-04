@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
@@ -56,10 +56,10 @@ data class WorkoutBuilderScreen(
     override val isAppBarVisible: Boolean
         get() = true
     override val navigationIcon: Either<ImageVector, Int>
-        get() = Icons.Filled.ArrowBack.left()
+        get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
+    override val onNavigationIconClick: (() -> Unit)
         get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
     override val actions: List<ActionMenuItem>
         get() = listOf(

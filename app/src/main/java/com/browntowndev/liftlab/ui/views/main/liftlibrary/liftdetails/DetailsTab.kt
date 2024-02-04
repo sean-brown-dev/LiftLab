@@ -76,7 +76,7 @@ fun DetailsTab(
         )
 
         val volumeTypeOptions: Map<String, VolumeType> = remember {
-            val sortedVolumeTypeOptions = VolumeType.values().sortedBy { it.displayName() }
+            val sortedVolumeTypeOptions = VolumeType.entries.sortedBy { it.displayName() }
             sortedVolumeTypeOptions.associateBy { it.displayName() }
         }
 
