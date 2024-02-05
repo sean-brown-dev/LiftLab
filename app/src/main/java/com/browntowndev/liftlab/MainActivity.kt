@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
@@ -67,9 +68,14 @@ class MainActivity : ComponentActivity(), KoinComponent {
                     }
                 }
 
+        installSplashScreen().apply {
+            setKeepOnScreenCondition {
+                !LiftLabDatabase.initialized.value
+            }
+        }
         setContent {
-            val isDbInitialized by LiftLabDatabase.initialized.collectAsState()
-            if(isDbInitialized) {
+            val isInitialized by LiftLabDatabase.initialized.collectAsState()
+            if(isInitialized) {
                 KoinAndroidContext {
                     LiftLab(roomBackup)
                 }
