@@ -150,7 +150,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                     LoggingMyoRepSetDto(
                                         position = set.position,
                                         myoRepSetPosition = it.myoRepSetPosition,
-                                        rpeTarget = set.rpeTarget,
+                                        rpeTarget = if (it.myoRepSetPosition == null) set.rpeTarget else 10f,
                                         repRangeBottom = set.repRangeBottom,
                                         repRangeTop = set.repRangeTop,
                                         setMatching = set.setMatching,

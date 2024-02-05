@@ -19,9 +19,8 @@ import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
-import com.browntowndev.liftlab.ui.models.getVolumeChartModel
+import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
-import com.patrykandpatrick.vico.core.extension.sumOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -78,7 +77,7 @@ class LiftDetailsViewModel(
                     totalVolume = getTotalVolume(workoutLogs),
                     workoutFilterOptions = getWorkoutFilterOptions(workoutLogs),
                     oneRepMaxChartModel = getOneRepMaxChartModel(workoutLogs, setOf()),
-                    volumeChartModel = getVolumeChartModel(workoutLogs, setOf()),
+                    volumeChartModel = getPerWorkoutVolumeChartModel(workoutLogs, setOf()),
                     intensityChartModel = getIntensityChartModel(workoutLogs, setOf()),
                     volumeTypeDisplayNames = lift.volumeTypesBitmask.getVolumeTypes()
                         .fastMap { volumeType ->
@@ -248,8 +247,8 @@ class LiftDetailsViewModel(
             .apply {
                 this[index] = newVolumeType
             }.sumOf {
-                it.bitMask.toFloat()
-            }.roundToInt()
+                it.bitMask
+            }
 
         val newDisplayNames = _state.value.volumeTypeDisplayNames
             .toMutableList()
@@ -281,8 +280,8 @@ class LiftDetailsViewModel(
             .apply {
                 this[index] = newVolumeType
             }.sumOf {
-                it.bitMask.toFloat()
-            }.roundToInt()
+                it.bitMask
+            }
 
         val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
             .toMutableList()
@@ -361,7 +360,7 @@ class LiftDetailsViewModel(
             _state.update {
                 it.copy(
                     selectedVolumeWorkoutFilters = selectedVolumeChartWorkoutFilters,
-                    volumeChartModel = getVolumeChartModel(it.workoutLogs, selectedVolumeChartWorkoutFilters)
+                    volumeChartModel = getPerWorkoutVolumeChartModel(it.workoutLogs, selectedVolumeChartWorkoutFilters)
                 )
             }
         }

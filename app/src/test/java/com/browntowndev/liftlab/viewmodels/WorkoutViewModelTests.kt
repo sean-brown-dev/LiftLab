@@ -186,7 +186,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -325,7 +325,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -488,7 +488,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -673,7 +673,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -836,7 +836,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -999,7 +999,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1191,7 +1191,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1335,7 +1335,7 @@ class WorkoutViewModelTests {
             }
 
             val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1408,7 +1408,7 @@ class WorkoutViewModelTests {
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1497,7 +1497,7 @@ class WorkoutViewModelTests {
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1586,7 +1586,7 @@ class WorkoutViewModelTests {
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1694,7 +1694,7 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1884,7 +1884,7 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2099,7 +2099,7 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2257,7 +2257,7 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2412,7 +2412,7 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(

@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.core.common
 
 import android.content.BroadcastReceiver
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -22,6 +24,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutL
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
@@ -271,3 +274,70 @@ fun BroadcastReceiver.executeInCoroutineScope(
         }
     }
 }
+
+fun Job.runOnCompletion(action: () -> Unit) {
+    invokeOnCompletion { action() }
+}
+
+fun SpannableStringBuilder.appendCompat(
+    text: CharSequence,
+    what: Any,
+    flags: Int,
+): SpannableStringBuilder =
+    append(text, what, flags)
+
+fun <T> Iterable<T>.transformToSpannable(
+    separator: CharSequence = ", ",
+    prefix: CharSequence = "",
+    postfix: CharSequence = "",
+    limit: Int = -1,
+    truncated: CharSequence = "…",
+    transform: SpannableStringBuilder.(T) -> Unit,
+): Spannable {
+    val buffer = SpannableStringBuilder()
+    buffer.append(prefix)
+    var count = 0
+    for (element in this) {
+        if (++count > 1) buffer.append(separator)
+        if (limit < 0 || count <= limit) buffer.transform(element) else break
+    }
+    if (limit in 0..<count) buffer.append(truncated)
+    buffer.append(postfix)
+    return buffer
+}
+
+private const val ALPHA_BIT_SHIFT = 24
+private const val RED_BIT_SHIFT = 16
+private const val GREEN_BIT_SHIFT = 8
+private const val BLUE_BIT_SHIFT = 0
+private const val COLOR_MASK = 0xff
+internal const val MAX_HEX_VALUE = 255f
+
+fun Int.copyColor(
+    alpha: Int = this.extractColorChannel(ALPHA_BIT_SHIFT),
+    red: Int = this.extractColorChannel(RED_BIT_SHIFT),
+    green: Int = this.extractColorChannel(GREEN_BIT_SHIFT),
+    blue: Int = this.extractColorChannel(BLUE_BIT_SHIFT),
+): Int =
+    alpha shl ALPHA_BIT_SHIFT or
+            (red shl RED_BIT_SHIFT) or
+            (green shl GREEN_BIT_SHIFT) or
+            (blue shl BLUE_BIT_SHIFT)
+
+fun Int.copyColor(
+    alpha: Float = this.extractColorChannel(ALPHA_BIT_SHIFT) / MAX_HEX_VALUE,
+    red: Float = this.extractColorChannel(RED_BIT_SHIFT) / MAX_HEX_VALUE,
+    green: Float = this.extractColorChannel(GREEN_BIT_SHIFT) / MAX_HEX_VALUE,
+    blue: Float = this.extractColorChannel(BLUE_BIT_SHIFT) / MAX_HEX_VALUE,
+): Int =
+    copyColor(
+        alpha = (alpha * MAX_HEX_VALUE).toInt(),
+        red = (red * MAX_HEX_VALUE).toInt(),
+        green = (green * MAX_HEX_VALUE).toInt(),
+        blue = (blue * MAX_HEX_VALUE).toInt(),
+    )
+
+internal val Int.alpha: Int
+    get() = extractColorChannel(ALPHA_BIT_SHIFT)
+
+private fun Int.extractColorChannel(bitShift: Int): Int = this shr bitShift and COLOR_MASK

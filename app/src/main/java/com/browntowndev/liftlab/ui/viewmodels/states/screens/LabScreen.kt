@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.DateRange
@@ -105,8 +105,8 @@ data class LabScreen(
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
-    override val navigationIcon: Either<ImageVector, Int>?
-        get() = Icons.Filled.ArrowBack.left()
+    override val navigationIcon: Either<ImageVector, Int>
+        get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)

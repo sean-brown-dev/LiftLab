@@ -68,6 +68,7 @@ fun NavigationGraph(
                 Home(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
+                    setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateToSettingsMenu = { navHostController.navigate(SettingsScreen.navigation.route) },
                     onNavigateToLiftLibrary = { chartIds ->
                         navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
@@ -175,7 +176,7 @@ fun NavigationGraph(
 
                         navHostController.navigate(liftDetailsRoute)
                     },
-                    onNavigateToWorkoutBuilder = { workoutId ->
+                    onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
                         // Pop back to lab
                         navHostController.navigate("lab") {
                             popUpTo(navHostController.graph.startDestinationRoute!!) {
@@ -184,7 +185,7 @@ fun NavigationGraph(
                         }
 
                         // Go back to workout builder
-                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
+                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutBuilderWorkoutId.toString())
                         navHostController.navigate(workoutBuilderRoute)
                     }
                 )

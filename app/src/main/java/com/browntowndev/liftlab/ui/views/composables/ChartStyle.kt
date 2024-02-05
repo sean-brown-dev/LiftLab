@@ -10,7 +10,7 @@ import com.patrykandpatrick.vico.compose.style.ChartStyle
 import com.patrykandpatrick.vico.core.DefaultAlpha
 import com.patrykandpatrick.vico.core.DefaultColors
 import com.patrykandpatrick.vico.core.DefaultDimens
-import com.patrykandpatrick.vico.core.chart.line.LineChart
+import com.patrykandpatrick.vico.core.chart.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
@@ -27,7 +27,7 @@ internal fun rememberChartStyle(
                 axisGuidelineColor = Color(DefaultColors.Dark.axisGuidelineColor),
                 axisLineColor = Color(DefaultColors.Dark.axisLineColor),
             ),
-            ChartStyle.ColumnChart(
+            ChartStyle.ColumnLayer(
                 columnChartColors.map { columnChartColor ->
                     LineComponent(
                         columnChartColor.toArgb(),
@@ -36,11 +36,13 @@ internal fun rememberChartStyle(
                     )
                 },
             ),
-            ChartStyle.LineChart(
+            ChartStyle.LineLayer(
                 lineChartColors.map { lineChartColor ->
-                    LineChart.LineSpec(
-                        lineColor = lineChartColor.toArgb(),
-                        lineBackgroundShader = DynamicShaders.fromBrush(
+                    LineCartesianLayer.LineSpec(
+                        shader = DynamicShaders.fromBrush(
+                            Brush.verticalGradient(listOf(lineChartColor))
+                        ),
+                        backgroundShader = DynamicShaders.fromBrush(
                             Brush.verticalGradient(
                                 listOf(
                                     lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_START),

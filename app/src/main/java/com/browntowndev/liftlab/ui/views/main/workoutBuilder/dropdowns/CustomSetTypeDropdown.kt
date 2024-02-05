@@ -29,7 +29,7 @@ fun CustomSetTypeDropdown(
     onCustomSetTypeChanged: (newSetType: SetType) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    val setTypes by remember { mutableStateOf(SetType.values().sortedBy { it.displayName() }) }
+    val setTypes by remember { mutableStateOf(SetType.entries.sortedBy { it.displayName() }) }
 
     TextDropdown(
         modifier = modifier,

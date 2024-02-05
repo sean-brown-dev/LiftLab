@@ -4,7 +4,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -18,9 +17,6 @@ import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRep
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -64,7 +60,7 @@ class LiftLibraryViewModel(
             }
         }
 
-        _liftsLiveData = liftsRepository.getAll()
+        _liftsLiveData = liftsRepository.getAllAsLiveData()
         _liftsObserver = Observer { lifts ->
             val sortedLifts = lifts.sortedBy { it.name }
             _state.update { currentState ->

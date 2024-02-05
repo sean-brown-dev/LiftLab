@@ -170,6 +170,6 @@ class MovementPatternDeserializer : JsonDeserializer<MovementPattern> {
         context: JsonDeserializationContext?
     ): MovementPattern {
         val intValue = json?.asInt
-        return MovementPattern.values().find { it.ordinal == intValue } ?: throw Exception("$intValue is not a MovementPattern.")
+        return MovementPattern.entries.find { it.ordinal == intValue } ?: throw Exception("$intValue is not a MovementPattern.")
     }
 }

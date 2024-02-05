@@ -21,11 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.FilterSelector
 import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow

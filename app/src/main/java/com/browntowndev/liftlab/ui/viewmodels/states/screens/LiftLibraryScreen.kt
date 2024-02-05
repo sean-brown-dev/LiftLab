@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.derivedStateOf
@@ -111,7 +111,7 @@ data class LiftLibraryScreen(
     override val isAppBarVisible: Boolean
         get() = true
     override val navigationIcon: Either<ImageVector, Int>
-        get() = Icons.Filled.ArrowBack.left()
+        get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> Unit)

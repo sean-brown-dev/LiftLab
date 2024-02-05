@@ -1,0 +1,1113 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 8,
+    "identityHash": "90b15eace8ba3f8ff3796034b95ec426",
+    "entities": [
+      {
+        "tableName": "lifts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL, `incrementOverride` REAL, `isHidden` INTEGER NOT NULL, `isBodyweight` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "lift_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movementPattern",
+            "columnName": "movementPattern",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumeTypesBitmask",
+            "columnName": "volumeTypesBitmask",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "secondaryVolumeTypesBitmask",
+            "columnName": "secondaryVolumeTypesBitmask",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "restTime",
+            "columnName": "restTime",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "restTimerEnabled",
+            "columnName": "restTimerEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "incrementOverride",
+            "columnName": "incrementOverride",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isHidden",
+            "columnName": "isHidden",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isBodyweight",
+            "columnName": "isBodyweight",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "lift_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_lifts_movementPattern",
+            "unique": false,
+            "columnNames": [
+              "movementPattern"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_lifts_movementPattern` ON `${TABLE_NAME}` (`movementPattern`)"
+          },
+          {
+            "name": "index_lifts_lift_id_restTime",
+            "unique": false,
+            "columnNames": [
+              "lift_id",
+              "restTime"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_lifts_lift_id_restTime` ON `${TABLE_NAME}` (`lift_id`, `restTime`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "sets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`set_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutLiftId` INTEGER NOT NULL, `type` TEXT NOT NULL, `position` INTEGER NOT NULL, `rpeTarget` REAL NOT NULL, `repRangeBottom` INTEGER NOT NULL, `repRangeTop` INTEGER NOT NULL, `setGoal` INTEGER, `repFloor` INTEGER, `dropPercentage` REAL, `maxSets` INTEGER, `setMatching` INTEGER NOT NULL, FOREIGN KEY(`workoutLiftId`) REFERENCES `workoutLifts`(`workout_lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "set_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutLiftId",
+            "columnName": "workoutLiftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpeTarget",
+            "columnName": "rpeTarget",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repRangeBottom",
+            "columnName": "repRangeBottom",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repRangeTop",
+            "columnName": "repRangeTop",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setGoal",
+            "columnName": "setGoal",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repFloor",
+            "columnName": "repFloor",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "dropPercentage",
+            "columnName": "dropPercentage",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "maxSets",
+            "columnName": "maxSets",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "setMatching",
+            "columnName": "setMatching",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "set_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sets_workoutLiftId",
+            "unique": false,
+            "columnNames": [
+              "workoutLiftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sets_workoutLiftId` ON `${TABLE_NAME}` (`workoutLiftId`)"
+          },
+          {
+            "name": "index_sets_workoutLiftId_position",
+            "unique": false,
+            "columnNames": [
+              "workoutLiftId",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sets_workoutLiftId_position` ON `${TABLE_NAME}` (`workoutLiftId`, `position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workoutLifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutLiftId"
+            ],
+            "referencedColumns": [
+              "workout_lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "historicalWorkoutNames",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`historical_workout_name_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `programId` INTEGER NOT NULL, `workoutId` INTEGER NOT NULL, `programName` TEXT NOT NULL, `workoutName` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "historical_workout_name_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programId",
+            "columnName": "programId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programName",
+            "columnName": "programName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutName",
+            "columnName": "workoutName",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "historical_workout_name_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_historicalWorkoutNames_programName_workoutName",
+            "unique": false,
+            "columnNames": [
+              "programName",
+              "workoutName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_historicalWorkoutNames_programName_workoutName` ON `${TABLE_NAME}` (`programName`, `workoutName`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "previousSetResults",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`previously_completed_set_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `missedLpGoals` INTEGER, `isDeload` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "previously_completed_set_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setType",
+            "columnName": "setType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftPosition",
+            "columnName": "liftPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setPosition",
+            "columnName": "setPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "myoRepSetPosition",
+            "columnName": "myoRepSetPosition",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "weightRecommendation",
+            "columnName": "weightRecommendation",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reps",
+            "columnName": "reps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpe",
+            "columnName": "rpe",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mesoCycle",
+            "columnName": "mesoCycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "microCycle",
+            "columnName": "microCycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "missedLpGoals",
+            "columnName": "missedLpGoals",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isDeload",
+            "columnName": "isDeload",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "previously_completed_set_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_previousSetResults_workoutId",
+            "unique": false,
+            "columnNames": [
+              "workoutId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
+          },
+          {
+            "name": "index_previousSetResults_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          },
+          {
+            "name": "index_previousSetResults_workoutId_liftId_setPosition",
+            "unique": false,
+            "columnNames": [
+              "workoutId",
+              "liftId",
+              "setPosition"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_workoutId_liftId_setPosition` ON `${TABLE_NAME}` (`workoutId`, `liftId`, `setPosition`)"
+          },
+          {
+            "name": "index_previousSetResults_workoutId_liftId_setPosition_myoRepSetPosition",
+            "unique": false,
+            "columnNames": [
+              "workoutId",
+              "liftId",
+              "setPosition",
+              "myoRepSetPosition"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_workoutId_liftId_setPosition_myoRepSetPosition` ON `${TABLE_NAME}` (`workoutId`, `liftId`, `setPosition`, `myoRepSetPosition`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workouts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutId"
+            ],
+            "referencedColumns": [
+              "workout_id"
+            ]
+          },
+          {
+            "table": "lifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "programs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`program_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `deloadWeek` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, `currentMicrocycle` INTEGER NOT NULL, `currentMicrocyclePosition` INTEGER NOT NULL, `currentMesocycle` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "program_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deloadWeek",
+            "columnName": "deloadWeek",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isActive",
+            "columnName": "isActive",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentMicrocycle",
+            "columnName": "currentMicrocycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentMicrocyclePosition",
+            "columnName": "currentMicrocyclePosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentMesocycle",
+            "columnName": "currentMesocycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "program_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "workoutLogEntries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `historicalWorkoutNameId` INTEGER NOT NULL, `programWorkoutCount` INTEGER NOT NULL, `programDeloadWeek` INTEGER NOT NULL, `mesocycle` INTEGER NOT NULL, `microcycle` INTEGER NOT NULL, `microcyclePosition` INTEGER NOT NULL, `date` INTEGER NOT NULL, `durationInMillis` INTEGER NOT NULL, FOREIGN KEY(`historicalWorkoutNameId`) REFERENCES `historicalWorkoutNames`(`historical_workout_name_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_log_entry_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historicalWorkoutNameId",
+            "columnName": "historicalWorkoutNameId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programWorkoutCount",
+            "columnName": "programWorkoutCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programDeloadWeek",
+            "columnName": "programDeloadWeek",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mesocycle",
+            "columnName": "mesocycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "microcycle",
+            "columnName": "microcycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "microcyclePosition",
+            "columnName": "microcyclePosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationInMillis",
+            "columnName": "durationInMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_log_entry_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workoutLogEntries_historicalWorkoutNameId",
+            "unique": false,
+            "columnNames": [
+              "historicalWorkoutNameId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLogEntries_historicalWorkoutNameId` ON `${TABLE_NAME}` (`historicalWorkoutNameId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "historicalWorkoutNames",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "historicalWorkoutNameId"
+            ],
+            "referencedColumns": [
+              "historical_workout_name_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "setLogEntries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`set_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutLogEntryId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `workoutLiftDeloadWeek` INTEGER, `liftName` TEXT NOT NULL, `liftMovementPattern` TEXT NOT NULL, `progressionScheme` TEXT NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `repRangeTop` INTEGER, `repRangeBottom` INTEGER, `rpeTarget` REAL NOT NULL, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `setMatching` INTEGER, `maxSets` INTEGER, `repFloor` INTEGER, `dropPercentage` REAL, `isDeload` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutLogEntryId`) REFERENCES `workoutLogEntries`(`workout_log_entry_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "set_log_entry_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutLogEntryId",
+            "columnName": "workoutLogEntryId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutLiftDeloadWeek",
+            "columnName": "workoutLiftDeloadWeek",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "liftName",
+            "columnName": "liftName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftMovementPattern",
+            "columnName": "liftMovementPattern",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressionScheme",
+            "columnName": "progressionScheme",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setType",
+            "columnName": "setType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftPosition",
+            "columnName": "liftPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setPosition",
+            "columnName": "setPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "myoRepSetPosition",
+            "columnName": "myoRepSetPosition",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repRangeTop",
+            "columnName": "repRangeTop",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repRangeBottom",
+            "columnName": "repRangeBottom",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rpeTarget",
+            "columnName": "rpeTarget",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weightRecommendation",
+            "columnName": "weightRecommendation",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reps",
+            "columnName": "reps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpe",
+            "columnName": "rpe",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mesoCycle",
+            "columnName": "mesoCycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "microCycle",
+            "columnName": "microCycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setMatching",
+            "columnName": "setMatching",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "maxSets",
+            "columnName": "maxSets",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repFloor",
+            "columnName": "repFloor",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "dropPercentage",
+            "columnName": "dropPercentage",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isDeload",
+            "columnName": "isDeload",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "set_log_entry_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_setLogEntries_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_setLogEntries_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          },
+          {
+            "name": "index_setLogEntries_workoutLogEntryId",
+            "unique": false,
+            "columnNames": [
+              "workoutLogEntryId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_setLogEntries_workoutLogEntryId` ON `${TABLE_NAME}` (`workoutLogEntryId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workoutLogEntries",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutLogEntryId"
+            ],
+            "referencedColumns": [
+              "workout_log_entry_id"
+            ]
+          },
+          {
+            "table": "lifts",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workouts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `programId` INTEGER NOT NULL, `name` TEXT NOT NULL, `position` INTEGER NOT NULL, FOREIGN KEY(`programId`) REFERENCES `programs`(`program_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programId",
+            "columnName": "programId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workouts_programId",
+            "unique": false,
+            "columnNames": [
+              "programId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workouts_programId` ON `${TABLE_NAME}` (`programId`)"
+          },
+          {
+            "name": "index_workouts_position",
+            "unique": false,
+            "columnNames": [
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workouts_position` ON `${TABLE_NAME}` (`position`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "programs",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "programId"
+            ],
+            "referencedColumns": [
+              "program_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workoutLifts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `progressionScheme` TEXT NOT NULL, `position` INTEGER NOT NULL, `setCount` INTEGER NOT NULL, `deloadWeek` INTEGER, `rpeTarget` REAL, `repRangeBottom` INTEGER, `repRangeTop` INTEGER, `note` TEXT, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_lift_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressionScheme",
+            "columnName": "progressionScheme",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setCount",
+            "columnName": "setCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deloadWeek",
+            "columnName": "deloadWeek",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rpeTarget",
+            "columnName": "rpeTarget",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repRangeBottom",
+            "columnName": "repRangeBottom",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "repRangeTop",
+            "columnName": "repRangeTop",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_lift_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workoutLifts_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLifts_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          },
+          {
+            "name": "index_workoutLifts_workoutId",
+            "unique": false,
+            "columnNames": [
+              "workoutId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLifts_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workouts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutId"
+            ],
+            "referencedColumns": [
+              "workout_id"
+            ]
+          },
+          {
+            "table": "lifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workoutsInProgress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_in_progress_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `startTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_in_progress_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTime",
+            "columnName": "startTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_in_progress_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "restTimerInProgress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rest_timer_in_progress_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timeStartedInMillis` INTEGER NOT NULL, `restTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "rest_timer_in_progress_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timeStartedInMillis",
+            "columnName": "timeStartedInMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restTime",
+            "columnName": "restTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "rest_timer_in_progress_id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "liftMetricCharts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_metric_chart_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `liftId` INTEGER, `chartType` TEXT NOT NULL, FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "lift_metric_chart_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "chartType",
+            "columnName": "chartType",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "lift_metric_chart_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_liftMetricCharts_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liftMetricCharts_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "lifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '90b15eace8ba3f8ff3796034b95ec426')"
+    ]
+  }
+}

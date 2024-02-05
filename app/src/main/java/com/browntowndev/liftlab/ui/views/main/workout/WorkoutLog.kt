@@ -51,7 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -66,7 +66,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.views.composables.LiftLabOutlinedTextField
 import com.browntowndev.liftlab.ui.views.composables.RpeKeyboard
-import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -113,7 +113,7 @@ fun WorkoutLog(
         exit = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut(),
     ) {
         val lazyListState = rememberLazyListState()
-        val pickerViewModel: PickerViewModel = getViewModel()
+        val pickerViewModel: PickerViewModel = koinViewModel()
         val pickerState by pickerViewModel.state.collectAsState()
         Box(contentAlignment = Alignment.BottomCenter) {
             var pickerSpacer: Dp by remember { mutableStateOf(0.dp) }
@@ -231,9 +231,9 @@ fun WorkoutLog(
                             }
                             LogHeaders()
 
-                            lift.sets.fastForEachIndexed { index, set ->
+                            lift.sets.fastForEach { set ->
                                 DeleteableOnSwipeLeft(
-                                    enabled = remember(set) { set is LoggingMyoRepSetDto && (index == (lift.sets.size - 1)) },
+                                    enabled = remember(set) { (set as? LoggingMyoRepSetDto)?.myoRepSetPosition != null },
                                     confirmationDialogHeader = "Delete Myorep Set?",
                                     confirmationDialogBody = "Confirm to delete the myorep set.",
                                     onDelete = {

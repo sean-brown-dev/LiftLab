@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
-import androidx.room.Transaction
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto

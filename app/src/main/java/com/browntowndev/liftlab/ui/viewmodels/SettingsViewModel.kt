@@ -1,7 +1,5 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.content.Context
-import androidx.navigation.NavHostController
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME

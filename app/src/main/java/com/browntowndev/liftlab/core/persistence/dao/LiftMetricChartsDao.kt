@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Upsert
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
 
 @Dao
@@ -29,15 +28,6 @@ interface LiftMetricChartsDao {
     @Query("DELETE FROM liftMetricCharts WHERE liftId IS NULL")
     suspend fun deleteAllWithNoLift()
 
-    @Query(
-        "DELETE FROM liftMetricCharts " +
-        "WHERE lift_metric_chart_id IN (" +
-            "SELECT lift_metric_chart_id " +
-            "FROM liftMetricCharts c " +
-            "INNER JOIN lifts l ON l.lift_id = c.liftId " +
-            "WHERE l.name = :liftName AND " +
-            "c.chartType = :chartType " +
-            "LIMIT 1)"
-    )
-    suspend fun deleteFirstForLift(liftName: String, chartType: LiftMetricChartType)
+    @Query("DELETE FROM liftMetricCharts WHERE lift_metric_chart_id = :id")
+    suspend fun delete(id: Long)
 }

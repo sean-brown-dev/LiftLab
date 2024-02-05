@@ -10,12 +10,13 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -26,25 +27,30 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastAny
+import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 
 @Composable
 fun RowMultiSelect(
     visible: Boolean,
     title: String,
-    options: List<String>,
+    optionTree: LiftMetricOptionTree,
     selections: List<String>,
-    onSelectionChanged: (type: String, selected: Boolean) -> Unit,
     onCancel: () -> Unit,
-    confirmationButton: @Composable () -> Unit,
 ) {
     BackHandler(visible) {
         onCancel()
@@ -64,7 +70,7 @@ fun RowMultiSelect(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp.times(.45f)),
+                .height(LocalConfiguration.current.screenHeightDp.dp.times(.5f)),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface,
             ),
@@ -103,18 +109,46 @@ fun RowMultiSelect(
             }
             Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             Spacer(modifier = Modifier.padding(5.dp))
-            Column (
-                modifier = Modifier.fillMaxWidth(),
+
+            var currentLeaf: LiftMetricOptions? by remember { mutableStateOf(null)}
+            var nextLeaf: LiftMetricOptions? by remember { mutableStateOf(null) }
+            var selectionsState by remember(selections) { mutableStateOf(selections) }
+            val options = remember(currentLeaf) {
+                currentLeaf?.options ?: optionTree.options.flatMap { it.options }
+            }
+            val isAnySelected = remember(selectionsState, options) {
+                selectionsState.fastAny { options.contains(it) }
+            }
+            LazyColumn (
+                modifier = Modifier.fillMaxWidth().height(233.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
-                options.fastForEach { option ->
-                    val isChecked = remember(selections) { selections.contains(option) }
+                items(options) { option ->
+                    val isChecked by remember(selectionsState, option) { mutableStateOf(selectionsState.contains(option)) }
                     Row (
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(color = if (isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
                             .clickable {
-                                onSelectionChanged(option, !isChecked)
+                                nextLeaf = if (currentLeaf != null) {
+                                    if (currentLeaf?.onSelectionChanged != null) {
+                                        currentLeaf!!.onSelectionChanged!!(option, !isChecked)
+                                    }
+
+                                    currentLeaf!!.child
+                                } else {
+                                    val selectedRootLeaf = optionTree.options.find { rootLeaf ->
+                                        rootLeaf.options.contains(option)
+                                    }
+                                    selectionsState = selectionsState.toMutableList().apply {
+                                        if (contains(option)) {
+                                            remove(option)
+                                        } else {
+                                            add(option)
+                                        }
+                                    }
+                                    selectedRootLeaf?.child
+                                }
                             },
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -130,11 +164,45 @@ fun RowMultiSelect(
                 }
             }
             Row (
-                modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
-                confirmationButton()
+                ConfirmationButton(
+                    enabled = isAnySelected,
+                    text = currentLeaf?.completionButtonText ?: optionTree.completionButtonText,
+                    trailingIcon = currentLeaf?.completionButtonIcon ?: optionTree.completionButtonIcon,
+                    onClick = currentLeaf?.onCompletion ?: { currentLeaf = nextLeaf },
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun ConfirmationButton(
+    text: String,
+    enabled: Boolean,
+    trailingIcon: ImageVector,
+    onClick: () -> Unit,
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val color = remember(enabled) {
+        if (enabled) primaryColor else outlineColor
+    }
+
+    TextButton(enabled = enabled, onClick = onClick) {
+        Row (verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = text,
+                color = color,
+                fontSize = 20.sp
+            )
+            Icon(
+                imageVector = trailingIcon,
+                tint = color,
+                contentDescription = null
+            )
         }
     }
 }

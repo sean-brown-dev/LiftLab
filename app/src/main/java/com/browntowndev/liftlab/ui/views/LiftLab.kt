@@ -21,7 +21,7 @@ import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.flow.distinctUntilChanged
-import org.koin.androidx.compose.getViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,8 +29,8 @@ import org.koin.androidx.compose.getViewModel
 fun LiftLab(roomBackup: RoomBackup) {
     LiftLabTheme {
         val navController = rememberNavController()
-        val bottomNavBarViewModel: BottomNavBarViewModel = getViewModel()
-        val topAppBarViewModel: TopAppBarViewModel = getViewModel()
+        val bottomNavBarViewModel: BottomNavBarViewModel = koinViewModel()
+        val topAppBarViewModel: TopAppBarViewModel = koinViewModel()
         val liftLabTopAppBarState by topAppBarViewModel.state.collectAsState()
         val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
         val topAppBarState = rememberTopAppBarState()

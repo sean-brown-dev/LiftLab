@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.toDate

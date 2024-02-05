@@ -60,8 +60,25 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
         )
     }
 
+    suspend fun getAll(): List<LiftDto> {
+        return liftsDao.getAll().fastMap { lift ->
+            LiftDto(
+                id = lift.id,
+                name = lift.name,
+                movementPattern = lift.movementPattern,
+                volumeTypesBitmask = lift.volumeTypesBitmask,
+                secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
+                incrementOverride = lift.incrementOverride,
+                restTime = lift.restTime,
+                restTimerEnabled = lift.restTimerEnabled,
+                isHidden = lift.isHidden,
+                isBodyweight = lift.isBodyweight,
+            )
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getAll(): LiveData<List<LiftDto>> {
+    fun getAllAsLiveData(): LiveData<List<LiftDto>> {
         return liftsDao.getAllAsFlow().flatMapLatest{ lifts ->
             flowOf(
                 lifts.fastMap {

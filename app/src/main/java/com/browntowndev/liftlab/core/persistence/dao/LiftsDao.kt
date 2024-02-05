@@ -26,6 +26,9 @@ interface LiftsDao {
     @Query("SELECT * FROM lifts WHERE lift_id = :id")
     suspend fun get(id: Long): Lift
 
+    @Query("SELECT * FROM lifts WHERE lift_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<Lift>
+
     @Query("SELECT * FROM lifts WHERE isHidden = 0")
     fun getAllAsFlow(): Flow<List<Lift>>
 

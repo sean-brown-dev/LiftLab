@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -19,6 +20,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -36,6 +38,12 @@ abstract class BaseWorkoutViewModel(
     protected abstract suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long>
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
     protected abstract suspend fun deleteSetResult(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
+
+    fun resetMyoRepSetsCompleted() {
+        mutableWorkoutState.update {
+            it.copy(completedMyoRepSets = false)
+        }
+    }
 
     private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, set: GenericLoggingSet) {
         if (set.complete &&
@@ -163,13 +171,13 @@ abstract class BaseWorkoutViewModel(
         roundingFactor: Float,
     ): List<GenericLoggingSet> {
 
-        val myoRepSetResults = mutableLoggingSets
+        val myoRepLoggingSets: List<LoggingMyoRepSetDto> = mutableLoggingSets
             .filterIsInstance<LoggingMyoRepSetDto>()
             .filter { it.position == thisMyoRepSet.position }
 
         return MyoRepSetGoalValidator.shouldContinueMyoReps(
             completedSet = thisMyoRepSet,
-            myoRepSetResults = myoRepSetResults,
+            myoRepSetResults = myoRepLoggingSets,
         ).let { continueMyoReps ->
             if (continueMyoReps) {
                 mutableLoggingSets.apply {
@@ -177,7 +185,7 @@ abstract class BaseWorkoutViewModel(
                     add(
                         index = insertAtIndex,
                         thisMyoRepSet.copy(
-                            myoRepSetPosition = myoRepSetResults.size - 1,
+                            myoRepSetPosition = myoRepLoggingSets.size - 1,
                             weightRecommendation = thisMyoRepSet.completedWeight,
                             repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
                             else "—",
@@ -191,7 +199,7 @@ abstract class BaseWorkoutViewModel(
                 }
             } else if (MyoRepSetGoalValidator.shouldContinueMyoReps(
                     completedSet = thisMyoRepSet,
-                    myoRepSetResults = myoRepSetResults,
+                    myoRepSetResults = myoRepLoggingSets,
                     activationSetAlwaysSuccess = true
             )) {
                 mutableLoggingSets.apply {
@@ -199,7 +207,7 @@ abstract class BaseWorkoutViewModel(
                     add(
                         index = insertAtIndex,
                         thisMyoRepSet.copy(
-                            myoRepSetPosition = myoRepSetResults.size - 1,
+                            myoRepSetPosition = myoRepLoggingSets.size - 1,
                             weightRecommendation = CalculationEngine.calculateSuggestedWeight(
                                 completedWeight = thisMyoRepSet.completedWeight!!,
                                 completedReps = thisMyoRepSet.completedReps!!,
@@ -217,6 +225,22 @@ abstract class BaseWorkoutViewModel(
                             completedRpe = null,
                         )
                     )
+                }
+            } else if (!MyoRepSetGoalValidator.shouldContinueMyoReps(
+                completedSet = myoRepLoggingSets.last { it.complete },
+                myoRepSetResults = myoRepLoggingSets.filter { it.complete },
+            )) {
+                Log.d(Log.DEBUG.toString(), "completed myorep sets")
+                mutableWorkoutState.update {
+                    it.copy(completedMyoRepSets = true)
+                }
+
+                mutableLoggingSets.apply {
+                    myoRepLoggingSets
+                        .filter {
+                            !it.complete &&
+                                    (it.myoRepSetPosition ?: -1) > (thisMyoRepSet.myoRepSetPosition ?: -1)
+                        }.let { removeAll(it.toSet()) }
                 }
             } else {
                 mutableLoggingSets
@@ -409,8 +433,8 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    fun completeSet(restTime: Long, restTimerEnabled: Boolean, result: SetResult) {
-        executeInTransactionScope {
+    fun completeSet(restTime: Long, restTimerEnabled: Boolean, result: SetResult): Job {
+        return executeInTransactionScope {
             if (restTimerEnabled) {
                 insertRestTimerInProgress(restTime)
             }
