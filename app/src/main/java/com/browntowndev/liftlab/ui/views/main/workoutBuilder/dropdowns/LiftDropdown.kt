@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -81,7 +81,7 @@ fun LiftDropdown(
                 onChanged = {
                     onChangeDeloadWeek(it.toInt())
                 },
-                onBackPressed = { showDeloadWeekPicker = false},
+                onBackPressed = { showDeloadWeekPicker = false },
             )
         } else {
             DropdownMenuItem(
@@ -114,7 +114,7 @@ fun LiftDropdown(
                     )
                 }
             )
-            Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             if (showDeloadWeekOption) {
                 DropdownMenuItem(
                     text = { Text("Deload Week") },
@@ -195,7 +195,7 @@ fun LiftDropdown(
                 }
             )
             if (showCustomSetsOption) {
-                Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
                 DropdownMenuItem(
                     text = { Text("Custom Sets") },
                     onClick = {

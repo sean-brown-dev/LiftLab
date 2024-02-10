@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,7 +61,7 @@ private fun <T> LiftLabDialog(
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
-                    Divider(modifier = Modifier.height(2.dp))
+                    HorizontalDivider(modifier = Modifier.height(2.dp))
                     Spacer(modifier = Modifier.height(5.dp))
                     Text(
                         text = subtext,
@@ -70,10 +70,16 @@ private fun <T> LiftLabDialog(
                         fontSize = 14.sp,
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    Divider(thickness = 20.dp, color = MaterialTheme.colorScheme.background)
+                    HorizontalDivider(
+                        thickness = 20.dp,
+                        color = MaterialTheme.colorScheme.background
+                    )
                     content()
-                    Divider(thickness = 12.dp, color = MaterialTheme.colorScheme.background)
-                    Row (
+                    HorizontalDivider(
+                        thickness = 12.dp,
+                        color = MaterialTheme.colorScheme.background
+                    )
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
@@ -85,7 +91,7 @@ private fun <T> LiftLabDialog(
                             text = "Cancel",
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Button(onClick = onConfirm ) {
+                        Button(onClick = onConfirm) {
                             Text(text = "OK")
                         }
                     }

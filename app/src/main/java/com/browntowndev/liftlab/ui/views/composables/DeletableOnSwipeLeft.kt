@@ -10,13 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismiss
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,10 +44,10 @@ fun DeleteableOnSwipeLeft(
     if (enabled) {
         val coroutineScope = rememberCoroutineScope()
         var showConfirmationDialog by remember { mutableStateOf(false) }
-        val dismissState = rememberDismissState()
+        val dismissState = rememberSwipeToDismissBoxState()
 
-        LaunchedEffect(dismissState.progress) {
-            if (dismissState.isDismissed(DismissDirection.EndToStart) && !showConfirmationDialog) {
+        LaunchedEffect(dismissState.currentValue) {
+            if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart && !showConfirmationDialog) {
                 showConfirmationDialog = true
             }
         }
@@ -73,14 +72,15 @@ fun DeleteableOnSwipeLeft(
             )
         }
 
-        SwipeToDismiss(
+        SwipeToDismissBox(
             state = dismissState,
-            directions = setOf(DismissDirection.EndToStart),
-            background = {
+            enableDismissFromEndToStart = true,
+            enableDismissFromStartToEnd = false,
+            backgroundContent = {
                 val color by animateColorAsState(
                     when (dismissState.targetValue) {
-                        DismissValue.Default -> MaterialTheme.colorScheme.errorContainer
-                        DismissValue.DismissedToStart -> MaterialTheme.colorScheme.error
+                        SwipeToDismissBoxValue.Settled -> MaterialTheme.colorScheme.errorContainer
+                        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.error
                         else -> Color.Transparent
                     }, label = "Swipe Left to Delete"
                 )
@@ -100,7 +100,7 @@ fun DeleteableOnSwipeLeft(
                     )
                 }
             },
-            dismissContent = dismissContent,
+            content = dismissContent,
         )
     } else {
         Row {

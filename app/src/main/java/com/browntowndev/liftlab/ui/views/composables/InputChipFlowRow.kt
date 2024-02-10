@@ -46,6 +46,8 @@ fun InputChipFlowRow(
                 modifier = Modifier.height(35.dp).padding(2.dp),
                 shape = RoundedCornerShape(25.dp),
                 border = InputChipDefaults.inputChipBorder(
+                    enabled = true,
+                    selected = false,
                     borderColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 ),
                 colors = InputChipDefaults.inputChipColors(

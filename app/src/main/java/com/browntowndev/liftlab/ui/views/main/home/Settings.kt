@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -81,7 +81,7 @@ fun Settings(
                     .padding(top = 25.dp, bottom = 25.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(.95f),
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.tertiary
@@ -141,7 +141,7 @@ fun Settings(
                     .padding(top = 25.dp, bottom = 25.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(.95f),
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.tertiary
@@ -237,7 +237,7 @@ fun Settings(
                     .padding(top = 25.dp, bottom = 25.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(.95f),
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.tertiary
@@ -278,7 +278,7 @@ fun Settings(
                     .padding(top = 25.dp, bottom = 25.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.fillMaxWidth(.95f),
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.tertiary

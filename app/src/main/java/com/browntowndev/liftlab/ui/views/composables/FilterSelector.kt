@@ -69,6 +69,8 @@ fun FilterSelector(
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
                         ),
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
                             borderColor = MaterialTheme.colorScheme.primary,
                             selectedBorderColor = MaterialTheme.colorScheme.secondaryContainer,
                         ),
