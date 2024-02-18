@@ -412,27 +412,25 @@ fun getMicroCycleCompletionChart(
     workoutLogs: List<WorkoutLogEntryDto>,
     program: ProgramDto?,
 ): ChartModel<ColumnCartesianLayerModel> {
-    val setCount = program?.workouts?.sumOf { workout ->
-        workout.lifts.sumOf { it.setCount }
-    } ?: 1
-
     val workoutsForCurrentMeso = workoutLogs
         .filter { it.mesocycle == program?.currentMesocycle }
         .groupBy { it.microcycle }
         .toSortedMap()
         .asSequence()
         .associate { logsForMicro ->
-            val setCountConsideringDeloads = setCount - logsForMicro.value.sumOf { workoutLog ->
-                workoutLog.setResults.groupBy { result ->
-                    result.liftPosition
-                }.values.count { resultsForLift ->
-                    resultsForLift.any { it.isDeload }
+            val setCount = if (program?.deloadWeek == (logsForMicro.key + 1)) {
+                program.workouts.sumOf { workout ->
+                    workout.lifts.size * 2
                 }
+            } else {
+                program?.workouts?.sumOf { workout ->
+                    workout.lifts.sumOf { it.setCount }
+                } ?: 1
             }
 
             logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
-                workoutLog.setResults.size
-            }.toFloat().div(setCountConsideringDeloads).times(100)
+                workoutLog.setResults.filter { it.myoRepSetPosition == null }.size
+            }.toFloat().div(setCount).times(100)
         }.ifEmpty { mapOf(1 to 0f) }
 
     val chartEntryModel = CartesianChartModel(

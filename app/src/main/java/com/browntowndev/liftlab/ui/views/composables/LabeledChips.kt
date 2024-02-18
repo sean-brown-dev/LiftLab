@@ -44,6 +44,8 @@ fun LabeledChips(
                     labelColor = MaterialTheme.colorScheme.onSecondary,
                 ),
                 border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = true,
                     borderColor = MaterialTheme.colorScheme.secondary,
                 ),
                 onClick = onClick,

@@ -21,8 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -84,7 +84,7 @@ fun RowMultiSelect(
                 bottomEnd = 0.dp
             )
         ) {
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 10.dp, top = 10.dp, bottom = 10.dp),
@@ -107,10 +107,10 @@ fun RowMultiSelect(
                     )
                 }
             }
-            Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             Spacer(modifier = Modifier.padding(5.dp))
 
-            var currentLeaf: LiftMetricOptions? by remember { mutableStateOf(null)}
+            var currentLeaf: LiftMetricOptions? by remember { mutableStateOf(null) }
             var nextLeaf: LiftMetricOptions? by remember { mutableStateOf(null) }
             var selectionsState by remember(selections) { mutableStateOf(selections) }
             val options = remember(currentLeaf) {
@@ -119,13 +119,17 @@ fun RowMultiSelect(
             val isAnySelected = remember(selectionsState, options) {
                 selectionsState.fastAny { options.contains(it) }
             }
-            LazyColumn (
+            LazyColumn(
                 modifier = Modifier.fillMaxWidth().height(233.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
                 items(options) { option ->
-                    val isChecked by remember(selectionsState, option) { mutableStateOf(selectionsState.contains(option)) }
-                    Row (
+                    val isChecked by remember(selectionsState, option) {
+                        mutableStateOf(
+                            selectionsState.contains(option)
+                        )
+                    }
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(color = if (isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface)
@@ -156,21 +160,22 @@ fun RowMultiSelect(
                         Text(
                             modifier = Modifier.padding(start = 10.dp, top = 15.dp, bottom = 15.dp),
                             text = option,
-                            color = if (isChecked) MaterialTheme.colorScheme.onPrimary else  MaterialTheme.colorScheme.onSurface,
+                            color = if (isChecked) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                         )
                     }
                 }
             }
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 ConfirmationButton(
                     enabled = isAnySelected,
                     text = currentLeaf?.completionButtonText ?: optionTree.completionButtonText,
-                    trailingIcon = currentLeaf?.completionButtonIcon ?: optionTree.completionButtonIcon,
+                    trailingIcon = currentLeaf?.completionButtonIcon
+                        ?: optionTree.completionButtonIcon,
                     onClick = currentLeaf?.onCompletion ?: { currentLeaf = nextLeaf },
                 )
             }

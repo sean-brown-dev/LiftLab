@@ -21,7 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -127,7 +127,7 @@ fun WorkoutPreview(
                             )
                         }
 
-                        LaunchedEffect(key1 = workoutInProgress, key2 = timeInProgress ) {
+                        LaunchedEffect(key1 = workoutInProgress, key2 = timeInProgress) {
                             textColor = if (!workoutInProgress) onPrimaryColor
                             else onSecondaryColor
 
@@ -141,10 +141,11 @@ fun WorkoutPreview(
                         )
                     }
 
-                    Divider(
-                        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 10.dp, end = 20.dp),
-                        color = MaterialTheme.colorScheme.tertiary,
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 20.dp, top = 10.dp, end = 20.dp),
                         thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
                 items(lifts) { lift ->
@@ -181,10 +182,10 @@ fun WorkoutPreview(
                     )
                 }
                 item {
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp),
-                        color = MaterialTheme.colorScheme.tertiary,
                         thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }

@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,21 +51,28 @@ fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit, onCan
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
-                    Divider(thickness = 12.dp, color = MaterialTheme.colorScheme.background)
+                    HorizontalDivider(
+                        thickness = 12.dp,
+                        color = MaterialTheme.colorScheme.background
+                    )
                     Text(
                         text = body,
                         color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
-                    Divider(thickness = 12.dp, color = MaterialTheme.colorScheme.background)
-                    Row (
+                    HorizontalDivider(
+                        thickness = 12.dp,
+                        color = MaterialTheme.colorScheme.background
+                    )
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            modifier = Modifier.padding(0.dp, 0.dp, 15.dp, 0.dp).clickable { onCancel() },
+                            modifier = Modifier.padding(0.dp, 0.dp, 15.dp, 0.dp)
+                                .clickable { onCancel() },
                             text = "Cancel",
                             color = MaterialTheme.colorScheme.primary
                         )
