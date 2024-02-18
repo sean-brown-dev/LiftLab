@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.appendCompat
+import com.browntowndev.liftlab.core.common.copyColor
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.transformToSpannable
 import com.patrykandpatrick.vico.compose.component.overlayingComponent
@@ -27,14 +28,14 @@ import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.cornered.Corner
 import com.patrykandpatrick.vico.core.component.shape.cornered.MarkerCorneredShape
 import com.patrykandpatrick.vico.core.context.MeasureContext
-import com.browntowndev.liftlab.core.common.copyColor
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
+import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 import kotlin.math.roundToInt
 
 @Composable
-internal fun rememberMarker(): Marker {
+internal fun rememberMarker(labelColor: Color? = null): Marker {
     val labelBackgroundColor = MaterialTheme.colorScheme.surface
     val labelBackground = remember(labelBackgroundColor) {
         ShapeComponent(labelBackgroundShape, labelBackgroundColor.toArgb()).setShadow(
@@ -67,7 +68,7 @@ internal fun rememberMarker(): Marker {
         guidelineShape,
     )
     return remember(label, indicator, guideline) {
-        object : MarkerComponent(label, indicator, guideline) {
+        object : MarkerComponent(label, LabelPosition.Top, indicator, guideline) {
             init {
                 indicatorSizeDp = INDICATOR_SIZE_DP
                 onApplyEntryColor = { entryColor ->
@@ -87,11 +88,16 @@ internal fun rememberMarker(): Marker {
                     ): CharSequence = markedEntries.transformToSpannable(
                         separator = "  ",
                     ) { model ->
-                        val y = (model.entry as? LineCartesianLayerModel.Entry)?.y ?: model.location.y
+                        val y = when(model.entry) {
+                            is LineCartesianLayerModel.Entry -> (model.entry as LineCartesianLayerModel.Entry).y
+                            is ColumnCartesianLayerModel.Entry -> (model.entry as ColumnCartesianLayerModel.Entry).y
+                            else -> model.location.y
+                        }
+
                         appendCompat(
                             if (y.isWholeNumber()) y.roundToInt().toString()
                             else PATTERN.format(y),
-                            ForegroundColorSpan(model.color),
+                            ForegroundColorSpan(labelColor?.toArgb() ?: model.color),
                             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
                         )
                     }

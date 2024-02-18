@@ -97,7 +97,7 @@ fun Home(
                             .padding(top = 5.dp),
                         label = "MICROCYCLE SETS COMPLETED",
                         chartModel = state.microCycleCompletionChart!!,
-                        marker = rememberMarker(),
+                        marker = rememberMarker(MaterialTheme.colorScheme.primary),
                     )
                 }
             }
