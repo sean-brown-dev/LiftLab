@@ -31,6 +31,8 @@ import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.views.composables.CircularIcon
 import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
@@ -45,8 +47,10 @@ import org.koin.core.parameter.parametersOf
 fun LiftLibrary(
     paddingValues: PaddingValues,
     screenId: String?,
+    callerRoute: String?,
     onNavigateHome: () -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
+    onNavigateToActiveWorkout: () -> Unit,
     onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     isSearchBarVisible: Boolean,
     workoutId: Long? = null,
@@ -61,13 +65,16 @@ fun LiftLibrary(
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
     val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel {
-        parametersOf(onNavigateHome, onNavigateToWorkoutBuilder, onNavigateToLiftDetails,
+        parametersOf(onNavigateHome, onNavigateToWorkoutBuilder, onNavigateToActiveWorkout, onNavigateToLiftDetails,
             workoutId, addAtPosition, movementPattern, liftMetricChartIds)
     }
     val state by liftLibraryViewModel.state.collectAsState()
 
-    val isReplacingWorkout = remember(key1 = workoutId, key2 = workoutLiftId) {
-        workoutId != null && workoutLiftId != null
+    val isReplacingLiftInWorkoutBuilder = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRoute) {
+        workoutId != null && workoutLiftId != null && callerRoute == WorkoutBuilderScreen.navigation.route
+    }
+    val isReplacingLiftInWorkout = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRoute) {
+        workoutId != null && workoutLiftId != null && callerRoute == WorkoutScreen.navigation.route
     }
     val isAddingToWorkout = remember(key1 = workoutId, key2 = addAtPosition) {
         workoutId != null && addAtPosition != null
@@ -127,7 +134,7 @@ fun LiftLibrary(
                         DeleteableOnSwipeLeft(
                             confirmationDialogHeader = "Delete Lift?",
                             confirmationDialogBody = "Deleting this lift will hide it from the Lifts menu. It can be restored from the Settings menu.",
-                            enabled = !isAddingToWorkout && !isReplacingWorkout && !isCreatingLiftMetricCharts,
+                            enabled = !isAddingToWorkout && !isReplacingLiftInWorkoutBuilder && !isCreatingLiftMetricCharts && !isReplacingLiftInWorkout,
                             onDelete = { liftLibraryViewModel.hideLift(lift) },
                         ) {
                             ListItem(
@@ -137,8 +144,12 @@ fun LiftLibrary(
                                         liftLibraryViewModel.removeSelectedLift(lift.id)
                                     } else if (multiselectEnabled) {
                                         liftLibraryViewModel.addSelectedLift(lift.id)
-                                    } else if (isReplacingWorkout) {
-                                        liftLibraryViewModel.replaceWorkoutLift(workoutLiftId!!, lift.id)
+                                    } else if (isReplacingLiftInWorkoutBuilder || isReplacingLiftInWorkout) {
+                                        liftLibraryViewModel.replaceWorkoutLift(
+                                            workoutLiftId = workoutLiftId!!,
+                                            replacementLiftId = lift.id,
+                                            callerRoute = callerRoute!!
+                                        )
                                     } else {
                                         onNavigateToLiftDetails(lift.id)
                                     }

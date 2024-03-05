@@ -21,3 +21,4 @@ val REST_TIME_RANGE = 0..6L
 
 // Navigation
 const val LIFT_METRIC_CHART_IDS = "liftMetricChartIds"
+const val SHOW_WORKOUT_LOG = "showWorkoutLog"

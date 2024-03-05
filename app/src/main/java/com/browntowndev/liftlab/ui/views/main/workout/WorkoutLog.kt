@@ -55,6 +55,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
@@ -89,6 +90,7 @@ fun WorkoutLog(
     undoCompleteSet: (liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
+    onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
     onNoteChanged: (workoutLiftId: Long, note: String) -> Unit,
 ) {
@@ -184,6 +186,9 @@ fun WorkoutLog(
                                     onChangeRestTime = { restTime, enabled ->
                                         onChangeRestTime(lift.id, restTime, enabled)
                                     },
+                                    onReplaceLift = {
+                                        onReplaceLift(lift.id, lift.liftMovementPattern)
+                                    }
                                 )
                             }
                             if (noteVisible) {

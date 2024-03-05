@@ -29,7 +29,7 @@ data class WorkoutScreen(
     private val timerRequestId: String = "",
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
+        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout?showLog={showLog}")
         const val REST_TIMER = "restTimer"
         const val FINISH_BUTTON = "finishButton"
         const val WORKOUT_HISTORY_BUTTON = "workoutHistoryButton"

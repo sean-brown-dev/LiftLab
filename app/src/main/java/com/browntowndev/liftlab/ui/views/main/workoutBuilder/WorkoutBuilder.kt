@@ -46,6 +46,7 @@ import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.views.composables.PercentagePicker
@@ -172,6 +173,7 @@ fun WorkoutBuilder(
                             },
                             onReplaceLift = {
                                 val liftLibraryRoute = LiftLibraryScreen.navigation.route
+                                    .replace("{callerRoute}", WorkoutBuilderScreen.navigation.route)
                                     .replace("{workoutId}", state.workout!!.id.toString())
                                     .replace("{workoutLiftId}", workoutLift.id.toString())
                                     .replace(
