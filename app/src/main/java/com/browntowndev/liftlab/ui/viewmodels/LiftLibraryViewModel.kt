@@ -31,7 +31,7 @@ class LiftLibraryViewModel(
     private val liftMetricChartRepository: LiftMetricChartRepository,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
-    private val onNavigateToWorkout: () -> Unit,
+    private val onNavigateToActiveWorkout: () -> Unit,
     private val onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     workoutId: Long?,
     addAtPosition: Int?,
@@ -195,7 +195,7 @@ class LiftLibraryViewModel(
             if (callerRoute == WorkoutBuilderScreen.navigation.route) {
                 navigateBackToWorkoutBuilder()
             } else {
-                navigateBackToWorkout()
+                navigateBackToActiveWorkout()
             }
         }
     }
@@ -204,8 +204,8 @@ class LiftLibraryViewModel(
         onNavigateToWorkoutBuilder(_state.value.workoutId!!)
     }
 
-    private fun navigateBackToWorkout() {
-        onNavigateToWorkout()
+    private fun navigateBackToActiveWorkout() {
+        onNavigateToActiveWorkout()
     }
 
     private fun toggleFilterSelection() {
