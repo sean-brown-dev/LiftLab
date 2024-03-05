@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.composables
 
-import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -12,17 +11,15 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.CartesianChartHost
 import com.patrykandpatrick.vico.compose.chart.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.chart.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.compose.style.currentChartStyle
-import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
+import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
-import com.patrykandpatrick.vico.core.scroll.AutoScrollCondition
-import com.patrykandpatrick.vico.core.scroll.InitialScroll
+import com.patrykandpatrick.vico.core.scroll.Scroll
 
 @Composable
 fun ColumnChart(
@@ -30,13 +27,6 @@ fun ColumnChart(
     marker: Marker?,
     chartModel: ChartModel<ColumnCartesianLayerModel>
 ) {
-    val scrollState = rememberChartScrollState()
-    val scrollSpec = rememberChartScrollSpec(
-        isScrollEnabled = true,
-        autoScrollAnimationSpec = tween(0),
-        autoScrollCondition = AutoScrollCondition.OnModelSizeIncreased,
-        initialScroll = InitialScroll.End
-    )
     ProvideChartStyle(rememberChartStyle(chartColors = listOf(MaterialTheme.colorScheme.secondary))) {
         val defaultColumns = currentChartStyle.columnLayer.columns
         CartesianChartHost(
@@ -53,7 +43,7 @@ fun ColumnChart(
                             )
                         }
                     },
-                    axisValueOverrider = chartModel.startAxisValueOverrider,
+                    axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
                 ),
                 startAxis = rememberStartAxis(
                     itemPlacer = chartModel.startAxisItemPlacer,
@@ -65,9 +55,7 @@ fun ColumnChart(
                 ),
             ),
             model = chartModel.chartEntryModel,
-            autoScaleUp = AutoScaleUp.Full,
-            chartScrollState = scrollState,
-            chartScrollSpec = scrollSpec,
+            scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
         )
     }
 }
