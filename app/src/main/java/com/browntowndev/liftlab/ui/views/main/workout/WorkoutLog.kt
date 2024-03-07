@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -46,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -93,6 +96,7 @@ fun WorkoutLog(
     onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
     onNoteChanged: (workoutLiftId: Long, note: String) -> Unit,
+    onReorderLiftsClicked: () -> Unit,
 ) {
     // Remember the myo rep set indices from the previous composition. Below they will
     // animate if they're not found in this set (they are new)
@@ -146,6 +150,15 @@ fun WorkoutLog(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(onClick = onReorderLiftsClicked) {
+                            Icon(
+                                modifier = Modifier.size(28.dp),
+                                painter = painterResource(id = R.drawable.reorder_icon),
+                                contentDescription = stringResource(R.string.reorder_lifts),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
                 }
                 items(lifts, key = { it.id }) { lift ->

@@ -270,6 +270,9 @@ fun Workout(
             onNoteChanged = { workoutLiftId, note ->
               workoutViewModel.updateNote(workoutLiftId = workoutLiftId, note = note)
             },
+            onReorderLiftsClicked = {
+                workoutViewModel.toggleReorderLifts()
+            },
         )
         if (state.isReordering) {
             ReorderableLazyColumn(

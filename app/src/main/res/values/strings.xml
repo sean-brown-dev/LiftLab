@@ -11,4 +11,6 @@
     <string name="add_lift_chart">Add lift chart.</string>
     <string name="delete_lift_metric_chart">Delete lift metric chart.</string>
     <string name="lift_note">Lift note</string>
+    <string name="reorder_lifts">Reorder Lifts</string>
+    <string name="reorder">Reorder</string>
 </resources>

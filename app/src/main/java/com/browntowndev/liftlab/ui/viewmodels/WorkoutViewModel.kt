@@ -147,7 +147,6 @@ class WorkoutViewModel(
             }
             TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm,
             TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
-            TopAppBarAction.ReorderLifts -> toggleReorderLifts()
             else -> {}
         }
     }
