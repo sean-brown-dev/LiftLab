@@ -154,7 +154,7 @@ fun ScrollableTextField(
                     unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Decimal,
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(onDone = {
@@ -167,6 +167,7 @@ fun ScrollableTextField(
                     } else {
                         newValue
                     }
+                    text
                 },
             )
         }

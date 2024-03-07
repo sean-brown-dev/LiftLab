@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,31 +11,40 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastMap
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.runOnCompletion
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.views.composables.ReorderableLazyColumn
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Workout(
     paddingValues: PaddingValues,
     screenId: String?,
+    showLog: Boolean,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     onNavigateToWorkoutHistory: () -> Unit,
+    onNavigateToLiftLibrary: (route: String) -> Unit,
 ) {
     var restTimerRestarted by remember { mutableStateOf(false) }
 
@@ -51,6 +61,12 @@ fun Workout(
     }
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
+
+    LaunchedEffect(key1 = showLog) {
+        if (showLog) {
+            workoutViewModel.setWorkoutLogVisibility(true)
+        }
+    }
 
     LaunchedEffect(state.restTimerStartedAt) {
             if (state.restTimerStartedAt != null && !restTimerRestarted) {
@@ -134,7 +150,7 @@ fun Workout(
     if (state.workout != null) {
         WorkoutPreview(
             paddingValues = paddingValues,
-            visible = !state.workoutLogVisible,
+            visible = !state.workoutLogVisible && !state.isReordering,
             workoutInProgress = state.inProgress,
             workoutName = state.workout!!.name,
             timeInProgress = timerState.time,
@@ -147,7 +163,7 @@ fun Workout(
         )
         WorkoutLog(
             paddingValues = paddingValues,
-            visible = state.workoutLogVisible,
+            visible = state.workoutLogVisible && !state.isReordering,
             lifts = state.workout!!.lifts,
             duration = timerState.time,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
@@ -232,6 +248,18 @@ fun Workout(
                     enabled = enabled,
                 )
             },
+            onReplaceLift = { workoutLiftId, movementPattern ->
+                val liftLibraryRoute = LiftLibraryScreen.navigation.route
+                    .replace("{callerRoute}", WorkoutScreen.navigation.route)
+                    .replace("{workoutId}", state.workout!!.id.toString())
+                    .replace("{workoutLiftId}", workoutLiftId.toString())
+                    .replace(
+                        "{movementPattern}",
+                        movementPattern.displayName()
+                    )
+
+                onNavigateToLiftLibrary(liftLibraryRoute)
+            },
             onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
                 workoutViewModel.deleteMyoRepSet(
                     workoutLiftId = workoutLiftId,
@@ -243,5 +271,13 @@ fun Workout(
               workoutViewModel.updateNote(workoutLiftId = workoutLiftId, note = note)
             },
         )
+        if (state.isReordering) {
+            ReorderableLazyColumn(
+                paddingValues = paddingValues,
+                items = remember(state.workout!!.lifts) { state.workout!!.lifts.fastMap { ReorderableListItem(it.liftName, it.id) } },
+                saveReorder = { workoutViewModel.reorderLifts(it) },
+                cancelReorder = { workoutViewModel.toggleReorderLifts() }
+            )
+        }
     }
 }

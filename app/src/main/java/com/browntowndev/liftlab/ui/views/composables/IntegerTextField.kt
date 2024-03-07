@@ -31,12 +31,13 @@ fun IntegerTextField(
     onNonNullValueChanged: (Int) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
+    val initialValue = remember(value) { value?.toString() ?: "" }
     ScrollableTextField(
         modifier = modifier,
         placeholder = placeholder,
         listState = listState,
         vertical = vertical,
-        value = remember(value) { value?.toString() ?: "" },
+        value = initialValue,
         errorOnEmptyString = errorOnEmpty,
         label = label,
         fontSize = fontSize,
@@ -56,7 +57,7 @@ fun IntegerTextField(
                 onValueChanged(null)
                 newValue
             } else {
-                ""
+                initialValue
             }
         },
         onPixelOverflowChanged = onPixelOverflowChanged,

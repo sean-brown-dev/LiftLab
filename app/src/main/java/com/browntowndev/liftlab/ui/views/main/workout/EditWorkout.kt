@@ -119,6 +119,7 @@ fun EditWorkout(
                 )
             },
             onNoteChanged = { _, _ -> },
+            onReplaceLift = { _, _ -> }
         )
     }
 }

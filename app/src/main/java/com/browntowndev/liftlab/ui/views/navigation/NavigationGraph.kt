@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -16,6 +18,7 @@ import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
+import com.browntowndev.liftlab.core.common.SHOW_WORKOUT_LOG
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
@@ -101,6 +104,9 @@ fun NavigationGraph(
         composable(
             route = LiftLibraryScreen.navigation.route,
             arguments = listOf(
+                navArgument("callerRoute") {
+                  nullable = true
+                },
                 navArgument("workoutId") {
                     nullable = true
                 },
@@ -115,6 +121,7 @@ fun NavigationGraph(
                 },
             )
         ) { it ->
+            val callerRoute = it.arguments?.getString("callerRoute")
             val workoutId = it.arguments?.getString("workoutId")?.toLongOrNull()
             val workoutLiftId = it.arguments?.getString("workoutLiftId")?.toLongOrNull()
             val movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
@@ -142,6 +149,7 @@ fun NavigationGraph(
                 LiftLibrary(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
+                    callerRoute = callerRoute,
                     workoutId = workoutId,
                     workoutLiftId = workoutLiftId,
                     movementPattern = movementPatternParam,
@@ -178,7 +186,7 @@ fun NavigationGraph(
                     },
                     onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
                         // Pop back to lab
-                        navHostController.navigate("lab") {
+                        navHostController.navigate(LabScreen.navigation.route) {
                             popUpTo(navHostController.graph.startDestinationRoute!!) {
                                 inclusive = false
                             }
@@ -187,7 +195,15 @@ fun NavigationGraph(
                         // Go back to workout builder
                         val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutBuilderWorkoutId.toString())
                         navHostController.navigate(workoutBuilderRoute)
-                    }
+                    },
+                    onNavigateToActiveWorkout = {
+                        // Pop back to lab
+                        navHostController.navigate(WorkoutScreen.navigation.route.replace("{showLog}", true.toString())) {
+                            popUpTo(navHostController.graph.startDestinationRoute!!) {
+                                inclusive = true
+                            }
+                        }
+                    },
                 )
             }
         }
@@ -230,7 +246,29 @@ fun NavigationGraph(
                 )
             }
         }
-        composable(WorkoutScreen.navigation.route) {
+        composable(
+            route = WorkoutScreen.navigation.route,
+            arguments = listOf(
+                navArgument("showLog") {
+                    nullable = true
+                },
+            )
+        ) {
+            val backStackEntryId = remember(it.id) { it.id }
+            var showLog by remember(it.id) {
+                mutableStateOf(
+                    value =  navHostController.currentBackStackEntry?.savedStateHandle?.get(SHOW_WORKOUT_LOG) ?:
+                        it.arguments?.getString("showLog")?.toBoolean() ?: false
+                )
+            }
+            navHostController.currentBackStackEntry?.savedStateHandle?.set(SHOW_WORKOUT_LOG, false)
+
+            LaunchedEffect(key1 = navHostController.currentBackStackEntry) {
+                if (navHostController.currentBackStackEntry?.id != backStackEntryId) {
+                    showLog = false
+                }
+            }
+
             val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
             val currentRoute = currentScreen?.destination?.route
 
@@ -243,14 +281,17 @@ fun NavigationGraph(
                 Workout(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
+                    showLog = showLog,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onNavigateToWorkoutHistory = {
                         navHostController.navigate(WorkoutHistoryScreen.navigation.route)
-                    }
-                )
+                    },
+                ) { route ->
+                    navHostController.navigate(route)
+                }
             }
         }
         composable(WorkoutHistoryScreen.navigation.route) {

@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -13,12 +14,14 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
@@ -144,6 +147,7 @@ class WorkoutViewModel(
             }
             TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm,
             TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
+            TopAppBarAction.ReorderLifts -> toggleReorderLifts()
             else -> {}
         }
     }
@@ -262,6 +266,38 @@ class WorkoutViewModel(
                 addAll(resultsFromOtherWorkouts)
             }
         } else existingResults
+    }
+
+    fun toggleReorderLifts() {
+        mutableWorkoutState.update {
+            it.copy(isReordering = !it.isReordering)
+        }
+    }
+
+    fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
+        executeInTransactionScope {
+            val newLiftIndices = newLiftOrder
+                .mapIndexed { index, item -> item.key to index }
+                .associate { it.first to it.second }
+
+            val updatedWorkoutCopy = mutableWorkoutState.value.workout!!.copy(
+                lifts = mutableWorkoutState.value.workout!!.lifts.map { lift ->
+                    lift.copy(position = newLiftIndices[lift.id]!!)
+                }
+            )
+
+            val updatedLifts = workoutLiftsRepository.getForWorkout(mutableWorkoutState.value.workout!!.id)
+                .map {
+                    when (it) {
+                        is StandardWorkoutLiftDto -> it.copy(position = newLiftIndices[it.id]!!)
+                        is CustomWorkoutLiftDto -> it.copy(position = newLiftIndices[it.id]!!)
+                        else -> throw Exception("${it::class.simpleName} is not defined.")
+                    }
+                }
+
+            workoutLiftsRepository.updateMany(updatedLifts)
+            mutableWorkoutState.update { it.copy(workout = updatedWorkoutCopy, isReordering = false) }
+        }
     }
 
     fun setWorkoutLogVisibility(visible: Boolean) {

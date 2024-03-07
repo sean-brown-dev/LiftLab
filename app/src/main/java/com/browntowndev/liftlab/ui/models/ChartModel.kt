@@ -12,13 +12,14 @@ import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.model.CartesianChartModel
 import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.model.ExtraStore
 import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 interface BaseChartModel<T> {
-    val startAxisValueOverrider: AxisValueOverrider<T>?
+    val startAxisValueOverrider: AxisValueOverrider?
     val bottomAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>
     val startAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.Start>
     val persistentMarkers: ((Marker) -> Map<Float, Marker>?)?
@@ -28,7 +29,7 @@ interface BaseChartModel<T> {
 
 class ChartModel<T>(
     val chartEntryModel: CartesianChartModel,
-    override val startAxisValueOverrider: AxisValueOverrider<T>?,
+    override val startAxisValueOverrider: AxisValueOverrider?,
     override val bottomAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>,
     override val startAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.Start>,
     override val persistentMarkers: ((Marker) -> Map<Float, Marker>?)? = null,
@@ -42,8 +43,8 @@ class ChartModel<T>(
 
 class ComposedChartModel<T>(
     val composedChartEntryModel: CartesianChartModel,
-    override val startAxisValueOverrider: AxisValueOverrider<T>?,
-    val endAxisValueOverrider: AxisValueOverrider<T>?,
+    override val startAxisValueOverrider: AxisValueOverrider?,
+    val endAxisValueOverrider: AxisValueOverrider?,
     override val bottomAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>,
     override val startAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.Start>,
     val endAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.End>,
@@ -92,16 +93,12 @@ fun getOneRepMaxChartModel(
 
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
-            override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.first().minOf {
-                    it.y
-                } - 5
+        startAxisValueOverrider = object: AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return minY - 5
             }
-            override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.first().maxOf {
-                    it.y
-                } + 5
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return maxY + 5
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -110,7 +107,7 @@ fun getOneRepMaxChartModel(
         startAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = { 9 }),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count(count = { 9 }),
     )
 }
 
@@ -157,32 +154,31 @@ fun getPerWorkoutVolumeChartModel(
 
     return ComposedChartModel(
         composedChartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
-            override fun getMinY(model: LineCartesianLayerModel): Float {
-                val minVal = model.series.first().minOf { it.y } - 1
+        startAxisValueOverrider = object: AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                val minVal = minY - 1
                 return if (minVal < 0) {
                     0f
                 } else {
                     minVal
                 }
             }
-            override fun getMaxY(model: LineCartesianLayerModel): Float {
-                val maxVal = model.series.first().maxOf { it.y } + 1
-                val minVal = getMinY(model)
-                return if (maxVal - minVal < 4) {
-                    val difference = maxVal - minVal
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                val maxVal = maxY + 1
+                return if (maxVal - minY < 4) {
+                    val difference = maxVal - minY
                     maxVal + (4 - difference)
                 } else {
                     maxVal
                 }
             }
         },
-        endAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
-            override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.first().minOf { it.y } - 1
+        endAxisValueOverrider = object: AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return minY - 1
             }
-            override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.first().maxOf { it.y } + 1
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return maxY + 1
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -194,10 +190,8 @@ fun getPerWorkoutVolumeChartModel(
         endAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.default(
-            maxItemCount = { 5 }
-        ),
-        endAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = { 9 }),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 5 }),
+        endAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
         persistentMarkers = { null }
     )
 }
@@ -254,20 +248,20 @@ fun getPerMicrocycleVolumeChartModel(
 
     return ComposedChartModel(
         composedChartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
-            override fun getMinY(model: LineCartesianLayerModel): Float {
-                return  (model.series.first().minOf { it.y } - 1)
+        startAxisValueOverrider = object: AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return minY - 1
             }
-            override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.first().maxOf { it.y } + 1
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return maxY + 1
             }
         },
-        endAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
-            override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.first().minOf { it.y } - 1
+        endAxisValueOverrider = object: AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return minY - 1
             }
-            override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.first().maxOf { it.y } + 1
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return maxY + 1
             }
         },
         bottomAxisLabelRotationDegrees = 45f,
@@ -282,10 +276,8 @@ fun getPerMicrocycleVolumeChartModel(
         endAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.default(
-            maxItemCount = { 5 }
-        ),
-        endAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = { 9 }),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 5 }),
+        endAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
         persistentMarkers = { null }
     )
 }
@@ -328,16 +320,12 @@ fun getIntensityChartModel(
 
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider<LineCartesianLayerModel> {
-            override fun getMinY(model: LineCartesianLayerModel): Float {
-                return model.series.first().minOf {
-                    it.y
-                } - 5f
+        startAxisValueOverrider = object: AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return minY - 5
             }
-            override fun getMaxY(model: LineCartesianLayerModel): Float {
-                return model.series.first().maxOf {
-                    it.y
-                } + 5f
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+                return maxY + 5
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -346,7 +334,7 @@ fun getIntensityChartModel(
         startAxisValueFormatter = { value, _, _ ->
             "${String.format("%.2f", value)}%"
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = { 9 }),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
     )
 }
 
@@ -385,11 +373,11 @@ fun getWeeklyCompletionChart(
 
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object : AxisValueOverrider<ColumnCartesianLayerModel> {
-            override fun getMinY(model: ColumnCartesianLayerModel): Float {
+        startAxisValueOverrider = object : AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
                 return 0f
             }
-            override fun getMaxY(model: ColumnCartesianLayerModel): Float {
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
                 return workoutCount?.toFloat() ?: 7f
             }
         },
@@ -400,11 +388,7 @@ fun getWeeklyCompletionChart(
         startAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.default(
-            maxItemCount = {
-                (workoutCount ?: 6) + 1
-            }
-        ),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ (workoutCount ?: 6) + 1 }),
     )
 }
 
@@ -440,11 +424,11 @@ fun getMicroCycleCompletionChart(
     )
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object : AxisValueOverrider<ColumnCartesianLayerModel> {
-            override fun getMinY(model: ColumnCartesianLayerModel): Float {
+        startAxisValueOverrider = object : AxisValueOverrider {
+            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
                 return 0f
             }
-            override fun getMaxY(model: ColumnCartesianLayerModel): Float {
+            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
                 return 100f
             }
         },
@@ -455,6 +439,6 @@ fun getMicroCycleCompletionChart(
         startAxisValueFormatter = { value, _, _ ->
             "${value.roundToInt()}%"
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = { 9 }),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
     )
 }

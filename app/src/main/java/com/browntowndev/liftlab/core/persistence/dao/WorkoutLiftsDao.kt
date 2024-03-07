@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 
 @Dao
@@ -33,6 +34,9 @@ interface WorkoutLiftsDao {
 
     @Query("SELECT liftId FROM workoutLifts WHERE workoutId = :workoutId")
     suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long>
+
+    @Query("SELECT * FROM workoutLifts WHERE workoutId = :workoutId")
+    suspend fun getForWorkout(workoutId: Long): List<WorkoutLiftWithRelationships>
 
     @Query("UPDATE workoutLifts SET note = :note WHERE workout_lift_id = :workoutLiftId")
     suspend fun updateNote(workoutLiftId: Long, note: String?)

@@ -9,7 +9,7 @@ import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
 import com.patrykandpatrick.vico.compose.style.ChartStyle
 import com.patrykandpatrick.vico.core.DefaultAlpha
 import com.patrykandpatrick.vico.core.DefaultColors
-import com.patrykandpatrick.vico.core.DefaultDimens
+import com.patrykandpatrick.vico.core.Defaults.COLUMN_ROUNDNESS_PERCENT
 import com.patrykandpatrick.vico.core.chart.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
@@ -30,9 +30,8 @@ internal fun rememberChartStyle(
             ChartStyle.ColumnLayer(
                 columnChartColors.map { columnChartColor ->
                     LineComponent(
-                        columnChartColor.toArgb(),
-                        DefaultDimens.COLUMN_WIDTH,
-                        Shapes.roundedCornerShape(DefaultDimens.COLUMN_ROUNDNESS_PERCENT),
+                        color = columnChartColor.toArgb(),
+                        shape = Shapes.roundedCornerShape(40),
                     )
                 },
             ),

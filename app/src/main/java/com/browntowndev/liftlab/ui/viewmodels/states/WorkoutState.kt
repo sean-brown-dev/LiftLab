@@ -15,6 +15,7 @@ data class WorkoutState(
     val workout: LoggingWorkoutDto? = null,
     val inProgressWorkout: WorkoutInProgressDto? = null,
     val workoutLogVisible: Boolean = false,
+    val isReordering: Boolean = false,
     val restTimerStartedAt: Date? = null,
     val restTime: Long = 0L,
     val completedMyoRepSets: Boolean = false,

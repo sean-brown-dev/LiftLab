@@ -30,7 +30,7 @@ data class LiftLibraryScreen(
     var filterText: String = "",
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
+        val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?callerRoute={callerRoute}&workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
         const val SEARCH_ICON = "searchIcon"
         const val CREATE_NEW_LIFT_ICON = "createNewLiftIcon"
         const val CONFIRM_ADD_LIFT_ICON = "confirmAddLiftIcon"

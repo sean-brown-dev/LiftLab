@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.composables
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -16,8 +15,7 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.CartesianChartHost
 import com.patrykandpatrick.vico.compose.chart.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.chart.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollSpec
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberChartScrollState
+import com.patrykandpatrick.vico.compose.chart.scroll.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.component.shape.shader.color
 import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
@@ -27,12 +25,11 @@ import com.patrykandpatrick.vico.compose.style.currentChartStyle
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.BaseAxis
 import com.patrykandpatrick.vico.core.chart.copy
-import com.patrykandpatrick.vico.core.chart.scale.AutoScaleUp
+import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
-import com.patrykandpatrick.vico.core.scroll.AutoScrollCondition
-import com.patrykandpatrick.vico.core.scroll.InitialScroll
+import com.patrykandpatrick.vico.core.scroll.Scroll
 
 @Composable
 fun MultiLineChart(
@@ -40,14 +37,6 @@ fun MultiLineChart(
 ) {
     ProvideChartStyle(m3ChartStyle()) {
         val marker = rememberMarker()
-        val scrollState = rememberChartScrollState()
-        val scrollSpec = rememberChartScrollSpec(
-            isScrollEnabled = true,
-            autoScrollAnimationSpec = tween(0),
-            autoScrollCondition = AutoScrollCondition.OnModelSizeIncreased,
-            initialScroll = InitialScroll.End
-        )
-
         val chartColors = listOf(
             MaterialTheme.colorScheme.primary,
             MaterialTheme.colorScheme.tertiary,
@@ -78,7 +67,7 @@ fun MultiLineChart(
                 }
             },
             spacing = 65.dp,
-            axisValueOverrider = chartModel.startAxisValueOverrider,
+            axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
             verticalAxisPosition = AxisPosition.Vertical.Start,
         )
         val endAxisLineChart = rememberLineCartesianLayer(
@@ -92,7 +81,7 @@ fun MultiLineChart(
                 }
             },
             spacing = 65.dp,
-            axisValueOverrider = chartModel.endAxisValueOverrider,
+            axisValueOverrider = remember { chartModel.endAxisValueOverrider ?: AxisValueOverrider.auto() },
             verticalAxisPosition = AxisPosition.Vertical.End,
         )
         CartesianChartHost(
@@ -127,9 +116,7 @@ fun MultiLineChart(
             ),
             model = chartModel.composedChartEntryModel,
             marker = marker,
-            autoScaleUp = AutoScaleUp.Full,
-            chartScrollState = scrollState,
-            chartScrollSpec = scrollSpec,
+            scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
         )
     }
 }

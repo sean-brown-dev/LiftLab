@@ -29,10 +29,11 @@ data class WorkoutScreen(
     private val timerRequestId: String = "",
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout")
+        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout?showLog={showLog}")
         const val REST_TIMER = "restTimer"
         const val FINISH_BUTTON = "finishButton"
         const val WORKOUT_HISTORY_BUTTON = "workoutHistoryButton"
+        const val REORDER_LIFTS = "reorderLifts"
     }
 
     private val _eventBus: EventBus by inject()
@@ -128,6 +129,13 @@ data class WorkoutScreen(
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.OpenWorkoutHistory))
                 }
+            ),
+            ActionMenuItem.IconMenuItem.NeverShown(
+                controlName = REORDER_LIFTS,
+                title = "Reorder Lifts",
+                icon = R.drawable.reorder_icon.right(),
+                isVisible = true,
+                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts)) },
             ),
         )
     }

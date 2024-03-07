@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
-import com.patrykandpatrick.vico.compose.legend.legendItem
-import com.patrykandpatrick.vico.compose.legend.verticalLegend
+import com.patrykandpatrick.vico.compose.legend.rememberLegendItem
+import com.patrykandpatrick.vico.compose.legend.rememberVerticalLegend
 import com.patrykandpatrick.vico.compose.style.currentChartStyle
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 
@@ -22,20 +22,20 @@ private val legendTopPaddingValue = 8.dp
 private val legendPadding = dimensionsOf(top = legendTopPaddingValue)
 
 @Composable
-fun rememberLegend(chartColors: List<Color>, labels: List<String>) = verticalLegend(
+fun rememberLegend(chartColors: List<Color>, labels: List<String>) = rememberVerticalLegend(
     items = chartColors.mapIndexed { index, chartColor ->
-        legendItem(
+        rememberLegendItem(
             icon = rememberShapeComponent(color = chartColor, shape = Shapes.pillShape),
             label = rememberTextComponent(
                 color = currentChartStyle.axis.axisLabelColor,
                 textSize = legendItemLabelTextSize,
                 typeface = Typeface.MONOSPACE,
             ),
-            labelText = labels[index],
+            labelText = labels[index]
         )
     },
     iconSize = legendItemIconSize,
     iconPadding = legendItemIconPaddingValue,
     spacing = legendItemSpacing,
-    padding = legendPadding,
+    padding = legendPadding
 )

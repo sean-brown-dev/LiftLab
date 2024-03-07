@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.common.appendCompat
 import com.browntowndev.liftlab.core.common.copyColor
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.transformToSpannable
-import com.patrykandpatrick.vico.compose.component.overlayingComponent
+import com.patrykandpatrick.vico.compose.component.rememberLayeredComponent
 import com.patrykandpatrick.vico.compose.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.component.rememberTextComponent
@@ -53,14 +53,14 @@ internal fun rememberMarker(labelColor: Color? = null): Marker {
     val indicatorInnerComponent = rememberShapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.surface)
     val indicatorCenterComponent = rememberShapeComponent(Shapes.pillShape, Color.White)
     val indicatorOuterComponent = rememberShapeComponent(Shapes.pillShape, Color.White)
-    val indicator = overlayingComponent(
-        outer = indicatorOuterComponent,
-        inner = overlayingComponent(
-            outer = indicatorCenterComponent,
-            inner = indicatorInnerComponent,
-            innerPaddingAll = indicatorInnerAndCenterComponentPaddingValue,
+    val indicator = rememberLayeredComponent(
+        rear = indicatorOuterComponent,
+        front = rememberLayeredComponent(
+            rear = indicatorCenterComponent,
+            front = indicatorInnerComponent,
+            padding = dimensionsOf(all = indicatorInnerAndCenterComponentPaddingValue)
         ),
-        innerPaddingAll = indicatorCenterAndOuterComponentPaddingValue,
+        padding = dimensionsOf(all = indicatorCenterAndOuterComponentPaddingValue)
     )
     val guideline = rememberLineComponent(
         MaterialTheme.colorScheme.onSurface.copy(GUIDELINE_ALPHA),
