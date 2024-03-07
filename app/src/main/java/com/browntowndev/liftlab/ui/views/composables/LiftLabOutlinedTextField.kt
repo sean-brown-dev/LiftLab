@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LiftLabOutlinedTextField(
     value: String,
-    onValueChange: (String) -> Unit,
+    onValueChange: (String) -> String,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(2.dp),
     enabled: Boolean = true,
@@ -97,8 +97,7 @@ fun LiftLabOutlinedTextField(
                 }
         ),
         onValueChange = {
-            text = it
-            onValueChange(it)
+            text = onValueChange(it)
         },
         onTextLayout = {
             onRequiredHeightChanged(it.size.height)

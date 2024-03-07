@@ -225,7 +225,10 @@ fun WorkoutLog(
                                             tint = MaterialTheme.colorScheme.outline,
                                         )
                                     },
-                                    onValueChange = { onNoteChanged(lift.id, it) },
+                                    onValueChange = {
+                                        onNoteChanged(lift.id, it)
+                                        it
+                                    },
                                     onRequiredHeightChanged = {
                                         localDensity.run {
                                             noteTextFieldHeight = it.toFloat().toDp() + 14.dp

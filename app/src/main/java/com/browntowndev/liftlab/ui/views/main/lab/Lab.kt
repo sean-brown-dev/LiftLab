@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -82,7 +83,7 @@ fun Lab(
     else {
         ReorderableLazyColumn(
             paddingValues = paddingValues,
-            items = state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) },
+            items = remember(state.program!!.workouts) { state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) } },
             saveReorder = { labViewModel.saveReorder(it) },
             cancelReorder = { labViewModel.toggleReorderingScreen() }
         )

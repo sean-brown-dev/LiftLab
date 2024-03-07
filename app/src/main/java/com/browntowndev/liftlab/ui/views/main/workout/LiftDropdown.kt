@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,7 +57,6 @@ fun LiftDropdown(
                     )
                 }
             )
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
             DropdownMenuItem(
                 text = { Text("Rest Time") },
                 onClick = {

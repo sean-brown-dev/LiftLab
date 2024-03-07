@@ -106,14 +106,12 @@ fun ActionsMenu(
                     },
                     leadingIcon = {
                         item.icon?.onLeft {
-
                             Icon(
                                 imageVector = it,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }?.onRight {
-
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = it),

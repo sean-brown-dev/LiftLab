@@ -502,7 +502,7 @@ fun WorkoutBuilder(
     } else {
         ReorderableLazyColumn(
             paddingValues = paddingValues,
-            items = state.workout!!.lifts.fastMap { ReorderableListItem(it.liftName, it.id) },
+            items = remember(state.workout!!.lifts) { state.workout!!.lifts.fastMap { ReorderableListItem(it.liftName, it.id) } },
             saveReorder = { workoutBuilderViewModel.reorderLifts(it) },
             cancelReorder = { workoutBuilderViewModel.toggleReorderLifts() }
         )
