@@ -57,8 +57,7 @@ fun EditWorkout(
         WorkoutLog(
             paddingValues = paddingValues,
             visible = true,
-            cancelWorkoutVisible = false,
-            noteVisible = false,
+            isEdit = true,
             lifts = workoutState.workout!!.lifts,
             duration = editWorkoutState.duration,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
