@@ -80,8 +80,7 @@ import kotlin.time.toDuration
 fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
-    cancelWorkoutVisible: Boolean = true,
-    noteVisible: Boolean = true,
+    isEdit: Boolean = false,
     lifts: List<LoggingWorkoutLiftDto>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
@@ -192,19 +191,21 @@ fun WorkoutLog(
                                     fontSize = 20.sp,
                                     color = MaterialTheme.colorScheme.tertiary
                                 )
-                                Spacer(modifier = Modifier.weight(1f))
-                                LiftDropdown(
-                                    restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
-                                    restTimerEnabled = lift.restTimerEnabled,
-                                    onChangeRestTime = { restTime, enabled ->
-                                        onChangeRestTime(lift.id, restTime, enabled)
-                                    },
-                                    onReplaceLift = {
-                                        onReplaceLift(lift.id, lift.liftMovementPattern)
-                                    }
-                                )
+                                if (!isEdit) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    LiftDropdown(
+                                        restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
+                                        restTimerEnabled = lift.restTimerEnabled,
+                                        onChangeRestTime = { restTime, enabled ->
+                                            onChangeRestTime(lift.id, restTime, enabled)
+                                        },
+                                        onReplaceLift = {
+                                            onReplaceLift(lift.id, lift.liftMovementPattern)
+                                        }
+                                    )
+                                }
                             }
-                            if (noteVisible) {
+                            if (!isEdit) {
                                 val localDensity = LocalDensity.current
                                 var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
                                 LiftLabOutlinedTextField(
@@ -339,7 +340,7 @@ fun WorkoutLog(
                     }
                 }
                 item {
-                    if (cancelWorkoutVisible) {
+                    if (!isEdit) {
                         TextButton(
                             modifier = Modifier.padding(20.dp),
                             colors = ButtonDefaults.textButtonColors(
