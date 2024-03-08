@@ -30,7 +30,7 @@ import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.composables.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
 
 @Composable
 fun ActionsMenu(

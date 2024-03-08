@@ -41,11 +41,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
-import com.browntowndev.liftlab.ui.views.composables.ConfirmationModal
-import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.composables.NumberPickerSpinner
-import com.browntowndev.liftlab.ui.views.composables.SectionLabel
-import com.browntowndev.liftlab.ui.views.composables.TimeSelectionSpinner
+import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
+import com.browntowndev.liftlab.ui.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.TimeSelectionSpinner
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf

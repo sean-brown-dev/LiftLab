@@ -41,8 +41,8 @@ import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.insertSuperscript
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
-import com.browntowndev.liftlab.ui.views.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.CircledTextIcon
+import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 
 
 @Composable

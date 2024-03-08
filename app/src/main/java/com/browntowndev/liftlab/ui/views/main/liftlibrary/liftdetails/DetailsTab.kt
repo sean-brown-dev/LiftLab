@@ -22,7 +22,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.ui.views.composables.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
 
 @Composable
 fun DetailsTab(

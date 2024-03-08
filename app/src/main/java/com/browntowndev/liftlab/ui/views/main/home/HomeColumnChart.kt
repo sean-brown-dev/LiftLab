@@ -6,7 +6,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.views.composables.ColumnChart
+import com.browntowndev.liftlab.ui.composables.ColumnChart
 import com.patrykandpatrick.vico.core.marker.Marker
 import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
 

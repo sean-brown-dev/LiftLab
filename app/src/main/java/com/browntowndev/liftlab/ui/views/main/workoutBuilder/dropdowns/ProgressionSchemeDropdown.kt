@@ -25,8 +25,8 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.ui.views.composables.TextDropdown
-import com.browntowndev.liftlab.ui.views.composables.TextDropdownTextAnchor
+import com.browntowndev.liftlab.ui.composables.TextDropdown
+import com.browntowndev.liftlab.ui.composables.TextDropdownTextAnchor
 
 
 @Composable

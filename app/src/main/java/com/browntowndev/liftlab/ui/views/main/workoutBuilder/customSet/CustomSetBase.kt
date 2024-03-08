@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.ui.views.composables.ExpandableCard
+import com.browntowndev.liftlab.ui.composables.ExpandableCard
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.CustomSetTypeDropdown
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

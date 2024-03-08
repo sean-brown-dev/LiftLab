@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
-import com.browntowndev.liftlab.ui.views.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 
 @Composable
 fun TopTenPerformances(topTenPerformances: List<OneRepMaxEntry>) {
