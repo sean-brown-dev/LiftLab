@@ -3,7 +3,10 @@ package com.browntowndev.liftlab.ui.composables
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -31,13 +34,14 @@ fun IntegerTextField(
     onNonNullValueChanged: (Int) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
-    val initialValue = remember(value) { value?.toString() ?: "" }
+    var text by remember(value) { mutableStateOf(value?.toString() ?: "") }
+
     ScrollableTextField(
         modifier = modifier,
         placeholder = placeholder,
         listState = listState,
         vertical = vertical,
-        value = initialValue,
+        value = text,
         errorOnEmptyString = errorOnEmpty,
         label = label,
         fontSize = fontSize,
@@ -48,7 +52,7 @@ fun IntegerTextField(
         onLeftFocusBlank = onLeftFocusBlank,
         onValueChanged = { newValue ->
             var newValueAsInt = newValue.trim().toIntOrNull()
-            if (newValueAsInt != null && newValueAsInt <= maxValue) {
+            text = if (newValueAsInt != null && newValueAsInt <= maxValue) {
                 newValueAsInt = if (newValueAsInt >= minValue) newValueAsInt else minValue
                 onValueChanged(newValueAsInt)
                 onNonNullValueChanged(newValueAsInt)
@@ -57,7 +61,7 @@ fun IntegerTextField(
                 onValueChanged(null)
                 newValue
             } else {
-                initialValue
+                text
             }
         },
         onPixelOverflowChanged = onPixelOverflowChanged,

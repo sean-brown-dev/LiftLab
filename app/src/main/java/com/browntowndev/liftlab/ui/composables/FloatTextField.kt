@@ -3,6 +3,10 @@ package com.browntowndev.liftlab.ui.composables
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -31,7 +35,7 @@ fun FloatTextField(
     onValueChanged: (Float?) -> Unit = {},
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
-    val textNoDotZero = value?.toString()?.removeSuffix(".0") ?: ""
+    var text by remember(value) { mutableStateOf(value?.toString()?.removeSuffix(".0") ?: "") }
 
     ScrollableTextField(
         modifier = modifier,
@@ -39,7 +43,7 @@ fun FloatTextField(
         vertical = vertical,
         errorOnEmptyString = errorOnEmpty,
         fontSize = fontSize,
-        value = textNoDotZero,
+        value = text,
         hideCursor = hideCursor,
         placeholder = placeholder,
         label = label,
@@ -49,9 +53,9 @@ fun FloatTextField(
         onFocusChanged = onFocusChanged,
         onLeftFocusBlank = onLeftFocusBlank,
         onValueChanged = { newValue ->
-            validateFloat(
+            text = validateFloat(
                 newValue = newValue,
-                existingValue = textNoDotZero,
+                existingValue = text,
                 maxValue = maxValue,
                 minValue = minValue,
                 precision = precision,

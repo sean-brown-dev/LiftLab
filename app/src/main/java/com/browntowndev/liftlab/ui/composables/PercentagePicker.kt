@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -68,7 +69,7 @@ fun PercentagePicker(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp.times(.30f)),
+                .height(LocalConfiguration.current.screenHeightDp.dp.times(.35f)),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
@@ -81,16 +82,27 @@ fun PercentagePicker(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = {
-                    isVisible = false
-                    focusManager.clearFocus()
-                }) {
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(
+                    modifier = Modifier
+                        .padding(top = 10.dp, end = 10.dp)
+                        .height(55.dp)
+                        .width(100.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(50.dp)
+                        ),
+                    onClick = {
+                        isVisible = false
+                        focusManager.clearFocus()
+                    }
+                ) {
                     Icon(
-                        modifier = Modifier.size(32.dp),
-                        imageVector = Icons.Filled.CheckCircle,
-                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(25.dp),
+                        imageVector = Icons.Filled.Check,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         contentDescription = null
                     )
                 }
@@ -98,7 +110,7 @@ fun PercentagePicker(
             }
 
             var selectedPercentage by remember { mutableStateOf("" ) }
-            Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
+            Box(modifier = Modifier.weight(.2f), contentAlignment = Alignment.BottomCenter) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.BottomCenter
