@@ -26,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -48,7 +47,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ScrollableTextField(
     modifier: Modifier = Modifier,
@@ -65,10 +63,9 @@ fun ScrollableTextField(
     labelFontSize: TextUnit = 10.sp,
     onFocusChanged: (Boolean) -> Unit,
     onLeftFocusBlank: () -> Unit = {},
-    onValueChanged: ((String) -> String)? = null,
+    onValueChanged: ((String) -> Unit)? = null,
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
-    var text by remember(value) { mutableStateOf(value) }
     val placeholderAsState by remember(placeholder) { mutableStateOf(placeholder) }
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -110,7 +107,7 @@ fun ScrollableTextField(
                 } else {
                     onPixelOverflowChanged(0.dp)
                     onFocusChanged(isFocused)
-                    if (!isFocused && text.isEmpty()) {
+                    if (!isFocused && value.isEmpty()) {
                         onLeftFocusBlank()
                     }
                 }
@@ -123,9 +120,9 @@ fun ScrollableTextField(
         CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors){
             LiftLabOutlinedTextField(
                 modifier = txtMod,
-                value = text,
+                value = value,
                 hideCursor = hideCursor,
-                isError = errorOnEmptyString && text.isEmpty(),
+                isError = remember(errorOnEmptyString, value) { errorOnEmptyString && value.isEmpty() },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
                 placeholder = {
@@ -162,12 +159,7 @@ fun ScrollableTextField(
                     focusManager.clearFocus()
                 }),
                 onValueChange = { newValue ->
-                    text = if (onValueChanged != null) {
-                        onValueChanged(newValue)
-                    } else {
-                        newValue
-                    }
-                    text
+                    onValueChanged?.invoke(newValue)
                 },
             )
         }

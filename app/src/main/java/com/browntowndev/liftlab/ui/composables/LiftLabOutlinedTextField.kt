@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LiftLabOutlinedTextField(
     value: String,
-    onValueChange: (String) -> String,
+    onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(2.dp),
     enabled: Boolean = true,
@@ -76,9 +76,8 @@ fun LiftLabOutlinedTextField(
         focusManager.clearFocus()
     }
 
-    var text by remember(value) { mutableStateOf(value) }
     BasicTextField(
-        value = text,
+        value = value,
         modifier = if (label != null) {
             // Merge semantics at the beginning of the modifier chain to ensure padding is
             // considered part of the text field.
@@ -96,9 +95,7 @@ fun LiftLabOutlinedTextField(
                     isFocused = it.isFocused
                 }
         ),
-        onValueChange = {
-            text = onValueChange(it)
-        },
+        onValueChange = onValueChange,
         onTextLayout = {
             onRequiredHeightChanged(it.size.height)
         },

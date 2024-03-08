@@ -67,6 +67,7 @@ fun DropSet(
             ScrollableTextField(
                 value = dropPercentage.toDropPercentageString(),
                 vertical = false,
+                hideCursor = true,
                 label = "Drop Percentage",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
