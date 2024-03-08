@@ -12,9 +12,6 @@ import java.util.Date
 
 @Dao
 interface LoggingDao {
-    @Query("UPDATE setLogEntries SET isDeload = 1 WHERE microCycle = 3")
-    suspend fun setDeloadsToTrue()
-
     @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 

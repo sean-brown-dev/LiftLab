@@ -373,7 +373,7 @@ abstract class BaseWorkoutViewModel(
         val isDeload = (mutableWorkoutState.value.workout!!.lifts
             .find { it.liftId == liftId && it.position == liftPosition }
             ?.deloadWeek ?: mutableWorkoutState.value.programMetadata!!.deloadWeek) ==
-                (currentMesocycle + 1)
+                (currentMicrocycle + 1)
 
         return when (setType) {
             SetType.STANDARD,
