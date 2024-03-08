@@ -16,8 +16,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
-import com.browntowndev.liftlab.ui.views.composables.MultiLineChart
-import com.browntowndev.liftlab.ui.views.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.MultiLineChart
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 
 

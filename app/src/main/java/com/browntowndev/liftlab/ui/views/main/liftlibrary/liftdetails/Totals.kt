@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.views.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 
 @Composable
 fun Totals(

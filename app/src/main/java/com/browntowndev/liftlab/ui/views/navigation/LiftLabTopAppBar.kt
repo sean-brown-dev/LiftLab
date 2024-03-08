@@ -34,7 +34,7 @@ import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
-import com.browntowndev.liftlab.ui.views.composables.ProgressCountdownTimer
+import com.browntowndev.liftlab.ui.composables.ProgressCountdownTimer
 import org.greenrobot.eventbus.EventBus
 import org.koin.androidx.compose.koinViewModel
 

@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
-import com.browntowndev.liftlab.ui.views.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 
 @Composable
 fun VolumeTypeMenu(

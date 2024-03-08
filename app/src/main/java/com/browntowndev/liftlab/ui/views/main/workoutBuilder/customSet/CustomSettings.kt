@@ -28,7 +28,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 
 
 @Composable

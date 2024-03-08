@@ -33,12 +33,12 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
-import com.browntowndev.liftlab.ui.views.composables.CircledTextIcon
-import com.browntowndev.liftlab.ui.views.composables.CircularIcon
-import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
-import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.composables.FilterSelector
-import com.browntowndev.liftlab.ui.views.composables.InputChipFlowRow
+import com.browntowndev.liftlab.ui.composables.CircledTextIcon
+import com.browntowndev.liftlab.ui.composables.CircularIcon
+import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.FilterSelector
+import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

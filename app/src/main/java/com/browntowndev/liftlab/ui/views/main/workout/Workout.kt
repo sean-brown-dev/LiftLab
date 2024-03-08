@@ -28,8 +28,8 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
-import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.composables.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

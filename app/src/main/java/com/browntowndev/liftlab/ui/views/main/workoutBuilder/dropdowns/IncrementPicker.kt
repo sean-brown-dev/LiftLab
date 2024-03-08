@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
-import com.browntowndev.liftlab.ui.views.composables.NumberPickerMenuItem
+import com.browntowndev.liftlab.ui.composables.NumberPickerMenuItem
 
 @Composable
 fun IncrementPicker(

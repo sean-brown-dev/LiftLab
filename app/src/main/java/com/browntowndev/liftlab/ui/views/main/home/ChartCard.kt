@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.views.composables.IconDropdown
-import com.browntowndev.liftlab.ui.views.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.IconDropdown
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 
 @Composable
 fun ChartCard(

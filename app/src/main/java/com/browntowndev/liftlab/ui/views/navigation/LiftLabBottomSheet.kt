@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.ui.views.composables.LabeledChips
+import com.browntowndev.liftlab.ui.composables.LabeledChips
 
 
 @OptIn(ExperimentalMaterial3Api::class)

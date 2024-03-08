@@ -67,9 +67,9 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
-import com.browntowndev.liftlab.ui.views.composables.DeleteableOnSwipeLeft
-import com.browntowndev.liftlab.ui.views.composables.LiftLabOutlinedTextField
-import com.browntowndev.liftlab.ui.views.composables.RpeKeyboard
+import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.composables.LiftLabOutlinedTextField
+import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit

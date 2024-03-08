@@ -22,9 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.views.composables.IconDropdown
-import com.browntowndev.liftlab.ui.views.composables.NumberPickerMenuItem
-import com.browntowndev.liftlab.ui.views.composables.RestTimePicker
+import com.browntowndev.liftlab.ui.composables.IconDropdown
+import com.browntowndev.liftlab.ui.composables.NumberPickerMenuItem
+import com.browntowndev.liftlab.ui.composables.RestTimePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

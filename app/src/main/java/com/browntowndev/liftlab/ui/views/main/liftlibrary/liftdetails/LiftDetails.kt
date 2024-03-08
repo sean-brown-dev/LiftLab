@@ -20,7 +20,7 @@ import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

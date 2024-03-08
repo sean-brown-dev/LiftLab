@@ -30,9 +30,9 @@ import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import com.browntowndev.liftlab.ui.views.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.views.composables.RowMultiSelect
-import com.browntowndev.liftlab.ui.views.composables.rememberMarker
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.RowMultiSelect
+import com.browntowndev.liftlab.ui.composables.rememberMarker
 import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf

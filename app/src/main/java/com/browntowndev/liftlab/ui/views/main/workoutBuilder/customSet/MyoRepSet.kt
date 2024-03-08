@@ -18,9 +18,9 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.ui.views.composables.FloatTextField
-import com.browntowndev.liftlab.ui.views.composables.IntegerTextField
-import com.browntowndev.liftlab.ui.views.composables.LabeledCheckBox
+import com.browntowndev.liftlab.ui.composables.FloatTextField
+import com.browntowndev.liftlab.ui.composables.IntegerTextField
+import com.browntowndev.liftlab.ui.composables.LabeledCheckBox
 
 
 @Composable
