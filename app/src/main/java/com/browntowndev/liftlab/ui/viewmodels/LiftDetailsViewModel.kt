@@ -241,19 +241,22 @@ class LiftDetailsViewModel(
     }
 
     fun updateVolumeType(index: Int, newVolumeType: VolumeType) {
+        val oldVolumeTypeDisplayName: String
+        val newDisplayNames = _state.value.volumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                oldVolumeTypeDisplayName = this[index]
+                this[index] = newVolumeType.displayName()
+            }
+
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask
             .getVolumeTypes()
             .toMutableList()
             .apply {
-                this[index] = newVolumeType
+                val volumeTypeIndex = indexOfFirst { v -> v.displayName() == oldVolumeTypeDisplayName }
+                this[volumeTypeIndex] = newVolumeType
             }.sumOf {
                 it.bitMask
-            }
-
-        val newDisplayNames = _state.value.volumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                this[index] = newVolumeType.displayName()
             }
 
         updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
@@ -274,19 +277,22 @@ class LiftDetailsViewModel(
     }
 
     fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) {
+        val oldVolumeTypeDisplayName: String
+        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
+            .toMutableList()
+            .apply {
+                oldVolumeTypeDisplayName = this[index]
+                this[index] = newVolumeType.displayName()
+            }
+
         val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!!
             .getVolumeTypes()
             .toMutableList()
             .apply {
-                this[index] = newVolumeType
+                val volumeTypeIndex = indexOfFirst { v -> v.displayName() == oldVolumeTypeDisplayName }
+                this[volumeTypeIndex] = newVolumeType
             }.sumOf {
                 it.bitMask
-            }
-
-        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                this[index] = newVolumeType.displayName()
             }
 
         updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
