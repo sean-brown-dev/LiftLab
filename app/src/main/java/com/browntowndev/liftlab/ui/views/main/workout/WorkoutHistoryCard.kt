@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,10 +45,10 @@ fun WorkoutHistoryCard(
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .padding(vertical = 5.dp, horizontal = 10.dp),
-        shape = CardDefaults.shape,
+            .padding(bottom = 5.dp),
+        shape = RectangleShape,
         colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
         ),
         onClick = onEditWorkout,
     ) {
@@ -55,7 +56,7 @@ fun WorkoutHistoryCard(
         Text(
             text = workoutName,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             fontSize = 20.sp,
             modifier = Modifier.padding(start = 15.dp, top = 10.dp)
         )

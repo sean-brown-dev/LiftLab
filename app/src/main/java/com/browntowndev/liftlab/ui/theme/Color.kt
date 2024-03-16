@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Dark
-//val PrimaryDark = Color(0xFFE4FFB0)
 val PrimaryDark = Color(0xFFFDDE7F)
 val OnPrimaryDark = Color.Black
 val PrimaryContainerDark = Color(0xFF1F2122)
@@ -24,7 +23,7 @@ val OnErrorDark = Color.White
 val ErrorContainerDark = Color(0xFFE93821)
 val OnErrorContainerDark = Color.White
 
-val BackgroundDark = Color(0xFF1F2122)
+val BackgroundDark = Color(0xFF000000)
 val OnBackgroundDark = Color.White
 val SurfaceDark = Color(0xFF2C2E31)
 

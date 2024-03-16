@@ -11,7 +11,10 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.CartesianChartHost
 import com.patrykandpatrick.vico.compose.chart.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.chart.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.chart.scroll.VicoScrollState
 import com.patrykandpatrick.vico.compose.chart.scroll.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.chart.zoom.VicoZoomState
+import com.patrykandpatrick.vico.compose.chart.zoom.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
 import com.patrykandpatrick.vico.compose.style.currentChartStyle
 import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
@@ -25,13 +28,18 @@ import com.patrykandpatrick.vico.core.scroll.Scroll
 fun ColumnChart(
     modifier: Modifier,
     marker: Marker?,
-    chartModel: ChartModel<ColumnCartesianLayerModel>
+    chartModel: ChartModel<ColumnCartesianLayerModel>,
+    scrollState: VicoScrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
+    zoomState: VicoZoomState = rememberVicoZoomState(),
 ) {
     ProvideChartStyle(rememberChartStyle(chartColors = listOf(MaterialTheme.colorScheme.secondary))) {
         val defaultColumns = currentChartStyle.columnLayer.columns
         CartesianChartHost(
             modifier = modifier,
             marker = marker,
+            scrollState = scrollState,
+            zoomState = zoomState,
+            model = chartModel.chartEntryModel,
             chart = rememberCartesianChart(
                 rememberColumnCartesianLayer(
                     columns = remember(defaultColumns) {
@@ -54,8 +62,6 @@ fun ColumnChart(
                     labelRotationDegrees = chartModel.bottomAxisLabelRotationDegrees
                 ),
             ),
-            model = chartModel.chartEntryModel,
-            scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
         )
     }
 }

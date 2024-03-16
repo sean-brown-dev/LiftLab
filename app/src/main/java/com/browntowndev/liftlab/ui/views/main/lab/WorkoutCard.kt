@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,12 +35,10 @@ fun WorkoutCard(
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 5.dp, horizontal = 10.dp),
-        shape = CardDefaults.shape,
+        modifier = Modifier.fillMaxSize(),
+        shape = RectangleShape,
         colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
         ),
         onClick = {
             onNavigateToWorkoutBuilder(workoutId)
@@ -66,7 +65,7 @@ fun WorkoutCard(
         lifts.fastForEach {
             Text(
                 text = "${it.setCount} x ${it.liftName}",
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,
                 modifier = Modifier.padding(horizontal = 15.dp)

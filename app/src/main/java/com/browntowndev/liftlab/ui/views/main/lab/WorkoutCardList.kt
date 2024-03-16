@@ -44,6 +44,9 @@ fun WorkoutCardList(
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         items(workouts, { it.id }) { workout ->
+            if (workout.position == 0) {
+                Spacer(modifier = Modifier.height(5.dp))
+            }
             WorkoutCard(
                 workoutName = workout.name,
                 workoutId = workout.id,

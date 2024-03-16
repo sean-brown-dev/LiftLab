@@ -23,6 +23,7 @@ import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 
 @Composable
 fun DetailsTab(
@@ -48,6 +49,7 @@ fun DetailsTab(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        SectionLabel(text = "DETAILS")
         FocusableRoundTextField(
             modifier = Modifier
                 .fillMaxWidth()
