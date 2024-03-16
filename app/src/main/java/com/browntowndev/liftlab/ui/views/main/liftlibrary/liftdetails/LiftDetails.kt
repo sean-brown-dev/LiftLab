@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
@@ -60,7 +61,7 @@ fun LiftDetails(
     val pagerState = rememberPagerState { tabs.size }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.padding(paddingValues)) {
+    Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
         if (id != null) {
             TabRow(
                 selectedTabIndex = pagerState.currentPage,
@@ -84,6 +85,7 @@ fun LiftDetails(
         HorizontalPager(
             modifier = Modifier.fillMaxSize(),
             state = pagerState,
+            verticalAlignment = Alignment.Top,
         ) { currentPage ->
             when (currentPage) {
                 0 -> DetailsTab(
