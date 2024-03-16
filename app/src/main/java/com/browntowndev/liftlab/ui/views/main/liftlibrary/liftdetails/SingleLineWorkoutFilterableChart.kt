@@ -41,7 +41,7 @@ fun SingleLineWorkoutFilterableChart(
                         modifier = Modifier.padding(top = 10.dp),
                         text = label,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     WorkoutFilterDropdown(
