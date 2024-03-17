@@ -19,7 +19,11 @@ fun Totals(
     totalReps: String,
     totalVolume: String,
 ) {
-    SectionLabel(text = "TOTALS")
+    SectionLabel(
+        modifier = Modifier.padding(bottom = 10.dp),
+        text = "TOTALS",
+        fontSize = 14.sp,
+    )
     Column(
         modifier = Modifier.padding(start = 10.dp, top = 10.dp, end = 20.dp),
         horizontalAlignment = Alignment.Start,
