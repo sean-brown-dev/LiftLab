@@ -52,13 +52,13 @@ fun LiftCard(
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 5.dp),
+                .padding(bottom = 5.dp),
             shape = RectangleShape,
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 16.dp,
                 pressedElevation = 0.dp
             ),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         ) {
             LiftCardHeader(
                 category = movementPattern,

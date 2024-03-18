@@ -33,10 +33,7 @@ fun ChartsTab(
     ) {
         item {
             SingleLineWorkoutFilterableChart(
-                label = remember(oneRepMaxChartModel) {
-                    "${LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName().uppercase(Locale.ROOT)} " +
-                            if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
-                },
+                label = remember(oneRepMaxChartModel) { LiftMetricChartType.ESTIMATED_ONE_REP_MAX.displayName() },
                 oneRepMaxChartModel = oneRepMaxChartModel,
                 workoutFilterOptions = workoutFilterOptions,
                 selectedWorkoutFilters = selectedOneRepMaxWorkoutFilters,
@@ -45,9 +42,7 @@ fun ChartsTab(
         }
         item {
             MultiLineWorkoutFilterableChart(
-                label = remember(volumeChartModel) { "${LiftMetricChartType.VOLUME.displayName().uppercase(Locale.ROOT)} " +
-                        if(volumeChartModel?.hasData != true) "- NO DATA" else ""
-                },
+                label = remember(volumeChartModel) { LiftMetricChartType.VOLUME.displayName() },
                 volumeChartModel = volumeChartModel,
                 workoutFilterOptions = workoutFilterOptions,
                 selectedWorkoutFilters = selectedVolumeWorkoutFilters,
@@ -56,11 +51,7 @@ fun ChartsTab(
         }
         item {
             SingleLineWorkoutFilterableChart(
-                label = remember(oneRepMaxChartModel) { "${
-                    LiftMetricChartType.RELATIVE_INTENSITY.displayName().uppercase(Locale.ROOT)
-                } " +
-                        if(oneRepMaxChartModel?.hasData != true) "- NO DATA" else ""
-                },
+                label = remember(oneRepMaxChartModel) { LiftMetricChartType.RELATIVE_INTENSITY.displayName() },
                 oneRepMaxChartModel = intensityChartModel,
                 workoutFilterOptions = workoutFilterOptions,
                 selectedWorkoutFilters = selectedIntensityWorkoutFilters,

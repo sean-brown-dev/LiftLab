@@ -19,22 +19,27 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.ui.composables.ProgressCountdownTimer
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
-import com.browntowndev.liftlab.ui.composables.ProgressCountdownTimer
 import org.greenrobot.eventbus.EventBus
 import org.koin.androidx.compose.koinViewModel
 
@@ -87,6 +92,11 @@ private fun LiftLabLargeTopAppBar(
     topAppBarViewModel: TopAppBarViewModel = koinViewModel(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 ) {
+    var isCollapsed by remember { mutableStateOf(false) }
+    LaunchedEffect(key1 = scrollBehavior.state.collapsedFraction) {
+        isCollapsed = scrollBehavior.state.collapsedFraction == 1.0f
+    }
+
     LargeTopAppBar(
         modifier = modifier,
         colors = topAppBarColors(
@@ -100,6 +110,8 @@ private fun LiftLabLargeTopAppBar(
             Title(
                 topAppBarViewModel = topAppBarViewModel,
                 state = state,
+                titleFontSize = 32.sp,
+                subtitleFontSize = 18.sp,
             )
         },
         actions = {
@@ -174,19 +186,21 @@ private fun NavigationIcon(state: LiftLabTopAppBarState) {
 private fun Title(
     topAppBarViewModel: TopAppBarViewModel,
     state: LiftLabTopAppBarState,
+    titleFontSize: TextUnit = 25.sp,
+    subtitleFontSize: TextUnit = 14.sp,
 ) {
     if (state.title.isNotEmpty()) {
         Column {
             Text(
                 text = state.title,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontSize = 25.sp
+                fontSize = titleFontSize
             )
             if (state.subtitle.isNotEmpty()) {
                 Text(
                     text = state.subtitle,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontSize = 14.sp
+                    fontSize = subtitleFontSize,
                 )
             }
         }

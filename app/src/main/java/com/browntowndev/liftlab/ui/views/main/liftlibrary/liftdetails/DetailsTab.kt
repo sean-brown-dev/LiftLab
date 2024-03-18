@@ -2,14 +2,12 @@ package com.browntowndev.liftlab.ui.views.main.liftlibrary.liftdetails
 
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -18,11 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.composables.SectionLabel
 
 @Composable
 fun DetailsTab(
@@ -40,62 +40,82 @@ fun DetailsTab(
     onUpdateSecondaryVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
     onUpdateMovementPattern: (MovementPattern) -> Unit,
 ) {
-    Column(
+    val volumeTypeOptions: Map<String, VolumeType> = remember {
+        val sortedVolumeTypeOptions = VolumeType.entries.sortedBy { it.displayName() }
+        sortedVolumeTypeOptions.associateBy { it.displayName() }
+    }
+
+    val unselectedVolumeTypeOptions: List<VolumeType> = remember(key1 = volumeTypes, key2 = secondaryVolumeTypes) {
+        val unselectedTypes = volumeTypeOptions.keys
+            .filterNot {
+                volumeTypes
+                    .toMutableList()
+                    .apply { addAll(secondaryVolumeTypes) }
+                    .contains(it)
+            }
+
+        unselectedTypes.fastMap {
+            volumeTypeOptions[it]!!
+        }
+    }
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(top = 20.dp, start = 10.dp, end = 10.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        FocusableRoundTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 5.dp),
-            focus = false,
-            value = liftName,
-            placeholder = liftNamePlaceholder,
-            shape = RoundedCornerShape(5.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            ),
-            supportingText = { Text(text = "Name", color = MaterialTheme.colorScheme.onBackground) },
-            onValueChange = {
-                onLiftNameChanged(it)
-            },
-        )
+        item {
+            SectionLabel(text = "DETAILS", fontSize = 14.sp)
+            FocusableRoundTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, bottom = 10.dp),
+                focus = false,
+                value = liftName,
+                placeholder = liftNamePlaceholder,
+                shape = RoundedCornerShape(5.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                ),
+                supportingText = { Text(text = "Name", color = MaterialTheme.colorScheme.onBackground) },
+                onValueChange = {
+                    onLiftNameChanged(it)
+                },
+            )
 
-        MovementPatternDropdown(
-            movementPatternDisplay = movementPattern.displayName(),
-            onUpdateMovementPattern = onUpdateMovementPattern,
-        )
+            MovementPatternDropdown(
+                movementPatternDisplay = movementPattern.displayName(),
+                onUpdateMovementPattern = onUpdateMovementPattern,
+            )
 
-        val volumeTypeOptions: Map<String, VolumeType> = remember {
-            val sortedVolumeTypeOptions = VolumeType.entries.sortedBy { it.displayName() }
-            sortedVolumeTypeOptions.associateBy { it.displayName() }
-        }
-
-        val unselectedVolumeTypeOptions: List<VolumeType> = remember(key1 = volumeTypes, key2 = secondaryVolumeTypes) {
-            val unselectedTypes = volumeTypeOptions.keys
-                .filterNot {
-                    volumeTypes
-                        .toMutableList()
-                        .apply { addAll(secondaryVolumeTypes) }
-                        .contains(it)
-                }
-
-            unselectedTypes.fastMap {
-                volumeTypeOptions[it]!!
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 15.dp),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(.95f),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
             }
         }
 
-        VolumeTypeMenu(
-            sectionHeader = "PRIMARY VOLUME TYPES",
+        item {
+            SectionLabel(text = "VOLUME TYPES", fontSize = 14.sp)
+        }
+
+        volumeTypeMenu(
+            lazyListScope = this,
+            sectionHeader = "PRIMARY",
             allowDeleteAll = false,
             volumeTypes = volumeTypes,
             volumeTypeOptions = volumeTypeOptions,
@@ -104,8 +124,9 @@ fun DetailsTab(
             onAddVolumeType = onAddVolumeType,
             onRemoveVolumeType = onRemoveVolumeType,
         )
-        VolumeTypeMenu(
-            sectionHeader = "SECONDARY VOLUME TYPES",
+        volumeTypeMenu(
+            lazyListScope = this,
+            sectionHeader = "SECONDARY",
             allowDeleteAll = true,
             volumeTypes = secondaryVolumeTypes,
             volumeTypeOptions = volumeTypeOptions,
@@ -114,6 +135,5 @@ fun DetailsTab(
             onAddVolumeType = onAddSecondaryVolumeType,
             onRemoveVolumeType = onRemoveSecondaryVolumeType,
         )
-        Spacer(modifier = Modifier.height(20.dp))
     }
 }

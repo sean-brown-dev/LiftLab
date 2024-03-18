@@ -65,11 +65,11 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.composables.LiftLabOutlinedTextField
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
+import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -164,13 +164,13 @@ fun WorkoutLog(
                     ElevatedCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(0.dp, 5.dp),
+                            .padding(bottom = 5.dp),
                         shape = RectangleShape,
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 16.dp,
                             pressedElevation = 0.dp
                         ),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     ) {
                         Column(
                             horizontalAlignment = Alignment.Start,

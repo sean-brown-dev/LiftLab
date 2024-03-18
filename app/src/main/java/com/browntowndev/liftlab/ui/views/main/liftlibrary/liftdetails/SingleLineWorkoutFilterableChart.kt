@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 import com.browntowndev.liftlab.ui.composables.SingleLineChart
+import com.browntowndev.liftlab.ui.models.ChartModel
 import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
 
 
@@ -31,7 +31,7 @@ fun SingleLineWorkoutFilterableChart(
 ) {
     Card(
         shape = RectangleShape,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
         if (oneRepMaxChartModel?.hasData == true) {
             Column(horizontalAlignment = Alignment.End) {
@@ -41,7 +41,7 @@ fun SingleLineWorkoutFilterableChart(
                         modifier = Modifier.padding(top = 10.dp),
                         text = label,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     WorkoutFilterDropdown(

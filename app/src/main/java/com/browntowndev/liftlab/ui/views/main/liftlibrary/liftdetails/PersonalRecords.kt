@@ -22,8 +22,9 @@ fun PersonalRecords(
     maxWeight: Pair<String, String>?,
 ) {
     SectionLabel(
-        modifier = Modifier.padding(top = 20.dp),
-        text = "PERSONAL RECORDS"
+        modifier = Modifier.padding(bottom = 10.dp),
+        text = "PERSONAL RECORDS",
+        fontSize = 14.sp,
     )
     Column(
         modifier = Modifier.padding(start = 10.dp, end = 20.dp),

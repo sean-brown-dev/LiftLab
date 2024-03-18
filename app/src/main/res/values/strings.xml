@@ -13,4 +13,5 @@
     <string name="lift_note">Lift note</string>
     <string name="reorder_lifts">Reorder Lifts</string>
     <string name="reorder">Reorder</string>
+    <string name="chart_page_indicator">chart page indicator</string>
 </resources>
