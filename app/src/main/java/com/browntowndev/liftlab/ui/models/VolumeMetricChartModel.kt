@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.models
 
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 class VolumeMetricChartModel(
     val id: Long,

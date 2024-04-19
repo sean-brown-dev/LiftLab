@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
-import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 data class HomeState(
     val workoutLogs: List<WorkoutLogEntryDto> = listOf(),

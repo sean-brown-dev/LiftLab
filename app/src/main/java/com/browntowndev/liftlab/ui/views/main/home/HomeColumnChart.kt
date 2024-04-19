@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.composables.ColumnChart
 import com.browntowndev.liftlab.ui.models.ChartModel
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberVicoScrollState
-import com.patrykandpatrick.vico.compose.chart.zoom.rememberVicoZoomState
-import com.patrykandpatrick.vico.core.marker.Marker
-import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 
 
 @Composable
@@ -21,7 +21,7 @@ fun HomeColumnChart(
     modifier: Modifier = Modifier,
     label: String,
     chartModel: ChartModel<ColumnCartesianLayerModel>,
-    marker: Marker? = null,
+    marker: CartesianMarker? = null,
 ) {
     ChartCard(
         label = label,

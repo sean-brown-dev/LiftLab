@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.composables.MultiLineChart
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 @Composable
 fun HomeMultiLineChart(

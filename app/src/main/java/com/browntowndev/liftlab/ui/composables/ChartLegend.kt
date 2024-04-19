@@ -1,17 +1,19 @@
 package com.browntowndev.liftlab.ui.composables
 
 import android.graphics.Typeface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
-import com.patrykandpatrick.vico.compose.legend.rememberLegendItem
-import com.patrykandpatrick.vico.compose.legend.rememberVerticalLegend
-import com.patrykandpatrick.vico.compose.style.currentChartStyle
-import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.rememberLegendItem
+import com.patrykandpatrick.vico.compose.common.rememberVerticalLegend
+import com.patrykandpatrick.vico.core.common.Dimensions
+import com.patrykandpatrick.vico.core.common.DrawContext
+import com.patrykandpatrick.vico.core.common.MeasureContext
+import com.patrykandpatrick.vico.core.common.shape.Shape
 
 
 private val legendItemLabelTextSize = 12.sp
@@ -19,23 +21,24 @@ private val legendItemIconSize = 8.dp
 private val legendItemIconPaddingValue = 10.dp
 private val legendItemSpacing = 4.dp
 private val legendTopPaddingValue = 8.dp
-private val legendPadding = dimensionsOf(top = legendTopPaddingValue)
+private val legendPadding = Dimensions(legendTopPaddingValue.value)
 
 @Composable
-fun rememberLegend(chartColors: List<Color>, labels: List<String>) = rememberVerticalLegend(
-    items = chartColors.mapIndexed { index, chartColor ->
-        rememberLegendItem(
-            icon = rememberShapeComponent(color = chartColor, shape = Shapes.pillShape),
-            label = rememberTextComponent(
-                color = currentChartStyle.axis.axisLabelColor,
-                textSize = legendItemLabelTextSize,
-                typeface = Typeface.MONOSPACE,
-            ),
-            labelText = labels[index]
-        )
-    },
-    iconSize = legendItemIconSize,
-    iconPadding = legendItemIconPaddingValue,
-    spacing = legendItemSpacing,
-    padding = legendPadding
-)
+fun<M : MeasureContext, D : DrawContext> rememberLegend(chartColors: List<Color>, labels: List<String>) =
+    rememberVerticalLegend<M, D>(
+        items = chartColors.mapIndexed { index, chartColor ->
+            rememberLegendItem(
+                icon = rememberShapeComponent(color = chartColor, shape = Shape.Pill),
+                label = rememberTextComponent(
+                    color = MaterialTheme.colorScheme.primary,
+                    textSize = legendItemLabelTextSize,
+                    typeface = Typeface.MONOSPACE,
+                ),
+                labelText = labels[index]
+            )
+        },
+        iconSize = legendItemIconSize,
+        iconPadding = legendItemIconPaddingValue,
+        spacing = legendItemSpacing,
+        padding = legendPadding
+    )
