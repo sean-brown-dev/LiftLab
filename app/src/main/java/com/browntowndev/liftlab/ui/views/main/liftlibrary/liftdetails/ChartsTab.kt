@@ -11,8 +11,7 @@ import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
-import java.util.Locale
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 @Composable
 fun ChartsTab(

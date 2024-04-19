@@ -5,24 +5,23 @@ import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
-import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
-import com.patrykandpatrick.vico.core.axis.AxisPosition
-import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
-import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
-import com.patrykandpatrick.vico.core.marker.Marker
-import com.patrykandpatrick.vico.core.model.CartesianChartModel
-import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
-import com.patrykandpatrick.vico.core.model.ExtraStore
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 interface BaseChartModel<T> {
     val startAxisValueOverrider: AxisValueOverrider?
-    val bottomAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>
-    val startAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.Start>
-    val persistentMarkers: ((Marker) -> Map<Float, Marker>?)?
+    val bottomAxisValueFormatter: CartesianValueFormatter
+    val startAxisValueFormatter: CartesianValueFormatter
+    val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)?
     val startAxisItemPlacer: AxisItemPlacer.Vertical
     val bottomAxisLabelRotationDegrees: Float
 }
@@ -30,9 +29,9 @@ interface BaseChartModel<T> {
 class ChartModel<T>(
     val chartEntryModel: CartesianChartModel,
     override val startAxisValueOverrider: AxisValueOverrider?,
-    override val bottomAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>,
-    override val startAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.Start>,
-    override val persistentMarkers: ((Marker) -> Map<Float, Marker>?)? = null,
+    override val bottomAxisValueFormatter: CartesianValueFormatter,
+    override val startAxisValueFormatter: CartesianValueFormatter,
+    override val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)? = null,
     override val startAxisItemPlacer: AxisItemPlacer.Vertical,
     override val bottomAxisLabelRotationDegrees: Float = 45f,
 ): BaseChartModel<T> {
@@ -45,10 +44,10 @@ class ComposedChartModel<T>(
     val composedChartEntryModel: CartesianChartModel,
     override val startAxisValueOverrider: AxisValueOverrider?,
     val endAxisValueOverrider: AxisValueOverrider?,
-    override val bottomAxisValueFormatter: AxisValueFormatter<AxisPosition.Horizontal.Bottom>,
-    override val startAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.Start>,
-    val endAxisValueFormatter: AxisValueFormatter<AxisPosition.Vertical.End>,
-    override val persistentMarkers: ((Marker) -> Map<Float, Marker>?)? = null,
+    override val bottomAxisValueFormatter: CartesianValueFormatter,
+    override val startAxisValueFormatter: CartesianValueFormatter,
+    val endAxisValueFormatter: CartesianValueFormatter,
+    override val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)? = null,
     override val startAxisItemPlacer: AxisItemPlacer.Vertical,
     val endAxisItemPlacer: AxisItemPlacer.Vertical,
     override val bottomAxisLabelRotationDegrees: Float = 45f,

@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 import com.browntowndev.liftlab.ui.composables.SingleLineChart
 import com.browntowndev.liftlab.ui.models.ChartModel
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 
 @Composable

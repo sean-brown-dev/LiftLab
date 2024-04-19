@@ -13,29 +13,31 @@ import com.browntowndev.liftlab.core.common.appendCompat
 import com.browntowndev.liftlab.core.common.copyColor
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.transformToSpannable
-import com.patrykandpatrick.vico.compose.component.rememberLayeredComponent
-import com.patrykandpatrick.vico.compose.component.rememberLineComponent
-import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
-import com.patrykandpatrick.vico.core.chart.dimensions.HorizontalDimensions
-import com.patrykandpatrick.vico.core.chart.insets.Insets
-import com.patrykandpatrick.vico.core.chart.values.ChartValues
-import com.patrykandpatrick.vico.core.component.marker.MarkerComponent
-import com.patrykandpatrick.vico.core.component.shape.DashedShape
-import com.patrykandpatrick.vico.core.component.shape.ShapeComponent
-import com.patrykandpatrick.vico.core.component.shape.Shapes
-import com.patrykandpatrick.vico.core.component.shape.cornered.Corner
-import com.patrykandpatrick.vico.core.component.shape.cornered.MarkerCorneredShape
-import com.patrykandpatrick.vico.core.context.MeasureContext
-import com.patrykandpatrick.vico.core.marker.Marker
-import com.patrykandpatrick.vico.core.marker.MarkerLabelFormatter
-import com.patrykandpatrick.vico.core.model.ColumnCartesianLayerModel
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
+import com.patrykandpatrick.vico.compose.common.component.rememberLayeredComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
+import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
+import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
+import com.patrykandpatrick.vico.core.cartesian.Insets
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerValueFormatter
+import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.LineCartesianLayerMarkerTarget
+import com.patrykandpatrick.vico.core.common.Dimensions
+import com.patrykandpatrick.vico.core.common.component.ShapeComponent
+import com.patrykandpatrick.vico.core.common.shape.Corner
+import com.patrykandpatrick.vico.core.common.shape.DashedShape
+import com.patrykandpatrick.vico.core.common.shape.MarkerCorneredShape
+import com.patrykandpatrick.vico.core.common.shape.Shape
 import kotlin.math.roundToInt
 
 @Composable
-internal fun rememberMarker(labelColor: Color? = null): Marker {
+internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primary): CartesianMarker {
     val labelBackgroundColor = MaterialTheme.colorScheme.surface
     val labelBackground = remember(labelBackgroundColor) {
         ShapeComponent(labelBackgroundShape, labelBackgroundColor.toArgb()).setShadow(
@@ -50,17 +52,17 @@ internal fun rememberMarker(labelColor: Color? = null): Marker {
         padding = labelPadding,
         typeface = Typeface.MONOSPACE,
     )
-    val indicatorInnerComponent = rememberShapeComponent(Shapes.pillShape, MaterialTheme.colorScheme.surface)
-    val indicatorCenterComponent = rememberShapeComponent(Shapes.pillShape, Color.White)
-    val indicatorOuterComponent = rememberShapeComponent(Shapes.pillShape, Color.White)
+    val indicatorInnerComponent = rememberShapeComponent(Shape.Pill, MaterialTheme.colorScheme.surface)
+    val indicatorCenterComponent = rememberShapeComponent(Shape.Pill, MaterialTheme.colorScheme.surface)
+    val indicatorOuterComponent = rememberShapeComponent(Shape.Pill, Color.White)
     val indicator = rememberLayeredComponent(
         rear = indicatorOuterComponent,
         front = rememberLayeredComponent(
             rear = indicatorCenterComponent,
             front = indicatorInnerComponent,
-            padding = dimensionsOf(all = indicatorInnerAndCenterComponentPaddingValue)
+            padding = Dimensions(allDp = indicatorInnerAndCenterComponentPaddingValue.value)
         ),
-        padding = dimensionsOf(all = indicatorCenterAndOuterComponentPaddingValue)
+        padding = Dimensions(allDp = indicatorCenterAndOuterComponentPaddingValue.value)
     )
     val guideline = rememberLineComponent(
         MaterialTheme.colorScheme.onSurface.copy(GUIDELINE_ALPHA),
@@ -68,36 +70,43 @@ internal fun rememberMarker(labelColor: Color? = null): Marker {
         guidelineShape,
     )
     return remember(label, indicator, guideline) {
-        object : MarkerComponent(label, LabelPosition.Top, indicator, guideline) {
+        object : DefaultCartesianMarker(
+            label = label,
+            labelPosition = LabelPosition.Top,
+            indicator = indicator,
+            guideline = guideline,
+            setIndicatorColor = { argbColor: Int ->
+                indicatorInnerComponent.color = argbColor.copyColor(alpha = INDICATOR_OUTER_COMPONENT_ALPHA)
+                indicatorCenterComponent.color = argbColor
+                indicatorCenterComponent.setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = argbColor)
+            }
+        ) {
             init {
                 indicatorSizeDp = INDICATOR_SIZE_DP
-                onApplyEntryColor = { entryColor ->
-                    indicatorOuterComponent.color = entryColor.copyColor(
-                        INDICATOR_OUTER_COMPONENT_ALPHA
-                    )
-                    with(indicatorCenterComponent) {
-                        color = entryColor
-                        setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = entryColor)
-                    }
-                }
-                labelFormatter = object: MarkerLabelFormatter {
+                valueFormatter = object: CartesianMarkerValueFormatter {
                     private val PATTERN = "%.02f"
-                    override fun getLabel(
-                        markedEntries: List<Marker.EntryModel>,
-                        chartValues: ChartValues,
-                    ): CharSequence = markedEntries.transformToSpannable(
+                    override fun format(
+                        context: CartesianDrawContext,
+                        targets: List<CartesianMarker.Target>
+                    ): CharSequence = targets.transformToSpannable(
                         separator = "  ",
-                    ) { model ->
-                        val y = when(model.entry) {
-                            is LineCartesianLayerModel.Entry -> (model.entry as LineCartesianLayerModel.Entry).y
-                            is ColumnCartesianLayerModel.Entry -> (model.entry as ColumnCartesianLayerModel.Entry).y
-                            else -> model.location.y
+                    ) { cartesianTarget ->
+                        val y = when(val firstLayerModel = context.chartValues.model.models[0]) {
+                            is LineCartesianLayerModel -> firstLayerModel.series[0][0].y
+                            is ColumnCartesianLayerModel -> firstLayerModel.series[0][0].y
+                            else -> cartesianTarget.x
+                        }
+
+                        val color = when(context.chartValues.model.models[0]) {
+                            is LineCartesianLayerModel -> (cartesianTarget as LineCartesianLayerMarkerTarget).points[0].color
+                            is ColumnCartesianLayerModel -> (cartesianTarget as ColumnCartesianLayerMarkerTarget).columns[0].color
+                            else -> labelColor.toArgb()
                         }
 
                         appendCompat(
                             if (y.isWholeNumber()) y.roundToInt().toString()
                             else PATTERN.format(y),
-                            ForegroundColorSpan(labelColor?.toArgb() ?: model.color),
+                            ForegroundColorSpan(color),
                             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
                         )
                     }
@@ -105,13 +114,19 @@ internal fun rememberMarker(labelColor: Color? = null): Marker {
             }
 
             override fun getInsets(
-                context: MeasureContext,
+                context: CartesianMeasureContext,
                 outInsets: Insets,
                 horizontalDimensions: HorizontalDimensions,
-            ) = with(context) {
-                outInsets.top = label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels +
-                        LABEL_BACKGROUND_SHADOW_RADIUS.pixels * SHADOW_RADIUS_MULTIPLIER -
-                        LABEL_BACKGROUND_SHADOW_DY.pixels
+            ) {
+                with(context) {
+                    outInsets.top = (
+                            (CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP)
+                                    - LABEL_BACKGROUND_SHADOW_DY_DP
+                    ).pixels
+
+                    if (labelPosition == LabelPosition.AroundPoint) return
+                    outInsets.top += label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels
+                }
             }
         }
     }
@@ -121,18 +136,20 @@ private const val LABEL_BACKGROUND_SHADOW_RADIUS = 4f
 private const val LABEL_BACKGROUND_SHADOW_DY = 2f
 private const val LABEL_LINE_COUNT = 1
 private const val GUIDELINE_ALPHA = .2f
-private const val INDICATOR_SIZE_DP = 36f
+private const val INDICATOR_SIZE_DP = 12f
 private const val INDICATOR_OUTER_COMPONENT_ALPHA = 32
 private const val INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS = 12f
 private const val GUIDELINE_DASH_LENGTH_DP = 8f
 private const val GUIDELINE_GAP_LENGTH_DP = 4f
-private const val SHADOW_RADIUS_MULTIPLIER = 1.3f
+private const val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
+private const val LABEL_BACKGROUND_SHADOW_DY_DP = 2f
+private const val CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER = 1.4f
 
 private val labelBackgroundShape = MarkerCorneredShape(Corner.FullyRounded)
 private val labelHorizontalPaddingValue = 8.dp
 private val labelVerticalPaddingValue = 4.dp
-private val labelPadding = dimensionsOf(labelHorizontalPaddingValue, labelVerticalPaddingValue)
-private val indicatorInnerAndCenterComponentPaddingValue = 5.dp
-private val indicatorCenterAndOuterComponentPaddingValue = 10.dp
+private val labelPadding = Dimensions(labelHorizontalPaddingValue.value, labelVerticalPaddingValue.value)
+private val indicatorInnerAndCenterComponentPaddingValue = 1.dp
+private val indicatorCenterAndOuterComponentPaddingValue = 1.dp
 private val guidelineThickness = 2.dp
-private val guidelineShape = DashedShape(Shapes.pillShape, GUIDELINE_DASH_LENGTH_DP, GUIDELINE_GAP_LENGTH_DP)
+private val guidelineShape = DashedShape(Shape.Pill, GUIDELINE_DASH_LENGTH_DP, GUIDELINE_GAP_LENGTH_DP)

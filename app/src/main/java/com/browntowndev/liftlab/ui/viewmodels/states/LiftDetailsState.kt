@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 data class LiftDetailsState(
     val lift: LiftDto? = null,

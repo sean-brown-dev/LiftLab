@@ -9,77 +9,57 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
-import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.rememberEndAxis
-import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
-import com.patrykandpatrick.vico.compose.chart.CartesianChartHost
-import com.patrykandpatrick.vico.compose.chart.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.chart.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.chart.scroll.rememberVicoScrollState
-import com.patrykandpatrick.vico.compose.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.component.shape.shader.color
-import com.patrykandpatrick.vico.compose.dimensions.dimensionsOf
-import com.patrykandpatrick.vico.compose.m3.style.m3ChartStyle
-import com.patrykandpatrick.vico.compose.style.ProvideChartStyle
-import com.patrykandpatrick.vico.compose.style.currentChartStyle
-import com.patrykandpatrick.vico.core.axis.AxisPosition
-import com.patrykandpatrick.vico.core.axis.BaseAxis
-import com.patrykandpatrick.vico.core.chart.copy
-import com.patrykandpatrick.vico.core.chart.values.AxisValueOverrider
-import com.patrykandpatrick.vico.core.component.shape.Shapes
-import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
-import com.patrykandpatrick.vico.core.model.LineCartesianLayerModel
-import com.patrykandpatrick.vico.core.scroll.Scroll
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEndAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.shader.color
+import com.patrykandpatrick.vico.core.cartesian.Scroll
+import com.patrykandpatrick.vico.core.cartesian.axis.AxisPosition
+import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
+import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
+import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.common.Dimensions
+import com.patrykandpatrick.vico.core.common.shader.DynamicShader
+import com.patrykandpatrick.vico.core.common.shape.Shape
 
 @Composable
 fun MultiLineChart(
     chartModel: ComposedChartModel<LineCartesianLayerModel>,
 ) {
-    ProvideChartStyle(m3ChartStyle()) {
+    val theme = rememberLiftLabChartTheme()
+    val chartColors = theme.lineCartesianLayerColors
+
+    ProvideVicoTheme(theme) {
         val marker = rememberMarker()
-        val chartColors = listOf(
-            MaterialTheme.colorScheme.primary,
-            MaterialTheme.colorScheme.tertiary,
-        )
-        val defaultLines = currentChartStyle.lineLayer.lines
         val primaryPoint = rememberShapeComponent(
-            shape = Shapes.pillShape,
+            shape = Shape.Pill,
             color = Color.Black,
-            margins = dimensionsOf(2.dp),
+            margins = Dimensions(allDp = 2.dp.value),
             strokeWidth = 3.dp,
             strokeColor = MaterialTheme.colorScheme.primary,
         )
         val tertiaryPoint = rememberShapeComponent(
-            shape = Shapes.pillShape,
+            shape = Shape.Pill,
             color = Color.Black,
-            margins = dimensionsOf(2.dp),
+            margins = Dimensions(allDp = 2.dp.value),
             strokeWidth = 3.dp,
             strokeColor = MaterialTheme.colorScheme.tertiary,
         )
         val startAxisLineChart = rememberLineCartesianLayer(
-            lines = remember(defaultLines) {
-                defaultLines.map { defaultLine ->
-                    defaultLine.copy(
-                        shader = DynamicShaders.color(chartColors[0]),
-                        backgroundShader = null,
-                        point = primaryPoint,
-                    )
-                }
-            },
+            lines = listOf(rememberLineSpec(shader = DynamicShader.color(chartColors[0]), point = primaryPoint)),
             spacing = 65.dp,
             axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
             verticalAxisPosition = AxisPosition.Vertical.Start,
         )
         val endAxisLineChart = rememberLineCartesianLayer(
-            lines = remember(defaultLines) {
-                defaultLines.map { defaultLine ->
-                    defaultLine.copy(
-                        shader = DynamicShaders.color(chartColors[1]),
-                        backgroundShader = null,
-                        point = tertiaryPoint,
-                    )
-                }
-            },
+            lines = listOf(rememberLineSpec(shader = DynamicShader.color(chartColors[1]), point = tertiaryPoint)),
             spacing = 65.dp,
             axisValueOverrider = remember { chartModel.endAxisValueOverrider ?: AxisValueOverrider.auto() },
             verticalAxisPosition = AxisPosition.Vertical.End,
