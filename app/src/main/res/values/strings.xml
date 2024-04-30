@@ -14,4 +14,8 @@
     <string name="reorder_lifts">Reorder Lifts</string>
     <string name="reorder">Reorder</string>
     <string name="chart_page_indicator">chart page indicator</string>
+    <string name="confirm_completion">Confirm Completion</string>
+    <string name="complete_workout_confirm_body">Are you sure you want to complete the workout?</string>
+    <string name="confirm_cancellation">Confirm Cancellation</string>
+    <string name="cancel_workout_confirm_body">Are you sure you want to cancel the workout?</string>
 </resources>

@@ -29,7 +29,7 @@ fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit, onCan
     Box(
     modifier = Modifier
         .fillMaxSize()
-        .background(Color.Black.copy(alpha = 0.5f)),
+        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
     ) {
         Dialog(
             onDismissRequest = onCancel
@@ -37,33 +37,33 @@ fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit, onCan
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.Black.copy(alpha = 0.5f)),
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column (
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.background)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                         .padding(16.dp)
                 ) {
                     Text(
                         text = header,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
                     HorizontalDivider(
                         thickness = 12.dp,
-                        color = MaterialTheme.colorScheme.background
+                        color = MaterialTheme.colorScheme.primaryContainer
                     )
                     Text(
                         text = body,
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     HorizontalDivider(
                         thickness = 12.dp,
-                        color = MaterialTheme.colorScheme.background
+                        color = MaterialTheme.colorScheme.primaryContainer
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),

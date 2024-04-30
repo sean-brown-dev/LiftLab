@@ -145,7 +145,7 @@ class WorkoutViewModel(
                     }
                 }
             }
-            TopAppBarAction.FinishWorkout -> finishWorkout() //TODO: add modal & callback to confirm,
+            TopAppBarAction.FinishWorkout -> toggleConfirmFinishWorkoutModal()
             TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
             else -> {}
         }
@@ -324,7 +324,17 @@ class WorkoutViewModel(
         }
     }
 
+    fun toggleConfirmFinishWorkoutModal() {
+        mutableWorkoutState.update {
+            it.copy(
+                isConfirmFinishWorkoutModalShown = !it.isConfirmFinishWorkoutModalShown
+            )
+        }
+    }
+
     fun finishWorkout() {
+        toggleConfirmFinishWorkoutModal()
+
         executeInTransactionScope {
             val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
             val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
@@ -449,7 +459,18 @@ class WorkoutViewModel(
         )
     }
 
+    fun toggleConfirmCancelWorkoutModal() {
+        mutableWorkoutState.update {
+            it.copy(
+                isConfirmCancelWorkoutModalShown = !it.isConfirmCancelWorkoutModalShown
+            )
+        }
+    }
+
     fun cancelWorkout() {
+        if (mutableWorkoutState.value.isConfirmCancelWorkoutModalShown)
+            toggleConfirmCancelWorkoutModal()
+
         executeInTransactionScope {
             // Remove the workout from in progress
             workoutInProgressRepository.delete()

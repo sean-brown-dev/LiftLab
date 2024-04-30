@@ -10,17 +10,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.runOnCompletion
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
+import com.browntowndev.liftlab.ui.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -236,10 +239,10 @@ fun Workout(
                 )
             },
             cancelWorkout = {
-                workoutViewModel.cancelWorkout()
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
-                )
+                if (state.inProgressWorkout?.completedSets?.isNotEmpty() == true)
+                    workoutViewModel.toggleConfirmCancelWorkoutModal()
+                else
+                    workoutViewModel.cancelWorkout()
             },
             onChangeRestTime = { workoutLiftId, newRestTime, enabled ->
                 workoutViewModel.updateRestTime(
@@ -281,6 +284,25 @@ fun Workout(
                 saveReorder = { workoutViewModel.reorderLifts(it) },
                 cancelReorder = { workoutViewModel.toggleReorderLifts() }
             )
+        }
+        if (state.isConfirmFinishWorkoutModalShown) {
+            ConfirmationModal(
+                header = stringResource(R.string.confirm_completion),
+                body = stringResource(R.string.complete_workout_confirm_body),
+                onConfirm = { workoutViewModel.finishWorkout() },
+                onCancel = { workoutViewModel.toggleConfirmFinishWorkoutModal() })
+        }
+        if (state.isConfirmCancelWorkoutModalShown) {
+            ConfirmationModal(
+                header = stringResource(R.string.confirm_cancellation),
+                body = stringResource(R.string.cancel_workout_confirm_body),
+                onConfirm = {
+                    workoutViewModel.cancelWorkout()
+                    mutateTopAppBarControlValue(
+                        AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
+                    )
+                },
+                onCancel = { workoutViewModel.toggleConfirmCancelWorkoutModal() })
         }
     }
 }

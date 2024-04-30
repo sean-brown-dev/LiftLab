@@ -19,6 +19,8 @@ data class WorkoutState(
     val restTimerStartedAt: Date? = null,
     val restTime: Long = 0L,
     val completedMyoRepSets: Boolean = false,
+    val isConfirmFinishWorkoutModalShown: Boolean = false,
+    val isConfirmCancelWorkoutModalShown: Boolean = false,
 ) {
     val combinedVolumeTypes: List<CharSequence> by lazy {
         this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
