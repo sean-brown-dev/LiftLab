@@ -230,7 +230,6 @@ abstract class BaseWorkoutViewModel(
                 completedSet = myoRepLoggingSets.last { it.complete },
                 myoRepSetResults = myoRepLoggingSets.filter { it.complete },
             )) {
-                Log.d(Log.DEBUG.toString(), "completed myorep sets")
                 mutableWorkoutState.update {
                     it.copy(completedMyoRepSets = true)
                 }

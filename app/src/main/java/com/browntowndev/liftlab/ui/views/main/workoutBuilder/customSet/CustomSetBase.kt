@@ -43,7 +43,7 @@ fun CustomSetBase(
     val coroutineScope = rememberCoroutineScope()
 
     Row(
-        modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colorScheme.secondaryContainer),
+        modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colorScheme.primaryContainer),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
