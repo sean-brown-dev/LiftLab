@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LiftLab</string>
+    <string name="app_name">Lift Lab</string>
     <string name="accessibility_overflow">Overflow Action Items</string>
     <string name="accessibility_search">Search</string>
     <string name="accessibility_filter">Filter</string>
