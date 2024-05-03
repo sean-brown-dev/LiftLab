@@ -155,29 +155,18 @@ fun getPerWorkoutVolumeChartModel(
         composedChartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                val minVal = minY - 1
-                return if (minVal < 0) {
-                    0f
-                } else {
-                    minVal
-                }
+                return getComposedChartMinY(minY)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                val maxVal = maxY + 1
-                return if (maxVal - minY < 4) {
-                    val difference = maxVal - minY
-                    maxVal + (4 - difference)
-                } else {
-                    maxVal
-                }
+                return getComposedChartMaxY(maxY, minY)
             }
         },
         endAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return minY - 1
+                return getComposedChartMinY(minY)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxY + 1
+                return getComposedChartMaxY(maxY, minY)
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -249,18 +238,18 @@ fun getPerMicrocycleVolumeChartModel(
         composedChartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return minY - 1
+                return getComposedChartMinY(minY)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxY + 1
+                return getComposedChartMaxY(maxY, minY)
             }
         },
         endAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return minY - 1
+                return getComposedChartMinY(minY)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxY + 1
+                return getComposedChartMaxY(maxY, minY)
             }
         },
         bottomAxisLabelRotationDegrees = 45f,
@@ -440,4 +429,18 @@ fun getMicroCycleCompletionChart(
         },
         startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
     )
+}
+
+private fun getComposedChartMinY(minY: Float): Float {
+    return if (minY > 0) minY - 1 else minY
+}
+
+private fun getComposedChartMaxY(maxY: Float, minY: Float): Float {
+    val maxVal = maxY + 1
+    return if (maxVal - minY < 4) {
+        val difference = maxVal - minY
+        maxVal + (4 - difference)
+    } else {
+        maxVal
+    }
 }

@@ -91,10 +91,10 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
                     ): CharSequence = targets.transformToSpannable(
                         separator = "  ",
                     ) { cartesianTarget ->
-                        val y = when(val firstLayerModel = context.chartValues.model.models[0]) {
-                            is LineCartesianLayerModel -> firstLayerModel.series[0][0].y
-                            is ColumnCartesianLayerModel -> firstLayerModel.series[0][0].y
-                            else -> cartesianTarget.x
+                        val y = when(cartesianTarget) {
+                            is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0f
+                            is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0f
+                            else -> 0f
                         }
 
                         val color = when(context.chartValues.model.models[0]) {
