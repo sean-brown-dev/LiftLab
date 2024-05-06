@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.progression
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
@@ -47,6 +48,7 @@ class WaveLoadingProgressionCalculator(
                         repRangeTop = workoutLift.repRangeTop,
                         microCycle = microCycle,
                         deloadWeek = deloadWeek,
+                        workoutLift.stepSize,
                     )
                } else {
                       workoutLift.repRangeBottom.toString()
@@ -63,6 +65,7 @@ class WaveLoadingProgressionCalculator(
             repRangeTop = workoutLift.repRangeTop,
             microCycle = microCycle,
             deloadWeek = deloadWeek,
+            workoutLift.stepSize,
         )
         val isTopOfRepRange = reps == workoutLift.repRangeTop
         val recalculateWeight = shouldRecalculateWeight(result, workoutLift, deloadWeek)
@@ -81,14 +84,33 @@ class WaveLoadingProgressionCalculator(
         } else null
     }
 
-    private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int): Int? {
+    private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int, stepSize: Int?): Int? {
+        return if (stepSize != null) {
+            if (microCycle < deloadWeek - 1) {
+                val steps = Utils.generateCompleteStepSequence(repRangeTop = repRangeTop, repRangeBottom = repRangeBottom, stepSize = stepSize, deloadWeek - 1)
+                steps[microCycle]
+            } else {
+                repRangeBottom
+            }
+        } else {
+            getRepsForMicrocycleWithUnevenStepSize(
+                repRangeBottom = repRangeBottom,
+                repRangeTop = repRangeTop,
+                microCycle = microCycle,
+                deloadWeek = deloadWeek
+            )
+        }
+    }
+
+    private fun getRepsForMicrocycleWithUnevenStepSize(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int): Int? {
         val fullRepRange = (repRangeTop downTo repRangeBottom).toList()
 
         return if (fullRepRange.isNotEmpty()) {
             val repsToStep = fullRepRange.size - 1
             val stepSize = maxOf(1, repsToStep / (deloadWeek - 2))
 
-            val index = if (microCycle < deloadWeek - 1) {
+            // Deload week and the week before both should end on repRangeBottom
+            val index = if (microCycle < deloadWeek - 2) {
                 val thisStep = microCycle * stepSize
                 // Cycle back to start when this step exceeds total step size but previous
                 // microcycle did not
@@ -101,12 +123,13 @@ class WaveLoadingProgressionCalculator(
         } else null
     }
 
-    private fun getRepRangePlaceholder(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int): String {
+    private fun getRepRangePlaceholder(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int, stepSize: Int?): String {
         return getRepsForMicrocycle(
             repRangeBottom = repRangeBottom,
             repRangeTop = repRangeTop,
             microCycle = microCycle,
             deloadWeek = deloadWeek,
+            stepSize = stepSize,
         )?.toString() ?: ""
     }
 
@@ -149,6 +172,7 @@ class WaveLoadingProgressionCalculator(
                 repRangeTop = workoutLift.repRangeTop,
                 microCycle = microCycle - 1,
                 deloadWeek = deloadWeek,
+                workoutLift.stepSize,
             )
             repsForPreviousMicro != result.reps
         } else {

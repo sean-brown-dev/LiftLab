@@ -1,8 +1,13 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +52,31 @@ class WorkoutsRepository(
     suspend fun get(workoutId: Long): WorkoutDto? {
         return workoutsDao.get(workoutId)?.let {
              workoutMapper.map(it)
+        }
+    }
+
+    suspend fun setAllWorkoutLiftDeloadWeeksToNull(workoutId: Long, programDeloadWeek: Int) {
+        val updatedLifts = get(workoutId)?.lifts
+            ?.filterIsInstance<StandardWorkoutLiftDto>()
+            ?.filter { lift -> lift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
+            ?.map { lift ->
+                val stepSizeOptions = Utils.getPossibleStepSizes(
+                    repRangeTop = lift.repRangeTop,
+                    repRangeBottom = lift.repRangeBottom,
+                    stepCount = programDeloadWeek - 2
+                )
+
+                lift.copy(
+                    stepSize = if(stepSizeOptions.contains(lift.stepSize)) {
+                        lift.stepSize
+                    } else {
+                        stepSizeOptions.firstOrNull()
+                    }
+                )
+            }
+
+        if (updatedLifts?.isNotEmpty() == true) {
+            workoutLiftsRepository.updateMany(updatedLifts)
         }
     }
 

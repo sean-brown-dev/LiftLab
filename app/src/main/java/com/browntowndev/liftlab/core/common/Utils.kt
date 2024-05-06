@@ -16,8 +16,8 @@ class Utils {
             return Date.from(localDateTime.atZone(zoneId).toInstant())
         }
 
-        fun getPossibleStepSizes(rangeStart: Int, rangeEnd: Int, stepCount: Int): List<Int> {
-            val rangeSize = rangeStart - rangeEnd
+        fun getPossibleStepSizes(repRangeTop: Int, repRangeBottom: Int, stepCount: Int): List<Int> {
+            val rangeSize = repRangeTop - repRangeBottom
             val stepSizes = mutableListOf<Int>()
 
             // Calculate possible step sizes
@@ -28,6 +28,30 @@ class Utils {
             }
 
             return stepSizes
+        }
+
+        fun generateFirstCompleteStepSequence(repRangeTop: Int, repRangeBottom: Int, stepSize: Int): List<Int> {
+            val steps = mutableListOf<Int>()
+            val stepsToRepRangeBottom = (repRangeTop - repRangeBottom) / stepSize
+
+            for (i in 0..stepsToRepRangeBottom) {
+                val currStepSizeFromTop = i * stepSize
+                steps.add(repRangeTop - currStepSizeFromTop)
+            }
+
+            return steps
+        }
+
+        fun generateCompleteStepSequence(repRangeTop: Int, repRangeBottom: Int, stepSize: Int, totalStepsToTake: Int): List<Int> {
+            val steps = mutableListOf<Int>()
+            val stepsToRepRangeBottom = (repRangeTop - repRangeBottom) / stepSize
+
+            for (i in 0..stepsToRepRangeBottom) {
+                val currStepSizeFromTop = i * stepSize
+                steps.add(repRangeTop - currStepSizeFromTop)
+            }
+
+            return List(size = totalStepsToTake) { steps[it % steps.size] }
         }
     }
 }

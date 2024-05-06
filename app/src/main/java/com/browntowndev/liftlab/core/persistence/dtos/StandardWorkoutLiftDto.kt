@@ -24,4 +24,5 @@ data class StandardWorkoutLiftDto(
     val rpeTarget: Float,
     val repRangeBottom: Int,
     val repRangeTop: Int,
+    val stepSize: Int? = null, // Only used for Wave Loading (and block in future)
 ) : GenericWorkoutLift

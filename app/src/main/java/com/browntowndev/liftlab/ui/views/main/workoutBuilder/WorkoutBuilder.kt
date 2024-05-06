@@ -11,11 +11,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -44,6 +49,7 @@ import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.composables.CustomAnchorDropdown
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
@@ -208,52 +214,64 @@ fun WorkoutBuilder(
                                 )
                             },
                         ) {
-                            Row {
-                                ProgressionSchemeDropdown(
-                                    modifier = Modifier.padding(start = 20.dp),
-                                    text = workoutLift.progressionScheme.displayName(),
-                                    hasCustomSets = customLiftsVisible,
-                                    onChangeProgressionScheme = {
-                                        workoutBuilderViewModel.setLiftProgressionScheme(
-                                            workoutLift.id,
-                                            it
-                                        )
-                                    },
-                                )
+                            ProgressionSchemeDropdown(
+                                modifier = Modifier.padding(start = 20.dp),
+                                text = workoutLift.progressionScheme.displayName(),
+                                hasCustomSets = customLiftsVisible,
+                                onChangeProgressionScheme = {
+                                    workoutBuilderViewModel.setLiftProgressionScheme(
+                                        workoutLift.id,
+                                        it
+                                    )
+                                },
+                            )
 
-                                val stepSizeOptions = remember(workoutLift.progressionScheme, deloadWeek) {
-                                    val stepCount = (deloadWeek)?.minus(2)
-                                    if (stepCount != null && workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-                                        val standardWorkoutLift = workoutLift as StandardWorkoutLiftDto
-                                        Utils.getPossibleStepSizes(
-                                            rangeStart = standardWorkoutLift.repRangeTop,
-                                            rangeEnd = standardWorkoutLift.repRangeBottom,
-                                            stepCount = stepCount
-                                        )
-                                    } else listOf()
-                                }
-                                if (stepSizeOptions.isNotEmpty()) {
-                                    Row (modifier = Modifier.padding(start = 20.dp)) {
-                                        // TODO: Add to DB on WorkoutLift
-                                        var stepSize by remember {
-                                            mutableIntStateOf(stepSizeOptions[0])
-                                        }
-                                        var isExpanded by remember { mutableStateOf(false) }
-                                        Text(text = "Set Step Size: ")
-                                        TextDropdown(
-                                            isExpanded = isExpanded,
-                                            onToggleExpansion = { isExpanded = !isExpanded },
-                                            text = stepSize.toString(),
-                                            fontSize = 18.sp
-                                        ) {
-                                            stepSizeOptions.fastForEach { option ->
-                                                DropdownMenuItem(
-                                                    text = { Text(text = option.toString()) },
-                                                    onClick = {
-                                                        stepSize = option
-                                                        isExpanded = false
-                                                    })
+                            val stepSizeOptions = remember(state.workoutLiftStepSizeOptions) {
+                                state.workoutLiftStepSizeOptions[workoutLift.id] ?: listOf()
+                            }
+
+                            if (stepSizeOptions.isNotEmpty()) {
+                                Row (modifier = Modifier.padding(top = 5.dp, start = 20.dp)) {
+                                    var isExpanded by remember { mutableStateOf(false) }
+                                    val stepsToBeTaken = remember(state.workoutLiftSetSteps) { state.workoutLiftSetSteps[workoutLift.id] ?: listOf() }
+                                    Text(
+                                        modifier = Modifier.padding(end = 5.dp),
+                                        text = "Wave Pattern:"
+                                    )
+                                    CustomAnchorDropdown(
+                                        isExpanded = isExpanded,
+                                        onToggleExpansion = { isExpanded = !isExpanded },
+                                        anchor = {modifier ->
+                                            Box(modifier = modifier, contentAlignment = Alignment.Center) {
+                                                Row (
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    stepsToBeTaken.fastForEachIndexed { i, step ->
+                                                        Text(
+                                                            text = step.toString(),
+                                                            fontSize = 18.sp,
+                                                            color = MaterialTheme.colorScheme.primary
+                                                        )
+                                                        if (i < stepsToBeTaken.size - 1) {
+                                                            Icon(
+                                                                modifier = Modifier.size(18.dp),
+                                                                imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
+                                                                contentDescription = null,
+                                                                tint = MaterialTheme.colorScheme.primary
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                             }
+                                        }
+                                    ) {
+                                        stepSizeOptions.fastForEach { option ->
+                                            DropdownMenuItem(
+                                                text = { Text(text = "Intermicrocycle  Decrement: $option") },
+                                                onClick = {
+                                                    workoutBuilderViewModel.updateStepSize(workoutLiftId = workoutLift.id, newStepSize = option)
+                                                    isExpanded = false
+                                                })
                                         }
                                     }
                                 }

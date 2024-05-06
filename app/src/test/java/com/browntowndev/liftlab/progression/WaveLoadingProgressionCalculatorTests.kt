@@ -47,6 +47,7 @@ class WaveLoadingProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
+                stepSize = 1,
             ),
             lift = Lift(
                 name = "",
@@ -78,6 +79,7 @@ class WaveLoadingProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
+                stepSize = 1,
             ),
             lift = Lift(
                 name = "",
@@ -111,6 +113,7 @@ class WaveLoadingProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
+                stepSize = 1,
             ),
             lift = Lift(
                 name = "",
@@ -142,6 +145,7 @@ class WaveLoadingProgressionCalculatorTests {
                 repRangeBottom = 6,
                 repRangeTop = 8,
                 rpeTarget = 8f,
+                stepSize = 1,
             ),
             lift = Lift(
                 name = "",
@@ -164,7 +168,7 @@ class WaveLoadingProgressionCalculatorTests {
     }
 
     @Test
-    fun `weight increments and placeholder restarts if step size goes past rep range bottom without deload`() {
+    fun `weight increments and placeholder restarts if step size goes past rep range bottom without deload and has uneven steps`() {
         val lift = WorkoutLiftWithRelationships(
             workoutLift = WorkoutLift(
                 workoutId = 0,
@@ -193,6 +197,75 @@ class WaveLoadingProgressionCalculatorTests {
 
         result.forEach {
             Assert.assertEquals("8", it.repRangePlaceholder)
+            Assert.assertEquals(80f, it.weightRecommendation)
+        }
+    }
+
+    @Test
+    fun `weight increments and set recommendation ends on rep range bottom with uneven sets prior to deload`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLift = WorkoutLift(
+                workoutId = 0,
+                liftId = 0,
+                progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+                position = 0,
+                setCount = 3,
+                repRangeBottom = 6,
+                repRangeTop = 9,
+                rpeTarget = 8f,
+            ),
+            lift = Lift(
+                name = "",
+                movementPattern = MovementPattern.LEG_PUSH,
+                volumeTypesBitmask = 1
+            ),
+        )
+        val previousSetData = listOf(
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 85f, microCycle = 1, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 85f, microCycle = 1, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 85f, microCycle = 1, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = WaveLoadingProgressionCalculator(4, 2)
+            .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+
+        result.forEach {
+            Assert.assertEquals("6", it.repRangePlaceholder)
+            Assert.assertEquals(90f, it.weightRecommendation)
+        }
+    }
+
+    @Test
+    fun `weight increments and placeholder restarts if step size goes past rep range bottom without deload and has even steps`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLift = WorkoutLift(
+                workoutId = 0,
+                liftId = 0,
+                progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+                position = 0,
+                setCount = 3,
+                repRangeBottom = 6,
+                repRangeTop = 10,
+                rpeTarget = 8f,
+                stepSize = 2,
+            ),
+            lift = Lift(
+                name = "",
+                movementPattern = MovementPattern.LEG_PUSH,
+                volumeTypesBitmask = 1
+            ),
+        )
+        val previousSetData = listOf(
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResultDto(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = WaveLoadingProgressionCalculator(7, 3)
+            .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+
+        result.forEach {
+            Assert.assertEquals("10", it.repRangePlaceholder)
             Assert.assertEquals(80f, it.weightRecommendation)
         }
     }
