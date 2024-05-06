@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -46,6 +48,7 @@ import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
+import com.browntowndev.liftlab.ui.composables.TextDropdown
 import com.browntowndev.liftlab.ui.composables.TextFieldModal
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -206,8 +209,8 @@ fun WorkoutBuilder(
                             },
                         ) {
                             Row {
-                                Spacer(modifier = Modifier.width(10.dp))
                                 ProgressionSchemeDropdown(
+                                    modifier = Modifier.padding(start = 20.dp),
                                     text = workoutLift.progressionScheme.displayName(),
                                     hasCustomSets = customLiftsVisible,
                                     onChangeProgressionScheme = {
@@ -217,6 +220,43 @@ fun WorkoutBuilder(
                                         )
                                     },
                                 )
+
+                                val stepSizeOptions = remember(workoutLift.progressionScheme, deloadWeek) {
+                                    val stepCount = (deloadWeek)?.minus(2)
+                                    if (stepCount != null && workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
+                                        val standardWorkoutLift = workoutLift as StandardWorkoutLiftDto
+                                        Utils.getPossibleStepSizes(
+                                            rangeStart = standardWorkoutLift.repRangeTop,
+                                            rangeEnd = standardWorkoutLift.repRangeBottom,
+                                            stepCount = stepCount
+                                        )
+                                    } else listOf()
+                                }
+                                if (stepSizeOptions.isNotEmpty()) {
+                                    Row (modifier = Modifier.padding(start = 20.dp)) {
+                                        // TODO: Add to DB on WorkoutLift
+                                        var stepSize by remember {
+                                            mutableIntStateOf(stepSizeOptions[0])
+                                        }
+                                        var isExpanded by remember { mutableStateOf(false) }
+                                        Text(text = "Set Step Size: ")
+                                        TextDropdown(
+                                            isExpanded = isExpanded,
+                                            onToggleExpansion = { isExpanded = !isExpanded },
+                                            text = stepSize.toString(),
+                                            fontSize = 18.sp
+                                        ) {
+                                            stepSizeOptions.fastForEach { option ->
+                                                DropdownMenuItem(
+                                                    text = { Text(text = option.toString()) },
+                                                    onClick = {
+                                                        stepSize = option
+                                                        isExpanded = false
+                                                    })
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             Spacer(modifier = Modifier.height(10.dp))
 

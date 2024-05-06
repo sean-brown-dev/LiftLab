@@ -15,5 +15,19 @@ class Utils {
             val zoneId = ZoneId.systemDefault()
             return Date.from(localDateTime.atZone(zoneId).toInstant())
         }
+
+        fun getPossibleStepSizes(rangeStart: Int, rangeEnd: Int, stepCount: Int): List<Int> {
+            val rangeSize = rangeStart - rangeEnd
+            val stepSizes = mutableListOf<Int>()
+
+            // Calculate possible step sizes
+            for (i in 1..rangeSize) {
+                if (rangeSize % i == 0 && (stepCount + 1) % ((rangeSize / i) + 1) == 0) {
+                    stepSizes.add(i)
+                }
+            }
+
+            return stepSizes
+        }
     }
 }

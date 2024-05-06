@@ -57,28 +57,28 @@ class WaveLoadingProgressionCalculator(
         }.flattenWeightRecommendationsStandard()
     }
 
-    private fun getWeightRecommendation(workoutLift: GenericWorkoutLift, result: SetResult, deloadWeek: Int): Float? {
-        val recalculateWeight = shouldRecalculateWeight(result, workoutLift as StandardWorkoutLiftDto, deloadWeek)
+    private fun getWeightRecommendation(workoutLift: StandardWorkoutLiftDto, result: SetResult, deloadWeek: Int): Float? {
+        val reps = getRepsForMicrocycle(
+            repRangeBottom = workoutLift.repRangeBottom,
+            repRangeTop = workoutLift.repRangeTop,
+            microCycle = microCycle,
+            deloadWeek = deloadWeek,
+        )
+        val isTopOfRepRange = reps == workoutLift.repRangeTop
+        val recalculateWeight = shouldRecalculateWeight(result, workoutLift, deloadWeek)
 
-        return if (microCycle == 0 && !recalculateWeight) {
+        return if (isTopOfRepRange && !recalculateWeight) {
             decrementForNewMicrocycle(workoutLift, result)
         } else if (!recalculateWeight) {
             incrementWeight(workoutLift, result)
-        } else {
-            getRepsForMicrocycle(
-                repRangeBottom = workoutLift.repRangeBottom,
-                repRangeTop = workoutLift.repRangeTop,
-                microCycle = microCycle,
-                deloadWeek = deloadWeek,
-            )?.let { reps ->
-                getCalculatedWeightRecommendation(
-                    increment = workoutLift.incrementOverride,
-                    repGoal = reps,
-                    rpeTarget = workoutLift.rpeTarget,
-                    result = result,
-                )
-            }
-        }
+        } else if (reps != null) {
+            getCalculatedWeightRecommendation(
+                increment = workoutLift.incrementOverride,
+                repGoal = reps,
+                rpeTarget = workoutLift.rpeTarget,
+                result = result,
+            )
+        } else null
     }
 
     private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int): Int? {
@@ -88,10 +88,13 @@ class WaveLoadingProgressionCalculator(
             val repsToStep = fullRepRange.size - 1
             val stepSize = maxOf(1, repsToStep / (deloadWeek - 2))
 
-            // Make sure to always end on rep range bottom in case
-            // step size is uneven and can't traverse all
             val index = if (microCycle < deloadWeek - 1) {
-                (microCycle * stepSize).coerceIn(0, repsToStep)
+                val thisStep = microCycle * stepSize
+                // Cycle back to start when this step exceeds total step size but previous
+                // microcycle did not
+                if (thisStep <= repsToStep) thisStep
+                else if ((microCycle - 1) * stepSize < repsToStep) repsToStep
+                else 0
             } else repsToStep
 
             fullRepRange[index]
