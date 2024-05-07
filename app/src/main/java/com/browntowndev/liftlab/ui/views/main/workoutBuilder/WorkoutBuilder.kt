@@ -218,9 +218,9 @@ fun WorkoutBuilder(
                                 },
                             )
                             WavePatternDropdown(
-                                progressionScheme = workoutLift.progressionScheme,
                                 workoutLiftId = workoutLift.id,
-                                workoutLiftSetSteps = state.workoutLiftSetSteps,
+                                stepSize = (workoutLift as? StandardWorkoutLiftDto)?.stepSize,
+                                progressionScheme = workoutLift.progressionScheme,
                                 workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
                                 onUpdateStepSize = { workoutLiftId, newStepSize ->
                                     workoutBuilderViewModel.updateStepSize(workoutLiftId = workoutLiftId, newStepSize = newStepSize)

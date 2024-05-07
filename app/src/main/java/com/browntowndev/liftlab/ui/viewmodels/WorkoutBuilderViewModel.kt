@@ -51,14 +51,12 @@ class WorkoutBuilderViewModel(
             val workout = workoutsRepository.get(workoutId)
             val programDeloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
             val workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(workout = workout, programDeloadWeek = programDeloadWeek)
-            val workoutLiftSetSteps = getRecalculatedWorkoutLiftSetSteps(workout = workout)
 
             _state.update {
                 it.copy(
                     workout = workout,
                     programDeloadWeek = programDeloadWeek,
                     workoutLiftStepSizeOptions = workoutLiftStepSizeOptions,
-                    workoutLiftSetSteps = workoutLiftSetSteps,
                 )
             }
         }
@@ -74,41 +72,23 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    private fun getRecalculatedWorkoutLiftStepSizeOptions(workout: WorkoutDto, programDeloadWeek: Int): Map<Long, List<Pair<Int, List<Int>>>> {
+    private fun getRecalculatedWorkoutLiftStepSizeOptions(workout: WorkoutDto, programDeloadWeek: Int): Map<Long, Map<Int, List<Int>>> {
         return workout.lifts
             .filterIsInstance<StandardWorkoutLiftDto>()
-            .filter { workoutLift -> workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
-            .map { workoutLift ->
-                val stepOptions = Utils.getPossibleStepSizes(
+            .filter { it.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
+            .associate { workoutLift ->
+                workoutLift.id to Utils.getPossibleStepSizes(
                     repRangeTop = workoutLift.repRangeTop,
                     repRangeBottom = workoutLift.repRangeBottom,
                     stepCount = (workoutLift.deloadWeek ?: programDeloadWeek) - 2
-                ).map { option ->
-                    option to Utils.generateFirstCompleteStepSequence(
+                ).associateWith { option ->
+                    Utils.generateFirstCompleteStepSequence(
                         repRangeTop = workoutLift.repRangeTop,
                         repRangeBottom = workoutLift.repRangeBottom,
                         stepSize = option
                     )
                 }
-
-                workoutLift.id to stepOptions
             }
-            .associate { optionPair -> optionPair.first to optionPair.second }
-    }
-
-    private fun getRecalculatedWorkoutLiftSetSteps(workout: WorkoutDto): Map<Long, List<Int>> {
-        return workout.lifts
-            .filterIsInstance<StandardWorkoutLiftDto>()
-            .filter { workoutLift -> workoutLift.stepSize != null && workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
-            .map { workoutLift ->
-                val steps = Utils.generateFirstCompleteStepSequence(
-                    repRangeTop = workoutLift.repRangeTop,
-                    repRangeBottom = workoutLift.repRangeBottom,
-                    stepSize = workoutLift.stepSize!!,
-                )
-                workoutLift.id to steps
-            }
-            .associate { optionPair -> optionPair.first to optionPair.second }
     }
 
     private fun getRecalculatedStepSizeForLift(currStepSize: Int?, progressionScheme: ProgressionScheme, repRangeTop: Int, repRangeBottom: Int, deloadWeek: Int): Int? {
@@ -434,7 +414,6 @@ class WorkoutBuilderViewModel(
                     it.copy(
                         workout = updatedWorkout,
                         workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
-                        workoutLiftSetSteps = getRecalculatedWorkoutLiftSetSteps(updatedWorkout)
                     )
                 }
             }
@@ -488,7 +467,6 @@ class WorkoutBuilderViewModel(
                     it.copy(
                         workout = updatedWorkout,
                         workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
-                        workoutLiftSetSteps = getRecalculatedWorkoutLiftSetSteps(updatedWorkout),
                     )
                 }
             }
@@ -521,7 +499,6 @@ class WorkoutBuilderViewModel(
                     it.copy(
                         workout = updatedWorkout,
                         workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
-                        workoutLiftSetSteps = getRecalculatedWorkoutLiftSetSteps(updatedWorkout),
                     )
                 }
             }
@@ -575,7 +552,6 @@ class WorkoutBuilderViewModel(
                     it.copy(
                         workout = updatedWorkout,
                         workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
-                        workoutLiftSetSteps = getRecalculatedWorkoutLiftSetSteps(updatedWorkout),
                     )
                 }
             }
@@ -599,7 +575,6 @@ class WorkoutBuilderViewModel(
                     it.copy(
                         workout = updatedWorkout,
                         workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
-                        workoutLiftSetSteps = getRecalculatedWorkoutLiftSetSteps(updatedWorkout),
                     )
                 }
             }

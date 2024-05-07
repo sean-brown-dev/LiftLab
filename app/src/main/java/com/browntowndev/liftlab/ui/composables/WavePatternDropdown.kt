@@ -27,21 +27,21 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 
 @Composable
 fun WavePatternDropdown(
-    progressionScheme: ProgressionScheme,
-    workoutLiftSetSteps: Map<Long, List<Int>>,
     workoutLiftId: Long,
-    workoutLiftStepSizeOptions: Map<Long, List<Pair<Int, List<Int>>>>,
+    stepSize: Int?,
+    progressionScheme: ProgressionScheme,
+    workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>>,
     onUpdateStepSize: (workoutLiftId: Long, stepSize: Int) -> Unit,
 ) {
     val stepSizeOptions = remember(workoutLiftStepSizeOptions) {
-        workoutLiftStepSizeOptions[workoutLiftId] ?: listOf()
+        workoutLiftStepSizeOptions[workoutLiftId] ?: mapOf()
     }
 
     if (stepSizeOptions.isNotEmpty()) {
         Row(modifier = Modifier.padding(top = 5.dp, start = 20.dp)) {
             var isExpanded by remember { mutableStateOf(false) }
-            val stepsToBeTaken = remember(workoutLiftSetSteps) {
-                workoutLiftSetSteps[workoutLiftId] ?: listOf()
+            val stepsToBeTaken = remember(stepSizeOptions) {
+                stepSizeOptions[stepSize] ?: listOf()
             }
             Text(
                 modifier = Modifier.padding(end = 5.dp),
@@ -57,11 +57,11 @@ fun WavePatternDropdown(
                     }
                 }
             ) {
-                stepSizeOptions.fastForEach { option ->
+                stepSizeOptions.forEach { option ->
                     DropdownMenuItem(
-                        text = { WavePattern(setCounts = option.second, fontColor = MaterialTheme.colorScheme.onBackground) },
+                        text = { WavePattern(setCounts = option.value, fontColor = MaterialTheme.colorScheme.onBackground) },
                         onClick = {
-                            onUpdateStepSize(workoutLiftId, option.first)
+                            onUpdateStepSize(workoutLiftId, option.key)
                             isExpanded = false
                         })
                 }

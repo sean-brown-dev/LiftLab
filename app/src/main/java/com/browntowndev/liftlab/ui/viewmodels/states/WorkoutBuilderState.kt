@@ -16,8 +16,7 @@ data class WorkoutBuilderState (
     val changedSetTypeState: ChangedSetTypeState? = null,
     val pickerState: PickerState? = null,
     val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),
-    val workoutLiftStepSizeOptions: Map<Long, List<Pair<Int, List<Int>>>> = mapOf(),
-    val workoutLiftSetSteps: Map<Long, List<Int>> = mapOf(),
+    val workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>> = mapOf(),
 ) {
     val movementPatternOfDeletingWorkoutLift by lazy {
         workout?.let {
