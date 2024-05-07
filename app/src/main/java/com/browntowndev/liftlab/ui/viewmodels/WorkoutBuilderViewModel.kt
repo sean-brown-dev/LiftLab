@@ -74,7 +74,7 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    private fun getRecalculatedWorkoutLiftStepSizeOptions(workout: WorkoutDto, programDeloadWeek: Int): Map<Long, List<Int>> {
+    private fun getRecalculatedWorkoutLiftStepSizeOptions(workout: WorkoutDto, programDeloadWeek: Int): Map<Long, List<Pair<Int, List<Int>>>> {
         return workout.lifts
             .filterIsInstance<StandardWorkoutLiftDto>()
             .filter { workoutLift -> workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
@@ -83,7 +83,14 @@ class WorkoutBuilderViewModel(
                     repRangeTop = workoutLift.repRangeTop,
                     repRangeBottom = workoutLift.repRangeBottom,
                     stepCount = (workoutLift.deloadWeek ?: programDeloadWeek) - 2
-                )
+                ).map { option ->
+                    option to Utils.generateFirstCompleteStepSequence(
+                        repRangeTop = workoutLift.repRangeTop,
+                        repRangeBottom = workoutLift.repRangeBottom,
+                        stepSize = option
+                    )
+                }
+
                 workoutLift.id to stepOptions
             }
             .associate { optionPair -> optionPair.first to optionPair.second }

@@ -11,15 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,8 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -49,14 +42,13 @@ import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.ui.composables.ConfirmationModal
-import com.browntowndev.liftlab.ui.composables.CustomAnchorDropdown
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
-import com.browntowndev.liftlab.ui.composables.TextDropdown
 import com.browntowndev.liftlab.ui.composables.TextFieldModal
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.WavePatternDropdown
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
@@ -225,57 +217,15 @@ fun WorkoutBuilder(
                                     )
                                 },
                             )
-
-                            val stepSizeOptions = remember(state.workoutLiftStepSizeOptions) {
-                                state.workoutLiftStepSizeOptions[workoutLift.id] ?: listOf()
-                            }
-
-                            if (stepSizeOptions.isNotEmpty()) {
-                                Row (modifier = Modifier.padding(top = 5.dp, start = 20.dp)) {
-                                    var isExpanded by remember { mutableStateOf(false) }
-                                    val stepsToBeTaken = remember(state.workoutLiftSetSteps) { state.workoutLiftSetSteps[workoutLift.id] ?: listOf() }
-                                    Text(
-                                        modifier = Modifier.padding(end = 5.dp),
-                                        text = "Wave Pattern:"
-                                    )
-                                    CustomAnchorDropdown(
-                                        isExpanded = isExpanded,
-                                        onToggleExpansion = { isExpanded = !isExpanded },
-                                        anchor = {modifier ->
-                                            Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                                                Row (
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                ) {
-                                                    stepsToBeTaken.fastForEachIndexed { i, step ->
-                                                        Text(
-                                                            text = step.toString(),
-                                                            fontSize = 18.sp,
-                                                            color = MaterialTheme.colorScheme.primary
-                                                        )
-                                                        if (i < stepsToBeTaken.size - 1) {
-                                                            Icon(
-                                                                modifier = Modifier.size(18.dp),
-                                                                imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
-                                                                contentDescription = null,
-                                                                tint = MaterialTheme.colorScheme.primary
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ) {
-                                        stepSizeOptions.fastForEach { option ->
-                                            DropdownMenuItem(
-                                                text = { Text(text = "Intermicrocycle  Decrement: $option") },
-                                                onClick = {
-                                                    workoutBuilderViewModel.updateStepSize(workoutLiftId = workoutLift.id, newStepSize = option)
-                                                    isExpanded = false
-                                                })
-                                        }
-                                    }
+                            WavePatternDropdown(
+                                progressionScheme = workoutLift.progressionScheme,
+                                workoutLiftId = workoutLift.id,
+                                workoutLiftSetSteps = state.workoutLiftSetSteps,
+                                workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
+                                onUpdateStepSize = { workoutLiftId, newStepSize ->
+                                    workoutBuilderViewModel.updateStepSize(workoutLiftId = workoutLiftId, newStepSize = newStepSize)
                                 }
-                            }
+                            )
                             Spacer(modifier = Modifier.height(10.dp))
 
                             // These keep the TextField from flashing between the default & actual value when

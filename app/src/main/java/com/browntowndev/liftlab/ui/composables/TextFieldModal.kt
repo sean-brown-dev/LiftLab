@@ -44,6 +44,7 @@ fun TextFieldModal(
     initialTextFieldValue: Int,
     onConfirm: (Int) -> Unit,
     onCancel: () -> Unit,
+    extraContent: (@Composable () -> Unit)? = null,
 ) {
     var text by remember(initialTextFieldValue) { mutableStateOf<Int?>(initialTextFieldValue) }
     var textAsInt by remember(initialTextFieldValue) { mutableIntStateOf(initialTextFieldValue) }
@@ -64,6 +65,10 @@ fun TextFieldModal(
                 textAsInt = it ?: 1
             }
         )
+        if (extraContent != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            extraContent()
+        }
     }
 }
 

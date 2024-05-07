@@ -77,7 +77,7 @@ fun LiftDropdown(
             NumberPickerMenuItem(
                 initialValue = currentDeloadWeek!!.toFloat(),
                 label = "Deload Week",
-                options = listOf(3f, 4f, 5f, 6f, 7f, 8f),
+                options = remember { listOf(3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f) },
                 onChanged = {
                     onChangeDeloadWeek(it.toInt())
                 },

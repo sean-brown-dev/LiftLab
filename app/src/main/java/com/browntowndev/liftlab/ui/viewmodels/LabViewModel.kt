@@ -69,12 +69,15 @@ class LabViewModel(
         }
     }
 
-    fun updateDeloadWeek(deloadWeek: Int) {
+    fun updateDeloadWeek(deloadWeek: Int, overwriteWorkoutLiftDeloads: Boolean) {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
-            _state.value.program!!.workouts.fastForEach { workout ->
-                workoutsRepository.setAllWorkoutLiftDeloadWeeksToNull(workout.id, deloadWeek)
+            if (overwriteWorkoutLiftDeloads) {
+                _state.value.program!!.workouts.fastForEach { workout ->
+                    workoutsRepository.setAllWorkoutLiftDeloadWeeksToNull(workout.id, deloadWeek)
+                }
             }
+
             _state.update {
                 it.copy(
                     isEditingDeloadWeek = false,

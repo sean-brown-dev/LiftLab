@@ -1,13 +1,9 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.remember
-import com.browntowndev.liftlab.core.common.Utils
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 
 @Stable
@@ -20,7 +16,7 @@ data class WorkoutBuilderState (
     val changedSetTypeState: ChangedSetTypeState? = null,
     val pickerState: PickerState? = null,
     val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),
-    val workoutLiftStepSizeOptions: Map<Long, List<Int>> = mapOf(),
+    val workoutLiftStepSizeOptions: Map<Long, List<Pair<Int, List<Int>>>> = mapOf(),
     val workoutLiftSetSteps: Map<Long, List<Int>> = mapOf(),
 ) {
     val movementPatternOfDeletingWorkoutLift by lazy {

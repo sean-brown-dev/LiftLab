@@ -1,23 +1,34 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.TextFieldModal
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
@@ -108,12 +119,33 @@ fun Lab(
     }
 
     if (state.isEditingDeloadWeek && state.program != null) {
+        var resetWorkoutLiftDeloads by remember { mutableStateOf(false) }
         TextFieldModal(
             header = "Edit Deload Week",
             initialTextFieldValue = state.program!!.deloadWeek,
-            onConfirm = { labViewModel.updateDeloadWeek(it) },
+            onConfirm = { labViewModel.updateDeloadWeek(it, resetWorkoutLiftDeloads) },
             onCancel = { labViewModel.toggleEditDeloadWeek() }
-        )
+        ) {
+            Row (
+                modifier = Modifier.clickable { resetWorkoutLiftDeloads = !resetWorkoutLiftDeloads },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = resetWorkoutLiftDeloads,
+                    colors = CheckboxDefaults.colors(
+                        uncheckedColor = MaterialTheme.colorScheme.outline,
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    onCheckedChange = { resetWorkoutLiftDeloads = !resetWorkoutLiftDeloads }
+                )
+                Text(
+                    text = "Overwrite lift level deload settings.",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
+            }
+        }
     }
 
     if (state.isCreatingProgram) {
