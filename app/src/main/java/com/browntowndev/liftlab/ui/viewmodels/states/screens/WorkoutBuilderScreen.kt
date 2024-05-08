@@ -17,7 +17,7 @@ import org.koin.core.component.inject
 
 data class WorkoutBuilderScreen(
     override val isOverflowMenuExpanded: Boolean = false,
-    override val isOverflowMenuIconVisible: Boolean = false,
+    override val isOverflowMenuIconVisible: Boolean = true,
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
     override val subtitle: String = navigation.subtitle,

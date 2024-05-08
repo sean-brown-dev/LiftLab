@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,10 @@ interface ProgramsDao {
     @Update
     suspend fun update(program: Program)
 
+    @Transaction
+    @Update
+    suspend fun updateMany(programs: List<Program>)
+
     @Query("DELETE FROM programs WHERE program_id = :id")
     suspend fun delete(id: Long)
 
@@ -30,12 +35,12 @@ interface ProgramsDao {
     fun getActive(): Flow<ProgramWithRelationships?>
 
     @Transaction
+    @Query("SELECT * FROM programs")
+    suspend fun getAll(): List<Program>
+
+    @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id")
     suspend fun get(id: Long) : ProgramWithRelationships
-
-    @Query("SELECT COUNT(*) FROM programs p " +
-            "INNER JOIN workouts w ON w.programId = p.program_id")
-    suspend fun getWorkoutCountOfActive(): Int
 
     @Query("UPDATE programs SET name = :newName WHERE program_id = :id")
     suspend fun updateName(id: Long, newName: String)

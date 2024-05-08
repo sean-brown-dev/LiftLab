@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels.states.screens
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.DateRange
@@ -33,6 +34,7 @@ data class LabScreen(
     val renameProgramVisible: Boolean = true,
     val reorderWorkoutsVisible: Boolean = true,
     val deleteProgramVisible: Boolean = true,
+    val manageProgramsVisible: Boolean = false,
     val deloadWeekVisible: Boolean = true,
     val createWorkoutVisible: Boolean = true,
 ) : BaseScreen() {
@@ -41,7 +43,8 @@ data class LabScreen(
 
         const val REORDER_WORKOUTS_ICON = "reorderWorkoutsIcon"
         const val RENAME_PROGRAM_ICON = "renameProgramIcon"
-        const val CREATE_NEW_PROGRAM_ICON = "createNewProgram"
+        const val CREATE_NEW_PROGRAM_ICON = "createNewProgramIcon"
+        const val MANAGE_PROGRAMS_ICON = "manageProgramsIcon"
         const val DELETE_PROGRAM_ICON = "deleteProgramIcon"
         const val CREATE_NEW_WORKOUT_ICON = "createNewWorkoutIcon"
         const val DELOAD_WEEK_ICON = "deloadWeekIcon"
@@ -87,6 +90,9 @@ data class LabScreen(
             }
             DELETE_PROGRAM_ICON -> {
                 copy(deleteProgramVisible = isVisible)
+            }
+            MANAGE_PROGRAMS_ICON -> {
+                copy(manageProgramsVisible = isVisible)
             }
             REORDER_WORKOUTS_ICON -> {
                 copy(reorderWorkoutsVisible = isVisible)
@@ -150,8 +156,15 @@ data class LabScreen(
                 title = "Delete Program",
                 icon = Icons.Filled.Delete.left(),
                 isVisible = deleteProgramVisible,
-                dividerBelow = true,
                 onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram)) },
+            ),
+            ActionMenuItem.IconMenuItem.NeverShown(
+                controlName = MANAGE_PROGRAMS_ICON,
+                title = "Manage Programs",
+                icon = Icons.Filled.Build.left(),
+                isVisible = manageProgramsVisible,
+                dividerBelow = true,
+                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ManagePrograms)) },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELOAD_WEEK_ICON,

@@ -18,4 +18,5 @@
     <string name="complete_workout_confirm_body">Are you sure you want to complete the workout?</string>
     <string name="confirm_cancellation">Confirm Cancellation</string>
     <string name="cancel_workout_confirm_body">Are you sure you want to cancel the workout?</string>
+    <string name="delete_program">Delete program</string>
 </resources>

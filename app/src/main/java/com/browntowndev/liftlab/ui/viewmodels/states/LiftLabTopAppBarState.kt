@@ -10,6 +10,9 @@ data class LiftLabTopAppBarState(
     val currentScreen: Screen? = null,
     val isCollapsed: Boolean = false,
 ) {
+    val isOverflowMenuIconVisible: Boolean
+        get() = currentScreen?.isOverflowMenuIconVisible == true
+
     val isOverflowMenuExpanded: Boolean
         get() = currentScreen?.isOverflowMenuExpanded == true
 

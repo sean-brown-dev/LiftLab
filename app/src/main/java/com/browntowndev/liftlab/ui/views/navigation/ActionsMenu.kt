@@ -38,7 +38,7 @@ fun ActionsMenu(
     topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
 ) {
-    if (topAppBarState.actions.isEmpty()) return
+    if (!topAppBarState.isOverflowMenuIconVisible || topAppBarState.actions.isEmpty()) return
 
     val menuItems = remember(
         key1 = topAppBarState.actions,

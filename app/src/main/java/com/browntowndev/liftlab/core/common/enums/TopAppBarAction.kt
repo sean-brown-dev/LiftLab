@@ -5,6 +5,7 @@ enum class TopAppBarAction {
     ReorderLifts,
     CreateNewWorkout,
     CreateNewProgram,
+    ManagePrograms,
     RenameProgram,
     RenameWorkout,
     DeleteProgram,
