@@ -139,7 +139,7 @@ fun NavigationGraph(
             }
             if (isLiftLibraryScreen) {
                 LaunchedEffect(key1 = Unit) {
-                    if (workoutId != null) {
+                    if (workoutId != null || liftMetricChartIds.isNotEmpty()) {
                         setBottomNavBarVisibility(false)
                     } else {
                         setBottomNavBarVisibility(true)

@@ -95,10 +95,10 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
     }
 
-    LaunchedEffect(key1 = state.selectedNewLifts) {
+    LaunchedEffect(key1 = state.selectedNewLifts, key2 = state.showFilterSelection) {
         if (state.selectedNewLifts.isEmpty()) {
             onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, false)
-        } else if (state.selectedNewLifts.size == 1) {
+        } else if (!state.showFilterSelection) {
             onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, true)
         }
     }
