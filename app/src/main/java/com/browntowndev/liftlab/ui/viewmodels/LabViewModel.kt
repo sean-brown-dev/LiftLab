@@ -338,6 +338,9 @@ class LabViewModel(
     }
 
     fun setProgramAsActive(programId: Long) {
+        // Program is already active
+        if (_state.value.program?.id == programId) return
+
         executeInTransactionScope {
             val programsToUpdate = mutableListOf<ProgramDto>()
             val newActiveProgram = _state.value.allPrograms
@@ -347,8 +350,12 @@ class LabViewModel(
             if (newActiveProgram != null) {
                 programsToUpdate.add(newActiveProgram)
 
-                val programToArchive = _state.value.program!!.copy(isActive = false)
-                programsToUpdate.add(programToArchive)
+                // Theoretically, this should never be null. You can only open program management
+                // if a program exists. Just in case though!
+                val programToArchive = _state.value.program?.copy(isActive = false)?.let { programToArchive ->
+                    programsToUpdate.add(programToArchive)
+                    programToArchive
+                }
 
                 programsRepository.updateMany(programsToUpdate)
 
@@ -360,7 +367,7 @@ class LabViewModel(
                                 programId -> {
                                     newActiveProgram
                                 }
-                                programToArchive.id -> {
+                                programToArchive?.id -> {
                                     programToArchive
                                 }
                                 else -> {
