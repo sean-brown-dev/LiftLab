@@ -32,4 +32,5 @@ data class WorkoutLift(
     val repRangeBottom: Int? = null,
     val repRangeTop: Int? = null,
     val note: String? = null,
+    val stepSize: Int? = null,
 )

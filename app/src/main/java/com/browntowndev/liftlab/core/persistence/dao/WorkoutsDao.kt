@@ -35,7 +35,7 @@ interface WorkoutsDao {
 
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
-    suspend fun get(id: Long) : ProgramWithRelationships.WorkoutWithRelationships?
+    suspend fun get(id: Long) : WorkoutWithRelationships?
 
     @Query("SELECT MAX(position) FROM workouts WHERE programId = :programId")
     suspend fun getFinalPosition(programId: Long): Int

@@ -3,9 +3,8 @@ package com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,19 +39,18 @@ fun ProgressionSchemeDropdown(
     val progressionSchemes by remember { mutableStateOf(ProgressionScheme.entries.sortedBy { it.displayName() }) }
 
     Row(
-        modifier = Modifier.animateContentSize(),
+        modifier = modifier.then(Modifier.animateContentSize()),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Spacer(modifier.width(10.dp))
         Icon(
             modifier = Modifier.size(16.dp),
             painter = painterResource(id = R.drawable.three_bars),
             tint = MaterialTheme.colorScheme.outline,
             contentDescription = null
         )
-        Spacer(modifier.width(4.dp))
         TextDropdown(
+            modifier = Modifier.padding(start = 4.dp),
             isExpanded = isExpanded,
             onToggleExpansion = { isExpanded = !isExpanded },
             text = text,

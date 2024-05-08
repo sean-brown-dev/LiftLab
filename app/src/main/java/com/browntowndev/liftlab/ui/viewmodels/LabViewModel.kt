@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
@@ -68,9 +69,15 @@ class LabViewModel(
         }
     }
 
-    fun updateDeloadWeek(deloadWeek: Int) {
+    fun updateDeloadWeek(deloadWeek: Int, overwriteWorkoutLiftDeloads: Boolean) {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
+            if (overwriteWorkoutLiftDeloads) {
+                _state.value.program!!.workouts.fastForEach { workout ->
+                    workoutsRepository.setAllWorkoutLiftDeloadWeeksToNull(workout.id, deloadWeek)
+                }
+            }
+
             _state.update {
                 it.copy(
                     isEditingDeloadWeek = false,

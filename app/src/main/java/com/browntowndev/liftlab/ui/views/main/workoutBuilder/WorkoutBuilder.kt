@@ -48,6 +48,7 @@ import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.composables.TextFieldModal
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.WavePatternDropdown
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
@@ -205,19 +206,26 @@ fun WorkoutBuilder(
                                 )
                             },
                         ) {
-                            Row {
-                                Spacer(modifier = Modifier.width(10.dp))
-                                ProgressionSchemeDropdown(
-                                    text = workoutLift.progressionScheme.displayName(),
-                                    hasCustomSets = customLiftsVisible,
-                                    onChangeProgressionScheme = {
-                                        workoutBuilderViewModel.setLiftProgressionScheme(
-                                            workoutLift.id,
-                                            it
-                                        )
-                                    },
-                                )
-                            }
+                            ProgressionSchemeDropdown(
+                                modifier = Modifier.padding(start = 20.dp),
+                                text = workoutLift.progressionScheme.displayName(),
+                                hasCustomSets = customLiftsVisible,
+                                onChangeProgressionScheme = {
+                                    workoutBuilderViewModel.setLiftProgressionScheme(
+                                        workoutLift.id,
+                                        it
+                                    )
+                                },
+                            )
+                            WavePatternDropdown(
+                                workoutLiftId = workoutLift.id,
+                                stepSize = (workoutLift as? StandardWorkoutLiftDto)?.stepSize,
+                                progressionScheme = workoutLift.progressionScheme,
+                                workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
+                                onUpdateStepSize = { workoutLiftId, newStepSize ->
+                                    workoutBuilderViewModel.updateStepSize(workoutLiftId = workoutLiftId, newStepSize = newStepSize)
+                                }
+                            )
                             Spacer(modifier = Modifier.height(10.dp))
 
                             // These keep the TextField from flashing between the default & actual value when

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
+import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -48,12 +49,14 @@ class WorkoutBuilderViewModel(
     init {
         executeInTransactionScope {
             val workout = workoutsRepository.get(workoutId)
-            val deloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
+            val programDeloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
+            val workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(workout = workout, programDeloadWeek = programDeloadWeek)
 
             _state.update {
                 it.copy(
                     workout = workout,
-                    programDeloadWeek = deloadWeek
+                    programDeloadWeek = programDeloadWeek,
+                    workoutLiftStepSizeOptions = workoutLiftStepSizeOptions,
                 )
             }
         }
@@ -69,33 +72,43 @@ class WorkoutBuilderViewModel(
         }
     }
 
+    private fun getRecalculatedWorkoutLiftStepSizeOptions(workout: WorkoutDto, programDeloadWeek: Int): Map<Long, Map<Int, List<Int>>> {
+        return workout.lifts
+            .filterIsInstance<StandardWorkoutLiftDto>()
+            .filter { it.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
+            .associate { workoutLift ->
+                workoutLift.id to Utils.getPossibleStepSizes(
+                    repRangeTop = workoutLift.repRangeTop,
+                    repRangeBottom = workoutLift.repRangeBottom,
+                    stepCount = (workoutLift.deloadWeek ?: programDeloadWeek) - 2
+                ).associateWith { option ->
+                    Utils.generateFirstCompleteStepSequence(
+                        repRangeTop = workoutLift.repRangeTop,
+                        repRangeBottom = workoutLift.repRangeBottom,
+                        stepSize = option
+                    )
+                }
+            }
+    }
+
+    private fun getRecalculatedStepSizeForLift(currStepSize: Int?, progressionScheme: ProgressionScheme, repRangeTop: Int, repRangeBottom: Int, deloadWeek: Int): Int? {
+        return if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
+            val availableStepSizes = Utils.getPossibleStepSizes(
+                repRangeTop = repRangeTop,
+                repRangeBottom = repRangeBottom,
+                stepCount = deloadWeek - 2,
+            )
+            if (availableStepSizes.contains(currStepSize)) {
+                currStepSize
+            } else {
+                availableStepSizes.firstOrNull()
+            }
+        } else null
+    }
+
     fun toggleMovementPatternDeletionModal(workoutLiftId: Long? = null) {
         _state.update {
             it.copy(workoutLiftIdToDelete = workoutLiftId)
-        }
-    }
-
-    fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int) {
-        executeInTransactionScope {
-            var updatedWorkoutLift: GenericWorkoutLift? = null
-            val workoutCopy = _state.value.workout!!.copy(
-                lifts = _state.value.workout!!.lifts.fastMap { lift ->
-                    if (lift.id == workoutLiftId) {
-                        updatedWorkoutLift = when(lift) {
-                            is StandardWorkoutLiftDto -> lift.copy(deloadWeek = newDeloadWeek)
-                            is CustomWorkoutLiftDto -> lift.copy(deloadWeek = newDeloadWeek)
-                            else -> throw Exception("${lift::class.simpleName} not recognized.")
-                        }
-                        updatedWorkoutLift!!
-                    } else lift
-                }
-            )
-            if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
-                _state.update {
-                    it.copy(workout = workoutCopy)
-                }
-            }
         }
     }
 
@@ -374,6 +387,39 @@ class WorkoutBuilderViewModel(
         }
     }
 
+    fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int) {
+        executeInTransactionScope {
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedWorkout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
+                updatedWorkoutLift = when(lift) {
+                    is StandardWorkoutLiftDto -> lift.copy(
+                        deloadWeek = newDeloadWeek,
+                        stepSize = getRecalculatedStepSizeForLift(
+                            currStepSize = lift.stepSize,
+                            repRangeTop = lift.repRangeTop,
+                            repRangeBottom = lift.repRangeBottom,
+                            deloadWeek = newDeloadWeek,
+                            progressionScheme = lift.progressionScheme,
+                        )
+                    )
+                    is CustomWorkoutLiftDto -> lift.copy(deloadWeek = newDeloadWeek)
+                    else -> throw Exception("${lift::class.simpleName} not recognized.")
+                }
+                updatedWorkoutLift!!
+            }
+
+            if (updatedWorkoutLift != null) {
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                _state.update {
+                    it.copy(
+                        workout = updatedWorkout,
+                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                    )
+                }
+            }
+        }
+    }
+
     fun setLiftSetCount(workoutLiftId: Long, newSetCount: Int) {
         executeInTransactionScope {
             var updatedWorkoutLift: GenericWorkoutLift? = null
@@ -398,19 +444,31 @@ class WorkoutBuilderViewModel(
     fun setLiftRepRangeBottom(workoutLiftId: Long, newRepRangeBottom: Int) {
         executeInTransactionScope {
             var updatedWorkoutLift: GenericWorkoutLift? = null
-            val updatedStateCopy = _state.value.copy(
-                workout = updateLiftProperty(_state.value, workoutLiftId) {
-                    updatedWorkoutLift = when (it) {
-                        is StandardWorkoutLiftDto -> it.copy(repRangeBottom = newRepRangeBottom)
-                        else -> throw Exception("${it::class.simpleName} cannot have a top rep range.")
-                    }
-                    updatedWorkoutLift!!
+            val updatedWorkout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
+                updatedWorkoutLift = when (lift) {
+                    is StandardWorkoutLiftDto -> lift.copy(
+                        repRangeBottom = newRepRangeBottom,
+                        stepSize = getRecalculatedStepSizeForLift(
+                            currStepSize = lift.stepSize,
+                            repRangeTop = lift.repRangeTop,
+                            repRangeBottom = newRepRangeBottom,
+                            deloadWeek = lift.deloadWeek ?: _state.value.programDeloadWeek!!,
+                            progressionScheme = lift.progressionScheme,
+                        )
+                    )
+                    else -> throw Exception("${lift::class.simpleName} cannot have a top rep range.")
                 }
-            )
+                updatedWorkoutLift!!
+            }
 
             if (updatedWorkoutLift != null) {
                 workoutLiftsRepository.update(updatedWorkoutLift!!)
-                _state.update { updatedStateCopy }
+                _state.update {
+                    it.copy(
+                        workout = updatedWorkout,
+                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                    )
+                }
             }
         }
     }
@@ -418,19 +476,31 @@ class WorkoutBuilderViewModel(
     fun setLiftRepRangeTop(workoutLiftId: Long, newRepRangeTop: Int) {
         executeInTransactionScope {
             var updatedWorkoutLift: GenericWorkoutLift? = null
-            val updatedStateCopy = _state.value.copy(
-                workout = updateLiftProperty(_state.value, workoutLiftId) {
-                    updatedWorkoutLift = when (it) {
-                        is StandardWorkoutLiftDto -> it.copy(repRangeTop = newRepRangeTop)
-                        else -> throw Exception("${it::class.simpleName} cannot have a top rep range.")
-                    }
-                    updatedWorkoutLift!!
+            val updatedWorkout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
+                updatedWorkoutLift = when (lift) {
+                    is StandardWorkoutLiftDto -> lift.copy(
+                        repRangeTop = newRepRangeTop,
+                        stepSize = getRecalculatedStepSizeForLift(
+                            currStepSize = lift.stepSize,
+                            repRangeTop = newRepRangeTop,
+                            repRangeBottom = lift.repRangeBottom,
+                            deloadWeek = lift.deloadWeek ?: _state.value.programDeloadWeek!!,
+                            progressionScheme = lift.progressionScheme,
+                        )
+                    )
+                    else -> throw Exception("${lift::class.simpleName} cannot have a top rep range.")
                 }
-            )
+                updatedWorkoutLift!!
+            }
 
             if (updatedWorkoutLift != null) {
                 workoutLiftsRepository.update(updatedWorkoutLift!!)
-                _state.update { updatedStateCopy }
+                _state.update {
+                    it.copy(
+                        workout = updatedWorkout,
+                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                    )
+                }
             }
         }
     }
@@ -458,19 +528,55 @@ class WorkoutBuilderViewModel(
     fun setLiftProgressionScheme(workoutLiftId: Long, newProgressionScheme: ProgressionScheme) {
         executeInTransactionScope {
             var updatedWorkoutLift: GenericWorkoutLift? = null
-            val updatedStateCopy = _state.value.copy(
-                workout = updateLiftProperty(_state.value, workoutLiftId) {
-                    updatedWorkoutLift = when (it) {
-                        is StandardWorkoutLiftDto -> it.copy(progressionScheme = newProgressionScheme)
-                        is CustomWorkoutLiftDto -> it.copy(progressionScheme = newProgressionScheme)
-                        else -> throw Exception("${it::class.simpleName} cannot have an RPE target.")
-                    }
-                    updatedWorkoutLift!!
+            val updatedWorkout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
+                updatedWorkoutLift = when (lift) {
+                    is StandardWorkoutLiftDto -> lift.copy(
+                        progressionScheme = newProgressionScheme,
+                        stepSize = getRecalculatedStepSizeForLift(
+                            currStepSize = lift.stepSize,
+                            repRangeTop = lift.repRangeTop,
+                            repRangeBottom = lift.repRangeBottom,
+                            deloadWeek = lift.deloadWeek ?: _state.value.programDeloadWeek!!,
+                            progressionScheme = newProgressionScheme,
+                        )
+                    )
+                    is CustomWorkoutLiftDto -> lift.copy(progressionScheme = newProgressionScheme)
+                    else -> throw Exception("${lift::class.simpleName} cannot have an RPE target.")
                 }
-            )
+                updatedWorkoutLift!!
+            }
+
             if (updatedWorkoutLift != null) {
                 workoutLiftsRepository.update(updatedWorkoutLift!!)
-                _state.update { updatedStateCopy }
+                _state.update {
+                    it.copy(
+                        workout = updatedWorkout,
+                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                    )
+                }
+            }
+        }
+    }
+
+    fun updateStepSize(workoutLiftId: Long, newStepSize: Int) {
+        executeInTransactionScope {
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val updatedWorkout = updateLiftProperty(_state.value, workoutLiftId) { lift ->
+                updatedWorkoutLift = when (lift) {
+                    is StandardWorkoutLiftDto -> lift.copy(stepSize = newStepSize)
+                    else -> throw Exception("${lift::class.simpleName} cannot have an RPE target.")
+                }
+                updatedWorkoutLift!!
+            }
+
+            if (updatedWorkoutLift != null) {
+                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                _state.update {
+                    it.copy(
+                        workout = updatedWorkout,
+                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                    )
+                }
             }
         }
     }
@@ -879,7 +985,16 @@ class WorkoutBuilderViewModel(
                 ?: throw Exception("Must be standard workout lift.")
             val validatedRepRangeBottom = getValidatedRepRangeBottom(workoutLift.repRangeBottom, workoutLift.repRangeTop)
             if (validatedRepRangeBottom != workoutLift.repRangeBottom) {
-                workoutLift = workoutLift.copy(repRangeBottom = validatedRepRangeBottom)
+                workoutLift = workoutLift.copy(
+                    repRangeBottom = validatedRepRangeBottom,
+                    stepSize = getRecalculatedStepSizeForLift(
+                        repRangeTop = workoutLift.repRangeTop,
+                        repRangeBottom = validatedRepRangeBottom,
+                        currStepSize = workoutLift.stepSize,
+                        progressionScheme = workoutLift.progressionScheme,
+                        deloadWeek = workoutLift.deloadWeek ?: _state.value.programDeloadWeek!!
+                    )
+                )
                 workoutLiftsRepository.update(workoutLift)
                 updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
             }
@@ -891,8 +1006,17 @@ class WorkoutBuilderViewModel(
             var workoutLift = _state.value.workout!!.lifts.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
                 ?: throw Exception("Must be standard workout lift.")
             val validatedRepRangeTop = getValidatedRepRangeTop(workoutLift.repRangeTop, workoutLift.repRangeBottom)
-            if (validatedRepRangeTop != workoutLift.repRangeBottom) {
-                workoutLift = workoutLift.copy(repRangeTop = validatedRepRangeTop)
+            if (validatedRepRangeTop != workoutLift.repRangeTop) {
+                workoutLift = workoutLift.copy(
+                    repRangeTop = validatedRepRangeTop,
+                    stepSize = getRecalculatedStepSizeForLift(
+                        repRangeTop = validatedRepRangeTop,
+                        repRangeBottom = workoutLift.repRangeBottom,
+                        currStepSize = workoutLift.stepSize,
+                        progressionScheme = workoutLift.progressionScheme,
+                        deloadWeek = workoutLift.deloadWeek ?: _state.value.programDeloadWeek!!
+                    )
+                )
                 workoutLiftsRepository.update(workoutLift)
                 updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
             }
