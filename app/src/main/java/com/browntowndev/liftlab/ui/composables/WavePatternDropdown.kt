@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 
@@ -33,14 +32,14 @@ fun WavePatternDropdown(
     workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>>,
     onUpdateStepSize: (workoutLiftId: Long, stepSize: Int) -> Unit,
 ) {
-    val stepSizeOptions = remember(workoutLiftStepSizeOptions) {
+    val stepSizeOptions = remember(key1 = workoutLiftId, key2 = workoutLiftStepSizeOptions) {
         workoutLiftStepSizeOptions[workoutLiftId] ?: mapOf()
     }
 
     if (stepSizeOptions.isNotEmpty()) {
         Row(modifier = Modifier.padding(top = 5.dp, start = 20.dp)) {
             var isExpanded by remember { mutableStateOf(false) }
-            val stepsToBeTaken = remember(stepSizeOptions) {
+            val stepsToBeTaken = remember(key1 = stepSize, key2 = stepSizeOptions) {
                 stepSizeOptions[stepSize] ?: listOf()
             }
             Text(
