@@ -61,7 +61,7 @@ dependencies {
     def lifecycle_version = '2.7.0'
     def kotlin_coroutines_version = '1.8.0'
     def compose_version = '1.6.7'
-    def kotlin_reflect_version = '1.9.23'
+    def kotlin_reflect_version = '1.9.24'
     def eventbus_version = '3.3.1'
     def mockkVersion = '1.13.10'
     def vico_version = '2.0.0-alpha.19'
@@ -92,7 +92,7 @@ dependencies {
     implementation "androidx.compose.material3:material3:$material_version"
 
     // Third Party
-    implementation 'sh.calvin.reorderable:reorderable:2.0.0'
+    implementation 'sh.calvin.reorderable:reorderable:2.0.4'
     implementation 'io.arrow-kt:arrow-core:1.2.4'
     implementation 'io.arrow-kt:arrow-fx-coroutines:1.2.4'
     implementation 'de.raphaelebner:roomdatabasebackup:1.0.1'

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.models
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
+import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
@@ -94,10 +95,10 @@ fun getOneRepMaxChartModel(
         chartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return minY - 5
+                return getChartMinY(minY, toSubtract = 5)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxY + 5
+                return getChartMaxY(maxY, minY, minAxisVerticalCont = 9, toAdd = 5)
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -122,9 +123,7 @@ fun getPerWorkoutVolumeChartModel(
         .fastMap { workoutLog ->
             val repVolume = workoutLog.setResults.sumOf { it.reps }
             val totalWeight = workoutLog.setResults.map { it.weight }.sum()
-            val totalWeightIfLifting1RmEachTime = workoutLog.setResults.maxOf {
-                CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-            } * workoutLog.setResults.size
+            val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(workoutLog.setResults, totalWeight)
             VolumeTypesForDate(
                 date = workoutLog.date.toLocalDate(),
                 workingSetVolume = workoutLog.setResults.filter { it.rpe >= 7f }.size,
@@ -155,18 +154,18 @@ fun getPerWorkoutVolumeChartModel(
         composedChartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMinY(minY)
+                return getChartMinY(minY, toSubtract = 1)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMaxY(maxY, minY)
+                return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
         endAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMinY(minY)
+                return getChartMinY(minY, toSubtract = 1)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMaxY(maxY, minY)
+                return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -198,12 +197,7 @@ fun getPerMicrocycleVolumeChartModel(
                     .values.map { liftResults ->
                         val repVolume = liftResults.sumOf { it.reps }
                         val totalWeight = liftResults.map { it.weight }.sum()
-                        val totalWeightIfLifting1RmEachTime = liftResults.maxOf {
-                            // if 0 weight was used for all then just use 1lb for each one
-                            // so a 1RM can be calculated
-                            val weight = if (totalWeight == 0f) 1f else it.weight
-                            CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
-                        } * liftResults.size
+                        val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(liftResults, totalWeight)
                         val workingSetVolume = liftResults.filter { it.rpe >= 7f }.size
                         val averageIntensity = (totalWeight / totalWeightIfLifting1RmEachTime)
                         val relativeVolume = repVolume * averageIntensity
@@ -238,18 +232,18 @@ fun getPerMicrocycleVolumeChartModel(
         composedChartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMinY(minY)
+                return getChartMinY(minY, toSubtract = 1)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMaxY(maxY, minY)
+                return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
         endAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMinY(minY)
+                return getChartMinY(minY, toSubtract = 1)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return getComposedChartMaxY(maxY, minY)
+                return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
         bottomAxisLabelRotationDegrees = 45f,
@@ -283,7 +277,7 @@ fun getIntensityChartModel(
             workoutLog.date.toLocalDate() to
                     workoutLog.setResults.maxOf {
                         it.weight / CalculationEngine.getOneRepMax(
-                            it.weight,
+                            if (it.weight > 0) it.weight else 1f,
                             it.reps,
                             it.rpe
                         ) * 100
@@ -310,7 +304,7 @@ fun getIntensityChartModel(
         chartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: AxisValueOverrider {
             override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return minY - 5
+                return getChartMinY(minY, toSubtract = 5)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
                 return maxY + 5
@@ -431,16 +425,28 @@ fun getMicroCycleCompletionChart(
     )
 }
 
-private fun getComposedChartMinY(minY: Float): Float {
-    return if (minY > 0) minY - 1 else minY
+private fun getChartMinY(minY: Float, toSubtract: Int): Float {
+    return if ((minY - toSubtract) > 0) minY - toSubtract else 0f
 }
 
-private fun getComposedChartMaxY(maxY: Float, minY: Float): Float {
-    val maxVal = maxY + 1
-    return if (maxVal - minY < 4) {
-        val difference = maxVal - minY
-        maxVal + (4 - difference)
+private fun getChartMaxY(maxY: Float, minY: Float, minAxisVerticalCont: Int, toAdd: Int): Float {
+    val maxVal = maxY + toAdd
+    val maxDifference = minAxisVerticalCont - 1
+    val difference = maxVal - minY
+
+    return if (difference < maxDifference) {
+        maxVal + (maxDifference - difference)
     } else {
         maxVal
     }
 }
+
+private fun getTotalWeightIfLifting1RmEachTime(
+    liftResults: List<SetLogEntryDto>,
+    totalWeight: Float
+) = liftResults.maxOf {
+    // if 0 weight was used for all then just use 1 for each one
+    // so a 1RM can be calculated
+    val weight = if (totalWeight == 0f) 1f else it.weight
+    CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
+} * liftResults.size
