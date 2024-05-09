@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CardDefaults
@@ -26,9 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -119,11 +124,28 @@ fun WorkoutLiftCard(
             if (!isEdit) {
                 val localDensity = LocalDensity.current
                 var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
+                var note by remember(lift.note) { mutableStateOf(lift.note ?: "") }
+                val focusManager: FocusManager = LocalFocusManager.current
+                val onDone: (clearFocus: Boolean) -> Unit = { clearFocus ->
+                    if (clearFocus) {
+                        focusManager.clearFocus()
+                    }
+                    onNoteChanged(lift.id, note)
+                }
                 LiftLabOutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(noteTextFieldHeight)
                         .padding(start = 15.dp, end = 10.dp),
+                    focusManager = focusManager,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(onDone = {
+                        onDone(true)
+                        this.defaultKeyboardAction(ImeAction.Done)
+                    }),
+                    onDone = onDone, // Invoked via BackHandler since user will not trigger keyboard action above
                     contentPadding = PaddingValues(
                         start = 2.dp,
                         top = 7.dp,
@@ -146,7 +168,7 @@ fun WorkoutLiftCard(
                             fontSize = 18.sp,
                         )
                     },
-                    value = remember(lift.note) { lift.note ?: "" },
+                    value = note,
                     shape = RoundedCornerShape(10.dp),
                     leadingIcon = {
                         Icon(
@@ -156,7 +178,7 @@ fun WorkoutLiftCard(
                         )
                     },
                     onValueChange = {
-                        onNoteChanged(lift.id, it)
+                        note = it
                     },
                     onRequiredHeightChanged = {
                         localDensity.run {

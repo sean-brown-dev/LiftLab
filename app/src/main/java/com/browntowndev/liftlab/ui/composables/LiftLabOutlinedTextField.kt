@@ -14,11 +14,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -41,6 +43,7 @@ fun LiftLabOutlinedTextField(
     contentPadding: PaddingValues = PaddingValues(2.dp),
     enabled: Boolean = true,
     readOnly: Boolean = false,
+    focusManager: FocusManager = LocalFocusManager.current,
     textStyle: TextStyle = LocalTextStyle.current,
     hideCursor: Boolean = false,
     label: @Composable (() -> Unit)? = null,
@@ -61,8 +64,8 @@ fun LiftLabOutlinedTextField(
     shape: Shape = OutlinedTextFieldDefaults.shape,
     colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
     onRequiredHeightChanged: (lineCount: Int) -> Unit = { },
+    onDone: (clearFocus: Boolean) -> Unit = { },
 ) {
-    val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
     var isFocused by remember { mutableStateOf(false) }
 
@@ -74,6 +77,7 @@ fun LiftLabOutlinedTextField(
 
     BackHandler(enabled = isFocused) {
         focusManager.clearFocus()
+        onDone(false)
     }
 
     BasicTextField(
@@ -86,15 +90,18 @@ fun LiftLabOutlinedTextField(
                 .padding(top = 5.dp)
         } else {
             modifier
-        }.defaultMinSize(
-            minWidth = OutlinedTextFieldDefaults.MinWidth,
-            minHeight = OutlinedTextFieldDefaults.MinHeight
-        ).then(
-            Modifier.focusRequester(focusRequester)
-                .onFocusChanged {
-                    isFocused = it.isFocused
-                }
-        ),
+        }
+            .defaultMinSize(
+                minWidth = OutlinedTextFieldDefaults.MinWidth,
+                minHeight = OutlinedTextFieldDefaults.MinHeight
+            )
+            .then(
+                Modifier
+                    .focusRequester(focusRequester)
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                    }
+            ),
         onValueChange = onValueChange,
         onTextLayout = {
             onRequiredHeightChanged(it.size.height)
