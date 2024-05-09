@@ -31,7 +31,7 @@ data class LiftLabTopAppBarState(
     val navigationIconContentDescription: String?
         get() = currentScreen?.navigationIconContentDescription
 
-    val onNavigationIconClick: (() -> Unit)?
+    val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)?
         get() = currentScreen?.onNavigationIconClick
 
     val title: String

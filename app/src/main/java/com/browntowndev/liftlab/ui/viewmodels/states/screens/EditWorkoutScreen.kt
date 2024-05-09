@@ -49,8 +49,11 @@ data class EditWorkoutScreen(
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)
-        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
+        get() = {
+            _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
+            listOf()
+        }
     override val actions: List<ActionMenuItem>
         get() = listOf()
 }

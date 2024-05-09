@@ -49,7 +49,7 @@ data class HomeScreen(
         get() = null
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)?
         get() = null
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
@@ -60,6 +60,7 @@ data class HomeScreen(
                 isVisible = true,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.OpenSettingsMenu))
+                    listOf()
                 },
                 contentDescriptionResourceId = R.string.settings,
             ),

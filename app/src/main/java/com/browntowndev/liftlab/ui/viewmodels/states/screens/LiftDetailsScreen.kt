@@ -63,8 +63,11 @@ data class LiftDetailsScreen(
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)?
-        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)?
+        get() = {
+            _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
+            listOf()
+        }
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
@@ -73,6 +76,7 @@ data class LiftDetailsScreen(
                 isVisible = isConfirmCreateLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmCreateNewLift))
+                    listOf()
                 },
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,

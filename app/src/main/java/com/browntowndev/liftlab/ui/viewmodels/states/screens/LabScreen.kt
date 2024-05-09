@@ -115,8 +115,11 @@ data class LabScreen(
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)
-        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
+        get() = {
+            _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
+            listOf()
+        }
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.IconMenuItem.NeverShown(
@@ -125,7 +128,10 @@ data class LabScreen(
                 icon = Icons.Filled.Add.left(),
                 isVisible = createWorkoutVisible,
                 dividerBelow = !reorderWorkoutsVisible,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewWorkout)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewWorkout))
+                    listOf()
+                },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_WORKOUTS_ICON,
@@ -134,6 +140,7 @@ data class LabScreen(
                 isVisible = reorderWorkoutsVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderWorkouts))
+                    listOf()
                 },
                 dividerBelow = true,
             ),
@@ -142,21 +149,30 @@ data class LabScreen(
                 title = "Create Program",
                 icon = Icons.Filled.Add.left(),
                 isVisible = true,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewProgram)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewProgram))
+                    listOf()
+                },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_PROGRAM_ICON,
                 title = "Rename Program",
                 icon = Icons.Filled.Edit.left(),
                 isVisible = renameProgramVisible,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameProgram)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameProgram))
+                    listOf()
+                },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELETE_PROGRAM_ICON,
                 title = "Delete Program",
                 icon = Icons.Filled.Delete.left(),
                 isVisible = deleteProgramVisible,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.DeleteProgram))
+                    listOf()
+                },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = MANAGE_PROGRAMS_ICON,
@@ -164,7 +180,10 @@ data class LabScreen(
                 icon = Icons.Filled.Build.left(),
                 isVisible = manageProgramsVisible,
                 dividerBelow = true,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ManagePrograms)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ManagePrograms))
+                    listOf()
+                },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELOAD_WEEK_ICON,
@@ -172,7 +191,10 @@ data class LabScreen(
                 icon = Icons.Outlined.DateRange.left(),
                 trailingIconText = _reorderWorkoutsTrailingText,
                 isVisible = deloadWeekVisible,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.EditDeloadWeek)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.EditDeloadWeek))
+                    listOf()
+                },
             ),
         )
     }

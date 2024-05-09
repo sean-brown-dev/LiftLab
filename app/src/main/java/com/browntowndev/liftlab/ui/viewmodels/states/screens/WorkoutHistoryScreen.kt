@@ -54,8 +54,11 @@ data class WorkoutHistoryScreen(
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)
-        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
+        get() = {
+            _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
+            listOf()
+        }
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
@@ -64,6 +67,7 @@ data class WorkoutHistoryScreen(
                 isVisible = true,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.FilterStarted))
+                    listOf()
                 },
                 icon = R.drawable.filter_icon.right(),
                 contentDescriptionResourceId = R.string.accessibility_filter,
@@ -75,6 +79,7 @@ data class WorkoutHistoryScreen(
                 icon = R.drawable.edit_calendar.right(),
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.EditDateRange))
+                    listOf()
                 },
             ),
         )

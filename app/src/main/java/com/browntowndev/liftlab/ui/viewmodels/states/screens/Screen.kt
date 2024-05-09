@@ -14,7 +14,7 @@ sealed interface Screen: KoinComponent {
     val navigationIcon: Either<ImageVector, Int>?
     val navigationIconContentDescription: String?
     val navigationIconVisible: Boolean
-    val onNavigationIconClick: (() -> Unit)?
+    val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)?
     val title: String
     val subtitle: String
     val actions: List<ActionMenuItem>

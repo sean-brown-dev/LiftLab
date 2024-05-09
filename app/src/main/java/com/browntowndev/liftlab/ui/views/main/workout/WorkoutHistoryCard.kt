@@ -43,9 +43,7 @@ fun WorkoutHistoryCard(
     onEditWorkout: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 5.dp),
+        modifier = Modifier.fillMaxSize(),
         shape = RectangleShape,
         colors = CardDefaults.outlinedCardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,

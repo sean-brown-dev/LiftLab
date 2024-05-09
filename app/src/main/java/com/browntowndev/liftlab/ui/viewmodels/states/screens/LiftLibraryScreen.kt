@@ -7,8 +7,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.left
@@ -27,7 +25,12 @@ data class LiftLibraryScreen(
     override val isOverflowMenuIconVisible: Boolean = true,
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
-    var filterText: String = "",
+    val filterText: String = "",
+    val isSearchBarVisible: Boolean = false,
+    val isSearchIconVisible: Boolean = true,
+    val isFilterIconVisible: Boolean = true,
+    val isConfirmAddLiftVisible: Boolean = false,
+    val isCreateNewLiftIconVisible: Boolean = true,
 ) : BaseScreen() {
     companion object {
         val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?callerRoute={callerRoute}&workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
@@ -37,13 +40,6 @@ data class LiftLibraryScreen(
         const val LIFT_NAME_FILTER_TEXTVIEW = "liftNameFilterTextView"
         const val LIFT_MOVEMENT_PATTERN_FILTER_ICON = "liftMovementPatternFilterIcon"
     }
-
-    private var mutableFilterText by mutableStateOf(filterText)
-    var isSearchBarVisible by mutableStateOf(false)
-    private var isSearchIconVisible by mutableStateOf(true)
-    private var isFilterIconVisible by mutableStateOf(true)
-    private var isConfirmAddLiftVisible by mutableStateOf(false)
-    private var isCreateNewLiftIconVisible by mutableStateOf(true)
 
     private val _eventBus: EventBus by inject()
 
@@ -64,45 +60,37 @@ data class LiftLibraryScreen(
     }
 
     override fun setControlVisibility(controlName: String, isVisible: Boolean): Screen {
-        val superCopy = super.setControlVisibility(controlName, isVisible)
         return when (controlName) {
             LIFT_NAME_FILTER_TEXTVIEW -> {
                 if (isSearchBarVisible != isVisible) {
-                    isSearchBarVisible = isVisible
+                    copy(isSearchBarVisible = isVisible)
                 }
-                this
+                else this
             }
             SEARCH_ICON -> {
-                isSearchIconVisible = isVisible
-                this
+                copy(isSearchIconVisible = isVisible)
             }
             LIFT_MOVEMENT_PATTERN_FILTER_ICON -> {
-                isFilterIconVisible = isVisible
-                this
+                copy(isFilterIconVisible = isVisible)
             }
             CONFIRM_ADD_LIFT_ICON -> {
-                isConfirmAddLiftVisible = isVisible
-                this
+                copy(isConfirmAddLiftVisible = isVisible)
             }
             CREATE_NEW_LIFT_ICON -> {
-                isCreateNewLiftIconVisible = isVisible
-                this
+                copy(isCreateNewLiftIconVisible = isVisible)
             }
-            else -> superCopy
+            else -> super.setControlVisibility(controlName, isVisible)
         }
     }
 
     override fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>): Screen {
-        val superCopy = super.mutateControlValue(request)
         return when (request.controlName) {
             LIFT_NAME_FILTER_TEXTVIEW ->  {
                 val newFilter = request.payload as String
-                mutableFilterText = newFilter
-                filterText = mutableFilterText
                 _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, newFilter))
-                return this
+                copy(filterText = newFilter)
             }
-            else -> superCopy
+            else -> super.mutateControlValue(request)
         }
     }
 
@@ -114,10 +102,10 @@ data class LiftLibraryScreen(
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
         get() = {
-            isSearchBarVisible = false
             _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
+            listOf(Pair(LIFT_NAME_FILTER_TEXTVIEW, false))
         }
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
@@ -127,8 +115,7 @@ data class LiftLibraryScreen(
                 icon = Icons.Filled.Search.left(),
                 isVisible = !isSearchBarVisible && isSearchIconVisible,
                 onClick = {
-                    isSearchBarVisible = true
-                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.SearchStarted))
+                    listOf(Pair(LIFT_NAME_FILTER_TEXTVIEW, true))
                 },
                 contentDescriptionResourceId = R.string.accessibility_search,
             ),
@@ -136,17 +123,12 @@ data class LiftLibraryScreen(
                 controlName = LIFT_NAME_FILTER_TEXTVIEW,
                 icon = Icons.Filled.Search.left(),
                 isVisible = isSearchBarVisible,
-                value = mutableFilterText,
+                value = filterText,
                 onValueChange = {
-                    mutableFilterText = it
-                    filterText = mutableFilterText
                     _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, it))
                 },
                 onClickTrailingIcon = {
-                    isSearchBarVisible = false
-                    mutableFilterText = ""
-                    filterText = mutableFilterText
-                    _eventBus.post(TopAppBarEvent.PayloadActionEvent(TopAppBarAction.SearchTextChanged, mutableFilterText))
+                    listOf(Pair(LIFT_NAME_FILTER_TEXTVIEW, false))
                 },
             ),
             ActionMenuItem.IconMenuItem.AlwaysShown(
@@ -155,6 +137,7 @@ data class LiftLibraryScreen(
                 isVisible = !isSearchBarVisible && isFilterIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.FilterStarted))
+                    listOf()
                 },
                 icon = R.drawable.filter_icon.right(),
                 contentDescriptionResourceId = R.string.accessibility_filter,
@@ -165,6 +148,7 @@ data class LiftLibraryScreen(
                 isVisible = !isSearchBarVisible && isFilterIconVisible && isCreateNewLiftIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewLift))
+                    listOf()
                 },
                 icon = Icons.Filled.Add.left(),
                 contentDescriptionResourceId = R.string.create_a_new_lift,
@@ -175,7 +159,7 @@ data class LiftLibraryScreen(
                 isVisible = isConfirmAddLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
-                    isConfirmAddLiftVisible = false
+                    listOf()
                 },
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,

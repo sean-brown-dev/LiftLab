@@ -59,8 +59,11 @@ data class WorkoutBuilderScreen(
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)
-        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack)) }
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
+        get() = {
+            _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
+            listOf()
+        }
     override val actions: List<ActionMenuItem>
         get() = listOf(
             ActionMenuItem.IconMenuItem.NeverShown(
@@ -68,14 +71,20 @@ data class WorkoutBuilderScreen(
                 title = "Rename Workout",
                 icon = Icons.Filled.Edit.left(),
                 isVisible = true,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameWorkout)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.RenameWorkout))
+                    listOf()
+                },
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = REORDER_LIFTS,
                 title = "Reorder Lifts",
                 icon = R.drawable.reorder_icon.right(),
                 isVisible = true,
-                onClick = { _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts)) },
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ReorderLifts))
+                    listOf()
+                },
             ),
         )
 }
