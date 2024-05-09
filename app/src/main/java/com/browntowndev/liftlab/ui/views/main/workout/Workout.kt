@@ -232,7 +232,7 @@ fun Workout(
                     }
                 }
             },
-            undoCompleteSet = { liftPosition, setPosition, myoRepSetPosition ->
+            onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->
                 workoutViewModel.undoSetCompletion(
                     liftPosition = liftPosition,
                     setPosition = setPosition,

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -89,7 +90,7 @@ fun WorkoutLog(
     onSetCompleted: (setType: SetType, progressionScheme: ProgressionScheme, liftPosition: Int, setPosition: Int,
                      myoRepSetPosition: Int?, liftId: Long, weight: Float, reps: Int, rpe: Float,
                      restTime: Long, restTimeEnabled: Boolean) -> Unit,
-    undoCompleteSet: (liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
+    onUndoSetCompletion: (liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
@@ -161,183 +162,33 @@ fun WorkoutLog(
                     }
                 }
                 items(lifts, key = { it.id }) { lift ->
-                    ElevatedCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 5.dp),
-                        shape = RectangleShape,
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 16.dp,
-                            pressedElevation = 0.dp
-                        ),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            val restTime = remember(lift.restTime) {
-                                lift.restTime?.inWholeMilliseconds
-                                    ?: SettingsManager.getSetting(
-                                        SettingsManager.SettingNames.REST_TIME,
-                                        SettingsManager.SettingNames.DEFAULT_REST_TIME,
-                                    )
-                            }
-                            Row {
-                                Text(
-                                    modifier = Modifier.padding(start = 15.dp, top = 10.dp, bottom = 5.dp, end = 10.dp),
-                                    text = lift.liftName,
-                                    overflow = TextOverflow.Ellipsis,
-                                    fontSize = 20.sp,
-                                    color = MaterialTheme.colorScheme.tertiary
-                                )
-                                if (!isEdit) {
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    LiftDropdown(
-                                        restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
-                                        restTimerEnabled = lift.restTimerEnabled,
-                                        onChangeRestTime = { restTime, enabled ->
-                                            onChangeRestTime(lift.id, restTime, enabled)
-                                        },
-                                        onReplaceLift = {
-                                            onReplaceLift(lift.id, lift.liftMovementPattern)
-                                        }
-                                    )
-                                }
-                            }
-                            if (!isEdit) {
-                                val localDensity = LocalDensity.current
-                                var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
-                                LiftLabOutlinedTextField(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(noteTextFieldHeight)
-                                        .padding(start = 15.dp, end = 10.dp),
-                                    contentPadding = PaddingValues(start = 2.dp, top = 7.dp, bottom = 7.dp, end = 2.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        unfocusedBorderColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                        unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                        focusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                        unfocusedTextColor = MaterialTheme.colorScheme.onTertiaryContainer
-                                    ),
-                                    textStyle = LocalTextStyle.current.copy(fontSize = 18.sp),
-                                    placeholder = {
-                                        Text(
-                                            text = remember { "Add note" },
-                                            color = MaterialTheme.colorScheme.outline,
-                                            fontSize = 18.sp,
-                                        )
-                                    },
-                                    value = remember(lift.note) { lift.note ?: "" },
-                                    shape = RoundedCornerShape(10.dp),
-                                    leadingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Filled.Edit,
-                                            contentDescription = stringResource(R.string.lift_note),
-                                            tint = MaterialTheme.colorScheme.outline,
-                                        )
-                                    },
-                                    onValueChange = {
-                                        onNoteChanged(lift.id, it)
-                                        it
-                                    },
-                                    onRequiredHeightChanged = {
-                                        localDensity.run {
-                                            noteTextFieldHeight = it.toFloat().toDp() + 14.dp
-                                        }
-                                    },
-                                )
-                                Spacer(modifier = Modifier.height(15.dp))
-                            }
-                            LogHeaders()
-
-                            lift.sets.fastForEach { set ->
-                                DeleteableOnSwipeLeft(
-                                    enabled = remember(set) { (set as? LoggingMyoRepSetDto)?.myoRepSetPosition != null },
-                                    confirmationDialogHeader = "Delete Myorep Set?",
-                                    confirmationDialogBody = "Confirm to delete the myorep set.",
-                                    onDelete = {
-                                        onDeleteMyoRepSet(lift.id, set.position, (set as LoggingMyoRepSetDto).myoRepSetPosition!!)
-                                    },
-                                    dismissContent = {
-                                        val animateVisibility = remember(lift.sets.size) {
-                                            set is LoggingMyoRepSetDto &&
-                                                    !indicesOfExistingMyoRepSets.contains("${lift.id}-${set.myoRepSetPosition}")
-                                        }
-
-                                        LoggableSet(
-                                            lazyListState = lazyListState,
-                                            animateVisibility = animateVisibility,
-                                            position = set.position,
-                                            progressionScheme = lift.progressionScheme,
-                                            setNumberLabel = set.setNumberLabel,
-                                            weightRecommendation = set.weightRecommendation,
-                                            rpeTarget = set.rpeTarget,
-                                            complete = set.complete,
-                                            completedWeight = set.completedWeight,
-                                            completedReps = set.completedReps,
-                                            completedRpe = set.completedRpe,
-                                            previousSetResultLabel = set.previousSetResultLabel,
-                                            repRangePlaceholder = set.repRangePlaceholder,
-                                            onWeightChanged = {
-                                                onWeightChanged(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
-                                            },
-                                            onRepsChanged = {
-                                                onRepsChanged(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, it)
-                                            },
-                                            toggleRpePicker = {
-                                                if (it) {
-                                                    pickerViewModel.showRpePicker(
-                                                        workoutLiftId = lift.id,
-                                                        setPosition = set.position,
-                                                        myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                                    )
-                                                } else {
-                                                    pickerViewModel.hideRpePicker()
-                                                }
-                                            },
-                                            onCompleted = { weight, reps, rpe ->
-                                                val setType = when (set) {
-                                                    is LoggingStandardSetDto -> SetType.STANDARD
-                                                    is LoggingDropSetDto -> SetType.DROP_SET
-                                                    is LoggingMyoRepSetDto -> SetType.MYOREP
-                                                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                                                }
-                                                onSetCompleted(
-                                                    setType,
-                                                    lift.progressionScheme,
-                                                    lift.position,
-                                                    set.position,
-                                                    (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                                    lift.liftId,
-                                                    weight,
-                                                    reps,
-                                                    rpe,
-                                                    restTime,
-                                                    lift.restTimerEnabled,
-                                                )
-                                                pickerViewModel.hideRpePicker()
-                                            },
-                                            onUndoCompletion = {
-                                                undoCompleteSet(
-                                                    lift.position,
-                                                    set.position,
-                                                    (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                                )
-                                            },
-                                            onAddSpacer = {
-                                                pickerSpacer = it
-                                            }
-                                        )
-                                    }
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(10.dp))
+                    WorkoutLiftCard(
+                        lift = lift,
+                        isEdit = isEdit,
+                        indicesOfExistingMyoRepSets = indicesOfExistingMyoRepSets,
+                        lazyListState = lazyListState,
+                        onUndoSetCompletion = onUndoSetCompletion,
+                        onChangeRestTime = onChangeRestTime,
+                        onWeightChanged = onWeightChanged,
+                        onRepsChanged = onRepsChanged,
+                        onReplaceLift = onReplaceLift,
+                        onNoteChanged = onNoteChanged,
+                        onSetCompleted = onSetCompleted,
+                        onDeleteMyoRepSet = onDeleteMyoRepSet,
+                        onHideRpePicker = {
+                            pickerViewModel.hideRpePicker()
+                        },
+                        onShowRpePicker = { workoutLiftId, setPosition, myoRepSetPosition ->
+                            pickerViewModel.showRpePicker(
+                                workoutLiftId = workoutLiftId,
+                                setPosition = setPosition,
+                                myoRepSetPosition = myoRepSetPosition,
+                            )
+                        },
+                        onUpdatePickerSpacer = { padding ->
+                            pickerSpacer = padding
                         }
-                    }
+                    )
                 }
                 item {
                     if (!isEdit) {
