@@ -38,7 +38,7 @@ fun ActionsMenu(
     topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
 ) {
-    if (!topAppBarState.isOverflowMenuIconVisible || topAppBarState.actions.isEmpty()) return
+    if (topAppBarState.actions.isEmpty()) return
 
     val menuItems = remember(
         key1 = topAppBarState.actions,
@@ -92,7 +92,7 @@ fun ActionsMenu(
         }
     }
 
-    if (menuItems.overflowItems.isNotEmpty()) {
+    if (menuItems.overflowItems.isNotEmpty() && topAppBarState.isOverflowMenuIconVisible) {
         IconButton(onClick = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, true) }) {
             Icon(
                 modifier = Modifier.size(24.dp),
