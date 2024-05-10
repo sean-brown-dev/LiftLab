@@ -96,6 +96,7 @@ fun Home(
                                     .height(225.dp)
                                     .padding(bottom = 30.dp),
                                 label = "Microcycle Sets Completed",
+                                subHeaderLabel = state.activeProgramName,
                                 chartModel = state.microCycleCompletionChart!!,
                             )
                         }

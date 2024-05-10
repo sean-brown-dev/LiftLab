@@ -307,7 +307,7 @@ fun getIntensityChartModel(
                 return getChartMinY(minY, toSubtract = 5)
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxY + 5
+                return getChartMaxY(maxY, minY, minAxisVerticalCont = 9, toAdd = 5)
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -323,9 +323,7 @@ fun getIntensityChartModel(
 fun getWeeklyCompletionChart(
     workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
     workoutsInDateRange: List<WorkoutLogEntryDto>,
-    program: ProgramDto?,
 ): ChartModel<ColumnCartesianLayerModel> {
-    val workoutCount = program?.workouts?.size
     val completedWorkoutsByWeek = workoutCompletionRange
         .fastMap { week ->
             week.first to
@@ -338,6 +336,10 @@ fun getWeeklyCompletionChart(
         .associate { (date, completionCount) ->
             date to completionCount
         }
+
+    val maxWorkoutsCompleted = if (completedWorkoutsByWeek.isNotEmpty()) {
+        completedWorkoutsByWeek.maxOf { it.value }
+    } else 6
 
     val xValuesToDates = completedWorkoutsByWeek.keys
         .mapIndexed { index, localDate -> Pair(index, localDate) }
@@ -360,7 +362,7 @@ fun getWeeklyCompletionChart(
                 return 0f
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return workoutCount?.toFloat() ?: 7f
+                return maxWorkoutsCompleted.toFloat().let { if (it == 0f) 1f else it } ?: 7f
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
@@ -370,7 +372,7 @@ fun getWeeklyCompletionChart(
         startAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ (workoutCount ?: 6) + 1 }),
+        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ maxWorkoutsCompleted + 1 }),
     )
 }
 
@@ -379,7 +381,7 @@ fun getMicroCycleCompletionChart(
     program: ProgramDto?,
 ): ChartModel<ColumnCartesianLayerModel> {
     val workoutsForCurrentMeso = workoutLogs
-        .filter { it.mesocycle == program?.currentMesocycle }
+        .filter { it.programId == program?.id && it.mesocycle == program.currentMesocycle }
         .groupBy { it.microcycle }
         .toSortedMap()
         .asSequence()
@@ -438,6 +440,8 @@ private fun getChartMaxY(maxY: Float, minY: Float, minAxisVerticalCont: Int, toA
         maxVal + (maxDifference - difference)
     } else {
         maxVal
+    }.let { calculatedMaxY ->
+        if (calculatedMaxY <= minY) minY + 1 else calculatedMaxY
     }
 }
 
