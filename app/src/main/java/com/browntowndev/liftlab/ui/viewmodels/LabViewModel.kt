@@ -259,29 +259,49 @@ class LabViewModel(
             if (_state.value.isManagingPrograms) {
                 val programToDelete = _state.value.allPrograms.find { it.id == programId }!!
                 val isActive = programToDelete.id == _state.value.program?.id
+                var newActiveProgram: ProgramDto? = null
 
                 if (isActive) {
                     deleteActiveProgram()
+                    newActiveProgram = _state.value.allPrograms
+                        .firstOrNull { it.id != programId }
+                        ?.copy(isActive = true)
+                        ?.also {
+                            programsRepository.update(it)
+                        }
                 } else {
                     programsRepository.delete(programToDelete)
                 }
 
                 _state.update {
                     it.copy(
-                        program = if (isActive) null else it.program,
+                        program = if (isActive) newActiveProgram else it.program,
                         idOfProgramToDelete = null,
                         isDeletingProgram = false,
                         allPrograms = it.allPrograms.mapNotNull { program ->
-                            if (program.id != programId) {
+                            if (program.id == newActiveProgram?.id) {
+                                newActiveProgram
+                            } else if (program.id != programId) {
                                 program
-                            } else null
+                            }
+                            else null
                         }
                     )
                 }
             } else {
                 deleteActiveProgram()
+                val newActiveProgram = programsRepository.getAll()
+                    .firstOrNull()
+                    ?.copy(isActive = true)
+                    ?.also {
+                        programsRepository.update(it)
+                    }
+
                 _state.update {
-                    LabState()
+                    it.copy(
+                        program = newActiveProgram,
+                        isDeletingProgram = false,
+                    )
                 }
             }
         }

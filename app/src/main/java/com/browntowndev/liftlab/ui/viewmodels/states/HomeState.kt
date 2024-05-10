@@ -10,6 +10,7 @@ import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 data class HomeState(
+    val activeProgramName: String = "",
     val workoutLogs: List<WorkoutLogEntryDto> = listOf(),
     val lifts: List<LiftDto> = listOf(),
     val workoutCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,
