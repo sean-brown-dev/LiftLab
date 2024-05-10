@@ -95,6 +95,7 @@ fun Lab(
         ProgramManager(
             paddingValues = paddingValues,
             programs = state.allPrograms,
+            onCreateProgram = { labViewModel.toggleCreateProgramModal() },
             onSetProgramAsActive = { labViewModel.setProgramAsActive(it) },
             onDeleteProgram = { labViewModel.beginDeleteProgram(it) },
             onNavigateBack = { labViewModel.toggleManageProgramsScreen() })
@@ -171,7 +172,7 @@ fun Lab(
     }
 
     if (state.isCreatingProgram) {
-        val subtext = if(state.program != null) {
+        val subtext = if(state.program != null && !state.isManagingPrograms) {
             "Creating a new program will archive the existing one. " +
                     "It can be restored or deleted from the Manage Programs menu."
         } else ""

@@ -96,14 +96,21 @@ class LabViewModel(
 
     fun createProgram(name: String) {
         executeInTransactionScope {
-            val newProgram = ProgramDto(name = name)
-            if (_state.value.program != null) {
+            var newProgram = ProgramDto(name = name, isActive = !_state.value.isManagingPrograms)
+            if (_state.value.program != null && !_state.value.isManagingPrograms) {
                 val programToArchive = _state.value.program!!.copy(isActive = false)
                 programsRepository.update(programToArchive)
             }
             val newProgramId = programsRepository.insert(newProgram)
-            _state.update {
-                it.copy(program = newProgram.copy(id = newProgramId), isCreatingProgram = false)
+            newProgram = newProgram.copy(id = newProgramId)
+            _state.update { currState ->
+                currState.copy(
+                    program = newProgram,
+                    allPrograms = currState.allPrograms
+                        .toMutableList()
+                        .apply { add(newProgram) },
+                    isCreatingProgram = false
+                )
             }
         }
     }
@@ -188,8 +195,6 @@ class LabViewModel(
         val program = _state.value.program
         if (program != null && _state.value.originalProgramName != newName) {
             executeInTransactionScope {
-                Log.d(Log.DEBUG.toString(), program.id.toString())
-                Log.d(Log.DEBUG.toString(), newName)
                 programsRepository.updateName(
                     id = program.id,
                     newName = newName
@@ -327,7 +332,7 @@ class LabViewModel(
     fun toggleManageProgramsScreen() {
         executeInTransactionScope {
             // This UI will rarely be clicked, so I think it's fine to just get this each time it's opened
-            val allPrograms = programsRepository.getAll()
+            val allPrograms = programsRepository.getAll().sortedBy { it.name }
             _state.update {
                 it.copy(
                     allPrograms = allPrograms,
