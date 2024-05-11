@@ -46,7 +46,9 @@ fun Lab(
 
     LaunchedEffect(state.program) {
         if(state.program != null) {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
+            if (!state.isManagingPrograms) {
+                mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
+            }
             mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
@@ -55,7 +57,9 @@ fun Lab(
             setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, true)
             setTopAppBarControlVisibility(LabScreen.MANAGE_PROGRAMS_ICON, true)
         } else {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
+            if (!state.isManagingPrograms) {
+                mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
+            }
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, false)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, false)
             setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, false)

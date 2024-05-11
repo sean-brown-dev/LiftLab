@@ -1,15 +1,14 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,7 +27,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 
 @Composable
 fun ProgramManager(
@@ -47,49 +44,20 @@ fun ProgramManager(
     onDeleteProgram: (programId: Long) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
-    LazyColumn (
+    LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
             .padding(paddingValues)
-            .background(color = MaterialTheme.colorScheme.primaryContainer),
+            .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
         item {
-            Row(
-                modifier = Modifier.padding(start = 20.dp, top = 10.dp, end =15.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "Name",
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontSize = 14.sp,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                    Text(
-                        text = "Active",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 14.sp,
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Text(
-                        text = "Delete",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 14.sp,
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(10.dp))
         }
-
         items(programs) { program ->
             Card(
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.outlinedCardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
                 )
             ) {
                 Row(
@@ -97,21 +65,41 @@ fun ProgramManager(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = program.name,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 20.sp,
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(15.dp)) {
-                        RadioButton(
-                            selected = program.isActive,
-                            colors = RadioButtonDefaults.colors(
-                                selectedColor = MaterialTheme.colorScheme.primary,
-                                unselectedColor = MaterialTheme.colorScheme.outline,
-                            ),
-                            onClick = { onSetProgramAsActive(program.id) }
+                    Column {
+                        Text(
+                            text = "Name",
+                            color = MaterialTheme.colorScheme.tertiary,
+                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodyLarge,
                         )
+                        Text(
+                            modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
+                            text = program.name,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 20.sp,
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        Column (horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Active",
+                                color = MaterialTheme.colorScheme.tertiary,
+                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            RadioButton(
+                                selected = program.isActive,
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = MaterialTheme.colorScheme.primary,
+                                    unselectedColor = MaterialTheme.colorScheme.outline,
+                                ),
+                                onClick = { onSetProgramAsActive(program.id) }
+                            )
+                        }
                         IconButton(onClick = { onDeleteProgram(program.id) }) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
@@ -125,7 +113,7 @@ fun ProgramManager(
         }
 
         item {
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
             ) {
