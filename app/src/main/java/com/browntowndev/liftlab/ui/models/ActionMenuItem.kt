@@ -14,7 +14,7 @@ sealed interface ActionMenuItem {
     sealed interface IconMenuItem : ActionMenuItem {
         val title: String
         val dividerBelow: Boolean
-        val onClick: () -> Unit
+        val onClick: () -> List<Pair<String, Boolean>>
         val contentDescriptionResourceId: Int?
 
         data class AlwaysShown  (
@@ -22,7 +22,7 @@ sealed interface ActionMenuItem {
             override val title: String,
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int? = null,
-            override val onClick: () -> Unit,
+            override val onClick: () -> List<Pair<String, Boolean>>,
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
@@ -33,7 +33,7 @@ sealed interface ActionMenuItem {
             override val title: String,
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int? = null,
-            override val onClick: () -> Unit,
+            override val onClick: () -> List<Pair<String, Boolean>>,
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
@@ -44,7 +44,7 @@ sealed interface ActionMenuItem {
             override val title: String,
             override val isVisible: Boolean,
             override val contentDescriptionResourceId: Int? = null,
-            override val onClick: () -> Unit,
+            override val onClick: () -> List<Pair<String, Boolean>>,
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
@@ -70,7 +70,7 @@ sealed interface ActionMenuItem {
         val value: String
         override val isVisible: Boolean
         val onValueChange: (String) -> Unit
-        val onClickTrailingIcon: () -> Unit
+        val onClickTrailingIcon: () -> List<Pair<String, Boolean>>
 
         data class AlwaysShown(
             override val controlName: String,
@@ -79,7 +79,7 @@ sealed interface ActionMenuItem {
             override val value: String,
             override val isVisible: Boolean,
             override val onValueChange: (String) -> Unit,
-            override val onClickTrailingIcon: () -> Unit,
+            override val onClickTrailingIcon: () -> List<Pair<String, Boolean>>,
         ) : TextInputMenuItem
     }
 

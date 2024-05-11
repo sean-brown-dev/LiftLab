@@ -577,9 +577,8 @@ abstract class BaseWorkoutViewModel(
 
                                             remove(toDelete)
                                         }.mapIndexed { index, set ->
-                                            if (index > 0) {
-                                                val myoRepSet = set as LoggingMyoRepSetDto
-                                                myoRepSet.copy(myoRepSetPosition = index - 1)
+                                            if (set is LoggingMyoRepSetDto && set.myoRepSetPosition != null) {
+                                                set.copy(myoRepSetPosition = index - 1)
                                             } else set
                                         }
                                     )

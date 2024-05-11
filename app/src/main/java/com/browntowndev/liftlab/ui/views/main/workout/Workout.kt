@@ -89,7 +89,7 @@ fun Workout(
     workoutViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutViewModel)
 
-    LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible) {
+    LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible, key3 = state.initialized) {
         if (state.workout != null) {
             if (!state.workoutLogVisible) {
                 mutateTopAppBarControlValue(
@@ -141,6 +141,7 @@ fun Workout(
                     "".left()
                 )
             )
+            setBottomNavBarVisibility(true)
         }
     }
 
@@ -231,7 +232,7 @@ fun Workout(
                     }
                 }
             },
-            undoCompleteSet = { liftPosition, setPosition, myoRepSetPosition ->
+            onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->
                 workoutViewModel.undoSetCompletion(
                     liftPosition = liftPosition,
                     setPosition = setPosition,

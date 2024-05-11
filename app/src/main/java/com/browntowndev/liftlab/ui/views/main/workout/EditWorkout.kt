@@ -101,7 +101,7 @@ fun EditWorkout(
                     )
                 )
             },
-            undoCompleteSet = { liftPosition, setPosition, myoRepSetPosition ->
+            onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->
                 editWorkoutViewModel.undoSetCompletion(
                     liftPosition = liftPosition,
                     setPosition = setPosition,

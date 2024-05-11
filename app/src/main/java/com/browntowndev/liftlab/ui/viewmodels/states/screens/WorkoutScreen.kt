@@ -18,7 +18,7 @@ import java.util.UUID
 
 data class WorkoutScreen(
     override val isOverflowMenuExpanded: Boolean = false,
-    override val isOverflowMenuIconVisible: Boolean = false,
+    override val isOverflowMenuIconVisible: Boolean = true,
     override val navigationIconVisible: Boolean = false,
     override val title: String = "",
     override val subtitle: String = navigation.subtitle,
@@ -97,8 +97,11 @@ data class WorkoutScreen(
         get() = R.drawable.down_carrot.right()
     override val navigationIconContentDescription: String?
         get() = null
-    override val onNavigationIconClick: (() -> Unit)
-        get() = { _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.NavigatedBack)) }
+    override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
+        get() = {
+            _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.NavigatedBack))
+            listOf()
+        }
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.TimerMenuItem.AlwaysShown(
@@ -127,6 +130,7 @@ data class WorkoutScreen(
                 icon = R.drawable.history_icon.right(),
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.OpenWorkoutHistory))
+                    listOf()
                 }
             ),
         )

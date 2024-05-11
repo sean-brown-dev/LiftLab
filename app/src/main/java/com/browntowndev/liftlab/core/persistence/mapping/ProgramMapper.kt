@@ -18,6 +18,18 @@ class ProgramMapper(private val workoutMapper: WorkoutMapper) {
         )
     }
 
+    fun map(from: Program): ProgramDto {
+        return ProgramDto(
+            id = from.id,
+            name = from.name,
+            isActive = from.isActive,
+            deloadWeek = from.deloadWeek,
+            currentMesocycle = from.currentMesocycle,
+            currentMicrocycle = from.currentMicrocycle,
+            currentMicrocyclePosition = from.currentMicrocyclePosition,
+        )
+    }
+
     fun map(from: ProgramDto): Program {
         return Program(
             id = from.id,

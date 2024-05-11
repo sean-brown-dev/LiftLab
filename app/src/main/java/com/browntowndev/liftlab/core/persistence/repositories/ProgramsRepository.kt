@@ -15,8 +15,8 @@ class ProgramsRepository(
     private val programsDao: ProgramsDao,
     private val programMapper: ProgramMapper
 ) : Repository {
-    suspend fun getWorkoutCountOfActive(): Int {
-        return programsDao.getWorkoutCountOfActive()
+    suspend fun getAll(): List<ProgramDto> {
+        return programsDao.getAll().map { programMapper.map(it) }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -59,6 +59,12 @@ class ProgramsRepository(
 
     suspend fun update(program: ProgramDto) {
         programsDao.update(programMapper.map(program))
+    }
+
+    suspend fun updateMany(programs: List<ProgramDto>) {
+        programsDao.updateMany(
+            programs.map { programMapper.map(it) }
+        )
     }
 
     suspend fun insert(program: ProgramDto): Long {

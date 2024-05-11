@@ -90,6 +90,10 @@ class HomeViewModel(
                 )
 
             _programObserver = Observer { activeProgram ->
+                _state.update {
+                    it.copy(activeProgramName = activeProgram?.name ?: "")
+                }
+
                 if (_liftLiveData == null) {
                     _liftObserver = Observer { lifts ->
                         _state.update {
@@ -234,7 +238,6 @@ class HomeViewModel(
                 workoutCompletionChart = getWeeklyCompletionChart(
                     workoutCompletionRange = workoutCompletionRange,
                     workoutsInDateRange = workoutsInDateRange,
-                    program = activeProgram,
                 ),
                 microCycleCompletionChart = getMicroCycleCompletionChart(
                     workoutLogs = workoutLogs,
@@ -258,7 +261,6 @@ class HomeViewModel(
                         _state.value.workoutLogs,
                         dateRange
                     ),
-                    program = activeProgram,
                 ),
                 microCycleCompletionChart = getMicroCycleCompletionChart(
                     workoutLogs = _state.value.workoutLogs,
@@ -364,7 +366,7 @@ class HomeViewModel(
 
                     when (volumeChart.volumeTypeImpact) {
                         VolumeTypeImpact.COMBINED -> {
-                            primaryVolumeTypes?.contains(volumeChart.volumeType) == true &&
+                            primaryVolumeTypes?.contains(volumeChart.volumeType) == true ||
                                     secondaryVolumeTypes?.contains(volumeChart.volumeType) == true
                         }
                         VolumeTypeImpact.PRIMARY -> primaryVolumeTypes?.contains(volumeChart.volumeType) == true

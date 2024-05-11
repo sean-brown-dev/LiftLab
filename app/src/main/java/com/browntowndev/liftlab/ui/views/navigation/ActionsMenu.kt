@@ -25,12 +25,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
 
 @Composable
 fun ActionsMenu(
@@ -47,9 +47,21 @@ fun ActionsMenu(
         splitMenuItems(topAppBarState.actions, maxVisibleItems)
     }
 
+    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().fastForEach { item ->
+        if (item.isVisible) {
+            FocusedOutlinedTextField(item, topAppBarViewModel = topAppBarViewModel)
+        }
+    }
+
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>().fastForEach { item ->
         if (item.isVisible) {
-            IconButton(onClick = item.onClick) {
+            IconButton(
+                onClick = {
+                    item.onClick().fastForEach {
+                        topAppBarViewModel.setControlVisibility(it.first, it.second)
+                    }
+                }
+            ) {
                 item.icon?.onLeft {
                     Icon(
                         modifier = Modifier.size(24.dp),
@@ -69,12 +81,6 @@ fun ActionsMenu(
         }
     }
 
-    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().fastForEach { item ->
-        if (item.isVisible) {
-            FocusedOutlinedTextField(item, topAppBarViewModel = topAppBarViewModel)
-        }
-    }
-
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.ButtonMenuItem.AlwaysShown>().fastForEach { item ->
         if (item.isVisible) {
             Button(
@@ -86,7 +92,7 @@ fun ActionsMenu(
         }
     }
 
-    if (menuItems.overflowItems.isNotEmpty()) {
+    if (menuItems.overflowItems.isNotEmpty() && topAppBarState.isOverflowMenuIconVisible) {
         IconButton(onClick = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, true) }) {
             Icon(
                 modifier = Modifier.size(24.dp),
@@ -127,7 +133,9 @@ fun ActionsMenu(
                     },
                     onClick = {
                         topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false)
-                        item.onClick()
+                        item.onClick().fastForEach {
+                            topAppBarViewModel.setControlVisibility(it.first, it.second)
+                        }
                     }
                 )
                 if (item.dividerBelow) {
@@ -175,7 +183,11 @@ fun FocusedOutlinedTextField(
             }
         },
         trailingIcon = {
-            IconButton(onClick = item.onClickTrailingIcon) {
+            IconButton(onClick = {
+                item.onClickTrailingIcon().fastForEach {
+                    topAppBarViewModel.setControlVisibility(it.first, it.second)
+                }
+            }) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = null,

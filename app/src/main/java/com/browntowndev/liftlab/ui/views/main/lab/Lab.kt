@@ -46,15 +46,20 @@ fun Lab(
 
     LaunchedEffect(state.program) {
         if(state.program != null) {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
+            if (!state.isManagingPrograms) {
+                mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
+            }
             mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, true)
             setTopAppBarControlVisibility(LabScreen.REORDER_WORKOUTS_ICON, state.program!!.workouts.size > 1)
             setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, true)
+            setTopAppBarControlVisibility(LabScreen.MANAGE_PROGRAMS_ICON, true)
         } else {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
+            if (!state.isManagingPrograms) {
+                mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
+            }
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, false)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, false)
             setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, false)
@@ -69,35 +74,57 @@ fun Lab(
         setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, !state.isReordering)
     }
 
+    LaunchedEffect(key1 = state.isManagingPrograms) {
+        if (state.isManagingPrograms) {
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "Program Management"))
+        } else {
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
+        }
+        setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, state.isManagingPrograms)
+        setTopAppBarControlVisibility(Screen.OVERFLOW_MENU_ICON, !state.isManagingPrograms)
+    }
+
     labViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = labViewModel)
 
-    if (!state.isReordering) {
-        if (state.program?.workouts?.isEmpty() == false) {
-            VolumeChipBottomSheet(
-                placeAboveBottomNavBar = true,
-                title = "Program Volume",
-                combinedVolumeChipLabels = state.combinedVolumeTypes,
-                primaryVolumeChipLabels = state.primaryVolumeTypes,
-                secondaryVolumeChipLabels = state.secondaryVolumeTypes,
-            ) {
-                WorkoutCardList(
-                    paddingValues = paddingValues,
-                    workouts = state.program!!.workouts,
-                    showEditWorkoutNameModal = { workout -> labViewModel.showEditWorkoutNameModal(workout.id, workout.name) },
-                    beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
-                    onNavigateToWorkoutBuilder = onNavigateToWorkoutBuilder,
-                )
-            }
-        }
-    }
-    else {
+    if (state.isReordering) {
         ReorderableLazyColumn(
             paddingValues = paddingValues,
             items = remember(state.program!!.workouts) { state.program!!.workouts.fastMap { ReorderableListItem(it.name, it.id) } },
             saveReorder = { labViewModel.saveReorder(it) },
             cancelReorder = { labViewModel.toggleReorderingScreen() }
         )
+    }
+    else if (state.isManagingPrograms) {
+        ProgramManager(
+            paddingValues = paddingValues,
+            programs = state.allPrograms,
+            onCreateProgram = { labViewModel.toggleCreateProgramModal() },
+            onSetProgramAsActive = { labViewModel.setProgramAsActive(it) },
+            onDeleteProgram = { labViewModel.beginDeleteProgram(it) },
+            onNavigateBack = { labViewModel.toggleManageProgramsScreen() })
+    }
+    else if (state.program?.workouts?.isEmpty() == false) {
+        VolumeChipBottomSheet(
+            placeAboveBottomNavBar = true,
+            title = "Program Volume",
+            combinedVolumeChipLabels = state.combinedVolumeTypes,
+            primaryVolumeChipLabels = state.primaryVolumeTypes,
+            secondaryVolumeChipLabels = state.secondaryVolumeTypes,
+        ) {
+            WorkoutCardList(
+                paddingValues = paddingValues,
+                workouts = state.program!!.workouts,
+                showEditWorkoutNameModal = { workout ->
+                    labViewModel.showEditWorkoutNameModal(
+                        workout.id,
+                        workout.name
+                    )
+                },
+                beginDeleteWorkout = { labViewModel.beginDeleteWorkout(it) },
+                onNavigateToWorkoutBuilder = onNavigateToWorkoutBuilder,
+            )
+        }
     }
 
     if (state.workoutIdToRename != null && state.originalWorkoutName != null) {
@@ -149,9 +176,9 @@ fun Lab(
     }
 
     if (state.isCreatingProgram) {
-        val subtext = if(state.program != null) {
-            "Creating a new program will archive the existing one." +
-                    "It can be restored or deleted from the Settings menu."
+        val subtext = if(state.program != null && !state.isManagingPrograms) {
+            "Creating a new program will archive the existing one. " +
+                    "It can be restored or deleted from the Manage Programs menu."
         } else ""
 
         TextFieldModal(
@@ -164,11 +191,11 @@ fun Lab(
         )
     }
 
-    if (state.isDeletingProgram && state.program != null) {
+    if (state.isDeletingProgram && state.idOfProgramToDelete != null) {
         ConfirmationModal(
             header = "Delete?",
-            body = "Are you sure you want to delete ${state.program!!.name}? This cannot be undone.",
-            onConfirm = { labViewModel.deleteProgram() },
+            body = "Are you sure you want to delete ${state.nameOfProgramToDelete}? This cannot be undone.",
+            onConfirm = { labViewModel.deleteProgram(state.idOfProgramToDelete!!) },
             onCancel = { labViewModel.cancelDeleteProgram() }
         )
     }

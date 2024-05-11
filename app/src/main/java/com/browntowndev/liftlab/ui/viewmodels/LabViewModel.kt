@@ -52,13 +52,14 @@ class LabViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.ReorderWorkouts,
-            TopAppBarAction.NavigatedBack -> toggleReorderingScreen()
-            TopAppBarAction.RenameProgram -> showEditProgramNameModal()
-            TopAppBarAction.DeleteProgram -> beginDeleteProgram()
-            TopAppBarAction.CreateNewWorkout -> createNewWorkout()
             TopAppBarAction.CreateNewProgram -> toggleCreateProgramModal()
+            TopAppBarAction.CreateNewWorkout -> createNewWorkout()
+            TopAppBarAction.DeleteProgram -> beginDeleteProgram(_state.value.program?.id)
             TopAppBarAction.EditDeloadWeek -> toggleEditDeloadWeek()
+            TopAppBarAction.RenameProgram -> showEditProgramNameModal()
+            TopAppBarAction.ReorderWorkouts -> toggleReorderingScreen()
+            TopAppBarAction.ManagePrograms -> toggleManageProgramsScreen()
+            TopAppBarAction.NavigatedBack -> toggleOffReorderingAndProgramManagement()
             else -> { }
         }
     }
@@ -95,14 +96,21 @@ class LabViewModel(
 
     fun createProgram(name: String) {
         executeInTransactionScope {
-            val newProgram = ProgramDto(name = name)
-            if (_state.value.program != null) {
+            var newProgram = ProgramDto(name = name, isActive = !_state.value.isManagingPrograms)
+            if (_state.value.program != null && !_state.value.isManagingPrograms) {
                 val programToArchive = _state.value.program!!.copy(isActive = false)
                 programsRepository.update(programToArchive)
             }
             val newProgramId = programsRepository.insert(newProgram)
-            _state.update {
-                it.copy(program = newProgram.copy(id = newProgramId), isCreatingProgram = false)
+            newProgram = newProgram.copy(id = newProgramId)
+            _state.update { currState ->
+                currState.copy(
+                    program = newProgram,
+                    allPrograms = currState.allPrograms
+                        .toMutableList()
+                        .apply { add(newProgram) },
+                    isCreatingProgram = false
+                )
             }
         }
     }
@@ -187,8 +195,6 @@ class LabViewModel(
         val program = _state.value.program
         if (program != null && _state.value.originalProgramName != newName) {
             executeInTransactionScope {
-                Log.d(Log.DEBUG.toString(), program.id.toString())
-                Log.d(Log.DEBUG.toString(), newName)
                 programsRepository.updateName(
                     id = program.id,
                     newName = newName
@@ -228,30 +234,85 @@ class LabViewModel(
         }
     }
 
-    private fun beginDeleteProgram() {
-        _state.update {
-            it.copy(isDeletingProgram = true)
-        }
-    }
-
-    fun deleteProgram() {
-        val program = _state.value.program
-        if (program != null) {
-            executeInTransactionScope {
-                programsRepository.delete(program)
-                workoutInProgressRepository.delete()
-                restTimerInProgressRepository.deleteAll()
-
-                _state.update {
-                    LabState()
-                }
+    fun beginDeleteProgram(programId: Long?) {
+        if (programId != null) {
+            _state.update {
+                it.copy(
+                    isDeletingProgram = true,
+                    idOfProgramToDelete = programId,
+                )
             }
         }
     }
 
     fun cancelDeleteProgram() {
         _state.update {
-            it.copy(isDeletingProgram = false)
+            it.copy(
+                isDeletingProgram = false,
+                idOfProgramToDelete = null,
+            )
+        }
+    }
+
+    fun deleteProgram(programId: Long) {
+        executeInTransactionScope {
+            if (_state.value.isManagingPrograms) {
+                val programToDelete = _state.value.allPrograms.find { it.id == programId }!!
+                val isActive = programToDelete.id == _state.value.program?.id
+                var newActiveProgram: ProgramDto? = null
+
+                if (isActive) {
+                    deleteActiveProgram()
+                    newActiveProgram = _state.value.allPrograms
+                        .firstOrNull { it.id != programId }
+                        ?.copy(isActive = true)
+                        ?.also {
+                            programsRepository.update(it)
+                        }
+                } else {
+                    programsRepository.delete(programToDelete)
+                }
+
+                _state.update {
+                    it.copy(
+                        program = if (isActive) newActiveProgram else it.program,
+                        idOfProgramToDelete = null,
+                        isDeletingProgram = false,
+                        allPrograms = it.allPrograms.mapNotNull { program ->
+                            if (program.id == newActiveProgram?.id) {
+                                newActiveProgram
+                            } else if (program.id != programId) {
+                                program
+                            }
+                            else null
+                        }
+                    )
+                }
+            } else {
+                deleteActiveProgram()
+                val newActiveProgram = programsRepository.getAll()
+                    .firstOrNull()
+                    ?.copy(isActive = true)
+                    ?.also {
+                        programsRepository.update(it)
+                    }
+
+                _state.update {
+                    it.copy(
+                        program = newActiveProgram,
+                        isDeletingProgram = false,
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun deleteActiveProgram() {
+        val program = _state.value.program
+        if (program != null) {
+            programsRepository.delete(program)
+            workoutInProgressRepository.delete()
+            restTimerInProgressRepository.deleteAll()
         }
     }
 
@@ -273,10 +334,74 @@ class LabViewModel(
         }
     }
 
+    private fun toggleOffReorderingAndProgramManagement() {
+        _state.update {
+            it.copy(
+                isReordering = false,
+                isManagingPrograms = false
+            )
+        }
+    }
+
     fun toggleReorderingScreen() {
-        viewModelScope.launch {
+        _state.update {
+            it.copy(isReordering = !it.isReordering)
+        }
+    }
+
+    fun toggleManageProgramsScreen() {
+        executeInTransactionScope {
+            // This UI will rarely be clicked, so I think it's fine to just get this each time it's opened
+            val allPrograms = programsRepository.getAll().sortedBy { it.name }
             _state.update {
-                it.copy(isReordering = !it.isReordering)
+                it.copy(
+                    allPrograms = allPrograms,
+                    isManagingPrograms = !it.isManagingPrograms,
+                )
+            }
+        }
+    }
+
+    fun setProgramAsActive(programId: Long) {
+        // Program is already active
+        if (_state.value.program?.id == programId) return
+
+        executeInTransactionScope {
+            val programsToUpdate = mutableListOf<ProgramDto>()
+            val newActiveProgram = _state.value.allPrograms
+                .find { it.id == programId }
+                ?.copy(isActive = true)
+
+            if (newActiveProgram != null) {
+                programsToUpdate.add(newActiveProgram)
+
+                // Theoretically, this should never be null. You can only open program management
+                // if a program exists. Just in case though!
+                val programToArchive = _state.value.program?.copy(isActive = false)?.let { programToArchive ->
+                    programsToUpdate.add(programToArchive)
+                    programToArchive
+                }
+
+                programsRepository.updateMany(programsToUpdate)
+
+                _state.update {
+                    it.copy(
+                        program = null, // Will get retrieved by observe in init
+                        allPrograms = it.allPrograms.map { program ->
+                            when (program.id) {
+                                programId -> {
+                                    newActiveProgram
+                                }
+                                programToArchive?.id -> {
+                                    programToArchive
+                                }
+                                else -> {
+                                    program
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }

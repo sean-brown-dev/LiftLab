@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.home
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import com.browntowndev.liftlab.ui.composables.SectionLabel
 @Composable
 fun ChartCard(
     label: String,
+    subHeaderLabel: String = "",
     labelFontSize: TextUnit = 14.sp,
     labelPadding: PaddingValues = PaddingValues(top = 10.dp),
     color: Color = MaterialTheme.colorScheme.secondaryContainer,
@@ -43,12 +45,23 @@ fun ChartCard(
         colors = CardDefaults.cardColors(containerColor = color),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            SectionLabel(
-                modifier = Modifier.padding(labelPadding),
-                text = label,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontSize = labelFontSize,
-            )
+            Column {
+                if (subHeaderLabel.isNotEmpty()) {
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp, start = 10.dp),
+                        text = subHeaderLabel,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontSize = 12.sp,
+                    )
+                }
+                SectionLabel(
+                    modifier = if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp),
+                    text = label,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    fontSize = labelFontSize,
+                )
+            }
 
             if (onDelete != null) {
                 Spacer(modifier = Modifier.weight(1f))
