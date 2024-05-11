@@ -50,7 +50,7 @@ fun ChartCard(
                     Text(
                         modifier = Modifier.padding(top = 4.dp, start = 10.dp),
                         text = subHeaderLabel,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        color = MaterialTheme.colorScheme.tertiary,
                         style = MaterialTheme.typography.bodyLarge,
                         fontSize = 12.sp,
                     )
