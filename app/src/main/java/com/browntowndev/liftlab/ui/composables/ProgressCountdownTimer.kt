@@ -86,11 +86,11 @@ fun ProgressCountdownTimer(
             contentAlignment = Alignment.Center
         ) {
             LinearProgressIndicator(
+                progress = { animatedProgress },
                 modifier = Modifier
                     .height(40.dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(5.dp)),
-                progress = animatedProgress,
                 color = MaterialTheme.colorScheme.secondary,
             )
             Row (
