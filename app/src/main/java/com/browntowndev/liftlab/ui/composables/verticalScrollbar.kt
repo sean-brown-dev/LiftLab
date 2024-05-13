@@ -4,7 +4,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -19,8 +21,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
@@ -30,24 +30,33 @@ import kotlin.math.sqrt
 @Composable
 fun Modifier.verticalScrollbar(
     lazyListState: LazyListState,
-    color: Color = MaterialTheme.colorScheme.outline,
-    onRequestLocationIdentifier: (index: Int) -> String,
+    verticalScrollbarColors: VerticalScrollbarColors = VerticalScrollbarDefaults.colors(),
+    onRequestBubbleTextForScrollLocation: (index: Int) -> String,
 ): Modifier {
-    val handleWidth = 3.dp
-    val targetAlpha = if (lazyListState.isScrollInProgress) 1f else 0f
-    val duration = if (lazyListState.isScrollInProgress) 150 else 500
+    val handleWidth = remember { 3.dp }
+
+    // Alpha value and colors
+    val targetAlpha = remember(lazyListState.isScrollInProgress) { if (lazyListState.isScrollInProgress) 1f else 0f }
+    val duration = remember(lazyListState.isScrollInProgress) { if (lazyListState.isScrollInProgress) 150 else 500 }
     val alpha by animateFloatAsState(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = duration),
         label = "Scrollbar handle animation"
     )
-    val colorWithAlphaUpdated = remember(alpha) { color.copy(alpha = alpha)}
+    val needDrawScrollbar = remember(lazyListState.isScrollInProgress, alpha) { lazyListState.isScrollInProgress || alpha > 0.0f }
+    val bubbleColorWithAlpha = remember(alpha) { verticalScrollbarColors.bubbleColor.copy(alpha = alpha)}
+    val textColorWithAlpha = remember(alpha) { verticalScrollbarColors.textColor.copy(alpha = alpha)}
+    val handleColorWithAlpha = remember(alpha) { verticalScrollbarColors.handleColor.copy(alpha = alpha) }
 
+    // Scroll index values and bubble text
+    val layoutInfo by remember { derivedStateOf { lazyListState.layoutInfo } }
+    val firstVisibleElementIndex = layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0
+    val lastVisibleElementIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+    val middleItemIndex = (firstVisibleElementIndex + lastVisibleElementIndex) / 2
+    val bubbleText = remember(middleItemIndex) { onRequestBubbleTextForScrollLocation(middleItemIndex) }
+
+    // Scrollbar height and animation
     var elementHeight by remember { mutableFloatStateOf(0f) }
-    val firstVisibleElementIndex =
-        remember { derivedStateOf { lazyListState.layoutInfo } }.value.visibleItemsInfo.firstOrNull()?.index
-            ?: 0
-    val needDrawScrollbar = lazyListState.isScrollInProgress || alpha > 0.0f
     val scrollbarOffsetY by animateFloatAsState(
         targetValue = firstVisibleElementIndex * elementHeight,
         animationSpec = tween(durationMillis = 100),
@@ -61,22 +70,21 @@ fun Modifier.verticalScrollbar(
 
         if (needDrawScrollbar) {
             elementHeight = this.size.height / lazyListState.layoutInfo.totalItemsCount
-            handleHeight =
-                if (!isHandleHeightSet) lazyListState.layoutInfo.visibleItemsInfo.size * elementHeight else handleHeight
+            handleHeight = if (!isHandleHeightSet) lazyListState.layoutInfo.visibleItemsInfo.size * elementHeight else handleHeight
             isHandleHeightSet = true
 
+            // Draw scrollbar
             drawRoundRect(
-                color = colorWithAlphaUpdated,
+                color = handleColorWithAlpha,
                 cornerRadius = CornerRadius(10f, 10f),
                 topLeft = Offset(this.size.width - handleWidth.toPx(), scrollbarOffsetY),
                 size = Size(handleWidth.toPx(), handleHeight),
             )
 
             // Calculate bubble circle size
-            val locationIdentifier = onRequestLocationIdentifier(firstVisibleElementIndex)
             val bubbleRadius = handleWidth.toPx() * 6f
             val bubbleCenter = Offset(
-                this.size.width - handleWidth.toPx() * 9f,
+                this.size.width - handleWidth.toPx() * 10f,
                 scrollbarOffsetY + handleHeight / 2
             )
 
@@ -108,20 +116,21 @@ fun Modifier.verticalScrollbar(
                 close()
             }
 
+            // Draw the bubble
             drawPath(
                 path = bubblePath,
-                color = colorWithAlphaUpdated,
+                color = bubbleColorWithAlpha,
             )
 
             // Draw the text inside the bubble
             val textPaint = android.graphics.Paint().apply {
                 textSize = bubbleRadius
-                setColor(invertColor(colorWithAlphaUpdated).value.toLong())
+                setColor(textColorWithAlpha.value.toLong())
             }
             drawIntoCanvas { canvas ->
                 canvas.nativeCanvas.drawText(
-                    locationIdentifier,
-                    bubbleCenter.x - textPaint.measureText(locationIdentifier) / 2,
+                    bubbleText,
+                    bubbleCenter.x - textPaint.measureText(bubbleText) / 2,
                     bubbleCenter.y + (textPaint.textSize * .8f) / 2,
                     textPaint
                 )
@@ -130,18 +139,36 @@ fun Modifier.verticalScrollbar(
     }
 }
 
-private fun invertColor(color: Color): Color {
-    val red = (255 - color.red * 255) / 255
-    val green = (255 - color.green * 255) / 255
-    val blue = (255 - color.blue * 255) / 255
+@Immutable
+object VerticalScrollbarDefaults {
+    @Composable fun colors(): VerticalScrollbarColors = defaultVerticalScrollbarColors
 
-    return Color(
-        red = red,
-        green = green,
-        blue = blue,
-        alpha = color.alpha,
-        colorSpace = color.colorSpace)
+    @Composable fun colors(handleColor: Color, bubbleColor: Color, textColor: Color) =
+        defaultVerticalScrollbarColors.copy(
+            handleColor = handleColor,
+            bubbleColor = bubbleColor,
+            textColor = textColor,
+        )
+
+    private var defaultColorsCached: VerticalScrollbarColors? = null
+    private val defaultVerticalScrollbarColors: VerticalScrollbarColors
+        @Composable
+        get() = defaultColorsCached ?: VerticalScrollbarColors(
+            handleColor = MaterialTheme.colorScheme.outline,
+            bubbleColor = MaterialTheme.colorScheme.tertiaryContainer,
+            textColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        ).also {
+            defaultColorsCached = it
+            TextFieldDefaults.colors()
+        }
 }
+
+@Immutable
+data class VerticalScrollbarColors(
+    val handleColor: Color,
+    val bubbleColor: Color,
+    val textColor: Color,
+)
 
 private fun calculateLineCircleIntersection(
     lineStart: Offset,
