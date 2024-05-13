@@ -125,17 +125,19 @@ fun LiftLibrary(
             ) {
                 val lazyListState = rememberLazyListState()
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier
                         .fillMaxSize()
                         .background(color = MaterialTheme.colorScheme.background)
                         .wrapContentSize(Alignment.TopStart)
                         .verticalScrollbar(
                             lazyListState = lazyListState,
-                            onRequestLocationIdentifier = { liftIndex ->
-                                state.filteredLifts[liftIndex].name[0].toString()
+                            onRequestBubbleTextForScrollLocation = { liftIndex ->
+                                if (liftIndex > -1 && liftIndex < state.filteredLifts.size) {
+                                    state.filteredLifts[liftIndex].name[0].toString()
+                                } else ""
                             }
                         ),
-                    state = lazyListState,
                 ) {
                     items(state.filteredLifts, { it.id }) { lift ->
                         val selected by remember(state.selectedNewLifts) {
