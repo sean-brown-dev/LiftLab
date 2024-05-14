@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,11 +32,12 @@ import java.util.Date
 import kotlin.math.roundToInt
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun WorkoutHistoryCard(
     workoutName: String,
     workoutDate: Date,
     workoutDuration: Long,
+    mesoCycle: Int,
+    microCycle: Int,
     setResults: List<SetLogEntryDto>,
     topSets: Map<Long, Pair<Int, SetLogEntryDto>>?,
     onEditWorkout: () -> Unit,
@@ -58,6 +58,24 @@ fun WorkoutHistoryCard(
             fontSize = 20.sp,
             modifier = Modifier.padding(start = 15.dp, top = 10.dp)
         )
+        Row(
+            modifier = Modifier.padding(start = 15.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            val mesoForText = remember(mesoCycle) { mesoCycle + 1}
+            val microForText = remember(microCycle) { microCycle + 1}
+            Text(
+                text = "Mesocycle: $mesoForText",
+                color = MaterialTheme.colorScheme.outline,
+                fontSize = 15.sp,
+            )
+            Text(
+                text = "Microcycle: $microForText",
+                color = MaterialTheme.colorScheme.outline,
+                fontSize = 15.sp,
+            )
+        }
         Text(
             modifier = Modifier.padding(start = 15.dp, bottom = 10.dp),
             text = workoutDate.toSimpleDateTimeString(),
