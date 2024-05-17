@@ -70,6 +70,5 @@ class CalculationEngine {
             val averageWeightRecommendation = (brzyckiCalc + baechleCalc + landerCalc + epleyCalc + lombardiCalc) / 5
             return averageWeightRecommendation.roundToNearestFactor(roundingFactor)
         }
-
     }
 }

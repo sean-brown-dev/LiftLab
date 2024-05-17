@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,6 +46,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import com.browntowndev.liftlab.ui.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.HyperlinkTextField
 import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 import com.browntowndev.liftlab.ui.composables.TimeSelectionSpinner
@@ -72,7 +76,7 @@ fun Settings(
             .background(color = MaterialTheme.colorScheme.background)
             .fillMaxSize()
             .padding(paddingValues),
-        verticalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item {
             Row(
@@ -283,6 +287,34 @@ fun Settings(
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.tertiary
                 )
+            }
+        }
+        item {
+            SectionLabel(modifier = Modifier.padding(bottom = 10.dp), text = "CONTACT", fontSize = 14.sp)
+            Row (
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.instagram_glyph_white), 
+                    contentDescription = stringResource(R.string.instagram_icon)
+                )
+                HyperlinkTextField(text = stringResource(R.string.ig_handle), url = stringResource(R.string.ig_url))
+            }
+            Row (
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 25.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = Icons.Outlined.Email,
+                    tint = Color.White,
+                    contentDescription = stringResource(R.string.email_icon),
+                )
+                HyperlinkTextField(text = stringResource(R.string.email_address), url = "mailto:${stringResource(R.string.email_address)}")
             }
         }
     }

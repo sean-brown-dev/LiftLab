@@ -19,4 +19,9 @@
     <string name="confirm_cancellation">Confirm Cancellation</string>
     <string name="cancel_workout_confirm_body">Are you sure you want to cancel the workout?</string>
     <string name="delete_program">Delete program</string>
+    <string name="instagram_icon">Instagram Icon</string>
+    <string name="ig_handle">\@liftlabworkoutlog</string>
+    <string name="ig_url">https://www.instagram.com/liftlabworkoutlog/</string>
+    <string name="email_address">browntown.development@gmail.com</string>
+    <string name="email_icon">Email Icon</string>
 </resources>
