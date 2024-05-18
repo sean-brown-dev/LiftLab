@@ -67,6 +67,9 @@ dependencies {
     def vico_version = '2.0.0-alpha.19'
     def koin_version = '3.5.6'
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
+    implementation "com.google.pay.button:compose-pay-button:1.0.0"
+
     implementation 'com.android.tools.compose:compose-preview-renderer:0.0.1-alpha01'
     implementation 'com.google.android.gms:play-services-wallet:19.3.0'
 
