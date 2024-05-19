@@ -54,6 +54,7 @@ fun NavigationGraph(
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
+    onDonationRequested: (priceInCents: Long) -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(HomeScreen.navigation.route) {
@@ -98,6 +99,7 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
                     onNavigateBack = { navHostController.popBackStack() },
+                    onDonationRequested = onDonationRequested,
                 )
             }
         }

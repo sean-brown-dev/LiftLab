@@ -26,7 +26,10 @@ import org.koin.androidx.compose.koinViewModel
 @ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LiftLab(roomBackup: RoomBackup) {
+fun LiftLab(
+    roomBackup: RoomBackup,
+    onDonationRequested: (priceInCents: Long) -> Unit,
+) {
     LiftLabTheme {
         val navController = rememberNavController()
         val bottomNavBarViewModel: BottomNavBarViewModel = koinViewModel()
@@ -90,7 +93,8 @@ fun LiftLab(roomBackup: RoomBackup) {
                         )
                     }
                 },
-                setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) }
+                setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
+                onDonationRequested = onDonationRequested,
             )
         }
     }

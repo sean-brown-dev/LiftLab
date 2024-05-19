@@ -135,7 +135,7 @@ object PayUtils {
      * See [MerchantInfo](https://developers.google.com/pay/api/android/reference/object.MerchantInfo)
      */
     private val merchantInfo: JSONObject =
-        JSONObject().put("liftlabapp", "Lift Lab Workout Log")
+        JSONObject().put("Lift Lab Workout Log", "BCR2DN4TS7ZO7VSX")
 
     /**
      * Creates an instance of [PaymentsClient] for use in an [Context] using the
@@ -175,13 +175,8 @@ object PayUtils {
         baseRequest
             .put("allowedPaymentMethods", allowedPaymentMethods)
             .put("transactionInfo", getTransactionInfo(priceCents.centsToString()))
-            .put("merchantInfo", merchantInfo)
-            .put("shippingAddressRequired", true)
-            .put(
-                "shippingAddressParameters", JSONObject()
-                    .put("phoneNumberRequired", false)
-                    .put("allowedCountryCodes", JSONArray(listOf("US", "GB")))
-            )
+            //.put("merchantInfo", merchantInfo)
+            .put("shippingAddressRequired", false)
 }
 
 /**
