@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.views.main.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -44,7 +45,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.ui.composables.ConfirmationModal
-import com.browntowndev.liftlab.ui.composables.DonateButton
+import com.browntowndev.liftlab.ui.composables.Donate
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.HyperlinkTextField
 import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
@@ -63,7 +64,7 @@ fun Settings(
     paddingValues: PaddingValues,
     screenId: String?,
     onNavigateBack: () -> Unit,
-    onDonationRequested: (priceInCents: Long) -> Unit,
+    onDonationRequested: (priceInCents: Long, monthly: Boolean) -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
         parametersOf(roomBackup, onNavigateBack)
@@ -73,257 +74,309 @@ fun Settings(
     settingsViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = settingsViewModel)
 
-    LazyColumn(
-        modifier = Modifier
-            .background(color = MaterialTheme.colorScheme.background)
-            .fillMaxSize()
-            .padding(paddingValues),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        item {
-            DonateButton {
-                onDonationRequested(it)
-            }
+    if (state.isDonateScreenVisible) {
+        Donate(
+            paddingValues = paddingValues,
+            onBackPressed = { settingsViewModel.toggleDonationScreen() },
+        ) { priceInCents, monthly ->
+            onDonationRequested(priceInCents, monthly)
         }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp, bottom = 25.dp),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(.95f),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-            }
-            SectionLabel(text = "DATA MANAGEMENT", fontSize = 14.sp)
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Import Database", fontSize = 18.sp)
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = {
-                    settingsViewModel.toggleImportConfirmationDialog()
-                }) {
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.background)
+                .fillMaxSize()
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                SectionLabel(modifier = Modifier.padding(top = 25.dp, bottom = 10.dp), text = "DONATE", fontSize = 14.sp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp)
+                        .clickable { settingsViewModel.toggleDonationScreen() },
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
                     Icon(
                         modifier = Modifier.size(32.dp),
-                        painter = painterResource(id = R.drawable.upload_icon),
+                        painter = painterResource(id = R.drawable.donate_icon),
                         tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = stringResource(R.string.import_database),
+                        contentDescription = stringResource(R.string.donate),
+                    )
+                    Text(
+                        text = "Support Lift Lab",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 18.sp,
                     )
                 }
             }
-            if (state.importConfirmationDialogShown) {
-                ConfirmationModal(
-                    header = "Warning!",
-                    body = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
-                    onConfirm = { settingsViewModel.importDatabase() },
-                    onCancel = { settingsViewModel.toggleImportConfirmationDialog() }
-                )
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp, bottom = 25.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+                SectionLabel(text = "DATA MANAGEMENT", fontSize = 14.sp)
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Import Database", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        settingsViewModel.toggleImportConfirmationDialog()
+                    }) {
+                        Icon(
+                            modifier = Modifier.size(32.dp),
+                            painter = painterResource(id = R.drawable.upload_icon),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = stringResource(R.string.import_database),
+                        )
+                    }
+                }
+                if (state.importConfirmationDialogShown) {
+                    ConfirmationModal(
+                        header = "Warning!",
+                        body = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
+                        onConfirm = { settingsViewModel.importDatabase() },
+                        onCancel = { settingsViewModel.toggleImportConfirmationDialog() }
+                    )
+                }
             }
-        }
-        item {
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Export Database", fontSize = 18.sp)
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = {
-                    settingsViewModel.exportDatabase()
-                }) {
+            item {
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Export Database", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = {
+                        settingsViewModel.exportDatabase()
+                    }) {
+                        Icon(
+                            modifier = Modifier.size(32.dp),
+                            painter = painterResource(id = R.drawable.download_icon),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = stringResource(R.string.export_database),
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp, bottom = 25.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+                SectionLabel(text = "PROGRESSION", fontSize = 14.sp)
+                Text(
+                    modifier = Modifier.padding(start = 10.dp),
+                    text = "WARNING: Disabling may reduce weight recommendation accuracy.",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.outline,
+                )
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "Weight Recommendations",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            text = "Only Sets from Previous Workout",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.outline,
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    var useAllData by remember {
+                        mutableStateOf(
+                            SettingsManager.getSetting(
+                                USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+                                DEFAULT_USE_ALL_WORKOUT_DATA
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = !useAllData,
+                        onCheckedChange = {
+                            useAllData = !it
+                            SettingsManager.setSetting(
+                                USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+                                !it
+                            )
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedBorderColor = MaterialTheme.colorScheme.secondary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                        )
+                    )
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            text = "Weight Recommendations",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            text = "Only Sets from Lifts in Same Order Position",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.outline,
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    var enforcePosition by remember {
+                        mutableStateOf(
+                            SettingsManager.getSetting(
+                                ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                                DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = enforcePosition,
+                        onCheckedChange = {
+                            enforcePosition = it
+                            SettingsManager.setSetting(
+                                ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                                it
+                            )
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedBorderColor = MaterialTheme.colorScheme.secondary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                        )
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp, bottom = 25.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+                SectionLabel(text = "DEFAULTS", fontSize = 14.sp)
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Weight Increment", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.weight(1f))
+                    NumberPickerSpinner(
+                        modifier = Modifier.padding(start = 165.dp),
+                        options = INCREMENT_OPTIONS,
+                        initialValue = state.defaultIncrement ?: DEFAULT_INCREMENT_AMOUNT,
+                        onChanged = { settingsViewModel.updateIncrement(it) }
+                    )
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Rest Time", fontSize = 18.sp)
+                    TimeSelectionSpinner(
+                        modifier = Modifier.padding(start = 100.dp),
+                        time = state.defaultRestTimeString ?: DEFAULT_REST_TIME.toDuration(
+                            DurationUnit.MILLISECONDS
+                        ),
+                        onTimeChanged = { settingsViewModel.updateDefaultRestTime(it) },
+                        rangeInMinutes = REST_TIME_RANGE,
+                        secondsStepSize = 5,
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp, bottom = 25.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth(.95f),
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+            }
+            item {
+                SectionLabel(
+                    modifier = Modifier.padding(bottom = 10.dp),
+                    text = "CONTACT",
+                    fontSize = 14.sp
+                )
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
                     Icon(
-                        modifier = Modifier.size(32.dp),
-                        painter = painterResource(id = R.drawable.download_icon),
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = stringResource(R.string.export_database),
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = R.drawable.instagram_glyph_white),
+                        contentDescription = stringResource(R.string.instagram_icon)
+                    )
+                    HyperlinkTextField(
+                        text = stringResource(R.string.ig_handle),
+                        url = stringResource(R.string.ig_url)
                     )
                 }
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp, bottom = 25.dp),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(.95f),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-            }
-            SectionLabel(text = "PROGRESSION", fontSize = 14.sp)
-            Text(
-                modifier = Modifier.padding(start = 10.dp),
-                text = "WARNING: Disabling may reduce weight recommendation accuracy.",
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.outline,
-            )
-            Row (
-                modifier = Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(
-                        text = "Weight Recommendations",
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onBackground,
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 25.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = Icons.Outlined.Email,
+                        tint = Color.White,
+                        contentDescription = stringResource(R.string.email_icon),
                     )
-                    Text(
-                        text = "Only Sets from Previous Workout",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline,
+                    HyperlinkTextField(
+                        text = stringResource(R.string.email_address),
+                        url = "mailto:${stringResource(R.string.email_address)}"
                     )
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                var useAllData by remember {
-                    mutableStateOf(SettingsManager.getSetting(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, DEFAULT_USE_ALL_WORKOUT_DATA))
-                }
-                Switch(
-                    checked = !useAllData,
-                    onCheckedChange = {
-                        useAllData = !it
-                        SettingsManager.setSetting(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, !it)
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedBorderColor = MaterialTheme.colorScheme.secondary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.surface,
-                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-                    )
-                )
-            }
-        }
-        item {
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(
-                        text = "Weight Recommendations",
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Text(
-                        text = "Only Sets from Lifts in Same Order Position",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline,
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                var enforcePosition by remember {
-                    mutableStateOf(
-                        SettingsManager.getSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
-                            DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION))
-                }
-                Switch(
-                    checked = enforcePosition,
-                    onCheckedChange = {
-                        enforcePosition = it
-                        SettingsManager.setSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, it)
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                        checkedThumbColor = MaterialTheme.colorScheme.primary,
-                        checkedBorderColor = MaterialTheme.colorScheme.secondary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.surface,
-                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-                    )
-                )
-            }
-        }
-
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp, bottom = 25.dp),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(.95f),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-            }
-            SectionLabel(text = "DEFAULTS", fontSize = 14.sp)
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Weight Increment", fontSize = 18.sp)
-                Spacer(modifier = Modifier.weight(1f))
-                NumberPickerSpinner(
-                    modifier = Modifier.padding(start = 165.dp),
-                    options = INCREMENT_OPTIONS,
-                    initialValue = state.defaultIncrement ?: DEFAULT_INCREMENT_AMOUNT,
-                    onChanged = { settingsViewModel.updateIncrement(it) }
-                )
-            }
-        }
-        item {
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Rest Time", fontSize = 18.sp)
-                TimeSelectionSpinner(
-                    modifier = Modifier.padding(start = 100.dp),
-                    time = state.defaultRestTimeString ?: DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
-                    onTimeChanged = { settingsViewModel.updateDefaultRestTime(it) },
-                    rangeInMinutes = REST_TIME_RANGE,
-                    secondsStepSize = 5,
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp, bottom = 25.dp),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(.95f),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-            }
-        }
-        item {
-            SectionLabel(modifier = Modifier.padding(bottom = 10.dp), text = "CONTACT", fontSize = 14.sp)
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(id = R.drawable.instagram_glyph_white), 
-                    contentDescription = stringResource(R.string.instagram_icon)
-                )
-                HyperlinkTextField(text = stringResource(R.string.ig_handle), url = stringResource(R.string.ig_url))
-            }
-            Row (
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 25.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = Icons.Outlined.Email,
-                    tint = Color.White,
-                    contentDescription = stringResource(R.string.email_icon),
-                )
-                HyperlinkTextField(text = stringResource(R.string.email_address), url = "mailto:${stringResource(R.string.email_address)}")
             }
         }
     }
 }
-

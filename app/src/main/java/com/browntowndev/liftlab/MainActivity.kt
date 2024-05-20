@@ -173,7 +173,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
         }
     }
 
-    private fun handleDonationRequest(priceInCents: Long) {
+    private fun handleDonationRequest(priceInCents: Long, monthly: Boolean) {
         val task = payViewModel.getLoadPaymentDataTask(priceCents = priceInCents)
         task.addOnCompleteListener(paymentDataLauncher::launch)
     }

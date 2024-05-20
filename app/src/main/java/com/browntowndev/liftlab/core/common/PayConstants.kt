@@ -103,7 +103,7 @@ object PayConstants {
      *
      * @value #DIRECT_TOKENIZATION_PUBLIC_KEY
      */
-    const val DIRECT_TOKENIZATION_PUBLIC_KEY = "REPLACE_ME"
+    private const val DIRECT_TOKENIZATION_PUBLIC_KEY = "REPLACE_ME"
 
     /**
      * Parameters required for `DIRECT` tokenization.

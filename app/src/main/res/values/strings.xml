@@ -24,4 +24,8 @@
     <string name="ig_url">https://www.instagram.com/liftlabworkoutlog/</string>
     <string name="email_address">browntown.development@gmail.com</string>
     <string name="email_icon">Email Icon</string>
+    <string name="one_time_donation">One Time Donation</string>
+    <string name="donate">Donate</string>
+    <string name="thank_you">Thank You</string>
+    <string name="donate_message">Hi, I hope you\'re enjoying Lift Lab. Please consider supporting the app so that I can keep making it better!</string>
 </resources>
