@@ -21,41 +21,19 @@ import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
-import com.browntowndev.liftlab.ui.viewmodels.PayViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.gms.wallet.contract.TaskResultContracts.GetPaymentDataResult
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CREATOR
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BY_USER_CANCELED
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.KoinAndroidContext
-import org.koin.androidx.compose.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.parameter.parametersOf
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
-    private lateinit var payViewModel: PayViewModel
-
-    private val paymentDataLauncher =
-        registerForActivityResult(GetPaymentDataResult()) { taskResult ->
-            when (taskResult.status.statusCode) {
-                CommonStatusCodes.SUCCESS -> {
-                    taskResult.result!!.let {
-                        Log.i("Google Pay result:", it.toJson())
-                        payViewModel.setPaymentData(it)
-                    }
-                }
-                //CommonStatusCodes.CANCELED -> The user canceled
-                //AutoResolveHelper.RESULT_ERROR -> The API returned an error (it.status: Status)
-                //CommonStatusCodes.INTERNAL_ERROR -> Handle other unexpected errors
-            }
-        }
-
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,12 +76,8 @@ class MainActivity : ComponentActivity(), KoinComponent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
             if(isInitialized) {
                 KoinAndroidContext {
-                    payViewModel = koinViewModel {
-                        parametersOf(application)
-                    }
                     LiftLab(
                         roomBackup = roomBackup,
-                        onDonationRequested = this::handleDonationRequest
                     )
                 }
             }
@@ -171,10 +145,5 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 1
             )
         }
-    }
-
-    private fun handleDonationRequest(priceInCents: Long, monthly: Boolean) {
-        val task = payViewModel.getLoadPaymentDataTask(priceCents = priceInCents)
-        task.addOnCompleteListener(paymentDataLauncher::launch)
     }
 }

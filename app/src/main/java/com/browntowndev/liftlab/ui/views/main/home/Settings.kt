@@ -64,7 +64,6 @@ fun Settings(
     paddingValues: PaddingValues,
     screenId: String?,
     onNavigateBack: () -> Unit,
-    onDonationRequested: (priceInCents: Long, monthly: Boolean) -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
         parametersOf(roomBackup, onNavigateBack)
@@ -78,9 +77,7 @@ fun Settings(
         Donate(
             paddingValues = paddingValues,
             onBackPressed = { settingsViewModel.toggleDonationScreen() },
-        ) { priceInCents, monthly ->
-            onDonationRequested(priceInCents, monthly)
-        }
+        )
     } else {
         LazyColumn(
             modifier = Modifier

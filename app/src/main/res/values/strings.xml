@@ -28,4 +28,6 @@
     <string name="donate">Donate</string>
     <string name="thank_you">Thank You</string>
     <string name="donate_message">Hi, I hope you\'re enjoying Lift Lab. Please consider supporting the app so that I can keep making it better!</string>
+    <string name="setup_donation">Begin Recurring Donation</string>
+    <string name="send_donation">Send Donation</string>
 </resources>

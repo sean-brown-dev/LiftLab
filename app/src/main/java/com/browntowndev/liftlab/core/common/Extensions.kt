@@ -1,6 +1,9 @@
 package com.browntowndev.liftlab.core.common
 
+import android.app.Activity
 import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.ContextWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import androidx.compose.ui.text.AnnotatedString
@@ -341,3 +344,15 @@ internal val Int.alpha: Int
     get() = extractColorChannel(ALPHA_BIT_SHIFT)
 
 private fun Int.extractColorChannel(bitShift: Int): Int = this shr bitShift and COLOR_MASK
+
+fun Context.findActivity(): Activity? {
+    var currentContext = this
+    while (currentContext is ContextWrapper) {
+        if (currentContext is Activity) {
+            return currentContext
+        }
+        currentContext = currentContext.baseContext
+    }
+
+    return null
+}

@@ -1,11 +1,15 @@
 package com.browntowndev.liftlab.ui.composables
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,14 +18,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,23 +38,50 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.window.Dialog
+import com.android.billingclient.api.AcknowledgePurchaseParams
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClient.ProductType
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.queryProductDetails
+import com.android.billingclient.api.queryPurchasesAsync
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.PayUtils
-import com.google.pay.button.ButtonType
-import com.google.pay.button.PayButton
+import com.browntowndev.liftlab.core.common.findActivity
+import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
 fun Donate(
     paddingValues: PaddingValues,
     onBackPressed: () -> Unit,
-    onDonationRequested: (priceInCents: Long, monthly: Boolean) -> Unit,
 ) {
+    val context = LocalContext.current
+    val activity = remember { context.findActivity() }
+    if (activity == null) return
+
+    val billingClientBuilder = remember { BillingClient.newBuilder(context) }
+    val donationViewModel: DonationViewModel = koinViewModel {
+        parametersOf(billingClientBuilder)
+    }
+    val state by donationViewModel.state.collectAsState()
+
     BackHandler {
         onBackPressed()
     }
@@ -71,8 +106,14 @@ fun Donate(
             text = stringResource(R.string.donate_message)
         )
 
-        var priceInCents by remember { mutableLongStateOf(0L) }
         var monthly by remember { mutableStateOf(false) }
+        val productOptions = remember(monthly) {
+            if (monthly) {
+                state.subscriptionProducts
+            } else {
+                state.oneTimeDonationProducts
+            }
+        }
         Row (verticalAlignment = Alignment.CenterVertically) {
             DurationOption(
                 text = "One Time",
@@ -87,59 +128,59 @@ fun Donate(
                 onSelected = { monthly = true }
             )
         }
-        listOf(1, 2).fastForEachIndexed { index, _ ->
-            DonationOption(
-                rowIndex = index,
-                priceInCents = priceInCents,
-                onDonationChanged = { priceInCents = it }
+        DonationOption(
+            productOptions,
+            selectedProduct = state.newDonationSelection,
+            onDonationChanged = { donationViewModel.setNewDonationOption(it) }
+        )
+        OutlinedButton(
+            modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
+            shape = RoundedCornerShape(10.dp),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
+            onClick = {
+                donationViewModel.processDonation(activity)
+            }
+        ) {
+            val buttonText = remember(monthly) {
+                if (monthly) R.string.setup_donation else R.string.send_donation
+            }
+            Text(
+                modifier = Modifier.padding(10.dp),
+                text = stringResource(buttonText),
+                fontSize = 16.sp,
             )
         }
+    }
 
-        CurrencyTextField(
-            modifier = Modifier
-                .width(325.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.background,
-                    shape = RoundedCornerShape(10.dp),
-                ),
-            label = {
-                Text(text = "Custom Amount")
-            },
-            onChange = {
-                it.replace("$", "").let { donation ->
-                    if (donation.isNotEmpty()) {
-                        priceInCents = (donation.toFloat() * 100).toLong()
-                    }
-                }
-            }
-        )
-        PayButton(
-            type = ButtonType.Donate,
-            allowedPaymentMethods = PayUtils.allowedPaymentMethods.toString(),
-            onClick = {
-                onDonationRequested(priceInCents, monthly)
-            }
-        )
+    if (state.billingError?.isNotEmpty() == true) {
+        Dialog(onDismissRequest = { donationViewModel.clearBillingError() }) {
+            Text(text = "Error processing donation. Message: ${state.billingError}")
+        }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DonationOption(
-    rowIndex: Int,
-    priceInCents: Long,
-    onDonationChanged: (priceInCents: Long) -> Unit,
+    options: List<ProductDetails>,
+    selectedProduct: ProductDetails?,
+    onDonationChanged: (product: ProductDetails) -> Unit,
 ) {
-    val options = if (rowIndex == 0) listOf(5L, 10L, 20L) else listOf(30L, 50L, 100L)
-    Row(
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.Center,
+        maxItemsInEachRow = 3,
     ) {
-        options.fastForEach { donateAmount ->
-            val isSelected = remember(
-                donateAmount,
-                priceInCents
-            ) { donateAmount == (priceInCents / 100L) }
-
+        options.fastForEach { option ->
+            val isSelected = remember(option, selectedProduct) { option == selectedProduct }
+            val optionText = remember(option) {
+                option.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+                    ?: option.oneTimePurchaseOfferDetails?.formattedPrice
+            }
             Surface(
                 modifier = Modifier
                     .height(95.dp)
@@ -151,13 +192,17 @@ private fun DonationOption(
                     else MaterialTheme.colorScheme.primaryContainer,
                 ),
                 shape = RoundedCornerShape(10.dp),
-                onClick = { onDonationChanged(donateAmount * 100L) }
+                onClick = {
+                    if (!isSelected) {
+                        onDonationChanged(option)
+                    }
+                }
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "$$donateAmount",
+                        text = "$optionText",
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
