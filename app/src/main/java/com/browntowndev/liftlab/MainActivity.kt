@@ -42,6 +42,11 @@ class MainActivity : ComponentActivity(), KoinComponent {
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().apply {
+            setKeepOnScreenCondition {
+                !LiftLabDatabase.initialized.value
+            }
+        }
 
         requestNotificationPermission(this)
         SettingsManager.initialize(this@MainActivity)
@@ -71,19 +76,12 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         }
                     }
                 }
-
-        installSplashScreen().apply {
-            setKeepOnScreenCondition {
-                !LiftLabDatabase.initialized.value
-            }
-        }
         setContent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
             if(isInitialized) {
                 KoinAndroidContext {
-                    val billingClientBuilder = remember { BillingClient.newBuilder(this) }
                     val donationViewModel: DonationViewModel = koinViewModel {
-                        parametersOf(billingClientBuilder)
+                        parametersOf(BillingClient.newBuilder(this))
                     }
                     val donationState by donationViewModel.state.collectAsState()
                     LiftLab(
