@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +33,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
@@ -63,6 +63,16 @@ fun Settings(
     roomBackup: RoomBackup,
     paddingValues: PaddingValues,
     screenId: String?,
+    initialized: Boolean,
+    isProcessingDonation: Boolean,
+    activeSubscription: ProductDetails?,
+    newDonationSelection: ProductDetails?,
+    subscriptionProducts: List<ProductDetails>,
+    oneTimeDonationProducts: List<ProductDetails>,
+    billingCompletionMessage: String?,
+    onClearBillingError: () -> Unit,
+    onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
+    onProcessDonation: () -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
@@ -76,6 +86,16 @@ fun Settings(
     if (state.isDonateScreenVisible) {
         Donate(
             paddingValues = paddingValues,
+            initialized = initialized,
+            isProcessingDonation = isProcessingDonation,
+            activeSubscription = activeSubscription,
+            newDonationSelection = newDonationSelection,
+            subscriptionProducts = subscriptionProducts,
+            oneTimeDonationProducts = oneTimeDonationProducts,
+            billingError = billingCompletionMessage,
+            onClearBillingError = onClearBillingError,
+            onUpdateDonationProduct = onUpdateDonationProduct,
+            onProcessDonation = onProcessDonation,
             onBackPressed = { settingsViewModel.toggleDonationScreen() },
         )
     } else {
@@ -91,22 +111,23 @@ fun Settings(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 10.dp)
-                        .clickable { settingsViewModel.toggleDonationScreen() },
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.Bottom,
+                        .padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Support Lift Lab",
+                        text = stringResource(R.string.support_lift_lab),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontSize = 18.sp,
                     )
-                    Icon(
-                        modifier = Modifier.size(32.dp),
-                        painter = painterResource(id = R.drawable.donate_icon),
-                        tint = MaterialTheme.colorScheme.primary,
-                        contentDescription = stringResource(R.string.donate),
-                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = settingsViewModel::toggleDonationScreen) {
+                        Icon(
+                            modifier = Modifier.size(32.dp),
+                            painter = painterResource(id = R.drawable.donate_icon),
+                            tint = MaterialTheme.colorScheme.primary,
+                            contentDescription = stringResource(R.string.donate),
+                        )
+                    }
                 }
             }
             item {
@@ -129,9 +150,7 @@ fun Settings(
                 ) {
                     Text("Import Database", fontSize = 18.sp)
                     Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        settingsViewModel.toggleImportConfirmationDialog()
-                    }) {
+                    IconButton(onClick = settingsViewModel::toggleImportConfirmationDialog) {
                         Icon(
                             modifier = Modifier.size(32.dp),
                             painter = painterResource(id = R.drawable.upload_icon),
@@ -156,9 +175,7 @@ fun Settings(
                 ) {
                     Text("Export Database", fontSize = 18.sp)
                     Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        settingsViewModel.exportDatabase()
-                    }) {
+                    IconButton(onClick = settingsViewModel::exportDatabase) {
                         Icon(
                             modifier = Modifier.size(32.dp),
                             painter = painterResource(id = R.drawable.download_icon),

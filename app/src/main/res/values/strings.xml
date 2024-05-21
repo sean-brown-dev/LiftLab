@@ -30,4 +30,6 @@
     <string name="donate_message">Fuel my coding with pre-workout and keep the Lift Lab running by supporting its continued development.</string>
     <string name="setup_donation">Begin Recurring Donation</string>
     <string name="send_donation">Send Donation</string>
+    <string name="thank_you_for_subscription"><![CDATA[Thank you for your support! To pause or cancel your subscription visit the Payments & Subscriptions section in the Play Store. To modify your subscription you may cancel and then re-subscribe here.]]></string>
+    <string name="support_lift_lab">Support Lift Lab</string>
 </resources>

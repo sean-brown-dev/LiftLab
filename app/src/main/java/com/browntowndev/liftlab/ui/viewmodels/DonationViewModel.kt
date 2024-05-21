@@ -13,6 +13,7 @@ import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.Purchase.PurchaseState
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
@@ -20,6 +21,7 @@ import com.android.billingclient.api.acknowledgePurchase
 import com.android.billingclient.api.consumePurchase
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
+import com.browntowndev.liftlab.core.common.THANK_YOU_DIALOG_BODY
 import com.browntowndev.liftlab.core.common.toFriendlyMessage
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
@@ -45,12 +47,10 @@ class DonationViewModel(
             .also { billingClient ->
                 billingClient.startConnection(object : BillingClientStateListener {
                     override fun onBillingSetupFinished(billingResult: BillingResult) {
-                        if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                            _state.update {
-                                it.copy(billingClient = billingClient)
-                            }
-
+                        if (billingResult.responseCode == BillingResponseCode.OK) {
                             viewModelScope.launch {
+                                acknowledgeUnacknowledgedPurchases(billingClient, ProductType.SUBS)
+                                acknowledgeUnacknowledgedPurchases(billingClient, ProductType.INAPP)
 
                                 val availableOneTimeDonations = getProducts(
                                     billingClient = billingClient,
@@ -71,11 +71,12 @@ class DonationViewModel(
                                         ?.priceAmountMicros
                                 }
 
-                                val activeSubscription = getSubscriptionPurchases(billingClient, availableSubscriptions)
+                                val activeSubscription = getActiveSubscription(billingClient, availableSubscriptions)
 
                                 _state.update {
                                     it.copy(
                                         initialized = true,
+                                        billingClient = billingClient,
                                         activeSubscription = activeSubscription,
                                         oneTimeDonationProducts = availableOneTimeDonations,
                                         subscriptionProducts = availableSubscriptions,
@@ -117,6 +118,9 @@ class DonationViewModel(
                 .build()
 
             _state.value.billingClient?.launchBillingFlow(activity, billingFlowParams)
+            _state.update {
+                it.copy(isProcessingDonation = true)
+            }
         }
     }
 
@@ -126,62 +130,125 @@ class DonationViewModel(
                 purchases?.forEach { purchase ->
                     if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
                         viewModelScope.launch {
-                            completePurchase(purchase)
+                            handlePurchase(purchase)
+                        }
+                    } else if (purchase.purchaseState == PurchaseState.UNSPECIFIED_STATE) {
+                        _state.update {
+                            it.copy(
+                                billingCompletionMessage = "An error may have occurred processing the donation. Please verify that it was successful.",
+                                isProcessingDonation = false
+                            )
                         }
                     }
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        billingCompletionMessage = billingResult.responseCode.toFriendlyMessage(),
+                        isProcessingDonation = false,
+                    )
                 }
             }
         }
     }
 
-    private suspend fun completePurchase(purchase: Purchase) {
-        // No clue why this would ever be the case, but just in case
-        if (purchase.products.isEmpty()) {
-            _state.update {
-                it.copy(billingError = BillingResponseCode.USER_CANCELED.toFriendlyMessage())
+    private suspend fun handlePurchase(billingClient: BillingClient?, purchase: Purchase) {
+        try {
+            // No clue why this would ever be the case, but just in case
+            if (purchase.products.isEmpty()) {
+                _state.update {
+                    it.copy(billingCompletionMessage = BillingResponseCode.USER_CANCELED.toFriendlyMessage())
+                }
+            }
+
+            val productDetails: ProductDetails?
+            val isOneTimeDonation = _state.value.oneTimeDonationProductIds.contains(purchase.products.first())
+            val result = if (isOneTimeDonation) {
+                productDetails = _state.value.oneTimeDonationProducts.find { subscriptionProduct -> subscriptionProduct.productId == purchase.products.first() }
+
+                val consumeParams =
+                    ConsumeParams.newBuilder()
+                        .setPurchaseToken(purchase.purchaseToken)
+                        .build()
+
+                billingClient?.consumePurchase(consumeParams)?.billingResult
+            } else {
+                productDetails = _state.value.subscriptionProducts.find { subscriptionProduct -> subscriptionProduct.productId == purchase.products.first() }
+
+                val acknowledgePurchaseParams =
+                    AcknowledgePurchaseParams.newBuilder()
+                        .setPurchaseToken(purchase.purchaseToken)
+                        .build()
+
+                billingClient?.acknowledgePurchase(acknowledgePurchaseParams)
+            }
+
+            if (result?.responseCode == BillingResponseCode.OK) {
+                _state.update {
+                    it.copy(
+                        billingCompletionMessage = if (isOneTimeDonation) THANK_YOU_DIALOG_BODY else null,
+                        activeSubscription = if (!isOneTimeDonation) {
+                            productDetails
+                        } else it.activeSubscription
+                    )
+                }
+            }
+            else if (result != null && result.responseCode != BillingResponseCode.OK) {
+                _state.update {
+                    it.copy(
+                        billingCompletionMessage = "Error processing: ${productDetails?.name}. ${result.responseCode.toFriendlyMessage()}",
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        billingCompletionMessage = "Error processing: ${productDetails?.name}. An unknown error occurred completing the donation."
+                    )
+                }
             }
         }
-
-        val result = if (_state.value.oneTimeDonationProductIds.contains(purchase.products.first())) {
-            val consumeParams =
-                ConsumeParams.newBuilder()
-                    .setPurchaseToken(purchase.purchaseToken)
-                    .build()
-
-            _state.value.billingClient?.consumePurchase(consumeParams)?.billingResult
-        } else {
-            val acknowledgePurchaseParams =
-                AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.purchaseToken)
-                .build()
-
-            _state.value.billingClient?.acknowledgePurchase(acknowledgePurchaseParams)
-        }
-
-        if (result != null && result.responseCode != BillingResponseCode.OK) {
+        finally {
             _state.update {
-                it.copy(billingError = result.responseCode.toFriendlyMessage())
+                it.copy(isProcessingDonation = false)
             }
         }
     }
 
-    private suspend fun getSubscriptionPurchases(billingClient: BillingClient, availableSubscriptions: List<ProductDetails>): ProductDetails? {
+    private suspend fun handlePurchase(purchase: Purchase) {
+        handlePurchase(_state.value.billingClient, purchase)
+    }
+
+    private suspend fun acknowledgeUnacknowledgedPurchases(billingClient: BillingClient, productType: String) {
+        val purchaseParams = QueryPurchasesParams.newBuilder()
+            .setProductType(productType)
+            .build()
+
+        billingClient
+            .queryPurchasesAsync(purchaseParams)
+            .purchasesList.forEach { purchase ->
+                if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged) {
+                    handlePurchase(billingClient, purchase)
+                }
+            }
+    }
+
+    private suspend fun getActiveSubscription(billingClient: BillingClient, availableSubscriptions: List<ProductDetails>): ProductDetails? {
         val purchaseParams = QueryPurchasesParams.newBuilder()
             .setProductType(ProductType.SUBS)
             .build()
         val purchasesResult = billingClient.queryPurchasesAsync(purchaseParams)
+
         val activeSubscription = purchasesResult.purchasesList
             .firstOrNull { purchase ->
-                val isPurchased = purchase.purchaseState == Purchase.PurchaseState.PURCHASED
-                if (isPurchased && !purchase.isAcknowledged) {
-                    completePurchase(purchase)
+                when (purchase.purchaseState) {
+                    Purchase.PurchaseState.PURCHASED,
+                    Purchase.PurchaseState.PENDING -> true
+                    else -> false
                 }
-                isPurchased || purchase.purchaseState == Purchase.PurchaseState.PENDING
             }?.products?.firstOrNull()
             ?.let { productId ->
                 availableSubscriptions.find { it.productId == productId }
             }
-
 
         return activeSubscription
     }
@@ -208,6 +275,6 @@ class DonationViewModel(
     }
 
     fun clearBillingError() {
-        _state.update { it.copy(billingError = null) }
+        _state.update { it.copy(billingCompletionMessage = null) }
     }
 }

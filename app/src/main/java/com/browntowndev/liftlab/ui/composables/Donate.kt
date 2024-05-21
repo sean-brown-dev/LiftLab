@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.composables
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,13 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,55 +43,75 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.Dialog
-import com.android.billingclient.api.BillingClient
+import androidx.compose.ui.window.DialogProperties
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.core.common.THANK_YOU_DIALOG_BODY
 import com.browntowndev.liftlab.core.common.findActivity
-import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.valentinilk.shimmer.shimmer
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
 fun Donate(
     paddingValues: PaddingValues,
+    initialized: Boolean,
+    isProcessingDonation: Boolean,
+    activeSubscription: ProductDetails?,
+    newDonationSelection: ProductDetails?,
+    subscriptionProducts: List<ProductDetails>,
+    oneTimeDonationProducts: List<ProductDetails>,
+    billingError: String?,
+    onClearBillingError: () -> Unit,
+    onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
+    onProcessDonation: () -> Unit,
     onBackPressed: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = remember { context.findActivity() }
     if (activity == null) return
 
-    val billingClientBuilder = remember { BillingClient.newBuilder(context) }
-    val donationViewModel: DonationViewModel = koinViewModel {
-        parametersOf(billingClientBuilder)
-    }
-    val state by donationViewModel.state.collectAsState()
-
     BackHandler {
         onBackPressed()
     }
 
     DonationMenu(
-        initialized = state.initialized,
         paddingValues = paddingValues,
-        newDonationSelection = state.newDonationSelection,
-        subscriptionProducts = state.subscriptionProducts,
-        oneTimeDonationProducts = state.oneTimeDonationProducts,
-        billingError = state.billingError,
-        onClearBillingError = donationViewModel::clearBillingError,
-        onUpdateDonationProduct = donationViewModel::setNewDonationOption,
-        onProcessDonation = { donationViewModel.processDonation(activity) }
+        initialized = initialized,
+        activeSubscription = activeSubscription,
+        newDonationSelection = newDonationSelection,
+        subscriptionProducts = subscriptionProducts,
+        oneTimeDonationProducts = oneTimeDonationProducts,
+        billingCompletionMessage = billingError,
+        onClearBillingError = onClearBillingError,
+        onUpdateDonationProduct = onUpdateDonationProduct,
+        onProcessDonation = onProcessDonation,
     )
+    if (isProcessingDonation) {
+        Dialog(
+            properties = DialogProperties(
+                dismissOnClickOutside = false,
+                dismissOnBackPress = false,
+            ),
+            onDismissRequest = {}
+        ) {
+            Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .5f))) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
 }
 
 @Composable
 private fun DonationMenu(
     initialized: Boolean,
     paddingValues: PaddingValues,
+    activeSubscription: ProductDetails?,
     newDonationSelection: ProductDetails?,
     subscriptionProducts: List<ProductDetails>,
     oneTimeDonationProducts: List<ProductDetails>,
-    billingError: String?,
+    billingCompletionMessage: String?,
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
@@ -113,15 +134,20 @@ private fun DonationMenu(
             verticalArrangement = Arrangement.spacedBy(5.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = stringResource(R.string.thank_you), fontSize = 24.sp)
+            Text(
+                text = stringResource(R.string.thank_you),
+                fontSize = 24.sp,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
             Text(
                 modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                 text = stringResource(R.string.donate_message),
                 textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
 
-        var monthly by remember { mutableStateOf(false) }
+        var monthly by remember { mutableStateOf(activeSubscription != null) }
         val productOptions: List<ProductDetails?> =
             remember(monthly, subscriptionProducts, oneTimeDonationProducts) {
                 if (monthly) {
@@ -156,55 +182,63 @@ private fun DonationMenu(
                 }
             )
         }
-        DonationOption(
-            modifier = if (initialized) Modifier else Modifier.shimmer(),
-            options = if (initialized) productOptions else List(6) { null },
-            selectedProduct = newDonationSelection,
-            onDonationChanged = onUpdateDonationProduct,
-        )
-        val isDonationSelected = remember(newDonationSelection) { newDonationSelection != null }
-        val primary = MaterialTheme.colorScheme.primary
-        val outline = MaterialTheme.colorScheme.outline
-        val borderColor = remember(isDonationSelected) { if (isDonationSelected) primary else outline }
-        OutlinedButton(
-            modifier = Modifier
-                .wrapContentWidth(align = Alignment.CenterHorizontally)
-                .apply {
-                    if (!initialized) {
-                        shimmer()
-                    }
-                },
-            enabled = isDonationSelected && initialized,
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                disabledContentColor = MaterialTheme.colorScheme.background,
-                disabledContainerColor = MaterialTheme.colorScheme.outline,
-            ),
-            shape = RoundedCornerShape(10.dp),
-            border = BorderStroke(
-                width = 1.dp,
-                color = borderColor
-            ),
-            onClick = onProcessDonation,
-        ) {
-            val buttonTextId = remember(monthly) {
-                if (monthly) R.string.setup_donation
-                else R.string.send_donation
-            }
-            Text(
-                modifier = Modifier.padding(10.dp),
-                text = if (initialized) stringResource(buttonTextId)
-                else List(stringResource(buttonTextId).length) { "" }.joinToString(separator = " "),
-                fontSize = 16.sp,
+        if (monthly && activeSubscription != null) {
+            ActiveSubscription(activeSubscription = activeSubscription)
+        } else {
+            DonationOptions(
+                modifier = if (initialized) Modifier else Modifier.shimmer(),
+                options = if (initialized) productOptions else List(6) { null },
+                selectedProduct = newDonationSelection,
+                onDonationChanged = onUpdateDonationProduct,
             )
+            val isDonationSelected = remember(newDonationSelection) { newDonationSelection != null }
+            val primary = MaterialTheme.colorScheme.primary
+            val outline = MaterialTheme.colorScheme.outline
+            val borderColor = remember(isDonationSelected) { if (isDonationSelected) primary else outline }
+            OutlinedButton(
+                modifier = Modifier
+                    .wrapContentWidth(align = Alignment.CenterHorizontally)
+                    .apply {
+                        if (!initialized) {
+                            shimmer()
+                        }
+                    },
+                enabled = isDonationSelected && initialized,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    disabledContentColor = MaterialTheme.colorScheme.background,
+                    disabledContainerColor = MaterialTheme.colorScheme.outline,
+                ),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = borderColor
+                ),
+                onClick = onProcessDonation,
+            ) {
+                val buttonTextId = remember(monthly) {
+                    if (monthly) R.string.setup_donation
+                    else R.string.send_donation
+                }
+                Text(
+                    modifier = Modifier.padding(10.dp),
+                    text = if (initialized) stringResource(buttonTextId)
+                    else List(stringResource(buttonTextId).length) { "" }.joinToString(separator = " "),
+                    fontSize = 16.sp,
+                )
+            }
         }
     }
 
-    if (billingError?.isNotEmpty() == true) {
-        Dialog(onDismissRequest = onClearBillingError) {
-            Text(text = billingError)
-        }
+    if (billingCompletionMessage?.isNotEmpty() == true) {
+        ConfirmationModal(
+            header = remember(billingCompletionMessage) {
+                if (billingCompletionMessage == THANK_YOU_DIALOG_BODY) "Donation Complete"
+                else "Donation Error"
+            },
+            body = billingCompletionMessage,
+            onConfirm = onClearBillingError)
     }
 }
 
@@ -251,7 +285,7 @@ private fun DurationOption(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DonationOption(
+private fun DonationOptions(
     modifier: Modifier,
     options: List<ProductDetails?>,
     selectedProduct: ProductDetails?,
@@ -299,5 +333,41 @@ private fun DonationOption(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ActiveSubscription(
+    activeSubscription: ProductDetails,
+) {
+    val formattedAmount = remember(activeSubscription) {
+        activeSubscription.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.firstOrNull()?.formattedPrice
+    }
+    Column (
+        verticalArrangement = Arrangement.spacedBy(25.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Surface(
+            modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            border = BorderStroke(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            shape = RoundedCornerShape(10.dp),
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 50.dp, vertical = 25.dp),
+                text = "Subscribed to $formattedAmount Per Month",
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+        Text(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            text = stringResource(R.string.thank_you_for_subscription),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
     }
 }

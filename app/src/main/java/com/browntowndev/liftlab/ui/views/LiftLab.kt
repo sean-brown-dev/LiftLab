@@ -12,10 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.rememberNavController
+import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
@@ -28,6 +31,10 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LiftLab(
     roomBackup: RoomBackup,
+    donationState: DonationState,
+    onClearBillingError: () -> Unit,
+    onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
+    onProcessDonation: () -> Unit,
 ) {
     LiftLabTheme {
         val navController = rememberNavController()
@@ -67,6 +74,10 @@ fun LiftLab(
                 navHostController = navController,
                 paddingValues = scaffoldPaddingValues,
                 screen = liftLabTopAppBarState.currentScreen,
+                donationState = donationState,
+                onClearBillingError = onClearBillingError,
+                onUpdateDonationProduct = onUpdateDonationProduct,
+                onProcessDonation = onProcessDonation,
                 onNavigateBack = { liftLabTopAppBarState.onNavigationIconClick?.invoke() },
                 setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
                 setTopAppBarControlVisibility = { control, visible ->
