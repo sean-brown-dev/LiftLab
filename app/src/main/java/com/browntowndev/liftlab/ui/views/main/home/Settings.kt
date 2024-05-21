@@ -96,16 +96,16 @@ fun Settings(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.Bottom,
                 ) {
+                    Text(
+                        text = "Support Lift Lab",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 18.sp,
+                    )
                     Icon(
                         modifier = Modifier.size(32.dp),
                         painter = painterResource(id = R.drawable.donate_icon),
                         tint = MaterialTheme.colorScheme.primary,
                         contentDescription = stringResource(R.string.donate),
-                    )
-                    Text(
-                        text = "Support Lift Lab",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 18.sp,
                     )
                 }
             }

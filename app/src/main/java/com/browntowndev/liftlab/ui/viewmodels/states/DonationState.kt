@@ -4,15 +4,16 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.ProductDetails
 
 data class DonationState(
+    val initialized: Boolean = false,
     val billingClient: BillingClient? = null,
-    val activeSubscription: String? = null,
+    val activeSubscription: ProductDetails? = null,
     val newDonationSelection: ProductDetails? = null,
     val billingError: String? = null,
     val oneTimeDonationProducts: List<ProductDetails> = listOf(),
     val subscriptionProducts: List<ProductDetails> = listOf(),
 ) {
     val oneTimeDonationProductIds by lazy {
-        listOf(
+        hashSetOf(
             "liftlab_donate_5",
             "liftlab_donate_10",
             "liftlab_donate_20",
@@ -23,7 +24,7 @@ data class DonationState(
     }
 
     val monthlyDonationProductIds by lazy {
-        listOf(
+        hashSetOf(
             "liftlab_donate_monthly_5",
             "liftlab_donate_monthly_10",
             "liftlab_donate_monthly_20",

@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
@@ -355,4 +356,18 @@ fun Context.findActivity(): Activity? {
     }
 
     return null
+}
+
+fun Int.toFriendlyMessage(): String {
+    return when (this) {
+        BillingResponseCode.USER_CANCELED -> "The donation was cancelled."
+        BillingResponseCode.ITEM_ALREADY_OWNED -> "You already have an active subscription. Thank you!"
+        BillingResponseCode.ITEM_UNAVAILABLE -> "This item is not available."
+        BillingResponseCode.ERROR -> "An error occurred processing the donation."
+        BillingResponseCode.BILLING_UNAVAILABLE -> "The Billing Service is unavailable at the moment. Please try again later."
+        BillingResponseCode.NETWORK_ERROR,
+        BillingResponseCode.SERVICE_DISCONNECTED,
+        BillingResponseCode.SERVICE_UNAVAILABLE -> "There was a network issue processing the donation. Please try again later."
+        else -> "An error occurred during the purchase."
+    }
 }
