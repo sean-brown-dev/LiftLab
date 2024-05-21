@@ -1,9 +1,6 @@
 package com.browntowndev.liftlab.ui.composables
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,26 +40,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.window.Dialog
-import com.android.billingclient.api.AcknowledgePurchaseParams
-import com.android.billingclient.api.AcknowledgePurchaseResponseListener
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClient.ProductType
-import com.android.billingclient.api.BillingClientStateListener
-import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ProductDetails
-import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.QueryProductDetailsParams
-import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.queryProductDetails
-import com.android.billingclient.api.queryPurchasesAsync
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.findActivity
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -107,7 +89,7 @@ fun Donate(
         )
 
         var monthly by remember { mutableStateOf(false) }
-        val productOptions = remember(monthly) {
+        val productOptions = remember(monthly, state.subscriptionProducts, state.oneTimeDonationProducts) {
             if (monthly) {
                 state.subscriptionProducts
             } else {
@@ -119,13 +101,19 @@ fun Donate(
                 text = "One Time",
                 isSelected = !monthly,
                 shape = RoundedCornerShape(topStart = 10.dp, bottomStart = 10.dp),
-                onSelected = { monthly = false }
+                onSelected = {
+                    donationViewModel.setNewDonationOption(null)
+                    monthly = false
+                }
             )
             DurationOption(
                 text = "Monthly",
                 isSelected = monthly,
                 shape = RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp),
-                onSelected = { monthly = true }
+                onSelected = {
+                    donationViewModel.setNewDonationOption(null)
+                    monthly = true
+                }
             )
         }
         DonationOption(
@@ -133,14 +121,22 @@ fun Donate(
             selectedProduct = state.newDonationSelection,
             onDonationChanged = { donationViewModel.setNewDonationOption(it) }
         )
+        val isDonationSelected = remember(state.newDonationSelection) { state.newDonationSelection != null }
         OutlinedButton(
             modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally),
+            enabled = isDonationSelected,
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                disabledContentColor = MaterialTheme.colorScheme.background,
+                disabledContainerColor = MaterialTheme.colorScheme.outline,
             ),
             shape = RoundedCornerShape(10.dp),
-            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.primary),
+            border = BorderStroke(
+                width = 1.dp,
+                color = if (isDonationSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.outline
+            ),
             onClick = {
                 donationViewModel.processDonation(activity)
             }
@@ -172,7 +168,7 @@ private fun DonationOption(
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(20.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(20.dp),
         maxItemsInEachRow = 3,
     ) {
         options.fastForEach { option ->

@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.app.Activity
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener
@@ -48,14 +49,25 @@ class DonationViewModel(
 
                             viewModelScope.launch {
                                 val activeSubscription = getSubscriptionPurchases(billingClient)
+
                                 val availableOneTimeDonations = getProducts(
                                     billingClient = billingClient,
                                     productType = ProductType.INAPP,
-                                    productIds = _state.value.oneTimeDonationProductIds)
+                                    productIds = _state.value.oneTimeDonationProductIds
+                                ).sortedBy { it.oneTimePurchaseOfferDetails?.priceAmountMicros }
+
                                 val availableSubscriptions = getProducts(
                                     billingClient = billingClient,
                                     productType = ProductType.SUBS,
-                                    productIds = _state.value.monthlyDonationProductIds)
+                                    productIds = _state.value.monthlyDonationProductIds
+                                ).sortedBy {
+                                    it.subscriptionOfferDetails
+                                        ?.firstOrNull()
+                                        ?.pricingPhases
+                                        ?.pricingPhaseList
+                                        ?.firstOrNull()
+                                        ?.priceAmountMicros
+                                }
 
                                 _state.update {
                                     it.copy(
@@ -75,9 +87,9 @@ class DonationViewModel(
             }
     }
 
-    fun setNewDonationOption(newDonation: ProductDetails) {
+    fun setNewDonationOption(newDonation: ProductDetails?) {
         _state.update {
-            it.copy(newDonationSelection =  newDonation)
+            it.copy(newDonationSelection = newDonation)
         }
     }
 
@@ -154,17 +166,23 @@ class DonationViewModel(
         return activeSubscription
     }
 
-    private suspend fun getProducts(billingClient: BillingClient, productType: String, productIds: List<String>): List<ProductDetails> {
-        val subscriptions = productIds.map { productId ->
+    private suspend fun getProducts(
+        billingClient: BillingClient,
+        productType: String,
+        productIds: List<String>
+    ): List<ProductDetails> {
+        val products = productIds.fastMap { productId ->
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(productId)
                 .setProductType(productType)
                 .build()
         }
-        val params = QueryProductDetailsParams.newBuilder()
-        params.setProductList(subscriptions)
+        val params = QueryProductDetailsParams
+            .newBuilder()
+            .setProductList(products)
+            .build()
 
-        val productDetailsResult = billingClient.queryProductDetails(params.build())
+        val productDetailsResult = billingClient.queryProductDetails(params)
 
         return productDetailsResult.productDetailsList ?: listOf()
     }
