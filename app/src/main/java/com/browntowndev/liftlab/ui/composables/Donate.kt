@@ -82,11 +82,16 @@ fun Donate(
             painter = painterResource(id = R.drawable.donate_icon),
             contentDescription = ""
         )
-        Text(text = stringResource(R.string.thank_you), fontSize = 24.sp)
-        Text(
-            modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-            text = stringResource(R.string.donate_message)
-        )
+        Column (
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text = stringResource(R.string.thank_you), fontSize = 24.sp)
+            Text(
+                modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                text = stringResource(R.string.donate_message)
+            )
+        }
 
         var monthly by remember { mutableStateOf(false) }
         val productOptions = remember(monthly, state.subscriptionProducts, state.oneTimeDonationProducts) {
@@ -122,6 +127,9 @@ fun Donate(
             onDonationChanged = { donationViewModel.setNewDonationOption(it) }
         )
         val isDonationSelected = remember(state.newDonationSelection) { state.newDonationSelection != null }
+        val primary = MaterialTheme.colorScheme.primary
+        val outline = MaterialTheme.colorScheme.outline
+        val borderColor = remember(isDonationSelected) { if (isDonationSelected) primary else outline }
         OutlinedButton(
             modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally),
             enabled = isDonationSelected,
@@ -134,8 +142,7 @@ fun Donate(
             shape = RoundedCornerShape(10.dp),
             border = BorderStroke(
                 width = 1.dp,
-                color = if (isDonationSelected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.outline
+                color = borderColor
             ),
             onClick = {
                 donationViewModel.processDonation(activity)
