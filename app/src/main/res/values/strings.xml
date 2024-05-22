@@ -32,4 +32,7 @@
     <string name="send_donation">Send Donation</string>
     <string name="thank_you_for_subscription"><![CDATA[Thank you for your support! To pause or cancel your subscription visit the Payments & Subscriptions section in the Play Store. To modify your subscription you may cancel and then re-subscribe here.]]></string>
     <string name="support_lift_lab">Support Lift Lab</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="terms_of_service_url">https://gist.github.com/sean-brown-dev/39cfd24853729977f6107557f939beef</string>
+    <string name="terms_of_service_icon">Terms of Service Icon</string>
 </resources>

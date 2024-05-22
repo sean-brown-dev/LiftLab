@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -356,7 +357,7 @@ fun Settings(
             item {
                 SectionLabel(
                     modifier = Modifier.padding(bottom = 10.dp),
-                    text = "CONTACT",
+                    text = "CONTACT AND TERMS",
                     fontSize = 14.sp
                 )
                 Row(
@@ -367,11 +368,28 @@ fun Settings(
                     Icon(
                         modifier = Modifier.size(24.dp),
                         painter = painterResource(id = R.drawable.instagram_glyph_white),
-                        contentDescription = stringResource(R.string.instagram_icon)
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = stringResource(R.string.instagram_icon),
                     )
                     HyperlinkTextField(
                         text = stringResource(R.string.ig_handle),
                         url = stringResource(R.string.ig_url)
+                    )
+                }
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = Icons.Outlined.Email,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = stringResource(R.string.email_icon),
+                    )
+                    HyperlinkTextField(
+                        text = stringResource(R.string.email_address),
+                        url = "mailto:${stringResource(R.string.email_address)}"
                     )
                 }
                 Row(
@@ -381,13 +399,13 @@ fun Settings(
                 ) {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Outlined.Email,
-                        tint = Color.White,
-                        contentDescription = stringResource(R.string.email_icon),
+                        imageVector = Icons.Outlined.Info,
+                        tint = MaterialTheme.colorScheme.onBackground,
+                        contentDescription = stringResource(R.string.terms_of_service_icon),
                     )
                     HyperlinkTextField(
-                        text = stringResource(R.string.email_address),
-                        url = "mailto:${stringResource(R.string.email_address)}"
+                        text = stringResource(R.string.terms_of_service),
+                        url = stringResource(R.string.terms_of_service_url)
                     )
                 }
             }
