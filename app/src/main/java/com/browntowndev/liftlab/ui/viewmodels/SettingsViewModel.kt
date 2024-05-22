@@ -33,7 +33,7 @@ class SettingsViewModel(
             it.copy(
                 defaultIncrement = SettingsManager
                     .getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT),
-                defaultRestTimeString = SettingsManager
+                defaultRestTime = SettingsManager
                     .getSetting(REST_TIME, DEFAULT_REST_TIME)
                     .toDuration(DurationUnit.MILLISECONDS)
             )
@@ -84,7 +84,7 @@ class SettingsViewModel(
     fun updateDefaultRestTime(restTime: Duration) {
         SettingsManager.setSetting(REST_TIME, restTime.inWholeMilliseconds)
         _state.update {
-            it.copy(defaultRestTimeString = restTime)
+            it.copy(defaultRestTime = restTime)
         }
     }
 

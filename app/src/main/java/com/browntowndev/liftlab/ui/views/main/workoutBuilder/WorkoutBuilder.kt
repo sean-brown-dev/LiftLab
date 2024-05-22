@@ -46,7 +46,7 @@ import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
-import com.browntowndev.liftlab.ui.composables.TextFieldModal
+import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.composables.WavePatternDropdown
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -517,7 +517,7 @@ fun WorkoutBuilder(
     }
 
     if (state.isEditingName) {
-        TextFieldModal(
+        TextFieldDialog(
             header = "Rename ${state.workout!!.name}",
             initialTextFieldValue = state.workout!!.name,
             onConfirm = { workoutBuilderViewModel.updateWorkoutName(it) },

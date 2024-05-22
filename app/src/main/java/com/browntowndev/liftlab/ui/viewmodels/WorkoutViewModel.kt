@@ -307,7 +307,7 @@ class WorkoutViewModel(
         }
     }
 
-    fun startWorkout() {
+    fun startWorkout(promptIfDeload: Boolean = false) {
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressDto(
                 startTime = Utils.getCurrentDate(),

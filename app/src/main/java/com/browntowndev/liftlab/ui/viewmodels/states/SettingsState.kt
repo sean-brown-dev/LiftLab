@@ -4,7 +4,7 @@ import kotlin.time.Duration
 
 data class SettingsState(
     val importConfirmationDialogShown: Boolean = false,
-    val defaultRestTimeString: Duration? = null,
+    val defaultRestTime: Duration? = null,
     val defaultIncrement: Float? = null,
     val isDonateScreenVisible: Boolean = false,
 )

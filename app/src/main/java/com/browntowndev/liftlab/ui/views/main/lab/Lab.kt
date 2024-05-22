@@ -23,7 +23,8 @@ import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.ui.composables.ConfirmationModal
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.composables.TextFieldModal
+import com.browntowndev.liftlab.ui.composables.TextFieldDialog
+import com.browntowndev.liftlab.ui.composables.IntegerTextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
@@ -128,7 +129,7 @@ fun Lab(
     }
 
     if (state.workoutIdToRename != null && state.originalWorkoutName != null) {
-        TextFieldModal(
+        TextFieldDialog(
             header = "Rename ${state.originalWorkoutName}",
             initialTextFieldValue = state.originalWorkoutName!!,
             onConfirm = { labViewModel.updateWorkoutName(state.workoutIdToRename!!, it) },
@@ -137,7 +138,7 @@ fun Lab(
     }
 
     if (state.isEditingProgramName && state.program != null) {
-        TextFieldModal(
+        TextFieldDialog(
             header = "Rename ${state.program!!.name}",
             initialTextFieldValue = state.program!!.name,
             onConfirm = { labViewModel.updateProgramName(it) },
@@ -147,7 +148,7 @@ fun Lab(
 
     if (state.isEditingDeloadWeek && state.program != null) {
         var resetWorkoutLiftDeloads by remember { mutableStateOf(false) }
-        TextFieldModal(
+        IntegerTextFieldDialog(
             header = "Edit Deload Week",
             initialTextFieldValue = state.program!!.deloadWeek,
             onConfirm = { labViewModel.updateDeloadWeek(it, resetWorkoutLiftDeloads) },
@@ -181,9 +182,9 @@ fun Lab(
                     "It can be restored or deleted from the Manage Programs menu."
         } else ""
 
-        TextFieldModal(
+        TextFieldDialog(
             header = "Create New Program",
-            subtext = subtext,
+            textAboveTextField = subtext,
             placeholder = "Name",
             initialTextFieldValue = "",
             onConfirm = { labViewModel.createProgram(it) },

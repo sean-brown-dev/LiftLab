@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.ui.composables.IconDropdown
 import com.browntowndev.liftlab.ui.composables.RestTimePicker
 import kotlin.time.Duration
@@ -74,12 +75,7 @@ fun LiftDropdown(
                     val restTimeDisplay by remember(key1 = restTime, key2 = restTimerEnabled) {
                         mutableStateOf(
                             if (restTimerEnabled) {
-                                "${restTime.inWholeMinutes}:${
-                                    String.format(
-                                        "%02d",
-                                        restTime.inWholeSeconds % 60
-                                    )
-                                }"
+                                restTime.toTimeString()
                             } else "Off"
                         )
                     }
