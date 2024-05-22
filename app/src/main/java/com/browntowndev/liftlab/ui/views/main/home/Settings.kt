@@ -140,7 +140,11 @@ fun Settings(
             }
             item {
                 SettingDivider(paddingValues = PaddingValues(bottom = 25.dp))
-                SectionLabel(text = "PROGRESSION", fontSize = 14.sp)
+                SectionLabel(
+                    modifier = Modifier.padding(bottom = 5.dp),
+                    text = "PERIODIZATION AND PROGRESSION",
+                    fontSize = 14.sp
+                )
                 Row(
                     modifier = Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -152,7 +156,7 @@ fun Settings(
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Prompt to decide whether to begin or skip deload week.",
+                            text = "Get prompted to begin or skip deload microcycle.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
@@ -186,20 +190,18 @@ fun Settings(
                 }
             }
             item {
-                SettingDivider(paddingValues = PaddingValues(bottom = 25.dp))
-                SectionLabel(text = "PROGRESSION", fontSize = 14.sp)
                 Row(
                     modifier = Modifier.padding(start = 10.dp, top = 5.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column {
                         Text(
-                            text = "Lift Specific Deloading",
+                            text = "Lift Specific Deloads",
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Specify specific lifts to deload. Disables full microcycle deloads.",
+                            text = "Disables deload microcycles.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
