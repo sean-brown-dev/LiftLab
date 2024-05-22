@@ -17,9 +17,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import arrow.core.Either
 import arrow.core.left
+import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.core.common.SHOW_WORKOUT_LOG
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
@@ -49,6 +51,10 @@ fun NavigationGraph(
     navHostController: NavHostController,
     paddingValues: PaddingValues,
     screen: Screen?,
+    donationState: DonationState,
+    onClearBillingError: () -> Unit,
+    onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
+    onProcessDonation: () -> Unit,
     onNavigateBack: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
@@ -97,6 +103,16 @@ fun NavigationGraph(
                     roomBackup = roomBackup,
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
+                    initialized = donationState.initialized,
+                    isProcessingDonation = donationState.isProcessingDonation,
+                    activeSubscription = donationState.activeSubscription,
+                    newDonationSelection = donationState.newDonationSelection,
+                    subscriptionProducts = donationState.subscriptionProducts,
+                    oneTimeDonationProducts = donationState.oneTimeDonationProducts,
+                    billingCompletionMessage = donationState.billingCompletionMessage,
+                    onClearBillingError = onClearBillingError,
+                    onUpdateDonationProduct = onUpdateDonationProduct,
+                    onProcessDonation = onProcessDonation,
                     onNavigateBack = { navHostController.popBackStack() },
                 )
             }

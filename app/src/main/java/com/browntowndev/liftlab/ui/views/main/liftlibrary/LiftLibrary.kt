@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ListItem
@@ -39,6 +40,7 @@ import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.FilterSelector
 import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
+import com.browntowndev.liftlab.ui.composables.verticalScrollbar
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -121,11 +123,21 @@ fun LiftLibrary(
             Box(
                 contentAlignment = Alignment.BottomCenter
             ) {
+                val lazyListState = rememberLazyListState()
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier
                         .fillMaxSize()
                         .background(color = MaterialTheme.colorScheme.background)
                         .wrapContentSize(Alignment.TopStart)
+                        .verticalScrollbar(
+                            lazyListState = lazyListState,
+                            onRequestBubbleTextForScrollLocation = { liftIndex ->
+                                if (liftIndex > -1 && liftIndex < state.filteredLifts.size) {
+                                    state.filteredLifts[liftIndex].name[0].toString()
+                                } else ""
+                            }
+                        ),
                 ) {
                     items(state.filteredLifts, { it.id }) { lift ->
                         val selected by remember(state.selectedNewLifts) {

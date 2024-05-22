@@ -6,4 +6,5 @@ data class SettingsState(
     val importConfirmationDialogShown: Boolean = false,
     val defaultRestTimeString: Duration? = null,
     val defaultIncrement: Float? = null,
+    val isDonateScreenVisible: Boolean = false,
 )

@@ -22,10 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.FilterSelector
 import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
+import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -117,6 +117,8 @@ fun WorkoutHistory(
                     workoutName = workoutLog.workoutName,
                     workoutDate = workoutLog.date,
                     workoutDuration = workoutLog.durationInMillis,
+                    mesoCycle = workoutLog.mesocycle,
+                    microCycle = workoutLog.microcycle,
                     setResults = workoutLog.setResults,
                     topSets = state.topSets[workoutLog.id],
                     onEditWorkout = {

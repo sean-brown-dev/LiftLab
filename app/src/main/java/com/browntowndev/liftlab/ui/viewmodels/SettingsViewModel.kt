@@ -43,8 +43,24 @@ class SettingsViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> onNavigateBack()
+            TopAppBarAction.NavigatedBack -> {
+                handleBackButtonPress()
+            }
             else -> { }
+        }
+    }
+
+    private fun handleBackButtonPress() {
+        if (_state.value.isDonateScreenVisible) {
+            toggleDonationScreen()
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    fun toggleDonationScreen() {
+        _state.update {
+            it.copy(isDonateScreenVisible = !it.isDonateScreenVisible)
         }
     }
 

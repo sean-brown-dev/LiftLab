@@ -4,6 +4,7 @@ import com.browntowndev.liftlab.core.progression.StandardProgressionFactory
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
@@ -35,4 +36,5 @@ val viewModelModule = module {
     viewModel { params -> HomeViewModel(get(), get(), get(), get(), get(), params.get(), params.get(), get(), get()) }
     viewModel { params -> SettingsViewModel(params.get(), params.get(), get(), get()) }
     viewModel { params -> WorkoutHistoryViewModel(get(), params.get(), get(), get()) }
+    viewModel { params -> DonationViewModel(params.get(), get(), get())}
 }

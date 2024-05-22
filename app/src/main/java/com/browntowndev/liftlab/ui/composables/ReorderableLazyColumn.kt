@@ -42,6 +42,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyColumnState
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @ExperimentalFoundationApi
 @Composable
@@ -54,7 +55,7 @@ fun ReorderableLazyColumn(
     val view = LocalView.current
     var reorderableItems by remember { mutableStateOf(items) }
     val lazyListState = rememberLazyListState()
-    val reorderableState = rememberReorderableLazyColumnState(lazyListState) { from, to ->
+    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
         reorderableItems = reorderableItems.toMutableList().apply {
             // Top item adds 1 to index, hence need to subtract 1
             add(to.index - 1, removeAt(from.index - 1))

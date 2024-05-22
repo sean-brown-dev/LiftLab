@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,11 +47,13 @@ fun LiftLabBottomSheet(
     secondaryVolumeChipLabels: List<CharSequence> = listOf(),
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val density = LocalDensity.current
     val rememberedLabel by remember(label) { mutableStateOf(label) }
     val bottomSheetState = remember {
         SheetState(
-            initialValue = SheetValue.PartiallyExpanded,
             skipPartiallyExpanded = false,
+            density = density,
+            initialValue = SheetValue.PartiallyExpanded,
             skipHiddenState = true
         )
     }

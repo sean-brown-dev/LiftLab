@@ -150,14 +150,16 @@ fun WorkoutLog(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
-                        Spacer(modifier = Modifier.weight(1f))
-                        IconButton(onClick = onReorderLiftsClicked) {
-                            Icon(
-                                modifier = Modifier.size(28.dp),
-                                painter = painterResource(id = R.drawable.reorder_icon),
-                                contentDescription = stringResource(R.string.reorder_lifts),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
+                        if (!isEdit) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            IconButton(onClick = onReorderLiftsClicked) {
+                                Icon(
+                                    modifier = Modifier.size(28.dp),
+                                    painter = painterResource(id = R.drawable.reorder_icon),
+                                    contentDescription = stringResource(R.string.reorder_lifts),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                         }
                     }
                 }

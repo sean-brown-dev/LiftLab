@@ -12,15 +12,18 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
+import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CREATOR
@@ -28,16 +31,22 @@ import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.KoinAndroidContext
+import org.koin.androidx.compose.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.parameter.parametersOf
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
-
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().apply {
+            setKeepOnScreenCondition {
+                !LiftLabDatabase.initialized.value
+            }
+        }
 
         requestNotificationPermission(this)
         SettingsManager.initialize(this@MainActivity)
@@ -67,17 +76,23 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         }
                     }
                 }
-
-        installSplashScreen().apply {
-            setKeepOnScreenCondition {
-                !LiftLabDatabase.initialized.value
-            }
-        }
         setContent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
             if(isInitialized) {
                 KoinAndroidContext {
-                    LiftLab(roomBackup)
+                    val donationViewModel: DonationViewModel = koinViewModel {
+                        parametersOf(BillingClient.newBuilder(this))
+                    }
+                    val donationState by donationViewModel.state.collectAsState()
+                    LiftLab(
+                        roomBackup = roomBackup,
+                        donationState = donationState,
+                        onClearBillingError = donationViewModel::clearBillingError,
+                        onUpdateDonationProduct = donationViewModel::setNewDonationOption,
+                        onProcessDonation = {
+                            donationViewModel.processDonation(this)
+                        }
+                    )
                 }
             }
         }

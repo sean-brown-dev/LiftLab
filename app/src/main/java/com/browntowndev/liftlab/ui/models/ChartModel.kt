@@ -362,7 +362,7 @@ fun getWeeklyCompletionChart(
                 return 0f
             }
             override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxWorkoutsCompleted.toFloat().let { if (it == 0f) 1f else it } ?: 7f
+                return maxWorkoutsCompleted.toFloat().let { if (it == 0f) 1f else it }
             }
         },
         bottomAxisValueFormatter = { value, _, _ ->
