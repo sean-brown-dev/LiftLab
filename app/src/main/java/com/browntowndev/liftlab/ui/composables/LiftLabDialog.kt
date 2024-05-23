@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.composables
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,8 @@ public fun LiftLabDialog(
     subHeader: String = "",
     textAboveContent: String = "",
     textAboveContentFontSize: TextUnit = 14.sp,
+    textAboveContentAlignment: TextAlign = TextAlign.Center,
+    textAboveContentPadding: PaddingValues = PaddingValues(bottom = 20.dp),
     onDismiss: () -> Unit,
     content: @Composable (() -> Unit),
 ) {
@@ -72,9 +75,9 @@ public fun LiftLabDialog(
 
                     if (textAboveContent.isNotEmpty()) {
                         Text(
-                            modifier = Modifier.padding(bottom = 20.dp),
+                            modifier = Modifier.padding(textAboveContentPadding),
                             text = textAboveContent,
-                            textAlign = TextAlign.Center,
+                            textAlign = textAboveContentAlignment,
                             color = MaterialTheme.colorScheme.onBackground,
                             fontSize = textAboveContentFontSize,
                             style = MaterialTheme.typography.bodyLarge,

@@ -309,6 +309,11 @@ class WorkoutViewModel(
         }
     }
 
+    fun toggleDeloadPrompt() {
+        mutableWorkoutState.update {
+            it.copy(isDeloadPromptDialogShown = !it.isDeloadPromptDialogShown)
+        }
+    }
 
     fun skipDeloadMicrocycle() {
         mutableWorkoutState.update {
