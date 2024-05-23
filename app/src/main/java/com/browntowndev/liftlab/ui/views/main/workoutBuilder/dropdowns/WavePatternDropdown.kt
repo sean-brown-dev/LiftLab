@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.composables
+package com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.ui.composables.CustomAnchorDropdown
 
 @Composable
 fun WavePatternDropdown(

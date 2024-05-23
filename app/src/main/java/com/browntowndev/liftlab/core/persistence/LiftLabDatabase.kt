@@ -19,6 +19,7 @@ import androidx.work.workDataOf
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
@@ -171,7 +172,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
                         val workoutLiftDeloadWeek = query.getIntOrNull(3)
                         val programDeloadWeek = query.getInt(4)
 
-                        val stepSize = Utils.getPossibleStepSizes(
+                        val stepSize = getPossibleStepSizes(
                             repRangeTop = repRangeTop,
                             repRangeBottom = repRangeBottom,
                             stepCount = (workoutLiftDeloadWeek ?: programDeloadWeek) - 2

@@ -1,13 +1,17 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.SettingsState
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +24,8 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 class SettingsViewModel(
+    private val programsRepository: ProgramsRepository,
+    private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val roomBackup: RoomBackup,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
@@ -92,6 +98,57 @@ class SettingsViewModel(
         SettingsManager.setSetting(INCREMENT_AMOUNT, increment)
         _state.update {
             it.copy(defaultIncrement = increment)
+        }
+    }
+
+    fun handleLiftSpecificDeloadChange(useLiftLevel: Boolean) {
+        executeInTransactionScope {
+            if (!_state.value.queriedForProgram) {
+                _state.update {
+                    it.copy(
+                        activeProgram = programsRepository.getActiveNotAsLiveData(),
+                        queriedForProgram = true,
+                    )
+                }
+            }
+
+            val liftsWithNewStepSizes = _state.value.activeProgram
+                ?.let { program ->
+                    getAllLiftsWithRecalculatedStepSize(
+                        workouts = program.workouts,
+                        deloadToUseInsteadOfLiftLevel = if (useLiftLevel) null else program.deloadWeek,
+                    )
+                } ?: mapOf()
+
+            if (liftsWithNewStepSizes.isNotEmpty()) {
+                workoutLiftsRepository.updateMany(liftsWithNewStepSizes.values.toList())
+                SettingsManager.setSetting(
+                    SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING,
+                    useLiftLevel
+                )
+                _state.update {
+                    it.copy(
+                        activeProgram = it.activeProgram!!.let { program ->
+                            program.copy(
+                                workouts = program.workouts.fastMap { workout ->
+                                    workout.copy(
+                                        lifts = workout.lifts.fastMap { lift ->
+                                            if(liftsWithNewStepSizes.containsKey(lift.id)) {
+                                                liftsWithNewStepSizes[lift.id]!!
+                                            } else lift
+                                        }
+                                    )
+                                }
+                            )
+                        }
+                    )
+                }
+            } else {
+                SettingsManager.setSetting(
+                    SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING,
+                    useLiftLevel
+                )
+            }
         }
     }
 }

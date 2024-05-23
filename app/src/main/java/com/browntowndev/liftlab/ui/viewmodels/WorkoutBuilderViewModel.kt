@@ -3,7 +3,9 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateFirstCompleteStepSequence
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -78,33 +80,18 @@ class WorkoutBuilderViewModel(
             .filterIsInstance<StandardWorkoutLiftDto>()
             .filter { it.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
             .associate { workoutLift ->
-                workoutLift.id to Utils.getPossibleStepSizes(
+                workoutLift.id to getPossibleStepSizes(
                     repRangeTop = workoutLift.repRangeTop,
                     repRangeBottom = workoutLift.repRangeBottom,
                     stepCount = (if (liftLevelDeloadsEnabled) workoutLift.deloadWeek else programDeloadWeek)?.let { it - 2 }
                 ).associateWith { option ->
-                    Utils.generateFirstCompleteStepSequence(
+                    generateFirstCompleteStepSequence(
                         repRangeTop = workoutLift.repRangeTop,
                         repRangeBottom = workoutLift.repRangeBottom,
                         stepSize = option
                     )
                 }
             }
-    }
-
-    private fun getRecalculatedStepSizeForLift(currStepSize: Int?, progressionScheme: ProgressionScheme, repRangeTop: Int, repRangeBottom: Int, deloadWeek: Int?): Int? {
-        return if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-            val availableStepSizes = Utils.getPossibleStepSizes(
-                repRangeTop = repRangeTop,
-                repRangeBottom = repRangeBottom,
-                stepCount = deloadWeek?.let { deloadWeek - 2 },
-            )
-            if (availableStepSizes.contains(currStepSize)) {
-                currStepSize
-            } else {
-                availableStepSizes.firstOrNull()
-            }
-        } else null
     }
 
     fun toggleMovementPatternDeletionModal(workoutLiftId: Long? = null) {

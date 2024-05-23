@@ -6,6 +6,8 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -78,30 +80,32 @@ class LabViewModel(
     fun updateDeloadWeek(deloadWeek: Int) {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
-            // Recalculate all step sizes
-            _state.value.program?.workouts
-                ?.fastFlatMap { workout ->
-                    workout.lifts
-                }
-                ?.filterIsInstance<StandardWorkoutLiftDto>()
-                ?.fastForEach { workoutLift ->
-                    if (workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-                        Utils.getPossibleStepSizes(
-                            repRangeTop = workoutLift.repRangeTop,
-                            repRangeBottom = workoutLift.repRangeBottom,
-                            stepCount = deloadWeek - 2,
-                        ).let { stepSizes ->
-                            if (!stepSizes.contains(workoutLift.stepSize)) {
-                                workoutLiftsRepository.update(
-                                    workoutLift.copy(stepSize = stepSizes.firstOrNull())
-                                )
-                            }
-                        }
-                    }
-                }
+            val liftsWithNewStepSizes: Map<Long, StandardWorkoutLiftDto> = if (_state.value.program != null) {
+                getAllLiftsWithRecalculatedStepSize(
+                    workouts = _state.value.program!!.workouts,
+                    deloadToUseInsteadOfLiftLevel = deloadWeek,
+                )
+            } else mapOf()
+
+            if (liftsWithNewStepSizes.isNotEmpty()) {
+                workoutLiftsRepository.updateMany(liftsWithNewStepSizes.values.toList())
+            }
             _state.update {
                 it.copy(
-                    program = _state.value.program!!.copy(deloadWeek = deloadWeek)
+                    program = _state.value.program!!.let { program ->
+                        program.copy(
+                            deloadWeek = deloadWeek,
+                            workouts = program.workouts.fastMap { workout ->
+                                workout.copy(
+                                    lifts = workout.lifts.fastMap { lift ->
+                                        if(liftsWithNewStepSizes.containsKey(lift.id)) {
+                                            liftsWithNewStepSizes[lift.id]!!
+                                        } else lift
+                                    }
+                                )
+                            }
+                        )
+                    }
                 )
             }
         }

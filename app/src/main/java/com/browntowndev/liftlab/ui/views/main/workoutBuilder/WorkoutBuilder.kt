@@ -39,6 +39,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
@@ -50,7 +51,7 @@ import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
-import com.browntowndev.liftlab.ui.composables.WavePatternDropdown
+import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
@@ -499,7 +500,7 @@ fun WorkoutBuilder(
                         workoutBuilderViewModel.setCustomSetDropPercentage(
                             workoutLiftId = state.pickerState!!.workoutLiftId!!,
                             position = state.pickerState!!.setPosition!!,
-                            newDropPercentage = Utils.percentageStringToFloat(it),
+                            newDropPercentage = percentageStringToFloat(it),
                         )
                     }
                 )

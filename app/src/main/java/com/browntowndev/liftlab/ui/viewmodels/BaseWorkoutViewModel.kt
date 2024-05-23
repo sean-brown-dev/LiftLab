@@ -5,6 +5,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
@@ -440,7 +441,7 @@ abstract class BaseWorkoutViewModel(
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTime = if (restTimerEnabled) restTime else currentState.restTime,
-                    restTimerStartedAt = if(restTimerEnabled) Utils.getCurrentDate() else currentState.restTimerStartedAt,
+                    restTimerStartedAt = if(restTimerEnabled) getCurrentDate() else currentState.restTimerStartedAt,
                     inProgressWorkout = currentState.inProgressWorkout?.copy(
                         completedSets = currentState.inProgressWorkout.completedSets.toMutableList().apply {
                             val existingResult = find { existing ->

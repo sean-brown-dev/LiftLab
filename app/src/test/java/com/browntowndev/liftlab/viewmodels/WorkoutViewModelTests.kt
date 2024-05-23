@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_US
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
@@ -156,7 +157,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -296,7 +297,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -459,7 +460,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -646,7 +647,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -810,7 +811,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -974,7 +975,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -1167,7 +1168,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -1311,7 +1312,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -1433,7 +1434,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery { workoutInProgressRepository.get(any(), any()) } returns workoutInProgressMetadata
@@ -1523,7 +1524,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery { workoutInProgressRepository.get(any(), any()) } returns workoutInProgressMetadata
@@ -1613,7 +1614,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery { workoutInProgressRepository.get(any(), any()) } returns workoutInProgressMetadata
@@ -1743,7 +1744,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery { workoutInProgressRepository.delete() } just runs
@@ -1934,7 +1935,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery { workoutInProgressRepository.delete() } just runs
@@ -2177,7 +2178,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -2336,7 +2337,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
@@ -2474,7 +2475,7 @@ class WorkoutViewModelTests {
             val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
             val workoutInProgressMetadata = WorkoutInProgressDto(
                 workoutId = 0L,
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {

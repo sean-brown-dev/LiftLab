@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -105,7 +106,7 @@ class EditWorkoutViewModel(
                     ),
                     inProgressWorkout = WorkoutInProgressDto(
                         workoutId = workoutLogEntryId,
-                        startTime = Utils.getCurrentDate(),
+                        startTime = getCurrentDate(),
                         completedSets = completedSetResults,
                     )
                 )

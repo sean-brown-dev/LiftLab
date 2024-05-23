@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -343,7 +344,7 @@ class WorkoutViewModel(
     fun startWorkout() {
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressDto(
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 workoutId = mutableWorkoutState.value.workout!!.id,
                 completedSets = listOf(),
             )
@@ -371,7 +372,7 @@ class WorkoutViewModel(
 
         executeInTransactionScope {
             val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
-            val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
+            val durationInMillis = (getCurrentDate().time - startTimeInMillis)
             val programMetadata = mutableWorkoutState.value.programMetadata!!
             val workout = mutableWorkoutState.value.workout!!
 
@@ -413,7 +414,7 @@ class WorkoutViewModel(
                 mesoCycle = programMetadata.currentMesocycle,
                 microCycle = programMetadata.currentMicrocycle,
                 microcyclePosition = programMetadata.currentMicrocyclePosition,
-                date = Utils.getCurrentDate(),
+                date = getCurrentDate(),
                 durationInMillis = durationInMillis,
             )
 
@@ -609,7 +610,7 @@ class WorkoutViewModel(
             mutableWorkoutState.update {
                 it.copy(
                     restTime = restTime,
-                    restTimerStartedAt = Utils.getCurrentDate(),
+                    restTimerStartedAt = getCurrentDate(),
                 )
             }
         }

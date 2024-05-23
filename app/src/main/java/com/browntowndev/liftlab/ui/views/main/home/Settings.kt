@@ -220,11 +220,8 @@ fun Settings(
                     Switch(
                         checked = liftSpecificDeloading,
                         onCheckedChange = {
+                            settingsViewModel.handleLiftSpecificDeloadChange(useLiftLevel = it)
                             liftSpecificDeloading = it
-                            SettingsManager.setSetting(
-                                LIFT_SPECIFIC_DELOADING,
-                                it
-                            )
                         },
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = MaterialTheme.colorScheme.secondary,

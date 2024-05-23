@@ -35,6 +35,10 @@ interface ProgramsDao {
     fun getActive(): Flow<ProgramWithRelationships?>
 
     @Transaction
+    @Query("SELECT * FROM programs WHERE isActive = 1")
+    fun getActiveNotAsLiveData(): ProgramWithRelationships?
+
+    @Transaction
     @Query("SELECT * FROM programs")
     suspend fun getAll(): List<Program>
 

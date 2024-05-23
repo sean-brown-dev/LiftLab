@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
@@ -138,7 +139,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         val restTimeRemaining = if (inProgressRestTimer != null) {
             val totalRestTime = inProgressRestTimer.restTime
-            val timeElapsed = Utils.getCurrentDate().time - inProgressRestTimer.timeStartedInMillis
+            val timeElapsed = getCurrentDate().time - inProgressRestTimer.timeStartedInMillis
             totalRestTime - timeElapsed
         } else 0L
 

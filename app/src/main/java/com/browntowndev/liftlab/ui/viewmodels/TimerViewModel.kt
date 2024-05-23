@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.browntowndev.liftlab.core.common.LiftLabTimer
 import com.browntowndev.liftlab.core.common.MAX_TIME_IN_WHOLE_MILLISECONDS
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.ui.viewmodels.states.TimerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +23,7 @@ class TimerViewModel: ViewModel() {
 
     fun startFrom(startTime: Date) {
         if (_state.value.running) return
-        val millisSinceStart = Utils.getCurrentDate().time - startTime.time
+        val millisSinceStart = getCurrentDate().time - startTime.time
         startNewTimer(millisTicked = millisSinceStart)
     }
 

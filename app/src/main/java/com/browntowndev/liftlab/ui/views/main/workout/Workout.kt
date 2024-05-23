@@ -32,6 +32,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.runOnCompletion
@@ -90,7 +91,7 @@ fun Workout(
 
     LaunchedEffect(state.restTimerStartedAt) {
             if (state.restTimerStartedAt != null && !restTimerRestarted) {
-            val restTimeRemaining = state.restTime - (Utils.getCurrentDate().time - state.restTimerStartedAt!!.time)
+            val restTimeRemaining = state.restTime - (getCurrentDate().time - state.restTimerStartedAt!!.time)
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())
             )
