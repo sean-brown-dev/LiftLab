@@ -40,7 +40,7 @@ import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING_ENABLED
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
@@ -51,7 +51,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
-import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.Donate
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.HyperlinkTextField
@@ -107,6 +107,14 @@ fun Settings(
             onBackPressed = { settingsViewModel.toggleDonationScreen() },
         )
     } else {
+        var liftSpecificDeloading by remember {
+            mutableStateOf(
+                SettingsManager.getSetting(
+                    LIFT_SPECIFIC_DELOADING,
+                    DEFAULT_LIFT_SPECIFIC_DELOADING
+                )
+            )
+        }
         LazyColumn(
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
@@ -162,15 +170,17 @@ fun Settings(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    var promptForDeloadWeek by remember {
+                    var promptForDeloadWeek by remember(liftSpecificDeloading) {
                         mutableStateOf(
-                            SettingsManager.getSetting(
-                                PROMPT_FOR_DELOAD_WEEK,
-                                DEFAULT_PROMPT_FOR_DELOAD_WEEK
-                            )
+                            !liftSpecificDeloading &&
+                                    SettingsManager.getSetting(
+                                        PROMPT_FOR_DELOAD_WEEK,
+                                        DEFAULT_PROMPT_FOR_DELOAD_WEEK
+                                    )
                         )
                     }
                     Switch(
+                        enabled = !liftSpecificDeloading,
                         checked = promptForDeloadWeek,
                         onCheckedChange = {
                             promptForDeloadWeek = it
@@ -207,14 +217,6 @@ fun Settings(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    var liftSpecificDeloading by remember {
-                        mutableStateOf(
-                            SettingsManager.getSetting(
-                                LIFT_SPECIFIC_DELOADING,
-                                DEFAULT_LIFT_SPECIFIC_DELOADING_ENABLED
-                            )
-                        )
-                    }
                     Switch(
                         checked = liftSpecificDeloading,
                         onCheckedChange = {
@@ -424,7 +426,7 @@ fun Settings(
                     }
                 }
                 if (state.importConfirmationDialogShown) {
-                    ConfirmationModal(
+                    ConfirmationDialog(
                         header = "Warning!",
                         body = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
                         onConfirm = { settingsViewModel.importDatabase() },

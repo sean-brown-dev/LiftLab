@@ -36,12 +36,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
@@ -78,6 +80,7 @@ fun WorkoutBuilder(
         parametersOf(
             workoutId,
             onNavigateBack,
+            SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
         )
     }
     val state by workoutBuilderViewModel.state.collectAsState()
@@ -139,14 +142,9 @@ fun WorkoutBuilder(
                             workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION &&
                                     workoutLift.progressionScheme != ProgressionScheme.WAVE_LOADING_PROGRESSION
                         }
-                        val deloadWeek = remember(
-                            key1 = workoutLift.deloadWeek,
-                            key2 = state.programDeloadWeek,
-                        ) {
-                            workoutLift.deloadWeek ?: state.programDeloadWeek
-                        }
                         val showDeloadWeekOption = remember(workoutLift.progressionScheme) {
-                            workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION
+                            workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION &&
+                                    SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
                         }
 
                         LiftCard(
@@ -157,7 +155,7 @@ fun WorkoutBuilder(
                             movementPattern = workoutLift.liftMovementPattern,
                             hasCustomLiftSets = customLiftsVisible,
                             showCustomSetsOption = showCustomSetsOption,
-                            currentDeloadWeek = deloadWeek,
+                            currentDeloadWeek = workoutLift.deloadWeek,
                             showDeloadWeekOption = showDeloadWeekOption,
                             onCustomLiftSetsToggled = {
                                 if (!it) {
@@ -526,7 +524,7 @@ fun WorkoutBuilder(
     }
 
     if (state.workoutLiftIdToDelete != null) {
-        ConfirmationModal(
+        ConfirmationDialog(
             header = "Delete ${state.movementPatternOfDeletingWorkoutLift}?",
             body = "Are you sure you want to delete this movement pattern?",
             onConfirm = {

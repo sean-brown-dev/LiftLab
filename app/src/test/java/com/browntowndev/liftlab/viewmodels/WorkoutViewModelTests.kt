@@ -201,6 +201,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -340,6 +341,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -503,6 +505,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -688,6 +691,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -851,6 +855,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1014,6 +1019,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1206,6 +1212,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1350,6 +1357,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1463,6 +1471,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1552,6 +1561,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1641,6 +1651,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1785,6 +1796,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2008,6 +2020,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2206,6 +2219,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2367,6 +2381,7 @@ class WorkoutViewModelTests {
                 liftsRepository = liftsRepository,
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2502,6 +2517,7 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
+                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )

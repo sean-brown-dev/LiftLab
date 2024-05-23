@@ -53,7 +53,7 @@ fun DeleteableOnSwipeLeft(
         }
 
         if (showConfirmationDialog) {
-            ConfirmationModal(
+            ConfirmationDialog(
                 header = confirmationDialogHeader,
                 body = confirmationDialogBody,
                 onConfirm = {

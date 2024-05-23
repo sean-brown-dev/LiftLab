@@ -1,30 +1,24 @@
 package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.DELOAD_WEEK_OPTIONS
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
-import com.browntowndev.liftlab.ui.composables.IntegerTextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
@@ -44,19 +38,25 @@ fun Lab(
 ) {
     val labViewModel: LabViewModel = koinViewModel()
     val state by labViewModel.state.collectAsState()
+    val isLiftSpecificDeloadingEnabled = remember {
+        SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+    }
 
     LaunchedEffect(state.program) {
         if(state.program != null) {
             if (!state.isManagingPrograms) {
                 mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
             }
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
             setTopAppBarControlVisibility(LabScreen.RENAME_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.DELETE_PROGRAM_ICON, true)
             setTopAppBarControlVisibility(LabScreen.CREATE_NEW_WORKOUT_ICON, true)
             setTopAppBarControlVisibility(LabScreen.REORDER_WORKOUTS_ICON, state.program!!.workouts.size > 1)
-            setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, true)
             setTopAppBarControlVisibility(LabScreen.MANAGE_PROGRAMS_ICON, true)
+
+            if (!isLiftSpecificDeloadingEnabled) {
+                setTopAppBarControlVisibility(LabScreen.DELOAD_WEEK_ICON, true)
+                mutateTopAppBarControlValue(AppBarMutateControlRequest(LabScreen.DELOAD_WEEK_ICON, state.program!!.deloadWeek.toString()))
+            }
         } else {
             if (!state.isManagingPrograms) {
                 mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, ""))
@@ -145,34 +145,19 @@ fun Lab(
             onCancel = { labViewModel.collapseEditProgramNameModal() }
         )
     }
-
     if (state.isEditingDeloadWeek && state.program != null) {
-        var resetWorkoutLiftDeloads by remember { mutableStateOf(false) }
-        IntegerTextFieldDialog(
-            header = "Edit Deload Week",
-            initialTextFieldValue = state.program!!.deloadWeek,
-            onConfirm = { labViewModel.updateDeloadWeek(it, resetWorkoutLiftDeloads) },
-            onCancel = { labViewModel.toggleEditDeloadWeek() }
+        LiftLabDialog(
+            isVisible = true,
+            header = "Change Deload Week",
+            onDismiss = labViewModel::toggleEditDeloadWeek
         ) {
-            Row (
-                modifier = Modifier.clickable { resetWorkoutLiftDeloads = !resetWorkoutLiftDeloads },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = resetWorkoutLiftDeloads,
-                    colors = CheckboxDefaults.colors(
-                        uncheckedColor = MaterialTheme.colorScheme.outline,
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        checkmarkColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                    onCheckedChange = { resetWorkoutLiftDeloads = !resetWorkoutLiftDeloads }
-                )
-                Text(
-                    text = "Overwrite lift level deload settings.",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            }
+            NumberPickerSpinner(
+                options = DELOAD_WEEK_OPTIONS,
+                initialValue = state.program!!.deloadWeek.toFloat(),
+                onChanged = {
+                    labViewModel.updateDeloadWeek(it.toInt())
+                },
+            )
         }
     }
 
@@ -193,7 +178,7 @@ fun Lab(
     }
 
     if (state.isDeletingProgram && state.idOfProgramToDelete != null) {
-        ConfirmationModal(
+        ConfirmationDialog(
             header = "Delete?",
             body = "Are you sure you want to delete ${state.nameOfProgramToDelete}? This cannot be undone.",
             onConfirm = { labViewModel.deleteProgram(state.idOfProgramToDelete!!) },
@@ -202,7 +187,7 @@ fun Lab(
     }
 
     if (state.workoutToDelete != null) {
-        ConfirmationModal(
+        ConfirmationDialog(
             header = "Delete?",
             body = "Are you sure you want to delete ${state.workoutToDelete!!.name}? This cannot be undone.",
             onConfirm = { labViewModel.deleteWorkout(state.workoutToDelete!!) },

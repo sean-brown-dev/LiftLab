@@ -18,12 +18,19 @@ import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.ReorderableListItem
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.runOnCompletion
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
-import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -31,8 +38,6 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -49,6 +54,9 @@ fun Workout(
     onNavigateToWorkoutHistory: () -> Unit,
     onNavigateToLiftLibrary: (route: String) -> Unit,
 ) {
+    val liftLevelDeloadsEnabled = remember {
+        SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+    }
     var restTimerRestarted by remember { mutableStateOf(false) }
 
     val timerViewModel: TimerViewModel = koinViewModel()
@@ -59,7 +67,8 @@ fun Workout(
                 mutateTopAppBarControlValue(
                     AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
-            }
+            },
+            liftLevelDeloadsEnabled,
         )
     }
     val state by workoutViewModel.workoutState.collectAsState()
@@ -152,6 +161,9 @@ fun Workout(
     }
 
     if (state.workout != null) {
+        val promptOnDeload = remember {
+            SettingsManager.getSetting(PROMPT_FOR_DELOAD_WEEK, DEFAULT_PROMPT_FOR_DELOAD_WEEK)
+        }
         WorkoutPreview(
             paddingValues = paddingValues,
             visible = !state.workoutLogVisible && !state.isReordering,
@@ -162,7 +174,13 @@ fun Workout(
             combinedVolumeTypes = state.combinedVolumeTypes,
             primaryVolumeTypes = state.primaryVolumeTypes,
             secondaryVolumeTypes = state.secondaryVolumeTypes,
-            startWorkout = { workoutViewModel.startWorkout() },
+            startWorkout = {
+                if (promptOnDeload) {
+                    workoutViewModel.showDeloadPromptOrStartWorkout()
+                } else {
+                    workoutViewModel.startWorkout()
+                }
+            },
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
         )
         WorkoutLog(
@@ -286,15 +304,15 @@ fun Workout(
                 cancelReorder = { workoutViewModel.toggleReorderLifts() }
             )
         }
-        if (state.isConfirmFinishWorkoutModalShown) {
-            ConfirmationModal(
+        if (state.isConfirmFinishWorkoutDialogShown) {
+            ConfirmationDialog(
                 header = stringResource(R.string.confirm_completion),
                 body = stringResource(R.string.complete_workout_confirm_body),
                 onConfirm = { workoutViewModel.finishWorkout() },
                 onCancel = { workoutViewModel.toggleConfirmFinishWorkoutModal() })
         }
-        if (state.isConfirmCancelWorkoutModalShown) {
-            ConfirmationModal(
+        if (state.isConfirmCancelWorkoutDialogShown) {
+            ConfirmationDialog(
                 header = stringResource(R.string.confirm_cancellation),
                 body = stringResource(R.string.cancel_workout_confirm_body),
                 onConfirm = {
@@ -304,6 +322,25 @@ fun Workout(
                     )
                 },
                 onCancel = { workoutViewModel.toggleConfirmCancelWorkoutModal() })
+        }
+        if (state.isDeloadPromptDialogShown) {
+            ConfirmationDialog(
+                header = "Take Deload Microcycle?",
+                body = "Do you want to take a deload microcycle or skip it? " +
+                        "Consider the following questions:\n\n" +
+                        "Dreading the gym?\n" +
+                        "Progress stalled?\n" +
+                        "Fatigued?\n" +
+                        "Aches and pains?\n\n" +
+                        "If you answered yes to two or more, you should deload.",
+                confirmButtonText = "Take Deload",
+                cancelButtonText = "Skip",
+                onConfirm = { workoutViewModel.startWorkout() },
+                onCancel = {
+                    workoutViewModel.skipDeloadMicrocycle()
+                    workoutViewModel.startWorkout()
+                },
+            )
         }
     }
 }

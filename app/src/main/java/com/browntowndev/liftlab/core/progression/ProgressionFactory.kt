@@ -12,6 +12,7 @@ interface ProgressionFactory {
         inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
+        useLiftSpecificDeloading: Boolean,
         onlyUseResultsForLiftsInSamePosition: Boolean,
     ): LoggingWorkoutDto
 }

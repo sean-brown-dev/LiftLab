@@ -22,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.core.common.NULLABLE_DELOAD_WEEK_OPTIONS
+import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.ui.composables.IconDropdown
-import com.browntowndev.liftlab.ui.composables.NumberPickerMenuItem
+import com.browntowndev.liftlab.ui.composables.NullableNumberPickerMenuItem
 import com.browntowndev.liftlab.ui.composables.RestTimePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -43,7 +45,7 @@ fun LiftDropdown(
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
     onReplaceLift: () -> Unit,
     onDeleteLift: () -> Unit,
-    onChangeDeloadWeek: (Int) -> Unit,
+    onChangeDeloadWeek: (Int?) -> Unit,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
     onChangeIncrement: (newIncrement: Float) -> Unit,
 ) {
@@ -74,12 +76,12 @@ fun LiftDropdown(
                 onChangeIncrement = onChangeIncrement,
             )
         } else if (showDeloadWeekPicker) {
-            NumberPickerMenuItem(
-                initialValue = currentDeloadWeek!!.toFloat(),
+            NullableNumberPickerMenuItem(
+                initialValue = currentDeloadWeek?.toFloat(),
                 label = "Deload Week",
-                options = remember { listOf(3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f) },
+                options = NULLABLE_DELOAD_WEEK_OPTIONS,
                 onChanged = {
-                    onChangeDeloadWeek(it.toInt())
+                    onChangeDeloadWeek(it?.toInt())
                 },
                 onBackPressed = { showDeloadWeekPicker = false },
             )
@@ -130,12 +132,10 @@ fun LiftDropdown(
                         )
                     },
                     trailingIcon = {
-                        if (currentDeloadWeek != null) {
-                            Text(
-                                currentDeloadWeek.toString(),
-                                color = MaterialTheme.colorScheme.tertiary
-                            )
-                        }
+                        Text(
+                            text = remember(currentDeloadWeek) { currentDeloadWeek?.toString() ?: "None" },
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
                     }
                 )
             }
@@ -156,12 +156,7 @@ fun LiftDropdown(
                     val restTimeDisplay by remember(key1 = restTime, key2 = restTimerEnabled) {
                         mutableStateOf(
                             if (restTimerEnabled) {
-                                "${restTime.inWholeMinutes}:${
-                                    String.format(
-                                        "%02d",
-                                        restTime.inWholeSeconds % 60
-                                    )
-                                }"
+                                restTime.toTimeString()
                             } else "Off"
                         )
                     }

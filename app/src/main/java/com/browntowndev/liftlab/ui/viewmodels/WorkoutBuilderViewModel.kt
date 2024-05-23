@@ -40,6 +40,7 @@ class WorkoutBuilderViewModel(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val customLiftSetsRepository: CustomLiftSetsRepository,
     private val liftsRepository: LiftsRepository,
+    private val liftLevelDeloadsEnabled: Boolean,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -80,7 +81,7 @@ class WorkoutBuilderViewModel(
                 workoutLift.id to Utils.getPossibleStepSizes(
                     repRangeTop = workoutLift.repRangeTop,
                     repRangeBottom = workoutLift.repRangeBottom,
-                    stepCount = (workoutLift.deloadWeek ?: programDeloadWeek) - 2
+                    stepCount = (if (liftLevelDeloadsEnabled) workoutLift.deloadWeek else programDeloadWeek)?.let { it - 2 }
                 ).associateWith { option ->
                     Utils.generateFirstCompleteStepSequence(
                         repRangeTop = workoutLift.repRangeTop,
@@ -91,12 +92,12 @@ class WorkoutBuilderViewModel(
             }
     }
 
-    private fun getRecalculatedStepSizeForLift(currStepSize: Int?, progressionScheme: ProgressionScheme, repRangeTop: Int, repRangeBottom: Int, deloadWeek: Int): Int? {
+    private fun getRecalculatedStepSizeForLift(currStepSize: Int?, progressionScheme: ProgressionScheme, repRangeTop: Int, repRangeBottom: Int, deloadWeek: Int?): Int? {
         return if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
             val availableStepSizes = Utils.getPossibleStepSizes(
                 repRangeTop = repRangeTop,
                 repRangeBottom = repRangeBottom,
-                stepCount = deloadWeek - 2,
+                stepCount = deloadWeek?.let { deloadWeek - 2 },
             )
             if (availableStepSizes.contains(currStepSize)) {
                 currStepSize
@@ -387,7 +388,7 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int) {
+    fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int?) {
         executeInTransactionScope {
             var updatedWorkoutLift: GenericWorkoutLift? = null
             val updatedWorkout = updateLiftProperty(_state.value, workoutLiftId) { lift ->

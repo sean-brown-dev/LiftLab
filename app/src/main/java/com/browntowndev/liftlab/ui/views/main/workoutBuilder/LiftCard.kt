@@ -40,7 +40,7 @@ fun LiftCard(
     onCustomLiftSetsToggled: CoroutineScope.(Boolean) -> Unit,
     onReplaceLift: () -> Unit,
     onDeleteLift: () -> Unit,
-    onChangeDeloadWeek: (Int) -> Unit,
+    onChangeDeloadWeek: (Int?) -> Unit,
     onChangeIncrement: (newIncrement: Float) -> Unit,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
     content: @Composable (ColumnScope.() -> Unit),
@@ -100,7 +100,7 @@ fun LiftCardHeader(
     onDeleteLift: () -> Unit,
     onChangeIncrement: (newIncrement: Float) -> Unit,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
-    onChangeDeloadWeek: (Int) -> Unit,
+    onChangeDeloadWeek: (Int?) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),

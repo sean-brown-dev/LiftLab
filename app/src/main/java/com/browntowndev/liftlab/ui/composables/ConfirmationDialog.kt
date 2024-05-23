@@ -1,24 +1,28 @@
 package com.browntowndev.liftlab.ui.composables
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit, onCancel: () -> Unit) {
+fun ConfirmationDialog(
+    header: String,
+    body: String,
+    confirmButtonText: String = "OK",
+    cancelButtonText: String = "Cancel",
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
     LiftLabDialog(
         isVisible = true, // Managed via if/else at caller
         header = header,
@@ -36,12 +40,12 @@ fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit, onCan
                 onClick = onCancel,
             ) {
                 Text(
-                    text = "Cancel",
+                    text = cancelButtonText,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
             Button(onClick = onConfirm) {
-                Text(text = "OK")
+                Text(text = confirmButtonText)
             }
         }
     }
@@ -49,7 +53,7 @@ fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit, onCan
 
 
 @Composable
-fun ConfirmationModal(header: String, body: String, onConfirm: () -> Unit) {
+fun ConfirmationDialog(header: String, body: String, onConfirm: () -> Unit) {
     LiftLabDialog(
         isVisible = true, // Managed via if/else at caller
         header = header,

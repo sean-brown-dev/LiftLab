@@ -59,6 +59,7 @@ class WorkoutViewModel(
     private val liftsRepository: LiftsRepository,
     private val navigateToWorkoutHistory: () -> Unit,
     private val cancelRestTimer: () -> Unit,
+    private val liftLevelDeloadsEnabled: Boolean,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
@@ -188,6 +189,7 @@ class WorkoutViewModel(
                                     previousResultsForDisplay = previousResultsForDisplay,
                                     inProgressSetResults = inProgressSetResults,
                                     programDeloadWeek = programMetadata.deloadWeek,
+                                    useLiftSpecificDeloading = liftLevelDeloadsEnabled,
                                     microCycle = programMetadata.currentMicrocycle,
                                     onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
                                 )
@@ -307,7 +309,33 @@ class WorkoutViewModel(
         }
     }
 
-    fun startWorkout(promptIfDeload: Boolean = false) {
+
+    fun skipDeloadMicrocycle() {
+        mutableWorkoutState.update {
+            it.copy(isDeloadPromptDialogShown = false)
+        }
+        executeInTransactionScope {
+            val programMetadata = mutableWorkoutState.value.programMetadata!!
+            programsRepository.updateMesoAndMicroCycle(
+                id = programMetadata.programId,
+                mesoCycle = programMetadata.currentMesocycle + 1,
+                microCycle = 0,
+                microCyclePosition = 0,
+            )
+        }
+    }
+
+    fun showDeloadPromptOrStartWorkout() {
+        if (mutableWorkoutState.value.isDeloadWeek) {
+            mutableWorkoutState.update {
+                it.copy(isDeloadPromptDialogShown = true)
+            }
+        } else {
+            startWorkout()
+        }
+    }
+
+    fun startWorkout() {
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressDto(
                 startTime = Utils.getCurrentDate(),
@@ -319,6 +347,7 @@ class WorkoutViewModel(
                 it.copy(
                     inProgressWorkout = inProgressWorkout,
                     workoutLogVisible = true,
+                    isDeloadPromptDialogShown = false,
                 )
             }
         }
@@ -327,7 +356,7 @@ class WorkoutViewModel(
     fun toggleConfirmFinishWorkoutModal() {
         mutableWorkoutState.update {
             it.copy(
-                isConfirmFinishWorkoutModalShown = !it.isConfirmFinishWorkoutModalShown
+                isConfirmFinishWorkoutDialogShown = !it.isConfirmFinishWorkoutDialogShown
             )
         }
     }
@@ -348,7 +377,7 @@ class WorkoutViewModel(
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
             val lastDeloadWeek = max(programMetadata.deloadWeek, workout.lifts.maxOfOrNull { it.deloadWeek ?: 0 } ?: 0)
-            val deloadWeekComplete = microCycleComplete && (lastDeloadWeek - 1) == programMetadata.currentMicrocycle
+            val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && (lastDeloadWeek - 1) == programMetadata.currentMicrocycle
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
@@ -462,13 +491,13 @@ class WorkoutViewModel(
     fun toggleConfirmCancelWorkoutModal() {
         mutableWorkoutState.update {
             it.copy(
-                isConfirmCancelWorkoutModalShown = !it.isConfirmCancelWorkoutModalShown
+                isConfirmCancelWorkoutDialogShown = !it.isConfirmCancelWorkoutDialogShown
             )
         }
     }
 
     fun cancelWorkout() {
-        if (mutableWorkoutState.value.isConfirmCancelWorkoutModalShown)
+        if (mutableWorkoutState.value.isConfirmCancelWorkoutDialogShown)
             toggleConfirmCancelWorkoutModal()
 
         executeInTransactionScope {

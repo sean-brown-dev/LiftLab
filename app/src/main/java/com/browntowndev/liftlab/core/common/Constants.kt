@@ -19,6 +19,13 @@ const val DAYS_HOURS_MINUTES_SECONDS_FORMAT = "%dd:%02d:%02d:%02d"
 val INCREMENT_OPTIONS = listOf(.5f, 1f, 2.5f, 5f, 10f, 20f)
 val REST_TIME_RANGE = 0..6L
 
+// Deload
+val DELOAD_WEEK_OPTIONS = listOf(3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f)
+val NULLABLE_DELOAD_WEEK_OPTIONS =
+    DELOAD_WEEK_OPTIONS
+        .toMutableList<Float?>()
+        .apply { add(0, null) }
+
 // Navigation
 const val LIFT_METRIC_CHART_IDS = "liftMetricChartIds"
 const val SHOW_WORKOUT_LOG = "showWorkoutLog"

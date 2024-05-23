@@ -232,7 +232,7 @@ private fun DonationMenu(
     }
 
     if (billingCompletionMessage?.isNotEmpty() == true) {
-        ConfirmationModal(
+        ConfirmationDialog(
             header = remember(billingCompletionMessage) {
                 if (billingCompletionMessage == THANK_YOU_DIALOG_BODY) "Donation Complete"
                 else "Donation Error"

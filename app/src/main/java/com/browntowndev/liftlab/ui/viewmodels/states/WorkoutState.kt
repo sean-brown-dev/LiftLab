@@ -19,9 +19,15 @@ data class WorkoutState(
     val restTimerStartedAt: Date? = null,
     val restTime: Long = 0L,
     val completedMyoRepSets: Boolean = false,
-    val isConfirmFinishWorkoutModalShown: Boolean = false,
-    val isConfirmCancelWorkoutModalShown: Boolean = false,
+    val isConfirmFinishWorkoutDialogShown: Boolean = false,
+    val isConfirmCancelWorkoutDialogShown: Boolean = false,
+    val isDeloadPromptDialogShown: Boolean = false,
 ) {
+    val isDeloadWeek by lazy {
+        this.programMetadata != null &&
+                this.programMetadata.deloadWeek == (this.programMetadata.currentMicrocycle + 1)
+    }
+
     val combinedVolumeTypes: List<CharSequence> by lazy {
         this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
     }
