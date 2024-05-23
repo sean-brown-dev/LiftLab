@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.lang.Integer.max
 import kotlin.time.Duration
 
 class WorkoutViewModel(
@@ -331,7 +330,8 @@ class WorkoutViewModel(
     }
 
     fun showDeloadPromptOrStartWorkout() {
-        if (mutableWorkoutState.value.isDeloadWeek) {
+        if (mutableWorkoutState.value.isDeloadWeek &&
+            mutableWorkoutState.value.programMetadata!!.currentMicrocyclePosition == 0) {
             mutableWorkoutState.update {
                 it.copy(isDeloadPromptDialogShown = true)
             }
@@ -381,8 +381,7 @@ class WorkoutViewModel(
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val lastDeloadWeek = max(programMetadata.deloadWeek, workout.lifts.maxOfOrNull { it.deloadWeek ?: 0 } ?: 0)
-            val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && (lastDeloadWeek - 1) == programMetadata.currentMicrocycle
+            val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
