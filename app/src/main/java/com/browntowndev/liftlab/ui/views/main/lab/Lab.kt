@@ -180,7 +180,7 @@ fun Lab(
     if (state.isDeletingProgram && state.idOfProgramToDelete != null) {
         ConfirmationDialog(
             header = "Delete?",
-            body = "Are you sure you want to delete ${state.nameOfProgramToDelete}? This cannot be undone.",
+            textAboveContent = "Are you sure you want to delete ${state.nameOfProgramToDelete}? This cannot be undone.",
             onConfirm = { labViewModel.deleteProgram(state.idOfProgramToDelete!!) },
             onCancel = { labViewModel.cancelDeleteProgram() }
         )
@@ -189,7 +189,7 @@ fun Lab(
     if (state.workoutToDelete != null) {
         ConfirmationDialog(
             header = "Delete?",
-            body = "Are you sure you want to delete ${state.workoutToDelete!!.name}? This cannot be undone.",
+            textAboveContent = "Are you sure you want to delete ${state.workoutToDelete!!.name}? This cannot be undone.",
             onConfirm = { labViewModel.deleteWorkout(state.workoutToDelete!!) },
             onCancel = { labViewModel.cancelDeleteWorkout() }
         )

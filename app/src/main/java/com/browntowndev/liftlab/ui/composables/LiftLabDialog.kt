@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-public fun LiftLabDialog(
+fun LiftLabDialog(
     isVisible: Boolean,
     header: String,
     subHeader: String = "",
@@ -32,6 +32,7 @@ public fun LiftLabDialog(
     textAboveContentFontSize: TextUnit = 14.sp,
     textAboveContentAlignment: TextAlign = TextAlign.Center,
     textAboveContentPadding: PaddingValues = PaddingValues(bottom = 20.dp),
+    contentPadding: PaddingValues = PaddingValues(15.dp),
     onDismiss: () -> Unit,
     content: @Composable (() -> Unit),
 ) {
@@ -50,7 +51,7 @@ public fun LiftLabDialog(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column (
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(15.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
@@ -69,10 +70,14 @@ public fun LiftLabDialog(
                         )
                     }
                     HorizontalDivider(
-                        modifier = Modifier.padding(top = 5.dp, bottom = 20.dp).height(1.dp),
+                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp).height(1.dp),
                         color = MaterialTheme.colorScheme.outline,
                     )
-
+                }
+                Column (
+                    modifier = Modifier.padding(contentPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
                     if (textAboveContent.isNotEmpty()) {
                         Text(
                             modifier = Modifier.padding(textAboveContentPadding),

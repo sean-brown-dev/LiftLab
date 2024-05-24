@@ -132,16 +132,8 @@ interface LoggingDao {
     suspend fun deleteManySetLogEntries(ids: List<Long>)
 
     @Query("DELETE FROM setLogEntries " +
-            "WHERE set_log_entry_id IN (" +
-            "SELECT set_log_entry_id " +
-            "FROM setLogEntries setLog " +
-            "INNER JOIN workoutLogEntries workoutLog ON workoutLog.workout_log_entry_id = setLog.workoutLogEntryId " +
-            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = workoutLog.historicalWorkoutNameId " +
-            "WHERE histWorkoutName.workoutId = :workoutId AND " +
-            "setLog.liftPosition = :liftPosition AND " +
-            "setLog.setPosition = :setPosition AND " +
-            "setLog.myoRepSetPosition = :myoRepSetPosition )")
-    suspend fun deleteSetLogEntry(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
+            "WHERE set_log_entry_id = :id")
+    suspend fun deleteSetLogEntryById(id: Long)
 
     @Upsert
     suspend fun upsert(setLogEntry: SetLogEntry): Long

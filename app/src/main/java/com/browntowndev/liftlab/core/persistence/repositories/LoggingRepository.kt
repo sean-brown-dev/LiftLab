@@ -128,13 +128,8 @@ class LoggingRepository(
         )
     }
 
-    suspend fun deleteSetLogEntry(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
-        loggingDao.deleteSetLogEntry(
-            workoutId = workoutId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition,
-        )
+    suspend fun deleteSetLogEntryById(id: Long) {
+        loggingDao.deleteSetLogEntryById(id)
     }
 
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {

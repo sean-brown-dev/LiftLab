@@ -22,10 +22,11 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ConfirmationDialog(
     header: String,
-    body: String,
-    bodyFontSize: TextUnit = 16.sp,
-    bodyPadding: PaddingValues = PaddingValues(bottom = 20.dp),
-    bodyTextAlign: TextAlign = TextAlign.Center,
+    textAboveContent: String,
+    textAboveContentFontSize: TextUnit = 16.sp,
+    textAboveContentPadding: PaddingValues = PaddingValues(bottom = 20.dp),
+    textAboveContentAlignment: TextAlign = TextAlign.Center,
+    contentPadding: PaddingValues = PaddingValues(15.dp),
     confirmButtonText: String = "OK",
     cancelButtonText: String = "Cancel",
     onConfirm: () -> Unit,
@@ -36,10 +37,11 @@ fun ConfirmationDialog(
     LiftLabDialog(
         isVisible = true, // Managed via if/else at caller
         header = header,
-        textAboveContent = body,
-        textAboveContentFontSize = bodyFontSize,
-        textAboveContentPadding = bodyPadding,
-        textAboveContentAlignment = bodyTextAlign,
+        textAboveContent = textAboveContent,
+        textAboveContentFontSize = textAboveContentFontSize,
+        textAboveContentPadding = textAboveContentPadding,
+        textAboveContentAlignment = textAboveContentAlignment,
+        contentPadding = contentPadding,
         onDismiss = onDismiss
     ) {
         content()

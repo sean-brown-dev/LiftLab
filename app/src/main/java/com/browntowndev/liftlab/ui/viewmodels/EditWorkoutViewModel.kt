@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
@@ -297,18 +296,8 @@ class EditWorkoutViewModel(
         )
     }
 
-    override suspend fun deleteSetResult(
-        workoutId: Long,
-        liftPosition: Int,
-        setPosition: Int,
-        myoRepSetPosition: Int?
-    ) {
-        loggingRepository.deleteSetLogEntry(
-            workoutId = workoutId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition,
-        )
+    override suspend fun deleteSetResult(id: Long) {
+        loggingRepository.deleteSetLogEntryById(id)
     }
 
     private suspend fun updateSetResult(updatedResult: SetResult) {

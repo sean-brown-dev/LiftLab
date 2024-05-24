@@ -38,17 +38,8 @@ import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
-import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
@@ -107,14 +98,6 @@ fun Settings(
             onBackPressed = { settingsViewModel.toggleDonationScreen() },
         )
     } else {
-        var liftSpecificDeloading by remember {
-            mutableStateOf(
-                SettingsManager.getSetting(
-                    LIFT_SPECIFIC_DELOADING,
-                    DEFAULT_LIFT_SPECIFIC_DELOADING
-                )
-            )
-        }
         LazyColumn(
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
@@ -170,25 +153,10 @@ fun Settings(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    var promptForDeloadWeek by remember(liftSpecificDeloading) {
-                        mutableStateOf(
-                            !liftSpecificDeloading &&
-                                    SettingsManager.getSetting(
-                                        PROMPT_FOR_DELOAD_WEEK,
-                                        DEFAULT_PROMPT_FOR_DELOAD_WEEK
-                                    )
-                        )
-                    }
                     Switch(
-                        enabled = !liftSpecificDeloading,
-                        checked = promptForDeloadWeek,
-                        onCheckedChange = {
-                            promptForDeloadWeek = it
-                            SettingsManager.setSetting(
-                                PROMPT_FOR_DELOAD_WEEK,
-                                it
-                            )
-                        },
+                        enabled = !state.liftSpecificDeloading,
+                        checked = state.promptOnDeloadStart && !state.liftSpecificDeloading,
+                        onCheckedChange = settingsViewModel::handlePromptForDeloadWeekChange,
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = MaterialTheme.colorScheme.secondary,
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -218,11 +186,8 @@ fun Settings(
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
-                        checked = liftSpecificDeloading,
-                        onCheckedChange = {
-                            settingsViewModel.handleLiftSpecificDeloadChange(useLiftLevel = it)
-                            liftSpecificDeloading = it
-                        },
+                        checked = state.liftSpecificDeloading,
+                        onCheckedChange = settingsViewModel::handleLiftSpecificDeloadChange,
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = MaterialTheme.colorScheme.secondary,
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -256,23 +221,9 @@ fun Settings(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    var useAllData by remember {
-                        mutableStateOf(
-                            SettingsManager.getSetting(
-                                USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-                                DEFAULT_USE_ALL_WORKOUT_DATA
-                            )
-                        )
-                    }
                     Switch(
-                        checked = !useAllData,
-                        onCheckedChange = {
-                            useAllData = !it
-                            SettingsManager.setSetting(
-                                USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-                                !it
-                            )
-                        },
+                        checked = !state.useAllLiftDataForRecommendations,
+                        onCheckedChange = settingsViewModel::handleUseAllDataForRecommendationsChange,
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = MaterialTheme.colorScheme.secondary,
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -306,23 +257,9 @@ fun Settings(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    var enforcePosition by remember {
-                        mutableStateOf(
-                            SettingsManager.getSetting(
-                                ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
-                                DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
-                            )
-                        )
-                    }
                     Switch(
-                        checked = enforcePosition,
-                        onCheckedChange = {
-                            enforcePosition = it
-                            SettingsManager.setSetting(
-                                ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
-                                it
-                            )
-                        },
+                        checked = state.useOnlyResultsFromLiftInSamePosition,
+                        onCheckedChange = settingsViewModel::handleUseOnlyLiftsFromSamePositionChange,
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = MaterialTheme.colorScheme.secondary,
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -425,7 +362,7 @@ fun Settings(
                 if (state.importConfirmationDialogShown) {
                     ConfirmationDialog(
                         header = "Warning!",
-                        body = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
+                        textAboveContent = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
                         onConfirm = { settingsViewModel.importDatabase() },
                         onCancel = { settingsViewModel.toggleImportConfirmationDialog() }
                     )

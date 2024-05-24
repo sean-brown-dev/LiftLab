@@ -70,18 +70,8 @@ interface PreviousSetResultDao {
             "microCycle = :microCycle")
     suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): Int
 
-    @Query("DELETE FROM previousSetResults WHERE " +
-            "workoutId = :workoutId AND " +
-            "liftId = :liftId AND " +
-            "setPosition = :setPosition")
-    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int)
-
-    @Query("DELETE FROM previousSetResults WHERE " +
-            "workoutId = :workoutId AND " +
-            "liftPosition = :liftPosition AND " +
-            "setPosition = :setPosition AND " +
-            "myoRepSetPosition = :myoRepSetPosition")
-    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
+    @Query("DELETE FROM previousSetResults WHERE previously_completed_set_id = :id")
+    suspend fun deleteById(id: Long)
 
     @Query("UPDATE previousSetResults " +
             "SET weight = :weight, " +

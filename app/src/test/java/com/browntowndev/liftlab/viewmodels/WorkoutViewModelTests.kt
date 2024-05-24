@@ -7,12 +7,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -82,7 +81,7 @@ class WorkoutViewModelTests {
 
         every {
             SettingsManager.getSettingFlow(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, any())
-        } returns flowOf(DEFAULT_USE_ALL_WORKOUT_DATA)
+        } returns flowOf(DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS)
         every {
             SettingsManager.getSettingFlow(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, any())
         } returns flowOf(DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION)

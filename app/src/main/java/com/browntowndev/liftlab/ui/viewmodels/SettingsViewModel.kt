@@ -101,6 +101,36 @@ class SettingsViewModel(
         }
     }
 
+    fun handleUseAllDataForRecommendationsChange(useOnlyFromPreviousWorkout: Boolean) {
+        SettingsManager.setSetting(
+            SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+            !useOnlyFromPreviousWorkout
+        )
+        _state.update {
+            it.copy(useAllLiftDataForRecommendations = !useOnlyFromPreviousWorkout)
+        }
+    }
+
+    fun handleUseOnlyLiftsFromSamePositionChange(useOnlyLiftsFromSamePosition: Boolean) {
+        SettingsManager.setSetting(
+            SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+            useOnlyLiftsFromSamePosition
+        )
+        _state.update {
+            it.copy(useOnlyResultsFromLiftInSamePosition = useOnlyLiftsFromSamePosition)
+        }
+    }
+
+    fun handlePromptForDeloadWeekChange(promptOnDeloadStart: Boolean) {
+        SettingsManager.setSetting(
+            SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK,
+            promptOnDeloadStart
+        )
+        _state.update {
+            it.copy(promptOnDeloadStart = promptOnDeloadStart)
+        }
+    }
+
     fun handleLiftSpecificDeloadChange(useLiftLevel: Boolean) {
         executeInTransactionScope {
             if (!_state.value.queriedForProgram) {
@@ -128,6 +158,7 @@ class SettingsViewModel(
                 )
                 _state.update {
                     it.copy(
+                        liftSpecificDeloading = useLiftLevel,
                         activeProgram = it.activeProgram!!.let { program ->
                             program.copy(
                                 workouts = program.workouts.fastMap { workout ->
@@ -148,6 +179,9 @@ class SettingsViewModel(
                     SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING,
                     useLiftLevel
                 )
+                _state.update {
+                    it.copy(liftSpecificDeloading = useLiftLevel)
+                }
             }
         }
     }

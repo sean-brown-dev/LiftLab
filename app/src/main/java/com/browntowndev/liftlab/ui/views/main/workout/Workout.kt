@@ -5,7 +5,12 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,12 +19,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import arrow.core.Either
 import arrow.core.left
@@ -31,11 +40,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.runOnCompletion
+import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
@@ -314,16 +323,96 @@ fun Workout(
             )
         }
         if (state.isConfirmFinishWorkoutDialogShown) {
+            val fullyCompleted = remember(state.workoutCompletionSummary!!.totalIncompleteLifts) {
+                state.workoutCompletionSummary!!.totalIncompleteLifts == 0
+            }
             ConfirmationDialog(
                 header = stringResource(R.string.confirm_completion),
-                body = stringResource(R.string.complete_workout_confirm_body),
+                textAboveContent = if (!fullyCompleted) {
+                    stringResource(R.string.complete_workout_confirm_body)
+                } else {
+                    ""
+                },
+                textAboveContentPadding = if (!fullyCompleted) PaddingValues(bottom = 20.dp) else PaddingValues(),
+                contentPadding = PaddingValues(5.dp),
                 onConfirm = { workoutViewModel.finishWorkout() },
-                onCancel = { workoutViewModel.toggleConfirmFinishWorkoutModal() })
+                onCancel = { workoutViewModel.toggleConfirmFinishWorkoutModal() }
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    Text(
+                        text = "${state.workoutCompletionSummary!!.percentageComplete.toWholeNumberOrOneDecimalString()}% Complete",
+                        textAlign = TextAlign.Center,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                    if (fullyCompleted) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(id = R.drawable.bicep),
+                            contentDescription = stringResource(R.string.flexed_bicep),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
+                }
+                if (state.workoutCompletionSummary!!.totalIncompleteLifts > 0) {
+                    Text(
+                        modifier = Modifier.padding(bottom = 20.dp),
+                        text = "${state.workoutCompletionSummary!!.totalIncompleteLifts} Incomplete",
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                Column(
+                    modifier = Modifier.padding(top = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row (
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(text = "Lift", fontSize = 14.sp, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(.8f))
+                        Text(text = "Best Set", fontSize = 14.sp, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(.5f))
+                        Text(text = "1RM", fontSize = 14.sp, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(.15f))
+                    }
+                    state.workoutCompletionSummary!!.liftCompletions.fastForEach { liftCompletion ->
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val color = if (liftCompletion.isIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimaryContainer
+                            Text(
+                                modifier = Modifier.weight(.8f),
+                                text = "${liftCompletion.setsCompleted} x ${liftCompletion.liftName}",
+                                fontSize = 11.sp,
+                                color = color,
+                            )
+                            Text(
+                                modifier = Modifier.weight(.5f),
+                                text = "${liftCompletion.bestSetReps}x${liftCompletion.bestSetWeight} @${liftCompletion.bestSetRpe}",
+                                fontSize = 11.sp,
+                                color = color,
+                            )
+                            Text(
+                                modifier = Modifier.weight(.15f),
+                                text = "${liftCompletion.bestSet1RM}",
+                                fontSize = 11.sp,
+                                color = color,
+                            )
+                        }
+                    }
+                }
+            }
         }
         if (state.isConfirmCancelWorkoutDialogShown) {
             ConfirmationDialog(
                 header = stringResource(R.string.confirm_cancellation),
-                body = stringResource(R.string.cancel_workout_confirm_body),
+                textAboveContent = stringResource(R.string.cancel_workout_confirm_body),
                 onConfirm = {
                     workoutViewModel.cancelWorkout()
                     mutateTopAppBarControlValue(
@@ -335,11 +424,11 @@ fun Workout(
         if (state.isDeloadPromptDialogShown) {
             ConfirmationDialog(
                 header = "Take Deload Microcycle?",
-                body = "Do you want to take a deload microcycle or skip it? " +
+                textAboveContent = "Do you want to take a deload microcycle or skip it? " +
                         "Consider the following questions as well as your sleep, " +
                         "diet and stress levels. ",
-                bodyPadding = PaddingValues(),
-                bodyTextAlign = TextAlign.Left,
+                textAboveContentPadding = PaddingValues(),
+                textAboveContentAlignment = TextAlign.Left,
                 confirmButtonText = "Take Deload",
                 cancelButtonText = "Skip",
                 onConfirm = workoutViewModel::startWorkout,

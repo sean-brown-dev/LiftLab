@@ -46,12 +46,8 @@ class PreviousSetResultsRepository(
         previousSetResultDao.deleteAllForWorkout(workoutId, mesoCycle, microCycle)
     }
 
-    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int) {
-        previousSetResultDao.delete(workoutId, liftId, setPosition)
-    }
-
-    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
-        previousSetResultDao.delete(workoutId, liftPosition, setPosition, myoRepSetPosition)
+    suspend fun deleteById(id: Long) {
+        previousSetResultDao.deleteById(id)
     }
 
     suspend fun update(liftId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?, weight: Float, reps: Int, rpe: Float) {

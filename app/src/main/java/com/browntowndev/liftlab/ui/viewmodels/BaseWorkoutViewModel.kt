@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
@@ -38,7 +39,7 @@ abstract class BaseWorkoutViewModel(
     protected open suspend fun insertRestTimerInProgress(restTime: Long) { }
     protected abstract suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long>
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
-    protected abstract suspend fun deleteSetResult(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
+    protected abstract suspend fun deleteSetResult(id: Long)
 
     fun resetMyoRepSetsCompleted() {
         mutableWorkoutState.update {
@@ -495,19 +496,37 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
+    private suspend fun deleteSetResultAndReturnDeleted(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): SetResult? {
+        return mutableWorkoutState.value.inProgressWorkout
+            ?.completedSets
+            ?.find {
+                it.liftPosition == liftPosition &&
+                        it.setPosition == setPosition &&
+                        (it as? MyoRepSetResultDto)?.myoRepSetPosition == myoRepSetPosition
+            }
+            ?.also { result ->
+                deleteSetResult(id = result.id)
+            }
+    }
+
     fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
         executeInTransactionScope {
             stopRestTimer()
-            deleteSetResult(
-                workoutId = mutableWorkoutState.value.workout!!.id,
+            val deletedResult = deleteSetResultAndReturnDeleted(
                 liftPosition = liftPosition,
                 setPosition = setPosition,
-                myoRepSetPosition = myoRepSetPosition
+                myoRepSetPosition = myoRepSetPosition,
             )
-
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTimerStartedAt = null,
+                    inProgressWorkout = currentState.inProgressWorkout?.copy(
+                        completedSets = currentState.inProgressWorkout.completedSets.fastMapNotNull { setResult ->
+                            if (setResult.id != deletedResult?.id) {
+                                setResult
+                            } else null
+                        }
+                    ),
                     workout = currentState.workout!!.copy(
                         lifts = currentState.workout.lifts.fastMap { workoutLift ->
                             var hasWeightRecommendation = false
@@ -554,17 +573,24 @@ abstract class BaseWorkoutViewModel(
                         it.myoRepSetPosition == myoRepSetPosition
             }?.complete
 
+            var deletedResult: SetResult? = null
             if (isComplete == true) {
-                deleteSetResult(
-                    workoutId = mutableWorkoutState.value.workout!!.id,
+                deletedResult = deleteSetResultAndReturnDeleted(
                     liftPosition = liftPosition,
                     setPosition = setPosition,
-                    myoRepSetPosition = myoRepSetPosition
+                    myoRepSetPosition = myoRepSetPosition,
                 )
             }
 
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
+                    inProgressWorkout = currentState.inProgressWorkout?.copy(
+                        completedSets = currentState.inProgressWorkout.completedSets.fastMapNotNull { setResult ->
+                            if (setResult.id != deletedResult?.id) {
+                                setResult
+                            } else null
+                        }
+                    ),
                     workout = currentState.workout!!.let { workout ->
                         workout.copy(
                             lifts = workout.lifts.fastMap { workoutLift ->

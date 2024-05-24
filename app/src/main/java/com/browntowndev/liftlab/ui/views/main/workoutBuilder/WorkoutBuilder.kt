@@ -38,7 +38,6 @@ import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
@@ -527,7 +526,7 @@ fun WorkoutBuilder(
     if (state.workoutLiftIdToDelete != null) {
         ConfirmationDialog(
             header = "Delete ${state.movementPatternOfDeletingWorkoutLift}?",
-            body = "Are you sure you want to delete this movement pattern?",
+            textAboveContent = "Are you sure you want to delete this movement pattern?",
             onConfirm = {
                 workoutBuilderViewModel.deleteMovementPattern()
             },

@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -7,7 +9,6 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -35,7 +36,10 @@ import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgres
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.core.progression.ProgressionFactory
+import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
+import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -207,7 +211,7 @@ class WorkoutViewModel(
     ): Flow<List<SetResult>> {
         return SettingsManager.getSettingFlow(
             SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-            SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+            SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
         ).flatMapLatest { useAllData ->
             flowOf(
                 if (workout != null) {
@@ -362,9 +366,74 @@ class WorkoutViewModel(
     fun toggleConfirmFinishWorkoutModal() {
         mutableWorkoutState.update {
             it.copy(
-                isConfirmFinishWorkoutDialogShown = !it.isConfirmFinishWorkoutDialogShown
+                isConfirmFinishWorkoutDialogShown = !it.isConfirmFinishWorkoutDialogShown,
+                workoutCompletionSummary = getWorkoutCompletionSummary()
             )
         }
+    }
+
+    private fun getWorkoutCompletionSummary(): WorkoutCompletionSummary {
+        val liftsById = mutableWorkoutState.value.workout?.lifts?.associate { it.liftId to it }
+        val liftCompletionSummary = mutableWorkoutState.value.inProgressWorkout?.completedSets
+            ?.groupBy { "${it.liftId}-${it.liftPosition}" }
+            ?.values?.map { resultsForLift ->
+                val lift = liftsById?.get(resultsForLift[0].liftId)
+                val setsCompleted = resultsForLift.size
+                val totalSets = (lift?.setCount ?: setsCompleted)
+                    .let { total ->
+                        // Myo can meet this condition
+                        if (setsCompleted > total) setsCompleted else total
+                    }
+                var bestSet1RM = 0
+                var bestSet: SetResult? = null
+                resultsForLift.fastForEach { result ->
+                    val oneRepMax = CalculationEngine.getOneRepMax(
+                        weight = result.weight,
+                        reps = result.reps,
+                        rpe = result.rpe
+                    )
+                    if (oneRepMax > bestSet1RM) {
+                        bestSet = result
+                        bestSet1RM = oneRepMax
+                    }
+                }
+
+                LiftCompletionSummary(
+                    liftName = lift?.liftName ?: "Unknown Lift",
+                    liftId = lift?.liftId ?: -1,
+                    liftPosition = lift?.position ?: -1,
+                    setsCompleted = setsCompleted,
+                    totalSets = totalSets,
+                    bestSetReps = bestSet?.reps ?: 0,
+                    bestSetWeight = bestSet?.weight ?: 0f,
+                    bestSetRpe = bestSet?.rpe ?: 0f,
+                    bestSet1RM = bestSet1RM,
+                )
+            }?.toMutableList()?.apply {
+                val liftsWithNoCompletedSets = liftsById?.values?.filter { loggingLift ->
+                    !this.fastAny { summaryLift ->
+                        summaryLift.liftId == loggingLift.liftId && summaryLift.liftPosition == loggingLift.position
+                    }
+                } ?: listOf()
+
+                addAll(
+                    liftsWithNoCompletedSets.map { incompleteLift ->
+                        LiftCompletionSummary(
+                            liftName = incompleteLift.liftName,
+                            liftId = incompleteLift.liftId,
+                            liftPosition = incompleteLift.position,
+                            setsCompleted = 0,
+                            totalSets = incompleteLift.setCount,
+                            bestSetReps = 0,
+                            bestSetWeight = 0f,
+                            bestSetRpe = 0f,
+                            bestSet1RM = 0,
+                        )
+                    }
+                )
+            }?.sortedBy { it.liftPosition } ?: listOf()
+
+        return WorkoutCompletionSummary(liftCompletionSummary)
     }
 
     fun finishWorkout() {
@@ -433,7 +502,6 @@ class WorkoutViewModel(
 
             stopRestTimer()
 
-            // TODO: have summary pop up as dialog and close this on completion instead
             mutableWorkoutState.update {
                 it.copy(workoutLogVisible = false)
             }
@@ -624,18 +692,8 @@ class WorkoutViewModel(
         return setResultsRepository.upsert(updatedResult)
     }
 
-    override suspend fun deleteSetResult(
-        workoutId: Long,
-        liftPosition: Int,
-        setPosition: Int,
-        myoRepSetPosition: Int?
-    ) {
-        setResultsRepository.delete(
-            workoutId = workoutId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition
-        )
+    override suspend fun deleteSetResult(id: Long) {
+        setResultsRepository.deleteById(id)
     }
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {

@@ -35,4 +35,6 @@
     <string name="terms_of_service">Terms of Service</string>
     <string name="terms_of_service_url">https://gist.github.com/sean-brown-dev/39cfd24853729977f6107557f939beef</string>
     <string name="terms_of_service_icon">Terms of Service Icon</string>
+    <string name="flexed_bicep">Flexed Bicep</string>
+    <string name="great_workout">Great workout!</string>
 </resources>
