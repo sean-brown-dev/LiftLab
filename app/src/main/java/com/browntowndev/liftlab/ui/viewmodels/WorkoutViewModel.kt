@@ -9,6 +9,12 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -41,9 +47,8 @@ import com.browntowndev.liftlab.core.progression.ProgressionFactory
 import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -63,7 +68,6 @@ class WorkoutViewModel(
     private val liftsRepository: LiftsRepository,
     private val navigateToWorkoutHistory: () -> Unit,
     private val cancelRestTimer: () -> Unit,
-    private val liftLevelDeloadsEnabled: Boolean,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
@@ -140,7 +144,11 @@ class WorkoutViewModel(
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
             TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
-                it.copy(workoutLogVisible = false)
+                if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                    it.copy(isCompletionSummaryVisible = false)
+                } else {
+                    it.copy(workoutLogVisible = false)
+                }
             }
             TopAppBarAction.RestTimerCompleted -> {
                 executeInTransactionScope {
@@ -150,7 +158,11 @@ class WorkoutViewModel(
                     }
                 }
             }
-            TopAppBarAction.FinishWorkout -> toggleConfirmFinishWorkoutModal()
+            TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                finishWorkout()
+            } else {
+                toggleCompletionSummary()
+            }
             TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
             else -> {}
         }
@@ -163,71 +175,71 @@ class WorkoutViewModel(
         return workoutsRepository.getByMicrocyclePosition(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
-        ).flatMapLatest { workout ->
-            getSetResults(workout, programMetadata)
-                .flatMapLatest { previousSetResults ->
-                    SettingsManager.getSettingFlow(
-                        SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
-                        SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
-                    ).flatMapLatest { onlyUseResultsForLiftsInSamePosition ->
-                        flowOf(
-                            if (workout != null) {
-                                val inProgressSetResults = setResultsRepository.getForWorkout(
-                                    workoutId = workout.id,
-                                    mesoCycle = programMetadata.currentMesocycle,
-                                    microCycle = programMetadata.currentMicrocycle
-                                ).associateBy { result ->
-                                    "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
-                                }
-
-                                val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
-                                    liftIdsToSearchFor = workout.lifts.map { it.liftId },
-                                    workout,
-                                    listOf(),
-                                    includeDeload = true,
-                                )
-
-                                progressionFactory.calculate(
-                                    workout = workout,
-                                    previousSetResults = previousSetResults,
-                                    previousResultsForDisplay = previousResultsForDisplay,
-                                    inProgressSetResults = inProgressSetResults,
-                                    programDeloadWeek = programMetadata.deloadWeek,
-                                    useLiftSpecificDeloading = liftLevelDeloadsEnabled,
-                                    microCycle = programMetadata.currentMicrocycle,
-                                    onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
-                                )
-                            } else null
-                        )
+        ).flatMapLatest { nullableWorkout ->
+            combine(
+                SettingsManager.getSettingFlow(
+                    USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+                    DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+                ),
+                SettingsManager.getSettingFlow(
+                    ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                    DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+                ),
+                SettingsManager.getSettingFlow(
+                    LIFT_SPECIFIC_DELOADING,
+                    DEFAULT_LIFT_SPECIFIC_DELOADING,
+                )
+            ) { useAllWorkoutData, onlyUseResultsForLiftsInSamePosition, liftLevelDeloadsEnabled ->
+                nullableWorkout?.let { workout ->
+                    val previousSetResults = getSetResults(
+                        workout = workout,
+                        programMetadata = programMetadata,
+                        useAllData = useAllWorkoutData)
+                    val inProgressSetResults = setResultsRepository.getForWorkout(
+                        workoutId = workout.id,
+                        mesoCycle = programMetadata.currentMesocycle,
+                        microCycle = programMetadata.currentMicrocycle
+                    ).associateBy { result ->
+                        "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
                     }
+
+                    val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
+                        liftIdsToSearchFor = workout.lifts.map { it.liftId },
+                        workout,
+                        listOf(),
+                        includeDeload = true,
+                    )
+
+                    progressionFactory.calculate(
+                        workout = workout,
+                        previousSetResults = previousSetResults,
+                        previousResultsForDisplay = previousResultsForDisplay,
+                        inProgressSetResults = inProgressSetResults,
+                        programDeloadWeek = programMetadata.deloadWeek,
+                        useLiftSpecificDeloading = liftLevelDeloadsEnabled,
+                        microCycle = programMetadata.currentMicrocycle,
+                        onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
+                    )
                 }
+            }
         }.asLiveData()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getSetResults(
-        workout: WorkoutDto?,
-        programMetadata: ActiveProgramMetadataDto
-    ): Flow<List<SetResult>> {
-        return SettingsManager.getSettingFlow(
-            SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-            SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
-        ).flatMapLatest { useAllData ->
-            flowOf(
-                if (workout != null) {
-                    val resultsFromLastWorkout =
-                        setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
-                            workoutId = workout.id,
-                            mesoCycle = programMetadata.currentMesocycle,
-                            microCycle = programMetadata.currentMicrocycle,
-                        )
-
-                    if (useAllData) {
-                        getResultsWithAllWorkoutDataAppended(resultsFromLastWorkout, workout)
-                    } else resultsFromLastWorkout
-                } else listOf()
+         workout: WorkoutDto,
+        programMetadata: ActiveProgramMetadataDto,
+        useAllData: Boolean,
+    ): List<SetResult> {
+        val resultsFromLastWorkout =
+            setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
+                workoutId = workout.id,
+                mesoCycle = programMetadata.currentMesocycle,
+                microCycle = programMetadata.currentMicrocycle,
             )
-        }
+
+        return if (useAllData) {
+            getResultsWithAllWorkoutDataAppended(resultsFromLastWorkout, workout)
+        } else resultsFromLastWorkout
     }
 
     private suspend fun getResultsWithAllWorkoutDataAppended(
@@ -363,18 +375,20 @@ class WorkoutViewModel(
         }
     }
 
-    fun toggleConfirmFinishWorkoutModal() {
+    fun toggleCompletionSummary() {
         mutableWorkoutState.update {
             it.copy(
-                isConfirmFinishWorkoutDialogShown = !it.isConfirmFinishWorkoutDialogShown,
-                workoutCompletionSummary = getWorkoutCompletionSummary()
+                isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
+                workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
+                    getWorkoutCompletionSummary()
+                } else null
             )
         }
     }
 
     private fun getWorkoutCompletionSummary(): WorkoutCompletionSummary {
         val liftsById = mutableWorkoutState.value.workout?.lifts?.associate { it.liftId to it }
-        val liftCompletionSummary = mutableWorkoutState.value.inProgressWorkout?.completedSets
+        val liftCompletionSummaries = mutableWorkoutState.value.inProgressWorkout?.completedSets
             ?.groupBy { "${it.liftId}-${it.liftPosition}" }
             ?.values?.map { resultsForLift ->
                 val lift = liftsById?.get(resultsForLift[0].liftId)
@@ -433,11 +447,14 @@ class WorkoutViewModel(
                 )
             }?.sortedBy { it.liftPosition } ?: listOf()
 
-        return WorkoutCompletionSummary(liftCompletionSummary)
+        return WorkoutCompletionSummary(
+            workoutName = mutableWorkoutState.value.workout!!.name,
+            liftCompletionSummaries = liftCompletionSummaries
+        )
     }
 
     fun finishWorkout() {
-        toggleConfirmFinishWorkoutModal()
+        toggleCompletionSummary()
 
         executeInTransactionScope {
             val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
@@ -451,6 +468,7 @@ class WorkoutViewModel(
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
+            val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
             val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle

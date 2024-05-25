@@ -1,10 +1,13 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Text
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -22,6 +25,7 @@ data class WorkoutScreen(
     override val navigationIconVisible: Boolean = false,
     override val title: String = "",
     override val subtitle: String = navigation.subtitle,
+    private val backNavigationIconVisible: Boolean = false,
     private val restTimerControlVisible: Boolean = false,
     private val restTimerRunning: Boolean = false,
     private val restTime: Long = 0L,
@@ -31,6 +35,7 @@ data class WorkoutScreen(
     companion object {
         val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout?showLog={showLog}")
         const val REST_TIMER = "restTimer"
+        const val BACK_NAVIGATION_ICON = "backNavIcon"
         const val FINISH_BUTTON = "finishButton"
         const val WORKOUT_HISTORY_BUTTON = "workoutHistoryButton"
     }
@@ -82,9 +87,8 @@ data class WorkoutScreen(
 
     override fun setControlVisibility(controlName: String, isVisible: Boolean): Screen {
         return when (controlName) {
-            REST_TIMER -> {
-                copy(restTimerControlVisible = isVisible)
-            }
+            REST_TIMER -> copy(restTimerControlVisible = isVisible)
+            BACK_NAVIGATION_ICON -> copy(backNavigationIconVisible = isVisible)
             else -> super.setControlVisibility(controlName, isVisible)
         }
     }
@@ -94,7 +98,11 @@ data class WorkoutScreen(
     override val isAppBarVisible: Boolean
         get() = true
     override val navigationIcon: Either<ImageVector, Int>
-        get() = R.drawable.down_carrot.right()
+        get() =
+            if (!backNavigationIconVisible)
+                R.drawable.down_carrot.right()
+            else
+                Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
         get() = null
     override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
@@ -114,7 +122,7 @@ data class WorkoutScreen(
                 icon = R.drawable.stopwatch_icon.right(),
             ),
             ActionMenuItem.ButtonMenuItem.AlwaysShown(
-                isVisible = restTimerControlVisible,
+                isVisible = restTimerControlVisible || backNavigationIconVisible,
                 controlName = FINISH_BUTTON,
                 buttonContent = {
                     Text("Finish")
@@ -125,7 +133,7 @@ data class WorkoutScreen(
             ),
             ActionMenuItem.IconMenuItem.AlwaysShown (
                 title = "View/Edit History",
-                isVisible = !restTimerControlVisible,
+                isVisible = !restTimerControlVisible && !backNavigationIconVisible,
                 controlName = WORKOUT_HISTORY_BUTTON,
                 icon = R.drawable.history_icon.right(),
                 onClick = {

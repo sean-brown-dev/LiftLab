@@ -179,7 +179,7 @@ fun Settings(
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Disables deload microcycles.",
+                            text = "Set deloads at the lift level. Disables deload microcycles.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )

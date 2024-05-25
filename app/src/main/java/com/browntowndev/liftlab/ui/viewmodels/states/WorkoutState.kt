@@ -20,7 +20,7 @@ data class WorkoutState(
     val restTimerStartedAt: Date? = null,
     val restTime: Long = 0L,
     val completedMyoRepSets: Boolean = false,
-    val isConfirmFinishWorkoutDialogShown: Boolean = false,
+    val isCompletionSummaryVisible: Boolean = false,
     val isConfirmCancelWorkoutDialogShown: Boolean = false,
     val isDeloadPromptDialogShown: Boolean = false,
     val workoutCompletionSummary: WorkoutCompletionSummary? = null,

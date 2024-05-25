@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
-import com.browntowndev.liftlab.core.common.toSimpleDateString
+import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
@@ -184,8 +184,8 @@ class WorkoutHistoryViewModel(
                         val utcZoneId = ZoneId.of("UTC")
                         val firstDateInUtcMillis = currentState.dateRangeFilter.first
                         val secondDateInUtcMillis = currentState.endDateInMillis!!
-                        val dateRange = "${firstDateInUtcMillis.toDate().toSimpleDateString(utcZoneId)} - " +
-                                secondDateInUtcMillis.toDate().toSimpleDateString(utcZoneId)
+                        val dateRange = "${firstDateInUtcMillis.toDate().toMediumDateString(utcZoneId)} - " +
+                                secondDateInUtcMillis.toDate().toMediumDateString(utcZoneId)
                         add(FilterChipOption(type = DATE_RANGE, value = dateRange))
                     }
                     currentState.programAndWorkoutFilters.fastForEach { filterChip ->

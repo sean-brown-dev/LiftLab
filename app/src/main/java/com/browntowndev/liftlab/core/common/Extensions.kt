@@ -9,7 +9,6 @@ import android.text.SpannableStringBuilder
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -31,8 +30,12 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.text.DateFormat.LONG
+import java.text.DateFormat.MEDIUM
+import java.text.DateFormat.SHORT
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
+import java.text.DateFormat.getTimeInstance
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -266,14 +269,20 @@ fun LocalDate.toEndOfDate(): Date {
     return Date.from(endOfDay.toInstant())
 }
 
-fun Date.toSimpleDateString(zoneId: ZoneId = ZoneId.systemDefault()): String {
-    val formatter = getDateInstance()
+fun Date.toShortTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
+    val formatter = getTimeInstance(SHORT)
+    formatter.timeZone = TimeZone.getTimeZone(zoneId)
+    return formatter.format(this)
+}
+
+fun Date.toMediumDateString(zoneId: ZoneId = ZoneId.systemDefault()): String {
+    val formatter = getDateInstance(MEDIUM)
     formatter.timeZone = TimeZone.getTimeZone(zoneId)
     return formatter.format(this)
 }
 
 fun Date.toSimpleDateTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
-    val formatter = getDateTimeInstance()
+    val formatter = getDateTimeInstance(LONG, SHORT)
     formatter.timeZone = TimeZone.getTimeZone(zoneId)
     return formatter.format(this)
 }
