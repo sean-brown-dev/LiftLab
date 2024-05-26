@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 
 @Dao
@@ -23,6 +24,18 @@ interface PreviousSetResultDao {
     @Query("SELECT * FROM previousSetResults " +
             "WHERE liftId = :liftId")
     suspend fun getForLift(liftId: Long): List<PreviousSetResult>
+
+    @Query("SELECT liftId, MAX(oneRepMax) as 'personalRecord' " +
+            "FROM previousSetResults " +
+            "WHERE liftId IN (:liftIds) AND " +
+            "(workoutId != :workoutId OR mesoCycle != :mesoCycle OR microCycle != :microCycle) " +
+            "GROUP BY liftId")
+    suspend fun getPersonalRecordsForLiftsExcludingWorkout(
+        workoutId: Long,
+        mesoCycle: Int,
+        microCycle: Int,
+        liftIds: List<Long>,
+    ): List<PersonalRecordDto>
 
     @Upsert
     suspend fun upsert(result: PreviousSetResult): Long
@@ -72,14 +85,4 @@ interface PreviousSetResultDao {
 
     @Query("DELETE FROM previousSetResults WHERE previously_completed_set_id = :id")
     suspend fun deleteById(id: Long)
-
-    @Query("UPDATE previousSetResults " +
-            "SET weight = :weight, " +
-            "reps = :reps, " +
-            "rpe = :rpe " +
-            "WHERE liftId = :liftId AND " +
-            "liftPosition = :liftPosition AND " +
-            "setPosition = :setPosition AND " +
-            "myoRepSetPosition = :myoRepSetPosition")
-    suspend fun update(liftId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?, weight: Float, reps: Int, rpe: Float)
 }

@@ -302,24 +302,39 @@ class EditWorkoutViewModel(
 
     private suspend fun updateSetResult(updatedResult: SetResult) {
         // The id on updatedResult is for setLogEntry so you can't just call upsert
-        val exists = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"] != null
-        if (exists) {
-            setResultsRepository.update(
-                liftId = updatedResult.liftId,
-                liftPosition = updatedResult.liftPosition,
-                setPosition = updatedResult.setPosition,
-                myoRepSetPosition = (updatedResult as? MyoRepSetResultDto)?.myoRepSetPosition,
-                weight = updatedResult.weight,
-                reps = updatedResult.reps,
-                rpe = updatedResult.rpe,
-            )
-            updatedResult.id
-        } else {
-            val newId = setResultsRepository.upsert(updatedResult)
+        val resultToUpsert = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"]
+            ?.let { prevSetResult ->
+                when (prevSetResult) {
+                    is StandardSetResultDto -> prevSetResult.copy(
+                        reps = updatedResult.reps,
+                        weight = updatedResult.weight,
+                        rpe = updatedResult.rpe,
+                    )
+
+                    is MyoRepSetResultDto -> prevSetResult.copy(
+                        reps = updatedResult.reps,
+                        weight = updatedResult.weight,
+                        rpe = updatedResult.rpe,
+                    )
+
+                    is LinearProgressionSetResultDto -> prevSetResult.copy(
+                        reps = updatedResult.reps,
+                        weight = updatedResult.weight,
+                        rpe = updatedResult.rpe,
+                    )
+
+                    else -> throw Exception("${prevSetResult::class.simpleName} is not defined.")
+                }
+            } ?: updatedResult
+
+        val id = setResultsRepository.upsert(resultToUpsert)
+
+        // If it was a new result
+        if (updatedResult.id != id) {
             val resultWithId = when (updatedResult) {
-                is MyoRepSetResultDto -> updatedResult.copy(id = newId)
-                is StandardSetResultDto -> updatedResult.copy(id = newId)
-                is LinearProgressionSetResultDto -> updatedResult.copy(id = newId)
+                is MyoRepSetResultDto -> updatedResult.copy(id = id)
+                is StandardSetResultDto -> updatedResult.copy(id = id)
+                is LinearProgressionSetResultDto -> updatedResult.copy(id = id)
                 else -> throw Exception("${updatedResult::class.simpleName} is not defined.")
             }
             _editWorkoutState.update {

@@ -5,15 +5,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,8 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
@@ -42,162 +46,191 @@ fun CompletionSummary(
     startTime: Date,
     onCancel: () -> Unit,
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues),
     ) {
-        Text(
-            modifier = Modifier.padding(start = 5.dp, top = 10.dp),
-            text = workoutCompletionSummary.workoutName,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontSize = 28.sp,
-        )
-        Row (
-            modifier = Modifier.padding(start = 5.dp),
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = "${workoutCompletionSummary.percentageComplete.toWholeNumberOrOneDecimalString()}% Complete",
-                textAlign = TextAlign.Center,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary,
-            )
-            if (workoutCompletionSummary.totalIncompleteLifts > 0) {
-                val liftOrLifts = if (workoutCompletionSummary.totalIncompleteLifts > 1) "Lifts" else "Lift"
-                Text(
-                    modifier = Modifier.padding(start = 5.dp),
-                    text = "${workoutCompletionSummary.totalIncompleteLifts} Incomplete $liftOrLifts",
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        Row (
-            modifier = Modifier.padding(start = 2.dp, top = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                modifier = Modifier.size(18.dp),
-                imageVector = Icons.Filled.PlayArrow,
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Started",
-            )
-            Text(
-                modifier = Modifier.padding(start = 2.dp, end = 15.dp),
-                text = startTime.toShortTimeString(),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontSize = 14.sp,
-            )
-            Icon(
-                modifier = Modifier.size(18.dp),
-                painter = painterResource(id = R.drawable.stop_circle),
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Stopped",
-            )
-            Text(
-                modifier = Modifier.padding(start = 2.dp, end = 15.dp),
-                text = workoutCompletionSummary.endTime.toShortTimeString(),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontSize = 14.sp,
-            )
-            Icon(
-                modifier = Modifier.size(18.dp),
-                painter = painterResource(id = R.drawable.timelapse),
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Duration",
-            )
-            Text(
-                modifier = Modifier.padding(start = 2.dp, end = 15.dp),
-                text = remember(startTime, workoutCompletionSummary.endTime) {
-                    (workoutCompletionSummary.endTime.time - startTime.time).toTimeString()
-                },
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontSize = 14.sp,
-            )
-        }
-        Card(
-            modifier = Modifier.padding(top = 30.dp),
-            shape = RectangleShape,
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-            ),
-        ) {
-            Column(
-                modifier = Modifier.padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+        item {
+            Card(
+                shape = RectangleShape,
+                colors = CardDefaults.outlinedCardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
             ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
+                    modifier = Modifier.padding(top = 20.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Text(
-                        modifier = Modifier.weight(.8f),
-                        text = "Lift",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                    Text(
-                        modifier = Modifier.weight(.5f),
-                        text = "Best Set",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                    Text(
-                        modifier = Modifier.weight(.15f),
-                        text = "1RM",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                }
-                workoutCompletionSummary.liftCompletionSummaries.fastForEach { liftCompletion ->
+                    Row{
+                        Spacer(modifier = Modifier.weight(1f))
+                        IconButton(onClick = { /*TODO*/ }) {
+                            Icon(
+                                modifier = Modifier.size(24.dp),
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = stringResource(R.string.share_workout),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
                     Row (
-                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "${workoutCompletionSummary.percentageComplete.toWholeNumberOrOneDecimalString()}% Complete",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.tertiary,
+                        )
+                        if (workoutCompletionSummary.totalIncompleteLifts > 0) {
+                            val liftOrLifts = if (workoutCompletionSummary.totalIncompleteLifts > 1) "Lifts" else "Lift"
+                            Text(
+                                modifier = Modifier.padding(start = 5.dp),
+                                text = "${workoutCompletionSummary.totalIncompleteLifts} Incomplete $liftOrLifts",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(id = R.drawable.award_medals),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            contentDescription = null,
+                        )
+                        val recordOrRecords = if (workoutCompletionSummary.personalRecordCount == 1) {
+                            "Personal Record"
+                        } else {
+                            "Personal Records"
+                        }
+                        Text(
+                            text = "${workoutCompletionSummary.personalRecordCount} $recordOrRecords",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 18.sp,
+                        )
+                    }
+                    Row (verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            imageVector = Icons.Filled.PlayArrow,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            contentDescription = "Started",
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 2.dp, end = 15.dp),
+                            text = startTime.toShortTimeString(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 14.sp,
+                        )
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            painter = painterResource(id = R.drawable.stop_circle),
+                            tint = MaterialTheme.colorScheme.secondary,
+                            contentDescription = "Stopped",
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 2.dp, end = 15.dp),
+                            text = workoutCompletionSummary.endTime.toShortTimeString(),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 14.sp,
+                        )
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            painter = painterResource(id = R.drawable.timelapse),
+                            tint = MaterialTheme.colorScheme.secondary,
+                            contentDescription = "Duration",
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 2.dp, end = 15.dp),
+                            text = remember(startTime, workoutCompletionSummary.endTime) {
+                                (workoutCompletionSummary.endTime.time - startTime.time).toTimeString()
+                            },
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 14.sp,
+                        )
+                    }
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val color = if (liftCompletion.isIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimaryContainer
                         Text(
                             modifier = Modifier.weight(.8f),
-                            text = "${liftCompletion.setsCompleted} x ${liftCompletion.liftName}",
-                            fontSize = 14.sp,
-                            color = color,
+                            text = "Lift",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.outline,
                         )
                         Text(
                             modifier = Modifier.weight(.5f),
-                            text = "${liftCompletion.bestSetReps}x${liftCompletion.bestSetWeight} @${liftCompletion.bestSetRpe}",
-                            fontSize = 14.sp,
-                            color = color,
+                            text = "Best Set",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.outline,
                         )
                         Text(
                             modifier = Modifier.weight(.15f),
-                            text = "${liftCompletion.bestSet1RM}",
-                            fontSize = 14.sp,
-                            color = color,
+                            text = "1RM",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.outline,
                         )
+                    }
+                    workoutCompletionSummary.liftCompletionSummaries.fastForEach { liftCompletion ->
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val color = if (liftCompletion.isIncomplete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onPrimaryContainer
+                            Text(
+                                modifier = Modifier.weight(.8f),
+                                text = "${liftCompletion.setsCompleted} x ${liftCompletion.liftName}",
+                                fontSize = 14.sp,
+                                color = color,
+                            )
+                            Text(
+                                modifier = Modifier.weight(.5f),
+                                text = "${liftCompletion.bestSetReps}x${liftCompletion.bestSetWeight} @${liftCompletion.bestSetRpe}",
+                                fontSize = 14.sp,
+                                color = color,
+                            )
+                            Text(
+                                modifier = Modifier.weight(.15f),
+                                text = "${liftCompletion.bestSet1RM}",
+                                fontSize = 14.sp,
+                                color = if (liftCompletion.isNewPersonalRecord) {
+                                    MaterialTheme.colorScheme.tertiary
+                                } else {
+                                    color
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
-        Box (
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            TextButton(
-                modifier = Modifier.padding(end = 10.dp),
-                onClick = onCancel,
+        item {
+            Box (
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = "Continue Workout",
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.error,
-                )
+                TextButton(
+                    modifier = Modifier.padding(end = 10.dp),
+                    onClick = onCancel,
+                ) {
+                    Text(
+                        text = "Continue Workout",
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
         }
     }

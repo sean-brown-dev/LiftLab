@@ -33,6 +33,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
@@ -113,6 +114,12 @@ class WorkoutViewModel(
                                     inProgressWorkout = inProgressWorkout,
                                     programMetadata = programMetadata,
                                     workout = workout,
+                                    personalRecords = getPersonalRecords(
+                                        workoutId = workout?.id ?: 0L,
+                                        mesoCycle = programMetadata.currentMesocycle,
+                                        microCycle = programMetadata.currentMicrocycle,
+                                        liftIds = workout?.lifts?.map { it.liftId } ?: listOf()
+                                    ),
                                     initialized = true,
                                 )
                             }
@@ -285,6 +292,32 @@ class WorkoutViewModel(
         } else existingResults
     }
 
+    private suspend fun getPersonalRecords(
+        workoutId: Long,
+        mesoCycle: Int,
+        microCycle: Int,
+        liftIds: List<Long>
+    ): Map<Long, PersonalRecordDto> {
+        val prevWorkoutPersonalRecords = setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(
+            workoutId = workoutId,
+            mesoCycle = mesoCycle,
+            microCycle = microCycle,
+            liftIds = liftIds,
+        )
+        return loggingRepository.getPersonalRecordsForLifts(liftIds)
+            .associateBy { it.liftId }
+            .toMutableMap()
+            .apply {
+                prevWorkoutPersonalRecords.fastForEach { prevWorkoutPr ->
+                    get(prevWorkoutPr.liftId)?.let { allWorkoutsPr ->
+                        if (allWorkoutsPr.personalRecord < prevWorkoutPr.personalRecord) {
+                            put(prevWorkoutPr.liftId, prevWorkoutPr)
+                        }
+                    } ?: put(prevWorkoutPr.liftId, prevWorkoutPr)
+                }
+            }
+    }
+
     fun toggleReorderLifts() {
         mutableWorkoutState.update {
             it.copy(isReordering = !it.isReordering)
@@ -388,6 +421,7 @@ class WorkoutViewModel(
 
     private fun getWorkoutCompletionSummary(): WorkoutCompletionSummary {
         val liftsById = mutableWorkoutState.value.workout?.lifts?.associate { it.liftId to it }
+        val personalRecords = mutableWorkoutState.value.personalRecords
         val liftCompletionSummaries = mutableWorkoutState.value.inProgressWorkout?.completedSets
             ?.groupBy { "${it.liftId}-${it.liftPosition}" }
             ?.values?.map { resultsForLift ->
@@ -422,6 +456,7 @@ class WorkoutViewModel(
                     bestSetWeight = bestSet?.weight ?: 0f,
                     bestSetRpe = bestSet?.rpe ?: 0f,
                     bestSet1RM = bestSet1RM,
+                    isNewPersonalRecord = personalRecords[lift?.liftId]?.let { it.personalRecord < bestSet1RM } ?: false
                 )
             }?.toMutableList()?.apply {
                 val liftsWithNoCompletedSets = liftsById?.values?.filter { loggingLift ->
@@ -442,6 +477,7 @@ class WorkoutViewModel(
                             bestSetWeight = 0f,
                             bestSetRpe = 0f,
                             bestSet1RM = 0,
+                            isNewPersonalRecord = false,
                         )
                     }
                 )

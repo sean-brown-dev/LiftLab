@@ -10,6 +10,7 @@ class LiftCompletionSummary(
     val bestSetWeight: Float,
     val bestSetRpe: Float,
     val bestSet1RM: Int,
+    val isNewPersonalRecord: Boolean,
 ) {
     val isIncomplete: Boolean by lazy {
         setsCompleted < totalSets

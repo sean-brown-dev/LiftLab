@@ -61,6 +61,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            persistedOneRepMax = from.oneRepMax,
             missedLpGoals = from.missedLpGoals!!,
             isDeload = from.isDeload,
         )
@@ -80,6 +81,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            persistedOneRepMax = from.oneRepMax,
             isDeload = from.isDeload,
         )
     }
@@ -98,6 +100,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            persistedOneRepMax = from.oneRepMax,
             isDeload = from.isDeload,
         )
     }
@@ -115,6 +118,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            persistedOneRepMax = from.oneRepMax,
             missedLpGoals = 0,
             isDeload = from.isDeload,
         )
@@ -134,6 +138,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            persistedOneRepMax = from.oneRepMax,
             isDeload = from.isDeload,
         )
     }
@@ -152,6 +157,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            persistedOneRepMax = from.oneRepMax,
             isDeload = from.isDeload,
         )
     }
@@ -170,6 +176,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            oneRepMax = from.oneRepMax,
             isDeload = from.isDeload,
         )
     }
@@ -189,6 +196,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            oneRepMax = from.oneRepMax,
             isDeload = from.isDeload,
         )
     }
@@ -207,6 +215,7 @@ class SetResultMapper {
             weight = from.weight,
             rpe = from.rpe,
             reps = from.reps,
+            oneRepMax = from.oneRepMax,
             missedLpGoals = from.missedLpGoals,
             isDeload = from.isDeload,
         )

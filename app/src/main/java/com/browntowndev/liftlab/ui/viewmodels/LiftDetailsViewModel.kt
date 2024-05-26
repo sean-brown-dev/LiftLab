@@ -65,14 +65,15 @@ class LiftDetailsViewModel(
                 loggingRepository.getWorkoutLogsForLift(liftId)
             } else listOf()
 
+            val topTenPerformances = getTopTenPerformances(workoutLogs)
             _state.update {
                 it.copy(
                     lift = lift,
                     workoutLogs = workoutLogs,
-                    oneRepMax = getOneRepMax(workoutLogs),
+                    oneRepMax = topTenPerformances.firstOrNull()?.let { pr -> pr.date to pr.oneRepMax },
                     maxVolume = getMaxVolume(workoutLogs),
                     maxWeight = getMaxWeight(workoutLogs),
-                    topTenPerformances = getTopTenPerformances(workoutLogs),
+                    topTenPerformances = topTenPerformances,
                     totalReps = getTotalReps(workoutLogs),
                     totalVolume = getTotalVolume(workoutLogs),
                     workoutFilterOptions = getWorkoutFilterOptions(workoutLogs),
@@ -95,9 +96,7 @@ class LiftDetailsViewModel(
     private fun getOneRepMax(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
         val oneRepMax = workoutLogs.fastMap { workoutLog ->
             workoutLog.date.toMediumDateString() to
-                    workoutLog.setResults.maxOf {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
+                    workoutLog.setResults.maxOf {it.oneRepMax }
         }.maxByOrNull { it.second }
 
         return if (oneRepMax != null) {

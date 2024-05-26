@@ -20,4 +20,8 @@ class WorkoutCompletionSummary(
     val totalIncompleteLifts: Int by lazy {
         liftCompletionSummaries.count { it.isIncomplete }
     }
+
+    val personalRecordCount by lazy {
+        liftCompletionSummaries.count { it.isNewPersonalRecord }
+    }
 }

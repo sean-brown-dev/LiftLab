@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
@@ -86,6 +87,10 @@ class LoggingRepository(
                 )
             }
         }
+    }
+
+    suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecordDto> {
+        return loggingDao.getPersonalRecordsForLifts(liftIds)
     }
 
     suspend fun insertFromPreviousSetResults(

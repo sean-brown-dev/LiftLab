@@ -12,6 +12,7 @@ interface SetResult {
     val weight: Float
     val reps: Int
     val rpe: Float
+    val oneRepMax: Int
     val mesoCycle: Int
     val microCycle: Int
     val setType: SetType

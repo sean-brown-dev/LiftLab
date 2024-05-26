@@ -174,6 +174,12 @@ fun Workout(
 
         // Changes it from down chevron to back arrow, also hides history icon
         setTopAppBarControlVisibility(BACK_NAVIGATION_ICON, state.isCompletionSummaryVisible)
+        mutateTopAppBarControlValue(
+            AppBarMutateControlRequest(
+                Screen.TITLE,
+                (if (state.isCompletionSummaryVisible) state.workout?.name ?: "" else "").left()
+            )
+        )
     }
 
     if (state.workout != null) {
