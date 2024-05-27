@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -178,7 +179,7 @@ fun Workout(
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,
-                    state.workout!!.name.left()
+                    "Summary".left()
                 )
             )
         } else if (state.workoutLogVisible) {
@@ -336,10 +337,16 @@ fun Workout(
             )
         }
         if (state.isCompletionSummaryVisible && state.workoutCompletionSummary != null) {
+            val context = LocalContext.current
             CompletionSummary(
                 paddingValues = paddingValues,
                 workoutCompletionSummary = state.workoutCompletionSummary!!,
                 startTime = state.inProgressWorkout!!.startTime,
+                onShare = { workoutSummaryBitmap ->
+                    workoutViewModel.shareWorkoutSummary(
+                        context = context,
+                        workoutSummaryBitmap = workoutSummaryBitmap)
+                },
                 onCancel = workoutViewModel::toggleCompletionSummary
             )
         }

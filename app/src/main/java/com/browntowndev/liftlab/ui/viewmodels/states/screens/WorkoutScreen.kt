@@ -125,7 +125,11 @@ data class WorkoutScreen(
                 isVisible = restTimerControlVisible || backNavigationIconVisible,
                 controlName = FINISH_BUTTON,
                 buttonContent = {
-                    Text("Finish")
+                    if (backNavigationIconVisible) {
+                        Text("Confirm")
+                    } else {
+                        Text("Finish")
+                    }
                 },
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.FinishWorkout))

@@ -1,8 +1,13 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
@@ -54,6 +59,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.time.Duration
 
 class WorkoutViewModel(
@@ -406,6 +413,35 @@ class WorkoutViewModel(
                 )
             }
         }
+    }
+
+    private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
+        val file = File(context.cacheDir, fileName)
+        val fileOutputStream = FileOutputStream(file)
+
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+        fileOutputStream.close()
+
+        return file
+    }
+
+    fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) {
+        val shareUri: Uri = FileProvider.getUriForFile(
+            context,
+            "com.browntowndev.liftlab.fileprovider",
+            getTempFileFromBitmap(
+                context = context,
+                bitmap = workoutSummaryBitmap,
+                fileName = "workoutSummary.png"
+            )
+        )
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, shareUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share Workout Results"))
     }
 
     fun toggleCompletionSummary() {
