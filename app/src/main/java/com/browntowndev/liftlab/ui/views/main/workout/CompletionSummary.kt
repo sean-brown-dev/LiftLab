@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.main.workout
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.util.Log
 import android.widget.Toast
@@ -45,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toShortTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
@@ -307,7 +307,7 @@ private suspend fun shareWorkoutSummary(
                     .copy(Bitmap.Config.ARGB_8888, true)
 
                 // Create a new bitmap with the same dimensions as the original
-                val resultBitmap = Bitmap.createBitmap(
+                val cardWithQrCodeBitmap = Bitmap.createBitmap(
                     liftSummaryCardBitmap.width,
                     liftSummaryCardBitmap.height,
                     Bitmap.Config.ARGB_8888,
@@ -316,37 +316,36 @@ private suspend fun shareWorkoutSummary(
                 // Switch to the Main dispatcher to perform UI operations
                 withContext(Dispatchers.Main) {
                     // Create a canvas to draw on the new bitmap
-                    val canvas = Canvas(resultBitmap)
+                    val canvas = Canvas(cardWithQrCodeBitmap)
 
                     // Draw the original bitmap on the new canvas
                     canvas.drawBitmap(liftSummaryCardBitmap, 0f, 0f, null)
 
                     // Draw the vector on the canvas
-                    VectorDrawableCompat.create(
-                        context.resources,
-                        R.drawable.lift_lab_qr_code,
-                        null
-                    )?.let { vectorDrawable ->
-                        val intrinsicWidth = vectorDrawable.intrinsicWidth
-                        val intrinsicHeight = vectorDrawable.intrinsicHeight
-                        val scaledHeight = 250f
-                        val scaleFactor = scaledHeight / intrinsicHeight
-                        val scaledWidth = (intrinsicWidth * scaleFactor).toInt()
+                    BitmapFactory.decodeResource(context.resources, R.drawable.lift_lab_qr_code)
+                        ?.let { qrCodeBitmap ->
+                        val scaledHeight = 335f
+                        val scaleFactor = scaledHeight / qrCodeBitmap.height
+                        val scaledWidth = qrCodeBitmap.width * scaleFactor
 
-                        vectorDrawable.setBounds(
-                            liftSummaryCardBitmap.width - scaledWidth,
-                            20,
-                            liftSummaryCardBitmap.width - 20,
+                        val scaledBitmap = Bitmap.createScaledBitmap(
+                            qrCodeBitmap,
+                            scaledWidth.toInt(),
                             scaledHeight.toInt(),
+                            true
                         )
-
-                        vectorDrawable.draw(canvas)
+                        canvas.drawBitmap(
+                            scaledBitmap,
+                            liftSummaryCardBitmap.width - (scaledWidth + 20),
+                            20f,
+                            null
+                        )
                     }
                 }
 
                 // Now resultBitmap contains the original bitmap with the vector drawn on top
                 // Share the resultBitmap instead of the original one
-                onShare(resultBitmap)
+                onShare(cardWithQrCodeBitmap)
             }
     } catch (error: Throwable) {
         Log.e(Log.ERROR.toString(), error.toString())
