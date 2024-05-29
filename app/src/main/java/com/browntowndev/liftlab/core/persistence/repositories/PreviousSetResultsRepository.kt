@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 
 class PreviousSetResultsRepository(
@@ -18,6 +19,19 @@ class PreviousSetResultsRepository(
         return previousSetResultDao.getForWorkout(workoutId, mesoCycle, microCycle).map {
             setResultsMapper.map(it)
         }
+    }
+
+    suspend fun getPersonalRecordsForLiftsExcludingWorkout(
+        workoutId: Long,
+        mesoCycle: Int, microCycle: Int,
+        liftIds: List<Long>
+    ): List<PersonalRecordDto> {
+        return previousSetResultDao.getPersonalRecordsForLiftsExcludingWorkout(
+            workoutId = workoutId,
+            mesoCycle = mesoCycle,
+            microCycle = microCycle,
+            liftIds = liftIds,
+        )
     }
 
     suspend fun upsert(setResult: SetResult): Long {
@@ -46,23 +60,7 @@ class PreviousSetResultsRepository(
         previousSetResultDao.deleteAllForWorkout(workoutId, mesoCycle, microCycle)
     }
 
-    suspend fun delete(workoutId: Long, liftId: Long, setPosition: Int) {
-        previousSetResultDao.delete(workoutId, liftId, setPosition)
-    }
-
-    suspend fun delete(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
-        previousSetResultDao.delete(workoutId, liftPosition, setPosition, myoRepSetPosition)
-    }
-
-    suspend fun update(liftId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?, weight: Float, reps: Int, rpe: Float) {
-        previousSetResultDao.update(
-            liftId = liftId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition,
-            weight = weight,
-            reps = reps,
-            rpe = rpe,
-        )
+    suspend fun deleteById(id: Long) {
+        previousSetResultDao.deleteById(id)
     }
 }

@@ -55,31 +55,6 @@ class WorkoutsRepository(
         }
     }
 
-    suspend fun setAllWorkoutLiftDeloadWeeksToNull(workoutId: Long, programDeloadWeek: Int) {
-        val updatedLifts = get(workoutId)?.lifts
-            ?.filterIsInstance<StandardWorkoutLiftDto>()
-            ?.filter { lift -> lift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
-            ?.map { lift ->
-                val stepSizeOptions = Utils.getPossibleStepSizes(
-                    repRangeTop = lift.repRangeTop,
-                    repRangeBottom = lift.repRangeBottom,
-                    stepCount = programDeloadWeek - 2
-                )
-
-                lift.copy(
-                    stepSize = if(stepSizeOptions.contains(lift.stepSize)) {
-                        lift.stepSize
-                    } else {
-                        stepSizeOptions.firstOrNull()
-                    }
-                )
-            }
-
-        if (updatedLifts?.isNotEmpty() == true) {
-            workoutLiftsRepository.updateMany(updatedLifts)
-        }
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getByMicrocyclePosition(
         programId: Long,

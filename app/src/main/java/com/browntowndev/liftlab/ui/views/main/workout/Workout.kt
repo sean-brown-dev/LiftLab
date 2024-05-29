@@ -2,7 +2,11 @@ package com.browntowndev.liftlab.ui.views.main.workout
 
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -10,7 +14,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
 import arrow.core.Either
@@ -18,21 +27,27 @@ import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.runOnCompletion
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
-import com.browntowndev.liftlab.ui.composables.ConfirmationModal
+import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -49,6 +64,9 @@ fun Workout(
     onNavigateToWorkoutHistory: () -> Unit,
     onNavigateToLiftLibrary: (route: String) -> Unit,
 ) {
+    val liftLevelDeloadsEnabled = remember {
+        SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+    }
     var restTimerRestarted by remember { mutableStateOf(false) }
 
     val timerViewModel: TimerViewModel = koinViewModel()
@@ -59,7 +77,8 @@ fun Workout(
                 mutateTopAppBarControlValue(
                     AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
                 )
-            }
+            },
+            liftLevelDeloadsEnabled,
         )
     }
     val state by workoutViewModel.workoutState.collectAsState()
@@ -73,7 +92,7 @@ fun Workout(
 
     LaunchedEffect(state.restTimerStartedAt) {
             if (state.restTimerStartedAt != null && !restTimerRestarted) {
-            val restTimeRemaining = state.restTime - (Utils.getCurrentDate().time - state.restTimerStartedAt!!.time)
+            val restTimeRemaining = state.restTime - (getCurrentDate().time - state.restTimerStartedAt!!.time)
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())
             )
@@ -151,10 +170,35 @@ fun Workout(
         }
     }
 
+    LaunchedEffect(key1 = state.isCompletionSummaryVisible, key2 = state.workoutLogVisible) {
+        setTopAppBarControlVisibility(REST_TIMER, !state.isCompletionSummaryVisible && state.workoutLogVisible)
+
+        // Changes it from down chevron to back arrow, also hides history icon
+        setTopAppBarControlVisibility(BACK_NAVIGATION_ICON, state.isCompletionSummaryVisible)
+        if (state.isCompletionSummaryVisible) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.TITLE,
+                    "Summary".left()
+                )
+            )
+        } else if (state.workoutLogVisible) {
+            mutateTopAppBarControlValue(
+                AppBarMutateControlRequest(
+                    Screen.TITLE,
+                    "".left()
+                )
+            )
+        }
+    }
+
     if (state.workout != null) {
+        val promptOnDeload = remember {
+            SettingsManager.getSetting(PROMPT_FOR_DELOAD_WEEK, DEFAULT_PROMPT_FOR_DELOAD_WEEK)
+        }
         WorkoutPreview(
             paddingValues = paddingValues,
-            visible = !state.workoutLogVisible && !state.isReordering,
+            visible = !state.workoutLogVisible && !state.isReordering && !state.isCompletionSummaryVisible,
             workoutInProgress = state.inProgress,
             workoutName = state.workout!!.name,
             timeInProgress = timerState.time,
@@ -162,12 +206,18 @@ fun Workout(
             combinedVolumeTypes = state.combinedVolumeTypes,
             primaryVolumeTypes = state.primaryVolumeTypes,
             secondaryVolumeTypes = state.secondaryVolumeTypes,
-            startWorkout = { workoutViewModel.startWorkout() },
+            startWorkout = {
+                if (promptOnDeload) {
+                    workoutViewModel.showDeloadPromptOrStartWorkout()
+                } else {
+                    workoutViewModel.startWorkout()
+                }
+            },
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
         )
         WorkoutLog(
             paddingValues = paddingValues,
-            visible = state.workoutLogVisible && !state.isReordering,
+            visible = state.workoutLogVisible && !state.isReordering && !state.isCompletionSummaryVisible,
             lifts = state.workout!!.lifts,
             duration = timerState.time,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
@@ -286,17 +336,24 @@ fun Workout(
                 cancelReorder = { workoutViewModel.toggleReorderLifts() }
             )
         }
-        if (state.isConfirmFinishWorkoutModalShown) {
-            ConfirmationModal(
-                header = stringResource(R.string.confirm_completion),
-                body = stringResource(R.string.complete_workout_confirm_body),
-                onConfirm = { workoutViewModel.finishWorkout() },
-                onCancel = { workoutViewModel.toggleConfirmFinishWorkoutModal() })
+        if (state.isCompletionSummaryVisible && state.workoutCompletionSummary != null) {
+            val context = LocalContext.current
+            CompletionSummary(
+                paddingValues = paddingValues,
+                workoutCompletionSummary = state.workoutCompletionSummary!!,
+                startTime = state.inProgressWorkout!!.startTime,
+                onShare = { workoutSummaryBitmap ->
+                    workoutViewModel.shareWorkoutSummary(
+                        context = context,
+                        workoutSummaryBitmap = workoutSummaryBitmap)
+                },
+                onCancel = workoutViewModel::toggleCompletionSummary
+            )
         }
-        if (state.isConfirmCancelWorkoutModalShown) {
-            ConfirmationModal(
+        if (state.isConfirmCancelWorkoutDialogShown) {
+            ConfirmationDialog(
                 header = stringResource(R.string.confirm_cancellation),
-                body = stringResource(R.string.cancel_workout_confirm_body),
+                textAboveContent = stringResource(R.string.cancel_workout_confirm_body),
                 onConfirm = {
                     workoutViewModel.cancelWorkout()
                     mutateTopAppBarControlValue(
@@ -304,6 +361,42 @@ fun Workout(
                     )
                 },
                 onCancel = { workoutViewModel.toggleConfirmCancelWorkoutModal() })
+        }
+        if (state.isDeloadPromptDialogShown) {
+            ConfirmationDialog(
+                header = "Take Deload Microcycle?",
+                textAboveContent = "Do you want to take a deload microcycle or skip it? " +
+                        "Consider the following questions as well as your sleep, " +
+                        "diet and stress levels. ",
+                textAboveContentPadding = PaddingValues(),
+                textAboveContentAlignment = TextAlign.Left,
+                confirmButtonText = "Take Deload",
+                cancelButtonText = "Skip",
+                onConfirm = workoutViewModel::startWorkout,
+                onDismiss = workoutViewModel::toggleDeloadPrompt,
+                onCancel = {
+                    workoutViewModel.skipDeloadMicrocycle()
+                    workoutViewModel.startWorkout()
+                },
+            ) {
+                Column (
+                    modifier = Modifier.padding(top = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    Text(
+                        text = "• Dreading the gym?\n" +
+                                "• Progress stalled?\n" +
+                                "• Fatigued?\n" +
+                                "• Aches and pains?",
+                        fontSize = 16.sp,
+                    )
+                    Text(
+                        modifier = Modifier.padding(bottom = 20.dp),
+                        text = "If you answered yes to two or more, and everything else is in line, you should deload.",
+                        fontSize = 16.sp
+                    )
+                }
+            }
         }
     }
 }

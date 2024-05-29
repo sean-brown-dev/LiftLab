@@ -30,17 +30,23 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.text.DateFormat.LONG
+import java.text.DateFormat.MEDIUM
+import java.text.DateFormat.SHORT
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
+import java.text.DateFormat.getTimeInstance
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
+import java.util.Locale.US
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 fun String.appendSuperscript(
     superscript: String,
@@ -189,25 +195,40 @@ fun Float.roundToNearestFactor(factor: Float): Float {
     return if (factor != 0f) abs((this / factor).roundToInt()) * factor else this
 }
 
+fun Float.toWholeNumberOrOneDecimalString() =
+    if (this % 1 == 0f) {
+        String.format(locale = US, format = "%.0f", this) // Format as whole number if no decimal places
+    } else {
+        String.format(locale = US, format = "%.1f", this) // Format with 1 decimal place if there are non-zero decimals
+    }
+
+fun Duration.toTimeString(): String =
+    "${this.inWholeMinutes}:${
+        String.format(locale = US, format = "%02d", this.inWholeSeconds % 60)
+    }"
+
 fun Long.toTimeString(): String {
     // TODO: Unit Tests
     return if (this < TEN_MINUTES_IN_MILLIS) {
         String.format(
-            SINGLE_MINUTES_SECONDS_FORMAT,
+            locale = US,
+            format = SINGLE_MINUTES_SECONDS_FORMAT,
             TimeUnit.MILLISECONDS.toMinutes(this),
             TimeUnit.MILLISECONDS.toSeconds(this) % 60
         )
     }
     else if (this < ONE_HOUR_IN_MILLIS ) {
         String.format(
-            DOUBLE_MINUTES_SECONDS_FORMAT,
+            locale = US,
+            format = DOUBLE_MINUTES_SECONDS_FORMAT,
             TimeUnit.MILLISECONDS.toMinutes(this),
             TimeUnit.MILLISECONDS.toSeconds(this) % 60
         )
     }
     else if (this < TEN_HOURS_IN_MILLIS) {
         String.format(
-            SINGLE_HOURS_MINUTES_SECONDS_FORMAT,
+            locale = US,
+            format = SINGLE_HOURS_MINUTES_SECONDS_FORMAT,
             TimeUnit.MILLISECONDS.toHours(this),
             TimeUnit.MILLISECONDS.toMinutes(this) % 60,
             TimeUnit.MILLISECONDS.toSeconds(this) % 60
@@ -215,14 +236,16 @@ fun Long.toTimeString(): String {
     }
     else if (this < TWENTY_FOUR_HOURS_IN_MILLIS) {
         String.format(
-            DOUBLE_HOURS_MINUTES_SECONDS_FORMAT,
+            locale = US,
+            format = DOUBLE_HOURS_MINUTES_SECONDS_FORMAT,
             TimeUnit.MILLISECONDS.toHours(this),
             TimeUnit.MILLISECONDS.toMinutes(this) % 60,
             TimeUnit.MILLISECONDS.toSeconds(this) % 60
         )
     } else if (this < NINETY_NINE_DAYS_IN_MILLIS) {
         String.format(
-            DAYS_HOURS_MINUTES_SECONDS_FORMAT,
+            locale = US,
+            format = DAYS_HOURS_MINUTES_SECONDS_FORMAT,
             TimeUnit.MILLISECONDS.toDays(this),
             TimeUnit.MILLISECONDS.toHours(this) % 24,
             TimeUnit.MILLISECONDS.toMinutes(this) % 60,
@@ -246,14 +269,20 @@ fun LocalDate.toEndOfDate(): Date {
     return Date.from(endOfDay.toInstant())
 }
 
-fun Date.toSimpleDateString(zoneId: ZoneId = ZoneId.systemDefault()): String {
-    val formatter = getDateInstance()
+fun Date.toShortTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
+    val formatter = getTimeInstance(SHORT)
+    formatter.timeZone = TimeZone.getTimeZone(zoneId)
+    return formatter.format(this)
+}
+
+fun Date.toMediumDateString(zoneId: ZoneId = ZoneId.systemDefault()): String {
+    val formatter = getDateInstance(MEDIUM)
     formatter.timeZone = TimeZone.getTimeZone(zoneId)
     return formatter.format(this)
 }
 
 fun Date.toSimpleDateTimeString(zoneId: ZoneId = ZoneId.systemDefault()): String {
-    val formatter = getDateTimeInstance()
+    val formatter = getDateTimeInstance(LONG, SHORT)
     formatter.timeZone = TimeZone.getTimeZone(zoneId)
     return formatter.format(this)
 }

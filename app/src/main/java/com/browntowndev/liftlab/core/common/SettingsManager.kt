@@ -4,11 +4,15 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import kotlinx.coroutines.channels.awaitClose
@@ -22,10 +26,15 @@ object SettingsManager {
         const val USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = "useAllWorkoutDataForRecommendations"
         const val ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = "onlyUseResultsForLiftsInSamePosition"
         const val INCREMENT_AMOUNT = "increment_amount"
+        const val PROMPT_FOR_DELOAD_WEEK = "prompt_for_deload_week"
+        const val LIFT_SPECIFIC_DELOADING = "lift_specific_deloading"
+
+        const val DEFAULT_PROMPT_FOR_DELOAD_WEEK = true
         const val DEFAULT_REST_TIME = 120000L
         const val DEFAULT_INCREMENT_AMOUNT = 5f
-        const val DEFAULT_USE_ALL_WORKOUT_DATA = false
+        const val DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = false
         const val DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = true
+        const val DEFAULT_LIFT_SPECIFIC_DELOADING = false
     }
 
     private const val PREFERENCES_NAME = "LiftLabPreferences"
@@ -40,9 +49,11 @@ object SettingsManager {
             setDefaultSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
             setDefaultSetting(
                 USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-                DEFAULT_USE_ALL_WORKOUT_DATA
+                DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
             )
             setDefaultSetting(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION)
+            setDefaultSetting(PROMPT_FOR_DELOAD_WEEK, DEFAULT_PROMPT_FOR_DELOAD_WEEK)
+            setDefaultSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
 
             sharedPreferences.edit().putBoolean("settings_initialized", true).apply()
         }

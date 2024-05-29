@@ -44,6 +44,8 @@ data class SetLogEntry(
     val weight: Float,
     val reps: Int,
     val rpe: Float,
+    @ColumnInfo(defaultValue = 0.toString())
+    val oneRepMax: Int,
     val mesoCycle: Int,
     val microCycle: Int,
     val setMatching: Boolean? = null,

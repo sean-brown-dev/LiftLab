@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -105,7 +105,7 @@ class EditWorkoutViewModel(
                     ),
                     inProgressWorkout = WorkoutInProgressDto(
                         workoutId = workoutLogEntryId,
-                        startTime = Utils.getCurrentDate(),
+                        startTime = getCurrentDate(),
                         completedSets = completedSetResults,
                     )
                 )
@@ -296,40 +296,45 @@ class EditWorkoutViewModel(
         )
     }
 
-    override suspend fun deleteSetResult(
-        workoutId: Long,
-        liftPosition: Int,
-        setPosition: Int,
-        myoRepSetPosition: Int?
-    ) {
-        loggingRepository.deleteSetLogEntry(
-            workoutId = workoutId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition,
-        )
+    override suspend fun deleteSetResult(id: Long) {
+        loggingRepository.deleteSetLogEntryById(id)
     }
 
     private suspend fun updateSetResult(updatedResult: SetResult) {
         // The id on updatedResult is for setLogEntry so you can't just call upsert
-        val exists = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"] != null
-        if (exists) {
-            setResultsRepository.update(
-                liftId = updatedResult.liftId,
-                liftPosition = updatedResult.liftPosition,
-                setPosition = updatedResult.setPosition,
-                myoRepSetPosition = (updatedResult as? MyoRepSetResultDto)?.myoRepSetPosition,
-                weight = updatedResult.weight,
-                reps = updatedResult.reps,
-                rpe = updatedResult.rpe,
-            )
-            updatedResult.id
-        } else {
-            val newId = setResultsRepository.upsert(updatedResult)
+        val resultToUpsert = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"]
+            ?.let { prevSetResult ->
+                when (prevSetResult) {
+                    is StandardSetResultDto -> prevSetResult.copy(
+                        reps = updatedResult.reps,
+                        weight = updatedResult.weight,
+                        rpe = updatedResult.rpe,
+                    )
+
+                    is MyoRepSetResultDto -> prevSetResult.copy(
+                        reps = updatedResult.reps,
+                        weight = updatedResult.weight,
+                        rpe = updatedResult.rpe,
+                    )
+
+                    is LinearProgressionSetResultDto -> prevSetResult.copy(
+                        reps = updatedResult.reps,
+                        weight = updatedResult.weight,
+                        rpe = updatedResult.rpe,
+                    )
+
+                    else -> throw Exception("${prevSetResult::class.simpleName} is not defined.")
+                }
+            } ?: updatedResult
+
+        val id = setResultsRepository.upsert(resultToUpsert)
+
+        // If it was a new result
+        if (updatedResult.id != id) {
             val resultWithId = when (updatedResult) {
-                is MyoRepSetResultDto -> updatedResult.copy(id = newId)
-                is StandardSetResultDto -> updatedResult.copy(id = newId)
-                is LinearProgressionSetResultDto -> updatedResult.copy(id = newId)
+                is MyoRepSetResultDto -> updatedResult.copy(id = id)
+                is StandardSetResultDto -> updatedResult.copy(id = id)
+                is LinearProgressionSetResultDto -> updatedResult.copy(id = id)
                 else -> throw Exception("${updatedResult::class.simpleName} is not defined.")
             }
             _editWorkoutState.update {

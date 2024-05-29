@@ -45,3 +45,33 @@ fun NumberPickerMenuItem(
         NumberPickerSpinner(options = options, initialValue = initialValue, onChanged = onChanged)
     }
 }
+
+@Composable
+fun NullableNumberPickerMenuItem(
+    initialValue: Float?,
+    label: String,
+    options: List<Float?>,
+    onChanged: (Float?) -> Unit,
+    onBackPressed: () -> Unit,
+    headerContent: @Composable (() -> Unit) = {},
+) {
+    Column(modifier = Modifier.width(200.dp)) {
+        Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBackPressed) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    contentDescription = null
+                )
+            }
+            Text(
+                modifier = Modifier.weight(1f),
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 10.sp,
+            )
+        }
+        headerContent()
+        NullableNumberPickerSpinner(options = options, initialValue = initialValue, onChanged = onChanged)
+    }
+}

@@ -53,9 +53,9 @@ fun DeleteableOnSwipeLeft(
         }
 
         if (showConfirmationDialog) {
-            ConfirmationModal(
+            ConfirmationDialog(
                 header = confirmationDialogHeader,
-                body = confirmationDialogBody,
+                textAboveContent = confirmationDialogBody,
                 onConfirm = {
                     coroutineScope.launch {
                         onDelete()

@@ -1,18 +1,24 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
+import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
+import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getRecalculatedStepSizeForLift
+import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +31,7 @@ import org.greenrobot.eventbus.Subscribe
 class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
+    private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     transactionScope: TransactionScope,
@@ -70,19 +77,35 @@ class LabViewModel(
         }
     }
 
-    fun updateDeloadWeek(deloadWeek: Int, overwriteWorkoutLiftDeloads: Boolean) {
+    fun updateDeloadWeek(deloadWeek: Int) {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
-            if (overwriteWorkoutLiftDeloads) {
-                _state.value.program!!.workouts.fastForEach { workout ->
-                    workoutsRepository.setAllWorkoutLiftDeloadWeeksToNull(workout.id, deloadWeek)
-                }
-            }
+            val liftsWithNewStepSizes: Map<Long, StandardWorkoutLiftDto> = if (_state.value.program != null) {
+                getAllLiftsWithRecalculatedStepSize(
+                    workouts = _state.value.program!!.workouts,
+                    deloadToUseInsteadOfLiftLevel = deloadWeek,
+                )
+            } else mapOf()
 
+            if (liftsWithNewStepSizes.isNotEmpty()) {
+                workoutLiftsRepository.updateMany(liftsWithNewStepSizes.values.toList())
+            }
             _state.update {
                 it.copy(
-                    isEditingDeloadWeek = false,
-                    program = _state.value.program!!.copy(deloadWeek = deloadWeek)
+                    program = _state.value.program!!.let { program ->
+                        program.copy(
+                            deloadWeek = deloadWeek,
+                            workouts = program.workouts.fastMap { workout ->
+                                workout.copy(
+                                    lifts = workout.lifts.fastMap { lift ->
+                                        if(liftsWithNewStepSizes.containsKey(lift.id)) {
+                                            liftsWithNewStepSizes[lift.id]!!
+                                        } else lift
+                                    }
+                                )
+                            }
+                        )
+                    }
                 )
             }
         }

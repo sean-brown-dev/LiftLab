@@ -1,13 +1,26 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -25,6 +38,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
@@ -34,16 +48,19 @@ import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgres
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.browntowndev.liftlab.core.progression.ProgressionFactory
+import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
+import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.lang.Integer.max
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.time.Duration
 
 class WorkoutViewModel(
@@ -104,6 +121,12 @@ class WorkoutViewModel(
                                     inProgressWorkout = inProgressWorkout,
                                     programMetadata = programMetadata,
                                     workout = workout,
+                                    personalRecords = getPersonalRecords(
+                                        workoutId = workout?.id ?: 0L,
+                                        mesoCycle = programMetadata.currentMesocycle,
+                                        microCycle = programMetadata.currentMicrocycle,
+                                        liftIds = workout?.lifts?.map { it.liftId } ?: listOf()
+                                    ),
                                     initialized = true,
                                 )
                             }
@@ -135,7 +158,11 @@ class WorkoutViewModel(
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
             TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
-                it.copy(workoutLogVisible = false)
+                if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                    it.copy(isCompletionSummaryVisible = false)
+                } else {
+                    it.copy(workoutLogVisible = false)
+                }
             }
             TopAppBarAction.RestTimerCompleted -> {
                 executeInTransactionScope {
@@ -145,7 +172,11 @@ class WorkoutViewModel(
                     }
                 }
             }
-            TopAppBarAction.FinishWorkout -> toggleConfirmFinishWorkoutModal()
+            TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                finishWorkout()
+            } else {
+                toggleCompletionSummary()
+            }
             TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
             else -> {}
         }
@@ -158,70 +189,71 @@ class WorkoutViewModel(
         return workoutsRepository.getByMicrocyclePosition(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
-        ).flatMapLatest { workout ->
-            getSetResults(workout, programMetadata)
-                .flatMapLatest { previousSetResults ->
-                    SettingsManager.getSettingFlow(
-                        SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
-                        SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
-                    ).flatMapLatest { onlyUseResultsForLiftsInSamePosition ->
-                        flowOf(
-                            if (workout != null) {
-                                val inProgressSetResults = setResultsRepository.getForWorkout(
-                                    workoutId = workout.id,
-                                    mesoCycle = programMetadata.currentMesocycle,
-                                    microCycle = programMetadata.currentMicrocycle
-                                ).associateBy { result ->
-                                    "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
-                                }
-
-                                val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
-                                    liftIdsToSearchFor = workout.lifts.map { it.liftId },
-                                    workout,
-                                    listOf(),
-                                    includeDeload = true,
-                                )
-
-                                progressionFactory.calculate(
-                                    workout = workout,
-                                    previousSetResults = previousSetResults,
-                                    previousResultsForDisplay = previousResultsForDisplay,
-                                    inProgressSetResults = inProgressSetResults,
-                                    programDeloadWeek = programMetadata.deloadWeek,
-                                    microCycle = programMetadata.currentMicrocycle,
-                                    onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
-                                )
-                            } else null
-                        )
+        ).flatMapLatest { nullableWorkout ->
+            combine(
+                SettingsManager.getSettingFlow(
+                    USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+                    DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+                ),
+                SettingsManager.getSettingFlow(
+                    ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+                    DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
+                ),
+                SettingsManager.getSettingFlow(
+                    LIFT_SPECIFIC_DELOADING,
+                    DEFAULT_LIFT_SPECIFIC_DELOADING,
+                )
+            ) { useAllWorkoutData, onlyUseResultsForLiftsInSamePosition, liftLevelDeloadsEnabled ->
+                nullableWorkout?.let { workout ->
+                    val previousSetResults = getSetResults(
+                        workout = workout,
+                        programMetadata = programMetadata,
+                        useAllData = useAllWorkoutData)
+                    val inProgressSetResults = setResultsRepository.getForWorkout(
+                        workoutId = workout.id,
+                        mesoCycle = programMetadata.currentMesocycle,
+                        microCycle = programMetadata.currentMicrocycle
+                    ).associateBy { result ->
+                        "${result.liftId}-${result.setPosition}-${(result as? MyoRepSetResultDto)?.myoRepSetPosition}"
                     }
+
+                    val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
+                        liftIdsToSearchFor = workout.lifts.map { it.liftId },
+                        workout,
+                        listOf(),
+                        includeDeload = true,
+                    )
+
+                    progressionFactory.calculate(
+                        workout = workout,
+                        previousSetResults = previousSetResults,
+                        previousResultsForDisplay = previousResultsForDisplay,
+                        inProgressSetResults = inProgressSetResults,
+                        programDeloadWeek = programMetadata.deloadWeek,
+                        useLiftSpecificDeloading = liftLevelDeloadsEnabled,
+                        microCycle = programMetadata.currentMicrocycle,
+                        onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
+                    )
                 }
+            }
         }.asLiveData()
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getSetResults(
-        workout: WorkoutDto?,
-        programMetadata: ActiveProgramMetadataDto
-    ): Flow<List<SetResult>> {
-        return SettingsManager.getSettingFlow(
-            SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-            SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA
-        ).flatMapLatest { useAllData ->
-            flowOf(
-                if (workout != null) {
-                    val resultsFromLastWorkout =
-                        setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
-                            workoutId = workout.id,
-                            mesoCycle = programMetadata.currentMesocycle,
-                            microCycle = programMetadata.currentMicrocycle,
-                        )
-
-                    if (useAllData) {
-                        getResultsWithAllWorkoutDataAppended(resultsFromLastWorkout, workout)
-                    } else resultsFromLastWorkout
-                } else listOf()
+         workout: WorkoutDto,
+        programMetadata: ActiveProgramMetadataDto,
+        useAllData: Boolean,
+    ): List<SetResult> {
+        val resultsFromLastWorkout =
+            setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(
+                workoutId = workout.id,
+                mesoCycle = programMetadata.currentMesocycle,
+                microCycle = programMetadata.currentMicrocycle,
             )
-        }
+
+        return if (useAllData) {
+            getResultsWithAllWorkoutDataAppended(resultsFromLastWorkout, workout)
+        } else resultsFromLastWorkout
     }
 
     private suspend fun getResultsWithAllWorkoutDataAppended(
@@ -267,6 +299,32 @@ class WorkoutViewModel(
         } else existingResults
     }
 
+    private suspend fun getPersonalRecords(
+        workoutId: Long,
+        mesoCycle: Int,
+        microCycle: Int,
+        liftIds: List<Long>
+    ): Map<Long, PersonalRecordDto> {
+        val prevWorkoutPersonalRecords = setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(
+            workoutId = workoutId,
+            mesoCycle = mesoCycle,
+            microCycle = microCycle,
+            liftIds = liftIds,
+        )
+        return loggingRepository.getPersonalRecordsForLifts(liftIds)
+            .associateBy { it.liftId }
+            .toMutableMap()
+            .apply {
+                prevWorkoutPersonalRecords.fastForEach { prevWorkoutPr ->
+                    get(prevWorkoutPr.liftId)?.let { allWorkoutsPr ->
+                        if (allWorkoutsPr.personalRecord < prevWorkoutPr.personalRecord) {
+                            put(prevWorkoutPr.liftId, prevWorkoutPr)
+                        }
+                    } ?: put(prevWorkoutPr.liftId, prevWorkoutPr)
+                }
+            }
+    }
+
     fun toggleReorderLifts() {
         mutableWorkoutState.update {
             it.copy(isReordering = !it.isReordering)
@@ -307,10 +365,42 @@ class WorkoutViewModel(
         }
     }
 
+    fun toggleDeloadPrompt() {
+        mutableWorkoutState.update {
+            it.copy(isDeloadPromptDialogShown = !it.isDeloadPromptDialogShown)
+        }
+    }
+
+    fun skipDeloadMicrocycle() {
+        mutableWorkoutState.update {
+            it.copy(isDeloadPromptDialogShown = false)
+        }
+        executeInTransactionScope {
+            val programMetadata = mutableWorkoutState.value.programMetadata!!
+            programsRepository.updateMesoAndMicroCycle(
+                id = programMetadata.programId,
+                mesoCycle = programMetadata.currentMesocycle + 1,
+                microCycle = 0,
+                microCyclePosition = 0,
+            )
+        }
+    }
+
+    fun showDeloadPromptOrStartWorkout() {
+        if (mutableWorkoutState.value.isDeloadWeek &&
+            mutableWorkoutState.value.programMetadata!!.currentMicrocyclePosition == 0) {
+            mutableWorkoutState.update {
+                it.copy(isDeloadPromptDialogShown = true)
+            }
+        } else {
+            startWorkout()
+        }
+    }
+
     fun startWorkout() {
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressDto(
-                startTime = Utils.getCurrentDate(),
+                startTime = getCurrentDate(),
                 workoutId = mutableWorkoutState.value.workout!!.id,
                 completedSets = listOf(),
             )
@@ -319,25 +409,128 @@ class WorkoutViewModel(
                 it.copy(
                     inProgressWorkout = inProgressWorkout,
                     workoutLogVisible = true,
+                    isDeloadPromptDialogShown = false,
                 )
             }
         }
     }
 
-    fun toggleConfirmFinishWorkoutModal() {
+    private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
+        val file = File(context.cacheDir, fileName)
+        val fileOutputStream = FileOutputStream(file)
+
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+        fileOutputStream.close()
+
+        return file
+    }
+
+    fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) {
+        val shareUri: Uri = FileProvider.getUriForFile(
+            context,
+            "com.browntowndev.liftlab.fileprovider",
+            getTempFileFromBitmap(
+                context = context,
+                bitmap = workoutSummaryBitmap,
+                fileName = "workoutSummary.png"
+            )
+        )
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, shareUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share Workout Results"))
+    }
+
+    fun toggleCompletionSummary() {
         mutableWorkoutState.update {
             it.copy(
-                isConfirmFinishWorkoutModalShown = !it.isConfirmFinishWorkoutModalShown
+                isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
+                workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
+                    getWorkoutCompletionSummary()
+                } else null
             )
         }
     }
 
+    private fun getWorkoutCompletionSummary(): WorkoutCompletionSummary {
+        val liftsById = mutableWorkoutState.value.workout?.lifts?.associate { it.liftId to it }
+        val personalRecords = mutableWorkoutState.value.personalRecords
+        val liftCompletionSummaries = mutableWorkoutState.value.inProgressWorkout?.completedSets
+            ?.groupBy { "${it.liftId}-${it.liftPosition}" }
+            ?.values?.map { resultsForLift ->
+                val lift = liftsById?.get(resultsForLift[0].liftId)
+                val setsCompleted = resultsForLift.size
+                val totalSets = (lift?.setCount ?: setsCompleted)
+                    .let { total ->
+                        // Myo can meet this condition
+                        if (setsCompleted > total) setsCompleted else total
+                    }
+                var bestSet1RM = 0
+                var bestSet: SetResult? = null
+                resultsForLift.fastForEach { result ->
+                    val oneRepMax = CalculationEngine.getOneRepMax(
+                        weight = result.weight,
+                        reps = result.reps,
+                        rpe = result.rpe
+                    )
+                    if (oneRepMax > bestSet1RM) {
+                        bestSet = result
+                        bestSet1RM = oneRepMax
+                    }
+                }
+
+                LiftCompletionSummary(
+                    liftName = lift?.liftName ?: "Unknown Lift",
+                    liftId = lift?.liftId ?: -1,
+                    liftPosition = lift?.position ?: -1,
+                    setsCompleted = setsCompleted,
+                    totalSets = totalSets,
+                    bestSetReps = bestSet?.reps ?: 0,
+                    bestSetWeight = bestSet?.weight ?: 0f,
+                    bestSetRpe = bestSet?.rpe ?: 0f,
+                    bestSet1RM = bestSet1RM,
+                    isNewPersonalRecord = personalRecords[lift?.liftId]?.let { it.personalRecord < bestSet1RM } ?: false
+                )
+            }?.toMutableList()?.apply {
+                val liftsWithNoCompletedSets = liftsById?.values?.filter { loggingLift ->
+                    !this.fastAny { summaryLift ->
+                        summaryLift.liftId == loggingLift.liftId && summaryLift.liftPosition == loggingLift.position
+                    }
+                } ?: listOf()
+
+                addAll(
+                    liftsWithNoCompletedSets.map { incompleteLift ->
+                        LiftCompletionSummary(
+                            liftName = incompleteLift.liftName,
+                            liftId = incompleteLift.liftId,
+                            liftPosition = incompleteLift.position,
+                            setsCompleted = 0,
+                            totalSets = incompleteLift.setCount,
+                            bestSetReps = 0,
+                            bestSetWeight = 0f,
+                            bestSetRpe = 0f,
+                            bestSet1RM = 0,
+                            isNewPersonalRecord = false,
+                        )
+                    }
+                )
+            }?.sortedBy { it.liftPosition } ?: listOf()
+
+        return WorkoutCompletionSummary(
+            workoutName = mutableWorkoutState.value.workout!!.name,
+            liftCompletionSummaries = liftCompletionSummaries
+        )
+    }
+
     fun finishWorkout() {
-        toggleConfirmFinishWorkoutModal()
+        toggleCompletionSummary()
 
         executeInTransactionScope {
             val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
-            val durationInMillis = (Utils.getCurrentDate().time - startTimeInMillis)
+            val durationInMillis = (getCurrentDate().time - startTimeInMillis)
             val programMetadata = mutableWorkoutState.value.programMetadata!!
             val workout = mutableWorkoutState.value.workout!!
 
@@ -347,8 +540,8 @@ class WorkoutViewModel(
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val lastDeloadWeek = max(programMetadata.deloadWeek, workout.lifts.maxOfOrNull { it.deloadWeek ?: 0 } ?: 0)
-            val deloadWeekComplete = microCycleComplete && (lastDeloadWeek - 1) == programMetadata.currentMicrocycle
+            val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+            val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
             val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
             val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
@@ -380,7 +573,7 @@ class WorkoutViewModel(
                 mesoCycle = programMetadata.currentMesocycle,
                 microCycle = programMetadata.currentMicrocycle,
                 microcyclePosition = programMetadata.currentMicrocyclePosition,
-                date = Utils.getCurrentDate(),
+                date = getCurrentDate(),
                 durationInMillis = durationInMillis,
             )
 
@@ -399,7 +592,6 @@ class WorkoutViewModel(
 
             stopRestTimer()
 
-            // TODO: have summary pop up as dialog and close this on completion instead
             mutableWorkoutState.update {
                 it.copy(workoutLogVisible = false)
             }
@@ -462,13 +654,13 @@ class WorkoutViewModel(
     fun toggleConfirmCancelWorkoutModal() {
         mutableWorkoutState.update {
             it.copy(
-                isConfirmCancelWorkoutModalShown = !it.isConfirmCancelWorkoutModalShown
+                isConfirmCancelWorkoutDialogShown = !it.isConfirmCancelWorkoutDialogShown
             )
         }
     }
 
     fun cancelWorkout() {
-        if (mutableWorkoutState.value.isConfirmCancelWorkoutModalShown)
+        if (mutableWorkoutState.value.isConfirmCancelWorkoutDialogShown)
             toggleConfirmCancelWorkoutModal()
 
         executeInTransactionScope {
@@ -576,7 +768,7 @@ class WorkoutViewModel(
             mutableWorkoutState.update {
                 it.copy(
                     restTime = restTime,
-                    restTimerStartedAt = Utils.getCurrentDate(),
+                    restTimerStartedAt = getCurrentDate(),
                 )
             }
         }
@@ -590,18 +782,8 @@ class WorkoutViewModel(
         return setResultsRepository.upsert(updatedResult)
     }
 
-    override suspend fun deleteSetResult(
-        workoutId: Long,
-        liftPosition: Int,
-        setPosition: Int,
-        myoRepSetPosition: Int?
-    ) {
-        setResultsRepository.delete(
-            workoutId = workoutId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition
-        )
+    override suspend fun deleteSetResult(id: Long) {
+        setResultsRepository.deleteById(id)
     }
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {

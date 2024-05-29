@@ -9,7 +9,7 @@ import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.isWholeNumber
-import com.browntowndev.liftlab.core.common.toSimpleDateString
+import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
@@ -65,14 +65,15 @@ class LiftDetailsViewModel(
                 loggingRepository.getWorkoutLogsForLift(liftId)
             } else listOf()
 
+            val topTenPerformances = getTopTenPerformances(workoutLogs)
             _state.update {
                 it.copy(
                     lift = lift,
                     workoutLogs = workoutLogs,
-                    oneRepMax = getOneRepMax(workoutLogs),
+                    oneRepMax = topTenPerformances.firstOrNull()?.let { pr -> pr.date to pr.oneRepMax },
                     maxVolume = getMaxVolume(workoutLogs),
                     maxWeight = getMaxWeight(workoutLogs),
-                    topTenPerformances = getTopTenPerformances(workoutLogs),
+                    topTenPerformances = topTenPerformances,
                     totalReps = getTotalReps(workoutLogs),
                     totalVolume = getTotalVolume(workoutLogs),
                     workoutFilterOptions = getWorkoutFilterOptions(workoutLogs),
@@ -94,10 +95,8 @@ class LiftDetailsViewModel(
 
     private fun getOneRepMax(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
         val oneRepMax = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toSimpleDateString() to
-                    workoutLog.setResults.maxOf {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
+            workoutLog.date.toMediumDateString() to
+                    workoutLog.setResults.maxOf {it.oneRepMax }
         }.maxByOrNull { it.second }
 
         return if (oneRepMax != null) {
@@ -107,7 +106,7 @@ class LiftDetailsViewModel(
 
     private fun getMaxVolume(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
         val maxVolume = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toSimpleDateString() to
+            workoutLog.date.toMediumDateString() to
                     workoutLog.setResults.maxOf {
                         it.reps * it.weight
                     }
@@ -121,7 +120,7 @@ class LiftDetailsViewModel(
 
     private fun getMaxWeight(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
         val maxWeight = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toSimpleDateString() to
+            workoutLog.date.toMediumDateString() to
                     workoutLog.setResults.maxOf {
                         it.weight
                     }
@@ -137,7 +136,7 @@ class LiftDetailsViewModel(
             workoutLog.setResults.map { setLog ->
                 OneRepMaxEntry(
                     setsAndRepsLabel = "${formatFloatString(setLog.weight)}x${setLog.reps} @${setLog.rpe}",
-                    date = workoutLog.date.toSimpleDateString(),
+                    date = workoutLog.date.toMediumDateString(),
                     oneRepMax = CalculationEngine.getOneRepMax(setLog.weight, setLog.reps, setLog.rpe).toString()
                 )
             }

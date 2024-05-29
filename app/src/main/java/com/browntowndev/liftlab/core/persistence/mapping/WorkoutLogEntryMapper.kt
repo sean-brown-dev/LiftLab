@@ -31,6 +31,7 @@ class WorkoutLogEntryMapper {
             repFloor = setLogEntryDto.repFloor,
             maxSets = setLogEntryDto.maxSets,
             setMatching = setLogEntryDto.setMatching,
+            oneRepMax = setLogEntryDto.oneRepMax,
         )
     }
 

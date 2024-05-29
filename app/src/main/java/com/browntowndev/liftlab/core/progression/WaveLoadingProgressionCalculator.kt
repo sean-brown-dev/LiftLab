@@ -4,6 +4,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
@@ -87,7 +88,7 @@ class WaveLoadingProgressionCalculator(
     private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int, stepSize: Int?): Int? {
         return if (stepSize != null) {
             if (microCycle < deloadWeek - 1) {
-                val steps = Utils.generateCompleteStepSequence(repRangeTop = repRangeTop, repRangeBottom = repRangeBottom, stepSize = stepSize, deloadWeek - 1)
+                val steps = generateCompleteStepSequence(repRangeTop = repRangeTop, repRangeBottom = repRangeBottom, stepSize = stepSize, deloadWeek - 1)
                 steps[microCycle]
             } else {
                 repRangeBottom

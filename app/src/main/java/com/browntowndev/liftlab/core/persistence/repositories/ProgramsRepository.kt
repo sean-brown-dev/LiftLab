@@ -19,34 +19,44 @@ class ProgramsRepository(
         return programsDao.getAll().map { programMapper.map(it) }
     }
 
+    fun getActiveNotAsLiveData(): ProgramDto? {
+        return programsDao.getActiveNotAsLiveData()?.let { programEntity ->
+            val program = programMapper.map(programEntity)
+            getSortedCopy(program)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getActive(): LiveData<ProgramDto?> {
         val programMeta = programsDao.getActive().flatMapLatest { programEntity ->
             flowOf(
                 if (programEntity != null) {
                     val program = programMapper.map(programEntity)
-                    // Sort the workout and lift positions
-                    program.copy(workouts = program.workouts
-                        .sortedBy { workout -> workout.position }
-                        .map { workout ->
-                            workout.copy(lifts = workout.lifts
-                                .sortedBy { lift -> lift.position }
-                                .map { lift ->
-                                    when (lift) {
-                                        is CustomWorkoutLiftDto -> lift.copy(
-                                            customLiftSets = lift.customLiftSets.sortedBy { it.position }
-                                        )
-                                        else -> lift
-                                    }
-                                }
-                            )
-                        }
-                    )
+                    getSortedCopy(program)
                 } else null
             )
         }.asLiveData()
 
         return programMeta
+    }
+
+    private fun getSortedCopy(program: ProgramDto): ProgramDto {
+        return program.copy(workouts = program.workouts
+            .sortedBy { workout -> workout.position }
+            .map { workout ->
+                workout.copy(lifts = workout.lifts
+                    .sortedBy { lift -> lift.position }
+                    .map { lift ->
+                        when (lift) {
+                            is CustomWorkoutLiftDto -> lift.copy(
+                                customLiftSets = lift.customLiftSets.sortedBy { it.position }
+                            )
+                            else -> lift
+                        }
+                    }
+                )
+            }
+        )
     }
 
     suspend fun updateName(id: Long, newName: String) {

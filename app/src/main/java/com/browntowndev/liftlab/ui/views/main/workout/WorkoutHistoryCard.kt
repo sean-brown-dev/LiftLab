@@ -85,7 +85,7 @@ fun WorkoutHistoryCard(
         Row(
             modifier = Modifier.padding(start = 15.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             Icon(
                 modifier = Modifier.size(15.dp),
@@ -101,7 +101,7 @@ fun WorkoutHistoryCard(
             )
             Icon(
                 modifier = Modifier.size(15.dp),
-                painter = painterResource(id = R.drawable.square_weight_icon),
+                painter = painterResource(id = R.drawable.award_medals),
                 tint = MaterialTheme.colorScheme.tertiary,
                 contentDescription = null,
             )

@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import kotlinx.coroutines.flow.Flow
@@ -18,11 +19,11 @@ interface LoggingDao {
     @Query("INSERT INTO setLogEntries " +
             "(workoutLogEntryId, workoutLiftDeloadWeek, liftId, setType, liftPosition, progressionScheme, " +
             "setPosition, myoRepSetPosition, weight, liftName, liftMovementPattern, weightRecommendation, " +
-            "reps, rpe, mesoCycle, microCycle, repRangeBottom, repRangeTop, rpeTarget, setMatching, maxSets, " +
+            "reps, rpe, oneRepMax, mesoCycle, microCycle, repRangeBottom, repRangeTop, rpeTarget, setMatching, maxSets, " +
             "repFloor, dropPercentage, isDeload) " +
             "SELECT :workoutLogEntryId, wl.deloadWeek, sr.liftId, sr.setType, sr.liftPosition, wl.progressionScheme, " +
             "sr.setPosition, sr.myoRepSetPosition, sr.weight, l.name, l.movementPattern, sr.weightRecommendation, " +
-            "sr.reps, sr.rpe, sr.mesoCycle, sr.microCycle, wl.repRangeBottom, wl.repRangeTop, " +
+            "sr.reps, sr.rpe, sr.oneRepMax, sr.mesoCycle, sr.microCycle, wl.repRangeBottom, wl.repRangeTop, " +
             "COALESCE(CASE WHEN sr.myoRepSetPosition IS NOT NULL THEN 10 ELSE NULL END, s.rpeTarget, wl.rpeTarget), " +
             "s.setMatching, s.maxSets, s.repFloor, s.dropPercentage, sr.isDeload " +
             "FROM previousSetResults sr " +
@@ -44,7 +45,7 @@ interface LoggingDao {
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.workoutId, histWorkoutName.programName, histWorkoutName.workoutName, " +
             "log.programDeloadWeek, log.programWorkoutCount, log.microcyclePosition, log.date, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
+            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -54,7 +55,7 @@ interface LoggingDao {
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
+            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -65,7 +66,7 @@ interface LoggingDao {
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
+            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -83,7 +84,7 @@ interface LoggingDao {
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
+            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -100,7 +101,7 @@ interface LoggingDao {
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
+            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -118,7 +119,7 @@ interface LoggingDao {
 
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.mesoCycle, setResult.microCycle, " +
+            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -128,20 +129,18 @@ interface LoggingDao {
             "WHERE log.workout_log_entry_id = :workoutLogEntryId")
     suspend fun get(workoutLogEntryId: Long): List<FlattenedWorkoutLogEntryDto>
 
+    @Query("SELECT liftId, MAX(oneRepMax) as 'personalRecord' " +
+            "FROM setLogEntries " +
+            "WHERE liftId IN (:liftIds) " +
+            "GROUP BY liftId")
+    suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecordDto>
+
     @Query("DELETE FROM setLogEntries WHERE set_log_entry_id IN (:ids)")
     suspend fun deleteManySetLogEntries(ids: List<Long>)
 
     @Query("DELETE FROM setLogEntries " +
-            "WHERE set_log_entry_id IN (" +
-            "SELECT set_log_entry_id " +
-            "FROM setLogEntries setLog " +
-            "INNER JOIN workoutLogEntries workoutLog ON workoutLog.workout_log_entry_id = setLog.workoutLogEntryId " +
-            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = workoutLog.historicalWorkoutNameId " +
-            "WHERE histWorkoutName.workoutId = :workoutId AND " +
-            "setLog.liftPosition = :liftPosition AND " +
-            "setLog.setPosition = :setPosition AND " +
-            "setLog.myoRepSetPosition = :myoRepSetPosition )")
-    suspend fun deleteSetLogEntry(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?)
+            "WHERE set_log_entry_id = :id")
+    suspend fun deleteSetLogEntryById(id: Long)
 
     @Upsert
     suspend fun upsert(setLogEntry: SetLogEntry): Long

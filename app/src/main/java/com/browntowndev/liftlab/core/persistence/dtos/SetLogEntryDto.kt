@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.dtos
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.progression.CalculationEngine
 
 data class SetLogEntryDto(
     val id: Long,
@@ -22,6 +23,7 @@ data class SetLogEntryDto(
     val weight: Float,
     val reps: Int,
     val rpe: Float,
+    private val persistedOneRepMax: Int? = null,
     val mesoCycle: Int,
     val microCycle: Int,
     val isPersonalRecord: Boolean = false,
@@ -30,4 +32,12 @@ data class SetLogEntryDto(
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
     val isDeload: Boolean,
-)
+) {
+    val oneRepMax: Int by lazy {
+        persistedOneRepMax ?: CalculationEngine.getOneRepMax(
+            weight = weight,
+            reps = reps,
+            rpe = rpe,
+        )
+    }
+}

@@ -16,6 +16,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
@@ -35,7 +38,7 @@ data class LabScreen(
     val reorderWorkoutsVisible: Boolean = true,
     val deleteProgramVisible: Boolean = true,
     val manageProgramsVisible: Boolean = false,
-    val deloadWeekVisible: Boolean = true,
+    val deloadWeekVisible: Boolean = !SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING),
     val createWorkoutVisible: Boolean = true,
 ) : BaseScreen() {
     companion object {
@@ -179,7 +182,7 @@ data class LabScreen(
                 title = "Manage Programs",
                 icon = Icons.Filled.Build.left(),
                 isVisible = manageProgramsVisible,
-                dividerBelow = true,
+                dividerBelow = deloadWeekVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ManagePrograms))
                     listOf()

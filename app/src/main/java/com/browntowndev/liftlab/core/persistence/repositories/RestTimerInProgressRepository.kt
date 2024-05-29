@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
@@ -46,7 +47,7 @@ class RestTimerInProgressRepository(private val restTimerInProgressDao: RestTime
         deleteAll()
         restTimerInProgressDao.insert(
             RestTimerInProgress(
-                timeStartedInMillis = Utils.getCurrentDate().time,
+                timeStartedInMillis = getCurrentDate().time,
                 restTime = restTime,
             )
         )

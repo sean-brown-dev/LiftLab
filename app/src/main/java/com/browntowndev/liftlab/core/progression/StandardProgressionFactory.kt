@@ -25,6 +25,7 @@ class StandardProgressionFactory: ProgressionFactory {
         inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
+        useLiftSpecificDeloading: Boolean,
         onlyUseResultsForLiftsInSamePosition: Boolean,
     ): LoggingWorkoutDto {
         var loggingWorkout = LoggingWorkoutDto(
@@ -34,7 +35,7 @@ class StandardProgressionFactory: ProgressionFactory {
         )
 
         workout.lifts.fastForEach { workoutLift ->
-            val deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek
+            val deloadWeek = if (useLiftSpecificDeloading) workoutLift.deloadWeek else programDeloadWeek
             val isDeloadWeek = (microCycle + 1) == deloadWeek
             val resultsForLift = previousSetResults.filter { result ->
                 (!onlyUseResultsForLiftsInSamePosition || result.liftPosition == workoutLift.position)

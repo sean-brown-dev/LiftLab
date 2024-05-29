@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.viewinterop.AndroidView
+import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
 
 @Composable
 fun NumberPickerSpinner(
@@ -30,17 +31,53 @@ fun NumberPickerSpinner(
         val optionValues by remember(options) { mutableStateOf(options) }
         val displayValues by remember(options) {
             mutableStateOf(options.fastMap {
-                if (it % 1 == 0f) {
-                    String.format("%.0f", it) // Format as whole number if no decimal places
-                } else {
-                    String.format(
-                        "%.1f",
-                        it
-                    ) // Format with 1 decimal place if there are non-zero decimals
-                }
+                it.toWholeNumberOrOneDecimalString()
             }.toTypedArray())
         }
         var selectedValue by remember(initialValue) { mutableFloatStateOf(initialValue) }
+        var selectedIndex by remember(
+            selectedValue,
+            optionValues
+        ) { mutableIntStateOf(optionValues.indexOf(selectedValue)) }
+        AndroidView(
+            modifier = Modifier.weight(1f),
+            factory = { context ->
+                NumberPicker(context).apply {
+                    setOnValueChangedListener { _, _, newVal ->
+                        selectedIndex = newVal
+                        selectedValue = optionValues[newVal]
+                        onChanged(selectedValue)
+                    }
+                    displayedValues = displayValues
+                    minValue = 0
+                    maxValue = optionValues.size - 1
+                    value = selectedIndex
+                    wrapSelectorWheel = false
+                }
+            },
+        )
+    }
+}
+
+@Composable
+fun NullableNumberPickerSpinner(
+    modifier: Modifier = Modifier,
+    options: List<Float?>,
+    initialValue: Float?,
+    onChanged: (Float?) -> Unit,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val optionValues by remember(options) { mutableStateOf(options) }
+        val displayValues by remember(options) {
+            mutableStateOf(options.fastMap {
+                it?.toWholeNumberOrOneDecimalString() ?: "None"
+            }.toTypedArray())
+        }
+        var selectedValue by remember(initialValue) { mutableStateOf(initialValue) }
         var selectedIndex by remember(
             selectedValue,
             optionValues

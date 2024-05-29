@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
@@ -88,6 +89,10 @@ class LoggingRepository(
         }
     }
 
+    suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecordDto> {
+        return loggingDao.getPersonalRecordsForLifts(liftIds)
+    }
+
     suspend fun insertFromPreviousSetResults(
         workoutLogEntryId: Long,
         workoutId: Long,
@@ -128,13 +133,8 @@ class LoggingRepository(
         )
     }
 
-    suspend fun deleteSetLogEntry(workoutId: Long, liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
-        loggingDao.deleteSetLogEntry(
-            workoutId = workoutId,
-            liftPosition = liftPosition,
-            setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition,
-        )
+    suspend fun deleteSetLogEntryById(id: Long) {
+        loggingDao.deleteSetLogEntryById(id)
     }
 
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {

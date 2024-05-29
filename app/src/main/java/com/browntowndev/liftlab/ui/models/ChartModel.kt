@@ -69,9 +69,7 @@ fun getOneRepMaxChartModel(
         }
         .fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
-                    workoutLog.setResults.maxOf {
-                        CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
-                    }
+                    workoutLog.setResults.maxOf { it.oneRepMax }
         }
         .associate { (date, oneRepMax) ->
             date to oneRepMax

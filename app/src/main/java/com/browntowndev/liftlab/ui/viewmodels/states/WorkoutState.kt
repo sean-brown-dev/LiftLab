@@ -6,6 +6,8 @@ import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
+import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
+import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import java.util.Date
 
 @Stable
@@ -13,15 +15,23 @@ data class WorkoutState(
     val initialized: Boolean = false,
     val programMetadata: ActiveProgramMetadataDto? = null,
     val workout: LoggingWorkoutDto? = null,
+    val personalRecords: Map<Long, PersonalRecordDto> = mapOf(),
     val inProgressWorkout: WorkoutInProgressDto? = null,
     val workoutLogVisible: Boolean = false,
     val isReordering: Boolean = false,
     val restTimerStartedAt: Date? = null,
     val restTime: Long = 0L,
     val completedMyoRepSets: Boolean = false,
-    val isConfirmFinishWorkoutModalShown: Boolean = false,
-    val isConfirmCancelWorkoutModalShown: Boolean = false,
+    val isCompletionSummaryVisible: Boolean = false,
+    val isConfirmCancelWorkoutDialogShown: Boolean = false,
+    val isDeloadPromptDialogShown: Boolean = false,
+    val workoutCompletionSummary: WorkoutCompletionSummary? = null,
 ) {
+    val isDeloadWeek by lazy {
+        this.programMetadata != null &&
+                this.programMetadata.deloadWeek == (this.programMetadata.currentMicrocycle + 1)
+    }
+
     val combinedVolumeTypes: List<CharSequence> by lazy {
         this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
     }
