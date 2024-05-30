@@ -202,13 +202,19 @@ class WorkoutHistoryViewModel(
             .sortedByDescending { it.date }
             .fastMap { workoutLog ->
                 workoutLog.copy(
-                    setResults = workoutLog.setResults.fastMap { setLog ->
-                        if (personalRecords.contains(setLog)) {
-                            setLog.copy(
-                                isPersonalRecord = true
-                            )
-                        } else setLog
-                    }
+                    setResults = workoutLog.setResults
+                        .sortedWith(
+                            compareBy<SetLogEntryDto> { it.liftPosition }
+                                .thenBy { it.setPosition }
+                                .thenBy { it.myoRepSetPosition ?: -1 }
+                        )
+                        .fastMap { setLog ->
+                            if (personalRecords.contains(setLog)) {
+                                setLog.copy(
+                                    isPersonalRecord = true
+                                )
+                            } else setLog
+                        }
                 )
             }
 

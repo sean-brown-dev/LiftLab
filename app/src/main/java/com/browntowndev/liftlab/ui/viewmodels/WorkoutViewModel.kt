@@ -468,15 +468,15 @@ class WorkoutViewModel(
                         // Myo can meet this condition
                         if (setsCompleted > total) setsCompleted else total
                     }
-                var bestSet1RM = 0
+                var bestSet1RM: Int? = null
                 var bestSet: SetResult? = null
                 resultsForLift.fastForEach { result ->
                     val oneRepMax = CalculationEngine.getOneRepMax(
-                        weight = result.weight,
+                        weight = if (result.weight > 0) result.weight else 1f,
                         reps = result.reps,
                         rpe = result.rpe
                     )
-                    if (oneRepMax > bestSet1RM) {
+                    if (bestSet1RM == null || oneRepMax > bestSet1RM!!) {
                         bestSet = result
                         bestSet1RM = oneRepMax
                     }
@@ -491,8 +491,10 @@ class WorkoutViewModel(
                     bestSetReps = bestSet?.reps ?: 0,
                     bestSetWeight = bestSet?.weight ?: 0f,
                     bestSetRpe = bestSet?.rpe ?: 0f,
-                    bestSet1RM = bestSet1RM,
-                    isNewPersonalRecord = personalRecords[lift?.liftId]?.let { it.personalRecord < bestSet1RM } ?: false
+                    bestSet1RM = bestSet1RM ?: 0,
+                    isNewPersonalRecord = personalRecords[lift?.liftId]?.let {
+                        it.personalRecord < (bestSet1RM ?: -1)
+                    } ?: false
                 )
             }?.toMutableList()?.apply {
                 val liftsWithNoCompletedSets = liftsById?.values?.filter { loggingLift ->

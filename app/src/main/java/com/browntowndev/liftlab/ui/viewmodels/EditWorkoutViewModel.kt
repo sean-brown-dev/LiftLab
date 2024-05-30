@@ -247,7 +247,18 @@ class EditWorkoutViewModel(
                     }
                 )
             }
-        )
+        ).let { unsortedWorkout ->
+            // Sort lifts & sets by position
+            unsortedWorkout.copy(
+                lifts = unsortedWorkout.lifts
+                    .sortedBy { unsortedLift -> unsortedLift.position }
+                    .map { sortedLift ->
+                        sortedLift.copy(
+                            sets = sortedLift.sets.sortedBy { unsortedSet -> unsortedSet.position }
+                        )
+                    }
+            )
+        }
     }
 
     private fun buildCompletedSetResultsFromLog(workoutLog: WorkoutLogEntryDto): List<SetResult> {
