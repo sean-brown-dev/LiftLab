@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
+import com.browntowndev.liftlab.core.common.enums.VolumeTypeUtils
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
@@ -29,7 +30,6 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.text.NumberFormat
 import kotlin.math.roundToInt
-import kotlin.time.Duration
 
 class LiftDetailsViewModel(
     private val onNavigateBack: () -> Unit,
@@ -311,27 +311,22 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun updateRestTime(newRestTime: Duration) {
-        executeInTransactionScope {
-            val updatedLift = _state.value.lift!!.copy(restTime = newRestTime)
-            liftsRepository.update(updatedLift)
-
-            _state.update {
-                it.copy(
-                    lift = updatedLift
-                )
-            }
-        }
-    }
-
     fun updateMovementPattern(newMovementPattern: MovementPattern) {
         executeInTransactionScope {
-            val updatedLift = _state.value.lift!!.copy(movementPattern = newMovementPattern)
+            val volumeTypes = VolumeTypeUtils.getDefaultVolumeTypes(newMovementPattern)
+            val secondaryVolumeTypes = VolumeTypeUtils.getDefaultSecondaryVolumeTypes(newMovementPattern)
+            val updatedLift = _state.value.lift!!.copy(
+                movementPattern = newMovementPattern,
+                volumeTypesBitmask = volumeTypes.sumOf { it.bitMask },
+                secondaryVolumeTypesBitmask = secondaryVolumeTypes?.sumOf { it.bitMask }
+            )
             liftsRepository.update(updatedLift)
 
             _state.update {
                 it.copy(
-                    lift = updatedLift
+                    lift = updatedLift,
+                    volumeTypeDisplayNames = volumeTypes.map { vt -> vt.displayName() },
+                    secondaryVolumeTypeDisplayNames = secondaryVolumeTypes?.map { vt -> vt.displayName() } ?: listOf(),
                 )
             }
         }

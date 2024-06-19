@@ -75,44 +75,41 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
             labelPosition = LabelPosition.Top,
             indicator = indicator,
             guideline = guideline,
+            indicatorSizeDp = INDICATOR_SIZE_DP,
             setIndicatorColor = { argbColor: Int ->
                 indicatorInnerComponent.color = argbColor.copyColor(alpha = INDICATOR_OUTER_COMPONENT_ALPHA)
                 indicatorCenterComponent.color = argbColor
                 indicatorCenterComponent.setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = argbColor)
-            }
-        ) {
-            init {
-                indicatorSizeDp = INDICATOR_SIZE_DP
-                valueFormatter = object: CartesianMarkerValueFormatter {
-                    private val PATTERN = "%.02f"
-                    override fun format(
-                        context: CartesianDrawContext,
-                        targets: List<CartesianMarker.Target>
-                    ): CharSequence = targets.transformToSpannable(
-                        separator = "  ",
-                    ) { cartesianTarget ->
-                        val y = when(cartesianTarget) {
-                            is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0f
-                            is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0f
-                            else -> 0f
-                        }
-
-                        val color = when(context.chartValues.model.models[0]) {
-                            is LineCartesianLayerModel -> (cartesianTarget as LineCartesianLayerMarkerTarget).points[0].color
-                            is ColumnCartesianLayerModel -> (cartesianTarget as ColumnCartesianLayerMarkerTarget).columns[0].color
-                            else -> labelColor.toArgb()
-                        }
-
-                        appendCompat(
-                            if (y.isWholeNumber()) y.roundToInt().toString()
-                            else PATTERN.format(y),
-                            ForegroundColorSpan(color),
-                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-                        )
+            },
+            valueFormatter = object: CartesianMarkerValueFormatter {
+                private val PATTERN = "%.02f"
+                override fun format(
+                    context: CartesianDrawContext,
+                    targets: List<CartesianMarker.Target>
+                ): CharSequence = targets.transformToSpannable(
+                    separator = "  ",
+                ) { cartesianTarget ->
+                    val y = when(cartesianTarget) {
+                        is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0f
+                        is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0f
+                        else -> 0f
                     }
+
+                    val color = when(context.chartValues.model.models[0]) {
+                        is LineCartesianLayerModel -> (cartesianTarget as LineCartesianLayerMarkerTarget).points[0].color
+                        is ColumnCartesianLayerModel -> (cartesianTarget as ColumnCartesianLayerMarkerTarget).columns[0].color
+                        else -> labelColor.toArgb()
+                    }
+
+                    appendCompat(
+                        if (y.isWholeNumber()) y.roundToInt().toString()
+                        else PATTERN.format(y),
+                        ForegroundColorSpan(color),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
                 }
             }
-
+        ) {
             override fun getInsets(
                 context: CartesianMeasureContext,
                 outInsets: Insets,
