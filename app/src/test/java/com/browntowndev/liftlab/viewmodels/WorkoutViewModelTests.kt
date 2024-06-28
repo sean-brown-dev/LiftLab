@@ -5,10 +5,12 @@ import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
@@ -80,14 +82,20 @@ class WorkoutViewModelTests {
         mockkObject(SettingsManager)
 
         every {
-            SettingsManager.getSettingFlow(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, any())
+            SettingsManager.getSettingFlow(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS)
         } returns flowOf(DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS)
+
         every {
-            SettingsManager.getSettingFlow(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, any())
+            SettingsManager.getSettingFlow(ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION, DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION)
         } returns flowOf(DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION)
 
-        every { SettingsManager.getSetting(REST_TIME, any()) } returns DEFAULT_REST_TIME
-        every { SettingsManager.getSetting(INCREMENT_AMOUNT, any()) } returns DEFAULT_INCREMENT_AMOUNT
+        every {
+            SettingsManager.getSettingFlow(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+        } returns flowOf(DEFAULT_LIFT_SPECIFIC_DELOADING)
+
+        every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
+        every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
+        every { SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING) } returns DEFAULT_LIFT_SPECIFIC_DELOADING
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -172,6 +180,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -187,6 +196,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -201,7 +211,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -312,6 +321,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -327,6 +337,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -341,7 +352,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -475,7 +485,8 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
-            coEvery { setResultsRepository.delete(any(), any(), any(), any()) } just runs
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
+            coEvery { setResultsRepository.deleteById(any()) } just runs
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -491,6 +502,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -505,7 +517,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -662,6 +673,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -677,6 +689,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -691,7 +704,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -826,6 +838,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -841,6 +854,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -855,7 +869,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -990,6 +1003,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -1005,6 +1019,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1019,7 +1034,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1183,6 +1197,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -1198,6 +1213,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1212,7 +1228,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1327,7 +1342,8 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
-            coEvery { setResultsRepository.delete(any(), any(), any(), any()) } just runs
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
+            coEvery { setResultsRepository.deleteById(any()) } just runs
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -1343,6 +1359,7 @@ class WorkoutViewModelTests {
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1357,7 +1374,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1417,6 +1433,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1445,6 +1462,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any(), any()) } just runs
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -1471,7 +1489,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1507,6 +1524,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1535,6 +1553,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any(), any()) } just runs
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -1561,11 +1580,10 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
-
+            viewModel.toggleCompletionSummary()
             viewModel.finishWorkout()
             coVerify(exactly = 1) { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) }
         }
@@ -1597,6 +1615,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1624,6 +1643,7 @@ class WorkoutViewModelTests {
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any(), any()) } just runs
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
@@ -1651,7 +1671,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1706,6 +1725,7 @@ class WorkoutViewModelTests {
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1760,6 +1780,7 @@ class WorkoutViewModelTests {
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery { setResultsRepository.upsertMany(any()) } coAnswers {
                 val results = args[0] as List<LinearProgressionSetResultDto>
                 Assert.assertEquals(2, results.size)
@@ -1796,7 +1817,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -1897,6 +1917,7 @@ class WorkoutViewModelTests {
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1960,6 +1981,7 @@ class WorkoutViewModelTests {
                 listOf(0L)
             }
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any(), any()) } just runs
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
@@ -2020,7 +2042,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2113,6 +2134,7 @@ class WorkoutViewModelTests {
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2193,6 +2215,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -2219,7 +2242,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2272,6 +2294,7 @@ class WorkoutViewModelTests {
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2352,6 +2375,7 @@ class WorkoutViewModelTests {
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -2381,7 +2405,6 @@ class WorkoutViewModelTests {
                 liftsRepository = liftsRepository,
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2428,6 +2451,7 @@ class WorkoutViewModelTests {
             } returns 0L
             coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2489,8 +2513,9 @@ class WorkoutViewModelTests {
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
-            coEvery { setResultsRepository.delete(any(), any(), any(), any()) } just runs
+            coEvery { setResultsRepository.deleteById(any()) } just runs
             coEvery { setResultsRepository.upsert(any()) } returns 0L
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
             coEvery {
                 setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
             } returns listOf()
@@ -2517,7 +2542,6 @@ class WorkoutViewModelTests {
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
-                liftLevelDeloadsEnabled = false,
                 transactionScope = transactionScope,
                 eventBus = mockk(),
             )
@@ -2572,6 +2596,6 @@ class WorkoutViewModelTests {
             Assert.assertEquals(null, (viewModel.workoutState.value.workout!!.lifts[0].sets[0] as LoggingMyoRepSetDto).myoRepSetPosition)
             Assert.assertEquals(0, (viewModel.workoutState.value.workout!!.lifts[0].sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
 
-            coVerify(exactly = 1) { setResultsRepository.delete(any(), any(), any(), any()) }
+            coVerify(exactly = 1) { setResultsRepository.deleteById(any()) }
         }
 }
