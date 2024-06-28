@@ -57,6 +57,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
             restTimerEnabled = lift.restTimerEnabled,
             isHidden = lift.isHidden,
             isBodyweight = lift.isBodyweight,
+            note = lift.note,
         )
     }
 
@@ -73,6 +74,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 restTimerEnabled = lift.restTimerEnabled,
                 isHidden = lift.isHidden,
                 isBodyweight = lift.isBodyweight,
+                note = lift.note,
             )
         }
     }
@@ -93,6 +95,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                         restTimerEnabled = it.restTimerEnabled,
                         isHidden = it.isHidden,
                         isBodyweight = it.isBodyweight,
+                        note = it.note,
                     )
                 }
             )
@@ -105,5 +108,9 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
 
     suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {
         liftsDao.updateIncrementOverride(id, newIncrement)
+    }
+
+    suspend fun updateNote(id: Long, note: String?) {
+        liftsDao.updateNote(id, note)
     }
 }

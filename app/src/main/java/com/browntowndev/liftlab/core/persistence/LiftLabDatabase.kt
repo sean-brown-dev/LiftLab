@@ -2,15 +2,12 @@ package com.browntowndev.liftlab.core.persistence
 
 import android.content.Context
 import android.util.Log
-import androidx.core.database.getIntOrNull
 import androidx.lifecycle.Observer
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.AutoMigrationSpec
-import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
@@ -18,7 +15,6 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
@@ -45,7 +41,9 @@ import com.browntowndev.liftlab.core.persistence.entities.Workout
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
-import com.browntowndev.liftlab.core.progression.CalculationEngine
+import com.browntowndev.liftlab.core.persistence.migrations.LiftNoteMigration
+import com.browntowndev.liftlab.core.persistence.migrations.OneRepMaxAutoMigration
+import com.browntowndev.liftlab.core.persistence.migrations.StepSizeAutoMigration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -67,7 +65,7 @@ import kotlinx.coroutines.flow.update
         LiftMetricChart::class,
         VolumeMetricChart::class,
    ],
-    version = 11,
+    version = 12,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -78,8 +76,8 @@ import kotlinx.coroutines.flow.update
         AutoMigration(from = 6, to = 7),
         AutoMigration(from = 7, to = 8),
         AutoMigration(from = 8, to = 9),
-        AutoMigration(from = 9, to = 10, spec = LiftLabDatabase.Companion.StepSizeAutoMigration::class),
-        AutoMigration(from = 10, to = 11, spec = LiftLabDatabase.Companion.OneRepMaxAutoMigration::class),
+        AutoMigration(from = 9, to = 10, spec = StepSizeAutoMigration::class),
+        AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -111,6 +109,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): LiftLabDatabase {
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, DATABASE_NAME)
+                .addMigrations(LiftNoteMigration())
                 .fallbackToDestructiveMigration()
                 .build()
 
@@ -153,97 +152,6 @@ abstract class LiftLabDatabase : RoomDatabase() {
         private fun setAsInitialized(success: Boolean) {
             SettingsManager.setSetting(DB_INITIALIZED, success)
             _initialized.update { true }
-        }
-
-        class StepSizeAutoMigration: AutoMigrationSpec {
-            override fun onPostMigrate(db: SupportSQLiteDatabase) {
-                db.beginTransaction()
-                try {
-                    val query = db.query(
-                        "SELECT workout_lift_id, repRangeTop, repRangeBottom, wl.deloadWeek as 'liftDeloadWeek', p.deloadWeek as 'programDeloadWeek' " +
-                            "FROM workoutLifts wl " +
-                            "JOIN workouts w ON wl.workoutId = w.workout_id " +
-                            "JOIN programs p ON w.programId = p.program_id " +
-                            "WHERE wl.progressionScheme = 'WAVE_LOADING_PROGRESSION'")
-
-                    while (query.moveToNext()) {
-                        val workoutLiftId = query.getLong(0)
-                        val repRangeTop = query.getInt(1)
-                        val repRangeBottom = query.getInt(2)
-                        val workoutLiftDeloadWeek = query.getIntOrNull(3)
-                        val programDeloadWeek = query.getInt(4)
-
-                        val stepSize = getPossibleStepSizes(
-                            repRangeTop = repRangeTop,
-                            repRangeBottom = repRangeBottom,
-                            stepCount = (workoutLiftDeloadWeek ?: programDeloadWeek) - 2
-                        ).firstOrNull()
-
-                        db.execSQL("UPDATE workoutLifts " +
-                                "SET stepSize = @stepSize " +
-                                "WHERE workout_lift_id = @workoutLiftId",
-                            arrayOf(stepSize, workoutLiftId))
-                    }
-                    db.setTransactionSuccessful()
-                }
-                finally {
-                    db.endTransaction()
-                }
-            }
-        }
-
-        class OneRepMaxAutoMigration: AutoMigrationSpec {
-            override fun onPostMigrate(db: SupportSQLiteDatabase) {
-                db.beginTransaction()
-                try {
-                    val prevSetResultQuery = db.query(
-                        "SELECT previously_completed_set_id, reps, weight, rpe " +
-                                "FROM previousSetResults")
-
-                    while (prevSetResultQuery.moveToNext()) {
-                        val id = prevSetResultQuery.getLong(0)
-                        val reps = prevSetResultQuery.getInt(1)
-                        val weight = prevSetResultQuery.getFloat(2)
-                        val rpe = prevSetResultQuery.getFloat(3)
-                        val oneRepMax = CalculationEngine.getOneRepMax(
-                            weight = weight,
-                            reps = reps,
-                            rpe = rpe
-                        )
-
-                        db.execSQL("UPDATE previousSetResults " +
-                                "SET oneRepMax = @oneRepMax " +
-                                "WHERE previously_completed_set_id = @id",
-                            arrayOf(oneRepMax, id))
-                    }
-
-                    val setLogQuery = db.query(
-                        "SELECT set_log_entry_id, reps, weight, rpe " +
-                                "FROM setLogEntries")
-
-                    while (setLogQuery.moveToNext()) {
-                        val id = setLogQuery.getLong(0)
-                        val reps = setLogQuery.getInt(1)
-                        val weight = setLogQuery.getFloat(2)
-                        val rpe = setLogQuery.getFloat(3)
-                        val oneRepMax = CalculationEngine.getOneRepMax(
-                            weight = weight,
-                            reps = reps,
-                            rpe = rpe
-                        )
-
-                        db.execSQL("UPDATE setLogEntries " +
-                                "SET oneRepMax = @oneRepMax " +
-                                "WHERE set_log_entry_id = @id",
-                            arrayOf(oneRepMax, id))
-                    }
-
-                    db.setTransactionSuccessful()
-                }
-                finally {
-                    db.endTransaction()
-                }
-            }
         }
     }
 }

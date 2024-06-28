@@ -134,7 +134,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -273,7 +273,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -436,7 +436,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -623,7 +623,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -786,7 +786,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -950,7 +950,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -1137,7 +1137,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             StandardSetDto(
                                 id = 0L,
@@ -1281,7 +1281,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             StandardSetDto(
                                 id = 0L,
@@ -1729,7 +1729,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 2,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         repRangeTop = 10,
                         repRangeBottom = 8,
                         rpeTarget = 8f,
@@ -1923,7 +1923,7 @@ class WorkoutViewModelTests {
                         repRangeTop = 10,
                         repRangeBottom = 8,
                         rpeTarget = 8f,
-                        note = null,
+                        liftNote = null,
                     )
                 )
             )
@@ -2136,7 +2136,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -2295,7 +2295,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,
@@ -2451,7 +2451,7 @@ class WorkoutViewModelTests {
                         position = 0,
                         setCount = 1,
                         deloadWeek = null,
-                        note = null,
+                        liftNote = null,
                         customLiftSets = listOf(
                             MyoRepSetDto(
                                 id = 0L,

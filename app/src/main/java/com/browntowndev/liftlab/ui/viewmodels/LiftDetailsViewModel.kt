@@ -58,6 +58,7 @@ class LiftDetailsViewModel(
                     restTimerEnabled = true,
                     isHidden = false,
                     isBodyweight = false,
+                    note = null,
                 )
             }
 

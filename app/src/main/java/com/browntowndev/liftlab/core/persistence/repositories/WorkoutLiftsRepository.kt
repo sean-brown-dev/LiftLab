@@ -37,10 +37,6 @@ class WorkoutLiftsRepository (
         return workoutLiftsDao.getLiftIdsForWorkout(workoutId)
     }
 
-    suspend fun updateNote(workoutLiftId: Long, note: String?) {
-        workoutLiftsDao.updateNote(workoutLiftId, note)
-    }
-
     suspend fun getForWorkout(workoutId: Long): List<GenericWorkoutLift> {
         return workoutLiftsDao.getForWorkout(workoutId).map { liftEntity ->
             workoutLiftMapper.map(liftEntity)

@@ -21,6 +21,6 @@ data class CustomWorkoutLiftDto(
     override val incrementOverride: Float?,
     override val restTime: Duration?,
     override val restTimerEnabled: Boolean,
-    override val note: String?,
+    override val liftNote: String?,
     val customLiftSets: List<GenericLiftSet>
 ) : GenericWorkoutLift

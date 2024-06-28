@@ -43,4 +43,7 @@ interface LiftsDao {
 
     @Query("UPDATE lifts SET incrementOverride = :newIncrementOverride WHERE lift_id = :id")
     suspend fun updateIncrementOverride(id: Long, newIncrementOverride: Float?)
+
+    @Query("UPDATE lifts SET note = :note WHERE lift_id = :id")
+    suspend fun updateNote(id: Long, note: String?)
 }

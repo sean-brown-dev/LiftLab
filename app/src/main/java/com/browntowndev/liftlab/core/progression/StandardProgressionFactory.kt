@@ -75,7 +75,7 @@ class StandardProgressionFactory: ProgressionFactory {
                             restTime = workoutLift.restTime,
                             restTimerEnabled = workoutLift.restTimerEnabled,
                             setCount = sets.size,
-                            note = workoutLift.note,
+                            note = workoutLift.liftNote,
                             sets = sets,
                         )
                     )

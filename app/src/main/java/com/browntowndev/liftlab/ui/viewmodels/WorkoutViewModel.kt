@@ -745,7 +745,7 @@ class WorkoutViewModel(
 
     fun updateNote(workoutLiftId: Long, note: String) {
         executeInTransactionScope {
-            workoutLiftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
+            liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
 
             mutableWorkoutState.update { currentState ->
                 currentState.copy(

@@ -15,6 +15,7 @@ data class LiftDto(
     val restTimerEnabled: Boolean,
     val isHidden: Boolean,
     val isBodyweight: Boolean,
+    val note: String?,
 ) {
     val movementPatternDisplayName get() = this.movementPattern.displayName()
 }
