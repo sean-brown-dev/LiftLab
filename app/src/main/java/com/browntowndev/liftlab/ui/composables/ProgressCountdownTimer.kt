@@ -1,7 +1,5 @@
 package com.browntowndev.liftlab.ui.composables
 
-import android.content.Intent
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,11 +28,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -55,14 +51,11 @@ fun ProgressCountdownTimer(
     val state by viewModel.state.collectAsState()
     val animatedProgress by animateFloatAsState(
         targetValue = state.progress,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+        label = "Rest Timer Progress"
     )
 
-    val context = LocalContext.current
     LaunchedEffect(key1 = start, key2 = timerRequestId) {
-        Log.d(Log.DEBUG.toString(), "New countdown time: $countDownFrom")
-
-        context.stopService(Intent(context, RestTimerNotificationService::class.java))
         if (start && countDownFrom != null && countDownStartedFrom != null) {
             viewModel.start(timerRequestId, countDownStartedFrom, countDownFrom)
         } else {

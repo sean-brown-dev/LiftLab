@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -12,17 +13,25 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
+import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.ui.models.ActiveWorkoutNotificationMetadata
+import com.browntowndev.liftlab.ui.notifications.ActiveWorkoutNotificationService
+import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
@@ -105,16 +114,29 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         lifecycleScope.launch {
             val restTimeRemaining: Long = getRestTimeRemaining()
-
             if (restTimeRemaining > 0L) {
-                val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
-                restTimerIntent.putExtra(
-                    RestTimerNotificationService.EXTRA_COUNT_DOWN_FROM,
-                    restTimeRemaining
-                )
-                context.startForegroundService(restTimerIntent)
+                startRestTimerNotification(context, restTimeRemaining)
+            } else {
+                val programRepository: ProgramsRepository by inject()
+                val workoutsRepository: WorkoutsRepository by inject()
+                val workoutInProgressRepository: WorkoutInProgressRepository by inject()
+
+                NotificationHelper(
+                    programRepository = programRepository,
+                    workoutsRepository = workoutsRepository,
+                    workoutInProgressRepository = workoutInProgressRepository,
+                ).startActiveWorkoutNotification(context)
             }
         }
+    }
+
+    private fun startRestTimerNotification(context: Context, restTimeRemaining: Long) {
+        val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
+        restTimerIntent.putExtra(
+            RestTimerNotificationService.EXTRA_COUNT_DOWN_FROM,
+            restTimeRemaining
+        )
+        context.startForegroundService(restTimerIntent)
     }
 
     override fun onResume() {
@@ -130,6 +152,9 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
             val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
             context.stopService(restTimerIntent)
+
+            val activeWorkoutIntent = Intent(context, ActiveWorkoutNotificationService::class.java)
+            context.stopService(activeWorkoutIntent)
         }
     }
 
@@ -143,7 +168,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
             totalRestTime - timeElapsed
         } else 0L
 
-        Log.d(Log.DEBUG.toString(), "Rest time remaining: $restTimeRemaining")
         return restTimeRemaining
     }
 

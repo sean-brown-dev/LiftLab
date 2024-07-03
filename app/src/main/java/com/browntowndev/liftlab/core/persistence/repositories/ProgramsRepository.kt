@@ -19,7 +19,7 @@ class ProgramsRepository(
         return programsDao.getAll().map { programMapper.map(it) }
     }
 
-    fun getActiveNotAsLiveData(): ProgramDto? {
+    suspend fun getActiveNotAsLiveData(): ProgramDto? {
         return programsDao.getActiveNotAsLiveData()?.let { programEntity ->
             val program = programMapper.map(programEntity)
             getSortedCopy(program)

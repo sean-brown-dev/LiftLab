@@ -92,7 +92,7 @@ class RestTimerNotificationService : Service() {
             }
 
             override fun onFinish() {
-                onDestroy()
+                updateTime(time = "Rest complete!")
             }
         }.start()
 

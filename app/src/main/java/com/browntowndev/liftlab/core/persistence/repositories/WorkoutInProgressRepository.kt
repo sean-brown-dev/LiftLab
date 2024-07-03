@@ -4,6 +4,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
+import java.util.Date
 
 class WorkoutInProgressRepository(
     private val workoutInProgressDao: WorkoutInProgressDao,

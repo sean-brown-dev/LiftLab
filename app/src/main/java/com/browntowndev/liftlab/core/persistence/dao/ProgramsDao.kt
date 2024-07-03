@@ -36,7 +36,7 @@ interface ProgramsDao {
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1")
-    fun getActiveNotAsLiveData(): ProgramWithRelationships?
+    suspend fun getActiveNotAsLiveData(): ProgramWithRelationships?
 
     @Transaction
     @Query("SELECT * FROM programs")
