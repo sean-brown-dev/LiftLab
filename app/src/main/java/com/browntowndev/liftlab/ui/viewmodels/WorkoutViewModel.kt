@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import androidx.core.content.FileProvider
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -224,7 +225,7 @@ class WorkoutViewModel(
                         includeDeload = true,
                     )
 
-                    progressionFactory.calculate(
+                    val calculatedWorkout = progressionFactory.calculate(
                         workout = workout,
                         previousSetResults = previousSetResults,
                         previousResultsForDisplay = previousResultsForDisplay,
@@ -234,6 +235,7 @@ class WorkoutViewModel(
                         microCycle = programMetadata.currentMicrocycle,
                         onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
                     )
+                    mergeWithIncompleteSets(calculatedWorkout)
                 }
             }
         }.asLiveData()
@@ -297,6 +299,57 @@ class WorkoutViewModel(
                 addAll(resultsFromOtherWorkouts)
             }
         } else existingResults
+    }
+
+    private fun mergeWithIncompleteSets(workout: LoggingWorkoutDto): LoggingWorkoutDto {
+        val incompleteSets = mutableWorkoutState.value.workout?.lifts?.fastMapNotNull { lift ->
+            val incompleteSetsForLift = lift.sets.filter { set ->
+                !set.complete &&
+                        (set.completedRpe != null ||
+                                set.completedReps != null ||
+                                set.completedWeight != null)
+            }
+            if (incompleteSetsForLift.isNotEmpty()) {
+                Pair("${lift.id}-${lift.liftId}", incompleteSetsForLift)
+            } else null
+        }?.associate { it.first to it.second }
+
+        var mergedWorkout: LoggingWorkoutDto = workout
+        if (incompleteSets?.isNotEmpty() == true) {
+            mergedWorkout = workout.copy(
+                lifts = workout.lifts.fastMap { lift ->
+                    lift.copy(
+                        sets = lift.sets.fastMap { set ->
+                            val incompleteSet = incompleteSets["${lift.id}-${lift.liftId}"]
+                                ?.find { incSet -> incSet.position == set.position }
+
+                            if (incompleteSet != null) {
+                                when (set) {
+                                    is LoggingStandardSetDto -> set.copy(
+                                        completedRpe = incompleteSet.completedRpe,
+                                        completedReps = incompleteSet.completedReps,
+                                        completedWeight = incompleteSet.completedWeight,
+                                    )
+                                    is LoggingDropSetDto -> set.copy(
+                                        completedRpe = incompleteSet.completedRpe,
+                                        completedReps = incompleteSet.completedReps,
+                                        completedWeight = incompleteSet.completedWeight,
+                                    )
+                                    is LoggingMyoRepSetDto -> set.copy(
+                                        completedRpe = incompleteSet.completedRpe,
+                                        completedReps = incompleteSet.completedReps,
+                                        completedWeight = incompleteSet.completedWeight,
+                                    )
+                                    else -> throw Exception("${set::class.simpleName} is not defined.")
+                                }
+                            } else set
+                        }
+                    )
+                }
+            )
+        }
+
+        return mergedWorkout
     }
 
     private suspend fun getPersonalRecords(

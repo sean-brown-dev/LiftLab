@@ -18,6 +18,7 @@ import com.browntowndev.liftlab.MainActivity
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.LiftLabTimer
 import com.browntowndev.liftlab.core.common.toTimeString
+import kotlin.math.round
 
 class RestTimerNotificationService : Service() {
     companion object {
@@ -81,14 +82,15 @@ class RestTimerNotificationService : Service() {
         Log.d(Log.DEBUG.toString(), "onStartCommand()")
 
         val countDownFrom = intent?.getLongExtra(EXTRA_COUNT_DOWN_FROM, 0L) ?: 0L
+        val roundedCountDownFrom = (round(countDownFrom / 1000.0) * 1000).toLong()
+
         _countDownTimer = object : LiftLabTimer(
             countDown = true,
-            millisInFuture = countDownFrom,
-            countDownInterval = 100L,
+            millisInFuture = roundedCountDownFrom,
+            countDownInterval = 1000L,
         ) {
             override fun onTick(newTimeInMillis: Long) {
-                val timeRemaining = newTimeInMillis.toTimeString()
-                updateTime(time = timeRemaining)
+                updateTime(time = newTimeInMillis.toTimeString())
             }
 
             override fun onFinish() {
@@ -106,6 +108,7 @@ class RestTimerNotificationService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
+    @Synchronized
     private fun updateTime(time: String) {
         _notificationBuilder.setContentText(time)
         _notificationManager.notify(NOTIFICATION_ID, _notificationBuilder.build())
