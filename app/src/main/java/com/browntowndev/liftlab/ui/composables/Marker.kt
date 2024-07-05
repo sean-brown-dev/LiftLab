@@ -20,6 +20,7 @@ import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
+import com.patrykandpatrick.vico.core.cartesian.HorizontalInsets
 import com.patrykandpatrick.vico.core.cartesian.Insets
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
@@ -110,19 +111,22 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
                 }
             }
         ) {
-            override fun getInsets(
+            override fun updateInsets(
                 context: CartesianMeasureContext,
-                outInsets: Insets,
                 horizontalDimensions: HorizontalDimensions,
+                insets: Insets
             ) {
                 with(context) {
-                    outInsets.top = (
-                            (CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP)
-                                    - LABEL_BACKGROUND_SHADOW_DY_DP
-                    ).pixels
+                    val topInset =
+                        ((CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP) - LABEL_BACKGROUND_SHADOW_DY_DP).pixels +
+                                if (labelPosition == LabelPosition.AroundPoint) {
+                                    0f
+                                }
+                                else {
+                                    label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels
+                                }
 
-                    if (labelPosition == LabelPosition.AroundPoint) return
-                    outInsets.top += label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels
+                    insets.ensureValuesAtLeast(top = topInset)
                 }
             }
         }
