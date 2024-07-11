@@ -214,7 +214,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                             rpeTarget = 6f,
                             repRangeBottom = topStandard?.repRangeBottom ?: 8,
                             repRangeTop = topStandard?.repRangeTop ?: 10,
-                            note = workoutLift.note,
+                            liftNote = workoutLift.liftNote,
                         ),
                         previousSetResults = previousSetResults,
                         previousResultsForDisplay = previousResultsForDisplay,

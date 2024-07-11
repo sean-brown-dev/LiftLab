@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "7b396dd78aaa7e3bb45edf382a92d157",
+    "identityHash": "5542044acd03f0e8ae236ca91fa2b7de",
     "entities": [
       {
         "tableName": "lifts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL, `incrementOverride` REAL, `isHidden` INTEGER NOT NULL, `isBodyweight` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL, `incrementOverride` REAL, `isHidden` INTEGER NOT NULL, `isBodyweight` INTEGER NOT NULL, `note` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -67,6 +67,12 @@
             "columnName": "isBodyweight",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -879,7 +885,7 @@
       },
       {
         "tableName": "workoutLifts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `progressionScheme` TEXT NOT NULL, `position` INTEGER NOT NULL, `setCount` INTEGER NOT NULL, `deloadWeek` INTEGER, `rpeTarget` REAL, `repRangeBottom` INTEGER, `repRangeTop` INTEGER, `note` TEXT, `stepSize` INTEGER, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `progressionScheme` TEXT NOT NULL, `position` INTEGER NOT NULL, `setCount` INTEGER NOT NULL, `deloadWeek` INTEGER, `rpeTarget` REAL, `repRangeBottom` INTEGER, `repRangeTop` INTEGER, `stepSize` INTEGER, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -939,12 +945,6 @@
             "fieldPath": "repRangeTop",
             "columnName": "repRangeTop",
             "affinity": "INTEGER",
-            "notNull": false
-          },
-          {
-            "fieldPath": "note",
-            "columnName": "note",
-            "affinity": "TEXT",
             "notNull": false
           },
           {
@@ -1159,7 +1159,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7b396dd78aaa7e3bb45edf382a92d157')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5542044acd03f0e8ae236ca91fa2b7de')"
     ]
   }
 }

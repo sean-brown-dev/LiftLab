@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class TopAppBarViewModel: ViewModel() {
+    private lateinit var _mediaPlayer: MediaPlayer
     private val _state = MutableStateFlow(LiftLabTopAppBarState())
     val state = _state.asStateFlow()
 
@@ -47,8 +48,12 @@ class TopAppBarViewModel: ViewModel() {
     }
 
     fun playRestTimerCompletionSound(context: Context) {
-        val mediaPlayer: MediaPlayer = MediaPlayer.create(context, R.raw.boxing_bell)
-        mediaPlayer.start()
+        _mediaPlayer = MediaPlayer.create(context, R.raw.boxing_bell)
+        _mediaPlayer.setOnCompletionListener {
+            it.release()
+        }
+
+        _mediaPlayer.start()
     }
 
     private fun getScreen(route: String?): Screen? = when (route) {

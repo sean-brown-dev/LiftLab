@@ -38,7 +38,4 @@ interface WorkoutLiftsDao {
     @Transaction
     @Query("SELECT * FROM workoutLifts WHERE workoutId = :workoutId")
     suspend fun getForWorkout(workoutId: Long): List<WorkoutLiftWithRelationships>
-
-    @Query("UPDATE workoutLifts SET note = :note WHERE workout_lift_id = :workoutLiftId")
-    suspend fun updateNote(workoutLiftId: Long, note: String?)
 }

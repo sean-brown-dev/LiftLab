@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
@@ -273,25 +274,25 @@ class WaveLoadingProgressionCalculatorTests {
     @Test
     fun `gets correct step size options`() {
         var deloadWeek = 4
-        var stepSizes = Utils.getPossibleStepSizes(10, 6, deloadWeek - 2)
+        var stepSizes = getPossibleStepSizes(10, 6, deloadWeek - 2)
 
         Assert.assertEquals(1, stepSizes.size)
         Assert.assertEquals(2, stepSizes[0])
 
         deloadWeek = 5
-        stepSizes = Utils.getPossibleStepSizes(10, 6, deloadWeek - 2)
+        stepSizes = getPossibleStepSizes(10, 6, deloadWeek - 2)
 
         Assert.assertEquals(1, stepSizes.size)
         Assert.assertEquals(4, stepSizes[0])
 
         deloadWeek = 4
-        stepSizes = Utils.getPossibleStepSizes(8, 6, deloadWeek - 2)
+        stepSizes = getPossibleStepSizes(8, 6, deloadWeek - 2)
 
         Assert.assertEquals(1, stepSizes.size)
         Assert.assertEquals(1, stepSizes[0])
 
         deloadWeek = 7
-        stepSizes = Utils.getPossibleStepSizes(8, 6, deloadWeek - 2)
+        stepSizes = getPossibleStepSizes(8, 6, deloadWeek - 2)
 
         Assert.assertEquals(2, stepSizes.size)
         Assert.assertEquals(1, stepSizes[0])

@@ -20,6 +20,7 @@ import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
+import com.patrykandpatrick.vico.core.cartesian.HorizontalInsets
 import com.patrykandpatrick.vico.core.cartesian.Insets
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
@@ -75,57 +76,57 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
             labelPosition = LabelPosition.Top,
             indicator = indicator,
             guideline = guideline,
+            indicatorSizeDp = INDICATOR_SIZE_DP,
             setIndicatorColor = { argbColor: Int ->
                 indicatorInnerComponent.color = argbColor.copyColor(alpha = INDICATOR_OUTER_COMPONENT_ALPHA)
                 indicatorCenterComponent.color = argbColor
                 indicatorCenterComponent.setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = argbColor)
-            }
-        ) {
-            init {
-                indicatorSizeDp = INDICATOR_SIZE_DP
-                valueFormatter = object: CartesianMarkerValueFormatter {
-                    private val PATTERN = "%.02f"
-                    override fun format(
-                        context: CartesianDrawContext,
-                        targets: List<CartesianMarker.Target>
-                    ): CharSequence = targets.transformToSpannable(
-                        separator = "  ",
-                    ) { cartesianTarget ->
-                        val y = when(cartesianTarget) {
-                            is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0f
-                            is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0f
-                            else -> 0f
-                        }
-
-                        val color = when(context.chartValues.model.models[0]) {
-                            is LineCartesianLayerModel -> (cartesianTarget as LineCartesianLayerMarkerTarget).points[0].color
-                            is ColumnCartesianLayerModel -> (cartesianTarget as ColumnCartesianLayerMarkerTarget).columns[0].color
-                            else -> labelColor.toArgb()
-                        }
-
-                        appendCompat(
-                            if (y.isWholeNumber()) y.roundToInt().toString()
-                            else PATTERN.format(y),
-                            ForegroundColorSpan(color),
-                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-                        )
+            },
+            valueFormatter = object: CartesianMarkerValueFormatter {
+                private val PATTERN = "%.02f"
+                override fun format(
+                    context: CartesianDrawContext,
+                    targets: List<CartesianMarker.Target>
+                ): CharSequence = targets.transformToSpannable(
+                    separator = "  ",
+                ) { cartesianTarget ->
+                    val y = when(cartesianTarget) {
+                        is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0f
+                        is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0f
+                        else -> 0f
                     }
+
+                    val color = when(context.chartValues.model.models[0]) {
+                        is LineCartesianLayerModel -> (cartesianTarget as LineCartesianLayerMarkerTarget).points[0].color
+                        is ColumnCartesianLayerModel -> (cartesianTarget as ColumnCartesianLayerMarkerTarget).columns[0].color
+                        else -> labelColor.toArgb()
+                    }
+
+                    appendCompat(
+                        if (y.isWholeNumber()) y.roundToInt().toString()
+                        else PATTERN.format(y),
+                        ForegroundColorSpan(color),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
                 }
             }
-
-            override fun getInsets(
+        ) {
+            override fun updateInsets(
                 context: CartesianMeasureContext,
-                outInsets: Insets,
                 horizontalDimensions: HorizontalDimensions,
+                insets: Insets
             ) {
                 with(context) {
-                    outInsets.top = (
-                            (CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP)
-                                    - LABEL_BACKGROUND_SHADOW_DY_DP
-                    ).pixels
+                    val topInset =
+                        ((CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP) - LABEL_BACKGROUND_SHADOW_DY_DP).pixels +
+                                if (labelPosition == LabelPosition.AroundPoint) {
+                                    0f
+                                }
+                                else {
+                                    label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels
+                                }
 
-                    if (labelPosition == LabelPosition.AroundPoint) return
-                    outInsets.top += label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels
+                    insets.ensureValuesAtLeast(top = topInset)
                 }
             }
         }

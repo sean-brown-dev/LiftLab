@@ -5,25 +5,28 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils
-import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
+import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.ui.notifications.RestTimerNotificationService
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.ui.notifications.ActiveWorkoutNotificationService
+import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
@@ -99,52 +102,56 @@ class MainActivity : ComponentActivity(), KoinComponent {
         }
     }
 
+    private var resumedFromNotification = false
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        resumedFromNotification = true
+    }
+
     override fun onPause() {
         super.onPause()
-        val context = super.getApplicationContext()
 
-        lifecycleScope.launch {
-            val restTimeRemaining: Long = getRestTimeRemaining()
+        if (!resumedFromNotification) {
+            val context = super.getApplicationContext()
 
-            if (restTimeRemaining > 0L) {
-                val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
-                restTimerIntent.putExtra(
-                    RestTimerNotificationService.EXTRA_COUNT_DOWN_FROM,
-                    restTimeRemaining
+            lifecycleScope.launch {
+                val programRepository: ProgramsRepository by inject()
+                val workoutsRepository: WorkoutsRepository by inject()
+                val workoutInProgressRepository: WorkoutInProgressRepository by inject()
+                val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
+                val notificationHelper = NotificationHelper(
+                    programRepository = programRepository,
+                    workoutsRepository = workoutsRepository,
+                    workoutInProgressRepository = workoutInProgressRepository,
+                    restTimerInProgressRepository = restTimerInProgressRepository,
                 )
-                context.startForegroundService(restTimerIntent)
+
+                if (!notificationHelper.startRestTimerNotification(context)) {
+                    notificationHelper.startActiveWorkoutNotification(context)
+                }
             }
         }
+
+        resumedFromNotification = false
     }
 
     override fun onResume() {
         super.onResume()
         val context = super.getApplicationContext()
 
-        val restTimeRepo: RestTimerInProgressRepository by inject()
         lifecycleScope.launch {
-            val restTimeRemaining: Long = getRestTimeRemaining()
-            if (restTimeRemaining <= 0L) {
-                restTimeRepo.deleteAll()
-            }
+            val programRepository: ProgramsRepository by inject()
+            val workoutsRepository: WorkoutsRepository by inject()
+            val workoutInProgressRepository: WorkoutInProgressRepository by inject()
+            val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
 
-            val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
-            context.stopService(restTimerIntent)
+            NotificationHelper(
+                programRepository = programRepository,
+                workoutsRepository = workoutsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgressRepository,
+            ).stopActiveNotifications(context)
         }
-    }
-
-    private suspend fun getRestTimeRemaining(): Long {
-        val restTimeRepo: RestTimerInProgressRepository by inject()
-        val inProgressRestTimer = restTimeRepo.get()
-
-        val restTimeRemaining = if (inProgressRestTimer != null) {
-            val totalRestTime = inProgressRestTimer.restTime
-            val timeElapsed = getCurrentDate().time - inProgressRestTimer.timeStartedInMillis
-            totalRestTime - timeElapsed
-        } else 0L
-
-        Log.d(Log.DEBUG.toString(), "Rest time remaining: $restTimeRemaining")
-        return restTimeRemaining
     }
 
     private fun requestNotificationPermission(context: Activity) {

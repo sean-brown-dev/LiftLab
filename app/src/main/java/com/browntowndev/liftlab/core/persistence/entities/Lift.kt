@@ -20,4 +20,5 @@ data class Lift(
     val incrementOverride: Float? = null,
     val isHidden: Boolean = false,
     val isBodyweight: Boolean = false,
+    val note: String? = null,
 )

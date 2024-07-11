@@ -91,7 +91,7 @@ fun Workout(
     }
 
     LaunchedEffect(state.restTimerStartedAt) {
-            if (state.restTimerStartedAt != null && !restTimerRestarted) {
+        if (state.restTimerStartedAt != null && !restTimerRestarted) {
             val restTimeRemaining = state.restTime - (getCurrentDate().time - state.restTimerStartedAt!!.time)
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())

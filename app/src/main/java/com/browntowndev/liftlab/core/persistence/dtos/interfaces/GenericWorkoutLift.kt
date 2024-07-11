@@ -12,6 +12,7 @@ interface GenericWorkoutLift {
     val liftMovementPattern: MovementPattern
     val liftVolumeTypes: Int
     val liftSecondaryVolumeTypes: Int?
+    val liftNote: String?
     val position: Int
     val setCount: Int
     val progressionScheme: ProgressionScheme
@@ -19,5 +20,4 @@ interface GenericWorkoutLift {
     val incrementOverride: Float?
     val restTime: Duration?
     val restTimerEnabled: Boolean
-    val note: String?
 }

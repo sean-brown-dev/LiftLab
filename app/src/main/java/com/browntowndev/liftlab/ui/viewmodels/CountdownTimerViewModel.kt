@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import com.browntowndev.liftlab.core.common.LiftLabTimer
+import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.CountdownTimerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
