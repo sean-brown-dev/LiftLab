@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -102,37 +104,26 @@ class MainActivity : ComponentActivity(), KoinComponent {
         }
     }
 
-    private var resumedFromNotification = false
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        resumedFromNotification = true
-    }
+    override fun onStop() {
+        super.onStop()
+        val context = super.getApplicationContext()
 
-    override fun onPause() {
-        super.onPause()
+        lifecycleScope.launch {
+            val programRepository: ProgramsRepository by inject()
+            val workoutsRepository: WorkoutsRepository by inject()
+            val workoutInProgressRepository: WorkoutInProgressRepository by inject()
+            val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
+            val notificationHelper = NotificationHelper(
+                programRepository = programRepository,
+                workoutsRepository = workoutsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgressRepository,
+            )
 
-        if (!resumedFromNotification) {
-            val context = super.getApplicationContext()
-
-            lifecycleScope.launch {
-                val programRepository: ProgramsRepository by inject()
-                val workoutsRepository: WorkoutsRepository by inject()
-                val workoutInProgressRepository: WorkoutInProgressRepository by inject()
-                val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
-                val notificationHelper = NotificationHelper(
-                    programRepository = programRepository,
-                    workoutsRepository = workoutsRepository,
-                    workoutInProgressRepository = workoutInProgressRepository,
-                    restTimerInProgressRepository = restTimerInProgressRepository,
-                )
-
-                if (!notificationHelper.startRestTimerNotification(context)) {
-                    notificationHelper.startActiveWorkoutNotification(context)
-                }
+            if (!notificationHelper.startRestTimerNotification(context)) {
+                notificationHelper.startActiveWorkoutNotification(context)
             }
         }
-
-        resumedFromNotification = false
     }
 
     override fun onResume() {
