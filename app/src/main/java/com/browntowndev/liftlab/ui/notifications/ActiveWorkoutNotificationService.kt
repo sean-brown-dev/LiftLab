@@ -22,7 +22,7 @@ import com.browntowndev.liftlab.core.common.toTimeString
 
 class ActiveWorkoutNotificationService : Service() {
     companion object {
-        private const val NOTIFICATION_ID = 2
+        const val NOTIFICATION_ID = 2
         private const val CHANNEL_ID = "ActiveWorkoutForegroundService"
         private const val CHANNEL_NAME = "ActiveWorkoutForegroundService"
         const val WORKOUT_NAME_EXTRA = "com.browntowndev.liftlab.workoutname"

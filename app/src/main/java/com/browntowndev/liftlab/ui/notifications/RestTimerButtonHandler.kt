@@ -32,6 +32,7 @@ class RestTimerButtonHandler: BroadcastReceiver() {
                         programRepository = repoHelper.programs,
                         workoutsRepository = repoHelper.workouts,
                         workoutInProgressRepository = repoHelper.workoutInProgress,
+                        restTimerInProgressRepository = repoHelper.restTimer,
                     ).startActiveWorkoutNotification(context)
                 }
             }

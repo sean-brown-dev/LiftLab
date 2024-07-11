@@ -22,7 +22,7 @@ import kotlin.math.round
 
 class RestTimerNotificationService : Service() {
     companion object {
-        private const val NOTIFICATION_ID = 1
+        const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "RestTimerForegroundService"
         private const val CHANNEL_NAME = "RestTimerForegroundService"
         const val SKIP_ACTION = "Skip"
