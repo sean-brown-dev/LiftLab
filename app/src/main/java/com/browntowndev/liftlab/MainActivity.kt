@@ -34,6 +34,7 @@ import com.browntowndev.liftlab.ui.views.LiftLab
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CREATOR
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BY_USER_CANCELED
+import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_SUCCESS
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.KoinAndroidContext
@@ -67,11 +68,11 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_DIALOG)
                 .customRestoreDialogTitle("Please choose a backup to restore.")
                 .apply {
-                    onCompleteListener { success, _, code ->
+                    onCompleteListener { success, roomBackupMessage, code ->
                         if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
                             code != EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER &&
                             code != EXIT_CODE_ERROR_BACKUP_FILE_CREATOR) {
-                            val message = if (success) "Success!" else "Error!"
+                            val message = if (success) "Success!" else roomBackupMessage
                             Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
                         }
 
