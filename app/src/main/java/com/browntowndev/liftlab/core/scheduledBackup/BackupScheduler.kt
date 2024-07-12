@@ -44,6 +44,7 @@ class BackupScheduler {
         }
 
         fun cancel(context: Context) {
+            Log.d(Log.DEBUG.toString(), "Cancelled $WORK_NAME")
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
         }
     }
