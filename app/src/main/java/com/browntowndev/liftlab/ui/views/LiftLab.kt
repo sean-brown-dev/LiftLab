@@ -30,11 +30,12 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLab(
-    roomBackup: RoomBackup,
     donationState: DonationState,
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     LiftLabTheme {
         val navController = rememberNavController()
@@ -70,7 +71,6 @@ fun LiftLab(
             }
         ) { scaffoldPaddingValues ->
             NavigationGraph(
-                roomBackup = roomBackup,
                 navHostController = navController,
                 paddingValues = scaffoldPaddingValues,
                 screen = liftLabTopAppBarState.currentScreen,
@@ -104,6 +104,8 @@ fun LiftLab(
                     }
                 },
                 setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
+                onBackup = onBackup,
+                onRestore = onRestore,
             )
         }
     }

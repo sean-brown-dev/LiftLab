@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+
     <application
         android:name=".LiftLabApp"
         android:allowBackup="true"
@@ -29,7 +30,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".ui.notifications.RestTimerNotificationService"
+            android:name=".core.notifications.RestTimerNotificationService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
             <property
@@ -38,7 +39,7 @@
             />
         </service>
         <service
-            android:name=".ui.notifications.ActiveWorkoutNotificationService"
+            android:name=".core.notifications.ActiveWorkoutNotificationService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
             <property
@@ -46,12 +47,7 @@
                 android:value="active workout notification"
                 />
         </service>
-        <receiver android:name=".ui.notifications.RestTimerButtonHandler"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.example.app.SKIP_ACTION" />
-            </intent-filter>
-        </receiver>
+        <receiver android:name=".core.notifications.RestTimerButtonHandler" android:exported="false" />
         <meta-data android:name="com.google.android.gms.wallet.api.enabled" android:value="true" />
         <provider
             android:name="androidx.core.content.FileProvider"

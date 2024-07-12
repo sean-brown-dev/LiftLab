@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.notifications
+package com.browntowndev.liftlab.core.notifications
 
 import android.app.NotificationManager
 import android.content.Context

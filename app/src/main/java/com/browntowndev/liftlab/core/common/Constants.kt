@@ -1,5 +1,12 @@
 package com.browntowndev.liftlab.core.common
 
+import android.os.Environment
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
+import java.io.File
+import java.text.DateFormat.getTimeInstance
+import java.text.SimpleDateFormat
+import kotlin.time.Duration.Companion.milliseconds
+
 
 // Time
 const val ONE_MINUTE_IN_MILLIS = 60000L
@@ -32,3 +39,14 @@ const val SHOW_WORKOUT_LOG = "showWorkoutLog"
 
 // Donation
 const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"
+
+// Backup
+private val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString()
+val backupFile: File
+    get() {
+        val currentDate = getCurrentDate()
+        val localDate = getCurrentDate().toLocalDate()
+        val currentTimeInMillis = currentDate.time.milliseconds.inWholeMilliseconds
+
+        return File("$documentsDir/Lift Lab Backups", "liftlab_database-${localDate.year}-${localDate.monthValue}-${localDate.dayOfMonth}_${currentTimeInMillis}.aes")
+    }

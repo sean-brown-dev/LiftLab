@@ -67,6 +67,10 @@ dependencies {
     def vico_version = '2.0.0-alpha.22'
     def koin_version = '3.5.6'
 
+    implementation 'com.google.guava:guava:33.1.0-jre'
+    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
+    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.2'
+
     implementation 'com.google.android.play:feature-delivery:2.1.0'
     implementation 'com.google.android.play:feature-delivery-ktx:2.1.0'
     implementation "com.android.billingclient:billing-ktx:7.0.0"

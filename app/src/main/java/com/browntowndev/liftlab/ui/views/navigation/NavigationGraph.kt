@@ -47,7 +47,6 @@ import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 @ExperimentalFoundationApi
 @Composable
 fun NavigationGraph(
-    roomBackup: RoomBackup,
     navHostController: NavHostController,
     paddingValues: PaddingValues,
     screen: Screen?,
@@ -60,6 +59,8 @@ fun NavigationGraph(
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
         composable(HomeScreen.navigation.route) {
@@ -100,7 +101,6 @@ fun NavigationGraph(
                 }
 
                 Settings(
-                    roomBackup = roomBackup,
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
                     initialized = donationState.initialized,
@@ -114,6 +114,8 @@ fun NavigationGraph(
                     onUpdateDonationProduct = onUpdateDonationProduct,
                     onProcessDonation = onProcessDonation,
                     onNavigateBack = { navHostController.popBackStack() },
+                    onBackup = onBackup,
+                    onRestore = onRestore,
                 )
             }
         }

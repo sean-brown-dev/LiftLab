@@ -100,6 +100,11 @@ abstract class LiftLabDatabase : RoomDatabase() {
         private val _initialized = MutableStateFlow(false)
         val initialized = _initialized.asStateFlow()
 
+        val isOpen: Boolean
+            get() = synchronized(this) {
+                instance?.isOpen == true
+            }
+
         fun getInstance(context: Context): LiftLabDatabase {
             return instance ?: synchronized(this) {
                 instance ?: buildDatabase(context).also { instance = it }

@@ -18,6 +18,8 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import java.sql.Time
+import java.time.LocalTime
 
 object SettingsManager {
     object SettingNames {
@@ -28,6 +30,8 @@ object SettingsManager {
         const val INCREMENT_AMOUNT = "increment_amount"
         const val PROMPT_FOR_DELOAD_WEEK = "prompt_for_deload_week"
         const val LIFT_SPECIFIC_DELOADING = "lift_specific_deloading"
+        const val SCHEDULED_BACKUPS_ENABLED = "scheduled_backups_enabled"
+        const val SCHEDULED_BACKUP_TIME = "scheduled_backup_time"
 
         const val DEFAULT_PROMPT_FOR_DELOAD_WEEK = true
         const val DEFAULT_REST_TIME = 120000L
@@ -35,6 +39,8 @@ object SettingsManager {
         const val DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = false
         const val DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = true
         const val DEFAULT_LIFT_SPECIFIC_DELOADING = false
+        const val DEFAULT_SCHEDULED_BACKUPS_ENABLED = false
+        val DEFAULT_SCHEDULED_BACKUP_TIME = LocalTime.of(2, 0).toNanoOfDay()
     }
 
     private const val PREFERENCES_NAME = "LiftLabPreferences"

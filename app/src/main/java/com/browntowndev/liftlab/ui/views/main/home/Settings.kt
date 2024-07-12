@@ -1,5 +1,13 @@
 package com.browntowndev.liftlab.ui.views.main.home
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.content.Context
+import android.content.pm.PackageManager
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,18 +31,25 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
@@ -54,12 +70,15 @@ import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import java.text.SimpleDateFormat
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(
-    roomBackup: RoomBackup,
     paddingValues: PaddingValues,
     screenId: String?,
     initialized: Boolean,
@@ -73,9 +92,11 @@ fun Settings(
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
     onNavigateBack: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
-        parametersOf(roomBackup, onNavigateBack)
+        parametersOf(onNavigateBack)
     }
     val state by settingsViewModel.state.collectAsState()
 
@@ -363,7 +384,10 @@ fun Settings(
                     ConfirmationDialog(
                         header = "Warning!",
                         textAboveContent = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
-                        onConfirm = { settingsViewModel.importDatabase() },
+                        onConfirm = {
+                            settingsViewModel.toggleImportConfirmationDialog()
+                            onRestore()
+                        },
                         onCancel = { settingsViewModel.toggleImportConfirmationDialog() }
                     )
                 }
@@ -375,13 +399,90 @@ fun Settings(
                 ) {
                     Text("Export Database", fontSize = 18.sp)
                     Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = settingsViewModel::exportDatabase) {
+                    IconButton(onClick = onBackup) {
                         Icon(
                             modifier = Modifier.size(32.dp),
                             painter = painterResource(id = R.drawable.download_icon),
                             tint = MaterialTheme.colorScheme.primary,
                             contentDescription = stringResource(R.string.export_database),
                         )
+                    }
+                }
+            }
+            item {
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val context = LocalContext.current
+                    Text("Scheduled Backups", fontSize = 18.sp)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Switch(
+                        checked = state.scheduledBackupsEnabled,
+                        onCheckedChange = {
+                            settingsViewModel.updateAreScheduledBackupsEnabled(
+                                context = context,
+                                enabled = it
+                            )
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedTrackColor = MaterialTheme.colorScheme.secondary,
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedBorderColor = MaterialTheme.colorScheme.secondary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
+                            uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                        )
+                    )
+                }
+            }
+            item {
+                if (state.scheduledBackupsEnabled) {
+                    var isBackupTimeDialogVisible by remember { mutableStateOf(false) }
+                    Row(
+                        modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Backup Time", fontSize = 18.sp)
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = { isBackupTimeDialogVisible = true }) {
+                            val backupTime = remember(state.scheduledBackupTime) {
+                                DateTimeFormatter.ofPattern("hh:mm a").format(state.scheduledBackupTime)
+                            }
+                            Text(
+                                text = backupTime,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 20.sp,
+                            )
+                        }
+                    }
+
+                    if (isBackupTimeDialogVisible) {
+                        val context = LocalContext.current
+                        val timePickerState = rememberTimePickerState(
+                            initialHour = state.scheduledBackupTime.hour,
+                            initialMinute = state.scheduledBackupTime.minute,
+                            is24Hour = false
+                        )
+
+                        ConfirmationDialog(
+                            header = "Backup Time",
+                            textAboveContent = "",
+                            textAboveContentPadding = PaddingValues(0.dp),
+                            contentPadding = PaddingValues(start = 10.dp, bottom = 10.dp, end = 10.dp),
+                            onConfirm = {
+                                settingsViewModel.updateScheduledBackupTime(
+                                    context = context,
+                                    hour = timePickerState.hour,
+                                    minute = timePickerState.minute
+                                )
+                                isBackupTimeDialogVisible = false
+                            },
+                            onCancel = { isBackupTimeDialogVisible = false },
+                        ) {
+                            TimePicker(
+                                state = timePickerState
+                            )
+                        }
                     }
                 }
             }

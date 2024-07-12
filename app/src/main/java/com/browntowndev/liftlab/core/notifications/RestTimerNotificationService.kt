@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.notifications
+package com.browntowndev.liftlab.core.notifications
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -17,21 +17,19 @@ import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import com.browntowndev.liftlab.MainActivity
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.LiftLabTimer
-import com.browntowndev.liftlab.core.common.MAX_TIME_IN_WHOLE_MILLISECONDS
 import com.browntowndev.liftlab.core.common.toTimeString
+import kotlin.math.round
 
-class ActiveWorkoutNotificationService : Service() {
+class RestTimerNotificationService : Service() {
     companion object {
-        const val NOTIFICATION_ID = 2
-        private const val CHANNEL_ID = "ActiveWorkoutForegroundService"
-        private const val CHANNEL_NAME = "ActiveWorkoutForegroundService"
-        const val WORKOUT_NAME_EXTRA = "com.browntowndev.liftlab.workoutname"
-        const val NEXT_SET_EXTRA = "com.browntowndev.liftlab.nextset"
-        const val DURATION_EXTRA = "com.browntowndev.liftlab.duration"
+        const val NOTIFICATION_ID = 1
+        private const val CHANNEL_ID = "RestTimerForegroundService"
+        private const val CHANNEL_NAME = "RestTimerForegroundService"
+        const val SKIP_ACTION = "com.browntowndev.liftlab.core.notifications.RestTimerNotificationService.SKIP_ACTION"
+        const val EXTRA_COUNT_DOWN_FROM = "com.browntowndev.liftlab.countDownFrom"
     }
 
-    private var _nextSet: String = ""
-    private var _durationTimer: LiftLabTimer? = null
+    private var _countDownTimer: LiftLabTimer? = null
     private val _notificationManager: NotificationManager by lazy {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     }
@@ -44,14 +42,22 @@ class ActiveWorkoutNotificationService : Service() {
             PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
         }
 
+        val skipButtonPendingIntent = Intent(this, RestTimerButtonHandler::class.java).apply {
+            action = SKIP_ACTION
+        }.let {
+            PendingIntent.getBroadcast(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
+        }
+
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.lab_flask)
+            .setContentTitle("Rest Timer")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setForegroundServiceBehavior(FOREGROUND_SERVICE_IMMEDIATE)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setAutoCancel(true)
+            .addAction(R.drawable.skip_icon, "Skip", skipButtonPendingIntent)
             .setContentIntent(returnToWorkoutPendingIntent)
     }
 
@@ -75,24 +81,20 @@ class ActiveWorkoutNotificationService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(Log.DEBUG.toString(), "onStartCommand()")
 
-        val workoutName = intent?.getStringExtra(WORKOUT_NAME_EXTRA) ?: ""
-        _notificationBuilder.setContentTitle(workoutName)
+        val countDownFrom = intent?.getLongExtra(EXTRA_COUNT_DOWN_FROM, 0L) ?: 0L
+        val roundedCountDownFrom = (round(countDownFrom / 1000.0) * 1000).toLong()
 
-        _nextSet = intent?.getStringExtra(NEXT_SET_EXTRA) ?: ""
-
-        val startDuration = intent?.getLongExtra(DURATION_EXTRA, 0L) ?: 0L
-        _durationTimer = object : LiftLabTimer(
-            countDown = false,
-            millisInFuture = MAX_TIME_IN_WHOLE_MILLISECONDS,
+        _countDownTimer = object : LiftLabTimer(
+            countDown = true,
+            millisInFuture = roundedCountDownFrom,
             countDownInterval = 1000L,
         ) {
             override fun onTick(newTimeInMillis: Long) {
-                val newDuration = startDuration + newTimeInMillis
-                updateTime(time = newDuration.toTimeString())
+                updateTime(time = newTimeInMillis.toTimeString())
             }
 
             override fun onFinish() {
-                onDestroy()
+                updateTime(time = "Rest complete!")
             }
         }.start()
 
@@ -101,14 +103,14 @@ class ActiveWorkoutNotificationService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        _durationTimer?.cancel()
+        _countDownTimer?.cancel()
         _notificationManager.cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
+    @Synchronized
     private fun updateTime(time: String) {
-        _notificationBuilder.setSubText(time)
-        _notificationBuilder.setContentText(_nextSet)
+        _notificationBuilder.setContentText(time)
         _notificationManager.notify(NOTIFICATION_ID, _notificationBuilder.build())
     }
 
@@ -118,7 +120,7 @@ class ActiveWorkoutNotificationService : Service() {
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_LOW
         )
-        channel.description = "Active Workout Foreground Service"
+        channel.description = "Rest Timer Foreground Service"
         channel.setShowBadge(false)
         channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         _notificationManager.createNotificationChannel(channel)

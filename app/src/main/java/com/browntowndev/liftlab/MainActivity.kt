@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -22,13 +23,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.backupFile
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.ui.notifications.ActiveWorkoutNotificationService
-import com.browntowndev.liftlab.ui.notifications.NotificationHelper
+import com.browntowndev.liftlab.core.notifications.ActiveWorkoutNotificationService
+import com.browntowndev.liftlab.core.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
@@ -43,6 +45,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.parameter.parametersOf
+import java.io.File
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
@@ -65,8 +68,8 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 .enableLogDebug(false)
                 .backupIsEncrypted(true)
                 .customEncryptPassword(this@MainActivity.getString(R.string.db_encryption_key))
-                .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_DIALOG)
-                .customRestoreDialogTitle("Please choose a backup to restore.")
+                .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_FILE)
+                .backupLocationCustomFile(backupFile)
                 .apply {
                     onCompleteListener { success, roomBackupMessage, code ->
                         if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
@@ -83,6 +86,32 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         }
                     }
                 }
+
+        val roomRestore: RoomBackup =
+            RoomBackup(this@MainActivity)
+                .database(db)
+                .enableLogDebug(false)
+                .backupIsEncrypted(true)
+                .customEncryptPassword(this@MainActivity.getString(R.string.db_encryption_key))
+                .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_DIALOG)
+                .customRestoreDialogTitle("Choose a backup to restore.")
+                .apply {
+                    onCompleteListener { success, roomBackupMessage, code ->
+                        if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
+                            code != EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER &&
+                            code != EXIT_CODE_ERROR_BACKUP_FILE_CREATOR) {
+                            val message = if (success) "Success!" else roomBackupMessage
+                            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                        }
+
+                        if (success) {
+                            val intent = Intent(context, MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                            restartApp(intent)
+                        }
+                    }
+                }
+
         setContent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
             if(isInitialized) {
@@ -92,13 +121,14 @@ class MainActivity : ComponentActivity(), KoinComponent {
                     }
                     val donationState by donationViewModel.state.collectAsState()
                     LiftLab(
-                        roomBackup = roomBackup,
                         donationState = donationState,
                         onClearBillingError = donationViewModel::clearBillingError,
                         onUpdateDonationProduct = donationViewModel::setNewDonationOption,
+                        onBackup = roomBackup::backup,
+                        onRestore = roomRestore::restore,
                         onProcessDonation = {
                             donationViewModel.processDonation(this)
-                        }
+                        },
                     )
                 }
             }
