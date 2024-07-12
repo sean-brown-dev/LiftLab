@@ -6,18 +6,22 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 class LiftNoteMigration: Migration(11, 12) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE lifts ADD COLUMN note TEXT")
+        if (!columnExists(db)) {
+            db.execSQL("ALTER TABLE lifts ADD COLUMN note TEXT")
 
-        db.execSQL("""
+            db.execSQL(
+                """
                     UPDATE lifts 
                     SET note = (
                         SELECT wl.note 
                         FROM workoutLifts wl 
                         WHERE wl.liftId = lifts.lift_id
                     )
-                """.trimIndent())
+                """.trimIndent()
+            )
 
-        db.execSQL("""
+            db.execSQL(
+                """
             CREATE TABLE tmp_workoutLifts (
                 workout_lift_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 workoutId INTEGER NOT NULL,
@@ -33,9 +37,11 @@ class LiftNoteMigration: Migration(11, 12) {
                 FOREIGN KEY(workoutId) REFERENCES workouts(workout_id) ON DELETE CASCADE,
                 FOREIGN KEY(liftId) REFERENCES lifts(lift_id) ON DELETE CASCADE
             )
-        """.trimIndent())
+        """.trimIndent()
+            )
 
-        db.execSQL("""
+            db.execSQL(
+                """
             INSERT INTO tmp_workoutLifts (
                 workout_lift_id, 
                 workoutId, 
@@ -62,13 +68,29 @@ class LiftNoteMigration: Migration(11, 12) {
                 repRangeTop, 
                 stepSize
             FROM workoutLifts
-        """.trimIndent())
+        """.trimIndent()
+            )
 
-        db.execSQL("DROP TABLE workoutLifts")
+            db.execSQL("DROP TABLE workoutLifts")
 
-        // Rename the new 'workoutLifts' table to the old one
-        db.execSQL("ALTER TABLE tmp_workoutLifts RENAME TO workoutLifts")
-        db.execSQL("CREATE INDEX index_workoutLifts_liftId ON workoutLifts(liftId)")
-        db.execSQL("CREATE INDEX index_workoutLifts_workoutId ON workoutLifts(workoutId)")
+            // Rename the new 'workoutLifts' table to the old one
+            db.execSQL("ALTER TABLE tmp_workoutLifts RENAME TO workoutLifts")
+            db.execSQL("CREATE INDEX index_workoutLifts_liftId ON workoutLifts(liftId)")
+            db.execSQL("CREATE INDEX index_workoutLifts_workoutId ON workoutLifts(workoutId)")
+        }
+    }
+
+    private fun columnExists(db: SupportSQLiteDatabase): Boolean {
+        val cursor = db.query("PRAGMA table_info(lifts)")
+        var exists = false
+        while (cursor.moveToNext()) {
+            val colIndex = cursor.getColumnIndex("name")
+            if (colIndex > -1 && "note".equals(cursor.getString(colIndex), ignoreCase = true)) {
+                exists = true
+                break
+            }
+        }
+        cursor.close()
+        return exists
     }
 }
