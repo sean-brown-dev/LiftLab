@@ -38,4 +38,5 @@
     <string name="flexed_bicep">Flexed Bicep</string>
     <string name="great_workout">Great workout!</string>
     <string name="share_workout">Share Workout</string>
+    <string name="backup_tooltip">Backup tooltip</string>
 </resources>

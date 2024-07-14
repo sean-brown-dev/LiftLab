@@ -1,13 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.home
 
-import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.content.Context
-import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.widget.Toast
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,18 +19,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,7 +42,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.INCREMENT_OPTIONS
@@ -67,12 +59,9 @@ import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 import com.browntowndev.liftlab.ui.composables.TimeSelectionSpinner
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -397,7 +386,27 @@ fun Settings(
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Export Database", fontSize = 18.sp)
+                    Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text("Export Database", fontSize = 18.sp)
+                        TooltipBox(
+                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                            state = rememberTooltipState(isPersistent = true),
+                            tooltip = {
+                                PlainTooltip {
+                                    Text(
+                                        text = "Backs up to \"Documents\\Lift Lab Backups\"."
+                                    )
+                                }
+                            },
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(14.dp),
+                                imageVector = Icons.Outlined.Info,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = stringResource(R.string.backup_tooltip)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = onBackup) {
                         Icon(
@@ -415,7 +424,29 @@ fun Settings(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     val context = LocalContext.current
-                    Text("Scheduled Backups", fontSize = 18.sp)
+                    Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text("Scheduled Backups", fontSize = 18.sp)
+                        TooltipBox(
+                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                            state = rememberTooltipState(isPersistent = true),
+                            tooltip = {
+                                PlainTooltip {
+                                    Text(
+                                        text = "Runs a daily backup to the \"Documents\\Lift Lab Backups\" folder.\n\n" +
+                                                "Use an app, such as Autosync for Google Drive, to back them up to your " +
+                                                "Google Drive in case you switch devices."
+                                    )
+                                }
+                            },
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(14.dp),
+                                imageVector = Icons.Outlined.Info,
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = stringResource(R.string.backup_tooltip)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
                         checked = state.scheduledBackupsEnabled,
