@@ -359,7 +359,7 @@ fun Settings(
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Import Database", fontSize = 18.sp)
+                    Text("Restore Database", fontSize = 18.sp)
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = settingsViewModel::toggleImportConfirmationDialog) {
                         Icon(
@@ -387,7 +387,7 @@ fun Settings(
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Export Database", fontSize = 18.sp)
+                    Text("Backup Database", fontSize = 18.sp)
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = onBackup) {
                         Icon(
@@ -397,6 +397,27 @@ fun Settings(
                             contentDescription = stringResource(R.string.export_database),
                         )
                     }
+                }
+            }
+            item {
+                Text(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    text = "Backup Directory", fontSize = 18.sp,
+                )
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = state.backupDirectory,
+                        color = MaterialTheme.colorScheme.outline,
+                        fontSize = 12.sp,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    DirectoryPicker(
+                        startingDirectory = state.backupDirectory,
+                        onDirectoryChosen = settingsViewModel::updateBackupDirectory,
+                    )
                 }
             }
             item {
@@ -498,27 +519,6 @@ fun Settings(
                             )
                         }
                     }
-                }
-            }
-            item {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    text = "Backup Directory", fontSize = 18.sp,
-                )
-                Row(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = state.backupDirectory,
-                        color = MaterialTheme.colorScheme.outline,
-                        fontSize = 12.sp,
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    DirectoryPicker(
-                        startingDirectory = state.backupDirectory,
-                        onDirectoryChosen = settingsViewModel::updateBackupDirectory,
-                    )
                 }
             }
             item {
