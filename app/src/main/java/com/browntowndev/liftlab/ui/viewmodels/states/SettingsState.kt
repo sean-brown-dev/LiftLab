@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.BACKUP_DIRECTORY
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_BACKUP_DIRECTORY
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
@@ -34,4 +36,6 @@ data class SettingsState(
         SettingsManager.getSetting(SCHEDULED_BACKUPS_ENABLED, DEFAULT_SCHEDULED_BACKUPS_ENABLED),
     val scheduledBackupTime: LocalTime =
         LocalTime.ofNanoOfDay(SettingsManager.getSetting(SCHEDULED_BACKUP_TIME, DEFAULT_SCHEDULED_BACKUP_TIME)),
+    val backupDirectory: String =
+        SettingsManager.getSetting(BACKUP_DIRECTORY, DEFAULT_BACKUP_DIRECTORY)
 )

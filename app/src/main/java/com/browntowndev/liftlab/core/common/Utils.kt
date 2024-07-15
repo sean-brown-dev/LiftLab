@@ -1,10 +1,12 @@
 package com.browntowndev.liftlab.core.common
 
 import androidx.compose.ui.util.fastFlatMap
-import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.BACKUP_DIRECTORY
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_BACKUP_DIRECTORY
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
@@ -21,6 +23,12 @@ class Utils {
                 val zoneId = ZoneId.systemDefault()
                 return Date.from(localDateTime.atZone(zoneId).toInstant())
             }
+
+            val backupFile: File
+                get() {
+                    val backupDir = SettingsManager.getSetting(BACKUP_DIRECTORY, DEFAULT_BACKUP_DIRECTORY)
+                    return File(backupDir, backupFileName)
+                }
         }
     }
 

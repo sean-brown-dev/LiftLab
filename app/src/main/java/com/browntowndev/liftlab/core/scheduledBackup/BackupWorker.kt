@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_SCHEDULED_BACKUP_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.SCHEDULED_BACKUP_TIME
-import com.browntowndev.liftlab.core.common.backupFile
+import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import java.time.LocalTime
 
@@ -25,7 +25,7 @@ class BackupWorker(context: Context, workerParameters: WorkerParameters): Corout
                 LiftLabRoomBackup(
                     context = context,
                     roomDatabase = LiftLabDatabase.getInstance(context),
-                    backupFile = backupFile,
+                    backupFile = Utils.General.backupFile,
                     encryptionKey = context.getString(R.string.db_encryption_key)
                 ).backup()
 

@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.BACKUP_DIRECTORY
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
@@ -13,12 +13,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.SCHEDUL
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.scheduledBackup.BackupScheduler
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.scheduledBackup.BackupScheduler
 import com.browntowndev.liftlab.ui.viewmodels.states.SettingsState
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -194,11 +193,15 @@ class SettingsViewModel(
     }
 
     fun updateScheduledBackupTime(context: Context, hour: Int, minute: Int) {
-        Log.d(Log.DEBUG.toString(), "New Backup Time: $hour:$minute")
         val newTime = LocalTime.of(hour, minute)
 
         BackupScheduler.scheduleNew(context, newTime)
         SettingsManager.setSetting(SCHEDULED_BACKUP_TIME, newTime.toNanoOfDay())
         _state.update { it.copy(scheduledBackupTime = newTime) }
+    }
+
+    fun updateBackupDirectory(newDirectory: String) {
+        SettingsManager.setSetting(BACKUP_DIRECTORY, newDirectory)
+        _state.update { it.copy(backupDirectory = newDirectory) }
     }
 }

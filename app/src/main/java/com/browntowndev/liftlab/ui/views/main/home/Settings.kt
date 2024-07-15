@@ -51,6 +51,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.DirectoryPicker
 import com.browntowndev.liftlab.ui.composables.Donate
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.HyperlinkTextField
@@ -386,27 +387,7 @@ fun Settings(
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("Export Database", fontSize = 18.sp)
-                        TooltipBox(
-                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                            state = rememberTooltipState(isPersistent = true),
-                            tooltip = {
-                                PlainTooltip {
-                                    Text(
-                                        text = "Backs up to \"Documents\\Lift Lab Backups\"."
-                                    )
-                                }
-                            },
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(14.dp),
-                                imageVector = Icons.Outlined.Info,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = stringResource(R.string.backup_tooltip)
-                            )
-                        }
-                    }
+                    Text("Export Database", fontSize = 18.sp)
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = onBackup) {
                         Icon(
@@ -425,14 +406,16 @@ fun Settings(
                 ) {
                     val context = LocalContext.current
                     Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("Scheduled Backups", fontSize = 18.sp)
+                        Text("Daily Backups", fontSize = 18.sp)
                         TooltipBox(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                             state = rememberTooltipState(isPersistent = true),
                             tooltip = {
                                 PlainTooltip {
                                     Text(
-                                        text = "Runs a daily backup to the \"Documents\\Lift Lab Backups\" folder.\n\n" +
+                                        text = "The backup will be scheduled for this time, but Android's battery saving " +
+                                                "features will cause it to vary. Backups will also only run when the app " +
+                                                "is not in use.\n\n" +
                                                 "Use an app, such as Autosync for Google Drive, to back them up to your " +
                                                 "Google Drive in case you switch devices."
                                     )
@@ -515,6 +498,27 @@ fun Settings(
                             )
                         }
                     }
+                }
+            }
+            item {
+                Text(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    text = "Backup Directory", fontSize = 18.sp,
+                )
+                Row(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = state.backupDirectory,
+                        color = MaterialTheme.colorScheme.outline,
+                        fontSize = 12.sp,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    DirectoryPicker(
+                        startingDirectory = state.backupDirectory,
+                        onDirectoryChosen = settingsViewModel::updateBackupDirectory,
+                    )
                 }
             }
             item {

@@ -17,13 +17,13 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.backupFile
+import com.browntowndev.liftlab.core.common.Utils
+import com.browntowndev.liftlab.core.notifications.NotificationHelper
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
@@ -60,7 +60,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 .backupIsEncrypted(true)
                 .customEncryptPassword(this@MainActivity.getString(R.string.db_encryption_key))
                 .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_FILE)
-                .backupLocationCustomFile(backupFile)
                 .apply {
                     onCompleteListener { success, roomBackupMessage, code ->
                         if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
@@ -115,7 +114,11 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         donationState = donationState,
                         onClearBillingError = donationViewModel::clearBillingError,
                         onUpdateDonationProduct = donationViewModel::setNewDonationOption,
-                        onBackup = roomBackup::backup,
+                        onBackup = {
+                            roomBackup
+                                .backupLocationCustomFile(Utils.General.backupFile)
+                                .backup()
+                        },
                         onRestore = roomRestore::restore,
                         onProcessDonation = {
                             donationViewModel.processDonation(this)
