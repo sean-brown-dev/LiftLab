@@ -210,6 +210,7 @@ class WorkoutViewModel(
                         workout = workout,
                         programMetadata = programMetadata,
                         useAllData = useAllWorkoutData)
+
                     val inProgressSetResults = setResultsRepository.getForWorkout(
                         workoutId = workout.id,
                         mesoCycle = programMetadata.currentMesocycle,
@@ -220,12 +221,12 @@ class WorkoutViewModel(
 
                     val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
                         liftIdsToSearchFor = workout.lifts.map { it.liftId },
-                        workout,
-                        listOf(),
+                        workout = workout,
+                        existingResultsForOtherLifts = listOf(),
                         includeDeload = true,
                     )
 
-                    val calculatedWorkout = progressionFactory.calculate(
+                    progressionFactory.calculate(
                         workout = workout,
                         previousSetResults = previousSetResults,
                         previousResultsForDisplay = previousResultsForDisplay,
@@ -234,8 +235,9 @@ class WorkoutViewModel(
                         useLiftSpecificDeloading = liftLevelDeloadsEnabled,
                         microCycle = programMetadata.currentMicrocycle,
                         onlyUseResultsForLiftsInSamePosition = onlyUseResultsForLiftsInSamePosition,
-                    )
-                    mergeWithIncompleteSets(calculatedWorkout)
+                    ).let { calculatedWorkout ->
+                        getMergedWithIncompleteSets(workout = calculatedWorkout)
+                    }
                 }
             }
         }.asLiveData()
@@ -254,13 +256,16 @@ class WorkoutViewModel(
             )
 
         return if (useAllData) {
-            getResultsWithAllWorkoutDataAppended(resultsFromLastWorkout, workout)
+            getResultsWithAllWorkoutDataAppended(
+                workout = workout,
+                resultsFromLastWorkout = resultsFromLastWorkout
+            )
         } else resultsFromLastWorkout
     }
 
     private suspend fun getResultsWithAllWorkoutDataAppended(
-        resultsFromLastWorkout: List<SetResult>,
         workout: WorkoutDto,
+        resultsFromLastWorkout: List<SetResult>,
     ): List<SetResult> {
         val liftIdsOfResults = resultsFromLastWorkout.map { it.liftId }.toHashSet()
         val liftIdsToSearchFor = workout.lifts
@@ -268,17 +273,17 @@ class WorkoutViewModel(
             .map { workoutLift -> workoutLift.liftId }
 
         return getNewestResultsFromOtherWorkouts(
-            liftIdsToSearchFor,
-            workout,
-            resultsFromLastWorkout,
+            workout = workout,
+            liftIdsToSearchFor = liftIdsToSearchFor,
+            existingResultsForOtherLifts = resultsFromLastWorkout,
             includeDeload = false,
         )
     }
 
     private suspend fun getNewestResultsFromOtherWorkouts(
-        liftIdsToSearchFor: List<Long>,
         workout: WorkoutDto,
-        existingResults: List<SetResult>,
+        liftIdsToSearchFor: List<Long>,
+        existingResultsForOtherLifts: List<SetResult>,
         includeDeload: Boolean,
     ): List<SetResult> {
         return if (liftIdsToSearchFor.isNotEmpty()) {
@@ -288,7 +293,7 @@ class WorkoutViewModel(
                 }.map { it.liftId }
                 .toHashSet()
 
-            existingResults.toMutableList().apply {
+            existingResultsForOtherLifts.toMutableList().apply {
                 val resultsFromOtherWorkouts =
                     loggingRepository.getMostRecentSetResultsForLiftIds(
                         liftIds = liftIdsToSearchFor,
@@ -298,10 +303,10 @@ class WorkoutViewModel(
 
                 addAll(resultsFromOtherWorkouts)
             }
-        } else existingResults
+        } else existingResultsForOtherLifts
     }
 
-    private fun mergeWithIncompleteSets(workout: LoggingWorkoutDto): LoggingWorkoutDto {
+    private fun getMergedWithIncompleteSets(workout: LoggingWorkoutDto): LoggingWorkoutDto {
         val incompleteSets = mutableWorkoutState.value.workout?.lifts?.fastMapNotNull { lift ->
             val incompleteSetsForLift = lift.sets.filter { set ->
                 !set.complete &&
