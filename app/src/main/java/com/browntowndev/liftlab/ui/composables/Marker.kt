@@ -20,8 +20,8 @@ import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
-import com.patrykandpatrick.vico.core.cartesian.HorizontalInsets
 import com.patrykandpatrick.vico.core.cartesian.Insets
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
@@ -41,10 +41,9 @@ import kotlin.math.roundToInt
 internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primary): CartesianMarker {
     val labelBackgroundColor = MaterialTheme.colorScheme.surface
     val labelBackground = remember(labelBackgroundColor) {
-        ShapeComponent(labelBackgroundShape, labelBackgroundColor.toArgb()).setShadow(
+        ShapeComponent(shape = labelBackgroundShape, color = labelBackgroundColor.toArgb()).setShadow(
             radius = LABEL_BACKGROUND_SHADOW_RADIUS,
             dy = LABEL_BACKGROUND_SHADOW_DY,
-            applyElevationOverlay = true,
         )
     }
     val label = rememberTextComponent(
@@ -53,9 +52,9 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
         padding = labelPadding,
         typeface = Typeface.MONOSPACE,
     )
-    val indicatorInnerComponent = rememberShapeComponent(Shape.Pill, MaterialTheme.colorScheme.surface)
-    val indicatorCenterComponent = rememberShapeComponent(Shape.Pill, MaterialTheme.colorScheme.surface)
-    val indicatorOuterComponent = rememberShapeComponent(Shape.Pill, Color.White)
+    val indicatorInnerComponent = rememberShapeComponent(shape = Shape.Pill, color = MaterialTheme.colorScheme.surface)
+    val indicatorCenterComponent = rememberShapeComponent(shape = Shape.Pill, color = MaterialTheme.colorScheme.surface)
+    val indicatorOuterComponent = rememberShapeComponent(shape = Shape.Pill, color = Color.White)
     val indicator = rememberLayeredComponent(
         rear = indicatorOuterComponent,
         front = rememberLayeredComponent(
@@ -114,6 +113,7 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
             override fun updateInsets(
                 context: CartesianMeasureContext,
                 horizontalDimensions: HorizontalDimensions,
+                model: CartesianChartModel,
                 insets: Insets
             ) {
                 with(context) {

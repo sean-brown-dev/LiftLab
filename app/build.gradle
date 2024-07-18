@@ -13,8 +13,8 @@ android {
         applicationId "com.browntowndev.liftlab"
         minSdk 29
         targetSdk 34
-        versionCode 23
-        versionName "1.22"
+        versionCode 24
+        versionName "1.23"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -63,11 +63,11 @@ dependencies {
     def compose_version = '1.6.8'
     def kotlin_reflect_version = '2.0.0'
     def eventbus_version = '3.3.1'
-    def mockkVersion = '1.13.11'
-    def vico_version = '2.0.0-alpha.22'
+    def mockkVersion = '1.13.12'
+    def vico_version = '2.0.0-alpha.23'
     def koin_version = '3.5.6'
 
-    implementation 'com.google.guava:guava:33.1.0-jre'
+    implementation 'com.google.guava:guava:33.2.1-jre'
     implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
     implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.2'
 
@@ -100,7 +100,7 @@ dependencies {
     implementation "androidx.compose.material3:material3:$material_version"
 
     // Third Party
-    implementation 'sh.calvin.reorderable:reorderable:2.1.1'
+    implementation 'sh.calvin.reorderable:reorderable:2.2.0'
     implementation 'io.arrow-kt:arrow-core:1.2.4'
     implementation 'io.arrow-kt:arrow-fx-coroutines:1.2.4'
     implementation 'de.raphaelebner:roomdatabasebackup:1.0.1'

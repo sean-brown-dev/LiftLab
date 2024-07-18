@@ -13,8 +13,8 @@ import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEndAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
@@ -25,6 +25,7 @@ import com.patrykandpatrick.vico.core.cartesian.axis.AxisPosition
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Dimensions
 import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 import com.patrykandpatrick.vico.core.common.shape.Shape
@@ -42,25 +43,43 @@ fun MultiLineChart(
             shape = Shape.Pill,
             color = Color.Black,
             margins = Dimensions(allDp = 2.dp.value),
-            strokeWidth = 3.dp,
+            strokeThickness = 3.dp,
             strokeColor = MaterialTheme.colorScheme.primary,
         )
         val tertiaryPoint = rememberShapeComponent(
             shape = Shape.Pill,
             color = Color.Black,
             margins = Dimensions(allDp = 2.dp.value),
-            strokeWidth = 3.dp,
+            strokeThickness = 3.dp,
             strokeColor = MaterialTheme.colorScheme.tertiary,
         )
         val startAxisLineChart = rememberLineCartesianLayer(
-            lines = listOf(rememberLineSpec(shader = DynamicShader.color(chartColors[0]), point = primaryPoint)),
-            spacing = 65.dp,
+            lineProvider = LineCartesianLayer.LineProvider.series(
+                listOf(
+                    rememberLine(
+                        shader = DynamicShader.color(chartColors[0]),
+                        pointProvider = LineCartesianLayer.PointProvider.single(
+                            point = LineCartesianLayer.Point(component = primaryPoint)
+                        )
+                    )
+                )
+            ),
+            pointSpacing = 65.dp,
             axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
             verticalAxisPosition = AxisPosition.Vertical.Start,
         )
         val endAxisLineChart = rememberLineCartesianLayer(
-            lines = listOf(rememberLineSpec(shader = DynamicShader.color(chartColors[1]), point = tertiaryPoint)),
-            spacing = 65.dp,
+            lineProvider = LineCartesianLayer.LineProvider.series(
+                listOf(
+                    rememberLine(
+                        shader = DynamicShader.color(chartColors[1]),
+                        pointProvider = LineCartesianLayer.PointProvider.single(
+                            point = LineCartesianLayer.Point(component = tertiaryPoint)
+                        )
+                    )
+                )
+            ),
+            pointSpacing = 65.dp,
             axisValueOverrider = remember { chartModel.endAxisValueOverrider ?: AxisValueOverrider.auto() },
             verticalAxisPosition = AxisPosition.Vertical.End,
         )
@@ -71,11 +90,6 @@ fun MultiLineChart(
             chart = rememberCartesianChart(
                 startAxisLineChart,
                 endAxisLineChart,
-                persistentMarkers = remember(marker) {
-                    chartModel.persistentMarkers?.invoke(
-                        marker
-                    )
-                },
                 startAxis = rememberStartAxis(
                     itemPlacer = chartModel.startAxisItemPlacer,
                     valueFormatter = chartModel.startAxisValueFormatter
@@ -93,9 +107,14 @@ fun MultiLineChart(
                     chartColors = chartColors,
                     labels = listOf("Working Sets", "Intensity Adjusted Rep Volume")
                 ),
+                marker = marker,
+                persistentMarkers = {
+                    chartModel.persistentMarkers?.invoke(
+                        marker
+                    )
+                },
             ),
             model = chartModel.composedChartEntryModel,
-            marker = marker,
             scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
         )
     }

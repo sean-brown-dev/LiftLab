@@ -18,7 +18,6 @@ fun rememberLiftLabChartTheme(): VicoTheme {
             candlestickCartesianLayerColors = VicoTheme.CandlestickCartesianLayerColors(bullish = primaryColor, bearish = secondaryColor, neutral = tertiaryColor),
             columnCartesianLayerColors = listOf(secondaryColor),
             lineCartesianLayerColors = listOf(primaryColor, tertiaryColor),
-            elevationOverlayColor = secondaryColor,
             lineColor = outlineColor,
             textColor = onBackgroundColor
         )

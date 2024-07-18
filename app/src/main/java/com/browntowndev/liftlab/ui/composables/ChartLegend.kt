@@ -29,12 +29,12 @@ fun<M : MeasureContext, D : DrawContext> rememberLegend(chartColors: List<Color>
         items = chartColors.mapIndexed { index, chartColor ->
             rememberLegendItem(
                 icon = rememberShapeComponent(color = chartColor, shape = Shape.Pill),
-                label = rememberTextComponent(
+                labelComponent = rememberTextComponent(
                     color = MaterialTheme.colorScheme.primary,
                     textSize = legendItemLabelTextSize,
                     typeface = Typeface.MONOSPACE,
                 ),
-                labelText = labels[index]
+                label = labels[index]
             )
         },
         iconSize = legendItemIconSize,

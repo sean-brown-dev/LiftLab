@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
-import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
@@ -23,7 +23,7 @@ interface BaseChartModel<T> {
     val bottomAxisValueFormatter: CartesianValueFormatter
     val startAxisValueFormatter: CartesianValueFormatter
     val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)?
-    val startAxisItemPlacer: AxisItemPlacer.Vertical
+    val startAxisItemPlacer: VerticalAxis.ItemPlacer
     val bottomAxisLabelRotationDegrees: Float
 }
 
@@ -33,7 +33,7 @@ class ChartModel<T>(
     override val bottomAxisValueFormatter: CartesianValueFormatter,
     override val startAxisValueFormatter: CartesianValueFormatter,
     override val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)? = null,
-    override val startAxisItemPlacer: AxisItemPlacer.Vertical,
+    override val startAxisItemPlacer: VerticalAxis.ItemPlacer,
     override val bottomAxisLabelRotationDegrees: Float = 45f,
 ): BaseChartModel<T> {
     val hasData by lazy {
@@ -49,8 +49,8 @@ class ComposedChartModel<T>(
     override val startAxisValueFormatter: CartesianValueFormatter,
     val endAxisValueFormatter: CartesianValueFormatter,
     override val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)? = null,
-    override val startAxisItemPlacer: AxisItemPlacer.Vertical,
-    val endAxisItemPlacer: AxisItemPlacer.Vertical,
+    override val startAxisItemPlacer: VerticalAxis.ItemPlacer,
+    val endAxisItemPlacer: VerticalAxis.ItemPlacer,
     override val bottomAxisLabelRotationDegrees: Float = 45f,
 ): BaseChartModel<T> {
     val hasData by lazy {
@@ -105,7 +105,7 @@ fun getOneRepMaxChartModel(
         startAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count(count = { 9 }),
+        startAxisItemPlacer = VerticalAxis.ItemPlacer.count(count = { 9 }),
     )
 }
 
@@ -175,8 +175,8 @@ fun getPerWorkoutVolumeChartModel(
         endAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 5 }),
-        endAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
+        startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 5 }),
+        endAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
         persistentMarkers = { null }
     )
 }
@@ -256,8 +256,8 @@ fun getPerMicrocycleVolumeChartModel(
         endAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 5 }),
-        endAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
+        startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 5 }),
+        endAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
         persistentMarkers = { null }
     )
 }
@@ -314,7 +314,7 @@ fun getIntensityChartModel(
         startAxisValueFormatter = { value, _, _ ->
             "${String.format("%.2f", value)}%"
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
+        startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
     )
 }
 
@@ -370,7 +370,7 @@ fun getWeeklyCompletionChart(
         startAxisValueFormatter = { value, _, _ ->
             value.roundToInt().toString()
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ maxWorkoutsCompleted + 1 }),
+        startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ maxWorkoutsCompleted + 1 }),
     )
 }
 
@@ -421,7 +421,7 @@ fun getMicroCycleCompletionChart(
         startAxisValueFormatter = { value, _, _ ->
             "${value.roundToInt()}%"
         },
-        startAxisItemPlacer = AxisItemPlacer.Vertical.count({ 9 }),
+        startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
     )
 }
 

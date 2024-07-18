@@ -12,8 +12,8 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
-import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
@@ -23,6 +23,7 @@ import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Dimensions
 import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 import com.patrykandpatrick.vico.core.common.shape.Shape
@@ -40,7 +41,7 @@ fun SingleLineChart(
             shape = Shape.Pill,
             color = Color.Black,
             margins = Dimensions(allDp = 2.dp.value),
-            strokeWidth = 3.dp,
+            strokeThickness = 3.dp,
             strokeColor = MaterialTheme.colorScheme.primary,
         )
 
@@ -50,11 +51,21 @@ fun SingleLineChart(
                 .padding(top = 5.dp, bottom = 5.dp),
             chart = rememberCartesianChart(
                 rememberLineCartesianLayer(
-                    spacing = 70.dp,
-                    lines = listOf(rememberLineSpec(shader = DynamicShader.color(chartColors[0]), point = point)),
+                    pointSpacing = 70.dp,
+                    lineProvider = LineCartesianLayer.LineProvider.series(
+                        listOf(
+                            rememberLine(
+                                shader = DynamicShader.color(chartColors[0]),
+                                pointProvider = LineCartesianLayer.PointProvider.single(
+                                    point = LineCartesianLayer.Point(component = point)
+                                )
+                            )
+                        )
+                    ),
                     axisValueOverrider = remember { model.startAxisValueOverrider ?: AxisValueOverrider.auto() },
                 ),
-                persistentMarkers = remember(marker) {
+                marker = marker,
+                persistentMarkers = {
                     model.persistentMarkers?.invoke(
                         marker
                     )
@@ -70,7 +81,6 @@ fun SingleLineChart(
                 ),
             ),
             model = model.chartEntryModel,
-            marker = marker,
             scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
         )
     }

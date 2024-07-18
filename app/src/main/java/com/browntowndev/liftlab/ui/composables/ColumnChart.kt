@@ -35,7 +35,6 @@ fun ColumnChart(
     ProvideVicoTheme(rememberLiftLabChartTheme()) {
         CartesianChartHost(
             modifier = modifier,
-            marker = marker,
             scrollState = scrollState,
             zoomState = zoomState,
             model = chartModel.chartEntryModel,
@@ -52,6 +51,7 @@ fun ColumnChart(
                     ),
                     axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
                 ),
+                marker = marker,
                 startAxis = rememberStartAxis(
                     itemPlacer = chartModel.startAxisItemPlacer,
                     valueFormatter = chartModel.startAxisValueFormatter
