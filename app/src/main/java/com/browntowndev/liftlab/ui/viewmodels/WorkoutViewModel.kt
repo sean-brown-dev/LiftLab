@@ -29,12 +29,14 @@ import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
@@ -391,27 +393,64 @@ class WorkoutViewModel(
 
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
         executeInTransactionScope {
-            val newLiftIndices = newLiftOrder
+            val newWorkoutLiftIndices = newLiftOrder
                 .mapIndexed { index, item -> item.key to index }
                 .associate { it.first to it.second }
 
             val updatedWorkoutCopy = mutableWorkoutState.value.workout!!.copy(
                 lifts = mutableWorkoutState.value.workout!!.lifts.map { lift ->
-                    lift.copy(position = newLiftIndices[lift.id]!!)
+                    lift.copy(position = newWorkoutLiftIndices[lift.id]!!)
                 }
             )
 
-            val updatedLifts = workoutLiftsRepository.getForWorkout(mutableWorkoutState.value.workout!!.id)
+            val workoutId = mutableWorkoutState.value.workout!!.id
+            val updatedLifts = workoutLiftsRepository.getForWorkout(workoutId)
                 .map {
                     when (it) {
-                        is StandardWorkoutLiftDto -> it.copy(position = newLiftIndices[it.id]!!)
-                        is CustomWorkoutLiftDto -> it.copy(position = newLiftIndices[it.id]!!)
+                        is StandardWorkoutLiftDto -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
+                        is CustomWorkoutLiftDto -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
                         else -> throw Exception("${it::class.simpleName} is not defined.")
                     }
                 }
-
             workoutLiftsRepository.updateMany(updatedLifts)
-            mutableWorkoutState.update { it.copy(workout = updatedWorkoutCopy, isReordering = false) }
+
+            val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
+            val updatedInProgressWorkoutCopy = mutableWorkoutState.value.inProgressWorkout!!.let { inProgressWorkout ->
+                inProgressWorkout.copy(
+                    completedSets = inProgressWorkout.completedSets.fastMap { completedSet ->
+                        val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
+                        when (completedSet) {
+                            is StandardSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                            is MyoRepSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                            is LinearProgressionSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                            else -> throw Exception("${completedSet::class.simpleName} is not defined.")
+                        }
+                    }
+                )
+            }
+
+            val updatedInProgressSetResults = setResultsRepository.getForWorkout(
+                workoutId = workoutId,
+                mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
+                microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle
+            ).map { completedSet ->
+                val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
+                when (completedSet) {
+                    is StandardSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                    is MyoRepSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                    is LinearProgressionSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                    else -> throw Exception("${completedSet::class.simpleName} is not defined.")
+                }
+            }
+            setResultsRepository.upsertMany(updatedInProgressSetResults)
+
+            mutableWorkoutState.update {
+                it.copy(
+                    workout = updatedWorkoutCopy,
+                    inProgressWorkout = updatedInProgressWorkoutCopy,
+                    isReordering = false
+                )
+            }
         }
     }
 
@@ -514,12 +553,12 @@ class WorkoutViewModel(
     }
 
     private fun getWorkoutCompletionSummary(): WorkoutCompletionSummary {
-        val liftsById = mutableWorkoutState.value.workout?.lifts?.associate { it.liftId to it }
+        val liftsById = mutableWorkoutState.value.workout!!.lifts.associateBy { it.liftId }
         val personalRecords = mutableWorkoutState.value.personalRecords
         val liftCompletionSummaries = mutableWorkoutState.value.inProgressWorkout?.completedSets
             ?.groupBy { "${it.liftId}-${it.liftPosition}" }
             ?.values?.map { resultsForLift ->
-                val lift = liftsById?.get(resultsForLift[0].liftId)
+                val lift = liftsById[resultsForLift[0].liftId]
                 val setsCompleted = resultsForLift.size
                 val totalSets = (lift?.setCount ?: setsCompleted)
                     .let { total ->
@@ -555,11 +594,11 @@ class WorkoutViewModel(
                     } ?: false
                 )
             }?.toMutableList()?.apply {
-                val liftsWithNoCompletedSets = liftsById?.values?.filter { loggingLift ->
+                val liftsWithNoCompletedSets = liftsById.values.filter { loggingLift ->
                     !this.fastAny { summaryLift ->
                         summaryLift.liftId == loggingLift.liftId && summaryLift.liftPosition == loggingLift.position
                     }
-                } ?: listOf()
+                }
 
                 addAll(
                     liftsWithNoCompletedSets.map { incompleteLift ->

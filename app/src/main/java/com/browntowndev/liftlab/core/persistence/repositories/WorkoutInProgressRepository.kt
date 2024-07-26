@@ -31,7 +31,6 @@ class WorkoutInProgressRepository(
         val inProgressEntity = workoutInProgressDao.get()
 
         return if (inProgressEntity != null) {
-
             return WorkoutInProgressDto(
                 workoutId = inProgressEntity.workoutId,
                 startTime = inProgressEntity.startTime,

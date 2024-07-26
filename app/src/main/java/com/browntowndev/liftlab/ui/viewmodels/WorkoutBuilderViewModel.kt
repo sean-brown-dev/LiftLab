@@ -13,15 +13,20 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.repositories.CustomLiftSetsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
@@ -43,6 +48,8 @@ class WorkoutBuilderViewModel(
     private val customLiftSetsRepository: CustomLiftSetsRepository,
     private val liftsRepository: LiftsRepository,
     private val liftLevelDeloadsEnabled: Boolean,
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val setResultsRepository: PreviousSetResultsRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -347,17 +354,45 @@ class WorkoutBuilderViewModel(
 
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
         executeInTransactionScope {
-            val updatedWorkoutCopy = _state.value.workout!!.copy(
-                lifts = newLiftOrder.mapIndexed { index, item ->
-                    when(val lift = _state.value.workout!!.lifts.find { it.id == item.key }!!) {
-                        is StandardWorkoutLiftDto -> lift.copy(position = index)
-                        is CustomWorkoutLiftDto -> lift.copy(position = index)
-                        else -> lift
+            val newWorkoutLiftIndices = newLiftOrder
+                .mapIndexed { index, item -> item.key to index }
+                .associate { it.first to it.second }
+
+            val updatedWorkoutCopy = _state.value.workout!!.let { workout ->
+                workout.copy(
+                    lifts = workout.lifts.fastMap { lift ->
+                        when(lift) {
+                            is StandardWorkoutLiftDto -> lift.copy(position = newWorkoutLiftIndices[lift.id]!!)
+                            is CustomWorkoutLiftDto -> lift.copy(position = newWorkoutLiftIndices[lift.id]!!)
+                            else -> throw Exception("${lift::class.simpleName} is not defined.")
+                        }
                     }
-                }
-            )
+                )
+            }
 
             workoutLiftsRepository.updateMany(updatedWorkoutCopy.lifts)
+
+            if (workoutInProgressRepository.getWithoutCompletedSets() != null) {
+                programsRepository.getActiveNotAsLiveData()?.let { programMetadata ->
+                    val workoutLiftIdByLiftId = _state.value.workout!!.lifts.associate { it.liftId to it.id }
+                    val updatedInProgressSetResults = setResultsRepository.getForWorkout(
+                        workoutId = workoutId,
+                        mesoCycle = programMetadata.currentMesocycle,
+                        microCycle = programMetadata.currentMicrocycle,
+                    ).map { completedSet ->
+                        val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
+                        when (completedSet) {
+                            is StandardSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                            is MyoRepSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                            is LinearProgressionSetResultDto -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                            else -> throw Exception("${completedSet::class.simpleName} is not defined.")
+                        }
+                    }
+
+                    setResultsRepository.upsertMany(updatedInProgressSetResults)
+                }
+            }
+
             _state.update { it.copy(workout = updatedWorkoutCopy, isReordering = false) }
         }
     }

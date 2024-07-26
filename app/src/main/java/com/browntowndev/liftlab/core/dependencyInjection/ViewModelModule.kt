@@ -23,7 +23,7 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { LabViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { params -> LiftDetailsViewModel(params.get(), params[0], get(), get(), get(), get()) }
-    viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), params.get(), get(), get()) }
+    viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), params.get(), get(), get(), get(), get()) }
     viewModel { params -> LiftLibraryViewModel(get(), get(), get(), params[0], params[1], params[2], params[3], params[4], params[5], params.get(), params.get(), get(), get()) }
     viewModel { params -> WorkoutViewModel(StandardProgressionFactory(), get(), get(), get(), get(), get(), get(), get(), get(), get(), params[0], params[1], get(), get()) }
     viewModel { params -> EditWorkoutViewModel(params.get(), get(), get(), params.get(), get(), get()) }
