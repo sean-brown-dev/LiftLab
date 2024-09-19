@@ -16,6 +16,7 @@ import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 interface BaseChartModel<T> {
@@ -183,6 +184,7 @@ fun getPerWorkoutVolumeChartModel(
 
 fun getPerMicrocycleVolumeChartModel(
     workoutLogs: List<WorkoutLogEntryDto>,
+    secondaryVolumeTypesByLiftId: Map<Long, Int?>?,
 ): ComposedChartModel<LineCartesianLayerModel> {
     val volumesForEachMesoAndMicro = workoutLogs
         .groupBy { Pair(it.mesocycle, it.microcycle) } // Group by both mesocycle and microcycle
@@ -192,11 +194,14 @@ fun getPerMicrocycleVolumeChartModel(
             val volumeForMicro = logsForMesoAndMicro.value.map { workoutLog ->
                 workoutLog.setResults
                     .groupBy { it.liftId }
-                    .values.map { liftResults ->
-                        val repVolume = liftResults.sumOf { it.reps }
-                        val totalWeight = liftResults.map { it.weight }.sum()
-                        val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(liftResults, totalWeight)
-                        val workingSetVolume = liftResults.filter { it.rpe >= 7f }.size
+                    .map { liftResults ->
+                        val repVolume = liftResults.value.sumOf { it.reps }
+                        val totalWeight = liftResults.value.map { it.weight }.sum()
+                        val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(liftResults.value, totalWeight)
+
+                        val workingSetVolume = liftResults.value.filter { it.rpe >= 7f }.size /
+                            if (secondaryVolumeTypesByLiftId?.contains(liftResults.key) == true) 2f else 1f
+
                         val averageIntensity = (totalWeight / totalWeightIfLifting1RmEachTime)
                         val relativeVolume = repVolume * averageIntensity
 
@@ -312,7 +317,7 @@ fun getIntensityChartModel(
             (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
         },
         startAxisValueFormatter = { value, _, _ ->
-            "${String.format("%.2f", value)}%"
+            "${String.format(Locale.US, "%.2f", value)}%"
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
     )

@@ -386,7 +386,11 @@ class HomeViewModel(
                     id = volumeChart.id,
                     volumeType = volumeChart.volumeType.displayName(),
                     volumeTypeImpact = volumeChart.volumeTypeImpact.displayName(),
-                    chartModel = getPerMicrocycleVolumeChartModel(workoutLogs = workoutLogsForChart)
+                    chartModel = getPerMicrocycleVolumeChartModel(
+                        workoutLogs = workoutLogsForChart,
+                        secondaryVolumeTypesByLiftId = if (volumeChart.volumeTypeImpact != VolumeTypeImpact.PRIMARY)
+                            secondaryVolumeTypesById else null,
+                    )
                 )
             } else null
         }

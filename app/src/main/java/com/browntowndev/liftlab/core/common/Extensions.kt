@@ -87,20 +87,24 @@ fun String.insertSuperscript(
     }
 }
 
-private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
-    val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
+private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>, impact: VolumeTypeImpact):  HashMap<String, Pair<Float, Boolean>> {
+    val volumeCounts = hashMapOf<String, Pair<Float, Boolean>>()
     lifts.fastForEach { lift ->
         val volumeTypes = when(impact) {
             VolumeTypeImpact.PRIMARY -> lift.liftVolumeTypes
             VolumeTypeImpact.SECONDARY -> lift.liftSecondaryVolumeTypes
             VolumeTypeImpact.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
         }
+        val secondaryVolumeTypes = lift.liftSecondaryVolumeTypes?.getVolumeTypes()?.toHashSet()
 
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
-            val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
+            val currTotalVolume: Pair<Float, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = (lift as? CustomWorkoutLiftDto)?.customLiftSets?.any { it is MyoRepSetDto } ?: false
-            var newTotalVolume: Int = lift.setCount
+            var newTotalVolume: Float = if(secondaryVolumeTypes?.contains(volumeType) == true)
+                lift.setCount / 2f
+            else
+                lift.setCount.toFloat()
 
             if (currTotalVolume != null) {
                 newTotalVolume += currTotalVolume.first
@@ -141,7 +145,13 @@ private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLif
 
 private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<GenericWorkoutLift>, impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeMapForGenericWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
-        val plainVolumeString = "$volumeType: ${totalVolume.first}"
+        val volume = if (totalVolume.first % 1.0 == 0.0) {
+            String.format(US, "%.0f", totalVolume.first) // No decimals if the value is a whole number
+        } else {
+            String.format(US, "%.1f", totalVolume.first) // One decimal if there is a non-zero decimal part
+        }
+
+        val plainVolumeString = "$volumeType: $volume"
         if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
         else plainVolumeString
     }
