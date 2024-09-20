@@ -10,23 +10,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.common.shader.color
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
-import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Dimensions
-import com.patrykandpatrick.vico.core.common.shader.DynamicShader
-import com.patrykandpatrick.vico.core.common.shape.Shape
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 
 @Composable
 fun SingleLineChart(
@@ -38,7 +38,7 @@ fun SingleLineChart(
     ProvideVicoTheme(theme) {
         val marker = rememberMarker()
         val point = rememberShapeComponent(
-            shape = Shape.Pill,
+            shape = Pill,
             color = Color.Black,
             margins = Dimensions(allDp = 2.dp.value),
             strokeThickness = 3.dp,
@@ -54,15 +54,14 @@ fun SingleLineChart(
                     pointSpacing = 70.dp,
                     lineProvider = LineCartesianLayer.LineProvider.series(
                         listOf(
-                            rememberLine(
-                                shader = DynamicShader.color(chartColors[0]),
+                            LineCartesianLayer.rememberLine(
                                 pointProvider = LineCartesianLayer.PointProvider.single(
                                     point = LineCartesianLayer.Point(component = point)
                                 )
                             )
                         )
                     ),
-                    axisValueOverrider = remember { model.startAxisValueOverrider ?: AxisValueOverrider.auto() },
+                    rangeProvider = remember { model.startAxisValueOverrider ?: CartesianLayerRangeProvider.auto() },
                 ),
                 marker = marker,
                 persistentMarkers = {
@@ -70,11 +69,11 @@ fun SingleLineChart(
                         marker
                     )
                 },
-                startAxis = rememberStartAxis(
+                startAxis = VerticalAxis.rememberStart(
                     itemPlacer = model.startAxisItemPlacer,
                     valueFormatter = model.startAxisValueFormatter
                 ),
-                bottomAxis = rememberBottomAxis(
+                bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = model.bottomAxisValueFormatter,
                     labelRotationDegrees = model.bottomAxisLabelRotationDegrees,
                     sizeConstraint = BaseAxis.SizeConstraint.Exact(75f),

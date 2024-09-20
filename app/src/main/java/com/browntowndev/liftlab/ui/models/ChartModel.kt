@@ -7,8 +7,8 @@ import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.progression.CalculationEngine
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
-import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
@@ -20,7 +20,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 interface BaseChartModel<T> {
-    val startAxisValueOverrider: AxisValueOverrider?
+    val startAxisValueOverrider: CartesianLayerRangeProvider?
     val bottomAxisValueFormatter: CartesianValueFormatter
     val startAxisValueFormatter: CartesianValueFormatter
     val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)?
@@ -30,7 +30,7 @@ interface BaseChartModel<T> {
 
 class ChartModel<T>(
     val chartEntryModel: CartesianChartModel,
-    override val startAxisValueOverrider: AxisValueOverrider?,
+    override val startAxisValueOverrider: CartesianLayerRangeProvider?,
     override val bottomAxisValueFormatter: CartesianValueFormatter,
     override val startAxisValueFormatter: CartesianValueFormatter,
     override val persistentMarkers: ((CartesianMarker) -> Map<Float, CartesianMarker>?)? = null,
@@ -44,8 +44,8 @@ class ChartModel<T>(
 
 class ComposedChartModel<T>(
     val composedChartEntryModel: CartesianChartModel,
-    override val startAxisValueOverrider: AxisValueOverrider?,
-    val endAxisValueOverrider: AxisValueOverrider?,
+    override val startAxisValueOverrider: CartesianLayerRangeProvider?,
+    val endAxisValueOverrider: CartesianLayerRangeProvider?,
     override val bottomAxisValueFormatter: CartesianValueFormatter,
     override val startAxisValueFormatter: CartesianValueFormatter,
     val endAxisValueFormatter: CartesianValueFormatter,
@@ -78,7 +78,7 @@ fun getOneRepMaxChartModel(
 
     val xValuesToDates = oneRepMaxesByLocalDate.keys
         .mapIndexed { index, localDate -> Pair(index, localDate) }
-        .associate { it.first.toFloat() to it.second }
+        .associate { it.first.toDouble() to it.second }
 
     val chartEntryModel = if(xValuesToDates.isNotEmpty()) {
         CartesianChartModel(
@@ -86,24 +86,24 @@ fun getOneRepMaxChartModel(
                 series(x = xValuesToDates.keys, y = oneRepMaxesByLocalDate.values)
             }
         )
-    } else CartesianChartModel.empty
+    } else CartesianChartModel.Empty
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+        startAxisValueOverrider = object: CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 5)
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMaxY(maxY, minY, minAxisVerticalCont = 9, toAdd = 5)
             }
         },
-        bottomAxisValueFormatter = { value, _, _ ->
+        bottomAxisValueFormatter = { _, value, _ ->
             (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
         },
-        startAxisValueFormatter = { value, _, _ ->
+        startAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count(count = { 9 }),
@@ -134,7 +134,7 @@ fun getPerWorkoutVolumeChartModel(
 
     val xValuesToDates = volumesByLocalDate.keys
         .mapIndexed { index, localDate -> Pair(index, localDate) }
-        .associate { it.first.toFloat() to it.second }
+        .associate { it.first.toDouble() to it.second }
 
     val chartEntryModel = if (xValuesToDates.isNotEmpty()) {
         CartesianChartModel(
@@ -145,35 +145,35 @@ fun getPerWorkoutVolumeChartModel(
                 series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.relativeVolume })
             }
         )
-    } else CartesianChartModel.empty
+    } else CartesianChartModel.Empty
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ComposedChartModel(
         composedChartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+        startAxisValueOverrider = object: CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 1)
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
-        endAxisValueOverrider = object: AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+        endAxisValueOverrider = object: CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 1)
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
-        bottomAxisValueFormatter = { value, _, _ ->
+        bottomAxisValueFormatter = { _, value, _ ->
             (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
         },
-        startAxisValueFormatter = { value, _, _ ->
+        startAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
-        endAxisValueFormatter = { value, _, _ ->
+        endAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 5 }),
@@ -218,7 +218,7 @@ fun getPerMicrocycleVolumeChartModel(
 
     val xValuesToMesoMicroPair = volumesForEachMesoAndMicro.keys
         .mapIndexed { index, key -> Pair(index, key) }
-        .associate { it.first.toFloat() to it.second }
+        .associate { it.first.toDouble() to it.second }
 
     val chartEntryModel = if(xValuesToMesoMicroPair.isNotEmpty()) {
         CartesianChartModel(
@@ -229,36 +229,36 @@ fun getPerMicrocycleVolumeChartModel(
                 series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.second })
             }
         )
-    } else CartesianChartModel.empty
+    } else CartesianChartModel.Empty
 
     return ComposedChartModel(
         composedChartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+        startAxisValueOverrider = object: CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 1)
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
-        endAxisValueOverrider = object: AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+        endAxisValueOverrider = object: CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 1)
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMaxY(maxY, minY, minAxisVerticalCont = 5, toAdd = 1)
             }
         },
         bottomAxisLabelRotationDegrees = 45f,
-        bottomAxisValueFormatter = { value, _, _ ->
+        bottomAxisValueFormatter = { _, value, _ ->
             xValuesToMesoMicroPair[value]?.let {
                 "${it.first + 1}-${it.second + 1}"
             } ?: "N/A"
         },
-        startAxisValueFormatter = { value, _, _ ->
+        startAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
-        endAxisValueFormatter = { value, _, _ ->
+        endAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 5 }),
@@ -291,7 +291,7 @@ fun getIntensityChartModel(
 
     val xValuesToDates = relativeIntensitiesByLocalDate.keys
         .mapIndexed { index, localDate -> Pair(index, localDate) }
-        .associate { it.first.toFloat() to it.second }
+        .associate { it.first.toDouble() to it.second }
 
     val chartEntryModel = if (xValuesToDates.isNotEmpty()) {
         CartesianChartModel(
@@ -299,24 +299,24 @@ fun getIntensityChartModel(
                 series(x = xValuesToDates.keys, y = relativeIntensitiesByLocalDate.values)
             }
         )
-    } else CartesianChartModel.empty
+    } else CartesianChartModel.Empty
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object: AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+        startAxisValueOverrider = object: CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 5)
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMaxY(maxY, minY, minAxisVerticalCont = 9, toAdd = 5)
             }
         },
-        bottomAxisValueFormatter = { value, _, _ ->
+        bottomAxisValueFormatter = { _, value, _ ->
             (xValuesToDates[value] ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
         },
-        startAxisValueFormatter = { value, _, _ ->
+        startAxisValueFormatter = { _, value, _ ->
             "${String.format(Locale.US, "%.2f", value)}%"
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
@@ -346,7 +346,7 @@ fun getWeeklyCompletionChart(
 
     val xValuesToDates = completedWorkoutsByWeek.keys
         .mapIndexed { index, localDate -> Pair(index, localDate) }
-        .associate { it.first.toFloat() to it.second }
+        .associate { it.first.toDouble() to it.second }
 
     val chartEntryModel = if (xValuesToDates.isNotEmpty()) {
         CartesianChartModel(
@@ -354,25 +354,25 @@ fun getWeeklyCompletionChart(
                 series(x = xValuesToDates.keys, y = completedWorkoutsByWeek.values)
             }
         )
-    } else CartesianChartModel.empty
+    } else CartesianChartModel.Empty
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d")
 
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object : AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return 0f
+        startAxisValueOverrider = object : CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
+                return 0.0
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return maxWorkoutsCompleted.toFloat().let { if (it == 0f) 1f else it }
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
+                return maxWorkoutsCompleted.let { if (it == 0) 1.0 else it.toDouble() }
             }
         },
-        bottomAxisValueFormatter = { value, _, _ ->
+        bottomAxisValueFormatter = { _, value, _ ->
             (xValuesToDates[value]
                 ?: LocalDate.ofEpochDay(value.toLong())).format(dateTimeFormatter)
         },
-        startAxisValueFormatter = { value, _, _ ->
+        startAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ maxWorkoutsCompleted + 1 }),
@@ -411,30 +411,30 @@ fun getMicroCycleCompletionChart(
     )
     return ChartModel(
         chartEntryModel = chartEntryModel,
-        startAxisValueOverrider = object : AxisValueOverrider {
-            override fun getMinY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return 0f
+        startAxisValueOverrider = object : CartesianLayerRangeProvider {
+            override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
+                return 0.0
             }
-            override fun getMaxY(minY: Float, maxY: Float, extraStore: ExtraStore): Float {
-                return 100f
+            override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
+                return 100.0
             }
         },
         bottomAxisLabelRotationDegrees = 0f,
-        bottomAxisValueFormatter = { value, _, _ ->
+        bottomAxisValueFormatter = { _, value, _ ->
             value.roundToInt().toString()
         },
-        startAxisValueFormatter = { value, _, _ ->
+        startAxisValueFormatter = { _, value, _ ->
             "${value.roundToInt()}%"
         },
         startAxisItemPlacer = VerticalAxis.ItemPlacer.count({ 9 }),
     )
 }
 
-private fun getChartMinY(minY: Float, toSubtract: Int): Float {
-    return if ((minY - toSubtract) > 0) minY - toSubtract else 0f
+private fun getChartMinY(minY: Double, toSubtract: Int): Double {
+    return if ((minY - toSubtract) > 0) minY - toSubtract else 0.0
 }
 
-private fun getChartMaxY(maxY: Float, minY: Float, minAxisVerticalCont: Int, toAdd: Int): Float {
+private fun getChartMaxY(maxY: Double, minY: Double, minAxisVerticalCont: Int, toAdd: Int): Double {
     val maxVal = maxY + toAdd
     val maxDifference = minAxisVerticalCont - 1
     val difference = maxVal - minY

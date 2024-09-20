@@ -182,6 +182,10 @@ fun ProgramDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence>
     )
 }
 
+fun Double.isWholeNumber(): Boolean {
+    return this % 1.0 == 0.0
+}
+
 fun Float.isWholeNumber(): Boolean {
     return this % 1.0 == 0.0
 }

@@ -17,10 +17,11 @@ import com.patrykandpatrick.vico.compose.common.component.rememberLayeredCompone
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
-import com.patrykandpatrick.vico.core.cartesian.CartesianDrawContext
-import com.patrykandpatrick.vico.core.cartesian.CartesianMeasureContext
+import com.patrykandpatrick.vico.compose.common.component.shadow
+import com.patrykandpatrick.vico.compose.common.dimensions
+import com.patrykandpatrick.vico.core.cartesian.CartesianDrawingContext
+import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.core.cartesian.HorizontalDimensions
-import com.patrykandpatrick.vico.core.cartesian.Insets
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
@@ -30,31 +31,39 @@ import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarke
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.core.cartesian.marker.LineCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.common.Dimensions
+import com.patrykandpatrick.vico.core.common.Insets
+import com.patrykandpatrick.vico.core.common.LayeredComponent
+import com.patrykandpatrick.vico.core.common.component.Shadow
 import com.patrykandpatrick.vico.core.common.component.ShapeComponent
 import com.patrykandpatrick.vico.core.common.shape.Corner
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 import com.patrykandpatrick.vico.core.common.shape.DashedShape
 import com.patrykandpatrick.vico.core.common.shape.MarkerCorneredShape
-import com.patrykandpatrick.vico.core.common.shape.Shape
 import kotlin.math.roundToInt
 
 @Composable
-internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primary): CartesianMarker {
+internal fun rememberMarker(
+    labelColor: Color = MaterialTheme.colorScheme.primary,
+    labelPosition: DefaultCartesianMarker.LabelPosition = DefaultCartesianMarker.LabelPosition.Top,
+    showIndicator: Boolean = true,
+): CartesianMarker {
     val labelBackgroundColor = MaterialTheme.colorScheme.surface
-    val labelBackground = remember(labelBackgroundColor) {
-        ShapeComponent(shape = labelBackgroundShape, color = labelBackgroundColor.toArgb()).setShadow(
-            radius = LABEL_BACKGROUND_SHADOW_RADIUS,
-            dy = LABEL_BACKGROUND_SHADOW_DY,
+    val labelBackground =
+        rememberShapeComponent(
+            color = labelBackgroundColor,
+            shape = labelBackgroundShape,
+            shadow = shadow(radius = LABEL_BACKGROUND_SHADOW_RADIUS_DP.dp, dy = LABEL_BACKGROUND_SHADOW_DY_DP.dp),
         )
-    }
     val label = rememberTextComponent(
         background = labelBackground,
         lineCount = LABEL_LINE_COUNT,
         padding = labelPadding,
         typeface = Typeface.MONOSPACE,
     )
-    val indicatorInnerComponent = rememberShapeComponent(shape = Shape.Pill, color = MaterialTheme.colorScheme.surface)
-    val indicatorCenterComponent = rememberShapeComponent(shape = Shape.Pill, color = MaterialTheme.colorScheme.surface)
-    val indicatorOuterComponent = rememberShapeComponent(shape = Shape.Pill, color = Color.White)
+    val indicatorFrontComponent = rememberShapeComponent(MaterialTheme.colorScheme.surface, Pill)
+    val indicatorInnerComponent = rememberShapeComponent(shape = Pill, color = MaterialTheme.colorScheme.surface)
+    val indicatorCenterComponent = rememberShapeComponent(shape = Pill, color = MaterialTheme.colorScheme.surface)
+    val indicatorOuterComponent = rememberShapeComponent(shape = Pill, color = Color.White)
     val indicator = rememberLayeredComponent(
         rear = indicatorOuterComponent,
         front = rememberLayeredComponent(
@@ -69,33 +78,48 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
         guidelineThickness,
         guidelineShape,
     )
-    return remember(label, indicator, guideline) {
+    return remember(label, labelPosition, indicator, showIndicator, guideline)  {
         object : DefaultCartesianMarker(
             label = label,
             labelPosition = LabelPosition.Top,
-            indicator = indicator,
+            indicator = if (showIndicator) {
+                { color ->
+                    LayeredComponent(
+                        rear = ShapeComponent(color.copyColor(alpha = 0.15f), Pill),
+                        front =
+                        LayeredComponent(
+                            rear =
+                            ShapeComponent(
+                                color = color,
+                                shape = Pill,
+                                shadow = Shadow(radiusDp = 12f, color = color),
+                            ),
+                            front = indicatorFrontComponent,
+                            padding = dimensions(5.dp),
+                        ),
+                        padding = dimensions(10.dp),
+                    )
+                }
+            } else {
+                null
+            },
             guideline = guideline,
             indicatorSizeDp = INDICATOR_SIZE_DP,
-            setIndicatorColor = { argbColor: Int ->
-                indicatorInnerComponent.color = argbColor.copyColor(alpha = INDICATOR_OUTER_COMPONENT_ALPHA)
-                indicatorCenterComponent.color = argbColor
-                indicatorCenterComponent.setShadow(radius = INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS, color = argbColor)
-            },
             valueFormatter = object: CartesianMarkerValueFormatter {
                 private val PATTERN = "%.02f"
                 override fun format(
-                    context: CartesianDrawContext,
+                    context: CartesianDrawingContext,
                     targets: List<CartesianMarker.Target>
                 ): CharSequence = targets.transformToSpannable(
                     separator = "  ",
                 ) { cartesianTarget ->
                     val y = when(cartesianTarget) {
-                        is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0f
-                        is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0f
-                        else -> 0f
+                        is LineCartesianLayerMarkerTarget -> cartesianTarget.points.firstOrNull()?.entry?.y ?: 0.0
+                        is ColumnCartesianLayerMarkerTarget -> cartesianTarget.columns.firstOrNull()?.entry?.y ?: 0.0
+                        else -> 0.0
                     }
 
-                    val color = when(context.chartValues.model.models[0]) {
+                    val color = when(context.model.models[0]) {
                         is LineCartesianLayerModel -> (cartesianTarget as LineCartesianLayerMarkerTarget).points[0].color
                         is ColumnCartesianLayerModel -> (cartesianTarget as ColumnCartesianLayerMarkerTarget).columns[0].color
                         else -> labelColor.toArgb()
@@ -111,35 +135,32 @@ internal fun rememberMarker(labelColor: Color = MaterialTheme.colorScheme.primar
             }
         ) {
             override fun updateInsets(
-                context: CartesianMeasureContext,
+                context: CartesianMeasuringContext,
                 horizontalDimensions: HorizontalDimensions,
                 model: CartesianChartModel,
-                insets: Insets
+                insets: Insets,
             ) {
                 with(context) {
-                    val topInset =
-                        ((CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP) - LABEL_BACKGROUND_SHADOW_DY_DP).pixels +
-                                if (labelPosition == LabelPosition.AroundPoint) {
-                                    0f
-                                }
-                                else {
-                                    label.getHeight(context) + labelBackgroundShape.tickSizeDp.pixels
-                                }
-
-                    insets.ensureValuesAtLeast(top = topInset)
+                    val baseShadowInsetDp =
+                        CLIPPING_FREE_SHADOW_RADIUS_MULTIPLIER * LABEL_BACKGROUND_SHADOW_RADIUS_DP
+                    var topInset = (baseShadowInsetDp - LABEL_BACKGROUND_SHADOW_DY_DP).pixels
+                    var bottomInset = (baseShadowInsetDp + LABEL_BACKGROUND_SHADOW_DY_DP).pixels
+                    when (labelPosition) {
+                        LabelPosition.Top,
+                        LabelPosition.AbovePoint -> topInset += label.getHeight(context) + tickSizeDp.pixels
+                        LabelPosition.Bottom -> bottomInset += label.getHeight(context) + tickSizeDp.pixels
+                        LabelPosition.AroundPoint -> {}
+                    }
+                    insets.ensureValuesAtLeast(top = topInset, bottom = bottomInset)
                 }
             }
         }
     }
 }
 
-private const val LABEL_BACKGROUND_SHADOW_RADIUS = 4f
-private const val LABEL_BACKGROUND_SHADOW_DY = 2f
 private const val LABEL_LINE_COUNT = 1
 private const val GUIDELINE_ALPHA = .2f
 private const val INDICATOR_SIZE_DP = 12f
-private const val INDICATOR_OUTER_COMPONENT_ALPHA = 32
-private const val INDICATOR_CENTER_COMPONENT_SHADOW_RADIUS = 12f
 private const val GUIDELINE_DASH_LENGTH_DP = 8f
 private const val GUIDELINE_GAP_LENGTH_DP = 4f
 private const val LABEL_BACKGROUND_SHADOW_RADIUS_DP = 4f
@@ -153,4 +174,4 @@ private val labelPadding = Dimensions(labelHorizontalPaddingValue.value, labelVe
 private val indicatorInnerAndCenterComponentPaddingValue = 1.dp
 private val indicatorCenterAndOuterComponentPaddingValue = 1.dp
 private val guidelineThickness = 2.dp
-private val guidelineShape = DashedShape(Shape.Pill, GUIDELINE_DASH_LENGTH_DP, GUIDELINE_GAP_LENGTH_DP)
+private val guidelineShape = DashedShape(Pill, GUIDELINE_DASH_LENGTH_DP, GUIDELINE_GAP_LENGTH_DP)

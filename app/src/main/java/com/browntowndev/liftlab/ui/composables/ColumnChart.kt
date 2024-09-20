@@ -8,8 +8,8 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.VicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.VicoZoomState
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
@@ -18,11 +18,13 @@ import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.core.cartesian.Scroll
-import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
-import com.patrykandpatrick.vico.core.common.shape.Shape
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape
 
 @Composable
 fun ColumnChart(
@@ -45,18 +47,18 @@ fun ColumnChart(
                             rememberLineComponent(
                                 color,
                                 10.dp,
-                                Shape.rounded(topLeftPercent = 15, topRightPercent = 15)
+                                CorneredShape.rounded(topLeftPercent = 15, topRightPercent = 15)
                             )
                         }
                     ),
-                    axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
+                    rangeProvider = remember { chartModel.startAxisValueOverrider ?: CartesianLayerRangeProvider.auto() },
                 ),
                 marker = marker,
-                startAxis = rememberStartAxis(
+                startAxis = VerticalAxis.rememberStart(
                     itemPlacer = chartModel.startAxisItemPlacer,
                     valueFormatter = chartModel.startAxisValueFormatter
                 ),
-                bottomAxis = rememberBottomAxis(
+                bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = chartModel.bottomAxisValueFormatter,
                     labelRotationDegrees = chartModel.bottomAxisLabelRotationDegrees
                 ),

@@ -10,25 +10,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEndAxis
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberEnd
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.common.shader.color
+import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.core.cartesian.Scroll
-import com.patrykandpatrick.vico.core.cartesian.axis.AxisPosition
+import com.patrykandpatrick.vico.core.cartesian.axis.Axis
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
-import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
+import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Dimensions
-import com.patrykandpatrick.vico.core.common.shader.DynamicShader
-import com.patrykandpatrick.vico.core.common.shape.Shape
+import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 
 @Composable
 fun MultiLineChart(
@@ -40,14 +41,14 @@ fun MultiLineChart(
     ProvideVicoTheme(theme) {
         val marker = rememberMarker()
         val primaryPoint = rememberShapeComponent(
-            shape = Shape.Pill,
+            shape = Pill,
             color = Color.Black,
             margins = Dimensions(allDp = 2.dp.value),
             strokeThickness = 3.dp,
             strokeColor = MaterialTheme.colorScheme.primary,
         )
         val tertiaryPoint = rememberShapeComponent(
-            shape = Shape.Pill,
+            shape = Pill,
             color = Color.Black,
             margins = Dimensions(allDp = 2.dp.value),
             strokeThickness = 3.dp,
@@ -56,8 +57,7 @@ fun MultiLineChart(
         val startAxisLineChart = rememberLineCartesianLayer(
             lineProvider = LineCartesianLayer.LineProvider.series(
                 listOf(
-                    rememberLine(
-                        shader = DynamicShader.color(chartColors[0]),
+                    LineCartesianLayer.rememberLine(
                         pointProvider = LineCartesianLayer.PointProvider.single(
                             point = LineCartesianLayer.Point(component = primaryPoint)
                         )
@@ -65,14 +65,16 @@ fun MultiLineChart(
                 )
             ),
             pointSpacing = 65.dp,
-            axisValueOverrider = remember { chartModel.startAxisValueOverrider ?: AxisValueOverrider.auto() },
-            verticalAxisPosition = AxisPosition.Vertical.Start,
+            rangeProvider = remember { chartModel.startAxisValueOverrider ?: CartesianLayerRangeProvider.auto() },
+            verticalAxisPosition = Axis.Position.Vertical.Start,
         )
         val endAxisLineChart = rememberLineCartesianLayer(
             lineProvider = LineCartesianLayer.LineProvider.series(
                 listOf(
-                    rememberLine(
-                        shader = DynamicShader.color(chartColors[1]),
+                    LineCartesianLayer.rememberLine(
+                        fill = remember(chartColors[1]) {
+                            LineCartesianLayer. LineFill. single(fill(chartColors[1]))
+                        },
                         pointProvider = LineCartesianLayer.PointProvider.single(
                             point = LineCartesianLayer.Point(component = tertiaryPoint)
                         )
@@ -80,8 +82,8 @@ fun MultiLineChart(
                 )
             ),
             pointSpacing = 65.dp,
-            axisValueOverrider = remember { chartModel.endAxisValueOverrider ?: AxisValueOverrider.auto() },
-            verticalAxisPosition = AxisPosition.Vertical.End,
+            rangeProvider = remember { chartModel.endAxisValueOverrider ?: CartesianLayerRangeProvider.auto() },
+            verticalAxisPosition = Axis.Position.Vertical.End,
         )
         CartesianChartHost(
             modifier = Modifier
@@ -90,16 +92,16 @@ fun MultiLineChart(
             chart = rememberCartesianChart(
                 startAxisLineChart,
                 endAxisLineChart,
-                startAxis = rememberStartAxis(
+                startAxis = VerticalAxis.rememberStart(
                     itemPlacer = chartModel.startAxisItemPlacer,
                     valueFormatter = chartModel.startAxisValueFormatter
                 ),
-                bottomAxis = rememberBottomAxis(
+                bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = chartModel.bottomAxisValueFormatter,
                     labelRotationDegrees = chartModel.bottomAxisLabelRotationDegrees,
                     sizeConstraint = BaseAxis.SizeConstraint.Exact(75f),
                 ),
-                endAxis = rememberEndAxis(
+                endAxis = VerticalAxis.rememberEnd(
                     itemPlacer = chartModel.endAxisItemPlacer,
                     valueFormatter = chartModel.endAxisValueFormatter,
                 ),
