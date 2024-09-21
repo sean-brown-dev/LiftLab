@@ -61,7 +61,7 @@ fun WorkoutLiftCard(
     indicesOfExistingMyoRepSets: Set<String>,
     lazyListState: LazyListState,
     onUpdatePickerSpacer: (padding: Dp) -> Unit,
-    onShowRpePicker: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
+    onShowRpePicker: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, currentRpe: Float?) -> Unit,
     onHideRpePicker: () -> Unit,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
@@ -240,7 +240,7 @@ fun WorkoutLiftCard(
                             },
                             toggleRpePicker = {
                                 if (it) {
-                                    onShowRpePicker(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition)
+                                    onShowRpePicker(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, set.completedRpe)
                                 } else {
                                     onHideRpePicker()
                                 }

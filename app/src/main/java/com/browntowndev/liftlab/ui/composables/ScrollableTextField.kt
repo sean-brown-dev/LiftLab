@@ -21,21 +21,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.InterceptPlatformTextInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,9 +46,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ScrollableTextField(
     modifier: Modifier = Modifier,
@@ -66,22 +69,23 @@ fun ScrollableTextField(
     onValueChanged: ((String) -> Unit)? = null,
     onPixelOverflowChanged: (Dp) -> Unit= {},
 ) {
-    val placeholderAsState by remember(placeholder) { mutableStateOf(placeholder) }
     var isFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenDensity = LocalDensity.current
-    val pickerHeightInPixels = with(screenDensity) {
-        (screenHeight * .30f).toPx()
-    }
-    val screenInPixels = with(screenDensity) {
-        screenHeight.toPx()
-    }
-    var topOfTextFieldPosition by remember { mutableStateOf(0f) }
-    val coroutineScope = rememberCoroutineScope()
 
     val customKeyboardTextField: @Composable (width: Dp?) -> Unit = { width ->
+        val placeholderAsState by remember(placeholder) { mutableStateOf(placeholder) }
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+        val screenDensity = LocalDensity.current
+        val pickerHeightInPixels = with(screenDensity) {
+            (screenHeight * .30f).toPx()
+        }
+        val screenInPixels = with(screenDensity) {
+            screenHeight.toPx()
+        }
+        var topOfTextFieldPosition by remember { mutableFloatStateOf(0f) }
+        val coroutineScope = rememberCoroutineScope()
+
         val txtMod = (if (width != null) Modifier.width(width) else Modifier)
             .height(40.dp)
             .onGloballyPositioned { coordinates ->
@@ -100,9 +104,8 @@ fun ScrollableTextField(
                             currentYLocation = { topOfTextFieldPosition },
                             positionBuffer = 40f,
                             onPixelOverflowChanged = onPixelOverflowChanged,
+                            onScrollComplete = { onFocusChanged(true) }
                         )
-                        delay(50)
-                        onFocusChanged(isFocused)
                     }
                 } else {
                     onPixelOverflowChanged(0.dp)
@@ -181,15 +184,23 @@ fun ScrollableTextField(
             }
             Spacer(modifier = modifier.height(5.dp))
 
-            if (disableSystemKeyboard) {
-                CompositionLocalProvider(
-                    LocalTextInputService provides null
-                ) {
-                    customKeyboardTextField(null)
-                }
-            } else {
-                customKeyboardTextField(null)
-            }
+            InterceptPlatformTextInput(
+                interceptor = { request, nextHandler ->
+                    // If this flag is changed while an input session is active, a new lambda instance
+                    // that captures the new value will be passed to InterceptPlatformTextInput, which
+                    // will automatically cancel the session upstream and restart it with this new
+                    // interceptor.
+                    if (!disableSystemKeyboard) {
+                        // Forward the request to the system.
+                        nextHandler.startInputMethod(request)
+                    } else {
+                        // This function has to return Nothing, and since we don't have any work to do
+                        // in this case, we just suspend until cancelled.
+                        awaitCancellation()
+                    }
+                },
+                content = { customKeyboardTextField(null) }
+            )
         }
     } else {
         Row(
@@ -207,15 +218,23 @@ fun ScrollableTextField(
             }
             Spacer(modifier = modifier.weight(1f))
             Box(modifier = Modifier.padding(vertical = 2.dp, horizontal = 10.dp)) {
-                if(disableSystemKeyboard) {
-                    CompositionLocalProvider(
-                        LocalTextInputService provides null
-                    ) {
-                        customKeyboardTextField(100.dp)
-                    }
-                } else {
-                    customKeyboardTextField(100.dp)
-                }
+                InterceptPlatformTextInput(
+                    interceptor = { request, nextHandler ->
+                        // If this flag is changed while an input session is active, a new lambda instance
+                        // that captures the new value will be passed to InterceptPlatformTextInput, which
+                        // will automatically cancel the session upstream and restart it with this new
+                        // interceptor.
+                        if (!disableSystemKeyboard) {
+                            // Forward the request to the system.
+                            nextHandler.startInputMethod(request)
+                        } else {
+                            // This function has to return Nothing, and since we don't have any work to do
+                            // in this case, we just suspend until cancelled.
+                            awaitCancellation()
+                        }
+                    },
+                    content = { customKeyboardTextField(100.dp) }
+                )
             }
         }
     }

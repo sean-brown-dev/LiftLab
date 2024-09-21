@@ -42,11 +42,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 
 @Composable
 fun RpeKeyboard(
     modifier: Modifier = Modifier,
     visible: Boolean,
+    selectedRpe: Float?,
     onRpeSelected: (rpe: Float) -> Unit,
     onClosed: () -> Unit,
 ) {
@@ -110,7 +112,7 @@ fun RpeKeyboard(
 
                 Spacer(modifier = Modifier.width(5.dp))
             }
-            var selectedRpeOption: Float? by remember { mutableStateOf(null) }
+            var selectedRpeOption: Float? by remember (selectedRpe) { mutableStateOf(selectedRpe) }
             Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
                 if (selectedRpeOption != null) {
                     val repsLeftInTank = 10.0 - selectedRpeOption!!
@@ -164,15 +166,16 @@ fun RpeKeyboard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start,
                 ) {
-                    val rpeMinValue = 6f
-                    val rpeMaxValue = 10f
-                    for (rpe in ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2f }) {
+                    val rpeMinValue = remember { 6f }
+                    val rpeMaxValue = remember { 10f }
+                    val rpeOptions = remember { ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2f } }
+                    rpeOptions.fastForEach { rpe ->
                         RpeOption(
                             modifier = Modifier.weight(1f),
-                            isSelected = selectedRpeOption == rpe,
+                            isSelected = remember(selectedRpeOption) { selectedRpeOption == rpe },
                             value = rpe,
-                            isFirst = rpe == rpeMinValue,
-                            isLast = rpe == rpeMaxValue,
+                            isFirst = remember { rpe == rpeMinValue },
+                            isLast = remember { rpe == rpeMaxValue },
                             selected = {
                                 selectedRpeOption = rpe
                                 onRpeSelected(rpe)
@@ -196,17 +199,19 @@ private fun RpeOption(
     selected: () -> Unit,
 ) {
     val rpe by remember { mutableStateOf(value.toString().removeSuffix(".0")) }
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val backgroundColor = MaterialTheme.colorScheme.background
 
     Surface(
         modifier = modifier
             .height(60.dp)
             .clickable { selected() },
-        color = if(isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.background,
+        color = remember (isSelected) { if (isSelected) tertiaryColor else backgroundColor },
         shape = RoundedCornerShape(
-                topStart = if (isFirst) 16.dp else 0.dp,
-                topEnd = if (isLast) 16.dp else 0.dp,
-                bottomStart = if (isFirst) 16.dp else 0.dp,
-                bottomEnd = if (isLast) 16.dp else 0.dp,)
+                topStart = remember { if (isFirst) 16.dp else 0.dp },
+                topEnd = remember { if (isLast) 16.dp else 0.dp },
+                bottomStart = remember { if (isFirst) 16.dp else 0.dp },
+                bottomEnd = remember { if (isLast) 16.dp else 0.dp }),
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -217,7 +222,6 @@ private fun RpeOption(
                 text = rpe,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = if (isSelected) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onBackground
             )
         }
     }

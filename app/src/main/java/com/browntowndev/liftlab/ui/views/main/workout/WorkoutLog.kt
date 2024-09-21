@@ -11,7 +11,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,20 +21,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,34 +38,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
-import com.browntowndev.liftlab.ui.composables.LiftLabOutlinedTextField
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 
 @Composable
@@ -180,11 +160,12 @@ fun WorkoutLog(
                         onHideRpePicker = {
                             pickerViewModel.hideRpePicker()
                         },
-                        onShowRpePicker = { workoutLiftId, setPosition, myoRepSetPosition ->
+                        onShowRpePicker = { workoutLiftId, setPosition, myoRepSetPosition, currentRpe ->
                             pickerViewModel.showRpePicker(
                                 workoutLiftId = workoutLiftId,
                                 setPosition = setPosition,
                                 myoRepSetPosition = myoRepSetPosition,
+                                currentRpe = currentRpe,
                             )
                         },
                         onUpdatePickerSpacer = { padding ->
@@ -220,6 +201,7 @@ fun WorkoutLog(
             }
             RpeKeyboard(
                 visible = pickerState.type == PickerType.Rpe,
+                selectedRpe = pickerState.currentRpe,
                 onRpeSelected = {
                     onRpeSelected(pickerState.workoutLiftId!!, pickerState.setPosition!!, pickerState.myoRepSetPosition, it)
                 },

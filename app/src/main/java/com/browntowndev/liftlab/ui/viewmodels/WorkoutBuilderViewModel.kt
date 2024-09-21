@@ -145,13 +145,14 @@ class WorkoutBuilderViewModel(
         _state.update { it.copy(isReordering = !_state.value.isReordering) }
     }
 
-    fun togglePicker(visible: Boolean, workoutLiftId: Long, position: Int? = null, type: PickerType) {
+    fun togglePicker(visible: Boolean, workoutLiftId: Long, position: Int? = null, type: PickerType, currentRpe: Float? = null) {
         _state.update {
             it.copy(
                 pickerState = if (visible) {
                     PickerState(
                         workoutLiftId = workoutLiftId,
                         setPosition = position,
+                        currentRpe = currentRpe,
                         type = type
                     )
                 } else null

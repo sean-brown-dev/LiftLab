@@ -48,7 +48,7 @@ fun CustomSettings(
     onRepFloorChanged: (position: Int, newRepFloor: Int) -> Unit,
     onCustomSetTypeChanged: (position: Int, newSetType: SetType) -> Unit,
     onMaxSetsChanged: (position: Int, newMaxSets: Int?) -> Unit,
-    toggleRpePicker: (position: Int, visible: Boolean) -> Unit,
+    toggleRpePicker: (position: Int, visible: Boolean, currentRpe: Float?) -> Unit,
     togglePercentagePicker: (position: Int, visible: Boolean) -> Unit,
     toggleDetailsExpansion: (position: Int) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
@@ -91,7 +91,7 @@ fun CustomSettings(
                                 onRepRangeTopChanged = { onRepRangeTopChanged(set.position, it) },
                                 onConfirmRepRangeBottom = { onConfirmRepRangeBottom(set.position) },
                                 onConfirmRepRangeTop = { onConfirmRepRangeTop(set.position) },
-                                toggleRpePicker = { toggleRpePicker(set.position, it) },
+                                toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
                                 isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                 onCustomSetTypeChanged = { setType ->
@@ -126,7 +126,7 @@ fun CustomSettings(
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
                                 isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                 onMaxSetsChanged = { onMaxSetsChanged(set.position, it) },
-                                toggleRpePicker = { toggleRpePicker(set.position, it) },
+                                toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
                                 onCustomSetTypeChanged = { setType ->
                                     onCustomSetTypeChanged(
                                         set.position,
@@ -150,7 +150,7 @@ fun CustomSettings(
                                 onRepRangeTopChanged = { onRepRangeTopChanged(set.position, it) },
                                 onConfirmRepRangeBottom = { onConfirmRepRangeBottom(set.position) },
                                 onConfirmRepRangeTop = { onConfirmRepRangeTop(set.position) },
-                                toggleRpePicker = { toggleRpePicker(set.position, it) },
+                                toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
                                 togglePercentagePicker = { togglePercentagePicker(set.position, it) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
                                 isPreviousSetMyoRep = previousSetType == SetType.MYOREP,

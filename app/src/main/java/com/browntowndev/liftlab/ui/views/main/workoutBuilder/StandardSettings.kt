@@ -125,6 +125,7 @@ private fun StandardSettingRow(
             value = rpeTarget,
             listState = listState,
             disableSystemKeyboard = true,
+            hideCursor = true,
             label = when (progressionScheme) {
                 ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
                 ProgressionScheme.DOUBLE_PROGRESSION -> "RPE"

@@ -8,5 +8,6 @@ data class PickerState(
     val workoutLiftId: Long? = null,
     val setPosition: Int? = null,
     val myoRepSetPosition: Int? = null,
+    val currentRpe: Float? = null,
     val type: PickerType? = null,
 )

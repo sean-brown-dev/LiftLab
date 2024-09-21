@@ -50,7 +50,6 @@ import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
-import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
@@ -59,6 +58,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
+import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -115,6 +115,7 @@ fun WorkoutBuilder(
                         .fillMaxSize()
                         .background(color = MaterialTheme.colorScheme.background)
                         .padding(paddingValues),
+                    state = listState,
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
@@ -305,6 +306,7 @@ fun WorkoutBuilder(
                                         workoutBuilderViewModel.togglePicker(
                                             workoutLiftId = workoutLift.id,
                                             visible = it,
+                                            currentRpe = rpeTarget,
                                             type = PickerType.Rpe,
                                         )
                                     },
@@ -401,11 +403,12 @@ fun WorkoutBuilder(
                                             newMaxSets = newMaxSets,
                                         )
                                     },
-                                    toggleRpePicker = { position, visible ->
+                                    toggleRpePicker = { position, visible, currentRpe ->
                                         workoutBuilderViewModel.togglePicker(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             visible = visible,
+                                            currentRpe = currentRpe,
                                             type = PickerType.Rpe,
                                         )
                                     },
@@ -475,6 +478,7 @@ fun WorkoutBuilder(
 
                 RpeKeyboard(
                     visible = state.pickerState?.type == PickerType.Rpe,
+                    selectedRpe = state.pickerState?.currentRpe,
                     onRpeSelected = {
                         if (state.pickerState!!.setPosition == null) {
                             workoutBuilderViewModel.setLiftRpeTarget(

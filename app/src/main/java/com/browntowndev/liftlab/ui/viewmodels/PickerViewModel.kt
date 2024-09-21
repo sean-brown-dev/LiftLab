@@ -11,12 +11,13 @@ class PickerViewModel: ViewModel() {
     private var _state = MutableStateFlow(PickerState())
     val state = _state.asStateFlow()
 
-    fun showRpePicker(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int? = null) {
+    fun showRpePicker(workoutLiftId: Long, setPosition: Int, currentRpe: Float?, myoRepSetPosition: Int? = null) {
         _state.update {
             it.copy(
                 workoutLiftId = workoutLiftId,
                 setPosition = setPosition,
                 myoRepSetPosition = myoRepSetPosition,
+                currentRpe = currentRpe,
                 type = PickerType.Rpe,
             )
         }
@@ -27,6 +28,8 @@ class PickerViewModel: ViewModel() {
             it.copy(
                 workoutLiftId = null,
                 setPosition = null,
+                myoRepSetPosition = null,
+                currentRpe = null,
                 type = null,
             )
         }

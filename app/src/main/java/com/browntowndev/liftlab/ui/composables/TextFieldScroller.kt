@@ -1,10 +1,12 @@
 package com.browntowndev.liftlab.ui.composables
 
 import android.util.Log
+import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 suspend fun scrollToYLocation(
     listState: LazyListState,
@@ -14,36 +16,36 @@ suspend fun scrollToYLocation(
     currentYLocation: () -> Float,
     positionBuffer: Float,
     onPixelOverflowChanged: (Dp) -> Unit,
+    onScrollComplete: () -> Unit,
 ) {
-    val topOfPickerInPixels = screenInPixels - pickerHeightInPixels
-    var bottomOfTextField = with(screenDensity) {
+    val bottomOfTextField = with(screenDensity) {
         currentYLocation() + positionBuffer.dp.toPx()
     }
 
     Log.d(Log.DEBUG.toString(), "currentYLocation: ${currentYLocation()}")
     Log.d(Log.DEBUG.toString(), "bottomOfTextField: $bottomOfTextField")
-    if (topOfPickerInPixels < bottomOfTextField) {
-        var bottomOfTextDistanceFromBottom = (screenInPixels - bottomOfTextField)
-        val pixelsToScroll = pickerHeightInPixels - bottomOfTextDistanceFromBottom
-        Log.d(Log.DEBUG.toString(), "pixelsToScroll: $pixelsToScroll")
-        listState.scroll {
-            if (pixelsToScroll > 0) {
-                this.scrollBy(pixelsToScroll)
-                bottomOfTextField = with(screenDensity) {
-                    currentYLocation() + positionBuffer.dp.toPx()
-                }
-                bottomOfTextDistanceFromBottom = (screenInPixels - bottomOfTextField)
-                Log.d(Log.DEBUG.toString(), "AFTER SCROLL currentYLocation: ${currentYLocation()}")
-                Log.d(Log.DEBUG.toString(), "AFTER SCROLL bottomOfTextField: $bottomOfTextField")
-            }
-            // +1 makes sure it's at least 1 pixel below
-            if (topOfPickerInPixels + 1 < bottomOfTextField) {
-                val pixelOverflow = pickerHeightInPixels - bottomOfTextDistanceFromBottom
-                val dpOverflow = Dp(pixelOverflow / screenDensity.density)
-                onPixelOverflowChanged(dpOverflow)
 
-                Log.d(Log.DEBUG.toString(), "pixelOverflow: $pixelOverflow")
+    val bottomOfTextDistanceFromBottom = (screenInPixels - bottomOfTextField)
+    val pixelsToScroll = pickerHeightInPixels - bottomOfTextDistanceFromBottom
+    Log.d(Log.DEBUG.toString(), "pixelsToScroll: $pixelsToScroll")
+
+    if (pixelsToScroll > 0) {
+        listState.scroll (scrollPriority = MutatePriority.UserInput) {
+            val remainingSpace = pixelsToScroll - this.scrollBy(pixelsToScroll)
+            delay(100)
+
+            if (remainingSpace > 0) {
+                Log.d(Log.DEBUG.toString(), "remainingSpace: $remainingSpace")
+                onPixelOverflowChanged(Dp(remainingSpace / screenDensity.density))
+                delay(200)
+
+                this.scrollBy(remainingSpace)
+                delay(100)
             }
+
+            onScrollComplete()
         }
+    } else {
+        onScrollComplete()
     }
 }
