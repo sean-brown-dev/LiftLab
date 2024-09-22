@@ -145,7 +145,13 @@ class WorkoutBuilderViewModel(
         _state.update { it.copy(isReordering = !_state.value.isReordering) }
     }
 
-    fun togglePicker(visible: Boolean, workoutLiftId: Long, position: Int? = null, type: PickerType, currentRpe: Float? = null) {
+    fun togglePicker(
+        visible: Boolean,
+        workoutLiftId: Long,
+        position: Int? = null,
+        type: PickerType, currentRpe: Float? = null,
+        currentPercentage: Float? = null
+    ) {
         _state.update {
             it.copy(
                 pickerState = if (visible) {
@@ -153,6 +159,7 @@ class WorkoutBuilderViewModel(
                         workoutLiftId = workoutLiftId,
                         setPosition = position,
                         currentRpe = currentRpe,
+                        currentPercentage = currentPercentage,
                         type = type
                     )
                 } else null

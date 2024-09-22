@@ -411,14 +411,23 @@ fun WorkoutBuilder(
                                             currentRpe = currentRpe,
                                             type = PickerType.Rpe,
                                         )
+
+                                        if (!visible) {
+                                            scrollSpacerSize = 0.dp
+                                        }
                                     },
-                                    togglePercentagePicker = { position, visible ->
+                                    togglePercentagePicker = { position, visible, currentPercentage ->
                                         workoutBuilderViewModel.togglePicker(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             visible = visible,
+                                            currentPercentage = currentPercentage,
                                             type = PickerType.Percentage,
                                         )
+
+                                        if (!visible) {
+                                            scrollSpacerSize = 0.dp
+                                        }
                                     },
                                     toggleDetailsExpansion = {
                                         workoutBuilderViewModel.toggleDetailExpansion(
@@ -467,12 +476,6 @@ fun WorkoutBuilder(
                         }
                         Spacer(modifier = Modifier.height(80.dp))
                         Spacer(modifier = modifier.height(scrollSpacerSize))
-
-                        LaunchedEffect(scrollSpacerSize) {
-                            if (scrollSpacerSize > 0.dp) {
-                                listState.animateScrollToItem(listState.layoutInfo.totalItemsCount - 1)
-                            }
-                        }
                     }
                 }
 
@@ -493,12 +496,10 @@ fun WorkoutBuilder(
                             )
                         }
                     },
-                    onClosed = {
-                        scrollSpacerSize = 0.dp
-                    }
                 )
                 PercentagePicker(
                     visible = state.pickerState?.type == PickerType.Percentage,
+                    selectedPercentage = state.pickerState?.currentPercentage,
                     onPercentageSelected = {
                         workoutBuilderViewModel.setCustomSetDropPercentage(
                             workoutLiftId = state.pickerState!!.workoutLiftId!!,

@@ -1,12 +1,5 @@
 package com.browntowndev.liftlab.ui.composables
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,16 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,8 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,142 +34,79 @@ fun RpeKeyboard(
     visible: Boolean,
     selectedRpe: Float?,
     onRpeSelected: (rpe: Float) -> Unit,
-    onClosed: () -> Unit,
 ) {
-    val focusManager = LocalFocusManager.current
+    CustomKeyboard(modifier = modifier, visible = visible) {
+        var selectedRpeOption: Float? by remember(selectedRpe) { mutableStateOf(selectedRpe) }
+        Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
+            if (selectedRpeOption != null) {
+                val repsLeftInTank = 10.0 - selectedRpeOption!!
+                val repsLeftInTankText = if (repsLeftInTank.toInt().toDouble() == repsLeftInTank) {
+                    if (repsLeftInTank > 1) {
+                        "You could comfortably perform ${repsLeftInTank.toInt()} more reps before failure."
+                    } else if (repsLeftInTank == 1.0) {
+                        "You could comfortably perform ${repsLeftInTank.toInt()} more rep before failure."
+                    } else {
+                        "Maximal exertion. No more reps possible."
+                    }
+                } else {
+                    val bottomRange = repsLeftInTank.toInt().toString()
+                    val topRange = (repsLeftInTank + .5).toInt().toString()
+                    "You could perform $bottomRange - $topRange more reps before failure."
+                }
 
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInVertically(
-            initialOffsetY = { it },
-            animationSpec = tween(durationMillis = 100)
-        ) + fadeIn(),
-        exit = slideOutVertically(
-            targetOffsetY = { it },
-            animationSpec = tween(durationMillis = 100)
-        ) + fadeOut(),
-    ) {
-        ElevatedCard(
-            modifier = modifier.then(
-                Modifier
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                    Text(
+                        text = repsLeftInTankText,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                    )
+                }
+            } else {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                    Text(
+                        text = "Please select a Rate of Perceived Exertion (RPE) value." +
+                                "This is a way of measuring the difficulty of a set.",
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Card(
+            modifier = Modifier
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp.times(.30f))),
+                .padding(horizontal = 10.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-            ),
-            elevation = CardDefaults.elevatedCardElevation(
-                defaultElevation = 5.dp
-            ),
-            shape = RoundedCornerShape(
-                topStart = 10.dp,
-                topEnd = 10.dp,
-                bottomStart = 0.dp,
-                bottomEnd = 0.dp
+                containerColor = MaterialTheme.colorScheme.background
             )
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
             ) {
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(
-                    modifier = Modifier
-                        .padding(top = 10.dp, end = 10.dp)
-                        .height(55.dp)
-                        .width(100.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(50.dp)
-                        ),
-                    onClick = {
-                        focusManager.clearFocus()
-                        onClosed()
-                    }
-                ) {
-                    Icon(
-                        modifier = Modifier.size(25.dp),
-                        imageVector = Icons.Filled.Check,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        contentDescription = null
+                val rpeMinValue = remember { 6f }
+                val rpeMaxValue = remember { 10f }
+                val rpeOptions =
+                    remember { ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2f } }
+                rpeOptions.fastForEach { rpe ->
+                    RpeOption(
+                        modifier = Modifier.weight(1f),
+                        isSelected = remember(selectedRpeOption) { selectedRpeOption == rpe },
+                        value = rpe,
+                        isFirst = remember { rpe == rpeMinValue },
+                        isLast = remember { rpe == rpeMaxValue },
+                        selected = {
+                            selectedRpeOption = rpe
+                            onRpeSelected(rpe)
+                        },
                     )
                 }
-
-                Spacer(modifier = Modifier.width(5.dp))
             }
-            var selectedRpeOption: Float? by remember (selectedRpe) { mutableStateOf(selectedRpe) }
-            Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
-                if (selectedRpeOption != null) {
-                    val repsLeftInTank = 10.0 - selectedRpeOption!!
-                    val repsLeftInTankText = if (repsLeftInTank.toInt().toDouble() == repsLeftInTank) {
-                        if (repsLeftInTank > 1) {
-                            "You could comfortably perform ${repsLeftInTank.toInt()} more reps before failure."
-                        } else if (repsLeftInTank == 1.0) {
-                            "You could comfortably perform ${repsLeftInTank.toInt()} more rep before failure."
-                        }
-                        else {
-                            "Maximal exertion. No more reps possible."
-                        }
-                    }
-                    else {
-                        val bottomRange = repsLeftInTank.toInt().toString()
-                        val topRange = (repsLeftInTank + .5).toInt().toString()
-                        "You could perform $bottomRange - $topRange more reps before failure."
-                    }
-
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
-                        Text(
-                            text = repsLeftInTankText,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp,
-                        )
-                    }
-                }
-                else {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
-                        Text(
-                            text = "Please select a Rate of Perceived Exertion (RPE) value." +
-                                    "This is a way of measuring the difficulty of a set.",
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp,
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                ) {
-                    val rpeMinValue = remember { 6f }
-                    val rpeMaxValue = remember { 10f }
-                    val rpeOptions = remember { ((rpeMinValue * 2).toInt()..(rpeMaxValue * 2).toInt() step 1).map { it / 2f } }
-                    rpeOptions.fastForEach { rpe ->
-                        RpeOption(
-                            modifier = Modifier.weight(1f),
-                            isSelected = remember(selectedRpeOption) { selectedRpeOption == rpe },
-                            value = rpe,
-                            isFirst = remember { rpe == rpeMinValue },
-                            isLast = remember { rpe == rpeMaxValue },
-                            selected = {
-                                selectedRpeOption = rpe
-                                onRpeSelected(rpe)
-                            },
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.weight(.45f))
         }
+        Spacer(modifier = Modifier.weight(.45f))
     }
 }
 

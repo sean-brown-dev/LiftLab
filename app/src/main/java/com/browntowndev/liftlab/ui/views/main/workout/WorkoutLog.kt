@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -159,6 +158,7 @@ fun WorkoutLog(
                         onDeleteMyoRepSet = onDeleteMyoRepSet,
                         onHideRpePicker = {
                             pickerViewModel.hideRpePicker()
+                            pickerSpacer = 0.dp
                         },
                         onShowRpePicker = { workoutLiftId, setPosition, myoRepSetPosition, currentRpe ->
                             pickerViewModel.showRpePicker(
@@ -192,11 +192,6 @@ fun WorkoutLog(
                     }
 
                     Spacer(modifier = Modifier.height(pickerSpacer))
-                    LaunchedEffect(pickerSpacer) {
-                        if (pickerSpacer > 0.dp) {
-                            lazyListState.animateScrollToItem(lazyListState.layoutInfo.totalItemsCount - 1)
-                        }
-                    }
                 }
             }
             RpeKeyboard(
@@ -205,15 +200,7 @@ fun WorkoutLog(
                 onRpeSelected = {
                     onRpeSelected(pickerState.workoutLiftId!!, pickerState.setPosition!!, pickerState.myoRepSetPosition, it)
                 },
-                onClosed = {
-                    pickerViewModel.hideRpePicker()
-                    pickerSpacer = 0.dp
-                },
             )
-            BackHandler(pickerState.type == PickerType.Rpe) {
-                pickerViewModel.hideRpePicker()
-                pickerSpacer = 0.dp
-            }
         }
     }
 

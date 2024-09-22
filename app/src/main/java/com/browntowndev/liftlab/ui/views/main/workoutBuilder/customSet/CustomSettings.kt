@@ -49,7 +49,7 @@ fun CustomSettings(
     onCustomSetTypeChanged: (position: Int, newSetType: SetType) -> Unit,
     onMaxSetsChanged: (position: Int, newMaxSets: Int?) -> Unit,
     toggleRpePicker: (position: Int, visible: Boolean, currentRpe: Float?) -> Unit,
-    togglePercentagePicker: (position: Int, visible: Boolean) -> Unit,
+    togglePercentagePicker: (position: Int, visible: Boolean, currentPercentage: Float) -> Unit,
     toggleDetailsExpansion: (position: Int) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
 ) {
@@ -151,7 +151,7 @@ fun CustomSettings(
                                 onConfirmRepRangeBottom = { onConfirmRepRangeBottom(set.position) },
                                 onConfirmRepRangeTop = { onConfirmRepRangeTop(set.position) },
                                 toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
-                                togglePercentagePicker = { togglePercentagePicker(set.position, it) },
+                                togglePercentagePicker = { togglePercentagePicker(set.position, it, set.dropPercentage) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
                                 isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                 onCustomSetTypeChanged = { setType ->

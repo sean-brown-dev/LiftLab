@@ -9,5 +9,6 @@ data class PickerState(
     val setPosition: Int? = null,
     val myoRepSetPosition: Int? = null,
     val currentRpe: Float? = null,
+    val currentPercentage: Float? = null,
     val type: PickerType? = null,
 )

@@ -32,17 +32,21 @@ suspend fun scrollToYLocation(
     if (pixelsToScroll > 0) {
         listState.scroll (scrollPriority = MutatePriority.UserInput) {
             val remainingSpace = pixelsToScroll - this.scrollBy(pixelsToScroll)
-            delay(100)
 
             if (remainingSpace > 0) {
                 Log.d(Log.DEBUG.toString(), "remainingSpace: $remainingSpace")
                 onPixelOverflowChanged(Dp(remainingSpace / screenDensity.density))
-                delay(200)
 
-                this.scrollBy(remainingSpace)
-                delay(100)
+                var scrolled: Float
+                do {
+                    scrolled = this.scrollBy(remainingSpace)
+
+                    if (scrolled == 0f)
+                        delay(50)
+                } while (scrolled == 0f)
             }
 
+            delay(50)
             onScrollComplete()
         }
     } else {
