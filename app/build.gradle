@@ -55,25 +55,25 @@ android {
 
 
 dependencies {
-    def nav_version = '2.8.1'
+    def nav_version = '2.8.2'
     def material_version = '1.3.0'
     def room_version = '2.6.1'
     def lifecycle_version = '2.8.6'
     def kotlin_coroutines_version = '1.9.0'
-    def compose_version = '1.7.2'
+    def compose_version = '1.7.3'
     def kotlin_reflect_version = '2.0.20'
     def eventbus_version = '3.3.1'
     def mockkVersion = '1.13.12'
     def vico_version = '2.0.0-beta.1'
     def koin_version = '4.0.0'
 
-    implementation 'com.google.guava:guava:33.3.0-jre'
+    implementation 'com.google.guava:guava:33.3.1-jre'
     implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
     implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.2'
 
     implementation 'com.google.android.play:feature-delivery:2.1.0'
     implementation 'com.google.android.play:feature-delivery-ktx:2.1.0'
-    implementation "com.android.billingclient:billing-ktx:7.0.0"
+    implementation 'com.android.billingclient:billing-ktx:7.1.0'
 
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
@@ -84,7 +84,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.6'
     implementation 'androidx.activity:activity-compose:1.9.2'
-    implementation platform('androidx.compose:compose-bom:2024.09.02')
+    implementation platform('androidx.compose:compose-bom:2024.09.03')
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
     implementation 'com.google.j2objc:j2objc-annotations:3.0.0'
 
@@ -93,7 +93,7 @@ dependencies {
     implementation "androidx.compose.ui:ui-graphics:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.foundation:foundation:$compose_version"
-    implementation 'androidx.compose.runtime:runtime-livedata:1.7.2'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.7.3'
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     implementation "androidx.compose.material:material:$compose_version"
@@ -105,7 +105,7 @@ dependencies {
     implementation 'io.arrow-kt:arrow-fx-coroutines:1.2.4'
     implementation 'de.raphaelebner:roomdatabasebackup:1.0.1'
     implementation 'com.valentinilk.shimmer:compose-shimmer:1.3.1'
-    implementation "dev.shreyaspatil:capturable:2.1.0"
+    implementation 'dev.shreyaspatil:capturable:3.0.0'
 
     // Work
     implementation 'androidx.work:work-runtime-ktx:2.9.1'
@@ -148,10 +148,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2024.09.02')
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.7.2'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.7.2'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.7.2'
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.09.03')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.7.3'
+    debugImplementation 'androidx.compose.ui:ui-tooling:1.7.3'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.7.3'
 
     // Vico Charts
     // For Jetpack Compose.

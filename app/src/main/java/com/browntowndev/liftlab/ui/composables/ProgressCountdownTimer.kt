@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
@@ -76,7 +77,7 @@ fun ProgressCountdownTimer(
     ) {
         Box(
             modifier = Modifier.width(125.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             LinearProgressIndicator(
                 progress = { animatedProgress },
@@ -85,6 +86,8 @@ fun ProgressCountdownTimer(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(5.dp)),
                 color = MaterialTheme.colorScheme.secondary,
+                strokeCap = StrokeCap.Butt,
+                gapSize = 0.dp,
             )
             Row (
                 modifier = Modifier.fillMaxWidth(),
