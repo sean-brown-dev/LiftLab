@@ -41,7 +41,6 @@ import com.browntowndev.liftlab.ui.views.main.workout.EditWorkout
 import com.browntowndev.liftlab.ui.views.main.workout.Workout
 import com.browntowndev.liftlab.ui.views.main.workout.WorkoutHistory
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.WorkoutBuilder
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 
 
 @ExperimentalFoundationApi
@@ -142,7 +141,8 @@ fun NavigationGraph(
             val callerRoute = it.arguments?.getString("callerRoute")
             val workoutId = it.arguments?.getString("workoutId")?.toLongOrNull()
             val workoutLiftId = it.arguments?.getString("workoutLiftId")?.toLongOrNull()
-            val movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
+            var movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
+            movementPatternParam = if (movementPatternParam == "{movementPattern}") "" else movementPatternParam
             val addAtPosition = it.arguments?.getString("addAtPosition")?.toIntOrNull()
             val liftMetricChartIds = navHostController.previousBackStackEntry
                 ?.savedStateHandle
