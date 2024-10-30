@@ -15,17 +15,19 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
     suspend fun createLift(lift: LiftDto) {
         liftsDao.insert(
             Lift(
-            id = lift.id,
-            name = lift.name,
-            movementPattern = lift.movementPattern,
-            volumeTypesBitmask = lift.volumeTypesBitmask,
-            secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
-            incrementOverride = lift.incrementOverride,
-            restTime = lift.restTime,
-            restTimerEnabled = lift.restTimerEnabled,
-            isHidden = lift.isHidden,
-            isBodyweight = lift.isBodyweight,
-        ))
+                id = lift.id,
+                name = lift.name,
+                movementPattern = lift.movementPattern,
+                volumeTypesBitmask = lift.volumeTypesBitmask,
+                secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
+                incrementOverride = lift.incrementOverride,
+                restTime = lift.restTime,
+                restTimerEnabled = lift.restTimerEnabled,
+                isHidden = lift.isHidden,
+                isBodyweight = lift.isBodyweight,
+                note = lift.note,
+            )
+        )
     }
 
     suspend fun update(lift: LiftDto) {
@@ -41,6 +43,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 restTimerEnabled = lift.restTimerEnabled,
                 isHidden = lift.isHidden,
                 isBodyweight = lift.isBodyweight,
+                note = lift.note,
             ))
     }
 
