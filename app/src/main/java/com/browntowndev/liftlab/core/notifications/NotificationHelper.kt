@@ -3,7 +3,12 @@ package com.browntowndev.liftlab.core.notifications
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
+import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
@@ -67,38 +72,62 @@ class NotificationHelper(
                     nextSet = getNextSetText(
                         completedSets = workoutInProgress.completedSets,
                         lifts = workout.lifts,
+                        programDeloadWeek = activeProgramMetadata.deloadWeek,
+                        microCycle = activeProgramMetadata.currentMicrocycle,
                     )
                 )
             } else null
         }
     }
 
-    private fun getNextSetText(completedSets: List<SetResult>, lifts: List<GenericWorkoutLift>): String {
+    private fun getNextSetText(
+        completedSets: List<SetResult>,
+        lifts: List<GenericWorkoutLift>,
+        programDeloadWeek: Int,
+        microCycle: Int,
+    ): String {
         return completedSets.maxWithOrNull(
             compareBy<SetResult> { it.liftPosition }.thenBy { it.setPosition }
         )?.let { lastCompletedSet ->
             val liftOfSet = lifts[lastCompletedSet.liftPosition]
             if (lastCompletedSet.setPosition + 1 < liftOfSet.setCount) {
-                getNextSetText(workoutLift = liftOfSet, lastCompletedSetForLift = lastCompletedSet)
+                getNextSetText(workoutLift = liftOfSet, lastCompletedSetForLift = lastCompletedSet, programDeloadWeek = programDeloadWeek, microCycle = microCycle)
             } else if (liftOfSet.position + 1 < lifts.size) {
                 val nextLift = lifts[liftOfSet.position + 1]
-                getNextSetText(workoutLift = nextLift, lastCompletedSetForLift = null)
+                getNextSetText(workoutLift = nextLift, lastCompletedSetForLift = null, programDeloadWeek = programDeloadWeek, microCycle = microCycle)
             } else {
                 "Workout Complete!"
             }
-        } ?: getNextSetText(workoutLift = lifts.first(), lastCompletedSetForLift = null)
+        } ?: getNextSetText(workoutLift = lifts.first(), lastCompletedSetForLift = null, programDeloadWeek = programDeloadWeek, microCycle = microCycle)
     }
 
     private fun getNextSetText(
         workoutLift: GenericWorkoutLift,
-        lastCompletedSetForLift: SetResult?
+        lastCompletedSetForLift: SetResult?,
+        programDeloadWeek: Int,
+        microCycle: Int,
     ) = when (workoutLift) {
         is StandardWorkoutLiftDto -> {
-            "${workoutLift.liftName}\n${workoutLift.repRangeBottom}-${workoutLift.repRangeTop} reps"
-                .let { nextSet ->
+            val repText = if (workoutLift.stepSize != null && workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
+                val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+                val deloadWeek = if(liftLevelDeloadsEnabled && workoutLift.deloadWeek != null) workoutLift.deloadWeek!! else programDeloadWeek
+
+                if (microCycle < deloadWeek - 1) {
+                    val stepSequence = generateCompleteStepSequence(
+                        repRangeTop = workoutLift.repRangeTop,
+                        repRangeBottom = workoutLift.repRangeBottom,
+                        stepSize = workoutLift.stepSize,
+                        totalStepsToTake = deloadWeek - 1,
+                    )
+                    "${stepSequence[microCycle]}"
+                } else "${workoutLift.repRangeBottom}"
+            } else "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
+
+            "${workoutLift.liftName}\n$repText reps"
+                .let { liftAndRepsText ->
                     if (lastCompletedSetForLift == null || workoutLift.progressionScheme != ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-                        nextSet + " @${workoutLift.rpeTarget} RPE"
-                    } else nextSet
+                        "$liftAndRepsText @${workoutLift.rpeTarget} RPE"
+                    } else liftAndRepsText
                 }
         }
 

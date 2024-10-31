@@ -66,7 +66,7 @@ class WaveLoadingProgressionCalculator(
             repRangeTop = workoutLift.repRangeTop,
             microCycle = microCycle,
             deloadWeek = deloadWeek,
-            workoutLift.stepSize,
+            stepSize = workoutLift.stepSize,
         )
         val isTopOfRepRange = reps == workoutLift.repRangeTop
         val recalculateWeight = shouldRecalculateWeight(result, workoutLift, deloadWeek)
@@ -88,7 +88,12 @@ class WaveLoadingProgressionCalculator(
     private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int, stepSize: Int?): Int? {
         return if (stepSize != null) {
             if (microCycle < deloadWeek - 1) {
-                val steps = generateCompleteStepSequence(repRangeTop = repRangeTop, repRangeBottom = repRangeBottom, stepSize = stepSize, deloadWeek - 1)
+                val steps = generateCompleteStepSequence(
+                    repRangeTop = repRangeTop,
+                    repRangeBottom = repRangeBottom,
+                    stepSize = stepSize,
+                    totalStepsToTake = deloadWeek - 1,
+                )
                 steps[microCycle]
             } else {
                 repRangeBottom
@@ -98,7 +103,7 @@ class WaveLoadingProgressionCalculator(
                 repRangeBottom = repRangeBottom,
                 repRangeTop = repRangeTop,
                 microCycle = microCycle,
-                deloadWeek = deloadWeek
+                deloadWeek = deloadWeek,
             )
         }
     }
