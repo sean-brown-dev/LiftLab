@@ -59,6 +59,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScree
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -72,7 +73,7 @@ fun WorkoutBuilder(
     modifier: Modifier = Modifier,
     screenId: String?,
     onNavigateBack: () -> Unit,
-    onNavigateToLiftLibrary: (route: String) -> Unit,
+    onNavigateToLiftLibrary: (route: Route.LiftLibrary) -> Unit,
     workoutId: Long,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
@@ -172,16 +173,12 @@ fun WorkoutBuilder(
                                 }
                             },
                             onReplaceLift = {
-                                val liftLibraryRoute = LiftLibraryScreen.navigation.route
-                                    .replace("{callerRoute}", WorkoutBuilderScreen.navigation.route)
-                                    .replace("{workoutId}", state.workout!!.id.toString())
-                                    .replace("{workoutLiftId}", workoutLift.id.toString())
-                                    .replace(
-                                        "{movementPattern}",
-                                        workoutLift.liftMovementPattern.displayName()
-                                    )
-
-                                onNavigateToLiftLibrary(liftLibraryRoute)
+                                onNavigateToLiftLibrary(Route.LiftLibrary(
+                                    callerRoute = WorkoutBuilderScreen.navigation.route,
+                                    workoutId = state.workout!!.id,
+                                    workoutLiftId = workoutLift.id,
+                                    movementPattern = workoutLift.liftMovementPattern.displayName(),
+                                ))
                             },
                             onDeleteLift = {
                                 workoutBuilderViewModel.toggleMovementPatternDeletionModal(
@@ -456,13 +453,10 @@ fun WorkoutBuilder(
                         ) {
                             TextButton(
                                 onClick = {
-                                    val liftLibraryRoute = LiftLibraryScreen.navigation.route
-                                        .replace("{workoutId}", state.workout!!.id.toString())
-                                        .replace(
-                                            "{addAtPosition}",
-                                            state.workout!!.lifts.count().toString()
-                                        )
-                                    onNavigateToLiftLibrary(liftLibraryRoute)
+                                    onNavigateToLiftLibrary(Route.LiftLibrary(
+                                        workoutId = state.workout!!.id,
+                                        addAtPosition = state.workout!!.lifts.count(),
+                                    ))
                                 }
                             ) {
                                 Text(

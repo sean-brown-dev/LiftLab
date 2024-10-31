@@ -10,11 +10,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import arrow.core.Either
 import arrow.core.left
 import com.android.billingclient.api.ProductDetails
@@ -62,14 +61,13 @@ fun NavigationGraph(
     onRestore: () -> Unit,
 ) {
     NavHost(navHostController, startDestination = WorkoutScreen.navigation.route) {
-        composable(HomeScreen.navigation.route) {
+        composable<Route.Home> { homeBackstackEntry ->
             val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
-
-            val isHomeScreen = remember(screen, currentRoute) {
+            val isHomeScreen = remember(screen, currentScreen) {
                 screen is HomeScreen &&
-                        currentRoute == HomeScreen.navigation.route
+                        currentScreen?.id == homeBackstackEntry.id
             }
+
             if (isHomeScreen) {
                 LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(true)
@@ -78,21 +76,21 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
-                    onNavigateToSettingsMenu = { navHostController.navigate(SettingsScreen.navigation.route) },
+                    onNavigateToSettingsMenu = { navHostController.navigate(Route.Settings) },
                     onNavigateToLiftLibrary = { chartIds ->
                         navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
-                        navHostController.navigate(LiftLibraryScreen.navigation.route)
+                        navHostController.navigate(Route.LiftLibrary())
                     },
                 )
             }
         }
-        composable(SettingsScreen.navigation.route) {
-            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isSettingsScreen = remember(screen, currentRoute) {
+        composable<Route.Settings> { settingsBackstackEntry ->
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+
+            val isSettingsScreen = remember(screen, currentScreen) {
                 screen is SettingsScreen &&
-                        currentRoute == SettingsScreen.navigation.route
+                        currentScreen?.id == settingsBackstackEntry.id
             }
             if (isSettingsScreen) {
                 LaunchedEffect(key1 = Unit) {
@@ -118,46 +116,22 @@ fun NavigationGraph(
                 )
             }
         }
-        composable(
-            route = LiftLibraryScreen.navigation.route,
-            arguments = listOf(
-                navArgument("callerRoute") {
-                  nullable = true
-                },
-                navArgument("workoutId") {
-                    nullable = true
-                },
-                navArgument("workoutLiftId") {
-                    nullable = true
-                },
-                navArgument("movementPattern") {
-                    nullable = true
-                },
-                navArgument("addAtPosition") {
-                    nullable = true
-                },
-            )
-        ) { it ->
-            val callerRoute = it.arguments?.getString("callerRoute")
-            val workoutId = it.arguments?.getString("workoutId")?.toLongOrNull()
-            val workoutLiftId = it.arguments?.getString("workoutLiftId")?.toLongOrNull()
-            var movementPatternParam = it.arguments?.getString("movementPattern") ?: ""
-            movementPatternParam = if (movementPatternParam == "{movementPattern}") "" else movementPatternParam
-            val addAtPosition = it.arguments?.getString("addAtPosition")?.toIntOrNull()
+
+        composable<Route.LiftLibrary> { liftLibraryBackstackEntry ->
+            val liftLibraryParams = liftLibraryBackstackEntry.toRoute<Route.LiftLibrary>()
             val liftMetricChartIds = navHostController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<List<Long>>(LIFT_METRIC_CHART_IDS) ?: listOf()
 
             val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isLiftLibraryScreen = remember(screen, currentRoute) {
+            val isLiftLibraryScreen = remember(screen, currentScreen) {
                 screen is LiftLibraryScreen &&
-                        (currentRoute?.startsWith(LiftLibraryScreen.navigation.route) ?: false)
+                        currentScreen?.id == liftLibraryBackstackEntry.id
             }
             if (isLiftLibraryScreen) {
                 LaunchedEffect(key1 = Unit) {
-                    if (workoutId != null || liftMetricChartIds.isNotEmpty()) {
+                    if (liftLibraryParams.workoutId != null || liftMetricChartIds.isNotEmpty()) {
                         setBottomNavBarVisibility(false)
                     } else {
                         setBottomNavBarVisibility(true)
@@ -167,11 +141,11 @@ fun NavigationGraph(
                 LiftLibrary(
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
-                    callerRoute = callerRoute,
-                    workoutId = workoutId,
-                    workoutLiftId = workoutLiftId,
-                    movementPattern = movementPatternParam,
-                    addAtPosition = addAtPosition,
+                    callerRoute = liftLibraryParams.callerRoute,
+                    workoutId = liftLibraryParams.workoutId,
+                    workoutLiftId = liftLibraryParams.workoutLiftId,
+                    movementPattern = liftLibraryParams.movementPattern ?: "",
+                    addAtPosition = liftLibraryParams.addAtPosition,
                     liftMetricChartIds = liftMetricChartIds,
                     isSearchBarVisible = (screen as LiftLibraryScreen).isSearchBarVisible,
                     onNavigateBack = onNavigateBack,
@@ -192,31 +166,28 @@ fun NavigationGraph(
                         }
 
                         // Go back to Home
-                        navHostController.navigate(HomeScreen.navigation.route)
+                        navHostController.navigate(Route.Home)
                     },
                     onNavigateToLiftDetails = { liftId ->
-                        val liftDetailsRoute = if (liftId != null) {
-                            LiftDetailsScreen.navigation.route
-                                .replace("{id}", liftId.toString())
-                        } else LiftDetailsScreen.navigation.route
+                        val liftDetailsRoute = if (liftId != null)
+                            Route.LiftDetails(liftId = liftId)
+                         else
+                             Route.LiftDetails()
 
                         navHostController.navigate(liftDetailsRoute)
                     },
                     onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
                         // Pop back to lab
-                        navHostController.navigate(LabScreen.navigation.route) {
+                        navHostController.navigate(Route.Lab) {
                             popUpTo(navHostController.graph.startDestinationRoute!!) {
                                 inclusive = false
                             }
                         }
-
-                        // Go back to workout builder
-                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutBuilderWorkoutId.toString())
-                        navHostController.navigate(workoutBuilderRoute)
+                        navHostController.navigate(Route.WorkoutBuilder(workoutId = workoutBuilderWorkoutId))
                     },
                     onNavigateToActiveWorkout = {
                         // Pop back to lab
-                        navHostController.navigate(WorkoutScreen.navigation.route.replace("{showLog}", true.toString())) {
+                        navHostController.navigate(Route.Workout(showLog = true)) {
                             popUpTo(navHostController.graph.startDestinationRoute!!) {
                                 inclusive = true
                             }
@@ -225,22 +196,14 @@ fun NavigationGraph(
                 )
             }
         }
-        composable(
-            route = LiftDetailsScreen.navigation.route,
-            arguments = listOf(
-                navArgument("id") {
-                    type = NavType.StringType
-                    nullable = true
-                },
-            )
-        ) {
-            val id = it.arguments?.getString("id")?.toLongOrNull()
-            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isLiftDetailsScreen = remember(screen, currentRoute) {
+        composable<Route.LiftDetails> { liftDetailsBackstackEntry ->
+            val id = liftDetailsBackstackEntry.toRoute<Route.LiftDetails>().liftId
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+
+            val isLiftDetailsScreen = remember(screen, currentScreen) {
                 screen is LiftDetailsScreen &&
-                        (currentRoute?.startsWith(LiftDetailsScreen.navigation.route) ?: false)
+                        currentScreen?.id == liftDetailsBackstackEntry.id
             }
 
             if (isLiftDetailsScreen) {
@@ -264,35 +227,27 @@ fun NavigationGraph(
                 )
             }
         }
-        composable(
-            route = WorkoutScreen.navigation.route,
-            arguments = listOf(
-                navArgument("showLog") {
-                    nullable = true
-                },
-            )
-        ) {
-            val backStackEntryId = remember(it.id) { it.id }
-            var showLog by remember(it.id) {
+
+        composable<Route.Workout> { workoutBackstackEntry ->
+            var showLog by remember(workoutBackstackEntry.id) {
                 mutableStateOf(
                     value =  navHostController.currentBackStackEntry?.savedStateHandle?.get(SHOW_WORKOUT_LOG) ?:
-                        it.arguments?.getString("showLog")?.toBoolean() ?: false
+                        workoutBackstackEntry.toRoute<Route.Workout>().showLog ?: false
                 )
             }
             navHostController.currentBackStackEntry?.savedStateHandle?.set(SHOW_WORKOUT_LOG, false)
 
             LaunchedEffect(key1 = navHostController.currentBackStackEntry) {
-                if (navHostController.currentBackStackEntry?.id != backStackEntryId) {
+                if (navHostController.currentBackStackEntry?.id != workoutBackstackEntry.id) {
                     showLog = false
                 }
             }
 
             val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isWorkoutScreen = remember(screen, currentRoute) {
+            val isWorkoutScreen = remember(screen, currentScreen) {
                 screen is WorkoutScreen &&
-                        currentRoute == WorkoutScreen.navigation.route
+                        currentScreen?.id == workoutBackstackEntry.id
             }
 
             if (isWorkoutScreen) {
@@ -312,13 +267,13 @@ fun NavigationGraph(
                 }
             }
         }
-        composable(WorkoutHistoryScreen.navigation.route) {
-            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isWorkoutHistoryScreen = remember(screen, currentRoute) {
+        composable<Route.WorkoutHistory> { workoutHistoryBackstackEntry ->
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+
+            val isWorkoutHistoryScreen = remember(screen, currentScreen) {
                 screen is WorkoutHistoryScreen &&
-                        currentRoute == WorkoutHistoryScreen.navigation.route
+                        currentScreen?.id == workoutHistoryBackstackEntry.id
             }
             if (isWorkoutHistoryScreen) {
                 LaunchedEffect(key1 = Unit) {
@@ -333,37 +288,27 @@ fun NavigationGraph(
                         navHostController.popBackStack()
                     },
                     onNavigateToEditWorkoutScreen = { workoutLogEntryId ->
-                        val editWorkoutRoute = EditWorkoutScreen.navigation.route.replace("{workoutLogEntryId}", workoutLogEntryId.toString())
-                        navHostController.navigate(editWorkoutRoute)
+                        navHostController.navigate(Route.EditWorkout(workoutLogEntryId = workoutLogEntryId))
                     }
                 )
             }
         }
-        composable(
-            route = EditWorkoutScreen.navigation.route,
-            arguments = listOf(
-                navArgument("workoutLogEntryId") {
-                    type = NavType.LongType
-                    nullable = false
-                },
-            )
-        ) {
-            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isEditWorkoutScreen = remember(screen, currentRoute) {
+        composable<Route.EditWorkout> { editWorkoutBackstackEntry ->
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+
+            val isEditWorkoutScreen = remember(screen, currentScreen) {
                 screen is EditWorkoutScreen &&
-                        currentRoute == EditWorkoutScreen.navigation.route
+                        currentScreen?.id == editWorkoutBackstackEntry.id
             }
             if (isEditWorkoutScreen) {
-                val workoutLogEntryId = it.arguments?.getLong("workoutLogEntryId")
                 LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                     setTopAppBarCollapsed(true)
                 }
 
                 EditWorkout(
-                    workoutLogEntryId = workoutLogEntryId!!,
+                    workoutLogEntryId = editWorkoutBackstackEntry.toRoute<Route.EditWorkout>().workoutLogEntryId,
                     paddingValues = paddingValues,
                     screenId = navHostController.currentBackStackEntry?.id,
                     mutateTopAppBarControlValue = mutateTopAppBarControlValue,
@@ -373,13 +318,12 @@ fun NavigationGraph(
                 )
             }
         }
-        composable(LabScreen.navigation.route) {
-            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isLabScreen = remember(screen, currentRoute) {
+        composable<Route.Lab> { labBackstackEntry ->
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+            val isLabScreen = remember(screen, currentScreen) {
                 screen is LabScreen &&
-                        currentRoute == LabScreen.navigation.route
+                        currentScreen?.id == labBackstackEntry.id
             }
             if (isLabScreen) {
                 LaunchedEffect(key1 = Unit) {
@@ -398,29 +342,21 @@ fun NavigationGraph(
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onNavigateToWorkoutBuilder = { workoutId ->
-                        val workoutBuilderRoute = WorkoutBuilderScreen.navigation.route.replace("{id}", workoutId.toString())
-                        navHostController.navigate(workoutBuilderRoute)
+                        navHostController.navigate(Route.WorkoutBuilder(workoutId = workoutId))
                     }
                 )
             }
         }
-        composable(
-            route = WorkoutBuilderScreen.navigation.route,
-            arguments = listOf(
-                navArgument("id") {
-                    type = NavType.LongType
-                },
-            )
-        ) {
-            val workoutId = it.arguments?.getLong("id")
-            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
-            val currentRoute = currentScreen?.destination?.route
 
-            val isWorkoutBuilderScreen = remember(screen, currentRoute) {
+        composable<Route.WorkoutBuilder> { workoutBuilderBackstackEntry ->
+            val workoutId = workoutBuilderBackstackEntry.toRoute<Route.WorkoutBuilder>().workoutId
+            val currentScreen: NavBackStackEntry? by navHostController.currentBackStackEntryAsState()
+
+            val isWorkoutBuilderScreen = remember(screen, currentScreen) {
                 screen is WorkoutBuilderScreen &&
-                    (currentRoute?.startsWith(WorkoutBuilderScreen.navigation.route) ?: false)
+                        currentScreen?.id == workoutBuilderBackstackEntry.id
             }
-            if (isWorkoutBuilderScreen && workoutId != null) {
+            if (isWorkoutBuilderScreen) {
                 LaunchedEffect(key1 = Unit) {
                     setBottomNavBarVisibility(false)
                     setTopAppBarCollapsed(true)

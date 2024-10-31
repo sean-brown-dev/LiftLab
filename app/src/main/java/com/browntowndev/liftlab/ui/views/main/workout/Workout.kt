@@ -48,6 +48,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -62,7 +63,7 @@ fun Workout(
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     onNavigateToWorkoutHistory: () -> Unit,
-    onNavigateToLiftLibrary: (route: String) -> Unit,
+    onNavigateToLiftLibrary: (route: Route.LiftLibrary) -> Unit,
 ) {
     val liftLevelDeloadsEnabled = remember {
         SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
@@ -303,16 +304,12 @@ fun Workout(
                 )
             },
             onReplaceLift = { workoutLiftId, movementPattern ->
-                val liftLibraryRoute = LiftLibraryScreen.navigation.route
-                    .replace("{callerRoute}", WorkoutScreen.navigation.route)
-                    .replace("{workoutId}", state.workout!!.id.toString())
-                    .replace("{workoutLiftId}", workoutLiftId.toString())
-                    .replace(
-                        "{movementPattern}",
-                        movementPattern.displayName()
-                    )
-
-                onNavigateToLiftLibrary(liftLibraryRoute)
+                onNavigateToLiftLibrary(Route.LiftLibrary(
+                    callerRoute = WorkoutScreen.navigation.route,
+                    workoutId = state.workout!!.id,
+                    workoutLiftId = workoutLiftId,
+                    movementPattern = movementPattern.displayName(),
+                ))
             },
             onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
                 workoutViewModel.deleteMyoRepSet(

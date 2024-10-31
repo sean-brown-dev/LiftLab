@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.devtools.ksp'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
 android {
@@ -55,17 +56,19 @@ android {
 
 
 dependencies {
-    def nav_version = '2.8.2'
-    def material_version = '1.3.0'
+    def nav_version = '2.8.3'
+    def material_version = '1.3.1'
     def room_version = '2.6.1'
-    def lifecycle_version = '2.8.6'
+    def lifecycle_version = '2.8.7'
     def kotlin_coroutines_version = '1.9.0'
-    def compose_version = '1.7.3'
-    def kotlin_reflect_version = '2.0.20'
+    def compose_version = '1.7.5'
+    def kotlin_reflect_version = '2.0.21'
     def eventbus_version = '3.3.1'
-    def mockkVersion = '1.13.12'
+    def mockkVersion = '1.13.13'
     def vico_version = '2.0.0-beta.1'
     def koin_version = '4.0.0'
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
 
     implementation 'com.google.guava:guava:33.3.1-jre'
     implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
@@ -81,10 +84,10 @@ dependencies {
     kapt "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
 
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_reflect_version"
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.6'
-    implementation 'androidx.activity:activity-compose:1.9.2'
-    implementation platform('androidx.compose:compose-bom:2024.09.03')
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
+    implementation 'androidx.activity:activity-compose:1.9.3'
+    implementation platform('androidx.compose:compose-bom:2024.10.01')
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
     implementation 'com.google.j2objc:j2objc-annotations:3.0.0'
 
@@ -93,14 +96,14 @@ dependencies {
     implementation "androidx.compose.ui:ui-graphics:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.foundation:foundation:$compose_version"
-    implementation 'androidx.compose.runtime:runtime-livedata:1.7.3'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.7.5'
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material3:material3:$material_version"
 
     // Third Party
-    implementation 'sh.calvin.reorderable:reorderable:2.3.3'
+    implementation 'sh.calvin.reorderable:reorderable:2.4.0'
     implementation 'io.arrow-kt:arrow-core:1.2.4'
     implementation 'io.arrow-kt:arrow-fx-coroutines:1.2.4'
     implementation 'de.raphaelebner:roomdatabasebackup:1.0.1'
@@ -108,8 +111,8 @@ dependencies {
     implementation 'dev.shreyaspatil:capturable:3.0.0'
 
     // Work
-    implementation 'androidx.work:work-runtime-ktx:2.9.1'
-    implementation 'androidx.work:work-runtime:2.9.1'
+    implementation 'androidx.work:work-runtime-ktx:2.10.0'
+    implementation 'androidx.work:work-runtime:2.10.0'
 
     // Annotation
     implementation "javax.annotation:javax.annotation-api:1.3.2"
@@ -148,10 +151,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2024.09.03')
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.7.3'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.7.3'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.7.3'
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.10.01')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.7.5'
+    debugImplementation 'androidx.compose.ui:ui-tooling:1.7.5'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.7.5'
 
     // Vico Charts
     // For Jetpack Compose.
