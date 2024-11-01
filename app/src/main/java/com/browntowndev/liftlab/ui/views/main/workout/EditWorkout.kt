@@ -108,8 +108,6 @@ fun EditWorkout(
                     myoRepSetPosition = myoRepSetPosition
                 )
             },
-            cancelWorkout = { },
-            onChangeRestTime = { _, _, _ -> },
             onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
                 editWorkoutViewModel.deleteMyoRepSet(
                     workoutLiftId = workoutLiftId,
@@ -117,9 +115,14 @@ fun EditWorkout(
                     myoRepSetPosition = myoRepSetPosition,
                 )
             },
+            onAddSet = { workoutLiftId ->
+                editWorkoutViewModel.addSet(workoutLiftId)
+            },
             onNoteChanged = { _, _ -> },
             onReplaceLift = { _, _ -> },
             onReorderLiftsClicked = { },
+            cancelWorkout = { },
+            onChangeRestTime = { _, _, _ -> },
         )
     }
 }

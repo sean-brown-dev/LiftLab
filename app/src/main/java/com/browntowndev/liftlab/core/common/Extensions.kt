@@ -18,12 +18,15 @@ import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
+import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -413,4 +416,67 @@ fun Int.toFriendlyMessage(): String {
         BillingResponseCode.SERVICE_UNAVAILABLE -> "There was a network issue processing the donation. Please try again later."
         else -> "An error occurred during the purchase."
     }
+}
+
+fun GenericLoggingSet.copyGeneric(
+    position: Int = this.position,
+    rpeTarget: Float = this.rpeTarget,
+    repRangeBottom: Int? = this.repRangeBottom,
+    repRangeTop: Int? = this.repRangeTop,
+    weightRecommendation: Float? = this.weightRecommendation,
+    hadInitialWeightRecommendation: Boolean = this.hadInitialWeightRecommendation,
+    previousSetResultLabel: String = this.previousSetResultLabel,
+    repRangePlaceholder: String = this.repRangePlaceholder,
+    setNumberLabel: String = this.setNumberLabel,
+    completedWeight: Float? = this.completedWeight,
+    completedReps: Int? = this.completedReps,
+    completedRpe: Float? = this.completedRpe,
+    complete: Boolean = this.complete
+): GenericLoggingSet = when(this) {
+    is LoggingStandardSetDto -> this.copy(
+        position = position,
+        rpeTarget = rpeTarget,
+        repRangeBottom = repRangeBottom!!,
+        repRangeTop = repRangeTop!!,
+        weightRecommendation = weightRecommendation,
+        hadInitialWeightRecommendation = hadInitialWeightRecommendation,
+        previousSetResultLabel = previousSetResultLabel,
+        repRangePlaceholder = repRangePlaceholder,
+        setNumberLabel = setNumberLabel,
+        completedWeight = completedWeight,
+        completedReps = completedReps,
+        completedRpe = completedRpe,
+        complete = complete
+    )
+    is LoggingMyoRepSetDto -> this.copy(
+        position = position,
+        rpeTarget = rpeTarget,
+        repRangeBottom = repRangeBottom,
+        repRangeTop = repRangeTop,
+        weightRecommendation = weightRecommendation,
+        hadInitialWeightRecommendation = hadInitialWeightRecommendation,
+        previousSetResultLabel = previousSetResultLabel,
+        repRangePlaceholder = repRangePlaceholder,
+        setNumberLabel = setNumberLabel,
+        completedWeight = completedWeight,
+        completedReps = completedReps,
+        completedRpe = completedRpe,
+        complete = complete
+    )
+    is LoggingDropSetDto -> this.copy(
+        position = position,
+        rpeTarget = rpeTarget,
+        repRangeBottom = repRangeBottom!!,
+        repRangeTop = repRangeTop!!,
+        weightRecommendation = weightRecommendation,
+        hadInitialWeightRecommendation = hadInitialWeightRecommendation,
+        previousSetResultLabel = previousSetResultLabel,
+        repRangePlaceholder = repRangePlaceholder,
+        setNumberLabel = setNumberLabel,
+        completedWeight = completedWeight,
+        completedReps = completedReps,
+        completedRpe = completedRpe,
+        complete = complete
+    )
+    else -> throw Exception("${this::class.simpleName} is not defined.")
 }

@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
+import com.browntowndev.liftlab.core.common.copyGeneric
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -360,6 +361,55 @@ class EditWorkoutViewModel(
 
     public override suspend fun updateLinearProgressionFailures() {
         super.updateLinearProgressionFailures()
+    }
+
+    fun addSet(workoutLiftId: Long) {
+        executeInTransactionScope {
+            var newSet: GenericLoggingSet? = null
+            val workoutLiftWithNewSet = mutableWorkoutState.value.workout?.lifts
+                ?.find { it.id == workoutLiftId }
+                ?.let { workoutLift ->
+                    workoutLift.copy(
+                        sets = workoutLift.sets.toMutableList().apply {
+                            val lastSet = last()
+                            newSet = lastSet.copyGeneric(position = lastSet.position + 1)
+                            add(newSet!!)
+                        }.toList()
+                    )
+                }
+
+            if (newSet != null && workoutLiftWithNewSet != null) {
+                mutableWorkoutState.update {
+                    it.copy(
+                        workout = it.workout?.copy(
+                            lifts = it.workout.lifts.fastMap { workoutLift ->
+                                if (workoutLift.id == workoutLiftId)
+                                    workoutLiftWithNewSet
+                                else workoutLift
+                            }
+                        ))
+                }
+
+                completeSet(
+                    restTime = 0L, restTimerEnabled = false, result = buildSetResult(
+                        setType = when (newSet) {
+                            is LoggingStandardSetDto -> SetType.STANDARD
+                            is LoggingDropSetDto -> SetType.DROP_SET
+                            is LoggingMyoRepSetDto -> SetType.MYOREP
+                            else -> throw Exception("${newSet!!::class.simpleName} is not defined")
+                        },
+                        liftId = workoutLiftWithNewSet.liftId,
+                        progressionScheme = workoutLiftWithNewSet.progressionScheme,
+                        liftPosition = workoutLiftWithNewSet.position,
+                        setPosition = newSet!!.position,
+                        myoRepSetPosition = (newSet as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+                        weight = newSet!!.completedWeight ?: 0f,
+                        reps = newSet!!.completedReps ?: 0,
+                        rpe = newSet!!.completedRpe ?: 8f,
+                    )
+                )
+            }
+        }
     }
 
     private fun getSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {

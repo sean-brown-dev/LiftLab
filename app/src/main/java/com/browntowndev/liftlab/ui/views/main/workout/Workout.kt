@@ -322,6 +322,7 @@ fun Workout(
             onReorderLiftsClicked = {
                 workoutViewModel.toggleReorderLifts()
             },
+            onAddSet = {_ -> }
         )
         if (state.isReordering) {
             ReorderableLazyColumn(

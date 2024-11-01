@@ -76,6 +76,7 @@ fun WorkoutLog(
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
     onNoteChanged: (workoutLiftId: Long, note: String) -> Unit,
     onReorderLiftsClicked: () -> Unit,
+    onAddSet: (workoutLiftId: Long) -> Unit,
 ) {
     // Remember the myo rep set indices from the previous composition. Below they will
     // animate if they're not found in this set (they are new)
@@ -170,6 +171,9 @@ fun WorkoutLog(
                         },
                         onUpdatePickerSpacer = { padding ->
                             pickerSpacer = padding
+                        },
+                        onAddSet = {
+                            onAddSet(lift.id)
                         }
                     )
                 }
