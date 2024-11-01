@@ -53,13 +53,11 @@ fun LiftLibrary(
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     onNavigateToActiveWorkout: () -> Unit,
     onNavigateToLiftDetails: (liftId: Long?) -> Unit,
-    isSearchBarVisible: Boolean,
     workoutId: Long? = null,
     workoutLiftId: Long? = null,
     movementPattern: String = "",
     liftMetricChartIds: List<Long>,
     addAtPosition: Int? = null,
-    onNavigateBack: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     onClearTopAppBarFilterText: () -> Unit,
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
@@ -84,10 +82,6 @@ fun LiftLibrary(
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = liftLibraryViewModel)
-
-    BackHandler(isSearchBarVisible) {
-        onNavigateBack.invoke()
-    }
 
     LaunchedEffect(state.showFilterSelection) {
         onChangeTopAppBarTitle(if(state.showFilterSelection) "Filter Options" else LiftLibraryScreen.navigation.title)

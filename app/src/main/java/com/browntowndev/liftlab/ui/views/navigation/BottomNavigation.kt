@@ -1,5 +1,9 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -23,24 +27,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 
 @ExperimentalFoundationApi
 @Composable
 fun BottomNavigation(navController: NavController, isVisible: Boolean) {
-    val screens: List<BottomNavItem> = listOf(
-        HomeScreen.navigation,
-        WorkoutScreen.navigation,
-        LabScreen.navigation,
-        LiftLibraryScreen.navigation,
-    )
-
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = isVisible,
@@ -51,13 +51,24 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) {
-            var selectedRouteId by remember { mutableLongStateOf(Route.Workout.id) }
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = remember(currentBackStackEntry?.id) {
+                currentBackStackEntry?.destination?.route?.split("?", "/")?.first()
+            }
+            val screens: List<BottomNavItem> = remember {
+                listOf(
+                    HomeScreen.navigation,
+                    WorkoutScreen.navigation,
+                    LabScreen.navigation,
+                    LiftLibraryScreen.navigation,
+                )
+            }
 
             screens.fastForEach { screen ->
                 NavigationBarItem(
                     icon = { Icon(painter = painterResource(id = screen.bottomNavIconResourceId), contentDescription = null, modifier = Modifier.size(24.dp)) },
                     label = { Text(screen.title, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-                    selected = remember(selectedRouteId) { screen.route.id == selectedRouteId },
+                    selected = remember(currentRoute) { isSelectedRoute(currentRoute, screen) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                         selectedTextColor = MaterialTheme.colorScheme.onPrimary,
@@ -66,7 +77,6 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
                         indicatorColor = MaterialTheme.colorScheme.primary
                     ),
                     onClick = {
-                        selectedRouteId = screen.route.id
                         navController.navigate(screen.route) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations
@@ -86,3 +96,12 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
         }
     }
 }
+
+private fun isSelectedRoute(currentRoute: String?, screen: BottomNavItem): Boolean =
+    when (screen.route) {
+        is Route.Home -> currentRoute?.endsWith("Home") ?: false
+        is Route.Workout -> currentRoute?.endsWith("Workout") ?: false
+        is Route.Lab -> currentRoute?.endsWith("Lab") ?: false
+        is Route.LiftLibrary -> currentRoute?.endsWith("LiftLibrary") ?: false
+        else -> throw Exception("Unrecognized bottom navigation screen.")
+    }

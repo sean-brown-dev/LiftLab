@@ -4,30 +4,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface Route {
-
-    val id: Long
-
     @Serializable
     data object Home: Route {
-        override val id: Long
+        val id: Long
             get() = 0L
     }
 
     @Serializable
     data object Settings: Route {
-        override val id: Long
+        val id: Long
             get() = 1L
     }
 
     @Serializable
     data object WorkoutHistory: Route {
-        override val id: Long
+        val id: Long
             get() = 2L
     }
 
     @Serializable
     data object Lab: Route {
-        override val id: Long
+        val id: Long
             get() = 2L
     }
 
@@ -37,9 +34,6 @@ sealed interface Route {
             val id: Long
                 get() = 4L
         }
-
-        override val id: Long
-            get() = WorkoutBuilder.id
     }
 
     @Serializable
@@ -48,9 +42,6 @@ sealed interface Route {
             val id: Long
                 get() = 5L
         }
-
-        override val id: Long
-            get() = EditWorkout.id
     }
 
     @Serializable
@@ -59,9 +50,6 @@ sealed interface Route {
             val id: Long
                 get() = 6L
         }
-
-        override val id: Long
-            get() = LiftDetails.id
     }
 
     @Serializable
@@ -70,9 +58,6 @@ sealed interface Route {
             val id: Long
                 get() = 7L
         }
-
-        override val id: Long
-            get() = Workout.id
     }
 
     @Serializable
@@ -87,8 +72,5 @@ sealed interface Route {
             val id: Long
                 get() = 8L
         }
-
-        override val id: Long
-            get() = LiftLibrary.id
     }
 }

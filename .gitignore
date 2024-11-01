@@ -30,3 +30,4 @@ google-services.json
 *.hprof
 
 app/release
+*.salive

@@ -99,7 +99,7 @@ fun MultiLineChart(
                 bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = chartModel.bottomAxisValueFormatter,
                     labelRotationDegrees = chartModel.bottomAxisLabelRotationDegrees,
-                    sizeConstraint = BaseAxis.SizeConstraint.Exact(75f),
+                    size = BaseAxis.Size.Exact(75f),
                 ),
                 endAxis = VerticalAxis.rememberEnd(
                     itemPlacer = chartModel.endAxisItemPlacer,

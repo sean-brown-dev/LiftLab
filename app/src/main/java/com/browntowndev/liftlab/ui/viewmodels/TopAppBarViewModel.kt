@@ -26,9 +26,9 @@ class TopAppBarViewModel: ViewModel() {
     private val _state = MutableStateFlow(LiftLabTopAppBarState())
     val state = _state.asStateFlow()
 
-    fun setScreen(route: Route?) {
+    fun setScreen(screen: Screen) {
         _state.update {
-            it.copy(currentScreen = getScreen(route))
+            it.copy(currentScreen = screen)
         }
     }
 
@@ -55,19 +55,6 @@ class TopAppBarViewModel: ViewModel() {
         }
 
         _mediaPlayer.start()
-    }
-
-    private fun getScreen(route: Route?): Screen? = when (route) {
-        is Route.LiftLibrary -> LiftLibraryScreen()
-        is Route.LiftDetails -> LiftDetailsScreen()
-        is Route.Workout -> WorkoutScreen()
-        is Route.EditWorkout -> EditWorkoutScreen()
-        is Route.Lab -> LabScreen()
-        is Route.Home -> HomeScreen()
-        is Route.Settings -> SettingsScreen()
-        is Route.WorkoutBuilder -> WorkoutBuilderScreen()
-        is Route.WorkoutHistory -> WorkoutHistoryScreen()
-        else -> null
     }
 }
 

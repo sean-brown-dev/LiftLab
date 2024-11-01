@@ -76,7 +76,7 @@ fun SingleLineChart(
                 bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = model.bottomAxisValueFormatter,
                     labelRotationDegrees = model.bottomAxisLabelRotationDegrees,
-                    sizeConstraint = BaseAxis.SizeConstraint.Exact(75f),
+                    size = BaseAxis.Size.Exact(75f),
                 ),
             ),
             model = model.chartEntryModel,

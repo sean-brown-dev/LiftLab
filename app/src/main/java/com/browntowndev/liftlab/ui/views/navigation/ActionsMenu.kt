@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,6 +51,10 @@ fun ActionsMenu(
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().fastForEach { item ->
         if (item.isVisible) {
             FocusedOutlinedTextField(item, topAppBarViewModel = topAppBarViewModel)
+
+            BackHandler {
+                topAppBarState.onNavigationIconClick?.invoke()
+            }
         }
     }
 

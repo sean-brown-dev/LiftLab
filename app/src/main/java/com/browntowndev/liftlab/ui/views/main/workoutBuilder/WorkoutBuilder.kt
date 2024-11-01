@@ -172,6 +172,7 @@ fun WorkoutBuilder(
                             },
                             onReplaceLift = {
                                 onNavigateToLiftLibrary(Route.LiftLibrary(
+                                    callerRouteId = Route.WorkoutBuilder.id,
                                     workoutId = state.workout!!.id,
                                     workoutLiftId = workoutLift.id,
                                     movementPattern = workoutLift.liftMovementPattern.displayName(),

@@ -20,8 +20,6 @@ import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 
 private val legendItemLabelTextSize = 12.sp
 private val legendItemIconSize = 8.dp
-private val legendItemIconPaddingValue = 10.dp
-private val legendItemSpacing = 4.dp
 private val legendTopPaddingValue = 8.dp
 private val legendPadding = Dimensions(legendTopPaddingValue.value)
 
@@ -46,8 +44,6 @@ fun rememberLegend(chartColors: List<Color>, labels: List<String>): Legend<Carte
             }
         },
         iconSize = legendItemIconSize,
-        iconPadding = legendItemIconPaddingValue,
-        spacing = legendItemSpacing,
         padding = legendPadding
     )
 }

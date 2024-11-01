@@ -28,6 +28,7 @@ import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
+import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -52,8 +53,7 @@ fun WorkoutHistoryCard(
         ),
         onClick = onEditWorkout,
     ) {
-        val totalPersonalRecords =
-            remember(topSets) { topSets?.values?.count { it.second.isPersonalRecord } ?: 0 }
+        val totalPersonalRecords = remember(topSets) { topSets?.values?.count { it.second.isPersonalRecord } ?: 0 }
         Text(
             text = workoutName,
             fontWeight = FontWeight.Bold,

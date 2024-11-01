@@ -66,7 +66,7 @@ dependencies {
     def kotlin_reflect_version = '2.0.21'
     def eventbus_version = '3.3.1'
     def mockkVersion = '1.13.13'
-    def vico_version = '2.0.0-beta.1'
+    def vico_version = '2.0.0-beta.2'
     def koin_version = '4.0.0'
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3'
