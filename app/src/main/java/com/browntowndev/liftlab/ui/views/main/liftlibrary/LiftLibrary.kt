@@ -29,11 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
-import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.CircularIcon
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
@@ -41,6 +36,10 @@ import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.FilterSelector
 import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
 import com.browntowndev.liftlab.ui.composables.verticalScrollbar
+import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -49,7 +48,7 @@ import org.koin.core.parameter.parametersOf
 fun LiftLibrary(
     paddingValues: PaddingValues,
     screenId: String?,
-    callerRoute: String?,
+    callerRouteId: Long?,
     onNavigateHome: () -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     onNavigateToActiveWorkout: () -> Unit,
@@ -72,11 +71,11 @@ fun LiftLibrary(
     }
     val state by liftLibraryViewModel.state.collectAsState()
 
-    val isReplacingLiftInWorkoutBuilder = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRoute) {
-        workoutId != null && workoutLiftId != null && callerRoute == WorkoutBuilderScreen.navigation.route
+    val isReplacingLiftInWorkoutBuilder = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRouteId) {
+        workoutId != null && workoutLiftId != null && callerRouteId == Route.WorkoutBuilder.id
     }
-    val isReplacingLiftInWorkout = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRoute) {
-        workoutId != null && workoutLiftId != null && callerRoute == WorkoutScreen.navigation.route
+    val isReplacingLiftInWorkout = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRouteId) {
+        workoutId != null && workoutLiftId != null && callerRouteId == Route.Workout.id
     }
     val isAddingToWorkout = remember(key1 = workoutId, key2 = addAtPosition) {
         workoutId != null && addAtPosition != null
@@ -160,7 +159,7 @@ fun LiftLibrary(
                                         liftLibraryViewModel.replaceWorkoutLift(
                                             workoutLiftId = workoutLiftId!!,
                                             replacementLiftId = lift.id,
-                                            callerRoute = callerRoute!!
+                                            callerRouteId = callerRouteId!!
                                         )
                                     } else {
                                         onNavigateToLiftDetails(lift.id)

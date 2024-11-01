@@ -28,7 +28,7 @@ import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
 
 class WorkoutHistoryViewModel(
-    loggingRepository: LoggingRepository,
+    private val loggingRepository: LoggingRepository,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -261,6 +261,12 @@ class WorkoutHistoryViewModel(
             applyFilters()
         } else {
             onNavigateBack()
+        }
+    }
+
+    fun delete(id: Long) {
+        executeInTransactionScope {
+            loggingRepository.deleteWorkoutLogEntry(workoutLogEntryId = id)
         }
     }
 }

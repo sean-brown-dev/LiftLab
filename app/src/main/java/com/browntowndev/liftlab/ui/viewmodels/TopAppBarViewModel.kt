@@ -16,6 +16,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,7 +26,7 @@ class TopAppBarViewModel: ViewModel() {
     private val _state = MutableStateFlow(LiftLabTopAppBarState())
     val state = _state.asStateFlow()
 
-    fun setScreen(route: String?) {
+    fun setScreen(route: Route?) {
         _state.update {
             it.copy(currentScreen = getScreen(route))
         }
@@ -56,16 +57,16 @@ class TopAppBarViewModel: ViewModel() {
         _mediaPlayer.start()
     }
 
-    private fun getScreen(route: String?): Screen? = when (route) {
-        LiftLibraryScreen.navigation.route-> LiftLibraryScreen()
-        LiftDetailsScreen.navigation.route -> LiftDetailsScreen()
-        WorkoutScreen.navigation.route -> WorkoutScreen()
-        EditWorkoutScreen.navigation.route -> EditWorkoutScreen()
-        LabScreen.navigation.route -> LabScreen()
-        HomeScreen.navigation.route -> HomeScreen()
-        SettingsScreen.navigation.route -> SettingsScreen()
-        WorkoutBuilderScreen.navigation.route -> WorkoutBuilderScreen()
-        WorkoutHistoryScreen.navigation.route -> WorkoutHistoryScreen()
+    private fun getScreen(route: Route?): Screen? = when (route) {
+        is Route.LiftLibrary -> LiftLibraryScreen()
+        is Route.LiftDetails -> LiftDetailsScreen()
+        is Route.Workout -> WorkoutScreen()
+        is Route.EditWorkout -> EditWorkoutScreen()
+        is Route.Lab -> LabScreen()
+        is Route.Home -> HomeScreen()
+        is Route.Settings -> SettingsScreen()
+        is Route.WorkoutBuilder -> WorkoutBuilderScreen()
+        is Route.WorkoutHistory -> WorkoutHistoryScreen()
         else -> null
     }
 }

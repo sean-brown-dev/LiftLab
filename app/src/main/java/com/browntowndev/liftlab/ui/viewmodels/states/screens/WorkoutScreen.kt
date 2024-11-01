@@ -15,6 +15,7 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 import java.util.UUID
@@ -33,7 +34,7 @@ data class WorkoutScreen(
     private val timerRequestId: String = "",
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, "workout?showLog={showLog}")
+        val navigation = BottomNavItem("Workout", "", R.drawable.dumbbell_icon, Route.Workout())
         const val REST_TIMER = "restTimer"
         const val BACK_NAVIGATION_ICON = "backNavIcon"
         const val FINISH_BUTTON = "finishButton"
@@ -93,7 +94,7 @@ data class WorkoutScreen(
         }
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true

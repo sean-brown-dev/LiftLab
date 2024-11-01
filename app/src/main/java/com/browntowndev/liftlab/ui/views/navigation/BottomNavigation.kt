@@ -16,13 +16,15 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
@@ -49,13 +51,13 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination
-            screens.forEach { screen ->
+            var selectedRouteId by remember { mutableLongStateOf(Route.Workout.id) }
+
+            screens.fastForEach { screen ->
                 NavigationBarItem(
                     icon = { Icon(painter = painterResource(id = screen.bottomNavIconResourceId), contentDescription = null, modifier = Modifier.size(24.dp)) },
                     label = { Text(screen.title, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                    selected = remember(selectedRouteId) { screen.route.id == selectedRouteId },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                         selectedTextColor = MaterialTheme.colorScheme.onPrimary,
@@ -64,6 +66,7 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
                         indicatorColor = MaterialTheme.colorScheme.primary
                     ),
                     onClick = {
+                        selectedRouteId = screen.route.id
                         navController.navigate(screen.route) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations

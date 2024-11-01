@@ -17,8 +17,8 @@ fun VolumeChipBottomSheet(
     secondaryVolumeChipLabels: List<CharSequence>,
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val sheetPeekHeight by remember(placeAboveBottomNavBar) { mutableStateOf(if(placeAboveBottomNavBar) 115.dp else 35.dp) }
-    val bottomSpacerHeight by remember(placeAboveBottomNavBar) { mutableStateOf(if(placeAboveBottomNavBar) 75.dp else 0.dp) }
+    val sheetPeekHeight by remember(placeAboveBottomNavBar) { mutableStateOf(if(placeAboveBottomNavBar) 125.dp else 35.dp) }
+    val bottomSpacerHeight by remember(placeAboveBottomNavBar) { mutableStateOf(if(placeAboveBottomNavBar) 85.dp else 0.dp) }
 
     LiftLabBottomSheet(
         sheetPeekHeight = sheetPeekHeight,

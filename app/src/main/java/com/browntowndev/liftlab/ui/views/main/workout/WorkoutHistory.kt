@@ -123,7 +123,10 @@ fun WorkoutHistory(
                     topSets = state.topSets[workoutLog.id],
                     onEditWorkout = {
                         onNavigateToEditWorkoutScreen(workoutLog.id)
-                    }
+                    },
+                    onDeleteWorkout = {
+                        workoutHistoryViewModel.delete(workoutLog.id)
+                    },
                 )
             }
         }

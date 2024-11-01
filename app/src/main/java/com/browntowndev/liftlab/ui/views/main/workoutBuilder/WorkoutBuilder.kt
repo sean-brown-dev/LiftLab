@@ -53,9 +53,7 @@ import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
@@ -174,7 +172,6 @@ fun WorkoutBuilder(
                             },
                             onReplaceLift = {
                                 onNavigateToLiftLibrary(Route.LiftLibrary(
-                                    callerRoute = WorkoutBuilderScreen.navigation.route,
                                     workoutId = state.workout!!.id,
                                     workoutLiftId = workoutLift.id,
                                     movementPattern = workoutLift.liftMovementPattern.displayName(),

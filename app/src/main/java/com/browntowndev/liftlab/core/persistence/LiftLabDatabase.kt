@@ -134,10 +134,10 @@ abstract class LiftLabDatabase : RoomDatabase() {
                 workManager.enqueueUniqueWork("init_db", ExistingWorkPolicy.KEEP, request)
 
                 val liveWorkInfo = workManager.getWorkInfoByIdLiveData(request.id)
-                var workInfoObserver: Observer<WorkInfo>? = null
+                var workInfoObserver: Observer<WorkInfo?>? = null
                 workInfoObserver = Observer { workInfo ->
-                    Log.d(Log.DEBUG.toString(), "db worker finished: ${workInfo.state.isFinished}. state: ${workInfo.state}")
-                    if (workInfo.state.isFinished) {
+                    Log.d(Log.DEBUG.toString(), "db worker finished: ${workInfo?.state?.isFinished}. state: ${workInfo?.state}")
+                    if (workInfo?.state?.isFinished == true) {
                         val success = workInfo.state == WorkInfo.State.SUCCEEDED
                         setAsInitialized(success)
 

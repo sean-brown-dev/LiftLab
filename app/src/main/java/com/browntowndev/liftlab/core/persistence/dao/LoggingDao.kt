@@ -16,6 +16,9 @@ interface LoggingDao {
     @Insert
     suspend fun insert(workoutLogEntry: WorkoutLogEntry): Long
 
+    @Query("DELETE FROM workoutLogEntries WHERE workout_log_entry_id = :workoutLogEntryId")
+    suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long)
+
     @Query("INSERT INTO setLogEntries " +
             "(workoutLogEntryId, workoutLiftDeloadWeek, liftId, setType, liftPosition, progressionScheme, " +
             "setPosition, myoRepSetPosition, weight, liftName, liftMovementPattern, weightRecommendation, " +
@@ -141,6 +144,9 @@ interface LoggingDao {
     @Query("DELETE FROM setLogEntries " +
             "WHERE set_log_entry_id = :id")
     suspend fun deleteSetLogEntryById(id: Long)
+
+    @Query("DELETE FROM setLogEntries WHERE workoutLogEntryId = :workoutLogEntryId")
+    suspend fun deleteSetLogEntriesForWorkout(workoutLogEntryId: Long)
 
     @Upsert
     suspend fun upsert(setLogEntry: SetLogEntry): Long

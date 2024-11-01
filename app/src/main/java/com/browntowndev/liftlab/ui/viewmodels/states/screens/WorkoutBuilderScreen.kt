@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.NavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 
@@ -23,7 +24,7 @@ data class WorkoutBuilderScreen(
     override val subtitle: String = navigation.subtitle,
 ) : BaseScreen() {
     companion object {
-        val navigation = NavItem("", "", "workoutBuilder/{id}")
+        val navigation = NavItem("", "", Route.WorkoutBuilder(workoutId = 0L))
 
         const val RENAME_WORKOUT_ICON = "renameWorkoutIcon"
         const val REORDER_LIFTS = "reorderLifts"
@@ -51,7 +52,7 @@ data class WorkoutBuilderScreen(
         return if (newSubtitle != subtitle) copy(subtitle = newSubtitle) else this
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true

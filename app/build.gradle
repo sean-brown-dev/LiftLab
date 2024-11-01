@@ -4,16 +4,17 @@ plugins {
     id 'kotlin-kapt'
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
     namespace 'com.browntowndev.liftlab'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.browntowndev.liftlab"
         minSdk 29
-        targetSdk 34
+        targetSdk 35
         versionCode 24
         versionName "1.23"
 

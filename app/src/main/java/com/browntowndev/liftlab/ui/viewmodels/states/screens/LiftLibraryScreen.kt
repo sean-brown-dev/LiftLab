@@ -17,6 +17,7 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 
@@ -33,7 +34,7 @@ data class LiftLibraryScreen(
     val isCreateNewLiftIconVisible: Boolean = true,
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, "liftLibrary?callerRoute={callerRoute}&workoutId={workoutId}&workoutLiftId={workoutLiftId}&movementPattern={movementPattern}&addAtPosition={addAtPosition}")
+        val navigation = BottomNavItem("Lifts", "", R.drawable.list_icon, Route.LiftLibrary())
         const val SEARCH_ICON = "searchIcon"
         const val CREATE_NEW_LIFT_ICON = "createNewLiftIcon"
         const val CONFIRM_ADD_LIFT_ICON = "confirmAddLiftIcon"
@@ -94,7 +95,7 @@ data class LiftLibraryScreen(
         }
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true

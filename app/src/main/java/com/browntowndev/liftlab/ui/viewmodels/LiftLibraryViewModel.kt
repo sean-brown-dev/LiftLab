@@ -17,7 +17,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRep
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -186,13 +186,13 @@ class LiftLibraryViewModel(
     fun replaceWorkoutLift(
         workoutLiftId: Long,
         replacementLiftId: Long,
-        callerRoute: String,
+        callerRouteId: Long,
     ) {
         _state.update { it.copy(replacingLift = true) }
 
         viewModelScope.launch {
             workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
-            if (callerRoute == WorkoutBuilderScreen.navigation.route) {
+            if (callerRouteId == Route.WorkoutBuilder.id) {
                 navigateBackToWorkoutBuilder()
             } else {
                 navigateBackToActiveWorkout()

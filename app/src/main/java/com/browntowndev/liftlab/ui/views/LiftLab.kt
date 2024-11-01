@@ -12,17 +12,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
 
@@ -50,7 +50,19 @@ fun LiftLab(
             navController.currentBackStackEntryFlow
                 .distinctUntilChanged()
                 .collect { backStackEntry ->
-                    val route = backStackEntry.destination.route
+                    val route = when(backStackEntry.destination.route?.split("?", "/")?.get(0)) {
+                        Route.Home::class.qualifiedName -> backStackEntry.toRoute<Route.Home>()
+                        Route.Workout::class.qualifiedName -> backStackEntry.toRoute<Route.Workout>()
+                        Route.WorkoutHistory::class.qualifiedName -> backStackEntry.toRoute<Route.WorkoutHistory>()
+                        Route.EditWorkout::class.qualifiedName -> backStackEntry.toRoute<Route.EditWorkout>()
+                        Route.Lab::class.qualifiedName -> backStackEntry.toRoute<Route.Lab>()
+                        Route.WorkoutBuilder::class.qualifiedName -> backStackEntry.toRoute<Route.WorkoutBuilder>()
+                        Route.LiftLibrary::class.qualifiedName -> backStackEntry.toRoute<Route.LiftLibrary>()
+                        Route.LiftDetails::class.qualifiedName -> backStackEntry.toRoute<Route.LiftDetails>()
+                        Route.Settings::class.qualifiedName -> backStackEntry.toRoute<Route.Settings>()
+                        else -> null
+                    }
+
                     topAppBarViewModel.setScreen(route)
                 }
         }

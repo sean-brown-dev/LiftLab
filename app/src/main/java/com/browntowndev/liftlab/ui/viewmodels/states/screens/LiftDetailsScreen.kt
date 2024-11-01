@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.NavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 
@@ -23,7 +24,7 @@ data class LiftDetailsScreen(
     private val isConfirmCreateLiftVisible: Boolean = false,
 ): BaseScreen() {
     companion object {
-        val navigation = NavItem("Lift Metrics", "", "liftDetails/{id}")
+        val navigation = NavItem("Lift Metrics", "", Route.LiftDetails())
         const val CONFIRM_CREATE_LIFT_ICON = "confirmCreateLiftIcon"
     }
 
@@ -55,7 +56,7 @@ data class LiftDetailsScreen(
         }
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true

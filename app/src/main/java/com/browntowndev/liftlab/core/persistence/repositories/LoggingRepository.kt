@@ -133,6 +133,11 @@ class LoggingRepository(
         )
     }
 
+    suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long) {
+        loggingDao.deleteSetLogEntriesForWorkout(workoutLogEntryId = workoutLogEntryId)
+        loggingDao.deleteWorkoutLogEntry(workoutLogEntryId = workoutLogEntryId)
+    }
+
     suspend fun deleteSetLogEntryById(id: Long) {
         loggingDao.deleteSetLogEntryById(id)
     }

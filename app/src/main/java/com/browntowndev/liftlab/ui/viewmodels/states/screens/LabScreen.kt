@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 
@@ -42,7 +43,7 @@ data class LabScreen(
     val createWorkoutVisible: Boolean = true,
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Lab", "", R.drawable.lab_flask, "lab")
+        val navigation = BottomNavItem("Lab", "", R.drawable.lab_flask, Route.Lab)
 
         const val REORDER_WORKOUTS_ICON = "reorderWorkoutsIcon"
         const val RENAME_PROGRAM_ICON = "renameProgramIcon"
@@ -110,7 +111,7 @@ data class LabScreen(
         }
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true

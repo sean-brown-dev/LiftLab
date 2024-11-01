@@ -10,6 +10,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.BottomNavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 
@@ -20,7 +21,7 @@ data class SettingsScreen(
     override val title: String = navigation.title,
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Settings", "", R.drawable.settings_cog,"settings")
+        val navigation = BottomNavItem("Settings", "", R.drawable.settings_cog, Route.Settings)
     }
 
     private val _eventBus: EventBus by inject()
@@ -41,7 +42,7 @@ data class SettingsScreen(
         return if (title != newTitle) copy(title = newTitle) else this
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true

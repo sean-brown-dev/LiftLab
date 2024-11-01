@@ -43,9 +43,7 @@ import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.navigation.Route
@@ -305,7 +303,7 @@ fun Workout(
             },
             onReplaceLift = { workoutLiftId, movementPattern ->
                 onNavigateToLiftLibrary(Route.LiftLibrary(
-                    callerRoute = WorkoutScreen.navigation.route,
+                    callerRouteId = Route.Workout.id,
                     workoutId = state.workout!!.id,
                     workoutLiftId = workoutLiftId,
                     movementPattern = movementPattern.displayName(),

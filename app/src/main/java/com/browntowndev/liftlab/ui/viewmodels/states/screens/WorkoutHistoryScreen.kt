@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.BottomNavItem
+import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 
@@ -23,7 +24,7 @@ data class WorkoutHistoryScreen(
     override val title: String = navigation.title,
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("Workout History", "", R.drawable.home_icon,"workoutHistory")
+        val navigation = BottomNavItem("Workout History", "", R.drawable.home_icon, Route.WorkoutHistory)
         private const val EDIT_DATE_RANGE_ICON = "editDateRangeIcon"
         private const val FILTER_PROGRAM_AND_WORKOUT_ICON = "filterProgramAndWorkoutIcon"
     }
@@ -46,7 +47,7 @@ data class WorkoutHistoryScreen(
         return if (title != newTitle) copy(title = newTitle) else this
     }
 
-    override val route: String
+    override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
         get() = true
