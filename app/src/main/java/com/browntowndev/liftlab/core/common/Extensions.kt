@@ -420,6 +420,7 @@ fun Int.toFriendlyMessage(): String {
 
 fun GenericLoggingSet.copyGeneric(
     position: Int = this.position,
+    myoRepSetPosition: Int? = (this as? LoggingMyoRepSetDto)?.myoRepSetPosition,
     rpeTarget: Float = this.rpeTarget,
     repRangeBottom: Int? = this.repRangeBottom,
     repRangeTop: Int? = this.repRangeTop,
@@ -450,6 +451,7 @@ fun GenericLoggingSet.copyGeneric(
     )
     is LoggingMyoRepSetDto -> this.copy(
         position = position,
+        myoRepSetPosition = myoRepSetPosition,
         rpeTarget = rpeTarget,
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,

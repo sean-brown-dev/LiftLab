@@ -74,7 +74,7 @@ fun WorkoutLog(
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
-    onNoteChanged: (workoutLiftId: Long, note: String) -> Unit,
+    onNoteChanged: (liftId: Long, note: String) -> Unit,
     onReorderLiftsClicked: () -> Unit,
     onAddSet: (workoutLiftId: Long) -> Unit,
 ) {
@@ -145,7 +145,7 @@ fun WorkoutLog(
                 }
                 items(lifts, key = { it.id }) { lift ->
                     WorkoutLiftCard(
-                        lift = lift,
+                        workoutLift = lift,
                         isEdit = isEdit,
                         indicesOfExistingMyoRepSets = indicesOfExistingMyoRepSets,
                         lazyListState = lazyListState,

@@ -372,7 +372,12 @@ class EditWorkoutViewModel(
                     workoutLift.copy(
                         sets = workoutLift.sets.toMutableList().apply {
                             val lastSet = last()
-                            newSet = lastSet.copyGeneric(position = lastSet.position + 1)
+                            newSet = lastSet.copyGeneric(
+                                position = lastSet.position + 1,
+                                myoRepSetPosition = (lastSet as? LoggingMyoRepSetDto)?.myoRepSetPosition?.let {
+                                    it + 1
+                                },
+                            )
                             add(newSet!!)
                         }.toList()
                     )

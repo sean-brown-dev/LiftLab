@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -58,7 +57,7 @@ import kotlin.time.toDuration
 
 @Composable
 fun WorkoutLiftCard(
-    lift: LoggingWorkoutLiftDto,
+    workoutLift: LoggingWorkoutLiftDto,
     isEdit: Boolean,
     indicesOfExistingMyoRepSets: Set<String>,
     lazyListState: LazyListState,
@@ -71,7 +70,7 @@ fun WorkoutLiftCard(
     onUndoSetCompletion: (liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
-    onNoteChanged: (workoutLiftId: Long, note: String) -> Unit,
+    onNoteChanged: (liftId: Long, note: String) -> Unit,
     onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
     onAddSet: () -> Unit,
 ) {
@@ -90,8 +89,8 @@ fun WorkoutLiftCard(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center,
         ) {
-            val restTime = remember(lift.restTime) {
-                lift.restTime?.inWholeMilliseconds
+            val restTime = remember(workoutLift.restTime) {
+                workoutLift.restTime?.inWholeMilliseconds
                     ?: SettingsManager.getSetting(
                         SettingsManager.SettingNames.REST_TIME,
                         SettingsManager.SettingNames.DEFAULT_REST_TIME,
@@ -105,7 +104,7 @@ fun WorkoutLiftCard(
                         bottom = 5.dp,
                         end = 10.dp
                     ),
-                    text = lift.liftName,
+                    text = workoutLift.liftName,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.tertiary
@@ -114,12 +113,12 @@ fun WorkoutLiftCard(
                     Spacer(modifier = Modifier.weight(1f))
                     LiftDropdown(
                         restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
-                        restTimerEnabled = lift.restTimerEnabled,
+                        restTimerEnabled = workoutLift.restTimerEnabled,
                         onChangeRestTime = { restTime, enabled ->
-                            onChangeRestTime(lift.id, restTime, enabled)
+                            onChangeRestTime(workoutLift.id, restTime, enabled)
                         },
                         onReplaceLift = {
-                            onReplaceLift(lift.id, lift.liftMovementPattern)
+                            onReplaceLift(workoutLift.id, workoutLift.liftMovementPattern)
                         }
                     )
                 }
@@ -127,13 +126,13 @@ fun WorkoutLiftCard(
             if (!isEdit) {
                 val localDensity = LocalDensity.current
                 var noteTextFieldHeight by remember { mutableStateOf(40.dp) }
-                var note by remember(lift.note) { mutableStateOf(lift.note ?: "") }
+                var note by remember(workoutLift.note) { mutableStateOf(workoutLift.note ?: "") }
                 val focusManager: FocusManager = LocalFocusManager.current
                 val onDone: (clearFocus: Boolean) -> Unit = { clearFocus ->
                     if (clearFocus) {
                         focusManager.clearFocus()
                     }
-                    onNoteChanged(lift.id, note)
+                    onNoteChanged(workoutLift.liftId, note)
                 }
                 LiftLabOutlinedTextField(
                     modifier = Modifier
@@ -193,29 +192,29 @@ fun WorkoutLiftCard(
             }
             LogHeaders()
 
-            lift.sets.fastForEach { set ->
+            workoutLift.sets.fastForEach { set ->
                 DeleteableOnSwipeLeft(
                     enabled = remember(set, isEdit) { !isEdit && (set as? LoggingMyoRepSetDto)?.myoRepSetPosition != null },
                     confirmationDialogHeader = "Delete Myorep Set?",
                     confirmationDialogBody = "Confirm to delete the myorep set.",
                     onDelete = {
                         onDeleteMyoRepSet(
-                            lift.id,
+                            workoutLift.id,
                             set.position,
                             (set as LoggingMyoRepSetDto).myoRepSetPosition!!
                         )
                     },
                 ) {
-                    val animateVisibility = remember(lift.sets.size) {
+                    val animateVisibility = remember(workoutLift.sets.size) {
                         set is LoggingMyoRepSetDto &&
-                                !indicesOfExistingMyoRepSets.contains("${lift.id}-${set.myoRepSetPosition}")
+                                !indicesOfExistingMyoRepSets.contains("${workoutLift.id}-${set.myoRepSetPosition}")
                     }
 
                     LoggableSet(
                         lazyListState = lazyListState,
                         animateVisibility = animateVisibility,
                         position = set.position,
-                        progressionScheme = lift.progressionScheme,
+                        progressionScheme = workoutLift.progressionScheme,
                         setNumberLabel = set.setNumberLabel,
                         weightRecommendation = set.weightRecommendation,
                         rpeTarget = set.rpeTarget,
@@ -227,7 +226,7 @@ fun WorkoutLiftCard(
                         repRangePlaceholder = set.repRangePlaceholder,
                         onWeightChanged = {
                             onWeightChanged(
-                                lift.id,
+                                workoutLift.id,
                                 set.position,
                                 (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                                 it
@@ -235,7 +234,7 @@ fun WorkoutLiftCard(
                         },
                         onRepsChanged = {
                             onRepsChanged(
-                                lift.id,
+                                workoutLift.id,
                                 set.position,
                                 (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                                 it
@@ -243,7 +242,7 @@ fun WorkoutLiftCard(
                         },
                         toggleRpePicker = {
                             if (it) {
-                                onShowRpePicker(lift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, set.completedRpe)
+                                onShowRpePicker(workoutLift.id, set.position, (set as? LoggingMyoRepSetDto)?.myoRepSetPosition, set.completedRpe)
                             } else {
                                 onHideRpePicker()
                             }
@@ -257,22 +256,22 @@ fun WorkoutLiftCard(
                             }
                             onSetCompleted(
                                 setType,
-                                lift.progressionScheme,
-                                lift.position,
+                                workoutLift.progressionScheme,
+                                workoutLift.position,
                                 set.position,
                                 (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
-                                lift.liftId,
+                                workoutLift.liftId,
                                 weight,
                                 reps,
                                 rpe,
                                 restTime,
-                                lift.restTimerEnabled,
+                                workoutLift.restTimerEnabled,
                             )
                             onHideRpePicker()
                         },
                         onUndoCompletion = {
                             onUndoSetCompletion(
-                                lift.position,
+                                workoutLift.position,
                                 set.position,
                                 (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
                             )
