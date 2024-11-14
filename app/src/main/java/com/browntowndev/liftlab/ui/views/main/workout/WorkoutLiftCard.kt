@@ -283,12 +283,14 @@ fun WorkoutLiftCard(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                TextButton(onClick = onAddSet) {
-                    Text(text = "Add Set", color = MaterialTheme.colorScheme.primary)
+            if (isEdit) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    TextButton(onClick = onAddSet) {
+                        Text(text = "Add Set", color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
 
