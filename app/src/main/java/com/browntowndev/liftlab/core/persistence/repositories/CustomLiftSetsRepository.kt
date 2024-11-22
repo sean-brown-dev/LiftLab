@@ -9,8 +9,8 @@ class CustomLiftSetsRepository(
     private val customLiftCustomSetsDao: CustomSetsDao,
     private val customLiftSetMapper: CustomLiftSetMapper,
 ): Repository {
-    suspend fun insert(newSet: GenericLiftSet) {
-        customLiftCustomSetsDao.insert(customLiftSetMapper.map(newSet))
+    suspend fun insert(newSet: GenericLiftSet): Long {
+        return customLiftCustomSetsDao.insert(customLiftSetMapper.map(newSet))
     }
 
     suspend fun update(set: GenericLiftSet) {

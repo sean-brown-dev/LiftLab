@@ -615,7 +615,7 @@ class WorkoutBuilderViewModel(
     private fun updateCustomSetProperty(
         currentState: WorkoutBuilderState,
         workoutLiftId: Long,
-        position: Int,
+        setPosition: Int,
         copyAll: Boolean = false,
         copySet: (GenericLiftSet) -> GenericLiftSet
     ): WorkoutDto {
@@ -625,7 +625,7 @@ class WorkoutBuilderViewModel(
                     when (currentWorkoutLift) {
                         is CustomWorkoutLiftDto -> currentWorkoutLift.copy(
                             customLiftSets = currentWorkoutLift.customLiftSets.map { set ->
-                                if (copyAll || set.position == position) copySet(set) else set
+                                if (copyAll || set.position == setPosition) copySet(set) else set
                             }
                         )
                         else -> throw Exception("${currentWorkoutLift.liftName} doesn't have custom sets.")
@@ -638,53 +638,53 @@ class WorkoutBuilderViewModel(
     }
 
     fun addSet(workoutLiftId: Long) {
-        var addedSet: GenericLiftSet? = null
-        var updatedWorkoutLift: GenericWorkoutLift? = null
-        val workoutCopy = _state.value.workout!!.let { workout ->
-            workout.copy(
-                lifts = workout.lifts.map { lift ->
-                    if (lift.id == workoutLiftId) {
-                        if (lift !is CustomWorkoutLiftDto) throw Exception("Cannot add set to non-custom lift.")
-                        updatedWorkoutLift = lift.copy(
-                            customLiftSets = lift.customLiftSets.toMutableList().apply {
-                                addedSet = StandardSetDto(
-                                    workoutLiftId = lift.id,
-                                    position = lift.customLiftSets.count(),
-                                    rpeTarget = 8f,
-                                    repRangeBottom = 8,
-                                    repRangeTop = 10,
-                                )
-                                add(addedSet as StandardSetDto)
-                            },
-                            setCount = lift.setCount + 1,
-                        )
-                        updatedWorkoutLift!!
+        executeInTransactionScope {
+            var addedSet: GenericLiftSet? = null
+            var updatedWorkoutLift: GenericWorkoutLift? = null
+            val workoutCopy = _state.value.workout!!.let { workout ->
+                workout.copy(
+                    lifts = workout.lifts.map { lift ->
+                        if (lift.id == workoutLiftId) {
+                            if (lift !is CustomWorkoutLiftDto) throw Exception("Cannot add set to non-custom lift.")
+                            updatedWorkoutLift = lift.copy(
+                                customLiftSets = lift.customLiftSets.toMutableList().apply {
+                                    val newCustomSet = StandardSetDto(
+                                        workoutLiftId = lift.id,
+                                        position = lift.customLiftSets.count(),
+                                        rpeTarget = 8f,
+                                        repRangeBottom = 8,
+                                        repRangeTop = 10,
+                                    )
+                                    val newSetId = customLiftSetsRepository.insert(newCustomSet)
+                                    addedSet = newCustomSet.copy(id = newSetId)
+                                    add(addedSet!!)
+                                },
+                                setCount = lift.setCount + 1,
+                            )
+                            workoutLiftsRepository.update(updatedWorkoutLift!!)
+                            updatedWorkoutLift!!
+                        } else lift
                     }
-                    else lift
-                }
-            )
-        }
-
-        if (addedSet != null) {
-            executeInTransactionScope {
-                val updatedStateCopy = _state.value.copy(
-                    workout = workoutCopy,
-                    detailExpansionStates = _state.value.detailExpansionStates.let { expansionStates ->
-                        val expansionStatesCopy = HashMap(expansionStates)
-                        val setStates = expansionStatesCopy[workoutLiftId]
-                        if (setStates != null) {
-                            setStates.add(addedSet!!.position)
-                        } else {
-                            expansionStatesCopy[workoutLiftId] = hashSetOf(addedSet!!.position)
-                        }
-
-                        expansionStatesCopy
-                    },
                 )
+            }
 
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
-                customLiftSetsRepository.insert(addedSet!!)
-                _state.update { updatedStateCopy }
+            if (addedSet != null) {
+                _state.update {
+                    _state.value.copy(
+                        workout = workoutCopy,
+                        detailExpansionStates = _state.value.detailExpansionStates.let { expansionStates ->
+                            val expansionStatesCopy = HashMap(expansionStates)
+                            val setStates = expansionStatesCopy[workoutLiftId]
+                            if (setStates != null) {
+                                setStates.add(addedSet!!.position)
+                            } else {
+                                expansionStatesCopy[workoutLiftId] = hashSetOf(addedSet!!.position)
+                            }
+
+                            expansionStatesCopy
+                        },
+                    )
+                }
             }
         }
     }
@@ -898,11 +898,11 @@ class WorkoutBuilderViewModel(
         }
     }
 
-    fun changeCustomSetType(workoutLiftId: Long, position: Int, newSetType: SetType) {
+    fun changeCustomSetType(workoutLiftId: Long, setPosition: Int, newSetType: SetType) {
         executeInTransactionScope {
             var updatedSet: GenericLiftSet? = null
             val updatedStateCopy = _state.value.copy(
-                workout = updateCustomSetProperty(_state.value, workoutLiftId, position) { set ->
+                workout = updateCustomSetProperty(_state.value, workoutLiftId, setPosition) { set ->
                     updatedSet = when (set) {
                         is StandardSetDto -> if (newSetType != SetType.STANDARD) {
                             transformCustomLiftSet(

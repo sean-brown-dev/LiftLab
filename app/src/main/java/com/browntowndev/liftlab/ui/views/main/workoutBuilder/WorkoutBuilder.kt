@@ -387,7 +387,7 @@ fun WorkoutBuilder(
                                     onCustomSetTypeChanged = { position, newSetType ->
                                         workoutBuilderViewModel.changeCustomSetType(
                                             workoutLiftId = workoutLift.id,
-                                            position = position,
+                                            setPosition = position,
                                             newSetType = newSetType,
                                         )
                                     },
