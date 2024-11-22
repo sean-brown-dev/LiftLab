@@ -639,50 +639,40 @@ class WorkoutBuilderViewModel(
 
     fun addSet(workoutLiftId: Long) {
         executeInTransactionScope {
-            var addedSet: GenericLiftSet? = null
-            var updatedWorkoutLift: GenericWorkoutLift? = null
-            val workoutCopy = _state.value.workout!!.let { workout ->
+            var addedSet: StandardSetDto? = null
+            val updatedWorkout = _state.value.workout!!.let { workout ->
                 workout.copy(
                     lifts = workout.lifts.map { lift ->
                         if (lift.id == workoutLiftId) {
                             if (lift !is CustomWorkoutLiftDto) throw Exception("Cannot add set to non-custom lift.")
-                            updatedWorkoutLift = lift.copy(
-                                customLiftSets = lift.customLiftSets.toMutableList().apply {
-                                    val newCustomSet = StandardSetDto(
-                                        workoutLiftId = lift.id,
-                                        position = lift.customLiftSets.count(),
-                                        rpeTarget = 8f,
-                                        repRangeBottom = 8,
-                                        repRangeTop = 10,
-                                    )
-                                    val newSetId = customLiftSetsRepository.insert(newCustomSet)
-                                    addedSet = newCustomSet.copy(id = newSetId)
-                                    add(addedSet!!)
-                                },
-                                setCount = lift.setCount + 1,
-                            )
-                            workoutLiftsRepository.update(updatedWorkoutLift!!)
-                            updatedWorkoutLift!!
+                            addedSet = StandardSetDto(
+                                workoutLiftId = lift.id,
+                                position = lift.customLiftSets.size,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10
+                            ).let { newSet ->
+                                val newSetId = customLiftSetsRepository.insert(newSet)
+                                newSet.copy(id = newSetId)
+                            }
+
+                            lift.copy(
+                                customLiftSets = lift.customLiftSets + addedSet!!,
+                                setCount = lift.setCount + 1
+                            ).also { workoutLiftsRepository.update(it) }
                         } else lift
                     }
                 )
             }
 
             if (addedSet != null) {
-                _state.update {
-                    _state.value.copy(
-                        workout = workoutCopy,
-                        detailExpansionStates = _state.value.detailExpansionStates.let { expansionStates ->
-                            val expansionStatesCopy = HashMap(expansionStates)
-                            val setStates = expansionStatesCopy[workoutLiftId]
-                            if (setStates != null) {
-                                setStates.add(addedSet!!.position)
-                            } else {
-                                expansionStatesCopy[workoutLiftId] = hashSetOf(addedSet!!.position)
-                            }
-
-                            expansionStatesCopy
-                        },
+                _state.update { currentState ->
+                    currentState.copy(
+                        workout = updatedWorkout,
+                        detailExpansionStates = HashMap(currentState.detailExpansionStates.apply {
+                            val setStates = getOrPut(workoutLiftId) { hashSetOf() }
+                            setStates.add(addedSet!!.position)
+                        }),
                     )
                 }
             }
