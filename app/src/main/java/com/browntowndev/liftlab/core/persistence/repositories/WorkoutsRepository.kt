@@ -1,6 +1,10 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.util.fastMapIndexed
+import androidx.lifecycle.asFlow
+import androidx.room.Transaction
 import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
@@ -17,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 class WorkoutsRepository(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val customLiftSetsRepository: CustomLiftSetsRepository,
+    private val programsRepository: ProgramsRepository,
     private val workoutMapper: WorkoutMapper,
     private val workoutsDao: WorkoutsDao,
 ): Repository {
@@ -28,8 +33,30 @@ class WorkoutsRepository(
         return workoutsDao.insert(workout = workoutMapper.map(workout))
     }
 
+    @Transaction
     suspend fun delete(workout: WorkoutDto) {
         workoutsDao.delete(workoutMapper.map(workout))
+
+        // Update workout positions
+        val workoutsWithNewPositions = workoutsDao.getAllForProgram(workout.programId)
+            .sortedBy { it.position }
+            .fastMapIndexed { index, workoutEntity ->
+                workoutEntity.copy(position = index)
+            }
+        workoutsDao.updateMany(workoutsWithNewPositions)
+
+        // If current microcycle position is now greater than the number of workouts
+        // set it to the last workout index
+        programsRepository.getActiveNotAsLiveData()?.let { program ->
+            if (program.currentMicrocyclePosition > workoutsWithNewPositions.lastIndex) {
+                programsRepository.updateMesoAndMicroCycle(
+                    id = program.id,
+                    mesoCycle = program.currentMesocycle,
+                    microCycle = program.currentMicrocycle,
+                    microCyclePosition = workoutsWithNewPositions.lastIndex
+                )
+            }
+        }
     }
 
     suspend fun updateMany(workouts: List<WorkoutDto>) {

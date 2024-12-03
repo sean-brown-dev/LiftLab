@@ -260,21 +260,10 @@ class LiftLibraryViewModel(
 
             if (hasNameFilter || hasMovementPatternFilters || hasLiftIdFilter) {
                 lifts.filter { lift ->
-                    var matches = if (hasNameFilter) {
-                        lift.name.contains(nameFilter!!, true)
-                    } else true
-
-                    matches = matches && if (hasMovementPatternFilters) {
-                        val movementPatternFilter = FilterChipOption(
-                            type = MOVEMENT_PATTERN,
-                            value = lift.movementPatternDisplayName
-                        )
-                        movementPatternFilters.contains(movementPatternFilter)
-                    } else true
-
-                    matches && if(hasLiftIdFilter) {
-                        !liftIdFilters.contains(lift.id)
-                    } else true
+                    val movementPatternFilter = FilterChipOption(MOVEMENT_PATTERN, lift.movementPatternDisplayName)
+                    (!hasNameFilter || lift.name.contains(nameFilter, true)) &&
+                            (!hasMovementPatternFilters || movementPatternFilters.contains(movementPatternFilter)) &&
+                            (!hasLiftIdFilter || !liftIdFilters.contains(lift.id))
                 }
             } else lifts
         }

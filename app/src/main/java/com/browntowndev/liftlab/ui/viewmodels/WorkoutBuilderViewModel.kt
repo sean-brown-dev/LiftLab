@@ -374,7 +374,7 @@ class WorkoutBuilderViewModel(
                             is CustomWorkoutLiftDto -> lift.copy(position = newWorkoutLiftIndices[lift.id]!!)
                             else -> throw Exception("${lift::class.simpleName} is not defined.")
                         }
-                    }
+                    }.sortedBy { it.position }
                 )
             }
 
@@ -436,11 +436,11 @@ class WorkoutBuilderViewModel(
                     is CustomWorkoutLiftDto -> lift.copy(deloadWeek = newDeloadWeek)
                     else -> throw Exception("${lift::class.simpleName} not recognized.")
                 }
-                updatedWorkoutLift!!
+                updatedWorkoutLift
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -461,12 +461,12 @@ class WorkoutBuilderViewModel(
                         is CustomWorkoutLiftDto -> lift.copy(setCount = newSetCount)
                         else -> throw Exception("${lift::class.simpleName} cannot have a set count.")
                     }
-                    updatedWorkoutLift!!
+                    updatedWorkoutLift
                 }
             )
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update { updatedStateCopy }
             }
         }
@@ -489,11 +489,11 @@ class WorkoutBuilderViewModel(
                     )
                     else -> throw Exception("${lift::class.simpleName} cannot have a top rep range.")
                 }
-                updatedWorkoutLift!!
+                updatedWorkoutLift
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -521,11 +521,11 @@ class WorkoutBuilderViewModel(
                     )
                     else -> throw Exception("${lift::class.simpleName} cannot have a top rep range.")
                 }
-                updatedWorkoutLift!!
+                updatedWorkoutLift
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -545,12 +545,12 @@ class WorkoutBuilderViewModel(
                         is StandardWorkoutLiftDto -> it.copy(rpeTarget = newRpeTarget)
                         else -> throw Exception("${it::class.simpleName} cannot have an RPE target.")
                     }
-                    updatedWorkoutLift!!
+                    updatedWorkoutLift
                 }
             )
 
             if(updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update { updatedStateCopy }
             }
         }
@@ -574,11 +574,11 @@ class WorkoutBuilderViewModel(
                     is CustomWorkoutLiftDto -> lift.copy(progressionScheme = newProgressionScheme)
                     else -> throw Exception("${lift::class.simpleName} cannot have an RPE target.")
                 }
-                updatedWorkoutLift!!
+                updatedWorkoutLift
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -597,11 +597,11 @@ class WorkoutBuilderViewModel(
                     is StandardWorkoutLiftDto -> lift.copy(stepSize = newStepSize)
                     else -> throw Exception("${lift::class.simpleName} cannot have an RPE target.")
                 }
-                updatedWorkoutLift!!
+                updatedWorkoutLift
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -657,7 +657,7 @@ class WorkoutBuilderViewModel(
                             }
 
                             lift.copy(
-                                customLiftSets = lift.customLiftSets + addedSet!!,
+                                customLiftSets = lift.customLiftSets + addedSet,
                                 setCount = lift.setCount + 1
                             ).also { workoutLiftsRepository.update(it) }
                         } else lift
@@ -671,7 +671,7 @@ class WorkoutBuilderViewModel(
                         workout = updatedWorkout,
                         detailExpansionStates = HashMap(currentState.detailExpansionStates.apply {
                             val setStates = getOrPut(workoutLiftId) { hashSetOf() }
-                            setStates.add(addedSet!!.position)
+                            setStates.add(addedSet.position)
                         }),
                     )
                 }
@@ -700,7 +700,7 @@ class WorkoutBuilderViewModel(
                                             }
                                         }
                                 )
-                                updatedWorkoutLift!!
+                                updatedWorkoutLift
                             } else workoutLift
                         }
                     )
@@ -709,7 +709,7 @@ class WorkoutBuilderViewModel(
 
             if (updatedWorkoutLift != null) {
                 customLiftSetsRepository.deleteByPosition(workoutLiftId, position)
-                workoutLiftsRepository.update(updatedWorkoutLift!!)
+                workoutLiftsRepository.update(updatedWorkoutLift)
 
                 _state.update { updatedState }
             }
@@ -726,13 +726,13 @@ class WorkoutBuilderViewModel(
                     is MyoRepSetDto -> set.copy(repRangeBottom = newRepRangeBottom)
                     else -> throw Exception("${set::class.simpleName} cannot have a bottom rep range.")
                 }
-                updatedSet!!
+                updatedSet
             }
         )
 
         if (updatedSet != null) {
             executeInTransactionScope {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -748,13 +748,13 @@ class WorkoutBuilderViewModel(
                     is MyoRepSetDto -> set.copy(repRangeTop = newRepRangeTop)
                     else -> throw Exception("${set::class.simpleName} cannot have a top rep range.")
                 }
-                updatedSet!!
+                updatedSet
             }
         )
 
         if (updatedSet != null) {
             executeInTransactionScope {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -770,12 +770,12 @@ class WorkoutBuilderViewModel(
                         is DropSetDto -> set.copy(rpeTarget = newRpeTarget)
                         else -> throw Exception("${set::class.simpleName} cannot have an rpe target.")
                     }
-                    updatedSet!!
+                    updatedSet
                 }
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -790,12 +790,12 @@ class WorkoutBuilderViewModel(
                         is MyoRepSetDto -> set.copy(repFloor = newRepFloor)
                         else -> throw Exception("${set::class.simpleName} cannot have a rep floor.")
                     }
-                    updatedSet!!
+                    updatedSet
                 }
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -817,12 +817,12 @@ class WorkoutBuilderViewModel(
 
                         else -> throw Exception("${set::class.simpleName} cannot have set matching.")
                     }
-                    updatedSet!!
+                    updatedSet
                 }
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -837,12 +837,12 @@ class WorkoutBuilderViewModel(
                         is MyoRepSetDto -> set.copy(setGoal = newMatchSetGoal)
                         else -> throw Exception("${set::class.simpleName} cannot have a match set goal.")
                     }
-                    updatedSet!!
+                    updatedSet
                 }
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -857,12 +857,12 @@ class WorkoutBuilderViewModel(
                         is MyoRepSetDto -> set.copy(maxSets = newMaxSets)
                         else -> throw Exception("${set::class.simpleName} cannot have a max set limit.")
                     }
-                    updatedSet!!
+                    updatedSet
                 }
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -877,12 +877,12 @@ class WorkoutBuilderViewModel(
                         is DropSetDto -> set.copy(dropPercentage = newDropPercentage)
                         else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
                     }
-                    updatedSet!!
+                    updatedSet
                 }
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }
@@ -917,12 +917,12 @@ class WorkoutBuilderViewModel(
 
                         else -> throw Exception("${set::class.simpleName} cannot have a drop percentage.")
                     }
-                    updatedSet!!
+                    updatedSet
                 },
             )
 
             if (updatedSet != null) {
-                customLiftSetsRepository.update(updatedSet!!)
+                customLiftSetsRepository.update(updatedSet)
                 _state.update { updatedStateCopy }
             }
         }

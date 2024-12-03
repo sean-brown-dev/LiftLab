@@ -186,7 +186,7 @@ class WorkoutViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun getNextToPerform(
+    fun getNextToPerform(
         programMetadata: ActiveProgramMetadataDto,
     ): LiveData<LoggingWorkoutDto?> {
         return workoutsRepository.getByMicrocyclePosition(

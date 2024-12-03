@@ -45,4 +45,9 @@ interface WorkoutsDao {
             "WHERE position = :microcyclePosition AND " +
             "programId = :programId")
     fun getByMicrocyclePosition(programId: Long, microcyclePosition: Int): Flow<WorkoutWithRelationships?>
+
+    @Transaction
+    @Query("SELECT * FROM workouts " +
+            "WHERE programId = :programId")
+    suspend fun getAllForProgram(programId: Long): List<Workout>
 }
