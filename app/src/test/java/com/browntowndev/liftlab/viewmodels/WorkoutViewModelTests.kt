@@ -38,6 +38,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResults
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.progression.StandardProgressionFactory
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -2597,5 +2598,211 @@ class WorkoutViewModelTests {
             Assert.assertEquals(0, (viewModel.workoutState.value.workout!!.lifts[0].sets[1] as LoggingMyoRepSetDto).myoRepSetPosition)
 
             coVerify(exactly = 1) { setResultsRepository.deleteById(any()) }
+        }
+
+    @Test
+    fun `Cancelling workout deletes in progress workout and set results`() =
+        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
+            val programsRepository = mockk<ProgramsRepository>()
+            val activeProgramMetadata = ActiveProgramMetadataDto(
+                programId = 0L,
+                name = "Test Program",
+                currentMicrocycle = 0,
+                currentMesocycle = 0,
+                currentMicrocyclePosition = 0,
+                workoutCount = 4,
+                deloadWeek = 4,
+            )
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+
+            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workout = WorkoutDto(
+                id = 0L,
+                programId = 0L,
+                position = 0,
+                name = "Test Workout",
+                lifts = listOf()
+            )
+            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+                workout
+            )
+
+            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            coEvery { workoutInProgressRepository.insert(any()) } just runs
+            val workoutInProgressMetadata = WorkoutInProgressDto(
+                workoutId = 0L,
+                startTime = getCurrentDate(),
+                completedSets = listOf()
+            )
+            coEvery {
+                workoutInProgressRepository.get(
+                    any(),
+                    any()
+                )
+            } returns workoutInProgressMetadata
+            coEvery { workoutInProgressRepository.delete() } just runs
+
+            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
+            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+
+            val setResultsRepository = mockk<PreviousSetResultsRepository>()
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
+            coEvery { setResultsRepository.deleteAllForWorkout(any(), any(), any()) } just runs
+            coEvery {
+                setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
+            } returns listOf()
+            coEvery {
+                setResultsRepository.getForWorkout(any(), any(), any())
+            } returns listOf()
+
+            val transactionScope = mockk<TransactionScope>()
+            coEvery { transactionScope.execute(any()) } coAnswers {
+                val function = args[0] as (suspend () -> Unit)
+                function()
+            }
+
+            val loggingRepository = mockk<LoggingRepository>()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+
+            val workoutLiftsRepository = mockk<WorkoutLiftsRepository>()
+
+            val viewModel = WorkoutViewModel(
+                progressionFactory = StandardProgressionFactory(),
+                programsRepository = programsRepository,
+                workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = workoutLiftsRepository,
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgramsRepository,
+                setResultsRepository = setResultsRepository,
+                historicalWorkoutNamesRepository = mockk(),
+                loggingRepository = loggingRepository,
+                liftsRepository = mockk(),
+                navigateToWorkoutHistory = { },
+                cancelRestTimer = {},
+                transactionScope = transactionScope,
+                eventBus = mockk(),
+            )
+
+            viewModel.startWorkout()
+            viewModel.toggleConfirmCancelWorkoutModal()
+            viewModel.cancelWorkout()
+
+            coVerify(exactly = 1) { workoutInProgressRepository.delete() }
+            coVerify(exactly = 1) { setResultsRepository.deleteAllForWorkout(any(), any(), any()) }
+        }
+
+    @Test
+    fun `Update note updates note for workout lift`() =
+        runTest(EmptyCoroutineContext, timeout = 5000.milliseconds) {
+            val programsRepository = mockk<ProgramsRepository>()
+            val activeProgramMetadata = ActiveProgramMetadataDto(
+                programId = 0L,
+                name = "Test Program",
+                currentMicrocycle = 0,
+                currentMesocycle = 0,
+                currentMicrocyclePosition = 0,
+                workoutCount = 4,
+                deloadWeek = 4,
+            )
+            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+
+            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workout = WorkoutDto(
+                id = 0L,
+                programId = 0L,
+                position = 0,
+                name = "Test Workout",
+                lifts = listOf(
+                    CustomWorkoutLiftDto(
+                        id = 0L,
+                        workoutId = 0L,
+                        liftId = 0L,
+                        liftName = "Test Lift 1",
+                        liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+                        progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                        liftVolumeTypes = 1,
+                        liftSecondaryVolumeTypes = null,
+                        incrementOverride = 5f,
+                        restTimerEnabled = true,
+                        restTime = null,
+                        position = 0,
+                        setCount = 1,
+                        deloadWeek = null,
+                        liftNote = null,
+                        customLiftSets = listOf(
+                            StandardSetDto(
+                                id = 0L,
+                                workoutLiftId = 0L,
+                                position = 0,
+                                rpeTarget = 8f,
+                                repRangeBottom = 8,
+                                repRangeTop = 10,
+                            )
+                        )
+                    )
+                )
+            )
+            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+                workout
+            )
+
+            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressMetadata = WorkoutInProgressDto(
+                workoutId = 0L,
+                startTime = getCurrentDate(),
+                completedSets = listOf()
+            )
+            coEvery {
+                workoutInProgressRepository.get(
+                    any(),
+                    any()
+                )
+            } returns workoutInProgressMetadata
+
+            val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
+            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+
+            val setResultsRepository = mockk<PreviousSetResultsRepository>()
+            coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
+            coEvery {
+                setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicro(any(), any(), any())
+            } returns listOf()
+            coEvery {
+                setResultsRepository.getForWorkout(any(), any(), any())
+            } returns listOf()
+
+            val transactionScope = mockk<TransactionScope>()
+            coEvery { transactionScope.execute(any()) } coAnswers {
+                val function = args[0] as (suspend () -> Unit)
+                function()
+            }
+
+            val loggingRepository = mockk<LoggingRepository>()
+            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val liftsRepository = mockk<LiftsRepository>()
+            coEvery { liftsRepository.updateNote(any(), any()) } just runs
+
+            val viewModel = WorkoutViewModel(
+                progressionFactory = StandardProgressionFactory(),
+                programsRepository = programsRepository,
+                workoutsRepository = workoutsRepository,
+                workoutLiftsRepository = mockk(),
+                workoutInProgressRepository = workoutInProgressRepository,
+                restTimerInProgressRepository = restTimerInProgramsRepository,
+                setResultsRepository = setResultsRepository,
+                historicalWorkoutNamesRepository = mockk(),
+                loggingRepository = loggingRepository,
+                liftsRepository = liftsRepository,
+                navigateToWorkoutHistory = { },
+                cancelRestTimer = {},
+                transactionScope = transactionScope,
+                eventBus = mockk(),
+            )
+            val testNote = "This is a test note."
+            viewModel.updateNote(0L, testNote)
+            Assert.assertEquals(testNote, viewModel.workoutState.value.workout!!.lifts[0].note)
+            coVerify(exactly = 1) { liftsRepository.updateNote(0L, testNote) }
         }
 }

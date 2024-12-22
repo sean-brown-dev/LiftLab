@@ -37,7 +37,7 @@ import org.junit.Rule
 import kotlin.time.Duration
 
 @ExperimentalCoroutinesApi
-class LiftLibraryViewModelTest {
+class LiftLibraryViewModelTests {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()

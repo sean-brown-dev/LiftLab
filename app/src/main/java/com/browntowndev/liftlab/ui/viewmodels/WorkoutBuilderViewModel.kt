@@ -329,7 +329,6 @@ class WorkoutBuilderViewModel(
     }
 
     fun setIncrementOverride(workoutLiftId: Long, newIncrement: Float) {
-        Log.d(Log.DEBUG.toString(), "newIncrement: $newIncrement")
         executeInTransactionScope {
             _state.update { currentState ->
                 currentState.copy(
