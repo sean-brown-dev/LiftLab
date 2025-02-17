@@ -16,6 +16,7 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.fill
 import com.patrykandpatrick.vico.compose.common.vicoTheme
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
@@ -45,7 +46,7 @@ fun ColumnChart(
                     columnProvider = ColumnCartesianLayer.ColumnProvider.series(
                         vicoTheme.columnCartesianLayerColors.map { color ->
                             rememberLineComponent(
-                                color,
+                                fill(color),
                                 10.dp,
                                 CorneredShape.rounded(topLeftPercent = 15, topRightPercent = 15)
                             )

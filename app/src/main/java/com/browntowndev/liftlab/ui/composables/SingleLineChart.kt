@@ -18,6 +18,8 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.insets
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
@@ -25,7 +27,6 @@ import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
-import com.patrykandpatrick.vico.core.common.Dimensions
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 
 @Composable
@@ -39,10 +40,10 @@ fun SingleLineChart(
         val marker = rememberMarker()
         val point = rememberShapeComponent(
             shape = Pill,
-            color = Color.Black,
-            margins = Dimensions(allDp = 2.dp.value),
+            fill = fill(Color.Black),
+            margins = insets(2.dp),
             strokeThickness = 3.dp,
-            strokeColor = MaterialTheme.colorScheme.primary,
+            strokeFill = fill(MaterialTheme.colorScheme.primary),
         )
 
         CartesianChartHost(
@@ -76,7 +77,7 @@ fun SingleLineChart(
                 bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = model.bottomAxisValueFormatter,
                     labelRotationDegrees = model.bottomAxisLabelRotationDegrees,
-                    size = BaseAxis.Size.Exact(75f),
+                    size = BaseAxis.Size.Fixed(75f),
                 ),
             ),
             model = model.chartEntryModel,

@@ -20,6 +20,7 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.fill
+import com.patrykandpatrick.vico.compose.common.insets
 import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.Axis
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
@@ -28,7 +29,6 @@ import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
-import com.patrykandpatrick.vico.core.common.Dimensions
 import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 
 @Composable
@@ -42,17 +42,17 @@ fun MultiLineChart(
         val marker = rememberMarker()
         val primaryPoint = rememberShapeComponent(
             shape = Pill,
-            color = Color.Black,
-            margins = Dimensions(allDp = 2.dp.value),
+            fill = fill(Color.Black),
+            margins = insets(2.dp),
             strokeThickness = 3.dp,
-            strokeColor = MaterialTheme.colorScheme.primary,
+            strokeFill = fill(MaterialTheme.colorScheme.primary),
         )
         val tertiaryPoint = rememberShapeComponent(
             shape = Pill,
-            color = Color.Black,
-            margins = Dimensions(allDp = 2.dp.value),
+            fill = fill(Color.Black),
+            margins = insets(2.dp),
             strokeThickness = 3.dp,
-            strokeColor = MaterialTheme.colorScheme.tertiary,
+            strokeFill = fill(MaterialTheme.colorScheme.tertiary),
         )
         val startAxisLineChart = rememberLineCartesianLayer(
             lineProvider = LineCartesianLayer.LineProvider.series(
@@ -99,7 +99,7 @@ fun MultiLineChart(
                 bottomAxis = HorizontalAxis.rememberBottom(
                     valueFormatter = chartModel.bottomAxisValueFormatter,
                     labelRotationDegrees = chartModel.bottomAxisLabelRotationDegrees,
-                    size = BaseAxis.Size.Exact(75f),
+                    size = BaseAxis.Size.Fixed(75f),
                 ),
                 endAxis = VerticalAxis.rememberEnd(
                     itemPlacer = chartModel.endAxisItemPlacer,
