@@ -35,7 +35,6 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.runOnCompletion
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
@@ -265,7 +264,7 @@ fun Workout(
                         reps = reps,
                         rpe = rpe,
                     )
-                ).runOnCompletion {
+                ).invokeOnCompletion {
                     if (startRestTimer || state.completedMyoRepSets) {
                         if (state.completedMyoRepSets) {
                             workoutViewModel.saveRestTimerInProgress(restTime)
@@ -371,8 +370,9 @@ fun Workout(
                 onConfirm = workoutViewModel::startWorkout,
                 onDismiss = workoutViewModel::toggleDeloadPrompt,
                 onCancel = {
-                    workoutViewModel.skipDeloadMicrocycle()
-                    workoutViewModel.startWorkout()
+                    workoutViewModel.skipDeloadMicrocycle().invokeOnCompletion {
+                        workoutViewModel.startWorkout()
+                    }
                 },
             ) {
                 Column (

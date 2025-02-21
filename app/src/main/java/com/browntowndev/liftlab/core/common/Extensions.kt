@@ -325,10 +325,6 @@ fun BroadcastReceiver.executeInCoroutineScope(
     }
 }
 
-fun Job.runOnCompletion(action: () -> Unit) {
-    invokeOnCompletion { action() }
-}
-
 fun SpannableStringBuilder.appendCompat(
     text: CharSequence,
     what: Any,

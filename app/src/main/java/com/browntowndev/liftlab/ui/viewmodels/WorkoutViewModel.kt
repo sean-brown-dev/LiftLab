@@ -56,6 +56,7 @@ import com.browntowndev.liftlab.core.progression.ProgressionFactory
 import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
@@ -468,11 +469,11 @@ class WorkoutViewModel(
         }
     }
 
-    fun skipDeloadMicrocycle() {
+    fun skipDeloadMicrocycle(): Job {
         mutableWorkoutState.update {
             it.copy(isDeloadPromptDialogShown = false)
         }
-        executeInTransactionScope {
+        return executeInTransactionScope {
             val programMetadata = mutableWorkoutState.value.programMetadata!!
             programsRepository.updateMesoAndMicroCycle(
                 id = programMetadata.programId,

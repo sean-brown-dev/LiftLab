@@ -91,11 +91,8 @@ fun LiftLibrary(
     }
 
     LaunchedEffect(key1 = state.selectedNewLifts, key2 = state.showFilterSelection) {
-        if (state.selectedNewLifts.isEmpty()) {
-            onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, false)
-        } else if (!state.showFilterSelection) {
-            onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, true)
-        }
+        val confirmAddVisible = state.selectedNewLifts.isNotEmpty() && !state.showFilterSelection
+        onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, confirmAddVisible)
     }
 
     if (!state.showFilterSelection && !state.replacingLift) {
