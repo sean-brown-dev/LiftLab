@@ -53,27 +53,32 @@ class LiftLibraryViewModel(
                     addAtPosition = addAtPosition,
                     newLiftMetricChartIds = newLiftMetricChartIds,
                     liftIdFilters = getLiftIdFilters(workoutId),
-                    movementPatternFilters = if(initialMovementPatternFilter.isNotEmpty()) {
-                        listOf(FilterChipOption(type = MOVEMENT_PATTERN, value = initialMovementPatternFilter))
+                    movementPatternFilters = if (initialMovementPatternFilter.isNotEmpty()) {
+                        listOf(
+                            FilterChipOption(
+                                type = MOVEMENT_PATTERN,
+                                value = initialMovementPatternFilter
+                            )
+                        )
                     } else {
                         it.movementPatternFilters
                     }
                 )
             }
-        }
 
-        _liftsLiveData = liftsRepository.getAllAsLiveData()
-        _liftsObserver = Observer { lifts ->
-            val sortedLifts = lifts.sortedBy { it.name }
-            _state.update { currentState ->
-                currentState.copy(
-                    allLifts = sortedLifts,
-                    filteredLifts = getFilteredLifts(sortedLifts)
-                )
+            _liftsLiveData = liftsRepository.getAllAsLiveData()
+            _liftsObserver = Observer { lifts ->
+                val sortedLifts = lifts.sortedBy { it.name }
+                _state.update { currentState ->
+                    currentState.copy(
+                        allLifts = sortedLifts,
+                        filteredLifts = getFilteredLifts(sortedLifts)
+                    )
+                }
             }
-        }
 
-        _liftsLiveData!!.observeForever(_liftsObserver!!)
+            _liftsLiveData!!.observeForever(_liftsObserver!!)
+        }
     }
 
     override fun onCleared() {
