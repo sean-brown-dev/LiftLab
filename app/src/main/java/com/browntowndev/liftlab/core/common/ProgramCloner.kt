@@ -130,7 +130,7 @@ class ProgramCloner {
                     )
                     else -> throw Exception("Type ${set::class.simpleName} is not defined.")
                 }
-                
+
                 setsRepository.insert(clonedSet)
             }
         }
