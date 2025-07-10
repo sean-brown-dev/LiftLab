@@ -8,19 +8,19 @@ plugins {
 }
 
 android {
-    namespace 'com.browntowndev.liftlab'
-    compileSdk 35
+    namespace = 'com.browntowndev.liftlab'
+    compileSdk = 36
 
     defaultConfig {
-        applicationId "com.browntowndev.liftlab"
-        minSdk 29
-        targetSdk 35
-        versionCode 24
-        versionName "1.23"
+        applicationId = "com.browntowndev.liftlab"
+        minSdk = 29
+        targetSdk = 36
+        versionCode = 25
+        versionName = "1.24"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
-            useSupportLibrary true
+            useSupportLibrary = true
         }
 
         ksp {
@@ -30,23 +30,17 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = '17'
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
-        compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.7'
+        compose = true
     }
     packagingOptions {
         resources {
@@ -55,40 +49,42 @@ android {
     }
 }
 
-
 dependencies {
-    def nav_version = '2.9.0'
+    def nav_version = '2.9.1'
     def material_version = '1.3.1'
-    def room_version = '2.7.1'
-    def lifecycle_version = '2.8.7'
+    def room_version = '2.7.2'
+    def lifecycle_version = '2.9.1'
     def kotlin_coroutines_version = '1.10.1'
     def compose_version = '1.7.8'
-    def kotlin_reflect_version = '2.1.10'
+    def kotlin_reflect_version = '2.1.20'
     def eventbus_version = '3.3.1'
     def mockkVersion = '1.13.17'
-    def vico_version = '2.1.0'
-    def koin_version = '4.0.2'
+    def vico_version = '2.1.3'
+    def koin_version = '4.1.0'
+    def activity_version = '1.9.3'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0'
+    implementation "androidx.activity:activity-ktx:$activity_version"
 
-    implementation 'com.google.guava:guava:33.4.0-jre'
-    implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha07'
-    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
+
+    implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation 'androidx.security:security-crypto-ktx:1.1.0-beta01'
+    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.4'
 
     implementation 'com.google.android.play:feature-delivery:2.1.0'
     implementation 'com.google.android.play:feature-delivery-ktx:2.1.0'
-    implementation 'com.android.billingclient:billing-ktx:7.1.1'
+    implementation 'com.android.billingclient:billing-ktx:8.0.0'
 
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
     implementation "org.greenrobot:eventbus:$eventbus_version"
-    kapt "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
+    ksp "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
 
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_reflect_version"
     implementation 'androidx.core:core-ktx:1.16.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.1'
     implementation 'androidx.activity:activity-compose:1.10.1'
-    implementation platform('androidx.compose:compose-bom:2025.05.01')
+    implementation platform('androidx.compose:compose-bom:2025.06.01')
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
     implementation 'com.google.j2objc:j2objc-annotations:3.0.0'
 
@@ -97,23 +93,23 @@ dependencies {
     implementation "androidx.compose.ui:ui-graphics:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation "androidx.compose.foundation:foundation:$compose_version"
-    implementation 'androidx.compose.runtime:runtime-livedata:1.8.2'
+    implementation 'androidx.compose.runtime:runtime-livedata:1.8.3'
     implementation "androidx.compose.ui:ui-util:$compose_version"
 
     implementation "androidx.compose.material:material:$compose_version"
     implementation "androidx.compose.material3:material3:$material_version"
 
     // Third Party
-    implementation 'sh.calvin.reorderable:reorderable:2.4.3'
-    implementation 'io.arrow-kt:arrow-core:2.0.1'
-    implementation 'io.arrow-kt:arrow-fx-coroutines:2.0.1'
-    implementation 'de.raphaelebner:roomdatabasebackup:1.0.2'
-    implementation 'com.valentinilk.shimmer:compose-shimmer:1.3.2'
+    implementation 'sh.calvin.reorderable:reorderable:2.5.1'
+    implementation 'io.arrow-kt:arrow-core:2.1.2'
+    implementation 'io.arrow-kt:arrow-fx-coroutines:2.1.2'
+    implementation 'de.raphaelebner:roomdatabasebackup:1.1.0'
+    implementation 'com.valentinilk.shimmer:compose-shimmer:1.3.3'
     implementation 'dev.shreyaspatil:capturable:3.0.1'
 
     // Work
-    implementation 'androidx.work:work-runtime-ktx:2.10.1'
-    implementation 'androidx.work:work-runtime:2.10.1'
+    implementation 'androidx.work:work-runtime-ktx:2.10.2'
+    implementation 'androidx.work:work-runtime:2.10.2'
 
     // Annotation
     implementation "javax.annotation:javax.annotation-api:1.3.2"
@@ -122,7 +118,6 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-common:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
     ksp "androidx.room:room-compiler:$room_version"
 
     // Navigation
@@ -133,7 +128,7 @@ dependencies {
     implementation "androidx.navigation:navigation-compose:$nav_version"
 
     // Gson
-    implementation 'com.google.code.gson:gson:2.12.1'
+    implementation 'com.google.code.gson:gson:2.13.1'
 
     // Koin
     implementation "io.insert-koin:koin-core:$koin_version"
@@ -146,16 +141,16 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
     // Testing
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     testImplementation "io.mockk:mockk:$mockkVersion"
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2025.05.01')
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.8.2'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.8.2'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.8.2'
+    androidTestImplementation platform('androidx.compose:compose-bom:2025.06.01')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.8.3'
+    debugImplementation 'androidx.compose.ui:ui-tooling:1.8.3'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.8.3'
 
     // Vico Charts
     // For Jetpack Compose.

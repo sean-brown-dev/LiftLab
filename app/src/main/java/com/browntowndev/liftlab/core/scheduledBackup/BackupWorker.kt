@@ -26,7 +26,6 @@ class BackupWorker(context: Context, workerParameters: WorkerParameters): Corout
                     context = context,
                     roomDatabase = LiftLabDatabase.getInstance(context),
                     backupFile = Utils.General.backupFile,
-                    encryptionKey = context.getString(R.string.db_encryption_key)
                 ).backup()
 
                 result = Result.success()

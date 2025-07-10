@@ -39,7 +39,7 @@ class StepSizeAutoMigration: AutoMigrationSpec {
                 db.execSQL("UPDATE workoutLifts " +
                         "SET stepSize = @stepSize " +
                         "WHERE workout_lift_id = @workoutLiftId",
-                    arrayOf(stepSize, workoutLiftId))
+                    arrayOf(stepSize?.toLong(), workoutLiftId))
             }
             db.setTransactionSuccessful()
         }

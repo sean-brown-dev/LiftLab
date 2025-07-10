@@ -115,7 +115,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, DATABASE_NAME)
                 .addMigrations(LiftNoteMigration())
-                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration(false)
                 .build()
 
             submitDataInitializationJob(context)

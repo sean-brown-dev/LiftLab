@@ -17,24 +17,54 @@ import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { LabViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { params -> LiftDetailsViewModel(params.get(), params[0], get(), get(), get(), get()) }
-    viewModel { params -> WorkoutBuilderViewModel(params.get(), params.get(), get(), get(), get(), get(), get(), params.get(), get(), get(), get(), get()) }
-    viewModel { params -> LiftLibraryViewModel(get(), get(), get(), params[0], params[1], params[2], params[3], params[4], params[5], params.get(), params.get(), get(), get()) }
-    viewModel { params -> WorkoutViewModel(StandardProgressionFactory(), get(), get(), get(), get(), get(), get(), get(), get(), get(), params[0], params[1], get(), get()) }
-    viewModel { params -> EditWorkoutViewModel(params.get(), get(), get(), params.get(), get(), get()) }
-    viewModel { TopAppBarViewModel() }
-    viewModel { BottomNavBarViewModel() }
-    viewModel { BottomSheetViewModel() }
-    viewModel { params -> CountdownTimerViewModel(params.get()) }
-    viewModel { TimerViewModel() }
-    viewModel { PickerViewModel() }
-    viewModel { params -> HomeViewModel(get(), get(), get(), get(), get(), params.get(), params.get(), get(), get()) }
-    viewModel { params -> SettingsViewModel(get(), get(), params.get(), get(), get()) }
-    viewModel { params -> WorkoutHistoryViewModel(get(), params.get(), get(), get()) }
-    viewModel { params -> DonationViewModel(params.get(), get(), get())}
+    factory { params ->
+        LiftDetailsViewModel(params.get(), params[0], get(), get(), get(), get())
+    }
+    factory { params ->
+        WorkoutBuilderViewModel(
+            params.get(), params.get(), get(), get(), get(), get(), get(),
+            params.get(), get(), get(), get(), get()
+        )
+    }
+    factory { params ->
+        LiftLibraryViewModel(
+            get(), get(), get(), params[0], params[1], params[2], params[3],
+            params[4], params[5], params.get(), params.get(), get(), get()
+        )
+    }
+    factory { params ->
+        WorkoutViewModel(
+            StandardProgressionFactory(), get(), get(), get(), get(), get(), get(),
+            get(), get(), get(), params[0], params[1], get(), get()
+        )
+    }
+    factory { params ->
+        EditWorkoutViewModel(params.get(), get(), get(), params.get(), get(), get())
+    }
+    factory { params ->
+        CountdownTimerViewModel(params.get())
+    }
+    factory { params ->
+        HomeViewModel(get(), get(), get(), get(), get(), params.get(), params.get(), get(), get())
+    }
+    factory { params ->
+        SettingsViewModel(get(), get(), params.get(), get(), get())
+    }
+    factory { params ->
+        WorkoutHistoryViewModel(get(), params.get(), get(), get())
+    }
+    factory { params ->
+        DonationViewModel(params.get(), get(), get())
+    }
+
+    viewModelOf(::LabViewModel)
+    viewModelOf(::TopAppBarViewModel)
+    viewModelOf(::BottomNavBarViewModel)
+    viewModelOf(::BottomSheetViewModel)
+    viewModelOf(::TimerViewModel)
+    viewModelOf(::PickerViewModel)
 }

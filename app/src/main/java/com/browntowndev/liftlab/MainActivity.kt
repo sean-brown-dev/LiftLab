@@ -7,10 +7,17 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -24,6 +31,7 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.scheduledBackup.LiftLabRoomBackup
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
@@ -33,10 +41,13 @@ import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.KoinAndroidContext
 import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.parameter.parametersOf
+import javax.crypto.SecretKey
+import java.util.Base64
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
@@ -58,7 +69,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 .database(db)
                 .enableLogDebug(false)
                 .backupIsEncrypted(true)
-                .customEncryptPassword(this@MainActivity.getString(R.string.db_encryption_key))
                 .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_FILE)
                 .apply {
                     onCompleteListener { success, roomBackupMessage, code ->
@@ -82,7 +92,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 .database(db)
                 .enableLogDebug(false)
                 .backupIsEncrypted(true)
-                .customEncryptPassword(this@MainActivity.getString(R.string.db_encryption_key))
                 .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_DIALOG)
                 .customRestoreDialogTitle("Choose a backup to restore.")
                 .apply {
@@ -105,27 +114,27 @@ class MainActivity : ComponentActivity(), KoinComponent {
         setContent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
             if(isInitialized) {
-                KoinAndroidContext {
-                    val donationViewModel: DonationViewModel = koinViewModel {
-                        parametersOf(BillingClient.newBuilder(this))
-                    }
-                    val donationState by donationViewModel.state.collectAsState()
-                    LiftLab(
-                        donationState = donationState,
-                        onClearBillingError = donationViewModel::clearBillingError,
-                        onUpdateDonationProduct = donationViewModel::setNewDonationOption,
-                        onBackup = {
-                            roomBackup
-                                .backupLocationCustomFile(Utils.General.backupFile)
-                                .backup()
-                        },
-                        onRestore = roomRestore::restore,
-                        onProcessDonation = {
-                            donationViewModel.processDonation(this)
-                        },
-                    )
+                val donationViewModel: DonationViewModel = remember {
+                    getViewModel(parameters = { parametersOf(BillingClient.newBuilder(this)) })
                 }
+                val donationState by donationViewModel.state.collectAsState()
+                LiftLab(
+                    donationState = donationState,
+                    onClearBillingError = donationViewModel::clearBillingError,
+                    onUpdateDonationProduct = donationViewModel::setNewDonationOption,
+                    onBackup = {
+                        roomBackup
+                            .backupLocationCustomFile(Utils.General.backupFile)
+                            .backup()
+                    },
+                    onRestore = roomRestore::restore,
+                    onProcessDonation = {
+                        donationViewModel.processDonation(this)
+                    },
+                )
             }
+
+            enableEdgeToEdge(statusBarStyle = getStatusBarStyle())
         }
     }
 
@@ -183,5 +192,11 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 1
             )
         }
+    }
+
+    @Composable
+    private fun getStatusBarStyle(): SystemBarStyle = SystemBarStyle.run {
+        val color = Color.Transparent.toArgb()
+        dark(color)
     }
 }

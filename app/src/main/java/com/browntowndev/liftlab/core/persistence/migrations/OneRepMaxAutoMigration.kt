@@ -33,7 +33,7 @@ class OneRepMaxAutoMigration: AutoMigrationSpec {
                 db.execSQL("UPDATE previousSetResults " +
                         "SET oneRepMax = @oneRepMax " +
                         "WHERE previously_completed_set_id = @id",
-                    arrayOf(oneRepMax, id))
+                    arrayOf(oneRepMax.toLong(), id))
             }
 
             val setLogQuery = db.query(
@@ -54,7 +54,7 @@ class OneRepMaxAutoMigration: AutoMigrationSpec {
                 db.execSQL("UPDATE setLogEntries " +
                         "SET oneRepMax = @oneRepMax " +
                         "WHERE set_log_entry_id = @id",
-                    arrayOf(oneRepMax, id))
+                    arrayOf(oneRepMax.toLong(), id))
             }
 
             db.setTransactionSuccessful()
