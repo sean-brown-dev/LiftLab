@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
@@ -318,10 +319,10 @@ class HomeViewModel(
                             null
                         }
                     }
-            }
+            }.sortedBy { it.date }
 
             // Build all the selected charts for the lift
-            val liftName = resultsForLift.firstOrNull()?.setResults?.get(0)?.liftName
+            val liftName = resultsForLift.lastOrNull()?.setResults?.get(0)?.liftName
             if (liftName != null) {
                 liftCharts.value.fastMap { chart ->
                     LiftMetricChartModel(
@@ -345,7 +346,7 @@ class HomeViewModel(
                             )
                         }
                     )
-                }
+                }.fastMapNotNull { chartModel -> if (chartModel.chartModel.chartEntryModel != null) chartModel else null }
             } else listOf()
         }
     }

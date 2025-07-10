@@ -98,16 +98,19 @@ fun WorkoutLiftCard(
             }
             Row {
                 Text(
-                    modifier = Modifier.padding(
-                        start = 15.dp,
-                        top = 10.dp,
-                        bottom = 5.dp,
-                        end = 10.dp
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .padding(
+                            start = 15.dp,
+                            top = 10.dp,
+                            bottom = 5.dp,
+                            end = 10.dp
+                        ),
                     text = workoutLift.liftName,
-                    overflow = TextOverflow.Ellipsis,
+                    softWrap = true,
+                    overflow = TextOverflow.Visible,
                     fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = MaterialTheme.colorScheme.tertiary,
                 )
                 if (!isEdit) {
                     Spacer(modifier = Modifier.weight(1f))

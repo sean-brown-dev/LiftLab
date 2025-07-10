@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,15 +50,18 @@ fun ChartCard(
             Column {
                 if (subHeaderLabel.isNotEmpty()) {
                     Text(
-                        modifier = Modifier.padding(top = 4.dp, start = 10.dp),
+                        modifier = Modifier.fillMaxWidth(.9f).padding(top = 4.dp, start = 10.dp),
                         text = subHeaderLabel,
                         color = MaterialTheme.colorScheme.tertiary,
                         style = MaterialTheme.typography.bodyLarge,
                         fontSize = 12.sp,
+                        softWrap = true,
+                        overflow = TextOverflow.Visible,
                     )
                 }
                 SectionLabel(
-                    modifier = if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp),
+                    modifier = Modifier.fillMaxWidth(.9f).then(
+                        if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp)),
                     text = label,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontSize = labelFontSize,

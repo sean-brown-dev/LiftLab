@@ -35,6 +35,8 @@ fun ColumnChart(
     scrollState: VicoScrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
     zoomState: VicoZoomState = rememberVicoZoomState(),
 ) {
+    if (chartModel.chartEntryModel == null) return
+
     ProvideVicoTheme(rememberLiftLabChartTheme()) {
         CartesianChartHost(
             modifier = modifier,

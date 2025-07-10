@@ -35,6 +35,8 @@ import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 fun MultiLineChart(
     chartModel: ComposedChartModel<LineCartesianLayerModel>,
 ) {
+    if (chartModel.chartEntryModel == null) return
+
     val theme = rememberLiftLabChartTheme()
     val chartColors = theme.lineCartesianLayerColors
 
@@ -116,7 +118,7 @@ fun MultiLineChart(
                     )
                 },
             ),
-            model = chartModel.composedChartEntryModel,
+            model = chartModel.chartEntryModel,
             scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
         )
     }

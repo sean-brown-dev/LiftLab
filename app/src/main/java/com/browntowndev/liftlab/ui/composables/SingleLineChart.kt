@@ -24,6 +24,7 @@ import com.patrykandpatrick.vico.core.cartesian.Scroll
 import com.patrykandpatrick.vico.core.cartesian.axis.BaseAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
@@ -33,8 +34,9 @@ import com.patrykandpatrick.vico.core.common.shape.CorneredShape.Companion.Pill
 fun SingleLineChart(
     model: ChartModel<LineCartesianLayerModel>,
 ) {
+    if (model.chartEntryModel == null) return
+
     val theme = rememberLiftLabChartTheme()
-    val chartColors = theme.lineCartesianLayerColors
 
     ProvideVicoTheme(theme) {
         val marker = rememberMarker()

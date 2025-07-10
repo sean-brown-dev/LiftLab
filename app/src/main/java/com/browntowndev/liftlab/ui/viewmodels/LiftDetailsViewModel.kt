@@ -94,17 +94,6 @@ class LiftDetailsViewModel(
         }
     }
 
-    private fun getOneRepMax(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
-        val oneRepMax = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toMediumDateString() to
-                    workoutLog.setResults.maxOf {it.oneRepMax }
-        }.maxByOrNull { it.second }
-
-        return if (oneRepMax != null) {
-            Pair(oneRepMax.first, oneRepMax.second.toString())
-        } else null
-    }
-
     private fun getMaxVolume(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
         val maxVolume = workoutLogs.fastMap { workoutLog ->
             workoutLog.date.toMediumDateString() to

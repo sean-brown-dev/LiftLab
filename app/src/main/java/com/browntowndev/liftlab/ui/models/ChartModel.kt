@@ -20,6 +20,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 interface BaseChartModel<T> {
+    val chartEntryModel: CartesianChartModel?
     val startAxisValueOverrider: CartesianLayerRangeProvider?
     val bottomAxisValueFormatter: CartesianValueFormatter
     val startAxisValueFormatter: CartesianValueFormatter
@@ -29,7 +30,7 @@ interface BaseChartModel<T> {
 }
 
 class ChartModel<T>(
-    val chartEntryModel: CartesianChartModel,
+    override val chartEntryModel: CartesianChartModel?,
     override val startAxisValueOverrider: CartesianLayerRangeProvider?,
     override val bottomAxisValueFormatter: CartesianValueFormatter,
     override val startAxisValueFormatter: CartesianValueFormatter,
@@ -38,12 +39,12 @@ class ChartModel<T>(
     override val bottomAxisLabelRotationDegrees: Float = 45f,
 ): BaseChartModel<T> {
     val hasData by lazy {
-        chartEntryModel.models.any()
+        chartEntryModel?.models?.any() ?: false
     }
 }
 
 class ComposedChartModel<T>(
-    val composedChartEntryModel: CartesianChartModel,
+    override val chartEntryModel: CartesianChartModel?,
     override val startAxisValueOverrider: CartesianLayerRangeProvider?,
     val endAxisValueOverrider: CartesianLayerRangeProvider?,
     override val bottomAxisValueFormatter: CartesianValueFormatter,
@@ -55,7 +56,7 @@ class ComposedChartModel<T>(
     override val bottomAxisLabelRotationDegrees: Float = 45f,
 ): BaseChartModel<T> {
     val hasData by lazy {
-        composedChartEntryModel.models.any()
+        chartEntryModel?.models?.any() ?: false
     }
 }
 
@@ -86,7 +87,7 @@ fun getOneRepMaxChartModel(
                 series(x = xValuesToDates.keys, y = oneRepMaxesByLocalDate.values)
             }
         )
-    } else CartesianChartModel.Empty
+    } else null
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
@@ -145,12 +146,12 @@ fun getPerWorkoutVolumeChartModel(
                 series(x = xValuesToDates.keys, y = volumesByLocalDate.values.map { it.relativeVolume })
             }
         )
-    } else CartesianChartModel.Empty
+    } else null
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
     return ComposedChartModel(
-        composedChartEntryModel = chartEntryModel,
+        chartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: CartesianLayerRangeProvider {
             override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 1)
@@ -229,10 +230,10 @@ fun getPerMicrocycleVolumeChartModel(
                 series(x = xValuesToMesoMicroPair.keys, y = volumesForEachMesoAndMicro.values.map { it.second })
             }
         )
-    } else CartesianChartModel.Empty
+    } else null
 
     return ComposedChartModel(
-        composedChartEntryModel = chartEntryModel,
+        chartEntryModel = chartEntryModel,
         startAxisValueOverrider = object: CartesianLayerRangeProvider {
             override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
                 return getChartMinY(minY, toSubtract = 1)
@@ -299,7 +300,7 @@ fun getIntensityChartModel(
                 series(x = xValuesToDates.keys, y = relativeIntensitiesByLocalDate.values)
             }
         )
-    } else CartesianChartModel.Empty
+    } else null
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yy")
 
@@ -354,7 +355,7 @@ fun getWeeklyCompletionChart(
                 series(x = xValuesToDates.keys, y = completedWorkoutsByWeek.values)
             }
         )
-    } else CartesianChartModel.Empty
+    } else null
 
     val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("M/d")
 
