@@ -3,13 +3,17 @@ package com.browntowndev.liftlab
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
@@ -32,25 +36,25 @@ import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgres
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.scheduledBackup.LiftLabRoomBackup
+import com.browntowndev.liftlab.core.scheduledBackup.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
+import com.browntowndev.liftlab.core.scheduledBackup.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CREATOR
+import com.browntowndev.liftlab.core.scheduledBackup.OnCompleteListener.Companion.EXIT_CODE_ERROR_BY_USER_CANCELED
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
-import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER
-import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BACKUP_FILE_CREATOR
-import de.raphaelebner.roomdatabasebackup.core.OnCompleteListener.Companion.EXIT_CODE_ERROR_BY_USER_CANCELED
-import de.raphaelebner.roomdatabasebackup.core.RoomBackup
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.KoinAndroidContext
-import org.koin.androidx.compose.koinViewModel
 import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.parameter.parametersOf
-import javax.crypto.SecretKey
-import java.util.Base64
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
+
+    private lateinit var roomRestore: LiftLabRoomBackup
+
+    private lateinit var openDocumentLauncher: ActivityResultLauncher<Array<String>>
+
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,52 +68,73 @@ class MainActivity : ComponentActivity(), KoinComponent {
         SettingsManager.initialize(this@MainActivity)
         val db = LiftLabDatabase.getInstance(this@MainActivity)
 
-        val roomBackup: RoomBackup =
-            RoomBackup(this@MainActivity)
-                .database(db)
-                .enableLogDebug(false)
-                .backupIsEncrypted(true)
-                .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_FILE)
-                .apply {
-                    onCompleteListener { success, roomBackupMessage, code ->
-                        if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
-                            code != EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER &&
-                            code != EXIT_CODE_ERROR_BACKUP_FILE_CREATOR) {
-                            val message = if (success) "Success!" else roomBackupMessage
-                            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
-                        }
+        val roomBackup: LiftLabRoomBackup =
+            LiftLabRoomBackup(
+                context = this@MainActivity,
+                roomDatabase = db,
+                backupFile = Utils.General.backupFile
+            ).apply {
+                onCompleteListener { success, roomBackupMessage, code ->
+                    if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
+                        code != EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER &&
+                        code != EXIT_CODE_ERROR_BACKUP_FILE_CREATOR) {
+                        val message = if (success) "Success!" else roomBackupMessage
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
+                    }
 
-                        if (success) {
-                            val intent = Intent(context, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                            restartApp(intent)
-                        }
+                    if (success) {
+                        val intent = Intent(context, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                        restartApp(intent)
                     }
                 }
+            }
 
-        val roomRestore: RoomBackup =
-            RoomBackup(this@MainActivity)
-                .database(db)
-                .enableLogDebug(false)
-                .backupIsEncrypted(true)
-                .backupLocation(RoomBackup.BACKUP_FILE_LOCATION_CUSTOM_DIALOG)
-                .customRestoreDialogTitle("Choose a backup to restore.")
-                .apply {
-                    onCompleteListener { success, roomBackupMessage, code ->
-                        if (code != EXIT_CODE_ERROR_BY_USER_CANCELED &&
-                            code != EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER &&
-                            code != EXIT_CODE_ERROR_BACKUP_FILE_CREATOR) {
-                            val message = if (success) "Success!" else roomBackupMessage
-                            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
-                        }
-
-                        if (success) {
-                            val intent = Intent(context, MainActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                            restartApp(intent)
-                        }
-                    }
+        // --- RoomBackup Instance for Restore ---
+        // This instance will be used by the ActivityResultLauncher callback
+         roomRestore = LiftLabRoomBackup(
+            context = this@MainActivity,
+            roomDatabase = db,
+            backupFile = Utils.General.backupFile
+        ).apply {
+            onCompleteListener { success, roomBackupMessage, code ->
+                if (code !in listOf(
+                        EXIT_CODE_ERROR_BY_USER_CANCELED,
+                        // These error codes are less likely for restore via URI,
+                        // but good to keep if the library might still emit them.
+                        EXIT_CODE_ERROR_BACKUP_FILE_CHOOSER,
+                        EXIT_CODE_ERROR_BACKUP_FILE_CREATOR
+                    )
+                ) {
+                    val message = if (success) "Restore Success!" else "Restore Failed: $roomBackupMessage"
+                    Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
                 }
+
+                if (success) {
+                    // Restart the app after successful restore
+                    val intent = Intent(this@MainActivity, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                    this.restartApp(intent)
+                }
+            }
+        }
+
+        openDocumentLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            uri?.let { selectedUri ->
+                // Ensure roomRestore is initialized (it should be by this point)
+                if (::roomRestore.isInitialized) {
+                    Log.d("MainActivity", "File selected: $selectedUri")
+                    Toast.makeText(this, "Beginning restore.", Toast.LENGTH_SHORT).show()
+                    // Call the method in LiftLabRoomBackup to handle the URI
+                    roomRestore.handleSelectedFileToRestore(selectedUri)
+                } else {
+                    Toast.makeText(this, "Error: Restore process not ready.", Toast.LENGTH_SHORT).show()
+                    Log.e("MainActivity", "roomRestore not initialized when file was selected.")
+                }
+            } ?: run {
+                Toast.makeText(this, "No file selected.", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         setContent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
@@ -124,10 +149,21 @@ class MainActivity : ComponentActivity(), KoinComponent {
                     onUpdateDonationProduct = donationViewModel::setNewDonationOption,
                     onBackup = {
                         roomBackup
-                            .backupLocationCustomFile(Utils.General.backupFile)
                             .backup()
                     },
-                    onRestore = roomRestore::restore,
+                    onRestore = {
+                        if (::roomRestore.isInitialized) {
+                            if (roomRestore.prepareRestore()) {
+                                // The launcher is used here:
+                                openDocumentLauncher.launch(LiftLabRoomBackup.MIME_TYPES_FOR_BACKUP)
+                            } else {
+                                Toast.makeText(this@MainActivity, "Failed to prepare for restore.", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(this@MainActivity, "Error: Restore service not ready.", Toast.LENGTH_SHORT).show()
+                            Log.e("MainActivity", "Attempted to restore but roomRestore not initialized.")
+                        }
+                    },
                     onProcessDonation = {
                         donationViewModel.processDonation(this)
                     },
@@ -147,6 +183,8 @@ class MainActivity : ComponentActivity(), KoinComponent {
             val workoutsRepository: WorkoutsRepository by inject()
             val workoutInProgressRepository: WorkoutInProgressRepository by inject()
             val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
+
+            // TODO: make this injectable via Koin
             val notificationHelper = NotificationHelper(
                 programRepository = programRepository,
                 workoutsRepository = workoutsRepository,

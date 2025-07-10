@@ -26,8 +26,12 @@ class Utils {
 
             val backupFile: File
                 get() {
-                    val backupDir = SettingsManager.getSetting(BACKUP_DIRECTORY, DEFAULT_BACKUP_DIRECTORY)
                     return File(backupDir, backupFileName)
+                }
+
+            val backupDir: String
+                get() {
+                    return SettingsManager.getSetting(BACKUP_DIRECTORY, DEFAULT_BACKUP_DIRECTORY)
                 }
         }
     }
