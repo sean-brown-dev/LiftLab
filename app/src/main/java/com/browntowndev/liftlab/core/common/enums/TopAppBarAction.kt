@@ -22,4 +22,5 @@ enum class TopAppBarAction {
     OpenSettingsMenu,
     OpenWorkoutHistory,
     EditDateRange,
+    OpenProfileMenu,
 }

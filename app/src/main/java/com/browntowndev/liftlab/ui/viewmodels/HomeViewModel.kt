@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
@@ -8,6 +9,7 @@ import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
@@ -43,7 +45,11 @@ import com.browntowndev.liftlab.ui.models.getPerMicrocycleVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.google.firebase.auth.FirebaseAuth
+import dev.gitlive.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -54,6 +60,7 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import java.util.Date
 
+
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
@@ -62,6 +69,7 @@ class HomeViewModel(
     private val liftsRepository: LiftsRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
+    private val firebaseAuth: FirebaseAuth,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -78,7 +86,8 @@ class HomeViewModel(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    liftMetricOptions = getLiftMetricChartOptions()
+                    liftMetricOptions = getLiftMetricChartOptions(),
+                    firebaseUsername = firebaseAuth.currentUser?.email
                 )
             }
 
@@ -155,6 +164,7 @@ class HomeViewModel(
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
             TopAppBarAction.OpenSettingsMenu -> onNavigateToSettingsMenu()
+            TopAppBarAction.OpenProfileMenu -> toggleLoginModal()
             else -> { }
         }
     }
@@ -394,6 +404,117 @@ class HomeViewModel(
                     )
                 )
             } else null
+        }
+    }
+
+    fun toggleLoginModal() {
+        _state.update {
+            it.copy(
+                loginModalVisible = !state.value.loginModalVisible
+            )
+        }
+    }
+
+    fun createAccount(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                firebaseAuth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if(task.isSuccessful) {
+                            task.result?.user?.sendEmailVerification() ?: throw Exception("User is null after successful account creation.")
+                        }
+                        handleFirebaseTaskCompletion(task)
+                    }
+            } catch (ex: Exception) {
+                handleFirebaseError(ex)
+            }
+        }
+    }
+
+    private fun handleFirebaseError(ex: Exception?) {
+        _state.update {
+            it.copy(firebaseError = "Failed to authenticate user.")
+        }
+        Log.e("Firebase", "Failed to authenticate user: ${ex ?: "Unknown error"}")
+    }
+
+    private fun handleFirebaseTaskCompletion(task: Task<AuthResult>) {
+        if (task.isSuccessful) {
+            val firebaseUser = task.result?.user
+
+            if (firebaseUser != null) {
+                _state.update {
+                    it.copy(
+                        firebaseUsername = firebaseUser.email,
+                        emailVerified = firebaseUser.isEmailVerified,
+                        firebaseError = null,
+                    )
+                }
+            } else {
+                // This case is highly unexpected if task.isSuccessful is true
+                Log.e("Firebase", "User is null despite successful task.")
+                _state.update {
+                    it.copy(firebaseError = "Authentication successful, but user data is unavailable.")
+                }
+            }
+        } else {
+            handleFirebaseError(task.exception)
+        }
+    }
+
+
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                firebaseAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        handleFirebaseTaskCompletion(task)
+                    }
+            } catch (ex: Exception) {
+                handleFirebaseError(ex)
+            }
+        }
+    }
+
+    fun logout() {
+        firebaseAuth.signOut()
+        _state.update {
+            it.copy(
+                firebaseUsername = null,
+                emailVerified = false,
+            )
+        }
+    }
+
+    fun signInWithGoogle(signInResult: Result<FirebaseUser?> ) {
+        if (signInResult.isSuccess) {
+            val firebaseUser: FirebaseUser? = signInResult.getOrNull()
+            if (firebaseUser != null) {
+                _state.update {
+                    it.copy(
+                        firebaseUsername = firebaseUser.displayName ?: firebaseUser.email,
+                        emailVerified = firebaseUser.isEmailVerified,
+                    )
+                }
+            } else {
+                // Should be impossible. The library returns failure if user was null
+                _state.update {
+                    it.copy(
+                        firebaseError = "Authentication successful, but user data is unavailable.",
+                        firebaseUsername = null,
+                        emailVerified = false,
+                    )
+                }
+            }
+        } else {
+            Log.e("Firebase", "Failed to authenticate user: ${signInResult.exceptionOrNull() ?: "Unknown error"}")
+            _state.update {
+                it.copy(
+                    firebaseError = "Failed to authenticate user.",
+                    firebaseUsername = null,
+                    emailVerified = false,
+                )
+            }
         }
     }
 

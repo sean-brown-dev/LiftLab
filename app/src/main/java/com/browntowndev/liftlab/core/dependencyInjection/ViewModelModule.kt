@@ -49,7 +49,7 @@ val viewModelModule = module {
         CountdownTimerViewModel(params.get())
     }
     factory { params ->
-        HomeViewModel(get(), get(), get(), get(), get(), params.get(), params.get(), get(), get())
+        HomeViewModel(get(), get(), get(), get(), get(), params.get(), params.get(), get(), get(), get())
     }
     factory { params ->
         SettingsViewModel(get(), get(), params.get(), get(), get())

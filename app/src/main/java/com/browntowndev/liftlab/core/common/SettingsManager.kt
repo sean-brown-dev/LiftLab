@@ -25,6 +25,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.time.LocalTime
+import androidx.core.content.edit
 
 object SettingsManager {
     object SettingNames {
@@ -68,7 +69,7 @@ object SettingsManager {
             setDefaultSetting(SCHEDULED_BACKUP_TIME, DEFAULT_SCHEDULED_BACKUP_TIME)
             setDefaultSetting(BACKUP_DIRECTORY, DEFAULT_BACKUP_DIRECTORY)
 
-            sharedPreferences.edit().putBoolean("settings_initialized", true).apply()
+            sharedPreferences.edit { putBoolean("settings_initialized", true) }
         }
     }
 
@@ -76,6 +77,7 @@ object SettingsManager {
         this.sharedPreferences = sharedPreferences
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T : Any> getSetting(key: String, defaultValue: T): T {
         return when (defaultValue) {
             is String -> sharedPreferences.getString(key, defaultValue)
@@ -118,13 +120,13 @@ object SettingsManager {
     ) {
         if (updateIfExists || !sharedPreferences.contains(key)) {
             when (defaultValue) {
-                is String -> sharedPreferences.edit().putString(key, defaultValue)
-                is Long -> sharedPreferences.edit().putLong(key, defaultValue)
-                is Boolean -> sharedPreferences.edit().putBoolean(key, defaultValue)
-                is Float -> sharedPreferences.edit().putFloat(key, defaultValue)
-                is Int -> sharedPreferences.edit().putInt(key, defaultValue)
+                is String -> sharedPreferences.edit { putString(key, defaultValue) }
+                is Long -> sharedPreferences.edit { putLong(key, defaultValue) }
+                is Boolean -> sharedPreferences.edit { putBoolean(key, defaultValue) }
+                is Float -> sharedPreferences.edit { putFloat(key, defaultValue) }
+                is Int -> sharedPreferences.edit { putInt(key, defaultValue) }
                 else -> throw Exception("${defaultValue::class.simpleName} cannot be stored in SharedPreferences")
-            }.apply()
+            }
         }
     }
 }

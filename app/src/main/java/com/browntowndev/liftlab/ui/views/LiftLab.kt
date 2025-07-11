@@ -6,12 +6,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.rememberNavController
+import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
@@ -76,21 +76,21 @@ fun LiftLab(
                     )
                 },
                 mutateTopAppBarControlValue = { request ->
-                    request.payload.onLeft {
-                        topAppBarViewModel.mutateControlValue(
-                            AppBarMutateControlRequest(
-                                request.controlName,
-                                it
-                            )
-                        )
-                    }.onRight {
-                        topAppBarViewModel.mutateControlValue(
-                            AppBarMutateControlRequest(
-                                request.controlName,
-                                it
-                            )
-                        )
+                    var payload: Any? = request.payload
+                    if (request.payload is Either<*, *>) {
+                        request.payload.onLeft {
+                            payload = it
+                        }.onRight {
+                            payload = it
+                        }
                     }
+
+                    topAppBarViewModel.mutateControlValue(
+                        request = AppBarMutateControlRequest(
+                            controlName = request.controlName,
+                            payload = payload
+                        )
+                    )
                 },
                 setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
                 onBackup = onBackup,

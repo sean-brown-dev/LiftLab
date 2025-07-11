@@ -5,6 +5,7 @@ plugins {
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'org.jetbrains.kotlin.plugin.compose'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -67,9 +68,18 @@ dependencies {
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
 
+    // Firebase
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation platform('com.google.firebase:firebase-bom:33.16.0')
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.4'
+    implementation("io.github.mirzemehdi:kmpauth-google:2.3.1") //Google One Tap Sign-In
+    implementation("io.github.mirzemehdi:kmpauth-firebase:2.3.1") //Integrated Authentications with Firebase
+    implementation("io.github.mirzemehdi:kmpauth-uihelper:2.3.1") //UiHelper SignIn buttons (AppleSignIn, GoogleSignInButton)
+
+
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation 'androidx.security:security-crypto-ktx:1.1.0-beta01'
-    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.4'
 
     implementation 'com.google.android.play:feature-delivery:2.1.0'
     implementation 'com.google.android.play:feature-delivery-ktx:2.1.0'

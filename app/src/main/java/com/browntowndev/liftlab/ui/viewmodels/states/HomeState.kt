@@ -23,7 +23,14 @@ data class HomeState(
     val liftMetricOptions: LiftMetricOptionTree? = null,
     val liftMetricChartModels: List<LiftMetricChartModel> = listOf(),
     val volumeMetricChartModels: List<VolumeMetricChartModel> = listOf(),
+    val loginModalVisible: Boolean = false,
+    val firebaseUsername: String? = null,
+    val emailVerified: Boolean = false,
+    val firebaseError: String? = null,
 ) {
+    val loggedIn: Boolean
+        get() = firebaseUsername != null
+
     val chartSelections: List<String> by lazy {
         volumeTypeSelections.toMutableList().apply {
             addAll(liftChartTypeSelections)
