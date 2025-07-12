@@ -12,20 +12,12 @@ import com.browntowndev.liftlab.core.persistence.entities.Workout
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface WorkoutsDao {
-    @Insert(entity = Workout::class)
-    suspend fun insert(workout: Workout): Long
+interface WorkoutsDao: BaseDao<Workout> {
+    @Query("SELECT * FROM workouts")
+    suspend fun getAll(): List<Workout>
 
-    @Delete(entity = Workout::class)
-    suspend fun delete(workout: Workout)
-
-    @Transaction
-    @Update(entity = Workout::class)
-    suspend fun updateMany(workout: List<Workout>)
-
-    @Transaction
-    @Update(entity = Workout::class)
-    suspend fun update(workout: Workout)
+    @Query("DELETE FROM workouts")
+    suspend fun deleteAll()
 
     @Query("DELETE FROM workouts WHERE workout_id = :id")
     suspend fun delete(id: Long)

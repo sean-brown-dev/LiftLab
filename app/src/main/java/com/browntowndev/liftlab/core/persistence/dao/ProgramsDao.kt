@@ -13,19 +13,9 @@ import com.browntowndev.liftlab.core.persistence.entities.Program
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ProgramsDao {
-    @Insert
-    suspend fun insert(program: Program): Long
-
-    @Delete
-    suspend fun delete(program: Program)
-
-    @Update
-    suspend fun update(program: Program)
-
-    @Transaction
-    @Update
-    suspend fun updateMany(programs: List<Program>)
+interface ProgramsDao: BaseDao<Program> {
+    @Query("DELETE FROM programs")
+    suspend fun deleteAll()
 
     @Query("DELETE FROM programs WHERE program_id = :id")
     suspend fun delete(id: Long)

@@ -21,4 +21,4 @@ data class Lift(
     val isHidden: Boolean = false,
     val isBodyweight: Boolean = false,
     val note: String? = null,
-)
+): BaseEntity()

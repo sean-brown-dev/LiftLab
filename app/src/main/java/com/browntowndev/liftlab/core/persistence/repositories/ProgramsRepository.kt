@@ -7,13 +7,15 @@ import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
+import com.google.firebase.firestore.FirebaseFirestore
+import dev.gitlive.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
 class ProgramsRepository(
     private val programsDao: ProgramsDao,
-    private val programMapper: ProgramMapper
+    private val programMapper: ProgramMapper,
 ) : Repository {
     suspend fun getAll(): List<ProgramDto> {
         return programsDao.getAll().map { programMapper.map(it) }

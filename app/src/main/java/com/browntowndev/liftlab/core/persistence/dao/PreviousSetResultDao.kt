@@ -8,7 +8,13 @@ import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDt
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 
 @Dao
-interface PreviousSetResultDao {
+interface PreviousSetResultDao: BaseDao<PreviousSetResult> {
+    @Query("SELECT * FROM previousSetResults")
+    suspend fun getAll(): List<PreviousSetResult>
+
+    @Query("DELETE FROM previousSetResults")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "(mesoCycle != :mesoCycle OR " +
@@ -36,15 +42,6 @@ interface PreviousSetResultDao {
         microCycle: Int,
         liftIds: List<Long>,
     ): List<PersonalRecordDto>
-
-    @Upsert
-    suspend fun upsert(result: PreviousSetResult): Long
-
-    @Upsert
-    suspend fun upsertMany(results: List<PreviousSetResult>): List<Long>
-
-    @Insert
-    suspend fun insertMany(result: List<PreviousSetResult>): List<Long>
 
     @Query("DELETE FROM previousSetResults " +
             "WHERE previously_completed_set_id IN (" +

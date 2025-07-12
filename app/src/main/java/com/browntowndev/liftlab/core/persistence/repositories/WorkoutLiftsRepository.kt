@@ -14,7 +14,7 @@ class WorkoutLiftsRepository (
     }
 
     suspend fun insertAll(workoutLifts: List<GenericWorkoutLift>): List<Long> {
-        return workoutLiftsDao.insertAll(workoutLifts.map { workoutLiftMapper.map(it) })
+        return workoutLiftsDao.insertMany(workoutLifts.map { workoutLiftMapper.map(it) })
     }
 
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {

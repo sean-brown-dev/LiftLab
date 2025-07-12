@@ -6,9 +6,12 @@ import androidx.room.Query
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
 
 @Dao
-interface HistoricalWorkoutNamesDao {
-    @Insert
-    suspend fun insert(historyEntry: HistoricalWorkoutName): Long
+interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutName> {
+    @Query("SELECT * FROM historicalWorkoutNames")
+    suspend fun getAll(): List<HistoricalWorkoutName>
+
+    @Query("DELETE FROM historicalWorkoutNames")
+    suspend fun deleteAll()
 
     @Query("SELECT * FROM historicalWorkoutNames " +
             "WHERE programId = :programId AND workoutId = :workoutId")

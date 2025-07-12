@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.dtos
 
+import java.util.Date
+
 data class ProgramDto(
     val id: Long = 0,
     val name: String,
@@ -8,5 +10,6 @@ data class ProgramDto(
     val currentMicrocycle: Int = 0,
     val currentMicrocyclePosition: Int = 0,
     val currentMesocycle: Int = 0,
-    val workouts: List<WorkoutDto> = listOf()
+    val workouts: List<WorkoutDto> = listOf(),
+    val lastUpdated: Date? = null,
 )

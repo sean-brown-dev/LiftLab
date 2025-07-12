@@ -8,10 +8,14 @@ import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
+import com.google.firebase.firestore.FirebaseFirestore
+import dev.gitlive.firebase.auth.FirebaseAuth
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class RepositoryHelper(context: Context): KoinComponent {
+class RepositoryHelper(
+    context: Context,
+): KoinComponent {
     private val customLiftSetMapper: CustomLiftSetMapper by inject()
     private val workoutLiftMapper: WorkoutLiftMapper by inject()
     private val workoutMapper: WorkoutMapper by inject()
@@ -22,7 +26,7 @@ class RepositoryHelper(context: Context): KoinComponent {
 
     val programs get() = ProgramsRepository(
         programsDao = database.programsDao(),
-        programMapper = programMapper
+        programMapper = programMapper,
     )
 
     val workoutLifts get() = WorkoutLiftsRepository(
@@ -62,7 +66,8 @@ class RepositoryHelper(context: Context): KoinComponent {
     )
 
     val logging get() = LoggingRepository(
-        database.loggingDao(),
+        database.workoutLogEntryDao(),
+        database.setLogEntryDao(),
         workoutLogEntryMapper,
         setResultMapper,
     )

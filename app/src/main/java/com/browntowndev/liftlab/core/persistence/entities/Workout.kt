@@ -19,4 +19,4 @@ data class Workout(
     val programId: Long,
     val name: String,
     val position: Int,
-)
+): BaseEntity()

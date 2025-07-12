@@ -13,4 +13,4 @@ data class WorkoutInProgress(
     val id: Long = 0,
     val workoutId: Long,
     val startTime: Date,
-)
+): BaseEntity()

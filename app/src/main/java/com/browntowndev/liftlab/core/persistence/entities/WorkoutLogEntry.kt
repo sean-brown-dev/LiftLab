@@ -27,4 +27,4 @@ data class WorkoutLogEntry(
     val microcyclePosition: Int,
     val date: Date,
     val durationInMillis: Long,
-)
+): BaseEntity()

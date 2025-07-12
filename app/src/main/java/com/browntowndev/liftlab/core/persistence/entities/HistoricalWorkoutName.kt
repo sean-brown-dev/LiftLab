@@ -14,4 +14,4 @@ data class HistoricalWorkoutName(
     val workoutId: Long,
     val programName: String,
     val workoutName: String,
-)
+): BaseEntity()

@@ -38,7 +38,7 @@ class LiftLabDatabaseWorker(
                         val database = LiftLabDatabase.getInstance(applicationContext)
                         database.withTransaction {
                             database.clearAllTables()
-                            database.liftsDao().insertAll(lifts)
+                            database.liftsDao().insertMany(lifts)
                             populateDefaultProgram(db = database)
                         }
 

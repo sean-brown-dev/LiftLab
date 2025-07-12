@@ -27,4 +27,4 @@ data class CustomLiftSet(
     val dropPercentage: Float? = null,
     val maxSets: Int? = null,
     val setMatching: Boolean = false,
-)
+): BaseEntity()

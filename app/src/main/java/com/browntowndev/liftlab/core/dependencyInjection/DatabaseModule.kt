@@ -4,10 +4,12 @@ import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.RepositoryHelper
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.dsl.module
 
 val repositoryModule = module {
     single { FirebaseAuth.getInstance() }
+    single { FirebaseFirestore.getInstance() }
     factory { RepositoryHelper(get()).lifts }
     factory { RepositoryHelper(get()).customLiftSets }
     factory { RepositoryHelper(get()).workoutLifts }

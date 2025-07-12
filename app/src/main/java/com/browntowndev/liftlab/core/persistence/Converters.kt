@@ -16,7 +16,6 @@ class Converters {
         return date?.time
     }
 
-
     @TypeConverter
     fun fromDuration(duration: Duration): Long {
         return duration.inWholeMilliseconds

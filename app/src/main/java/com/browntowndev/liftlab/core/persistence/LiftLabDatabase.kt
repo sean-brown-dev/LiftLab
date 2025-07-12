@@ -20,13 +20,14 @@ import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
 import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
-import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
+import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.persistence.dao.WorkoutLogEntryDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
@@ -65,7 +66,7 @@ import kotlinx.coroutines.flow.update
         LiftMetricChart::class,
         VolumeMetricChart::class,
    ],
-    version = 12,
+    version = 13,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -78,6 +79,7 @@ import kotlinx.coroutines.flow.update
         AutoMigration(from = 8, to = 9),
         AutoMigration(from = 9, to = 10, spec = StepSizeAutoMigration::class),
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
+        AutoMigration(from = 12, to = 13),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -88,7 +90,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun previousSetResultsDao(): PreviousSetResultDao
     abstract fun workoutInProgressDao(): WorkoutInProgressDao
     abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
-    abstract fun loggingDao(): LoggingDao
+    abstract fun workoutLogEntryDao(): WorkoutLogEntryDao
+    abstract fun setLogEntryDao(): SetLogEntryDao
     abstract fun restTimerInProgressDao(): RestTimerInProgressDao
     abstract fun liftMetricChartsDao(): LiftMetricChartsDao
     abstract fun volumeMetricChartsDao(): VolumeMetricChartsDao

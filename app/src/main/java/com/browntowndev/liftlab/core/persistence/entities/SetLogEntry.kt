@@ -54,4 +54,4 @@ data class SetLogEntry(
     val dropPercentage: Float? = null,
     @ColumnInfo(defaultValue = false.toString())
     val isDeload: Boolean = false,
-)
+): BaseEntity()

@@ -38,7 +38,7 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
     }
 
     suspend fun getAll(): List<LiftMetricChartDto> {
-        return liftMetricChartsDao.getAll().fastMap {
+        return liftMetricChartsDao.getAllForExistingLifts().fastMap {
             LiftMetricChartDto(
                 id = it.id,
                 liftId = it.liftId,

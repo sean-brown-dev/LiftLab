@@ -2,7 +2,11 @@ package com.browntowndev.liftlab.core.persistence.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 
 @Entity("programs")
 data class Program(
@@ -14,4 +18,4 @@ data class Program(
     val currentMicrocycle: Int = 0,
     val currentMicrocyclePosition: Int = 0,
     val currentMesocycle: Int = 0,
-)
+): BaseEntity()

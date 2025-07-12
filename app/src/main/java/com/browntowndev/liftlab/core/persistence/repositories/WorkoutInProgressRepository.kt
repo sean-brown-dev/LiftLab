@@ -16,7 +16,7 @@ class WorkoutInProgressRepository(
         delete()
 
         workoutInProgressDao.insert(
-            workoutInProgress = WorkoutInProgress(
+            WorkoutInProgress(
                 workoutId = workoutInProgress.workoutId,
                 startTime = workoutInProgress.startTime,
             )

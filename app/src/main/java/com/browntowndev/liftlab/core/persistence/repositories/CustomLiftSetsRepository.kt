@@ -32,6 +32,6 @@ class CustomLiftSetsRepository(
     }
 
     suspend fun insertAll(customSets: List<GenericLiftSet>): List<Long> {
-        return customLiftCustomSetsDao.insertAll(customSets.map { customLiftSetMapper.map(it) })
+        return customLiftCustomSetsDao.insertMany(customSets.map { customLiftSetMapper.map(it) })
     }
 }

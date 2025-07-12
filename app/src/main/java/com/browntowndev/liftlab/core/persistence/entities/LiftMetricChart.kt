@@ -20,4 +20,4 @@ data class LiftMetricChart(
     val id: Long = 0,
     val liftId: Long? = null,
     val chartType: LiftMetricChartType,
-)
+): BaseEntity()

@@ -8,20 +8,12 @@ import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 
 @Dao
-interface CustomSetsDao {
-    @Insert
-    suspend fun insert(customLiftSet: CustomLiftSet): Long
+interface CustomSetsDao: BaseDao<CustomLiftSet> {
+    @Query("SELECT * FROM sets")
+    suspend fun getAll(): List<CustomLiftSet>
 
-    @Update
-    suspend fun update(customLiftSet: CustomLiftSet)
-
-    @Transaction
-    @Insert
-    suspend fun insertAll(customLiftSets: List<CustomLiftSet>): List<Long>
-
-    @Transaction
-    @Update(entity = CustomLiftSet::class)
-    suspend fun updateMany(customLiftSets: List<CustomLiftSet>)
+    @Query("DELETE FROM sets")
+    suspend fun deleteAll()
 
     @Query("DELETE FROM sets WHERE workoutLiftId = :workoutLiftId")
     suspend fun deleteAllForLift(workoutLiftId: Long)

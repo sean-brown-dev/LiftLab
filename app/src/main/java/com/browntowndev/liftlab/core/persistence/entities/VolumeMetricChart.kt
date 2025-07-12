@@ -14,4 +14,4 @@ data class VolumeMetricChart(
     val id: Long = 0,
     val volumeType: VolumeType,
     val volumeTypeImpact: VolumeTypeImpact,
-)
+): BaseEntity()

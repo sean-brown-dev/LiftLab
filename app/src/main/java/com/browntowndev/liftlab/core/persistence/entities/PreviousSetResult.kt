@@ -42,4 +42,4 @@ data class PreviousSetResult(
     val missedLpGoals: Int? = null,
     @ColumnInfo(defaultValue = false.toString())
     val isDeload: Boolean = false,
-)
+): BaseEntity()

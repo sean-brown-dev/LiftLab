@@ -8,26 +8,15 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
+import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface WorkoutLiftsDao {
-    @Insert
-    suspend fun insert(workoutLift: WorkoutLift): Long
+interface WorkoutLiftsDao: BaseDao<WorkoutLift> {
+    @Query("SELECT * FROM workoutLifts")
+    suspend fun getAll(): List<WorkoutLift>
 
-    @Transaction
-    @Insert
-    suspend fun insertAll(workoutLifts: List<WorkoutLift>): List<Long>
-
-    @Transaction
-    @Delete
-    suspend fun delete(workoutLift: WorkoutLift)
-
-    @Update
-    suspend fun update(workoutLift: WorkoutLift)
-
-    @Transaction
-    @Update
-    suspend fun updateMany(workoutLifts: List<WorkoutLift>)
+    @Query("DELETE FROM workoutLifts")
+    suspend fun deleteAll()
 
     @Query("UPDATE workoutLifts SET liftId = :newLiftId WHERE workout_lift_id = :workoutLiftId")
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long)

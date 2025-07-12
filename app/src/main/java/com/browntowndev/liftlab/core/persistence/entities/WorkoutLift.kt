@@ -32,4 +32,4 @@ data class WorkoutLift(
     val repRangeBottom: Int? = null,
     val repRangeTop: Int? = null,
     val stepSize: Int? = null,
-)
+): BaseEntity()

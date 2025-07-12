@@ -7,10 +7,7 @@ import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface RestTimerInProgressDao {
-    @Insert
-    suspend fun insert(entity: RestTimerInProgress)
-
+interface RestTimerInProgressDao: BaseDao<RestTimerInProgress> {
     @Query("DELETE FROM restTimerInProgress")
     suspend fun deleteAll()
 

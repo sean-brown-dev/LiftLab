@@ -3,7 +3,8 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
-import com.browntowndev.liftlab.core.persistence.dao.LoggingDao
+import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
+import com.browntowndev.liftlab.core.persistence.dao.WorkoutLogEntryDao
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
@@ -18,33 +19,34 @@ import kotlinx.coroutines.flow.flowOf
 import java.util.Date
 
 class LoggingRepository(
-    private val loggingDao: LoggingDao,
+    private val workoutLogEntryDao: WorkoutLogEntryDao,
+    private val setLogEntryDao: SetLogEntryDao,
     private val workoutLogEntryMapper: WorkoutLogEntryMapper,
     private val setResultMapper: SetResultMapper,
 ): Repository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun getAll(): LiveData<List<WorkoutLogEntryDto>> {
-        return loggingDao.getAll().flatMapLatest {
+        return workoutLogEntryDao.getAllFlattened().flatMapLatest {
             flowOf(workoutLogEntryMapper.map(it))
         }.asLiveData()
     }
 
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryDto? {
-        val log: List<FlattenedWorkoutLogEntryDto> = loggingDao.get(workoutLogEntryId = workoutLogEntryId)
+        val log: List<FlattenedWorkoutLogEntryDto> = workoutLogEntryDao.get(workoutLogEntryId = workoutLogEntryId)
         return workoutLogEntryMapper.map(log).singleOrNull()
     }
 
     suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntryDto> {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = loggingDao.getLogsByLiftId(liftId)
+        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = workoutLogEntryDao.getLogsByLiftId(liftId)
         return workoutLogEntryMapper.map(flattenedLogEntries)
     }
 
     private suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>, includeDeload: Boolean): List<WorkoutLogEntryDto> {
         val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = if(includeDeload) {
-            loggingDao.getMostRecentLogsForLiftIds(liftIds)
+            workoutLogEntryDao.getMostRecentLogsForLiftIds(liftIds)
         } else {
-            loggingDao.getMostRecentLogsForLiftIdsExcludingDeloads(liftIds)
+            workoutLogEntryDao.getMostRecentLogsForLiftIdsExcludingDeloads(liftIds)
         }
 
         return workoutLogEntryMapper.map(flattenedLogEntries)
@@ -75,7 +77,7 @@ class LoggingRepository(
         date: Date,
     ): List<SetResult> {
         return workoutLogEntryMapper.map(
-            loggingDao.getMostRecentLogsForLiftIdsPriorToDate(liftIds, date)
+            workoutLogEntryDao.getMostRecentLogsForLiftIdsPriorToDate(liftIds, date)
         ).flatMap { workoutLog ->
             workoutLog.setResults.fastMap { setLogEntry ->
                 setResultMapper.map(
@@ -90,7 +92,7 @@ class LoggingRepository(
     }
 
     suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecordDto> {
-        return loggingDao.getPersonalRecordsForLifts(liftIds)
+        return setLogEntryDao.getPersonalRecordsForLifts(liftIds)
     }
 
     suspend fun insertFromPreviousSetResults(
@@ -100,7 +102,7 @@ class LoggingRepository(
         microcycle: Int,
         excludeFromCopy: List<Long>
     ) {
-        loggingDao.insertFromPreviousSetResults(
+        setLogEntryDao.insertFromPreviousSetResults(
             workoutLogEntryId = workoutLogEntryId,
             workoutId = workoutId,
             mesocycle = mesocycle,
@@ -119,7 +121,7 @@ class LoggingRepository(
         date: Date,
         durationInMillis: Long,
     ): Long {
-        return loggingDao.insert(
+        return workoutLogEntryDao.insert(
             WorkoutLogEntry(
                 historicalWorkoutNameId = historicalWorkoutNameId,
                 programDeloadWeek = programDeloadWeek,
@@ -134,20 +136,20 @@ class LoggingRepository(
     }
 
     suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long) {
-        loggingDao.deleteSetLogEntriesForWorkout(workoutLogEntryId = workoutLogEntryId)
-        loggingDao.deleteWorkoutLogEntry(workoutLogEntryId = workoutLogEntryId)
+        setLogEntryDao.deleteSetLogEntriesForWorkout(workoutLogEntryId = workoutLogEntryId)
+        workoutLogEntryDao.deleteWorkoutLogEntry(workoutLogEntryId = workoutLogEntryId)
     }
 
     suspend fun deleteSetLogEntryById(id: Long) {
-        loggingDao.deleteSetLogEntryById(id)
+        setLogEntryDao.deleteSetLogEntryById(id)
     }
 
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
-        return loggingDao.upsert(workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry))
+        return setLogEntryDao.upsert(workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry))
     }
 
     suspend fun upsertMany(workoutLogEntryId: Long, setLogEntries: List<SetLogEntryDto>): List<Long> {
-        return loggingDao.upsertMany(
+        return setLogEntryDao.upsertMany(
             setLogEntries.fastMap { setLogEntry ->
                 workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
             }

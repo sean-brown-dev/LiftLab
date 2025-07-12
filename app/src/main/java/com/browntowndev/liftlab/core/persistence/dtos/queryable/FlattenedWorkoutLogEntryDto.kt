@@ -32,6 +32,7 @@ data class FlattenedWorkoutLogEntryDto(
     val weight: Float,
     val reps: Int,
     val rpe: Float,
+    val oneRepMax: Float? = null,
     val mesoCycle: Int,
     val microCycle: Int,
     val microcyclePosition: Int,

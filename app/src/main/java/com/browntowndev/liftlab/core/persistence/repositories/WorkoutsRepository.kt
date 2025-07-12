@@ -23,7 +23,7 @@ class WorkoutsRepository(
     }
 
     suspend fun insert(workout: WorkoutDto): Long {
-        return workoutsDao.insert(workout = workoutMapper.map(workout))
+        return workoutsDao.insert(workoutMapper.map(workout))
     }
 
     @Transaction
