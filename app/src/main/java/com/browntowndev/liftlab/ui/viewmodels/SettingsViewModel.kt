@@ -1,29 +1,23 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.content.Context
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.BACKUP_DIRECTORY
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.SCHEDULED_BACKUPS_ENABLED
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.SCHEDULED_BACKUP_TIME
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.scheduledBackup.BackupScheduler
 import com.browntowndev.liftlab.ui.viewmodels.states.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.time.LocalTime
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -71,14 +65,6 @@ class SettingsViewModel(
     fun toggleDonationScreen() {
         _state.update {
             it.copy(isDonateScreenVisible = !it.isDonateScreenVisible)
-        }
-    }
-
-    fun toggleImportConfirmationDialog() {
-        _state.update {
-            it.copy(
-                importConfirmationDialogShown = !it.importConfirmationDialogShown
-            )
         }
     }
 
@@ -179,29 +165,5 @@ class SettingsViewModel(
                 }
             }
         }
-    }
-
-    fun updateAreScheduledBackupsEnabled(context: Context, enabled: Boolean) {
-        if (enabled) {
-            BackupScheduler.scheduleNew(context, state.value.scheduledBackupTime)
-        } else {
-            BackupScheduler.cancel(context)
-        }
-
-        SettingsManager.setSetting(SCHEDULED_BACKUPS_ENABLED, enabled)
-        _state.update { it.copy(scheduledBackupsEnabled = enabled) }
-    }
-
-    fun updateScheduledBackupTime(context: Context, hour: Int, minute: Int) {
-        val newTime = LocalTime.of(hour, minute)
-
-        BackupScheduler.scheduleNew(context, newTime)
-        SettingsManager.setSetting(SCHEDULED_BACKUP_TIME, newTime.toNanoOfDay())
-        _state.update { it.copy(scheduledBackupTime = newTime) }
-    }
-
-    fun updateBackupDirectory(newDirectory: String) {
-        SettingsManager.setSetting(BACKUP_DIRECTORY, newDirectory)
-        _state.update { it.copy(backupDirectory = newDirectory) }
     }
 }

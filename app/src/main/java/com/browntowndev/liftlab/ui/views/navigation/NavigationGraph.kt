@@ -55,8 +55,6 @@ fun NavigationGraph(
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Any>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onSetScreen: (screen: Screen) -> Unit,
 ) {
     NavHost(navHostController, startDestination = Route.Workout()) {
@@ -113,8 +111,6 @@ fun NavigationGraph(
                     onUpdateDonationProduct = onUpdateDonationProduct,
                     onProcessDonation = onProcessDonation,
                     onNavigateBack = { navHostController.popBackStack() },
-                    onBackup = onBackup,
-                    onRestore = onRestore,
                 )
             }
         }

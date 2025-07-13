@@ -31,8 +31,6 @@ fun LiftLab(
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
 ) {
     LiftLabTheme {
         val navController = rememberNavController()
@@ -93,8 +91,6 @@ fun LiftLab(
                     )
                 },
                 setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
-                onBackup = onBackup,
-                onRestore = onRestore,
             )
         }
     }

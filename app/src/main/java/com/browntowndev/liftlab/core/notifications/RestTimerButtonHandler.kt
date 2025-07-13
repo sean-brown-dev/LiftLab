@@ -5,37 +5,55 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.browntowndev.liftlab.core.common.executeInCoroutineScope
-import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
-import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
-import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
-import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
-import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.RepositoryHelper
+import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import org.koin.core.Koin
+import org.koin.core.context.GlobalContext.get
 
 
 class RestTimerButtonHandler: BroadcastReceiver() {
-
+    companion object {
+        const val TAG = "RestTimerButtonHandler"
+    }
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(Log.DEBUG.toString(), "ButtonHandler.onReceive()")
-        when (intent?.action) {
-            RestTimerNotificationService.SKIP_ACTION -> {
-                executeInCoroutineScope {
-                    val repoHelper = RepositoryHelper(context!!)
-                    repoHelper.restTimer.deleteAll()
+        if (context == null || intent == null) {
+            Log.e(TAG, "Context or intent is null")
+            return
+        }
 
-                    val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
-                    context.stopService(restTimerIntent)
-                    
-                    NotificationHelper(
-                        programRepository = repoHelper.programs,
-                        workoutsRepository = repoHelper.workouts,
-                        workoutInProgressRepository = repoHelper.workoutInProgress,
-                        restTimerInProgressRepository = repoHelper.restTimer,
-                    ).startActiveWorkoutNotification(context)
+        try {
+            Log.d(TAG, "ButtonHandler.onReceive()")
+            when (intent.action) {
+                RestTimerNotificationService.SKIP_ACTION -> {
+                    executeInCoroutineScope {
+                        val koin: Koin = get()
+                        val firebaseAuth: FirebaseAuth = koin.get()
+                        val firestore: FirebaseFirestore = koin.get()
+                        val restTimerRepository: RestTimerInProgressRepository = koin.get()
+                        val programsRepository: ProgramsRepository = koin.get()
+                        val workoutsRepository: WorkoutsRepository = koin.get()
+                        val workoutInProgressRepository: WorkoutInProgressRepository = koin.get()
+
+                        restTimerRepository.deleteAll()
+
+                        val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)
+                        context.stopService(restTimerIntent)
+
+                        NotificationHelper(
+                            programRepository = programsRepository,
+                            workoutsRepository = workoutsRepository,
+                            workoutInProgressRepository = workoutInProgressRepository,
+                            restTimerInProgressRepository = restTimerRepository,
+                        ).startActiveWorkoutNotification(context)
+                    }
                 }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
         }
     }
 }
