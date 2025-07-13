@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
+import com.browntowndev.liftlab.core.persistence.dao.SyncDao
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
@@ -66,7 +67,7 @@ import kotlinx.coroutines.flow.update
         LiftMetricChart::class,
         VolumeMetricChart::class,
    ],
-    version = 13,
+    version = 14,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -80,6 +81,7 @@ import kotlinx.coroutines.flow.update
         AutoMigration(from = 9, to = 10, spec = StepSizeAutoMigration::class),
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
         AutoMigration(from = 12, to = 13),
+        AutoMigration(from = 13, to = 14),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -95,6 +97,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun restTimerInProgressDao(): RestTimerInProgressDao
     abstract fun liftMetricChartsDao(): LiftMetricChartsDao
     abstract fun volumeMetricChartsDao(): VolumeMetricChartsDao
+    abstract fun syncDao(): SyncDao
 
     companion object {
         private const val LIFTS_DATA_FILENAME = "lifts.json"

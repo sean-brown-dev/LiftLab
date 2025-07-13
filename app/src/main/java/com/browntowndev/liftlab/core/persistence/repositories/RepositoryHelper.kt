@@ -8,8 +8,6 @@ import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
-import com.google.firebase.firestore.FirebaseFirestore
-import dev.gitlive.firebase.auth.FirebaseAuth
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -80,7 +78,9 @@ class RepositoryHelper(
         database.liftMetricChartsDao()
     )
 
-    val volumemetricCharts get() = VolumeMetricChartRepository(
+    val volumeMetricCharts get() = VolumeMetricChartRepository(
         database.volumeMetricChartsDao()
     )
+
+    val sync get() = SyncRepository(database.syncDao())
 }

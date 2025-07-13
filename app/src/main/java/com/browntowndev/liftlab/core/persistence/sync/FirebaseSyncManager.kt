@@ -1,9 +1,11 @@
 package com.browntowndev.liftlab.core.persistence.sync
 
 import android.util.Log
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.dao.*
 import com.browntowndev.liftlab.core.persistence.dtos.firebase.BaseFirebaseDto
+import com.browntowndev.liftlab.core.persistence.entities.SyncMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
 import com.google.firebase.auth.FirebaseAuth
@@ -21,7 +23,6 @@ class FirebaseSyncManager (
     private val firestore: FirebaseFirestore,
     private val liftLabDatabase: LiftLabDatabase,
 ) {
-
     private val programsDao: ProgramsDao get() = liftLabDatabase.programsDao()
     private val workoutsDao: WorkoutsDao get() = liftLabDatabase.workoutsDao()
     private val workoutLiftsDao: WorkoutLiftsDao get() = liftLabDatabase.workoutLiftsDao()
@@ -35,6 +36,7 @@ class FirebaseSyncManager (
     private val workoutInProgressDao: WorkoutInProgressDao get() = liftLabDatabase.workoutInProgressDao()
     private val previousSetResultsDao: PreviousSetResultDao get() = liftLabDatabase.previousSetResultsDao()
     private val historicalWorkoutNamesDao: HistoricalWorkoutNamesDao get() = liftLabDatabase.historicalWorkoutNamesDao()
+    private val syncDao: SyncDao get() = liftLabDatabase.syncDao()
 
     companion object {
         private const val TAG = "FirebaseSyncManager"
@@ -54,9 +56,8 @@ class FirebaseSyncManager (
         try {
             syncEntities(
                 userId = userId,
-                collectionPath ="lifts",
+                collectionName ="lifts",
                 localEntities = liftsDao.getAll().map { it.toFirebaseDto() },
-                onUpdate = { liftsDao.update(it.toEntity()) },
                 onUpdateMany = { syncDtos ->
                     liftsDao.updateMany(syncDtos.map { it.toEntity() })
                 }
@@ -66,45 +67,40 @@ class FirebaseSyncManager (
                 async {
                     syncEntities(
                         userId = userId,
-                        collectionPath = "programs",
+                        collectionName = "programs",
                         localEntities = programsDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { programsDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             programsDao.updateMany(syncDtos.map { it.toEntity() })
                         }
                     )
                     syncEntities(
                         userId = userId,
-                        collectionPath = "workouts",
+                        collectionName = "workouts",
                         localEntities = workoutsDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { workoutsDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             workoutsDao.updateMany(syncDtos.map { it.toEntity() })
                         }
                     )
                     syncEntities(
                         userId = userId,
-                        collectionPath = "workoutLifts",
+                        collectionName = "workoutLifts",
                         localEntities = workoutLiftsDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { workoutLiftsDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             workoutLiftsDao.updateMany(syncDtos.map { it.toEntity() })
                         }
                     )
                     syncEntities(
                         userId = userId,
-                        collectionPath = "customSets",
+                        collectionName = "customSets",
                         localEntities = customSetsDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { customSetsDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             customSetsDao.updateMany(syncDtos.map { it.toEntity() })
                         }
                     )
                     syncEntities(
                         userId = userId,
-                        collectionPath = "previousSetResults",
+                        collectionName = "previousSetResults",
                         localEntities = previousSetResultsDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { previousSetResultsDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             previousSetResultsDao.updateMany(syncDtos.map { it.toEntity() })
                         }
@@ -113,27 +109,24 @@ class FirebaseSyncManager (
                 async {
                     syncEntities(
                         userId = userId,
-                        collectionPath = "historicalWorkoutNames",
+                        collectionName = "historicalWorkoutNames",
                         localEntities = historicalWorkoutNamesDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { historicalWorkoutNamesDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             historicalWorkoutNamesDao.updateMany(syncDtos.map { it.toEntity() })
                         }
                     )
                     syncEntities(
                         userId = userId,
-                        collectionPath = "workoutLogEntries",
+                        collectionName = "workoutLogEntries",
                         localEntities = workoutLogEntriesDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { workoutLogEntriesDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             workoutLogEntriesDao.updateMany(syncDtos.map { it.toEntity() })
                         }
                     )
                     syncEntities(
                         userId = userId,
-                        collectionPath = "setLogEntries",
+                        collectionName = "setLogEntries",
                         localEntities = setLogEntryDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { setLogEntryDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             setLogEntryDao.updateMany(syncDtos.map { it.toEntity() })
                         }
@@ -142,9 +135,8 @@ class FirebaseSyncManager (
                 async {
                     syncEntities(
                         userId = userId,
-                        collectionPath = "volumeMetricCharts",
+                        collectionName = "volumeMetricCharts",
                         localEntities = volumeMetricChartDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { volumeMetricChartDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             volumeMetricChartDao.updateMany(syncDtos.map { it.toEntity() })
                         }
@@ -153,9 +145,8 @@ class FirebaseSyncManager (
                 async {
                     syncEntities(
                         userId = userId,
-                        collectionPath = "liftMetricCharts",
+                        collectionName = "liftMetricCharts",
                         localEntities = liftMetricChartDao.getAll().map { it.toFirebaseDto() },
-                        onUpdate = { liftMetricChartDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             liftMetricChartDao.updateMany(syncDtos.map { it.toEntity() })
                         }
@@ -164,9 +155,8 @@ class FirebaseSyncManager (
                 async {
                     syncEntities(
                         userId = userId,
-                        collectionPath = "restTimerInProgress",
+                        collectionName = "restTimerInProgress",
                         localEntities = restTimerInProgressDao.get()?.let { listOf(it.toFirebaseDto()) } ?: emptyList(),
-                        onUpdate = { restTimerInProgressDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             restTimerInProgressDao.updateMany(syncDtos.map { it.toEntity() })
                         }
@@ -175,9 +165,8 @@ class FirebaseSyncManager (
                 async {
                     syncEntities(
                         userId = userId,
-                        collectionPath = "workoutInProgress",
+                        collectionName = "workoutInProgress",
                         localEntities = workoutInProgressDao.get()?.let { listOf(it.toFirebaseDto()) } ?: emptyList(),
-                        onUpdate = { workoutInProgressDao.update(it.toEntity()) },
                         onUpdateMany = { syncDtos ->
                             workoutInProgressDao.updateMany(syncDtos.map { it.toEntity() })
                         }
@@ -194,41 +183,46 @@ class FirebaseSyncManager (
 
     private suspend inline fun<reified T: BaseFirebaseDto> syncEntities(
         userId: String,
-        collectionPath: String,
+        collectionName: String,
         localEntities: List<T>,
-        crossinline onUpdate: suspend (T) -> Unit,
         crossinline onUpdateMany: suspend (List<T>) -> Unit
     ) {
-        val firestoreWorkoutsCollection =
-            firestore.collection("users")
-                .document(userId)
-                .collection(collectionPath)
+        var syncMetadata = syncDao.getForCollection(collectionName)
+        val lastSyncDate = syncMetadata?.lastSyncTimestamp ?: Date(0)
+        val collection = firestore
+            .collection("users")
+            .document(userId)
+            .collection(collectionName)
 
-        val firestoreSnapshots = firestoreWorkoutsCollection.get().await()
+        val firestoreSnapshots = collection.whereGreaterThanOrEqualTo("lastUpdated", lastSyncDate).get().await()
         val localEntitiesInFirestore = localEntities
             .filter { it.firestoreId != null }
             .associateBy { it.firestoreId!! }
 
-        // Update out of date workouts
-        firestoreSnapshots.forEach { firestoreSnapshot ->
-            val firestoreEntity = firestoreSnapshot.toObject<T>()
-            val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
-            val localEntityLastModified = localEntity?.lastUpdated ?: Date(0)
+        val allSyncedEntities: MutableList<T> = mutableListOf()
 
-            if (localEntity == null || localEntityLastModified < firestoreEntity.lastUpdated) {
-                onUpdate(firestoreEntity)
-                Log.d(TAG, "Updated entity ${firestoreEntity.firestoreId}. " +
-                        "Local lastupdated: ${localEntity?.lastUpdated}, " +
-                        "Firestore updated: ${firestoreEntity.lastUpdated}")
+        // Get out of date entities
+        val outOfDateEntities = firestoreSnapshots.mapNotNull { snapshot ->
+            val firestoreEntity = snapshot.toObject<T>()
+            val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
+            val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
+
+            if (firestoreEntity.lastUpdated?.after(localLastUpdated) ?: false) {
+                firestoreEntity
+            } else {
+                null
             }
         }
 
+        outOfDateEntities.chunked(BATCH_SIZE).fastForEach { outdatedEntityBatch ->
+            onUpdateMany(outdatedEntityBatch)
+            Log.d(TAG, "Batch updated ${outdatedEntityBatch.size} out-of-date entities from Firestore [$collectionName]")
+        }
+
+        allSyncedEntities += outOfDateEntities
+
         val unsyncedEntities = localEntities.filter { !it.synced }
         if (unsyncedEntities.isNotEmpty()) {
-            val collection = firestore.collection("users")
-                .document(userId)
-                .collection(collectionPath)
-
             val chunkedEntities = unsyncedEntities.chunked(BATCH_SIZE)
             for (unsyncedEntityChunk in chunkedEntities) {
                 val newDocsForBatch = mutableListOf<DocumentReference>()
@@ -241,25 +235,40 @@ class FirebaseSyncManager (
                     unsyncedEntity.synced = true
                     newDocsForBatch.add(docRef)
                     batch.set(docRef, unsyncedEntity)
-                    Log.d(TAG, "Syncing entity ${unsyncedEntity.firestoreId}")
+                    Log.d(TAG, "Syncing entity ${unsyncedEntity.firestoreId} [$collectionName]")
                 }
 
                 batch.commit().await()
-                Log.d(TAG, "Synced ${unsyncedEntityChunk.size} entities")
+                Log.d(TAG, "Synced ${unsyncedEntityChunk.size} entities [$collectionName]")
 
                 // Re-fetch each document to get actual lastUpdated
-                coroutineScope {
+                val updatedEntities = coroutineScope {
                     newDocsForBatch.map { docRef ->
                         async {
-                            val snapshot = docRef.get().await()
-                            snapshot.toObject<T>()?.let {
-                                onUpdate(it)
-                                Log.d(TAG, "Updated entity ${it.firestoreId}")
-                            }
+                            runCatching {
+                                docRef.get().await().toObject<T>()
+                            }.getOrNull()
                         }
-                    }.awaitAll()
+                    }.awaitAll().filterNotNull()
                 }
+
+                onUpdateMany(updatedEntities)
+                Log.d(TAG, "Batch updated ${updatedEntities.size} entities locally [$collectionName]")
+
+                allSyncedEntities += updatedEntities
             }
+        }
+
+        // Find the newest timestamp across all
+        val latestTimestamp = allSyncedEntities
+            .mapNotNull { it.lastUpdated }
+            .maxOrNull()
+
+        // Use that as your new sync time
+        if (latestTimestamp != null) {
+            syncMetadata = syncMetadata?.copy(lastSyncTimestamp = latestTimestamp)
+                ?: SyncMetadata(collectionName = collectionName, lastSyncTimestamp = latestTimestamp)
+            syncDao.upsert(syncMetadata)
         }
     }
 }

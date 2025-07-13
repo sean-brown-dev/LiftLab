@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
         val syncManager: FirebaseSyncManager by inject()
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                //syncManager.syncAll()
+                syncManager.syncAll()
             }
             mutableSyncState.value = true
         }
