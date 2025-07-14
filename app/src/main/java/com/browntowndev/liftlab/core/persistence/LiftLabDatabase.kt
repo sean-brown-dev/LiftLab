@@ -16,36 +16,9 @@ import androidx.work.workDataOf
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
-import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
-import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
-import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
-import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
-import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
-import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
-import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
-import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
-import com.browntowndev.liftlab.core.persistence.dao.SyncDao
-import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
-import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
-import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.persistence.dao.WorkoutLogEntryDao
-import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
-import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
-import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
-import com.browntowndev.liftlab.core.persistence.entities.Lift
-import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
-import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
-import com.browntowndev.liftlab.core.persistence.entities.Program
-import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
-import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
-import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
-import com.browntowndev.liftlab.core.persistence.entities.Workout
-import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
-import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
-import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
-import com.browntowndev.liftlab.core.persistence.migrations.LiftNoteMigration
-import com.browntowndev.liftlab.core.persistence.migrations.OneRepMaxAutoMigration
-import com.browntowndev.liftlab.core.persistence.migrations.StepSizeAutoMigration
+import com.browntowndev.liftlab.core.persistence.dao.*
+import com.browntowndev.liftlab.core.persistence.entities.*
+import com.browntowndev.liftlab.core.persistence.migrations.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -66,6 +39,7 @@ import kotlinx.coroutines.flow.update
         RestTimerInProgress::class,
         LiftMetricChart::class,
         VolumeMetricChart::class,
+        SyncMetadata::class,
    ],
     version = 14,
     exportSchema = true,

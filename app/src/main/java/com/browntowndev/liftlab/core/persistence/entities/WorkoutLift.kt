@@ -5,8 +5,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 
+@GenerateCopyWithFirestoreMetadata
 @Entity("workoutLifts",
     indices = [Index("liftId"), Index("workoutId")],
     foreignKeys = [

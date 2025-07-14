@@ -1,13 +1,20 @@
 package com.browntowndev.liftlab.ui.views
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.rememberNavController
@@ -27,71 +34,91 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLab(
+    initializing: Boolean,
     donationState: DonationState,
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
 ) {
     LiftLabTheme {
-        val navController = rememberNavController()
-        val bottomNavBarViewModel: BottomNavBarViewModel = koinViewModel()
-        val topAppBarViewModel: TopAppBarViewModel = koinViewModel()
-        val liftLabTopAppBarState by topAppBarViewModel.state.collectAsState()
-        val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
-        val topAppBarState = rememberTopAppBarState()
-        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+        if (initializing) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.fillMaxSize(.5f),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = "Syncing Data...",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
+            }
+        } else {
+            val navController = rememberNavController()
+            val bottomNavBarViewModel: BottomNavBarViewModel = koinViewModel()
+            val topAppBarViewModel: TopAppBarViewModel = koinViewModel()
+            val liftLabTopAppBarState by topAppBarViewModel.state.collectAsState()
+            val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
+            val topAppBarState = rememberTopAppBarState()
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
-        Scaffold(
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            bottomBar = {
-                BottomNavigation(
-                    navController = navController,
-                    isVisible = bottomNavBarState.isVisible
-                )
-            },
-            topBar = {
-                LiftLabTopAppBar(
-                    state = liftLabTopAppBarState,
-                    scrollBehavior = scrollBehavior,
+            Scaffold(
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                bottomBar = {
+                    BottomNavigation(
+                        navController = navController,
+                        isVisible = bottomNavBarState.isVisible
+                    )
+                },
+                topBar = {
+                    LiftLabTopAppBar(
+                        state = liftLabTopAppBarState,
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
+            ) { scaffoldPaddingValues ->
+                NavigationGraph(
+                    navHostController = navController,
+                    paddingValues = scaffoldPaddingValues,
+                    donationState = donationState,
+                    onClearBillingError = onClearBillingError,
+                    onUpdateDonationProduct = onUpdateDonationProduct,
+                    onProcessDonation = onProcessDonation,
+                    setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
+                    onSetScreen = { screen ->
+                        topAppBarViewModel.setScreen(screen)
+                    },
+                    setTopAppBarControlVisibility = { control, visible ->
+                        topAppBarViewModel.setControlVisibility(
+                            control,
+                            visible
+                        )
+                    },
+                    mutateTopAppBarControlValue = { request ->
+                        var payload: Any? = request.payload
+                        if (request.payload is Either<*, *>) {
+                            request.payload.onLeft {
+                                payload = it
+                            }.onRight {
+                                payload = it
+                            }
+                        }
+
+                        topAppBarViewModel.mutateControlValue(
+                            request = AppBarMutateControlRequest(
+                                controlName = request.controlName,
+                                payload = payload
+                            )
+                        )
+                    },
+                    setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
                 )
             }
-        ) { scaffoldPaddingValues ->
-            NavigationGraph(
-                navHostController = navController,
-                paddingValues = scaffoldPaddingValues,
-                donationState = donationState,
-                onClearBillingError = onClearBillingError,
-                onUpdateDonationProduct = onUpdateDonationProduct,
-                onProcessDonation = onProcessDonation,
-                setTopAppBarCollapsed = { collapsed -> topAppBarViewModel.setCollapsed(collapsed) },
-                onSetScreen = { screen ->
-                    topAppBarViewModel.setScreen(screen)
-                },
-                setTopAppBarControlVisibility = { control, visible ->
-                    topAppBarViewModel.setControlVisibility(
-                        control,
-                        visible
-                    )
-                },
-                mutateTopAppBarControlValue = { request ->
-                    var payload: Any? = request.payload
-                    if (request.payload is Either<*, *>) {
-                        request.payload.onLeft {
-                            payload = it
-                        }.onRight {
-                            payload = it
-                        }
-                    }
-
-                    topAppBarViewModel.mutateControlValue(
-                        request = AppBarMutateControlRequest(
-                            controlName = request.controlName,
-                            payload = payload
-                        )
-                    )
-                },
-                setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
-            )
         }
     }
 }

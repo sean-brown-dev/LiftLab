@@ -6,6 +6,7 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -64,15 +65,19 @@ dependencies {
     def koin_version = '4.1.0'
     def activity_version = '1.9.3'
 
+    implementation(project(":annotations"))
+    ksp(project(":annotation_generator"))
+    implementation "com.google.devtools.ksp:symbol-processing-api:2.2.0-2.0.2"
     implementation "androidx.activity:activity-ktx:$activity_version"
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
 
     // Firebase
-    implementation 'com.google.firebase:firebase-firestore-ktx'
     implementation platform('com.google.firebase:firebase-bom:33.16.0')
-    implementation 'com.google.firebase:firebase-auth-ktx'
-    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.4'
+    implementation 'com.google.firebase:firebase-auth-ktx:23.2.1'
+    implementation "com.google.firebase:firebase-firestore:25.1.4"
+    implementation 'com.google.firebase:firebase-firestore-ktx:25.1.4'
+    implementation "com.google.firebase:firebase-crashlytics-ktx:19.4.4"
     implementation("io.github.mirzemehdi:kmpauth-google:2.3.1") //Google One Tap Sign-In
     implementation("io.github.mirzemehdi:kmpauth-firebase:2.3.1") //Integrated Authentications with Firebase
     implementation("io.github.mirzemehdi:kmpauth-uihelper:2.3.1") //UiHelper SignIn buttons (AppleSignIn, GoogleSignInButton)

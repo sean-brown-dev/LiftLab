@@ -4,9 +4,11 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import kotlin.time.Duration
 
+@GenerateCopyWithFirestoreMetadata
 @Entity(tableName = "lifts", indices = [Index("movementPattern"), Index("lift_id", "restTime")])
 data class Lift(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("lift_id")

@@ -2,12 +2,10 @@ package com.browntowndev.liftlab.core.persistence.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.google.firebase.firestore.DocumentId
-import com.google.firebase.firestore.ServerTimestamp
-import java.util.Date
+import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
 
+@GenerateCopyWithFirestoreMetadata
 @Entity("programs")
 data class Program(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "program_id")

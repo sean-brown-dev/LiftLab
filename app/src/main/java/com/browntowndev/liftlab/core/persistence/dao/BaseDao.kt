@@ -24,11 +24,11 @@ interface BaseDao<T> {
     @Upsert
     suspend fun upsertMany(items: List<T>): List<Long>
 
-    @Update
+    @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(item: T)
 
     @Transaction
-    @Update
+    @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateMany(items: List<T>)
 
     @Delete

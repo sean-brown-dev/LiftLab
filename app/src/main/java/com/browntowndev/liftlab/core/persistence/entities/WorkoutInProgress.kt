@@ -3,8 +3,10 @@ package com.browntowndev.liftlab.core.persistence.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
 import java.util.Date
 
+@GenerateCopyWithFirestoreMetadata
 @Entity(
     tableName="workoutsInProgress",
 )

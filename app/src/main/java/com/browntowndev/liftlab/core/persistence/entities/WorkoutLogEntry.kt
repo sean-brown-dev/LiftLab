@@ -5,8 +5,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
 import java.util.Date
 
+@GenerateCopyWithFirestoreMetadata
 @Entity("workoutLogEntries",
     indices = [Index("historicalWorkoutNameId")],
     foreignKeys = [

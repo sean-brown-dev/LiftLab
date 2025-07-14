@@ -3,9 +3,11 @@ package com.browntowndev.liftlab.core.persistence.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 
+@GenerateCopyWithFirestoreMetadata
 @Entity(
     tableName = "volumeMetricCharts",
 )

@@ -78,36 +78,19 @@ class MainActivity : ComponentActivity(), KoinComponent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
             val isSyncComplete by syncState.collectAsState()
 
-            if(isInitialized && isSyncComplete) {
-                val donationViewModel: DonationViewModel = remember {
-                    getViewModel(parameters = { parametersOf(BillingClient.newBuilder(this)) })
-                }
-                val donationState by donationViewModel.state.collectAsState()
-                LiftLab(
-                    donationState = donationState,
-                    onClearBillingError = donationViewModel::clearBillingError,
-                    onUpdateDonationProduct = donationViewModel::setNewDonationOption,
-                    onProcessDonation = {
-                        donationViewModel.processDonation(this)
-                    },
-                )
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.fillMaxSize(.5f),
-                        )
-                        Text(
-                            text = "Syncing Data...",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                }
+            val donationViewModel: DonationViewModel = remember {
+                getViewModel(parameters = { parametersOf(BillingClient.newBuilder(this)) })
             }
+            val donationState by donationViewModel.state.collectAsState()
+            LiftLab(
+                initializing = !isInitialized || !isSyncComplete,
+                donationState = donationState,
+                onClearBillingError = donationViewModel::clearBillingError,
+                onUpdateDonationProduct = donationViewModel::setNewDonationOption,
+                onProcessDonation = {
+                    donationViewModel.processDonation(this)
+                },
+            )
 
             enableEdgeToEdge(statusBarStyle = getStatusBarStyle())
         }

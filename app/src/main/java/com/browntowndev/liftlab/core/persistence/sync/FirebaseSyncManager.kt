@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.sync
 
 import android.util.Log
-import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.dao.*
 import com.browntowndev.liftlab.core.persistence.dtos.firebase.BaseFirebaseDto
@@ -9,7 +8,10 @@ import com.browntowndev.liftlab.core.persistence.entities.SyncMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.async
@@ -17,6 +19,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import kotlin.collections.flatten
+
 
 class FirebaseSyncManager (
     private val firebaseAuth: FirebaseAuth,
@@ -177,7 +181,11 @@ class FirebaseSyncManager (
             Log.d(TAG, "Sync completed for user $userId.")
         } catch (e: Exception) {
             Log.e(TAG, "Error during sync for user $userId: ${e.message}", e)
-            // TODO: Notify user of sync failure
+
+            FirebaseCrashlytics.getInstance().log("Sync failed for user $userId")
+            FirebaseCrashlytics.getInstance().recordException(e)
+
+            throw SyncFailedException()
         }
     }
 
@@ -187,88 +195,156 @@ class FirebaseSyncManager (
         localEntities: List<T>,
         crossinline onUpdateMany: suspend (List<T>) -> Unit
     ) {
-        var syncMetadata = syncDao.getForCollection(collectionName)
-        val lastSyncDate = syncMetadata?.lastSyncTimestamp ?: Date(0)
+        val allSyncedEntities: MutableList<T> = mutableListOf()
+        val lastSyncDate = syncDao.getForCollection(collectionName)?.lastSyncTimestamp ?: Date(0)
+        val localEntitiesInFirestore = localEntities
+            .filter { it.firestoreId != null }
+            .associateBy { it.firestoreId!! }
         val collection = firestore
             .collection("users")
             .document(userId)
             .collection(collectionName)
 
-        val firestoreSnapshots = collection.whereGreaterThanOrEqualTo("lastUpdated", lastSyncDate).get().await()
-        val localEntitiesInFirestore = localEntities
-            .filter { it.firestoreId != null }
-            .associateBy { it.firestoreId!! }
+        val updatedEntities = updateOutdatedLocalEntities<T>(
+            collection = collection,
+            lastSyncDate = lastSyncDate,
+            localEntitiesInFirestore = localEntitiesInFirestore,
+            onUpdateMany = onUpdateMany,
+            collectionName = collectionName,
+        )
 
-        val allSyncedEntities: MutableList<T> = mutableListOf()
+        allSyncedEntities += updatedEntities
 
-        // Get out of date entities
-        val outOfDateEntities = firestoreSnapshots.mapNotNull { snapshot ->
-            val firestoreEntity = snapshot.toObject<T>()
-            val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
-            val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
-
-            if (firestoreEntity.lastUpdated?.after(localLastUpdated) ?: false) {
-                firestoreEntity
-            } else {
-                null
-            }
-        }
-
-        outOfDateEntities.chunked(BATCH_SIZE).fastForEach { outdatedEntityBatch ->
-            onUpdateMany(outdatedEntityBatch)
-            Log.d(TAG, "Batch updated ${outdatedEntityBatch.size} out-of-date entities from Firestore [$collectionName]")
-        }
-
-        allSyncedEntities += outOfDateEntities
-
+        // Sync any unsynced entities up to Firestore
         val unsyncedEntities = localEntities.filter { !it.synced }
         if (unsyncedEntities.isNotEmpty()) {
-            val chunkedEntities = unsyncedEntities.chunked(BATCH_SIZE)
-            for (unsyncedEntityChunk in chunkedEntities) {
-                val newDocsForBatch = mutableListOf<DocumentReference>()
-                val batch = firestore.batch()
+            val syncedEntities = uploadUnsyncedEntities<T>(unsyncedEntities, collection, collectionName, onUpdateMany)
+            allSyncedEntities += syncedEntities
+        }
 
-                unsyncedEntityChunk.forEach { unsyncedEntity ->
-                    val docRef = unsyncedEntity.firestoreId?.let(collection::document)
-                        ?: collection.document().also { unsyncedEntity.firestoreId = it.id }
+        // Find the newest timestamp across all synced entities
+        val latestTimestamp = allSyncedEntities
+            .mapNotNull { it.lastUpdated }
+            .maxOrNull()
 
-                    unsyncedEntity.synced = true
-                    newDocsForBatch.add(docRef)
-                    batch.set(docRef, unsyncedEntity)
-                    Log.d(TAG, "Syncing entity ${unsyncedEntity.firestoreId} [$collectionName]")
-                }
+        // Update the last sync timestamp
+        if (latestTimestamp != null) {
+            val syncMetadata = SyncMetadata(collectionName = collectionName, lastSyncTimestamp = latestTimestamp)
+            syncDao.upsert(syncMetadata)
+        }
+    }
 
-                batch.commit().await()
-                Log.d(TAG, "Synced ${unsyncedEntityChunk.size} entities [$collectionName]")
+    private suspend inline fun <reified T : BaseFirebaseDto> uploadUnsyncedEntities(
+        localEntities: List<T>,
+        collection: CollectionReference,
+        collectionName: String,
+        crossinline onUpdateMany: suspend (List<T>) -> Unit
+    ): List<T> {
+        val unsyncedEntities = localEntities.filter { !it.synced }
+        if (unsyncedEntities.isEmpty()) return emptyList()
 
-                // Re-fetch each document to get actual lastUpdated
-                val updatedEntities = coroutineScope {
-                    newDocsForBatch.map { docRef ->
+        Log.d(TAG, "Uploading ${unsyncedEntities.size} unsynced entities [$collectionName]")
+
+        val syncedEntities = coroutineScope {
+            unsyncedEntities.chunked(BATCH_SIZE).map { unsyncedEntityChunk ->
+                async {
+                    val currFirestoreDocBatch = mutableListOf<DocumentReference>()
+                    val batch = firestore.batch()
+
+                    unsyncedEntityChunk.forEach { unsyncedEntity ->
+                        val docRef = unsyncedEntity.firestoreId?.let(collection::document)
+                            ?: collection.document().also { unsyncedEntity.firestoreId = it.id }
+
+                        unsyncedEntity.synced = true
+                        currFirestoreDocBatch.add(docRef)
+                        batch.set(docRef, unsyncedEntity)
+                        Log.d(TAG, "Syncing entity ${unsyncedEntity.firestoreId} [$collectionName]")
+                    }
+
+                    batch.commit().await()
+                    Log.d(TAG, "Synced ${unsyncedEntityChunk.size} entities [$collectionName]")
+
+                    // Get updated entities from Firestore and update local database so lastUpdated is up to date
+                    val updatedEntities = currFirestoreDocBatch.map { docRef ->
                         async {
                             runCatching {
                                 docRef.get().await().toObject<T>()
                             }.getOrNull()
                         }
                     }.awaitAll().filterNotNull()
+
+                    onUpdateMany(updatedEntities)
+                    Log.d(
+                        TAG,
+                        "Batch updated ${updatedEntities.size} entities locally [$collectionName]"
+                    )
+
+                    // Return updated entities from this thread
+                    updatedEntities
+                }
+            }
+        }.awaitAll().flatten()
+
+        return syncedEntities
+    }
+
+    private suspend inline fun <reified T : BaseFirebaseDto> updateOutdatedLocalEntities(
+        collection: CollectionReference,
+        lastSyncDate: Date,
+        localEntitiesInFirestore: Map<String, T>,
+        onUpdateMany: suspend (List<T>) -> Unit,
+        collectionName: String,
+    ): List<T> {
+        val allSyncedEntities = mutableListOf<T>()
+        var lastVisible: DocumentSnapshot? = null
+        var done = false
+
+        while (!done) {
+            val query = collection
+                .whereGreaterThanOrEqualTo("lastUpdated", lastSyncDate)
+                .orderBy("lastUpdated")
+                .limit(BATCH_SIZE.toLong())
+
+            val pagedQuery = if (lastVisible != null) {
+                query.startAfter(lastVisible)
+            } else {
+                query
+            }
+
+            val snapshot = pagedQuery.get().await()
+            val docs = snapshot.documents
+
+            Log.d(TAG, "Fetched ${docs.size} entities to check for updates [$collectionName]")
+
+            if (docs.isEmpty()) {
+                done = true
+            } else {
+                val currFirestoreBatch = mutableListOf<T>()
+                for (doc in docs) {
+                    val firestoreEntity = doc.toObject<T>() ?: continue
+                    val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
+                    val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
+
+                    if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
+                        currFirestoreBatch.add(firestoreEntity)
+                        Log.d(TAG, "Found outdated entity: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated [$collectionName]")
+                    }
                 }
 
-                onUpdateMany(updatedEntities)
-                Log.d(TAG, "Batch updated ${updatedEntities.size} entities locally [$collectionName]")
+                if (currFirestoreBatch.isNotEmpty()) {
+                    onUpdateMany(currFirestoreBatch)
+                    Log.d(
+                        TAG,
+                        "Batch updated ${currFirestoreBatch.size} out-of-date entities from Firestore [$collectionName]"
+                    )
 
-                allSyncedEntities += updatedEntities
+                    allSyncedEntities += currFirestoreBatch
+                }
+
+                lastVisible = docs.last()
             }
         }
 
-        // Find the newest timestamp across all
-        val latestTimestamp = allSyncedEntities
-            .mapNotNull { it.lastUpdated }
-            .maxOrNull()
-
-        // Use that as your new sync time
-        if (latestTimestamp != null) {
-            syncMetadata = syncMetadata?.copy(lastSyncTimestamp = latestTimestamp)
-                ?: SyncMetadata(collectionName = collectionName, lastSyncTimestamp = latestTimestamp)
-            syncDao.upsert(syncMetadata)
-        }
+        return allSyncedEntities
     }
 }
