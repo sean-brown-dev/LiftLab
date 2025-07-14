@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 
 class PreviousSetResultsRepository(
@@ -35,11 +37,28 @@ class PreviousSetResultsRepository(
     }
 
     suspend fun upsert(setResult: SetResult): Long {
-        return previousSetResultDao.upsert(setResultsMapper.map(setResult))
+        val current = previousSetResultDao.get(setResult.id)
+        val toUpsert = setResultsMapper.map(setResult)
+            .copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false
+            )
+        return previousSetResultDao.upsert(toUpsert)
     }
 
     suspend fun upsertMany(setResults: List<SetResult>): List<Long> {
-        return previousSetResultDao.upsertMany(setResults.map { setResult -> setResultsMapper.map(setResult) })
+        val currentEntities = previousSetResultDao.getMany(setResults.map { it.id }).associateBy { it.id }
+        return previousSetResultDao.upsertMany(
+            setResults.fastMap { setResult ->
+                val current = currentEntities[setResult.id]
+                setResultsMapper.map(setResult).copyWithFirestoreMetadata(
+                    firestoreId = current?.firestoreId,
+                    lastUpdated = current?.lastUpdated,
+                    synced = false
+                )
+            }
+        )
     }
 
     suspend fun deleteAllForPreviousWorkout(

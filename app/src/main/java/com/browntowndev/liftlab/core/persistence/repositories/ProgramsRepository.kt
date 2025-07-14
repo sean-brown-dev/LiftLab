@@ -1,14 +1,14 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
-import com.google.firebase.firestore.FirebaseFirestore
-import dev.gitlive.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -70,12 +70,26 @@ class ProgramsRepository(
     }
 
     suspend fun update(program: ProgramDto) {
-        programsDao.update(programMapper.map(program))
+        val current = programsDao.get(program.id)
+        val toUpdate = programMapper.map(program).copyWithFirestoreMetadata(
+            firestoreId = current?.firestoreId,
+            lastUpdated = current?.lastUpdated,
+            synced = false
+        )
+        programsDao.update(toUpdate)
     }
 
     suspend fun updateMany(programs: List<ProgramDto>) {
+        val currentEntities = programsDao.getMany(programs.map { it.id }).associateBy { it.id }
         programsDao.updateMany(
-            programs.map { programMapper.map(it) }
+            programs.fastMap { program ->
+                val current = currentEntities[program.id]
+                programMapper.map(program).copyWithFirestoreMetadata(
+                    firestoreId = current?.firestoreId,
+                    lastUpdated = current?.lastUpdated,
+                    synced = false
+                )
+            }
         )
     }
 

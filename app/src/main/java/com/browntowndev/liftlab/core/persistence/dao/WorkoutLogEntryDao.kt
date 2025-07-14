@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import kotlinx.coroutines.flow.Flow
@@ -9,6 +10,7 @@ import java.util.Date
 
 @Dao
 interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
+    @Transaction
     @Query("SELECT * FROM workoutLogEntries")
     fun getAll(): List<WorkoutLogEntry>
 
@@ -18,6 +20,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
     @Query("DELETE FROM workoutLogEntries WHERE workout_log_entry_id = :workoutLogEntryId")
     suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long)
 
+    @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.workoutId, histWorkoutName.programName, histWorkoutName.workoutName, " +
             "log.programDeloadWeek, log.programWorkoutCount, log.microcyclePosition, log.date, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
@@ -28,6 +31,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id")
     fun getAllFlattened(): Flow<List<FlattenedWorkoutLogEntryDto>>
 
+    @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
@@ -39,6 +43,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
             "WHERE setResult.liftId = :liftId")
     suspend fun getLogsByLiftId(liftId: Long): List<FlattenedWorkoutLogEntryDto>
 
+    @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
@@ -57,6 +62,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
             "setResult2.isDeload = 0)")
     suspend fun getMostRecentLogsForLiftIdsExcludingDeloads(liftIds: List<Long>): List<FlattenedWorkoutLogEntryDto>
 
+    @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
@@ -74,6 +80,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
             "setResult2.setPosition = setResult.setPosition)")
     suspend fun getMostRecentLogsForLiftIds(liftIds: List<Long>): List<FlattenedWorkoutLogEntryDto>
 
+    @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
@@ -92,6 +99,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
             "log2.date < :date)")
     suspend fun getMostRecentLogsForLiftIdsPriorToDate(liftIds: List<Long>, date: Date): List<FlattenedWorkoutLogEntryDto>
 
+    @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
             "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +

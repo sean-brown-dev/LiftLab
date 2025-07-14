@@ -75,7 +75,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
 
     companion object {
         private const val LIFTS_DATA_FILENAME = "lifts.json"
-        private const val DATABASE_NAME = "liftlab_database"
+        const val DATABASE_NAME = "liftlab_database"
         @Volatile private var instance: LiftLabDatabase? = null
         private val _initialized = MutableStateFlow(false)
         val initialized = _initialized.asStateFlow()

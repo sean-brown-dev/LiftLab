@@ -16,6 +16,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun LiftMetricChart.toFirebaseDto(): LiftMetricChartFirebaseDto = LiftMetricChartFirebaseDto(
         id = this.id,
@@ -24,6 +25,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun PreviousSetResultFirebaseDto.toEntity(): PreviousSetResult = PreviousSetResult(
         id = this.id,
@@ -45,6 +47,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun PreviousSetResult.toFirebaseDto(): PreviousSetResultFirebaseDto = PreviousSetResultFirebaseDto(
         id = this.id,
@@ -66,6 +69,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun ProgramFirebaseDto.toEntity(): Program = Program(
         id = this.id,
@@ -78,6 +82,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun Program.toFirebaseDto(): ProgramFirebaseDto = ProgramFirebaseDto(
         id = this.id,
@@ -90,6 +95,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun RestTimerInProgressFirebaseDto.toEntity(): RestTimerInProgress = RestTimerInProgress(
         id = this.id,
@@ -98,6 +104,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun RestTimerInProgress.toFirebaseDto(): RestTimerInProgressFirebaseDto = RestTimerInProgressFirebaseDto(
         id = this.id,
@@ -106,6 +113,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun SetLogEntryFirebaseDto.toEntity(): SetLogEntry = SetLogEntry(
         id = this.id,
@@ -137,6 +145,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun SetLogEntry.toFirebaseDto(): SetLogEntryFirebaseDto = SetLogEntryFirebaseDto(
         id = this.id,
@@ -168,6 +177,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun VolumeMetricChartFirebaseDto.toEntity(): VolumeMetricChart = VolumeMetricChart(
         id = this.id,
@@ -176,6 +186,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun VolumeMetricChart.toFirebaseDto(): VolumeMetricChartFirebaseDto = VolumeMetricChartFirebaseDto(
         id = this.id,
@@ -184,6 +195,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun WorkoutFirebaseDto.toEntity(): Workout = Workout(
         id = this.id,
@@ -193,6 +205,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun Workout.toFirebaseDto(): WorkoutFirebaseDto = WorkoutFirebaseDto(
         id = this.id,
@@ -202,6 +215,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun WorkoutInProgressFirebaseDto.toEntity(): WorkoutInProgress = WorkoutInProgress(
         id = this.id,
@@ -210,6 +224,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun WorkoutInProgress.toFirebaseDto(): WorkoutInProgressFirebaseDto = WorkoutInProgressFirebaseDto(
         id = this.id,
@@ -218,6 +233,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun WorkoutLiftFirebaseDto.toEntity(): WorkoutLift = WorkoutLift(
         id = this.id,
@@ -234,6 +250,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun WorkoutLift.toFirebaseDto(): WorkoutLiftFirebaseDto = WorkoutLiftFirebaseDto(
         id = this.id,
@@ -250,6 +267,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun WorkoutLogEntryFirebaseDto.toEntity(): WorkoutLogEntry = WorkoutLogEntry(
         id = this.id,
@@ -264,6 +282,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun WorkoutLogEntry.toFirebaseDto(): WorkoutLogEntryFirebaseDto = WorkoutLogEntryFirebaseDto(
         id = this.id,
@@ -278,6 +297,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun CustomLiftSetFirebaseDto.toEntity(): CustomLiftSet = CustomLiftSet(
         id = this.id,
@@ -295,6 +315,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun CustomLiftSet.toFirebaseDto(): CustomLiftSetFirebaseDto = CustomLiftSetFirebaseDto(
         id = this.id,
@@ -312,6 +333,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun HistoricalWorkoutNameFirebaseDto.toEntity(): HistoricalWorkoutName = HistoricalWorkoutName(
         id = this.id,
@@ -322,6 +344,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun HistoricalWorkoutName.toFirebaseDto(): HistoricalWorkoutNameFirebaseDto = HistoricalWorkoutNameFirebaseDto(
         id = this.id,
@@ -332,6 +355,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
+        this.synced = this@toFirebaseDto.synced
     }
     fun LiftFirebaseDto.toEntity(): Lift = Lift(
         id = this.id,
@@ -348,6 +372,7 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toEntity.firestoreId
         this.lastUpdated = this@toEntity.lastUpdated
+        this.synced = true
     }
     fun Lift.toFirebaseDto(): LiftFirebaseDto = LiftFirebaseDto(
         id = this.id,
@@ -364,4 +389,6 @@ object FirebaseMappers {
     ).apply {
         this.firestoreId = this@toFirebaseDto.firestoreId
         this.lastUpdated = this@toFirebaseDto.lastUpdated
-    }}
+        this.synced = this@toFirebaseDto.synced
+    }
+}

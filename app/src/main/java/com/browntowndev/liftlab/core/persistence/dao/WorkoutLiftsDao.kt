@@ -12,6 +12,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutLiftsDao: BaseDao<WorkoutLift> {
+    @Query("SELECT * FROM workoutLifts WHERE workoutId = :id")
+    suspend fun get(id: Long): WorkoutLift?
+
+    @Transaction
+    @Query("SELECT * FROM workoutLifts WHERE workoutId IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<WorkoutLift>
+
+    @Transaction
     @Query("SELECT * FROM workoutLifts")
     suspend fun getAll(): List<WorkoutLift>
 
@@ -21,6 +29,7 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLift> {
     @Query("UPDATE workoutLifts SET liftId = :newLiftId WHERE workout_lift_id = :workoutLiftId")
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long)
 
+    @Transaction
     @Query("SELECT liftId FROM workoutLifts WHERE workoutId = :workoutId")
     suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long>
 

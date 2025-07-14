@@ -1,7 +1,9 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 
 class WorkoutLiftsRepository (
@@ -22,11 +24,28 @@ class WorkoutLiftsRepository (
     }
 
     suspend fun update(workoutLift: GenericWorkoutLift) {
-        workoutLiftsDao.update(workoutLiftMapper.map(workoutLift))
+        val current = workoutLiftsDao.get(workoutLift.id)
+        workoutLiftsDao.update(
+            workoutLiftMapper.map(workoutLift).copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
+            )
+        )
     }
 
     suspend fun updateMany(workoutLifts: List<GenericWorkoutLift>) {
-        workoutLiftsDao.updateMany(workoutLifts.map { workoutLiftMapper.map(it) })
+        val currentEntities = workoutLiftsDao.getMany(workoutLifts.map { it.id }).associateBy { it.id }
+        workoutLiftsDao.updateMany(
+            workoutLifts.fastMap { workoutLift ->
+                val current = currentEntities[workoutLift.id]
+                workoutLiftMapper.map(workoutLift).copyWithFirestoreMetadata(
+                    firestoreId = current?.firestoreId,
+                    lastUpdated = current?.lastUpdated,
+                    synced = false,
+                )
+            }
+        )
     }
 
     suspend fun delete(workoutLift: GenericWorkoutLift) {

@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.FirestoreSyncViewModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
@@ -67,4 +68,5 @@ val viewModelModule = module {
     viewModelOf(::BottomSheetViewModel)
     viewModelOf(::TimerViewModel)
     viewModelOf(::PickerViewModel)
+    viewModelOf(::FirestoreSyncViewModel)
 }

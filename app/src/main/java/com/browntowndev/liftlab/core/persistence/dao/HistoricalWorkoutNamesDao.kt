@@ -3,10 +3,12 @@ package com.browntowndev.liftlab.core.persistence.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
 
 @Dao
 interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutName> {
+    @Transaction
     @Query("SELECT * FROM historicalWorkoutNames")
     suspend fun getAll(): List<HistoricalWorkoutName>
 

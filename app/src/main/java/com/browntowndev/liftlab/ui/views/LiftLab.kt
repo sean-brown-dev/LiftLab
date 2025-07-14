@@ -20,6 +20,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.rememberNavController
 import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
+import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
@@ -35,10 +36,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LiftLab(
     initializing: Boolean,
+    showSyncFailedDialog: Boolean,
     donationState: DonationState,
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
+    onCloseSyncFailedDialog: () -> Unit,
 ) {
     LiftLabTheme {
         if (initializing) {
@@ -119,6 +122,14 @@ fun LiftLab(
                     setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
                 )
             }
+        }
+
+        LiftLabDialog(
+            isVisible = showSyncFailedDialog,
+            header = "Sync Failed",
+            onDismiss = onCloseSyncFailedDialog,
+        ) {
+            Text(text = "Failed to Sync Data. Try a manual sync from the sync menu on the Home screen.")
         }
     }
 }

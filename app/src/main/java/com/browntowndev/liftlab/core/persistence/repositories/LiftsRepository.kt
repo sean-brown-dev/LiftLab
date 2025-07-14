@@ -6,6 +6,7 @@ import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.entities.Lift
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -31,6 +32,7 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
     }
 
     suspend fun update(lift: LiftDto) {
+        val current = liftsDao.get(lift.id)
         liftsDao.update(
             Lift(
                 id = lift.id,
@@ -44,11 +46,17 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 isHidden = lift.isHidden,
                 isBodyweight = lift.isBodyweight,
                 note = lift.note,
-            ))
+            ).copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
+            )
+        )
     }
 
     suspend fun get(id: Long): LiftDto {
-        val lift: Lift = liftsDao.get(id)
+        val lift: Lift? = liftsDao.get(id)
+        if (lift == null) throw Exception("Lift not found")
         return LiftDto(
             id = lift.id,
             name = lift.name,

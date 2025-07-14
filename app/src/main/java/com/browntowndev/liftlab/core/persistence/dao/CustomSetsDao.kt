@@ -9,12 +9,14 @@ import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 
 @Dao
 interface CustomSetsDao: BaseDao<CustomLiftSet> {
+    @Transaction
     @Query("SELECT * FROM sets WHERE set_id IN (:ids)")
     suspend fun getMany(ids: List<Long>): List<CustomLiftSet>
 
     @Query("SELECT * FROm sets WHERE set_id = :id")
     suspend fun get(id: Long): CustomLiftSet?
 
+    @Transaction
     @Query("SELECT * FROM sets")
     suspend fun getAll(): List<CustomLiftSet>
 

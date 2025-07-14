@@ -1,10 +1,11 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
-import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,6 @@ class WorkoutsRepository(
         return workoutsDao.insert(workoutMapper.map(workout))
     }
 
-    @Transaction
     suspend fun delete(workout: WorkoutDto) {
         workoutsDao.delete(workoutMapper.map(workout))
 
@@ -53,11 +53,26 @@ class WorkoutsRepository(
     }
 
     suspend fun updateMany(workouts: List<WorkoutDto>) {
-        workoutsDao.updateMany(workouts.map { workoutMapper.map(it) })
+        val currentEntities = workoutsDao.getMany(workouts.map { it.id }).associateBy { it.id }
+        workoutsDao.updateMany(
+            workouts.fastMap { workout ->
+                val current = currentEntities[workout.id]
+                workoutMapper.map(workout).copyWithFirestoreMetadata(
+                    firestoreId = current?.firestoreId,
+                    lastUpdated = current?.lastUpdated,
+                    synced = false,
+                )
+            }
+        )
     }
 
     suspend fun update(workout: WorkoutDto) {
-        val updWorkout = workoutMapper.map(workout)
+        val current = workoutsDao.get(workout.id)
+        val updWorkout = workoutMapper.map(workout).copyWithFirestoreMetadata(
+            firestoreId = current?.firestoreId,
+            lastUpdated = current?.lastUpdated,
+            synced = false,
+        )
         val updSets = workout.lifts
             .filterIsInstance<CustomWorkoutLiftDto>()
             .flatMap { lift ->
@@ -70,7 +85,7 @@ class WorkoutsRepository(
     }
 
     suspend fun get(workoutId: Long): WorkoutDto? {
-        return workoutsDao.get(workoutId)?.let {
+        return workoutsDao.getWithRelationships(workoutId)?.let {
              workoutMapper.map(it)
         }
     }

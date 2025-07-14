@@ -11,6 +11,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -145,13 +146,28 @@ class LoggingRepository(
     }
 
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
-        return setLogEntryDao.upsert(workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry))
+        val current = setLogEntryDao.get(setLogEntry.id)
+        val toUpsert = workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
+            .copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false
+            )
+
+        return setLogEntryDao.upsert(toUpsert)
     }
 
     suspend fun upsertMany(workoutLogEntryId: Long, setLogEntries: List<SetLogEntryDto>): List<Long> {
+        val currentEntries = setLogEntryDao.getMany(setLogEntries.map { it.id }).associateBy { it.id }
         return setLogEntryDao.upsertMany(
             setLogEntries.fastMap { setLogEntry ->
+                val current = currentEntries[setLogEntry.id]
                 workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
+                    .copyWithFirestoreMetadata(
+                        firestoreId = current?.firestoreId,
+                        lastUpdated = current?.lastUpdated,
+                        synced = false
+                    )
             }
         )
     }

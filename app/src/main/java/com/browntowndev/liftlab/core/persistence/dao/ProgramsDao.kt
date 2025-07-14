@@ -1,13 +1,9 @@
 package com.browntowndev.liftlab.core.persistence.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.ProgramWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import kotlinx.coroutines.flow.Flow
@@ -32,9 +28,16 @@ interface ProgramsDao: BaseDao<Program> {
     @Query("SELECT * FROM programs")
     suspend fun getAll(): List<Program>
 
+    @Query("SELECT * FROM programs WHERE program_id = :id")
+    suspend fun get(id: Long) : Program?
+
+    @Transaction
+    @Query("SELECT * FROM programs WHERE program_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>) : List<Program>
+
     @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id")
-    suspend fun get(id: Long) : ProgramWithRelationships
+    suspend fun getWithRelationships(id: Long) : ProgramWithRelationships
 
     @Query("UPDATE programs SET name = :newName WHERE program_id = :id")
     suspend fun updateName(id: Long, newName: String)
@@ -45,6 +48,7 @@ interface ProgramsDao: BaseDao<Program> {
     @Query("SELECT deloadWeek FROM programs WHERE program_id = :id")
     suspend fun getDeloadWeek(id: Long): Int
 
+    @Transaction
     @Query("SELECT program_id AS programId, name, deloadWeek, currentMesocycle, currentMicrocycle, currentMicrocyclePosition, " +
             "(SELECT COUNT(*) FROM workouts WHERE programId = program_id) AS workoutCount " +
             "FROM programs " +

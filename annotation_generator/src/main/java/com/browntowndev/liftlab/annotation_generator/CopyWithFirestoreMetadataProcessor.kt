@@ -38,11 +38,14 @@ class CopyWithFirestoreMetadataProcessor(
                     writer.write(
                         """
                         package $packageName
+                        
+                        import java.util.Date
 
-                        fun $className.copyWithFirestoreMetadata(from: $className?): $className {
+                        fun $className.copyWithFirestoreMetadata(firestoreId: String?, lastUpdated: Date?, synced: Boolean): $className {
                             return this.copy().apply {
-                                this.firestoreId = from?.firestoreId
-                                this.lastUpdated = from?.lastUpdated
+                                this.firestoreId = firestoreId
+                                this.lastUpdated = lastUpdated
+                                this.synced = synced
                             }
                         }
                         """.trimIndent()

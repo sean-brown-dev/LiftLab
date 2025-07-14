@@ -4,6 +4,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
+import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 
 
 class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChartsDao): Repository {
@@ -16,11 +17,19 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
     }
 
     suspend fun upsertMany(liftMetricCharts: List<LiftMetricChartDto>): List<Long> {
+        val currentCharts = liftMetricChartsDao.getMany(liftMetricCharts.fastMap { it.id })
+            .associateBy { it.id }
+
         val charts = liftMetricCharts.fastMap { liftMetricChart ->
+            val current = currentCharts[liftMetricChart.id]
             LiftMetricChart(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
                 chartType = liftMetricChart.chartType,
+            ).copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
             )
         }
 
@@ -28,11 +37,16 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
     }
 
     suspend fun upsert(liftMetricChart: LiftMetricChartDto): Long {
+        val current = liftMetricChartsDao.get(liftMetricChart.id)
         return liftMetricChartsDao.upsert(
             LiftMetricChart(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
                 chartType = liftMetricChart.chartType,
+            ).copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
             )
         )
     }

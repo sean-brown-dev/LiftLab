@@ -17,7 +17,12 @@ class CustomLiftSetsRepository(
 
     suspend fun update(set: GenericLiftSet) {
         val current = customSetsDao.get(set.id)
-        val toUpdate = customLiftSetMapper.map(set).copyWithFirestoreMetadata(current)
+        val toUpdate = customLiftSetMapper.map(set)
+            .copyWithFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
+            )
         customSetsDao.update(toUpdate)
     }
 
@@ -26,7 +31,12 @@ class CustomLiftSetsRepository(
         val currentById = customSetsDao.getMany(sets.map { it.id }).associateBy { it.id }
         val toUpdate = sets.fastMap {
             val current = currentById[it.id]
-            customLiftSetMapper.map(it).copyWithFirestoreMetadata(current)
+            customLiftSetMapper.map(it)
+                .copyWithFirestoreMetadata(
+                    firestoreId = current?.firestoreId,
+                    lastUpdated = current?.lastUpdated,
+                    synced = false,
+                )
         }
         customSetsDao.updateMany(toUpdate)
     }

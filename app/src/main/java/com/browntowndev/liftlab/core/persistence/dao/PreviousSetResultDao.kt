@@ -3,34 +3,47 @@ package com.browntowndev.liftlab.core.persistence.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 
 @Dao
 interface PreviousSetResultDao: BaseDao<PreviousSetResult> {
+    @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id = :id")
+    suspend fun get(id: Long): PreviousSetResult?
+
+    @Transaction
+    @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<PreviousSetResult>
+
+    @Transaction
     @Query("SELECT * FROM previousSetResults")
     suspend fun getAll(): List<PreviousSetResult>
 
     @Query("DELETE FROM previousSetResults")
     suspend fun deleteAll()
 
+    @Transaction
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "(mesoCycle != :mesoCycle OR " +
             "microCycle != :microCycle)")
     suspend fun getByWorkoutIdExcludingGivenMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResult>
 
+    @Transaction
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
             "microCycle = :microCycle")
     suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResult>
 
+    @Transaction
     @Query("SELECT * FROM previousSetResults " +
             "WHERE liftId = :liftId")
     suspend fun getForLift(liftId: Long): List<PreviousSetResult>
 
+    @Transaction
     @Query("SELECT liftId, MAX(oneRepMax) as 'personalRecord' " +
             "FROM previousSetResults " +
             "WHERE liftId IN (:liftIds) AND " +

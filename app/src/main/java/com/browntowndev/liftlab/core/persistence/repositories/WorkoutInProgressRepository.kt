@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 
+import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress

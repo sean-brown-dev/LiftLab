@@ -26,8 +26,10 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.persistence.dtos.firebase.BaseFirebaseDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.persistence.entities.BaseEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -50,6 +52,14 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+
+fun BaseFirebaseDto.copyForUpload(firestoreId: String): BaseFirebaseDto {
+    this.firestoreId = firestoreId
+    this.lastUpdated = null
+    this.synced = true
+
+    return this
+}
 
 fun String.appendSuperscript(
     superscript: String,

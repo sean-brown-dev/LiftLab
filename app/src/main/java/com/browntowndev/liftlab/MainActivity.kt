@@ -8,20 +8,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
@@ -36,8 +27,9 @@ import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.persistence.sync.FirebaseSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
+import com.browntowndev.liftlab.ui.viewmodels.FirestoreSyncViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,35 +56,30 @@ class MainActivity : ComponentActivity(), KoinComponent {
         requestNotificationPermission(this)
         SettingsManager.initialize(this@MainActivity)
 
-        val mutableSyncState = MutableStateFlow(false)
-        val syncState = mutableSyncState.asStateFlow()
-        val syncManager: FirebaseSyncManager by inject()
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                syncManager.syncAll()
-            }
-            mutableSyncState.value = true
-        }
+        val firestoreSyncViewModel: FirestoreSyncViewModel by inject()
+        firestoreSyncViewModel.syncAll()
 
         setContent {
             val isInitialized by LiftLabDatabase.initialized.collectAsState()
-            val isSyncComplete by syncState.collectAsState()
+            val syncState by firestoreSyncViewModel.syncState.collectAsState()
 
             val donationViewModel: DonationViewModel = remember {
                 getViewModel(parameters = { parametersOf(BillingClient.newBuilder(this)) })
             }
             val donationState by donationViewModel.state.collectAsState()
             LiftLab(
-                initializing = !isInitialized || !isSyncComplete,
+                initializing = !isInitialized || syncState.syncing,
+                showSyncFailedDialog = syncState.showSyncFailedDialog,
                 donationState = donationState,
                 onClearBillingError = donationViewModel::clearBillingError,
                 onUpdateDonationProduct = donationViewModel::setNewDonationOption,
                 onProcessDonation = {
                     donationViewModel.processDonation(this)
                 },
+                onCloseSyncFailedDialog = firestoreSyncViewModel::toggleSyncErrorDialog,
             )
 
-            enableEdgeToEdge(statusBarStyle = getStatusBarStyle())
+            enableEdgeToEdge(getStatusBarStyle())
         }
     }
 

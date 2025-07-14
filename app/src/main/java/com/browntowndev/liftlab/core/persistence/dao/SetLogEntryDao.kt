@@ -2,12 +2,21 @@ package com.browntowndev.liftlab.core.persistence.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SetLogEntryDao: BaseDao<SetLogEntry> {
+    @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id = :id")
+    suspend fun get(id: Long): SetLogEntry?
+
+    @Transaction
+    @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<SetLogEntry>
+
+    @Transaction
     @Query("SELECT * FROM setLogEntries")
     suspend fun getAll(): List<SetLogEntry>
 
@@ -41,6 +50,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntry> {
         excludeFromCopy: List<Long>
     )
 
+    @Transaction
     @Query("SELECT liftId, MAX(oneRepMax) as 'personalRecord' " +
             "FROM setLogEntries " +
             "WHERE liftId IN (:liftIds) " +
