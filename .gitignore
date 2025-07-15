@@ -31,3 +31,4 @@ google-services.json
 
 app/release
 *.salive
+gradle.properties
