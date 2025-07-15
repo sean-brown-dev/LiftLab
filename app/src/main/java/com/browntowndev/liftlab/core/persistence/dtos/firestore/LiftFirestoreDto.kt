@@ -1,11 +1,10 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import kotlin.time.Duration
 
 @Keep
-data class LiftFirebaseDto(
+data class LiftFirestoreDto(
     var id: Long = 0L,
     var name: String = "",
     var movementPattern: MovementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -17,4 +16,4 @@ data class LiftFirebaseDto(
     var isHidden: Boolean = false,
     var isBodyweight: Boolean = false,
     var note: String? = null
-): BaseFirebaseDto()
+): BaseFirestoreDto()

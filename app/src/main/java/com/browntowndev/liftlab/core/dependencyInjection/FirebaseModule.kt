@@ -5,6 +5,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.persistence.sync.*
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val firebaseModule = module {

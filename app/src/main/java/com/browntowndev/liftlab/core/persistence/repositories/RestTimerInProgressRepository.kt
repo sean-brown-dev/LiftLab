@@ -3,14 +3,16 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
-import com.browntowndev.liftlab.core.common.FirebaseConstants
+import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
+import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
-import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 class RestTimerInProgressRepository(
     private val restTimerInProgressDao: RestTimerInProgressDao,
     private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun get(): RestTimerInProgressDto? {
         val restTimerInProgress = restTimerInProgressDao.get()
@@ -51,16 +54,15 @@ class RestTimerInProgressRepository(
 
     suspend fun insert(restTime: Long) {
         deleteAll()
-        restTimerInProgressDao.insert(
-            RestTimerInProgress(
+        val toInsert = RestTimerInProgress(
                 timeStartedInMillis = getCurrentDate().time,
                 restTime = restTime,
             )
-        )
-        restTimerInProgressDao.get()?.let { inserted ->
+        val id = restTimerInProgressDao.insert(toInsert)
+        syncScope.fireAndForgetSync {
             firestoreSyncManager.syncSingle(
-                collectionName = FirebaseConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
-                entity = inserted.toFirebaseDto(),
+                collectionName = FirestoreConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
+                entity = toInsert.copy(id = id).toFirestoreDto(),
                 onSynced = {
                     restTimerInProgressDao.update(it.toEntity())
                 }
@@ -70,10 +72,15 @@ class RestTimerInProgressRepository(
 
     suspend fun deleteAll() {
         val toDelete = restTimerInProgressDao.getAll()
+        if (toDelete.isEmpty()) return
+
         restTimerInProgressDao.deleteMany(toDelete)
-        firestoreSyncManager.deleteMany(
-            collectionName = FirebaseConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
-            firestoreIds = toDelete.mapNotNull { it.firestoreId },
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.deleteMany(
+                collectionName = FirestoreConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
+                firestoreIds = toDelete.mapNotNull { it.firestoreId },
+            )
+        }
     }
 }

@@ -88,8 +88,7 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResult> {
         currentResultsToDelete: List<Long>,
     ): List<PreviousSetResult>
 
-
-    @Query("DELETE FROM previousSetResults " +
+    @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
             "microCycle = :microCycle")

@@ -45,13 +45,11 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected fun List<LoggingStandardSetDto>.flattenWeightRecommendationsStandard(): List<LoggingStandardSetDto> {
         // Flattens out weight recommendations for all sets that use the same rep range and RPE target
         return if (this.distinctBy { it.weightRecommendation }.size > 1) {
-            this.groupBy {
-                "${it.repRangeBottom}-${it.repRangeTop}-${it.rpeTarget}"
-            }.flatMap {
-                val minWeight = it.value.minOf { set -> set.weightRecommendation ?: Float.MAX_VALUE }
-                it.value.fastMap { set ->
-                    set.copy(weightRecommendation = minWeight)
-                }
+            // Typically when there's a difference it's because you either added weight or dropped weight by the last set, so use
+            // whatever the last weight recommendation is
+            val lastSetWithRecommendation = this.filter { it.weightRecommendation != null }.maxByOrNull { it.position }
+            this.fastMap { set ->
+                set.copy(weightRecommendation = lastSetWithRecommendation?.weightRecommendation)
             }
         } else this
     }
@@ -136,21 +134,22 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     ): Float? {
         return missedBottomRepRange(result, repRangeBottom, rpeTarget)
             .let { shouldDecrease ->
-            if (shouldDecrease && result != null) {
-                getCalculatedWeightRecommendation(
-                    increment = incrementOverride,
-                    repGoal = repRangeBottom,
-                    rpeTarget = rpeTarget,
-                    result = result,
-                )
-            } else result?.weight
-                ?: if (droppedFromSetResult?.weight != null) {
-                    getDropSetWeight(
-                        incrementOverride = incrementOverride,
-                        previousSetWeight = droppedFromSetResult.weight,
-                        dropPercentage = dropPercentage)
-                } else null
-        }
+                if (shouldDecrease && result != null) {
+                    getCalculatedWeightRecommendation(
+                        increment = incrementOverride,
+                        repGoal = repRangeBottom,
+                        rpeTarget = rpeTarget,
+                        result = result,
+                    )
+                } else result?.weight
+                    ?: if (droppedFromSetResult?.weight != null) {
+                        getDropSetWeight(
+                            incrementOverride = incrementOverride,
+                            previousSetWeight = droppedFromSetResult.weight,
+                            dropPercentage = dropPercentage
+                        )
+                    } else null
+            }
     }
 
     protected fun customSetMeetsCriterion(set: GenericLiftSet, previousSet: SetResult?): Boolean {

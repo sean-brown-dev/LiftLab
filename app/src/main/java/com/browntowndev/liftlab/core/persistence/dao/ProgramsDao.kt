@@ -51,11 +51,4 @@ interface ProgramsDao: BaseDao<Program> {
             "FROM programs " +
             "WHERE isActive = 1")
     fun getActiveProgramMetadata(): Flow<ActiveProgramMetadataDto?>
-
-    @Query("UPDATE programs " +
-            "SET currentMesocycle = :mesoCycle, " +
-            "currentMicroCycle = :microCycle, " +
-            "currentMicrocyclePosition = :microCyclePosition " +
-            "WHERE program_id = :id")
-    suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int)
 }

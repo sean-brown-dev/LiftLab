@@ -1,20 +1,23 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.FirebaseConstants
+import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
-import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import kotlinx.coroutines.CoroutineScope
 
 class PreviousSetResultsRepository(
     private val previousSetResultDao: PreviousSetResultDao,
     private val setResultsMapper: SetResultMapper,
     private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun getByWorkoutIdExcludingGivenMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult> {
         return previousSetResultDao.getByWorkoutIdExcludingGivenMesoAndMicro(workoutId, mesoCycle, microCycle).map {
@@ -49,14 +52,19 @@ class PreviousSetResultsRepository(
                 lastUpdated = current?.lastUpdated,
                 synced = false
             )
-        val id = previousSetResultDao.upsert(toUpsert)
-        firestoreSyncManager.syncSingle(
-            collectionName = FirebaseConstants.PREVIOUS_SET_RESULTS_COLLECTION,
-            entity = toUpsert.toFirebaseDto().copy(id = id),
-            onSynced = {
-                previousSetResultDao.update(it.toEntity())
-            }
-        )
+        val id = previousSetResultDao.upsert(toUpsert).let {
+            if (it == -1L) toUpsert.id else it
+        }
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncSingle(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                entity = toUpsert.toFirestoreDto().copy(id = id),
+                onSynced = {
+                    previousSetResultDao.update(it.toEntity())
+                }
+            )
+        }
 
         return id
     }
@@ -76,13 +84,16 @@ class PreviousSetResultsRepository(
         toUpsert = toUpsert.zip(ids).map { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
         }
-        firestoreSyncManager.syncMany(
-            collectionName = FirebaseConstants.PREVIOUS_SET_RESULTS_COLLECTION,
-            entities = toUpsert.map { it.toFirebaseDto() },
-            onSynced = { firestoreEntities ->
-                previousSetResultDao.updateMany(firestoreEntities.map { it.toEntity() })
-            }
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncMany(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                entities = toUpsert.map { it.toFirestoreDto() },
+                onSynced = { firestoreEntities ->
+                    previousSetResultDao.updateMany(firestoreEntities.map { it.toEntity() })
+                }
+            )
+        }
 
         return ids
     }
@@ -99,29 +110,40 @@ class PreviousSetResultsRepository(
             currentMicrocycle = currentMicrocycle,
             currentResultsToDelete = currentResultsToDeleteInstead,
         )
+        if (toDelete.isEmpty()) return
+
         previousSetResultDao.deleteMany(toDelete)
-        firestoreSyncManager.deleteMany(
-            collectionName = FirebaseConstants.PREVIOUS_SET_RESULTS_COLLECTION,
-            firestoreIds = toDelete.mapNotNull { it.firestoreId },
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.deleteMany(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                firestoreIds = toDelete.mapNotNull { it.firestoreId },
+            )
+        }
     }
 
     suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
         val toDelete = previousSetResultDao.getAllForWorkout(workoutId, mesoCycle, microCycle)
+        if (toDelete.isEmpty()) return
+
         previousSetResultDao.deleteMany(toDelete)
-        firestoreSyncManager.deleteMany(
-            collectionName = FirebaseConstants.PREVIOUS_SET_RESULTS_COLLECTION,
-            firestoreIds = toDelete.mapNotNull { it.firestoreId },
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.deleteMany(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                firestoreIds = toDelete.mapNotNull { it.firestoreId },
+            )
+        }
     }
 
     suspend fun deleteById(id: Long) {
-        previousSetResultDao.get(id)?.let { toDelete ->
-            previousSetResultDao.delete(toDelete)
+        val toDelete = previousSetResultDao.get(id) ?: return
+        previousSetResultDao.delete(toDelete)
 
-            if (toDelete.firestoreId != null) {
+        if (toDelete.firestoreId != null) {
+            syncScope.fireAndForgetSync {
                 firestoreSyncManager.deleteSingle(
-                    collectionName = FirebaseConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                    collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
                     firestoreId = toDelete.firestoreId!!,
                 )
             }

@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.core.persistence.sync
 import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.copyForUpload
-import com.browntowndev.liftlab.core.persistence.dtos.firebase.BaseFirebaseDto
-import com.browntowndev.liftlab.core.persistence.dtos.firebase.SyncMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.BaseFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.SyncMetadataDto
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.CustomLiftSetsSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.HistoricalWorkoutNamesSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftMetricChartsSyncRepository
@@ -77,6 +77,8 @@ class FirestoreSyncManager (
                 .document(firestoreId)
 
             docRef.delete().await()
+            Log.d(TAG, "Deleted entity $firestoreId [$collectionName]")
+            FirebaseCrashlytics.getInstance().log("Deleted entity $firestoreId [$collectionName]")
         } catch (e: Exception) {
             Log.e(TAG, "Firestore delete failed: ${e.message}", e)
             FirebaseCrashlytics.getInstance().recordException(e)
@@ -109,6 +111,8 @@ class FirestoreSyncManager (
 
             try {
                 batch.commit().await()
+                Log.d(TAG, "Batch deleted ${deletedIds.size} entities [$collectionName]")
+                FirebaseCrashlytics.getInstance().log("Batch deleted ${deletedIds.size} entities [$collectionName]")
             } catch (e: Exception) {
                 Log.e(TAG, "Firestore batch delete failed: ${e.message}", e)
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -117,7 +121,7 @@ class FirestoreSyncManager (
         }
     }
 
-    internal suspend inline fun <reified T : BaseFirebaseDto> syncSingle(
+    internal suspend inline fun <reified T : BaseFirestoreDto> syncSingle(
         collectionName: String,
         entity: T,
         noinline onSynced: suspend (firestoreEntity: T) -> Unit
@@ -144,15 +148,19 @@ class FirestoreSyncManager (
             val firestoreEntity = snapshot.toObject<T>()
             if (firestoreEntity != null) {
                 onSynced(firestoreEntity)
+                Log.d(TAG, "Synced entity ${firestoreEntity.firestoreId} [$collectionName]")
+                FirebaseCrashlytics.getInstance().log("Synced entity ${firestoreEntity.firestoreId} [$collectionName]")
+            } else {
+                Log.e(TAG, "Firestore entity not found after sync [$collectionName]")
+                FirebaseCrashlytics.getInstance().log("Firestore entity not found after sync [$collectionName]")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Firestore sync failed: ${e.message}", e)
+            Log.e(TAG, "Firestore sync failed: ${e.message}  [$collectionName]", e)
             FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
 
-
-    internal suspend inline fun <reified T : BaseFirebaseDto> syncMany(
+    internal suspend inline fun <reified T : BaseFirestoreDto> syncMany(
         collectionName: String,
         entities: List<T>,
         crossinline onSynced: suspend (List<T>) -> Unit
@@ -162,25 +170,25 @@ class FirestoreSyncManager (
             return
         }
 
-        entities.chunked(BATCH_SIZE).forEach { entityChunk ->
-            val batch = firestore.batch()
-            val firestoreDocumentBatch = mutableListOf<DocumentReference>()
-            entityChunk.fastForEach { entity ->
-                val collection = firestore.collection("users")
-                    .document(userId!!)
-                    .collection(collectionName)
+        coroutineScope {
+            entities.chunked(BATCH_SIZE).forEach { entityChunk ->
+                val batch = firestore.batch()
+                val firestoreDocumentBatch = mutableListOf<DocumentReference>()
+                entityChunk.fastForEach { entity ->
+                    val collection = firestore.collection("users")
+                        .document(userId!!)
+                        .collection(collectionName)
 
-                val docRef = if (entity.firestoreId != null)
-                    collection.document(entity.firestoreId!!)
-                else
-                    collection.document()
+                    val docRef = if (entity.firestoreId != null)
+                        collection.document(entity.firestoreId!!)
+                    else
+                        collection.document()
 
-                val toUpload = entity.copyForUpload(docRef.id)
-                batch.set(docRef, toUpload)
-                firestoreDocumentBatch.add(docRef)
-            }
+                    val toUpload = entity.copyForUpload(docRef.id)
+                    batch.set(docRef, toUpload)
+                    firestoreDocumentBatch.add(docRef)
+                }
 
-            coroutineScope {
                 try {
                     commitBatchAndUpdate(
                         batch = batch,
@@ -311,6 +319,7 @@ class FirestoreSyncManager (
             )
 
             Log.d(TAG, "Sync completed for user $userId.")
+            FirebaseCrashlytics.getInstance().log("Sync completed for user $userId.")
         } catch (e: Exception) {
             Log.e(TAG, "Error during sync for user $userId: ${e.message}", e)
 
@@ -321,7 +330,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun<reified T: BaseFirebaseDto> syncEntities(
+    private suspend inline fun<reified T: BaseFirestoreDto> syncEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
         localEntities: List<T>,
@@ -346,7 +355,12 @@ class FirestoreSyncManager (
         // Sync any unsynced entities up to Firestore
         val unsyncedEntities = localEntities.filter { !it.synced }
         if (unsyncedEntities.isNotEmpty()) {
-            val syncedEntities = uploadUnsyncedEntities<T>(unsyncedEntities, collection, collectionName, onUpdateMany)
+            val syncedEntities = uploadUnsyncedEntities<T>(
+                localEntities = unsyncedEntities,
+                collection =collection,
+                collectionName = collectionName,
+                onUpdateMany = onUpdateMany
+            )
             allSyncedEntities += syncedEntities
         }
 
@@ -362,7 +376,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun <reified T : BaseFirebaseDto> uploadUnsyncedEntities(
+    private suspend inline fun <reified T : BaseFirestoreDto> uploadUnsyncedEntities(
         localEntities: List<T>,
         collection: CollectionReference,
         collectionName: String,
@@ -372,6 +386,7 @@ class FirestoreSyncManager (
         if (unsyncedEntities.isEmpty()) return emptyList()
 
         Log.d(TAG, "Uploading ${unsyncedEntities.size} unsynced entities [$collectionName]")
+        FirebaseCrashlytics.getInstance().log("Uploading ${unsyncedEntities.size} unsynced entities [$collectionName]")
 
         val syncedEntities = coroutineScope {
             unsyncedEntities.chunked(BATCH_SIZE).map { unsyncedEntityChunk ->
@@ -407,7 +422,7 @@ class FirestoreSyncManager (
         return syncedEntities
     }
 
-    private suspend inline fun <reified T : BaseFirebaseDto> CoroutineScope.commitBatchAndUpdate(
+    private suspend inline fun <reified T : BaseFirestoreDto> CoroutineScope.commitBatchAndUpdate(
         batch: WriteBatch,
         batchSize: Int,
         collectionName: String,
@@ -422,9 +437,13 @@ class FirestoreSyncManager (
             async {
                 runCatching {
                     docRef.get().await().toObject<T>()
+                }.onFailure { e ->
+                    Log.e(TAG, "Failed to fetch doc ${docRef.id}: ${e.message} [$collectionName]", e)
+                    FirebaseCrashlytics.getInstance().recordException(e)
                 }.getOrNull()
             }
         }.awaitAll().filterNotNull()
+
 
         onUpdateMany(updatedEntities)
 
@@ -432,10 +451,12 @@ class FirestoreSyncManager (
             TAG,
             "Batch updated ${updatedEntities.size} entities locally [$collectionName]"
         )
+        FirebaseCrashlytics.getInstance().log("Batch updated ${updatedEntities.size} entities locally [$collectionName]")
+
         return updatedEntities
     }
 
-    private suspend inline fun <reified T : BaseFirebaseDto> updateOutdatedLocalEntities(
+    private suspend inline fun <reified T : BaseFirestoreDto> updateOutdatedLocalEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
         localEntitiesInFirestore: Map<String, T>,

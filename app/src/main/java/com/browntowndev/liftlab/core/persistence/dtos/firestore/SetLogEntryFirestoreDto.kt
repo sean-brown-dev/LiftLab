@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import com.google.firebase.firestore.PropertyName
 
 @Keep
-data class SetLogEntryFirebaseDto(
+data class SetLogEntryFirestoreDto(
     var id: Long = 0L,
     var workoutLogEntryId: Long = 0L,
     var liftId: Long = 0L,
@@ -37,4 +37,4 @@ data class SetLogEntryFirebaseDto(
     @get:PropertyName("isDeload")
     @set:PropertyName("isDeload")
     var isDeload: Boolean = false
-): BaseFirebaseDto()
+): BaseFirestoreDto()

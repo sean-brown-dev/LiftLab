@@ -1,10 +1,10 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Keep
-data class PreviousSetResultFirebaseDto(
+data class PreviousSetResultFirestoreDto(
     var id: Long = 0L,
     var workoutId: Long = 0L,
     var liftId: Long = 0L,
@@ -21,4 +21,4 @@ data class PreviousSetResultFirebaseDto(
     var microCycle: Int = 0,
     var missedLpGoals: Int? = null,
     var isDeload: Boolean = false
-): BaseFirebaseDto()
+): BaseFirestoreDto()

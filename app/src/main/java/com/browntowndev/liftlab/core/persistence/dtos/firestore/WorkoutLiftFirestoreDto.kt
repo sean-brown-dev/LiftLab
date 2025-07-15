@@ -1,10 +1,10 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 
 @Keep
-data class WorkoutLiftFirebaseDto(
+data class WorkoutLiftFirestoreDto(
     var id: Long = 0L,
     var workoutId: Long = 0L,
     var liftId: Long = 0L,
@@ -16,4 +16,4 @@ data class WorkoutLiftFirebaseDto(
     var repRangeBottom: Int? = null,
     var repRangeTop: Int? = null,
     var stepSize: Int? = null
-): BaseFirebaseDto()
+): BaseFirestoreDto()

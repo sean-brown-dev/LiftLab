@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.compose.rememberNavController
 import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
@@ -55,7 +56,7 @@ fun LiftLab(
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Text(
-                        text = "Syncing Data...",
+                        text = "Setting up the lab...",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
@@ -129,7 +130,10 @@ fun LiftLab(
             header = "Sync Failed",
             onDismiss = onCloseSyncFailedDialog,
         ) {
-            Text(text = "Failed to Sync Data. Try a manual sync from the sync menu on the Home screen.")
+            Text(
+                text = "Failed to Sync Data. Try a manual sync from the sync menu on the Home screen.",
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

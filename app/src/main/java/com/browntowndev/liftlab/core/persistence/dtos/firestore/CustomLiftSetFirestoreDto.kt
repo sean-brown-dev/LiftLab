@@ -1,10 +1,10 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Keep
-data class CustomLiftSetFirebaseDto(
+data class CustomLiftSetFirestoreDto(
     var id: Long = 0L,
     var workoutLiftId: Long = 0L,
     var type: SetType = SetType.STANDARD,
@@ -17,4 +17,4 @@ data class CustomLiftSetFirebaseDto(
     var dropPercentage: Float? = null,
     var maxSets: Int? = null,
     var setMatching: Boolean = false
-): BaseFirebaseDto()
+): BaseFirestoreDto()

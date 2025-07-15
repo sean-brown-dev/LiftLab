@@ -26,9 +26,6 @@ interface WorkoutsDao: BaseDao<Workout> {
     @Query("DELETE FROM workouts WHERE workout_id = :id")
     suspend fun delete(id: Long)
 
-    @Query("UPDATE workouts SET name = :newName WHERE workout_id = :id")
-    suspend fun updateName(id: Long, newName: String)
-
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
     suspend fun getWithRelationships(id: Long) : WorkoutWithRelationships?

@@ -3,7 +3,8 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
-import com.browntowndev.liftlab.core.common.FirebaseConstants
+import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
 import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
@@ -11,9 +12,10 @@ import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
-import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -22,6 +24,7 @@ class ProgramsRepository(
     private val programsDao: ProgramsDao,
     private val programMapper: ProgramMapper,
     private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScope: CoroutineScope,
 ) : Repository {
     suspend fun getAll(): List<ProgramDto> {
         return programsDao.getAll().map { programMapper.map(it) }
@@ -68,48 +71,54 @@ class ProgramsRepository(
     }
 
     suspend fun updateName(id: Long, newName: String) {
-        programsDao.get(id)?.copy(name = newName)?.let { program ->
-            updateWithoutRefetch(program)
-        }
+        val toUpdate = programsDao.get(id)?.copy(name = newName) ?: return
+        updateWithoutRefetch(toUpdate)
     }
 
     suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int) {
-        programsDao.get(id)?.copy(deloadWeek = newDeloadWeek)?.let { program ->
-            updateWithoutRefetch(program)
-        }
+        val toUpdate = programsDao.get(id)?.copy(deloadWeek = newDeloadWeek) ?: return
+        updateWithoutRefetch(toUpdate)
     }
 
     suspend fun update(program: ProgramDto) {
-        val current = programsDao.get(program.id)
+        val current = programsDao.get(program.id) ?: return
         val toUpdate = programMapper.map(program).copyWithFirestoreMetadata(
-            firestoreId = current?.firestoreId,
-            lastUpdated = current?.lastUpdated,
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
             synced = false
         )
         programsDao.update(toUpdate)
-        firestoreSyncManager.syncSingle(
-            collectionName = FirebaseConstants.PROGRAMS_COLLECTION,
-            entity = toUpdate.toFirebaseDto(),
-            onSynced = {
-                programsDao.update(it.toEntity())
-            }
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncSingle(
+                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                entity = toUpdate.toFirestoreDto(),
+                onSynced = {
+                    programsDao.update(it.toEntity())
+                }
+            )
+        }
     }
 
     private suspend fun updateWithoutRefetch(program: Program) {
         program.synced = false
         programsDao.update(program)
-        firestoreSyncManager.syncSingle(
-            collectionName = FirebaseConstants.PROGRAMS_COLLECTION,
-            entity = program.toFirebaseDto(),
-            onSynced = {
-                programsDao.update(it.toEntity())
-            }
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncSingle(
+                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                entity = program.toFirestoreDto(),
+                onSynced = {
+                    programsDao.update(it.toEntity())
+                }
+            )
+        }
     }
 
     suspend fun updateMany(programs: List<ProgramDto>) {
         val currentEntities = programsDao.getMany(programs.map { it.id }).associateBy { it.id }
+        if (currentEntities.isEmpty()) return
+
         val toUpdate =
             programs.fastMap { program ->
                 val current = currentEntities[program.id]
@@ -120,25 +129,31 @@ class ProgramsRepository(
                 )
             }
         programsDao.updateMany(toUpdate)
-        firestoreSyncManager.syncMany(
-            collectionName = FirebaseConstants.PROGRAMS_COLLECTION,
-            entities = toUpdate.map { it.toFirebaseDto() },
-            onSynced = { syncedEntities ->
-                programsDao.updateMany(syncedEntities.map { it.toEntity() })
-            }
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncMany(
+                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                entities = toUpdate.map { it.toFirestoreDto() },
+                onSynced = { syncedEntities ->
+                    programsDao.updateMany(syncedEntities.map { it.toEntity() })
+                }
+            )
+        }
     }
 
     suspend fun insert(program: ProgramDto): Long {
         val toInsert = programMapper.map(program)
         val id = programsDao.insert(toInsert)
-        firestoreSyncManager.syncSingle(
-            collectionName = FirebaseConstants.PROGRAMS_COLLECTION,
-            entity = toInsert.toFirebaseDto().copy(id = id),
-            onSynced = {
-                programsDao.update(it.toEntity())
-            }
-        )
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncSingle(
+                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                entity = toInsert.toFirestoreDto().copy(id = id),
+                onSynced = {
+                    programsDao.update(it.toEntity())
+                }
+            )
+        }
 
         return id
     }
@@ -152,13 +167,14 @@ class ProgramsRepository(
     }
 
     suspend fun delete(id: Long) {
-        programsDao.get(id)?.let { program ->
-            programsDao.delete(program)
+        val toDelete = programsDao.get(id) ?: return
+        programsDao.delete(toDelete)
 
-            if (program.firestoreId != null) {
+        if (toDelete.firestoreId != null) {
+            syncScope.fireAndForgetSync {
                 firestoreSyncManager.deleteSingle(
-                    collectionName = FirebaseConstants.PROGRAMS_COLLECTION,
-                    firestoreId = program.firestoreId!!
+                    collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                    firestoreId = toDelete.firestoreId!!
                 )
             }
         }
@@ -169,14 +185,20 @@ class ProgramsRepository(
     }
 
     suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int) {
-        programsDao.updateMesoAndMicroCycle(id, mesoCycle, microCycle, microCyclePosition)
-        val updated = programsDao.get(id)
-        firestoreSyncManager.syncSingle(
-            collectionName = FirebaseConstants.PROGRAMS_COLLECTION,
-            entity = updated!!.toFirebaseDto(),
-            onSynced = {
-                programsDao.update(it.toEntity())
-            }
-        )
+        val toUpdate = programsDao.get(id)?.copy(
+            currentMesocycle = mesoCycle,
+            currentMicrocycle = microCycle,
+            currentMicrocyclePosition = microCyclePosition) ?: return
+        programsDao.update(toUpdate)
+
+        syncScope.fireAndForgetSync {
+            firestoreSyncManager.syncSingle(
+                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                entity = toUpdate.toFirestoreDto(),
+                onSynced = {
+                    programsDao.update(it.toEntity())
+                }
+            )
+        }
     }
 }

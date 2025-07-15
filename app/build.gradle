@@ -29,12 +29,20 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
     }
+    signingConfigs {
+        release {
+            storeFile file(RELEASE_KEYSTORE_FILE)
+            storePassword RELEASE_KEYSTORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_ALIAS_PASSWORD
+        }
+    }
 
     buildTypes {
         release {
             minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.release
         }
     }
     compileOptions {
@@ -43,7 +51,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
     packagingOptions {
         resources {
@@ -75,14 +82,14 @@ dependencies {
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:33.16.0')
-    implementation 'com.google.firebase:firebase-auth-ktx:23.2.1'
-    implementation "com.google.firebase:firebase-firestore:25.1.4"
-    implementation 'com.google.firebase:firebase-firestore-ktx:25.1.4'
-    implementation "com.google.firebase:firebase-crashlytics-ktx:19.4.4"
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation "com.google.firebase:firebase-firestore"
+    implementation "com.google.firebase:firebase-crashlytics"
+    implementation "com.google.firebase:firebase-ai"
     implementation("io.github.mirzemehdi:kmpauth-google:2.3.1") //Google One Tap Sign-In
     implementation("io.github.mirzemehdi:kmpauth-firebase:2.3.1") //Integrated Authentications with Firebase
     implementation("io.github.mirzemehdi:kmpauth-uihelper:2.3.1") //UiHelper SignIn buttons (AppleSignIn, GoogleSignInButton)
-
 
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation 'androidx.security:security-crypto-ktx:1.1.0-beta01'

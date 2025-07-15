@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
 import com.browntowndev.liftlab.core.persistence.dao.SyncDao
-import com.browntowndev.liftlab.core.persistence.dtos.firebase.SyncMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.SyncMetadataDto
 import com.browntowndev.liftlab.core.persistence.entities.SyncMetadata
 
 class SyncMetadataRepository(private val dao: SyncDao) {

@@ -1,10 +1,10 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import java.util.Date
 
 @Keep
-data class WorkoutLogEntryFirebaseDto(
+data class WorkoutLogEntryFirestoreDto(
     var id: Long = 0L,
     var historicalWorkoutNameId: Long = 0L,
     var programWorkoutCount: Int = 0,
@@ -14,4 +14,4 @@ data class WorkoutLogEntryFirebaseDto(
     var microcyclePosition: Int = 0,
     var date: Date = Date(),
     var durationInMillis: Long = 0L
-): BaseFirebaseDto()
+): BaseFirestoreDto()

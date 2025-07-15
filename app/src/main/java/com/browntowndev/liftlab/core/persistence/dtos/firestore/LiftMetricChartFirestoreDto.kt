@@ -1,11 +1,11 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 
 @Keep
-data class LiftMetricChartFirebaseDto(
+data class LiftMetricChartFirestoreDto(
     var id: Long = 0L,
     var liftId: Long? = null,
     var chartType: LiftMetricChartType = LiftMetricChartType.ESTIMATED_ONE_REP_MAX,
-): BaseFirebaseDto()
+): BaseFirestoreDto()

@@ -1,10 +1,10 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.google.firebase.firestore.PropertyName
 
 @Keep
-data class ProgramFirebaseDto(
+data class ProgramFirestoreDto(
     var id: Long = 0L,
     var name: String = "",
     var deloadWeek: Int = 0,
@@ -14,4 +14,4 @@ data class ProgramFirebaseDto(
     var currentMicrocycle: Int = 0,
     var currentMicrocyclePosition: Int = 0,
     var currentMesocycle: Int = 0
-): BaseFirebaseDto()
+): BaseFirestoreDto()

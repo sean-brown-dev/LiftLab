@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.persistence.dtos.firebase
+package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
 import androidx.annotation.Keep
 import com.google.firebase.firestore.DocumentId
@@ -6,7 +6,7 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 @Keep
-open class BaseFirebaseDto {
+open class BaseFirestoreDto {
     @DocumentId
     open var firestoreId: String? = null
 

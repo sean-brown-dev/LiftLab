@@ -26,14 +26,13 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.firebase.BaseFirebaseDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.BaseFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.persistence.entities.BaseEntity
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.DateFormat.LONG
 import java.text.DateFormat.MEDIUM
@@ -53,7 +52,18 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 
-fun BaseFirebaseDto.copyForUpload(firestoreId: String): BaseFirebaseDto {
+inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend CoroutineScope.() -> Unit) {
+    this.launch {
+        try {
+            block() // this is now a receiver lambda, so 'this' is the CoroutineScope
+        } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+        }
+    }
+}
+
+
+fun BaseFirestoreDto.copyForUpload(firestoreId: String): BaseFirestoreDto {
     this.firestoreId = firestoreId
     this.lastUpdated = null
     this.synced = true

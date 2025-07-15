@@ -1,9 +1,5 @@
 package com.browntowndev.liftlab.core.common
 
-import android.os.Environment
-import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
-import kotlin.time.Duration.Companion.milliseconds
-
 
 // Time
 const val ONE_MINUTE_IN_MILLIS = 60000L
@@ -38,7 +34,7 @@ const val SHOW_WORKOUT_LOG = "showWorkoutLog"
 const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"
 
 // Firebase
-object FirebaseConstants {
+object FirestoreConstants {
     const val CUSTOM_LIFT_SETS_COLLECTION = "customLiftSets"
     const val HISTORICAL_WORKOUT_NAMES_COLLECTION = "historicalWorkoutNames"
     const val LIFT_METRIC_CHARTS_COLLECTION = "liftMetricCharts"

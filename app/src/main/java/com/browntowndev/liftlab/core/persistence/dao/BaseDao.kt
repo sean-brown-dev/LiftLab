@@ -33,7 +33,7 @@ interface BaseDao<T> {
     suspend fun updateMany(items: List<T>)
 
     @Delete
-    suspend fun delete(item: T)
+    suspend fun delete(item: T): Int
 
     @Delete
     suspend fun deleteMany(items: List<T>)
