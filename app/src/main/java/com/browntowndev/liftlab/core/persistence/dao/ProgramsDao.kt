@@ -39,9 +39,6 @@ interface ProgramsDao: BaseDao<Program> {
     @Query("SELECT * FROM programs WHERE program_id = :id")
     suspend fun getWithRelationships(id: Long) : ProgramWithRelationships
 
-    @Query("UPDATE programs SET name = :newName WHERE program_id = :id")
-    suspend fun updateName(id: Long, newName: String)
-
     @Query("UPDATE programs SET deloadWeek = :newDeloadWeek WHERE program_id = :id")
     suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int)
 

@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
@@ -28,7 +28,7 @@ import org.greenrobot.eventbus.Subscribe
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val liftMetricChartRepository: LiftMetricChartRepository,
+    private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     private val onNavigateToActiveWorkout: () -> Unit,
@@ -132,7 +132,7 @@ class LiftLibraryViewModel(
     private fun updateLiftMetricChartsWithSelectedLiftIds() {
         viewModelScope.launch {
             val newLiftIds = _state.value.selectedNewLiftsHashSet
-            var liftMetricCharts = liftMetricChartRepository.getMany(_state.value.newLiftMetricChartIds)
+            var liftMetricCharts = liftMetricChartsRepository.getMany(_state.value.newLiftMetricChartIds)
 
             liftMetricCharts = newLiftIds.flatMap { currLiftId ->
                 liftMetricCharts.fastMap { chart ->
@@ -140,7 +140,7 @@ class LiftLibraryViewModel(
                 }
             }
 
-            liftMetricChartRepository.upsertMany(liftMetricCharts = liftMetricCharts)
+            liftMetricChartsRepository.upsertMany(liftMetricCharts = liftMetricCharts)
             onNavigateHome()
         }
     }

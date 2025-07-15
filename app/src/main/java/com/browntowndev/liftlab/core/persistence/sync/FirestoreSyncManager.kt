@@ -5,21 +5,20 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.copyForUpload
 import com.browntowndev.liftlab.core.persistence.dtos.firebase.BaseFirebaseDto
 import com.browntowndev.liftlab.core.persistence.dtos.firebase.SyncMetadataDto
-import com.browntowndev.liftlab.core.persistence.entities.BaseEntity
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.CustomSetBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.HistoricalWorkoutNameBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftMetricChartBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.PreviousSetResultBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.ProgramBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.RestTimerInProgressBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.SetLogEntryBaseSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.CustomLiftSetsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.HistoricalWorkoutNamesSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftMetricChartsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.PreviousSetResultsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.ProgramsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.RestTimerInProgressSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.SetLogEntriesSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.SyncMetadataRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.VolumeMetricChartBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutInProgressBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutLiftBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutLogEntryBaseSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutBaseSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.VolumeMetricChartsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutInProgressSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutLiftsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutLogEntriesSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutsSyncRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.CollectionReference
@@ -40,19 +39,19 @@ import kotlin.collections.flatten
 class FirestoreSyncManager (
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val customSetSyncRepository: CustomSetBaseSyncRepository,
-    private val historicalWorkoutNameSyncRepository: HistoricalWorkoutNameBaseSyncRepository,
-    private val liftMetricChartSyncRepository: LiftMetricChartBaseSyncRepository,
-    private val liftSyncRepository: LiftSyncRepository,
-    private val previousSetResultSyncRepository: PreviousSetResultBaseSyncRepository,
-    private val programSyncRepository: ProgramBaseSyncRepository,
-    private val restTimerInProgressSyncRepository: RestTimerInProgressBaseSyncRepository,
-    private val setLogEntrySyncRepository: SetLogEntryBaseSyncRepository,
-    private val volumeMetricChartSyncRepository: VolumeMetricChartBaseSyncRepository,
-    private val workoutInProgressSyncRepository: WorkoutInProgressBaseSyncRepository,
-    private val workoutLiftSyncRepository: WorkoutLiftBaseSyncRepository,
-    private val workoutLogEntrySyncRepository: WorkoutLogEntryBaseSyncRepository,
-    private val workoutSyncRepository: WorkoutBaseSyncRepository,
+    private val customSetSyncRepository: CustomLiftSetsSyncRepository,
+    private val historicalWorkoutNameSyncRepository: HistoricalWorkoutNamesSyncRepository,
+    private val liftMetricChartSyncRepository: LiftMetricChartsSyncRepository,
+    private val liftsSyncRepository: LiftsSyncRepository,
+    private val previousSetResultSyncRepository: PreviousSetResultsSyncRepository,
+    private val programSyncRepository: ProgramsSyncRepository,
+    private val restTimerInProgressSyncRepository: RestTimerInProgressSyncRepository,
+    private val setLogEntrySyncRepository: SetLogEntriesSyncRepository,
+    private val volumeMetricChartSyncRepository: VolumeMetricChartsSyncRepository,
+    private val workoutInProgressSyncRepository: WorkoutInProgressSyncRepository,
+    private val workoutLiftSyncRepository: WorkoutLiftsSyncRepository,
+    private val workoutLogEntrySyncRepository: WorkoutLogEntriesSyncRepository,
+    private val workoutSyncRepository: WorkoutsSyncRepository,
     private val syncRepository: SyncMetadataRepository,
 ) {
     private val userId: String? get() = firebaseAuth.currentUser?.uid
@@ -62,10 +61,66 @@ class FirestoreSyncManager (
         private const val BATCH_SIZE = 400 // Stay under 500 to be safe
     }
 
-    suspend fun <T : BaseFirebaseDto> syncSingle(
+    suspend fun deleteSingle(
+        collectionName: String,
+        firestoreId: String,
+    ) {
+        if (userId == null) {
+            Log.d(TAG, "No user logged in. Skipping sync.")
+            return
+        }
+
+        try {
+            val docRef = firestore.collection("users")
+                .document(userId!!)
+                .collection(collectionName)
+                .document(firestoreId)
+
+            docRef.delete().await()
+        } catch (e: Exception) {
+            Log.e(TAG, "Firestore delete failed: ${e.message}", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            // TODO: Add to retry queue if needed
+        }
+    }
+
+    suspend fun deleteMany(
+        collectionName: String,
+        firestoreIds: List<String>,
+    ) {
+        if (userId == null) {
+            Log.d(TAG, "No user logged in. Skipping batch delete.")
+            return
+        }
+
+        firestoreIds.chunked(BATCH_SIZE).forEach { chunk ->
+            val batch = firestore.batch()
+            val deletedIds = mutableListOf<String>()
+
+            chunk.forEach { firestoreId ->
+                val docRef = firestore.collection("users")
+                    .document(userId!!)
+                    .collection(collectionName)
+                    .document(firestoreId)
+
+                batch.delete(docRef)
+                deletedIds.add(firestoreId)
+            }
+
+            try {
+                batch.commit().await()
+            } catch (e: Exception) {
+                Log.e(TAG, "Firestore batch delete failed: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+                // TODO: Add retry queue
+            }
+        }
+    }
+
+    internal suspend inline fun <reified T : BaseFirebaseDto> syncSingle(
         collectionName: String,
         entity: T,
-        onSynced: suspend (serverTimestamp: Date, firestoreId: String) -> Unit
+        noinline onSynced: suspend (firestoreEntity: T) -> Unit
     ) {
         if (userId == null) {
             Log.d(TAG, "No user logged in. Skipping sync.")
@@ -86,27 +141,28 @@ class FirestoreSyncManager (
         try {
             docRef.set(toUpload).await()
             val snapshot = docRef.get().await()
-            val serverTime = snapshot.getTimestamp("lastUpdated")?.toDate()
-            if (serverTime != null) {
-                onSynced(serverTime, snapshot.id)
+            val firestoreEntity = snapshot.toObject<T>()
+            if (firestoreEntity != null) {
+                onSynced(firestoreEntity)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Firestore sync failed: ${e.message}", e)
-            // TODO: Add retry queue
+            FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
 
-    suspend fun <T : BaseFirebaseDto> syncMany(
+
+    internal suspend inline fun <reified T : BaseFirebaseDto> syncMany(
         collectionName: String,
-        entity: List<T>,
-        onSynced: suspend (List<T>) -> Unit
+        entities: List<T>,
+        crossinline onSynced: suspend (List<T>) -> Unit
     ) {
         if (userId == null) {
             Log.d(TAG, "No user logged in. Skipping sync.")
             return
         }
 
-        entity.chunked(BATCH_SIZE).forEach { entityChunk ->
+        entities.chunked(BATCH_SIZE).forEach { entityChunk ->
             val batch = firestore.batch()
             val firestoreDocumentBatch = mutableListOf<DocumentReference>()
             entityChunk.fastForEach { entity ->
@@ -125,15 +181,18 @@ class FirestoreSyncManager (
             }
 
             coroutineScope {
-                commitBatchAndUpdate<BaseFirebaseDto>(
-                    batch = batch,
-                    batchSize = firestoreDocumentBatch.size,
-                    collectionName = collectionName,
-                    currFirestoreDocBatch = firestoreDocumentBatch,
-                    onUpdateMany = { syncedEntities ->
-                        onSynced(syncedEntities as List<T>)
-                    }
-                )
+                try {
+                    commitBatchAndUpdate(
+                        batch = batch,
+                        batchSize = firestoreDocumentBatch.size,
+                        collectionName = collectionName,
+                        currFirestoreDocBatch = firestoreDocumentBatch,
+                        onUpdateMany = onSynced
+                    )
+                } catch (e: Exception) {
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    //TODO: add to retry queue
+                }
             }
         }
     }
@@ -148,11 +207,11 @@ class FirestoreSyncManager (
 
         try {
             syncEntities(
-                collection = liftSyncRepository.collection,
-                lastSyncDate = syncRepository.get(liftSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                localEntities = liftSyncRepository.getAll(),
-                onUpdateMany = liftSyncRepository::updateMany,
-                onUpsertMany = liftSyncRepository::upsertMany,
+                collection = liftsSyncRepository.collection,
+                lastSyncDate = syncRepository.get(liftsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
+                localEntities = liftsSyncRepository.getAll(),
+                onUpdateMany = liftsSyncRepository::updateMany,
+                onUpsertMany = liftsSyncRepository::upsertMany,
             )
 
             awaitAll(

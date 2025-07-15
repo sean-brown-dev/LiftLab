@@ -1,15 +1,14 @@
 package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
+import com.browntowndev.liftlab.core.common.FirebaseConstants
 import com.browntowndev.liftlab.core.persistence.dao.RestTimerInProgressDao
-import com.browntowndev.liftlab.core.persistence.dtos.firebase.ProgramFirebaseDto
 import com.browntowndev.liftlab.core.persistence.dtos.firebase.RestTimerInProgressFirebaseDto
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 
-class RestTimerInProgressBaseSyncRepository(
+class RestTimerInProgressSyncRepository(
     private val dao: RestTimerInProgressDao,
     firestore: FirebaseFirestore,
     userId: String
@@ -17,7 +16,7 @@ class RestTimerInProgressBaseSyncRepository(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
-    releaseCollectionName = "restTimerInProgress",
+    releaseCollectionName = FirebaseConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
     userId = userId,
 ) {
     override suspend fun getAll(): List<RestTimerInProgressFirebaseDto> =

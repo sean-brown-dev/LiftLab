@@ -1,12 +1,17 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.FirebaseConstants
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
+import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 
-class VolumeMetricChartRepository(private val volumeMetricChartsDao: VolumeMetricChartsDao) {
+class VolumeMetricChartsRepository(
+    private val volumeMetricChartsDao: VolumeMetricChartsDao,
+    private val firestoreSyncManager: FirestoreSyncManager,
+) {
     suspend fun upsert(volumeMetricChart: VolumeMetricChartDto): Long {
         val current = volumeMetricChartsDao.get(volumeMetricChart.id)
         return volumeMetricChartsDao.upsert(
@@ -51,6 +56,15 @@ class VolumeMetricChartRepository(private val volumeMetricChartsDao: VolumeMetri
     }
 
     suspend fun delete(id: Long) {
-        volumeMetricChartsDao.delete(id)
+        volumeMetricChartsDao.get(id)?.let { toDelete ->
+            volumeMetricChartsDao.delete(toDelete)
+
+            if (toDelete.firestoreId != null) {
+                firestoreSyncManager.deleteSingle(
+                    collectionName = FirebaseConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                    firestoreId = toDelete.firestoreId!!
+                )
+            }
+        }
     }
 }

@@ -12,91 +12,91 @@ val firebaseModule = module {
     single { FirebaseFirestore.getInstance() }
 
     single {
-        CustomSetBaseSyncRepository(
+        CustomLiftSetsSyncRepository(
             dao = get<LiftLabDatabase>().customSetsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        HistoricalWorkoutNameBaseSyncRepository(
+        HistoricalWorkoutNamesSyncRepository(
             dao = get<LiftLabDatabase>().historicalWorkoutNamesDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        LiftMetricChartBaseSyncRepository(
+        LiftMetricChartsSyncRepository(
             dao = get<LiftLabDatabase>().liftMetricChartsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        LiftSyncRepository(
+        LiftsSyncRepository(
             dao = get<LiftLabDatabase>().liftsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        PreviousSetResultBaseSyncRepository(
+        PreviousSetResultsSyncRepository(
             dao = get<LiftLabDatabase>().previousSetResultsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        ProgramBaseSyncRepository(
+        ProgramsSyncRepository(
             dao = get<LiftLabDatabase>().programsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        RestTimerInProgressBaseSyncRepository(
+        RestTimerInProgressSyncRepository(
             dao = get<LiftLabDatabase>().restTimerInProgressDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        SetLogEntryBaseSyncRepository(
+        SetLogEntriesSyncRepository(
             dao = get<LiftLabDatabase>().setLogEntryDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        VolumeMetricChartBaseSyncRepository(
+        VolumeMetricChartsSyncRepository(
             dao = get<LiftLabDatabase>().volumeMetricChartsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        WorkoutInProgressBaseSyncRepository(
+        WorkoutInProgressSyncRepository(
             dao = get<LiftLabDatabase>().workoutInProgressDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        WorkoutLiftBaseSyncRepository(
+        WorkoutLiftsSyncRepository(
             dao = get<LiftLabDatabase>().workoutLiftsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        WorkoutLogEntryBaseSyncRepository(
+        WorkoutLogEntriesSyncRepository(
             dao = get<LiftLabDatabase>().workoutLogEntryDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
         )
     }
     single {
-        WorkoutBaseSyncRepository(
+        WorkoutsSyncRepository(
             dao = get<LiftLabDatabase>().workoutsDao(),
             firestore = get(),
             userId = get<FirebaseAuth>().currentUser?.uid ?: ""
@@ -115,7 +115,7 @@ val firebaseModule = module {
             customSetSyncRepository = get(),
             historicalWorkoutNameSyncRepository = get(),
             liftMetricChartSyncRepository = get(),
-            liftSyncRepository = get(),
+            liftsSyncRepository = get(),
             previousSetResultSyncRepository = get(),
             programSyncRepository = get(),
             restTimerInProgressSyncRepository = get(),

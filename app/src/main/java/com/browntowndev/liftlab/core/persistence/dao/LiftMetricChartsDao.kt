@@ -29,8 +29,8 @@ interface LiftMetricChartsDao: BaseDao<LiftMetricChart> {
     @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id IN (:ids)")
     suspend fun getMany(ids: List<Long>): List<LiftMetricChart>
 
-    @Query("DELETE FROM liftMetricCharts WHERE liftId IS NULL")
-    suspend fun deleteAllWithNoLift()
+    @Query("SELECT * FROM liftMetricCharts WHERE liftId IS NULL")
+    suspend fun getAllWithNoLift(): List<LiftMetricChart>
 
     @Query("DELETE FROM liftMetricCharts WHERE lift_metric_chart_id = :id")
     suspend fun delete(id: Long)

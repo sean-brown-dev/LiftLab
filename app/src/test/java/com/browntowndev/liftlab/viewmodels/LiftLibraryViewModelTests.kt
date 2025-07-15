@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.viewmodels
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +52,7 @@ class LiftLibraryViewModelTests {
     private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
 
     @MockK
-    private lateinit var liftMetricChartRepository: LiftMetricChartRepository
+    private lateinit var liftMetricChartsRepository: LiftMetricChartsRepository
 
     @MockK(relaxed = true)
     private lateinit var onNavigateHome: () -> Unit
@@ -100,7 +100,7 @@ class LiftLibraryViewModelTests {
         viewModel = LiftLibraryViewModel(
             liftsRepository,
             workoutLiftsRepository,
-            liftMetricChartRepository,
+            liftMetricChartsRepository,
             onNavigateHome,
             onNavigateToWorkoutBuilder,
             onNavigateToActiveWorkout,

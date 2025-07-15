@@ -35,13 +35,4 @@ interface LiftsDao: BaseDao<Lift> {
     @Transaction
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")
     suspend fun getByCategory(movementPattern: MovementPattern): List<Lift>
-
-    @Query("UPDATE lifts SET restTime = :newRestTime, restTimerEnabled = :enabled, synced = 0 WHERE lift_id = :id")
-    suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?)
-
-    @Query("UPDATE lifts SET incrementOverride = :newIncrementOverride, synced = 0 WHERE lift_id = :id")
-    suspend fun updateIncrementOverride(id: Long, newIncrementOverride: Float?)
-
-    @Query("UPDATE lifts SET note = :note, synced = 0 WHERE lift_id = :id")
-    suspend fun updateNote(id: Long, note: String?)
 }

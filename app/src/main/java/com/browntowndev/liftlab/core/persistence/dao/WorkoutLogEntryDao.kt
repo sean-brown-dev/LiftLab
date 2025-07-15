@@ -17,9 +17,6 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
     @Query("DELETE FROM workoutLogEntries")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM workoutLogEntries WHERE workout_log_entry_id = :workoutLogEntryId")
-    suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long)
-
     @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.workoutId, histWorkoutName.programName, histWorkoutName.workoutName, " +
             "log.programDeloadWeek, log.programWorkoutCount, log.microcyclePosition, log.date, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
@@ -110,5 +107,8 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
             "INNER JOIN lifts lift ON setResult.liftId = lift.lift_id " +
             "WHERE log.workout_log_entry_id = :workoutLogEntryId")
-    suspend fun get(workoutLogEntryId: Long): List<FlattenedWorkoutLogEntryDto>
+    suspend fun getFlattened(workoutLogEntryId: Long): List<FlattenedWorkoutLogEntryDto>
+
+    @Query("SELECT * FROM workoutLogEntries WHERE workout_log_entry_id = :workoutLogEntryId")
+    suspend fun get(workoutLogEntryId: Long): WorkoutLogEntry?
 }

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
+import com.browntowndev.liftlab.core.common.FirebaseConstants
 import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLogEntryDao
 import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
@@ -12,8 +13,11 @@ import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkout
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
+import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -24,6 +28,7 @@ class LoggingRepository(
     private val setLogEntryDao: SetLogEntryDao,
     private val workoutLogEntryMapper: WorkoutLogEntryMapper,
     private val setResultMapper: SetResultMapper,
+    private val firestoreSyncManager: FirestoreSyncManager,
 ): Repository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,7 +39,7 @@ class LoggingRepository(
     }
 
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryDto? {
-        val log: List<FlattenedWorkoutLogEntryDto> = workoutLogEntryDao.get(workoutLogEntryId = workoutLogEntryId)
+        val log: List<FlattenedWorkoutLogEntryDto> = workoutLogEntryDao.getFlattened(workoutLogEntryId = workoutLogEntryId)
         return workoutLogEntryMapper.map(log).singleOrNull()
     }
 
@@ -110,6 +115,19 @@ class LoggingRepository(
             microcycle = microcycle,
             excludeFromCopy = excludeFromCopy,
         )
+
+        val insertedEntities = setLogEntryDao.getForWorkoutLogEntryMesoAndMicro(
+            workoutLogEntryId = workoutLogEntryId,
+            mesocycle = mesocycle,
+            microcycle = microcycle,
+        )
+        firestoreSyncManager.syncMany(
+            collectionName = FirebaseConstants.SET_LOG_ENTRIES_COLLECTION,
+            entities = insertedEntities.map { it.toFirebaseDto() },
+            onSynced = { firestoreEntities ->
+                setLogEntryDao.updateMany(firestoreEntities.map { it.toEntity() })
+            }
+        )
     }
 
     suspend fun insertWorkoutLogEntry(
@@ -122,7 +140,7 @@ class LoggingRepository(
         date: Date,
         durationInMillis: Long,
     ): Long {
-        return workoutLogEntryDao.insert(
+        val toInsert =
             WorkoutLogEntry(
                 historicalWorkoutNameId = historicalWorkoutNameId,
                 programDeloadWeek = programDeloadWeek,
@@ -133,16 +151,49 @@ class LoggingRepository(
                 date = date,
                 durationInMillis = durationInMillis,
             )
+        val id = workoutLogEntryDao.insert(toInsert)
+        firestoreSyncManager.syncSingle(
+            collectionName = FirebaseConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
+            entity = toInsert.toFirebaseDto().copy(id = id),
+            onSynced = { firestoreEntity ->
+                workoutLogEntryDao.update(firestoreEntity.toEntity())
+            }
         )
+
+        return id
     }
 
     suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long) {
-        setLogEntryDao.deleteSetLogEntriesForWorkout(workoutLogEntryId = workoutLogEntryId)
-        workoutLogEntryDao.deleteWorkoutLogEntry(workoutLogEntryId = workoutLogEntryId)
+        val setLogEntriesToDelete = setLogEntryDao.getForWorkoutLogEntry(workoutLogEntryId)
+        setLogEntryDao.deleteMany(setLogEntriesToDelete)
+        firestoreSyncManager.deleteMany(
+            collectionName = FirebaseConstants.SET_LOG_ENTRIES_COLLECTION,
+            firestoreIds = setLogEntriesToDelete.mapNotNull { it.firestoreId },
+        )
+
+        workoutLogEntryDao.get(workoutLogEntryId)?.let { workoutLogEntryToDelete ->
+            workoutLogEntryDao.delete(workoutLogEntryToDelete)
+
+            if (workoutLogEntryToDelete.firestoreId != null) {
+                firestoreSyncManager.deleteSingle(
+                    collectionName = FirebaseConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
+                    firestoreId = workoutLogEntryToDelete.firestoreId!!,
+                )
+            }
+        }
     }
 
     suspend fun deleteSetLogEntryById(id: Long) {
-        setLogEntryDao.deleteSetLogEntryById(id)
+        setLogEntryDao.get(id)?.let { toDelete ->
+            setLogEntryDao.delete(toDelete)
+
+            if (toDelete.firestoreId != null) {
+                firestoreSyncManager.deleteSingle(
+                    collectionName = FirebaseConstants.SET_LOG_ENTRIES_COLLECTION,
+                    firestoreId = toDelete.firestoreId!!,
+                )
+            }
+        }
     }
 
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
@@ -154,21 +205,43 @@ class LoggingRepository(
                 synced = false
             )
 
-        return setLogEntryDao.upsert(toUpsert)
+        val id = setLogEntryDao.upsert(toUpsert).let {
+            if (it == -1L) toUpsert.id else it
+        }
+        firestoreSyncManager.syncSingle(
+            collectionName = FirebaseConstants.SET_LOG_ENTRIES_COLLECTION,
+            entity = toUpsert.toFirebaseDto().copy(id = id),
+            onSynced = { firestoreEntity ->
+                setLogEntryDao.update(firestoreEntity.toEntity())
+            }
+        )
+
+        return id
     }
 
     suspend fun upsertMany(workoutLogEntryId: Long, setLogEntries: List<SetLogEntryDto>): List<Long> {
         val currentEntries = setLogEntryDao.getMany(setLogEntries.map { it.id }).associateBy { it.id }
-        return setLogEntryDao.upsertMany(
-            setLogEntries.fastMap { setLogEntry ->
-                val current = currentEntries[setLogEntry.id]
-                workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
-                    .copyWithFirestoreMetadata(
-                        firestoreId = current?.firestoreId,
-                        lastUpdated = current?.lastUpdated,
-                        synced = false
-                    )
+        var toUpsert = setLogEntries.fastMap { setLogEntry ->
+            val current = currentEntries[setLogEntry.id]
+            workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
+                .copyWithFirestoreMetadata(
+                    firestoreId = current?.firestoreId,
+                    lastUpdated = current?.lastUpdated,
+                    synced = false
+                )
+        }
+        val ids = setLogEntryDao.upsertMany(toUpsert)
+        toUpsert = toUpsert.zip(ids).map {
+            if (it.second == -1L) it.first else it.first.copy(id = it.second)
+        }
+        firestoreSyncManager.syncMany(
+            collectionName = FirebaseConstants.SET_LOG_ENTRIES_COLLECTION,
+            entities = toUpsert.map { it.toFirebaseDto() },
+            onSynced = { firestoreEntities ->
+                setLogEntryDao.updateMany(firestoreEntities.map { it.toEntity() })
             }
         )
+
+        return ids
     }
 }

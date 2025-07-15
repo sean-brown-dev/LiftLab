@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RestTimerInProgressDao: BaseDao<RestTimerInProgress> {
-    @Query("DELETE FROM restTimerInProgress")
-    suspend fun deleteAll()
-
     @Query("SELECT * FROM restTimerInProgress")
     fun getAsFlow(): Flow<RestTimerInProgress?>
 
     @Query("SELECT * FROM restTimerInProgress")
     suspend fun get(): RestTimerInProgress?
+
+    @Query("SELECT * FROM restTimerInProgress")
+    suspend fun getAll(): List<RestTimerInProgress>
 }

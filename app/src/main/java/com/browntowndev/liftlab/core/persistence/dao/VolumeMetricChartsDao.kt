@@ -19,9 +19,6 @@ interface VolumeMetricChartsDao: BaseDao<VolumeMetricChart> {
     @Query("DELETE FROM volumeMetricCharts")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM volumeMetricCharts WHERE lift_volume_chart_id = :id")
-    suspend fun delete(id: Long)
-
     @Transaction
     @Query("SELECT * FROM volumeMetricCharts")
     suspend fun getAll(): List<VolumeMetricChart>

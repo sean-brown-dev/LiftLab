@@ -1,25 +1,24 @@
 package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
-import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
+import com.browntowndev.liftlab.core.common.FirebaseConstants
+import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.firebase.VolumeMetricChartFirebaseDto
-import com.browntowndev.liftlab.core.persistence.dtos.firebase.WorkoutFirebaseDto
-import com.browntowndev.liftlab.core.persistence.entities.Workout
+import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 
-class WorkoutBaseSyncRepository(
-    private val dao: WorkoutsDao,
+class VolumeMetricChartsSyncRepository(
+    private val dao: VolumeMetricChartsDao,
     firestore: FirebaseFirestore,
     userId: String
-) : BaseSyncRepository<WorkoutFirebaseDto, Workout>(
+) : BaseSyncRepository<VolumeMetricChartFirebaseDto, VolumeMetricChart>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
-    releaseCollectionName = "workouts",
+    releaseCollectionName = FirebaseConstants.VOLUME_METRIC_CHARTS_COLLECTION,
     userId = userId,
 ) {
-    override suspend fun getAll(): List<WorkoutFirebaseDto> =
+    override suspend fun getAll(): List<VolumeMetricChartFirebaseDto> =
         dao.getAll().map { it.toFirebaseDto() }
 }

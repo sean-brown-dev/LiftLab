@@ -9,7 +9,6 @@ import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
@@ -29,11 +28,11 @@ import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
+import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.VolumeMetricChartRepository
+import com.browntowndev.liftlab.core.persistence.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
@@ -64,8 +63,8 @@ import java.util.Date
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
-    private val liftMetricChartRepository: LiftMetricChartRepository,
-    private val volumeMetricChartRepository: VolumeMetricChartRepository,
+    private val liftMetricChartsRepository: LiftMetricChartsRepository,
+    private val volumeMetricChartsRepository: VolumeMetricChartsRepository,
     private val liftsRepository: LiftsRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
@@ -93,8 +92,8 @@ class HomeViewModel(
 
             val dateRange = getSevenWeeksDateRange()
             val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
-            val liftMetricCharts = liftMetricChartRepository.getAll()
-            val volumeMetricCharts = volumeMetricChartRepository.getAll()
+            val liftMetricCharts = liftMetricChartsRepository.getAll()
+            val volumeMetricCharts = volumeMetricChartsRepository.getAll()
                 .sortedWith(compareBy<VolumeMetricChartDto> { it.volumeType.bitMask }
                     .thenBy { it.volumeTypeImpact.bitmask }
                 )
@@ -563,7 +562,7 @@ class HomeViewModel(
                     volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
                 )
             }
-            volumeMetricChartRepository.upsertMany(charts)
+            volumeMetricChartsRepository.upsertMany(charts)
 
             val chartsWithNewAdded = _state.value.volumeMetricCharts.toMutableList().apply {
                 addAll(charts)
@@ -604,15 +603,15 @@ class HomeViewModel(
                 )
             }
             // Clear out table of charts with no lifts in case any get stranded somehow
-            liftMetricChartRepository.deleteAllWithNoLifts()
-            val chartIds = liftMetricChartRepository.upsertMany(charts)
+            liftMetricChartsRepository.deleteAllWithNoLifts()
+            val chartIds = liftMetricChartsRepository.upsertMany(charts)
             onNavigateToLiftLibrary(chartIds)
         }
     }
 
     fun deleteLiftMetricChart(id: Long) {
         executeInTransactionScope {
-            liftMetricChartRepository.delete(id)
+            liftMetricChartsRepository.delete(id)
             _state.update {
                 it.copy(
                     liftMetricChartModels = it.liftMetricChartModels.filter { chart -> chart.id != id }
@@ -623,7 +622,7 @@ class HomeViewModel(
 
     fun deleteVolumeMetricChart(id: Long) {
         executeInTransactionScope {
-            volumeMetricChartRepository.delete(id)
+            volumeMetricChartsRepository.delete(id)
             _state.update {
                 it.copy(
                     volumeMetricCharts = it.volumeMetricCharts.filter { chart -> chart.id != id },

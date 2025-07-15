@@ -1,19 +1,40 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.FirebaseConstants
 import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
+import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 
 
-class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChartsDao): Repository {
+class LiftMetricChartsRepository(
+    private val liftMetricChartsDao: LiftMetricChartsDao,
+    private val firestoreSyncManager: FirestoreSyncManager,
+): Repository {
     suspend fun deleteAllWithNoLifts() {
-        liftMetricChartsDao.deleteAllWithNoLift()
+        val toDelete = liftMetricChartsDao.getAllWithNoLift()
+        liftMetricChartsDao.deleteMany(toDelete)
+        firestoreSyncManager.deleteMany(
+            collectionName = FirebaseConstants.LIFT_METRIC_CHARTS_COLLECTION,
+            firestoreIds = toDelete.mapNotNull { it.firestoreId },
+        )
     }
 
     suspend fun delete(id: Long) {
-        liftMetricChartsDao.delete(id)
+        liftMetricChartsDao.get(id)?.let { toDelete ->
+            liftMetricChartsDao.delete(toDelete)
+
+            if (toDelete.firestoreId != null) {
+                firestoreSyncManager.deleteSingle(
+                    collectionName = FirebaseConstants.LIFT_METRIC_CHARTS_COLLECTION,
+                    firestoreId = toDelete.firestoreId!!,
+                )
+            }
+        }
     }
 
     suspend fun upsertMany(liftMetricCharts: List<LiftMetricChartDto>): List<Long> {
@@ -33,12 +54,21 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
             )
         }
 
-        return liftMetricChartsDao.upsertMany(charts)
+        val insertedIds = liftMetricChartsDao.upsertMany(charts)
+        firestoreSyncManager.syncMany(
+            collectionName = FirebaseConstants.LIFT_METRIC_CHARTS_COLLECTION,
+            entities = charts.fastMap { it.toFirebaseDto() },
+            onSynced = { firebaseEntities ->
+                liftMetricChartsDao.updateMany(firebaseEntities.fastMap { it.toEntity() })
+            }
+        )
+
+        return insertedIds
     }
 
     suspend fun upsert(liftMetricChart: LiftMetricChartDto): Long {
         val current = liftMetricChartsDao.get(liftMetricChart.id)
-        return liftMetricChartsDao.upsert(
+        val toUpsert =
             LiftMetricChart(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
@@ -48,7 +78,17 @@ class LiftMetricChartRepository(private val liftMetricChartsDao: LiftMetricChart
                 lastUpdated = current?.lastUpdated,
                 synced = false,
             )
+
+        val insertId = liftMetricChartsDao.upsert(toUpsert)
+        firestoreSyncManager.syncSingle(
+            collectionName = FirebaseConstants.LIFT_METRIC_CHARTS_COLLECTION,
+            entity = toUpsert.toFirebaseDto(),
+            onSynced = { firebaseEntity ->
+                liftMetricChartsDao.update(firebaseEntity.toEntity())
+            }
         )
+
+        return insertId
     }
 
     suspend fun getAll(): List<LiftMetricChartDto> {

@@ -3,18 +3,25 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
+import com.browntowndev.liftlab.core.common.FirebaseConstants
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.entities.Lift
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
+import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirebaseDto
+import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration
 
-class LiftsRepository(private val liftsDao: LiftsDao): Repository {
+class LiftsRepository(
+    private val liftsDao: LiftsDao,
+    private val firestoreSyncManager: FirestoreSyncManager,
+): Repository {
     suspend fun createLift(lift: LiftDto) {
-        liftsDao.insert(
+        val toInsert =
             Lift(
                 id = lift.id,
                 name = lift.name,
@@ -28,12 +35,19 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 isBodyweight = lift.isBodyweight,
                 note = lift.note,
             )
+        val id = liftsDao.insert(toInsert)
+        firestoreSyncManager.syncSingle(
+            collectionName = FirebaseConstants.LIFTS_COLLECTION,
+            entity = toInsert.toFirebaseDto().copy(id = id),
+            onSynced = {
+                liftsDao.update(it.toEntity())
+            }
         )
     }
 
     suspend fun update(lift: LiftDto) {
         val current = liftsDao.get(lift.id)
-        liftsDao.update(
+        val toUpdate =
             Lift(
                 id = lift.id,
                 name = lift.name,
@@ -51,6 +65,13 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
                 lastUpdated = current?.lastUpdated,
                 synced = false,
             )
+        liftsDao.update(toUpdate)
+        firestoreSyncManager.syncSingle(
+            collectionName = FirebaseConstants.LIFTS_COLLECTION,
+            entity = toUpdate.toFirebaseDto(),
+            onSynced = {
+                liftsDao.update(it.toEntity())
+            }
         )
     }
 
@@ -114,14 +135,32 @@ class LiftsRepository(private val liftsDao: LiftsDao): Repository {
     }
 
     suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?) {
-        liftsDao.updateRestTime(id, enabled, newRestTime)
+        liftsDao.get(id)?.let { toUpdate ->
+            updateWithoutRefetch(toUpdate.copy(restTimerEnabled = enabled, restTime = newRestTime))
+        }
     }
 
     suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {
-        liftsDao.updateIncrementOverride(id, newIncrement)
+        liftsDao.get(id)?.let { toUpdate ->
+            updateWithoutRefetch(toUpdate.copy(incrementOverride = newIncrement))
+        }
     }
 
     suspend fun updateNote(id: Long, note: String?) {
-        liftsDao.updateNote(id, note)
+        liftsDao.get(id)?.let { toUpdate ->
+            updateWithoutRefetch(toUpdate.copy(note = note))
+        }
+    }
+
+    private suspend fun updateWithoutRefetch(lift: Lift) {
+        lift.synced = false
+        liftsDao.update(lift)
+        firestoreSyncManager.syncSingle(
+            collectionName = FirebaseConstants.LIFTS_COLLECTION,
+            entity = lift.toFirebaseDto(),
+            onSynced = {
+                liftsDao.update(it.toEntity())
+            }
+        )
     }
 }

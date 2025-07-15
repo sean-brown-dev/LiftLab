@@ -51,8 +51,8 @@ val repositoryModule = module {
         )
     }
     single { RestTimerInProgressRepository(get()) }
-    single { LiftMetricChartRepository(get()) }
-    single { VolumeMetricChartRepository(get()) }
+    single { LiftMetricChartsRepository(get()) }
+    single { VolumeMetricChartsRepository(get()) }
     single { SyncMetadataRepository(get()) }
 
 }
