@@ -34,9 +34,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
-import org.koin.core.component.get
 import java.util.Date
-import kotlin.collections.flatten
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -100,6 +98,8 @@ class FirestoreSyncManager (
             Log.d(TAG, "No user logged in. Skipping batch delete.")
             return
         }
+
+        if (firestoreIds.isEmpty()) return
 
         firestoreIds.chunked(BATCH_SIZE).forEach { chunk ->
             val batch = firestore.batch()
@@ -222,7 +222,7 @@ class FirestoreSyncManager (
             syncEntities(
                 collection = liftsSyncRepository.collection,
                 lastSyncDate = syncRepository.get(liftsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                localEntities = liftsSyncRepository.getAll(),
+                onGetLocalEntities = liftsSyncRepository::getAll,
                 onUpdateMany = liftsSyncRepository::updateMany,
                 onUpsertMany = liftsSyncRepository::upsertMany,
             )
@@ -232,36 +232,35 @@ class FirestoreSyncManager (
                     syncEntities(
                         collection = programSyncRepository.collection,
                         lastSyncDate = syncRepository.get(programSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = programSyncRepository.getAll(),
-                        onRefetchLocalEntities = programSyncRepository::getAll,
+                        onGetLocalEntities = programSyncRepository::getAll,
                         onUpdateMany = programSyncRepository::updateMany,
                         onUpsertMany = programSyncRepository::upsertMany,
                     )
                     syncEntities(
                         collection = workoutSyncRepository.collection,
                         lastSyncDate = syncRepository.get(workoutSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = workoutSyncRepository.getAll(),
+                        onGetLocalEntities = workoutSyncRepository::getAll,
                         onUpdateMany = workoutSyncRepository::updateMany,
                         onUpsertMany = workoutSyncRepository::upsertMany,
                     )
                     syncEntities(
                         collection = workoutLiftSyncRepository.collection,
                         lastSyncDate = syncRepository.get(workoutLiftSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = workoutLiftSyncRepository.getAll(),
+                        onGetLocalEntities = workoutLiftSyncRepository::getAll,
                         onUpdateMany = workoutLiftSyncRepository::updateMany,
                         onUpsertMany = workoutLiftSyncRepository::upsertMany,
                     )
                     syncEntities(
                         collection = customSetSyncRepository.collection,
                         lastSyncDate = syncRepository.get(customSetSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = customSetSyncRepository.getAll(),
+                        onGetLocalEntities = customSetSyncRepository::getAll,
                         onUpdateMany = customSetSyncRepository::updateMany,
                         onUpsertMany = customSetSyncRepository::upsertMany,
                     )
                     syncEntities(
                         collection = previousSetResultSyncRepository.collection,
                         lastSyncDate = syncRepository.get(previousSetResultSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = previousSetResultSyncRepository.getAll(),
+                        onGetLocalEntities = previousSetResultSyncRepository::getAll,
                         onUpdateMany = previousSetResultSyncRepository::updateMany,
                         onUpsertMany = previousSetResultSyncRepository::upsertMany,
                     )
@@ -270,20 +269,20 @@ class FirestoreSyncManager (
                     syncEntities(
                         collection = historicalWorkoutNameSyncRepository.collection,
                         lastSyncDate = syncRepository.get(historicalWorkoutNameSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = historicalWorkoutNameSyncRepository.getAll(),                        onUpdateMany = historicalWorkoutNameSyncRepository::updateMany,
+                        onGetLocalEntities = historicalWorkoutNameSyncRepository::getAll,                        onUpdateMany = historicalWorkoutNameSyncRepository::updateMany,
                         onUpsertMany = historicalWorkoutNameSyncRepository::upsertMany,
                     )
                     syncEntities(
                         collection = workoutLogEntrySyncRepository.collection,
                         lastSyncDate = syncRepository.get(workoutLogEntrySyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = workoutLogEntrySyncRepository.getAll(),
+                        onGetLocalEntities = workoutLogEntrySyncRepository::getAll,
                         onUpdateMany = workoutLogEntrySyncRepository::updateMany,
                         onUpsertMany = workoutLogEntrySyncRepository::upsertMany,
                     )
                     syncEntities(
                         collection = setLogEntrySyncRepository.collection,
                         lastSyncDate = syncRepository.get(setLogEntrySyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = setLogEntrySyncRepository.getAll(),
+                        onGetLocalEntities = setLogEntrySyncRepository::getAll,
                         onUpdateMany = setLogEntrySyncRepository::updateMany,
                         onUpsertMany = setLogEntrySyncRepository::upsertMany,
                     )
@@ -292,7 +291,7 @@ class FirestoreSyncManager (
                     syncEntities(
                         collection = volumeMetricChartSyncRepository.collection,
                         lastSyncDate = syncRepository.get(volumeMetricChartSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = volumeMetricChartSyncRepository.getAll(),                        onUpdateMany = volumeMetricChartSyncRepository::updateMany,
+                        onGetLocalEntities = volumeMetricChartSyncRepository::getAll,                        onUpdateMany = volumeMetricChartSyncRepository::updateMany,
                         onUpsertMany = volumeMetricChartSyncRepository::upsertMany,
                     )
                 },
@@ -300,7 +299,7 @@ class FirestoreSyncManager (
                     syncEntities(
                         collection = liftMetricChartSyncRepository.collection,
                         lastSyncDate = syncRepository.get(liftMetricChartSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = liftMetricChartSyncRepository.getAll(),                        onUpdateMany = liftMetricChartSyncRepository::updateMany,
+                        onGetLocalEntities = liftMetricChartSyncRepository::getAll,                        onUpdateMany = liftMetricChartSyncRepository::updateMany,
                         onUpsertMany = liftMetricChartSyncRepository::upsertMany,
                     )
                 },
@@ -308,7 +307,7 @@ class FirestoreSyncManager (
                     syncEntities(
                         collection = restTimerInProgressSyncRepository.collection,
                         lastSyncDate = syncRepository.get(restTimerInProgressSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = restTimerInProgressSyncRepository.getAll(),                        onUpdateMany = restTimerInProgressSyncRepository::updateMany,
+                        onGetLocalEntities = restTimerInProgressSyncRepository::getAll,                        onUpdateMany = restTimerInProgressSyncRepository::updateMany,
                         onUpsertMany = restTimerInProgressSyncRepository::upsertMany,
                     )
                 },
@@ -316,7 +315,7 @@ class FirestoreSyncManager (
                     syncEntities(
                         collection = workoutInProgressSyncRepository.collection,
                         lastSyncDate = syncRepository.get(workoutInProgressSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        localEntities = workoutInProgressSyncRepository.getAll(),
+                        onGetLocalEntities = workoutInProgressSyncRepository::getAll,
                         onUpdateMany = workoutInProgressSyncRepository::updateMany,
                         onUpsertMany = workoutInProgressSyncRepository::upsertMany,
                     )
@@ -338,35 +337,30 @@ class FirestoreSyncManager (
     private suspend inline fun<reified T: BaseFirestoreDto> syncEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
-        localEntities: List<T>,
-        noinline onRefetchLocalEntities: (suspend () -> List<T>)? = null,
+        onGetLocalEntities: suspend () -> List<T>,
         crossinline onUpdateMany: suspend (List<T>) -> Unit,
         crossinline onUpsertMany: suspend (List<T>) -> Unit,
     ) {
         val collectionName = collection.id
         val allSyncedEntities: MutableList<T> = mutableListOf()
-        val localEntitiesInFirestore = localEntities
-            .filter { it.firestoreId != null }
-            .associateBy { it.firestoreId!! }
+
+        // Update local entities that are outdated first since cloud wins.
+        // Prevents duplicate ids from being uploaded to Firestore since any locals
+        // with different/no firestoreId will be updated here.
+        allSyncedEntities += updateOutdatedLocalEntities<T>(
+            collection = collection,
+            lastSyncDate = lastSyncDate,
+            localEntities = onGetLocalEntities(),
+            onUpsertMany = onUpsertMany,
+        )
 
         // Sync any unsynced entities up to Firestore
-        val syncedEntities = uploadUnsyncedEntities<T>(
-            localEntities = localEntities,
+        allSyncedEntities += uploadUnsyncedEntities<T>(
+            localEntities = onGetLocalEntities(),
             collection = collection,
             collectionName = collectionName,
             onUpdateMany = onUpdateMany
         )
-        allSyncedEntities += onRefetchLocalEntities?.invoke() ?: syncedEntities
-
-        // Update local entities that are outdated
-        val updatedEntities = updateOutdatedLocalEntities<T>(
-            collection = collection,
-            lastSyncDate = lastSyncDate,
-            localEntitiesInFirestore = localEntitiesInFirestore,
-            onUpsertMany = onUpsertMany,
-        )
-
-        allSyncedEntities += updatedEntities
 
         // Find the newest timestamp across all synced entities
         val latestTimestamp = allSyncedEntities
@@ -382,6 +376,69 @@ class FirestoreSyncManager (
             val syncMetadata = SyncMetadataDto(collectionName = collectionName, lastSyncTimestamp = maxLastUpdated)
             syncRepository.upsert(syncMetadata)
         }
+    }
+
+    private suspend inline fun <reified T : BaseFirestoreDto> updateOutdatedLocalEntities(
+        collection: CollectionReference,
+        lastSyncDate: Date,
+        localEntities: List<T>,
+        onUpsertMany: suspend (List<T>) -> Unit,
+    ): List<T> {
+        val collectionName = collection.id
+        val allSyncedEntities = mutableListOf<T>()
+        var lastVisible: DocumentSnapshot? = null
+        var done = false
+        val localEntitiesInFirestore = localEntities
+            .filter { it.firestoreId != null }
+            .associateBy { it.firestoreId!! }
+
+        while (!done) {
+            val query = collection
+                .whereGreaterThanOrEqualTo("lastUpdated", lastSyncDate)
+                .orderBy("lastUpdated")
+                .limit(BATCH_SIZE.toLong())
+
+            val pagedQuery = if (lastVisible != null) {
+                query.startAfter(lastVisible)
+            } else {
+                query
+            }
+
+            val snapshot = pagedQuery.get().await()
+            val docs = snapshot.documents
+
+            Log.d(TAG, "Fetched ${docs.size} entities to check for updates [$collectionName]")
+
+            if (docs.isEmpty()) {
+                done = true
+            } else {
+                val currFirestoreBatch = docs.flatMapParallel(10) { docChunk ->
+                    docChunk.mapNotNull { doc ->
+                        val firestoreEntity = doc.toObject<T>() ?: return@mapNotNull null
+                        val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
+                        val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
+                        if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
+                            Log.d(TAG, "Found outdated entity: ${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
+                            firestoreEntity
+                        } else null
+                    }
+                }
+
+                if (currFirestoreBatch.isNotEmpty()) {
+                    onUpsertMany(currFirestoreBatch)
+                    Log.d(
+                        TAG,
+                        "Batch updated ${currFirestoreBatch.size} out-of-date entities from Firestore [$collectionName]"
+                    )
+
+                    allSyncedEntities += currFirestoreBatch
+                }
+
+                lastVisible = docs.last()
+            }
+        }
+
+        return allSyncedEntities
     }
 
     private suspend inline fun <reified T : BaseFirestoreDto> uploadUnsyncedEntities(
@@ -460,66 +517,6 @@ class FirestoreSyncManager (
         FirebaseCrashlytics.getInstance().log("Batch updated ${updatedEntities.size} entities locally [$collectionName]")
 
         return updatedEntities
-    }
-
-    private suspend inline fun <reified T : BaseFirestoreDto> updateOutdatedLocalEntities(
-        collection: CollectionReference,
-        lastSyncDate: Date,
-        localEntitiesInFirestore: Map<String, T>,
-        onUpsertMany: suspend (List<T>) -> Unit,
-    ): List<T> {
-        val collectionName = collection.id
-        val allSyncedEntities = mutableListOf<T>()
-        var lastVisible: DocumentSnapshot? = null
-        var done = false
-
-        while (!done) {
-            val query = collection
-                .whereGreaterThanOrEqualTo("lastUpdated", lastSyncDate)
-                .orderBy("lastUpdated")
-                .limit(BATCH_SIZE.toLong())
-
-            val pagedQuery = if (lastVisible != null) {
-                query.startAfter(lastVisible)
-            } else {
-                query
-            }
-
-            val snapshot = pagedQuery.get().await()
-            val docs = snapshot.documents
-
-            Log.d(TAG, "Fetched ${docs.size} entities to check for updates [$collectionName]")
-
-            if (docs.isEmpty()) {
-                done = true
-            } else {
-                val currFirestoreBatch = docs.flatMapParallel(10) { docChunk ->
-                    docChunk.mapNotNull { doc ->
-                        val firestoreEntity = doc.toObject<T>() ?: return@mapNotNull null
-                        val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
-                        val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
-                        if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
-                            Log.d(TAG, "Found outdated entity: ${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
-                            firestoreEntity
-                        } else null
-                    }
-                }
-
-                if (currFirestoreBatch.isNotEmpty()) {
-                    onUpsertMany(currFirestoreBatch)
-                    Log.d(
-                        TAG,
-                        "Batch updated ${currFirestoreBatch.size} out-of-date entities from Firestore [$collectionName]"
-                    )
-
-                    allSyncedEntities += currFirestoreBatch
-                }
-
-                lastVisible = docs.last()
-            }
-        }
-
-        return allSyncedEntities
     }
 
     suspend fun getMaxLastUpdatedTimestamp(collection: CollectionReference): Date? {

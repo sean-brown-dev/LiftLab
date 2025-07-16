@@ -119,7 +119,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -259,7 +259,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -423,7 +423,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -611,7 +611,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -775,7 +775,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -940,7 +940,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1128,7 +1128,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1273,7 +1273,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1420,7 +1420,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(0, args[1])
                 Assert.assertEquals(0, args[2])
@@ -1511,7 +1511,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(1, args[1])
                 Assert.assertEquals(0, args[2])
@@ -1602,7 +1602,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(0, args[1])
                 Assert.assertEquals(1, args[2])
@@ -1693,7 +1693,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1885,7 +1885,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2110,7 +2110,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2270,7 +2270,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2427,7 +2427,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2613,7 +2613,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2705,7 +2705,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadata() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(

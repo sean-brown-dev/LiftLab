@@ -29,7 +29,7 @@ interface LiftsDao: BaseDao<Lift> {
     fun getAllAsFlow(): Flow<List<Lift>>
 
     @Transaction
-    @Query("SELECT * FROM lifts WHERE isHidden = :includeHidden")
+    @Query("SELECT * FROM lifts WHERE isHidden == 0 OR isHidden = :includeHidden")
     suspend fun getAll(includeHidden: Boolean = false): List<Lift>
 
     @Transaction

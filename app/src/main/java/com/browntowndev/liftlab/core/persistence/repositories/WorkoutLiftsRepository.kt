@@ -5,6 +5,7 @@ import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -18,6 +19,10 @@ class WorkoutLiftsRepository (
     private val firestoreSyncManager: FirestoreSyncManager,
     private val syncScope: CoroutineScope,
 ): Repository {
+
+    suspend fun getAll(): List<WorkoutLift> {
+        return workoutLiftsDao.getAll()
+    }
 
     suspend fun insert(workoutLift: GenericWorkoutLift): Long {
         val toInsert = workoutLiftMapper.map(workoutLift)

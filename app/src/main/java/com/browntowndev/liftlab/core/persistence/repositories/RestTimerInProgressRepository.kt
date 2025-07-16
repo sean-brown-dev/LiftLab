@@ -14,8 +14,10 @@ import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFires
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 class RestTimerInProgressRepository(
     private val restTimerInProgressDao: RestTimerInProgressDao,
@@ -36,20 +38,18 @@ class RestTimerInProgressRepository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getLive(): LiveData<RestTimerInProgressDto?> {
+    fun getFlow(): Flow<RestTimerInProgressDto?> {
         return restTimerInProgressDao.getAsFlow()
-            .flatMapLatest { restTimerInProgress ->
-                flowOf(
-                    if (restTimerInProgress != null) {
-                        Log.d(Log.DEBUG.toString(), "rest timer in progress: ${restTimerInProgress.timeStartedInMillis}")
-                        RestTimerInProgressDto(
-                            id = restTimerInProgress.id,
-                            timeStartedInMillis = restTimerInProgress.timeStartedInMillis,
-                            restTime = restTimerInProgress.restTime,
-                        )
-                    } else null
-                )
-            }.asLiveData()
+            .map { restTimerInProgress ->
+                restTimerInProgress?.let {
+                    Log.d(Log.DEBUG.toString(), "rest timer in progress: ${it.timeStartedInMillis}")
+                    RestTimerInProgressDto(
+                        id = it.id,
+                        timeStartedInMillis = it.timeStartedInMillis,
+                        restTime = it.restTime,
+                    )
+                }
+            }
     }
 
     suspend fun insert(restTime: Long) {

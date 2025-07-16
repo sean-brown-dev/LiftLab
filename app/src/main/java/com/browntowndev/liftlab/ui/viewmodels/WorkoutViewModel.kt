@@ -9,9 +9,6 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.core.content.FileProvider
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -35,7 +32,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
 import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.RestTimerInProgressDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
@@ -57,6 +53,7 @@ import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
@@ -86,110 +83,71 @@ class WorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
-    private var _restTimerLiveData: LiveData<RestTimerInProgressDto?>? = null
-    private var _restTimerObserver: Observer<RestTimerInProgressDto?>? = null
-    private var _programLiveData: LiveData<ActiveProgramMetadataDto?>? = null
-    private var _programObserver: Observer<ActiveProgramMetadataDto?>? = null
-    private var _workoutLiveData: LiveData<LoggingWorkoutDto?>? = null
-    private var _workoutObserver: Observer<LoggingWorkoutDto?>? = null
-
     init {
         initialize()
     }
-
     private fun initialize() {
-        _restTimerObserver = Observer { restTimerInProgress ->
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
-                    restTime = restTimerInProgress?.restTime ?: 0L,
-                )
-            }
+        // Observe Rest Timer
+        viewModelScope.launch {
+            restTimerInProgressRepository.getFlow()
+                .collect { restTimerInProgress ->
+                    mutableWorkoutState.update { currentState ->
+                        currentState.copy(
+                            restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
+                            restTime = restTimerInProgress?.restTime ?: 0L,
+                        )
+                    }
+                }
         }
-        _restTimerLiveData = restTimerInProgressRepository.getLive()
-        _restTimerLiveData!!.observeForever(_restTimerObserver!!)
 
-        _programObserver = Observer { programMetadata ->
-            if (programMetadata != null) {
-                viewModelScope.launch {
-                    _workoutLiveData?.removeObserver(_workoutObserver!!)
-                    _workoutObserver = Observer { workout ->
-                        executeInTransactionScope {
-                            val inProgressWorkout = workoutInProgressRepository.get(
-                                programMetadata.currentMesocycle,
-                                programMetadata.currentMicrocycle
-                            )
-
-                            mutableWorkoutState.update { currentState ->
-                                currentState.copy(
-                                    inProgressWorkout = inProgressWorkout,
-                                    programMetadata = programMetadata,
-                                    workout = workout,
-                                    personalRecords = getPersonalRecords(
-                                        workoutId = workout?.id ?: 0L,
-                                        mesoCycle = programMetadata.currentMesocycle,
-                                        microCycle = programMetadata.currentMicrocycle,
-                                        liftIds = workout?.lifts?.map { it.liftId } ?: listOf()
-                                    ),
-                                    initialized = true,
-                                )
-                            }
+        // Observe Program Metadata
+        viewModelScope.launch {
+            programsRepository.getActiveProgramMetadataFlow()
+                .collect { programMetadata ->
+                    if (programMetadata != null) {
+                        // Observe Workout based on program
+                        observeWorkoutForProgram(programMetadata)
+                    } else {
+                        mutableWorkoutState.update {
+                            it.copy(initialized = true)
                         }
                     }
-
-                    _workoutLiveData = getNextToPerform(programMetadata)
-                    _workoutLiveData!!.observeForever(_workoutObserver!!)
                 }
-            } else {
-                mutableWorkoutState.update {
-                    it.copy(initialized = true)
-                }
-            }
         }
-        _programLiveData = programsRepository.getActiveProgramMetadata()
-        _programLiveData!!.observeForever(_programObserver!!)
     }
 
-    override fun onCleared() {
-        super.onCleared()
-
-        _restTimerLiveData?.removeObserver(_restTimerObserver!!)
-        _programLiveData?.removeObserver(_programObserver!!)
-        _workoutLiveData?.removeObserver(_workoutObserver!!)
-    }
-
-    @Subscribe
-    fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
-        when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
-                if (mutableWorkoutState.value.isCompletionSummaryVisible) {
-                    it.copy(isCompletionSummaryVisible = false)
-                } else {
-                    it.copy(workoutLogVisible = false)
-                }
-            }
-            TopAppBarAction.RestTimerCompleted -> {
+    private fun observeWorkoutForProgram(programMetadata: ActiveProgramMetadataDto) {
+        viewModelScope.launch {
+            getNextToPerformFlow(programMetadata).collect { workout ->
                 executeInTransactionScope {
-                    restTimerInProgressRepository.deleteAll()
-                    mutableWorkoutState.update {
-                        it.copy(restTimerStartedAt = null)
+                    val inProgressWorkout = workoutInProgressRepository.get(
+                        programMetadata.currentMesocycle,
+                        programMetadata.currentMicrocycle
+                    )
+
+                    mutableWorkoutState.update { currentState ->
+                        currentState.copy(
+                            inProgressWorkout = inProgressWorkout,
+                            programMetadata = programMetadata,
+                            workout = workout,
+                            personalRecords = getPersonalRecords(
+                                workoutId = workout?.id ?: 0L,
+                                mesoCycle = programMetadata.currentMesocycle,
+                                microCycle = programMetadata.currentMicrocycle,
+                                liftIds = workout?.lifts?.map { it.liftId } ?: listOf()
+                            ),
+                            initialized = true,
+                        )
                     }
                 }
             }
-            TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
-                finishWorkout()
-            } else {
-                toggleCompletionSummary()
-            }
-            TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
-            else -> {}
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getNextToPerform(
+    fun getNextToPerformFlow(
         programMetadata: ActiveProgramMetadataDto,
-    ): LiveData<LoggingWorkoutDto?> {
+    ): Flow<LoggingWorkoutDto?> {
         return workoutsRepository.getByMicrocyclePosition(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
@@ -212,7 +170,8 @@ class WorkoutViewModel(
                     val previousSetResults = getSetResults(
                         workout = workout,
                         programMetadata = programMetadata,
-                        useAllData = useAllWorkoutData)
+                        useAllData = useAllWorkoutData
+                    )
 
                     val inProgressSetResults = setResultsRepository.getForWorkout(
                         workoutId = workout.id,
@@ -243,7 +202,35 @@ class WorkoutViewModel(
                     }
                 }
             }
-        }.asLiveData()
+        }
+    }
+
+    @Subscribe
+    fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
+        when (actionEvent.action) {
+            TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
+                if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                    it.copy(isCompletionSummaryVisible = false)
+                } else {
+                    it.copy(workoutLogVisible = false)
+                }
+            }
+            TopAppBarAction.RestTimerCompleted -> {
+                executeInTransactionScope {
+                    restTimerInProgressRepository.deleteAll()
+                    mutableWorkoutState.update {
+                        it.copy(restTimerStartedAt = null)
+                    }
+                }
+            }
+            TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                finishWorkout()
+            } else {
+                toggleCompletionSummary()
+            }
+            TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
+            else -> {}
+        }
     }
 
     private suspend fun getSetResults(

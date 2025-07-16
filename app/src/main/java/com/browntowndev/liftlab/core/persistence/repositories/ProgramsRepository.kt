@@ -17,6 +17,7 @@ import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
@@ -162,8 +163,8 @@ class ProgramsRepository(
         return programsDao.getDeloadWeek(id)
     }
 
-    fun getActiveProgramMetadata(): LiveData<ActiveProgramMetadataDto?> {
-        return programsDao.getActiveProgramMetadata().asLiveData()
+    fun getActiveProgramMetadataFlow(): Flow<ActiveProgramMetadataDto?> {
+        return programsDao.getActiveProgramMetadata()
     }
 
     suspend fun delete(id: Long) {
