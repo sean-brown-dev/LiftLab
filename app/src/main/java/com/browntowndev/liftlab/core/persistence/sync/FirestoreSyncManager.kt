@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.persistence.sync
 import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.copyForUpload
+import com.browntowndev.liftlab.core.common.flatMapParallel
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.BaseFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.SyncMetadataDto
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.CustomLiftSetsSyncRepository
@@ -33,6 +34,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import org.koin.core.component.get
 import java.util.Date
 import kotlin.collections.flatten
 import kotlin.coroutines.resume
@@ -231,6 +233,7 @@ class FirestoreSyncManager (
                         collection = programSyncRepository.collection,
                         lastSyncDate = syncRepository.get(programSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
                         localEntities = programSyncRepository.getAll(),
+                        onRefetchLocalEntities = programSyncRepository::getAll,
                         onUpdateMany = programSyncRepository::updateMany,
                         onUpsertMany = programSyncRepository::upsertMany,
                     )
@@ -336,6 +339,7 @@ class FirestoreSyncManager (
         collection: CollectionReference,
         lastSyncDate: Date,
         localEntities: List<T>,
+        noinline onRefetchLocalEntities: (suspend () -> List<T>)? = null,
         crossinline onUpdateMany: suspend (List<T>) -> Unit,
         crossinline onUpsertMany: suspend (List<T>) -> Unit,
     ) {
@@ -352,7 +356,7 @@ class FirestoreSyncManager (
             collectionName = collectionName,
             onUpdateMany = onUpdateMany
         )
-        allSyncedEntities += syncedEntities
+        allSyncedEntities += onRefetchLocalEntities?.invoke() ?: syncedEntities
 
         // Update local entities that are outdated
         val updatedEntities = updateOutdatedLocalEntities<T>(
@@ -393,7 +397,7 @@ class FirestoreSyncManager (
         FirebaseCrashlytics.getInstance().log("Uploading ${unsyncedEntities.size} unsynced entities [$collectionName]")
 
         val syncedEntities = coroutineScope {
-            unsyncedEntities.chunked(BATCH_SIZE).map { unsyncedEntityChunk ->
+            unsyncedEntities.flatMapParallel(10) { unsyncedEntityChunk ->
                 val currFirestoreDocBatch = mutableListOf<DocumentReference>()
                 val batch = firestore.batch()
 
@@ -419,7 +423,7 @@ class FirestoreSyncManager (
                 // Return updated entities from this thread
                 updatedEntities
             }
-        }.flatten()
+        }
 
         return syncedEntities
     }
@@ -435,23 +439,20 @@ class FirestoreSyncManager (
         Log.d(TAG, "Uploaded $batchSize entities [$collectionName]")
 
         // Get updated entities from Firestore and update local database so lastUpdated is up to date
-        val updatedEntities = currFirestoreDocBatch.chunked(50).flatMap { docChunk ->
+        val updatedEntities = currFirestoreDocBatch.flatMapParallel(10) { docChunk ->
             docChunk.map { docRef ->
-                async {
-                    runCatching {
-                        docRef.get().await().toObject<T>()
-                    }.onFailure { e ->
-                        Log.e(
-                            TAG,
-                            "Failed to fetch doc ${docRef.id}: ${e.message} [$collectionName]",
-                            e
-                        )
-                        FirebaseCrashlytics.getInstance().recordException(e)
-                    }.getOrNull()
-                }
+                runCatching {
+                    docRef.get().await().toObject<T>()
+                }.onFailure { e ->
+                    Log.e(
+                        TAG,
+                        "Failed to fetch doc ${docRef.id}: ${e.message} [$collectionName]",
+                        e
+                    )
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                }.getOrNull()
             }
-        }.awaitAll().filterNotNull()
-
+        }.filterNotNull()
 
         onUpdateMany(updatedEntities)
 
@@ -492,14 +493,15 @@ class FirestoreSyncManager (
             if (docs.isEmpty()) {
                 done = true
             } else {
-                val currFirestoreBatch = mutableListOf<T>()
-                for (doc in docs) {
-                    val firestoreEntity = doc.toObject<T>() ?: continue
-                    val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
-                    val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
-                    if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
-                        currFirestoreBatch.add(firestoreEntity)
-                        Log.d(TAG, "Found outdated entity: ${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
+                val currFirestoreBatch = docs.flatMapParallel(10) { docChunk ->
+                    docChunk.mapNotNull { doc ->
+                        val firestoreEntity = doc.toObject<T>() ?: return@mapNotNull null
+                        val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
+                        val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
+                        if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
+                            Log.d(TAG, "Found outdated entity: ${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
+                            firestoreEntity
+                        } else null
                     }
                 }
 

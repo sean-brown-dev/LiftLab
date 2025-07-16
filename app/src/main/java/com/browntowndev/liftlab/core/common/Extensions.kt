@@ -33,6 +33,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.text.DateFormat.LONG
 import java.text.DateFormat.MEDIUM
@@ -46,11 +49,26 @@ import java.util.Date
 import java.util.Locale.US
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+import kotlin.collections.flatten
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+
+suspend fun<T, R>  List<T>.flatMapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> List<R>): List<R> = coroutineScope {
+    if (this@flatMapParallel.isEmpty()) return@coroutineScope emptyList()
+
+    val thisList = this@flatMapParallel
+    val batchSize = thisList.size / maxDegreesOfParallelism +
+            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
+
+    return@coroutineScope thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll().flatten()
+}
 
 inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend CoroutineScope.() -> Unit) {
     this.launch {

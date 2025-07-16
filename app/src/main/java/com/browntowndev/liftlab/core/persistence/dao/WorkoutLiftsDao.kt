@@ -12,11 +12,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutLiftsDao: BaseDao<WorkoutLift> {
-    @Query("SELECT * FROM workoutLifts WHERE workoutId = :id")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
     suspend fun get(id: Long): WorkoutLift?
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts WHERE workoutId IN (:ids)")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids)")
     suspend fun getMany(ids: List<Long>): List<WorkoutLift>
 
     @Transaction

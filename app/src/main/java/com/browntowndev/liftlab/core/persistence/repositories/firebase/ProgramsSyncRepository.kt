@@ -67,21 +67,18 @@ class ProgramsSyncRepository(
                     dao.update(deactivatedProgram)
 
                     val firestoreSyncManager: FirestoreSyncManager by inject()
-                    val syncScope: CoroutineScope by inject(named("FirestoreSyncScope"))
-                    syncScope.fireAndForgetSync {
-                        firestoreSyncManager.syncSingle(
-                            collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                            entity = deactivatedProgram.toFirestoreDto(),
-                            onSynced = {
-                                dao.update(it.toEntity())
-                                Log.d(
-                                    "ProgramsSyncRepository",
-                                    "deactivatedProgram: $deactivatedProgram, " +
-                                            "baseProgram: (lastUpdated=${deactivatedProgram.lastUpdated}, firestoreId=${deactivatedProgram.firestoreId})"
-                                )
-                            }
-                        )
-                    }
+                    firestoreSyncManager.syncSingle(
+                        collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                        entity = deactivatedProgram.toFirestoreDto(),
+                        onSynced = {
+                            dao.update(it.toEntity())
+                            Log.d(
+                                "ProgramsSyncRepository",
+                                "deactivatedProgram: $deactivatedProgram, " +
+                                        "baseProgram: (lastUpdated=${deactivatedProgram.lastUpdated}, firestoreId=${deactivatedProgram.firestoreId})"
+                            )
+                        }
+                    )
                 }
             }
         }
