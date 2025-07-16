@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.RestTimerInProgr
 import com.browntowndev.liftlab.core.persistence.entities.RestTimerInProgress
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class RestTimerInProgressSyncRepository(
     private val dao: RestTimerInProgressDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<RestTimerInProgressFirestoreDto, RestTimerInProgress>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
-    userId = userId,
+    firebaseAuth = firebaseAuth,
 ) {
     override suspend fun getAll(): List<RestTimerInProgressFirestoreDto> =
         dao.get()?.let { restTimerInProgress ->

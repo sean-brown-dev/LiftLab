@@ -40,9 +40,14 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled = true
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig = signingConfigs.release
+            buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
+        }
+
+        debug {
+            buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
         }
     }
     compileOptions {
@@ -51,6 +56,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packagingOptions {
         resources {
@@ -87,6 +93,7 @@ dependencies {
     implementation "com.google.firebase:firebase-firestore"
     implementation "com.google.firebase:firebase-crashlytics"
     implementation "com.google.firebase:firebase-ai"
+    implementation "com.google.firebase:firebase-appcheck-debug"
     implementation("io.github.mirzemehdi:kmpauth-google:2.3.1") //Google One Tap Sign-In
     implementation("io.github.mirzemehdi:kmpauth-firebase:2.3.1") //Integrated Authentications with Firebase
     implementation("io.github.mirzemehdi:kmpauth-uihelper:2.3.1") //UiHelper SignIn buttons (AppleSignIn, GoogleSignInButton)

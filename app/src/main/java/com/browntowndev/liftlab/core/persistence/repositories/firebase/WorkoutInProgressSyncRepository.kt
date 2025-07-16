@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutInProgres
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class WorkoutInProgressSyncRepository(
     private val dao: WorkoutInProgressDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<WorkoutInProgressFirestoreDto, WorkoutInProgress>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-    userId = userId,
+    firebaseAuth = firebaseAuth,
 ) {
     override suspend fun getAll(): List<WorkoutInProgressFirestoreDto> =
         dao.get()?.let { workoutInProgress ->

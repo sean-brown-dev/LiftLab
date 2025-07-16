@@ -37,4 +37,12 @@ data class SetLogEntryFirestoreDto(
     @get:PropertyName("isDeload")
     @set:PropertyName("isDeload")
     var isDeload: Boolean = false
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@SetLogEntryFirestoreDto.firestoreId
+            lastUpdated = this@SetLogEntryFirestoreDto.lastUpdated
+            synced = this@SetLogEntryFirestoreDto.synced
+        }
+    }
+}

@@ -17,4 +17,12 @@ data class CustomLiftSetFirestoreDto(
     var dropPercentage: Float? = null,
     var maxSets: Int? = null,
     var setMatching: Boolean = false
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@CustomLiftSetFirestoreDto.firestoreId
+            lastUpdated = this@CustomLiftSetFirestoreDto.lastUpdated
+            synced = this@CustomLiftSetFirestoreDto.synced
+        }
+    }
+}

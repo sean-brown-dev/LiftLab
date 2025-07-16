@@ -25,6 +25,10 @@ interface ProgramsDao: BaseDao<Program> {
     suspend fun getActiveNotAsLiveData(): ProgramWithRelationships?
 
     @Transaction
+    @Query("SELECT * FROM programs WHERE isActive = 1")
+    suspend fun getAllActive(): List<Program>
+
+    @Transaction
     @Query("SELECT * FROM programs")
     suspend fun getAll(): List<Program>
 

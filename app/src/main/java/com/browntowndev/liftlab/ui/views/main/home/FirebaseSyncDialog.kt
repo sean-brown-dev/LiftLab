@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ fun FirebaseSyncDialog(
     onLogin: (String, String) -> Unit,
     onLogout: () -> Unit,
     onSignedInWithGoogle: (Result<FirebaseUser?>) -> Unit,
+    onSyncAll: () -> Unit,
 ) {
     LiftLabDialog(
         isVisible = loginModalVisible,
@@ -66,6 +68,23 @@ fun FirebaseSyncDialog(
                         modifier = Modifier.size(24.dp)
                     )
                     firebaseUsername?.let { Text(text = it) }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    IconButton(
+                        onClick = onSyncAll,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.cloud_sync),
+                            contentDescription = "Sync All",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    Text(text = "Sync All")
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(

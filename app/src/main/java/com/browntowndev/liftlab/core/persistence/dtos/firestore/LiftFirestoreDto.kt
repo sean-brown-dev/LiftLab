@@ -16,4 +16,12 @@ data class LiftFirestoreDto(
     var isHidden: Boolean = false,
     var isBodyweight: Boolean = false,
     var note: String? = null
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@LiftFirestoreDto.firestoreId
+            lastUpdated = this@LiftFirestoreDto.lastUpdated
+            synced = this@LiftFirestoreDto.synced
+        }
+    }
+}

@@ -9,4 +9,12 @@ data class VolumeMetricChartFirestoreDto(
     var id: Long = 0L,
     var volumeType: VolumeType = VolumeType.CHEST,
     var volumeTypeImpact: VolumeTypeImpact = VolumeTypeImpact.PRIMARY,
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@VolumeMetricChartFirestoreDto.firestoreId
+            lastUpdated = this@VolumeMetricChartFirestoreDto.lastUpdated
+            synced = this@VolumeMetricChartFirestoreDto.synced
+        }
+    }
+}

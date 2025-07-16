@@ -9,4 +9,12 @@ data class HistoricalWorkoutNameFirestoreDto(
     var workoutId: Long = 0L,
     var programName: String = "",
     var workoutName: String = ""
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@HistoricalWorkoutNameFirestoreDto.firestoreId
+            lastUpdated = this@HistoricalWorkoutNameFirestoreDto.lastUpdated
+            synced = this@HistoricalWorkoutNameFirestoreDto.synced
+        }
+    }
+}

@@ -64,11 +64,12 @@ inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend Coroutine
 
 
 fun BaseFirestoreDto.copyForUpload(firestoreId: String): BaseFirestoreDto {
-    this.firestoreId = firestoreId
-    this.lastUpdated = null
-    this.synced = true
+    val copy = this.copyWithBase()
+    copy.firestoreId = firestoreId
+    copy.lastUpdated = null
+    copy.synced = true
 
-    return this
+    return copy
 }
 
 fun String.appendSuperscript(

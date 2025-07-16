@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.VolumeMetricChar
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class VolumeMetricChartsSyncRepository(
     private val dao: VolumeMetricChartsDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<VolumeMetricChartFirestoreDto, VolumeMetricChart>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-    userId = userId,
+    firebaseAuth = firebaseAuth,
 ) {
     override suspend fun getAll(): List<VolumeMetricChartFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }

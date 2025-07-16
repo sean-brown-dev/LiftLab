@@ -14,4 +14,12 @@ data class WorkoutLogEntryFirestoreDto(
     var microcyclePosition: Int = 0,
     var date: Date = Date(),
     var durationInMillis: Long = 0L
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@WorkoutLogEntryFirestoreDto.firestoreId
+            lastUpdated = this@WorkoutLogEntryFirestoreDto.lastUpdated
+            synced = this@WorkoutLogEntryFirestoreDto.synced
+        }
+    }
+}

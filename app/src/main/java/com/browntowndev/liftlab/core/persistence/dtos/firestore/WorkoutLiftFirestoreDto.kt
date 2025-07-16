@@ -16,4 +16,12 @@ data class WorkoutLiftFirestoreDto(
     var repRangeBottom: Int? = null,
     var repRangeTop: Int? = null,
     var stepSize: Int? = null
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@WorkoutLiftFirestoreDto.firestoreId
+            lastUpdated = this@WorkoutLiftFirestoreDto.lastUpdated
+            synced = this@WorkoutLiftFirestoreDto.synced
+        }
+    }
+}

@@ -21,4 +21,12 @@ data class PreviousSetResultFirestoreDto(
     var microCycle: Int = 0,
     var missedLpGoals: Int? = null,
     var isDeload: Boolean = false
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@PreviousSetResultFirestoreDto.firestoreId
+            lastUpdated = this@PreviousSetResultFirestoreDto.lastUpdated
+            synced = this@PreviousSetResultFirestoreDto.synced
+        }
+    }
+}

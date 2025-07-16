@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.PreviousSetResul
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class PreviousSetResultsSyncRepository(
     private val dao: PreviousSetResultDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<PreviousSetResultFirestoreDto, PreviousSetResult>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
-    userId = userId,
+    firebaseAuth = firebaseAuth,
 ) {
     override suspend fun getAll(): List<PreviousSetResultFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }

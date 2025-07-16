@@ -13,9 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
-import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.core.common.SHOW_WORKOUT_LOG
@@ -56,6 +54,7 @@ fun NavigationGraph(
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Any>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
     onSetScreen: (screen: Screen) -> Unit,
+    onBeginSync: () -> Unit,
 ) {
     NavHost(navHostController, startDestination = Route.Workout()) {
         composable<Route.Home> { backstackEntry ->
@@ -84,6 +83,7 @@ fun NavigationGraph(
                             )
                         )
                     },
+                    onBeginSync = onBeginSync,
                 )
             }
         }

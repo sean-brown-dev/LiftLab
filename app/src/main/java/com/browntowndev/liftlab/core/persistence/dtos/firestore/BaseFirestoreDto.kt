@@ -6,7 +6,7 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 @Keep
-open class BaseFirestoreDto {
+abstract class BaseFirestoreDto {
     @DocumentId
     open var firestoreId: String? = null
 
@@ -14,4 +14,6 @@ open class BaseFirestoreDto {
     open var lastUpdated: Date? = null
 
     open var synced: Boolean = false
+
+    abstract fun copyWithBase(): BaseFirestoreDto
 }

@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.Upsert
 import com.browntowndev.liftlab.core.persistence.entities.SyncMetadata
@@ -12,4 +13,7 @@ interface SyncDao {
 
     @Upsert
     suspend fun upsert(syncMetadata: SyncMetadata)
+
+    @Query("DELETE FROM syncMetadata")
+    suspend fun deleteAll()
 }

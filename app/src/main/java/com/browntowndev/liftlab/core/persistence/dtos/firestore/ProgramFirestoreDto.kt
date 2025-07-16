@@ -14,4 +14,12 @@ data class ProgramFirestoreDto(
     var currentMicrocycle: Int = 0,
     var currentMicrocyclePosition: Int = 0,
     var currentMesocycle: Int = 0
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@ProgramFirestoreDto.firestoreId
+            lastUpdated = this@ProgramFirestoreDto.lastUpdated
+            synced = this@ProgramFirestoreDto.synced
+        }
+    }
+}

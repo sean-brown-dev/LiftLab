@@ -8,4 +8,12 @@ data class WorkoutFirestoreDto(
     var programId: Long = 0L,
     var name: String = "",
     var position: Int = 0
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@WorkoutFirestoreDto.firestoreId
+            lastUpdated = this@WorkoutFirestoreDto.lastUpdated
+            synced = this@WorkoutFirestoreDto.synced
+        }
+    }
+}

@@ -4,11 +4,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,45 +16,31 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import kotlinx.coroutines.launch
@@ -72,9 +56,10 @@ fun Home(
     onNavigateToSettingsMenu: () -> Unit,
     onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Boolean>) -> Unit,
+    onBeginSync: () -> Unit,
 ) {
     val homeViewModel: HomeViewModel = koinViewModel {
-        parametersOf(onNavigateToSettingsMenu, onNavigateToLiftLibrary)
+        parametersOf(onNavigateToSettingsMenu, onNavigateToLiftLibrary, onBeginSync)
     }
     val state by homeViewModel.state.collectAsState()
 
@@ -240,6 +225,7 @@ fun Home(
             onLogin = homeViewModel::login,
             onLogout = homeViewModel::logout,
             onSignedInWithGoogle = homeViewModel::signInWithGoogle,
+            onSyncAll = onBeginSync,
         )
     }
 }

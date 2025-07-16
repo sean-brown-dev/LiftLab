@@ -68,6 +68,7 @@ class HomeViewModel(
     private val liftsRepository: LiftsRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
+    private val onUserLoggedIn: () -> Unit,
     private val firebaseAuth: FirebaseAuth,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -449,6 +450,8 @@ class HomeViewModel(
                         firebaseError = null,
                     )
                 }
+                onUserLoggedIn()
+                Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
             } else {
                 // This case is highly unexpected if task.isSuccessful is true
                 Log.e("Firebase", "User is null despite successful task.")
@@ -489,12 +492,14 @@ class HomeViewModel(
         if (signInResult.isSuccess) {
             val firebaseUser: FirebaseUser? = signInResult.getOrNull()
             if (firebaseUser != null) {
+                Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
                 _state.update {
                     it.copy(
                         firebaseUsername = firebaseUser.displayName ?: firebaseUser.email,
                         emailVerified = firebaseUser.isEmailVerified,
                     )
                 }
+                onUserLoggedIn()
             } else {
                 // Should be impossible. The library returns failure if user was null
                 _state.update {

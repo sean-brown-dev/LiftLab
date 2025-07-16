@@ -22,4 +22,8 @@ class SyncMetadataRepository(private val dao: SyncDao) {
             )
         }
     }
+
+    suspend fun deleteAll() {
+        dao.deleteAll()
+    }
 }

@@ -81,6 +81,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
                     donationViewModel.processDonation(this)
                 },
                 onCloseSyncFailedDialog = firestoreSyncViewModel::toggleSyncErrorDialog,
+                onBeginSync = firestoreSyncViewModel::syncAll,
             )
 
             enableEdgeToEdge(getStatusBarStyle())

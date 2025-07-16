@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.CustomLiftSetFir
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class CustomLiftSetsSyncRepository(
     private val dao: CustomSetsDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<CustomLiftSetFirestoreDto, CustomLiftSet>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-    userId = userId
+    firebaseAuth = firebaseAuth
 ) {
     override suspend fun getAll(): List<CustomLiftSetFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }

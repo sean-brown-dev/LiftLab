@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLogEntryF
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class WorkoutLogEntriesSyncRepository(
     private val dao: WorkoutLogEntryDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<WorkoutLogEntryFirestoreDto, WorkoutLogEntry>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
-    userId = userId,
+    firebaseAuth = firebaseAuth,
 ) {
     override suspend fun getAll(): List<WorkoutLogEntryFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }

@@ -6,18 +6,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.LiftMetricChartF
 import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class LiftMetricChartsSyncRepository(
     private val dao: LiftMetricChartsDao,
     firestore: FirebaseFirestore,
-    userId: String
+    firebaseAuth: FirebaseAuth,
 ) : BaseSyncRepository<LiftMetricChartFirestoreDto, LiftMetricChart>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-    userId = userId,
+    firebaseAuth = firebaseAuth,
 ) {
     override suspend fun getAll(): List<LiftMetricChartFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }

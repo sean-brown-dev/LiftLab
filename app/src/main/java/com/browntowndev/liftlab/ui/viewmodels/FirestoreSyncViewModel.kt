@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
@@ -27,7 +28,9 @@ class FirestoreSyncViewModel(
                             showSyncFailedDialog = false,
                         )
                     }
+                    Log.d("FirestoreSyncViewModel", "Syncing all")
                     syncManager.syncAll()
+                    Log.d("FirestoreSyncViewModel", "Sync complete")
                 } catch (e: Exception) {
                     toggleSyncErrorDialog()
                 } finally {

@@ -43,6 +43,7 @@ fun LiftLab(
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
     onCloseSyncFailedDialog: () -> Unit,
+    onBeginSync: () -> Unit,
 ) {
     LiftLabTheme {
         if (initializing) {
@@ -121,6 +122,7 @@ fun LiftLab(
                         )
                     },
                     setBottomNavBarVisibility =  { bottomNavBarViewModel.setVisibility(it) },
+                    onBeginSync = onBeginSync,
                 )
             }
         }

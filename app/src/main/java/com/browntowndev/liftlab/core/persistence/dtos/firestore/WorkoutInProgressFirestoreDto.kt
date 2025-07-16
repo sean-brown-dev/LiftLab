@@ -8,4 +8,12 @@ data class WorkoutInProgressFirestoreDto(
     var id: Long = 0L,
     var workoutId: Long = 0L,
     var startTime: Date = Date()
-): BaseFirestoreDto()
+): BaseFirestoreDto() {
+    override fun copyWithBase(): BaseFirestoreDto {
+        return this.copy().apply {
+            firestoreId = this@WorkoutInProgressFirestoreDto.firestoreId
+            lastUpdated = this@WorkoutInProgressFirestoreDto.lastUpdated
+            synced = this@WorkoutInProgressFirestoreDto.synced
+        }
+    }
+}

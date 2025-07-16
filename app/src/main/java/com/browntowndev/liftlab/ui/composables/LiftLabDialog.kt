@@ -38,43 +38,39 @@ fun LiftLabDialog(
 ) {
     if (!isVisible) return
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
-    ) {
-        Dialog(onDismissRequest = onDismiss) {
-            Card(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                shape = RoundedCornerShape(12.dp)
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .wrapContentSize()
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column (
+                modifier = Modifier.padding(15.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column (
-                    modifier = Modifier.padding(15.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
+                Text(
+                    text = header,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+                if (subHeader.isNotEmpty()) {
                     Text(
-                        text = header,
+                        text = subHeader,
+                        textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                    if (subHeader.isNotEmpty()) {
-                        Text(
-                            text = subHeader,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontSize = 14.sp,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp).height(1.dp),
-                        color = MaterialTheme.colorScheme.outline,
+                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
-                Column (
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(top = 5.dp, bottom = 5.dp)
+                        .height(1.dp),
+                    color = MaterialTheme.colorScheme.outline,
+                )
+                Column(
                     modifier = Modifier.padding(contentPadding),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {

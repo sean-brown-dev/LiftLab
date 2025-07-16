@@ -1,11 +1,12 @@
 package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
-import androidx.compose.ui.util.fastForEach
+import android.util.Log
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.BaseFirestoreDto
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.persistence.dao.BaseDao
 import com.browntowndev.liftlab.core.persistence.entities.BaseEntity
+import com.google.firebase.auth.FirebaseAuth
 
 
 abstract class BaseSyncRepository<D : BaseFirestoreDto, E: BaseEntity>(
@@ -13,10 +14,12 @@ abstract class BaseSyncRepository<D : BaseFirestoreDto, E: BaseEntity>(
     private val toEntity: (D) -> E,
     private val firestore: FirebaseFirestore,
     val collectionName: String,
-    private val userId: String,
+    private val firebaseAuth: FirebaseAuth,
 ) {
     val collection: CollectionReference
-        get() = firestore.collection("users").document(userId).collection(collectionName)
+        get() = firebaseAuth.currentUser?.uid?.let { userId ->
+            firestore.collection("users").document(userId).collection(collectionName)
+        } ?: throw IllegalStateException("User not authenticated")
 
     abstract suspend fun getAll(): List<D>
 
