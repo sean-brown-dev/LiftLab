@@ -69,58 +69,6 @@ class FirestoreSyncManager (
     private val userId: String? get() = firebaseAuth.currentUser?.uid
     private val deletionWatcherJobs: MutableMap<String, Job> = ConcurrentHashMap()
 
-    private val syncHandlers: Map<String, SyncHandler<out BaseFirestoreDto>> = mapOf(
-        customLiftSetsSyncRepository.collectionName to SyncHandler(
-            getMany = customLiftSetsSyncRepository::getMany,
-            upsertMany = customLiftSetsSyncRepository::upsertMany
-        ),
-        historicalWorkoutNamesSyncRepository.collectionName to SyncHandler(
-            getMany = historicalWorkoutNamesSyncRepository::getMany,
-            upsertMany = historicalWorkoutNamesSyncRepository::upsertMany
-        ),
-        liftMetricChartsSyncRepository.collectionName to SyncHandler(
-            getMany = liftMetricChartsSyncRepository::getMany,
-            upsertMany = liftMetricChartsSyncRepository::upsertMany
-        ),
-        liftsSyncRepository.collectionName to SyncHandler(
-            getMany = liftsSyncRepository::getMany,
-            upsertMany = liftsSyncRepository::upsertMany
-        ),
-        previousSetResultsSyncRepository.collectionName to SyncHandler(
-            getMany = previousSetResultsSyncRepository::getMany,
-            upsertMany = previousSetResultsSyncRepository::upsertMany
-        ),
-        programsSyncRepository.collectionName to SyncHandler(
-            getMany = programsSyncRepository::getMany,
-            upsertMany = programsSyncRepository::upsertMany
-        ),
-        setLogEntriesSyncRepository.collectionName to SyncHandler(
-            getMany = setLogEntriesSyncRepository::getMany,
-            upsertMany = setLogEntriesSyncRepository::upsertMany
-        ),
-        volumeMetricChartsSyncRepository.collectionName to SyncHandler(
-            getMany = volumeMetricChartsSyncRepository::getMany,
-            upsertMany = volumeMetricChartsSyncRepository::upsertMany
-        ),
-        workoutInProgressSyncRepository.collectionName to SyncHandler(
-            getMany = workoutInProgressSyncRepository::getMany,
-            upsertMany = workoutInProgressSyncRepository::upsertMany
-        ),
-        workoutLiftsSyncRepository.collectionName to SyncHandler(
-            getMany = workoutLiftsSyncRepository::getMany,
-            upsertMany = workoutLiftsSyncRepository::upsertMany
-        ),
-        workoutLogEntriesSyncRepository.collectionName to SyncHandler(
-            getMany = workoutLogEntriesSyncRepository::getMany,
-            upsertMany = workoutLogEntriesSyncRepository::upsertMany
-        ),
-        workoutsSyncRepository.collectionName to SyncHandler(
-            getMany = workoutsSyncRepository::getMany,
-            upsertMany = workoutsSyncRepository::upsertMany
-        )
-    )
-
-
     companion object {
         private const val TAG = "FirebaseSyncManager"
         private const val BATCH_SIZE = 400 // Stay under 500 to be safe
@@ -157,17 +105,105 @@ class FirestoreSyncManager (
     private suspend fun processQueue(queueEntry: SyncQueueEntry) {
         var entryToProcess = queueEntry.copy()
 
-        while (true) {
-            val handler = syncHandlers[entryToProcess.collectionName] ?: return
-            val entities = handler.getMany(entryToProcess.roomEntityIds)
-            @Suppress("UNCHECKED_CAST")
-            val onSynced = handler.upsertMany as suspend (List<BaseFirestoreDto>) -> Unit
-            executeSyncRequest(
-                collectionName = entryToProcess.collectionName,
-                entities = entities,
-                syncType = entryToProcess.syncType,
-                onSynced = onSynced
-            )
+        while (true) {when (entryToProcess.collectionName) {
+            customLiftSetsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = customLiftSetsSyncRepository.collectionName,
+                    entities = customLiftSetsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = customLiftSetsSyncRepository::upsertMany,
+                )
+
+            historicalWorkoutNamesSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = historicalWorkoutNamesSyncRepository.collectionName,
+                    entities = historicalWorkoutNamesSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = historicalWorkoutNamesSyncRepository::upsertMany,
+                )
+
+            liftMetricChartsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = liftMetricChartsSyncRepository.collectionName,
+                    entities = liftMetricChartsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = liftMetricChartsSyncRepository::upsertMany,
+                )
+
+            liftsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = liftsSyncRepository.collectionName,
+                    entities = liftsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = liftsSyncRepository::upsertMany,
+                )
+
+            previousSetResultsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = previousSetResultsSyncRepository.collectionName,
+                    entities = previousSetResultsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = previousSetResultsSyncRepository::upsertMany,
+                )
+
+            programsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = programsSyncRepository.collectionName,
+                    entities = programsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = programsSyncRepository::upsertMany,
+                )
+
+            setLogEntriesSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = setLogEntriesSyncRepository.collectionName,
+                    entities = setLogEntriesSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = setLogEntriesSyncRepository::upsertMany,
+                )
+
+            volumeMetricChartsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = volumeMetricChartsSyncRepository.collectionName,
+                    entities = volumeMetricChartsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = volumeMetricChartsSyncRepository::upsertMany,
+                )
+
+            workoutInProgressSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = workoutInProgressSyncRepository.collectionName,
+                    entities = workoutInProgressSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = workoutInProgressSyncRepository::upsertMany,
+                )
+
+            workoutLiftsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = workoutLiftsSyncRepository.collectionName,
+                    entities = workoutLiftsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = workoutLiftsSyncRepository::upsertMany,
+                )
+
+            workoutLogEntriesSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = workoutLogEntriesSyncRepository.collectionName,
+                    entities = workoutLogEntriesSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = workoutLogEntriesSyncRepository::upsertMany,
+                )
+
+            workoutsSyncRepository.collectionName ->
+                executeSyncRequest(
+                    collectionName = workoutsSyncRepository.collectionName,
+                    entities = workoutsSyncRepository.getMany(entryToProcess.roomEntityIds),
+                    syncType = entryToProcess.syncType,
+                    onSynced = workoutsSyncRepository::upsertMany,
+                )
+
+            else -> {}
+        }
 
             val nextEntry = mutex.withLock {
                 val nextEntryForCollection = syncQueue.firstOrNull { it.collectionName == entryToProcess.collectionName }

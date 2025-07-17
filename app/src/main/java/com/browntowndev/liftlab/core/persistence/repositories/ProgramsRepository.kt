@@ -135,7 +135,7 @@ class ProgramsRepository(
             programs.fastMapNotNull { program ->
                 val current = currentEntities[program.id]
                 if (current == null) return@fastMapNotNull null
-                programMapper.map(program).copyWithFirestoreMetadata(
+                programMapper.map(program).applyFirestoreMetadata(
                     firestoreId = current.firestoreId,
                     lastUpdated = current.lastUpdated,
                     synced = false
@@ -193,7 +193,12 @@ class ProgramsRepository(
         }
 
         if (toDelete.isActive) {
-            val newActiveProgram = programsDao.getAll().firstOrNull()?.copy(isActive = true) ?: return
+            var newActiveProgram = programsDao.getAll().firstOrNull() ?: return
+            newActiveProgram = newActiveProgram.copy(isActive = true).applyFirestoreMetadata(
+                firestoreId = newActiveProgram.firestoreId,
+                lastUpdated = newActiveProgram.lastUpdated,
+                synced = false,
+            )
             programsDao.update(newActiveProgram)
             syncScope.fireAndForgetSync {
                 firestoreSyncManager.syncSingle(

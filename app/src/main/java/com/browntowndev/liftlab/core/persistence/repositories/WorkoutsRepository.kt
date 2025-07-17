@@ -5,6 +5,7 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
@@ -15,6 +16,7 @@ import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntit
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -38,30 +40,26 @@ class WorkoutsRepository(
             synced = false,
         )
         workoutsDao.update(toUpdate)
-
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            entry = SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                entity = toUpdate.toFirestoreDto(),
-                onSynced = {
-                    val firestoreUpdate = it.toEntity()
-                    workoutsDao.update(firestoreUpdate)
-                }
+                roomEntityIds = listOf(id),
+                syncType = SyncType.Sync
             )
-        }
+        )
     }
 
     suspend fun insert(workout: WorkoutDto): Long {
         val toInsert = workoutMapper.map(workout)
         val id = workoutsDao.insert(toInsert)
 
-        firestoreSyncManager.syncSingle(
-            collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-            entity = toInsert.toFirestoreDto().copy(id = id),
-            onSynced = {
-                val toUpdate = it.toEntity()
-                workoutsDao.update(toUpdate)
-            }
+
+        firestoreSyncManager.enqueueSyncRequest(
+            entry = SyncQueueEntry(
+                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
+                roomEntityIds = listOf(id),
+                syncType = SyncType.Sync
+            )
         )
 
         return id
