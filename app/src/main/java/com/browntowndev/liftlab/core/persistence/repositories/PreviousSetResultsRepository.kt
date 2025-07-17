@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -47,7 +48,7 @@ class PreviousSetResultsRepository(
     suspend fun upsert(setResult: SetResult): Long {
         val current = previousSetResultDao.get(setResult.id)
         val toUpsert = setResultsMapper.map(setResult)
-            .copyWithFirestoreMetadata(
+            .applyFirestoreMetadata(
                 firestoreId = current?.firestoreId,
                 lastUpdated = current?.lastUpdated,
                 synced = false
@@ -74,7 +75,7 @@ class PreviousSetResultsRepository(
         var toUpsert =
             setResults.fastMap { setResult ->
                 val current = currentEntities[setResult.id]
-                setResultsMapper.map(setResult).copyWithFirestoreMetadata(
+                setResultsMapper.map(setResult).applyFirestoreMetadata(
                     firestoreId = current?.firestoreId,
                     lastUpdated = current?.lastUpdated,
                     synced = false

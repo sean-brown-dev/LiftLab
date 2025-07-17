@@ -22,4 +22,7 @@ class LiftMetricChartsSyncRepository(
 ) {
     override suspend fun getAll(): List<LiftMetricChartFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }
+
+    override suspend fun getMany(ids: List<Long>): List<LiftMetricChartFirestoreDto> =
+        dao.getMany(ids).map { it.toFirestoreDto() }
 }

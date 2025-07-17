@@ -4,9 +4,9 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 
-class CopyWithFirestoreMetadataProcessorProvider : SymbolProcessorProvider {
+class FirestoreMetadataProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-        return CopyWithFirestoreMetadataProcessor(
+        return FirestoreMetadataProcessor(
             environment.codeGenerator,
             environment.logger
         )

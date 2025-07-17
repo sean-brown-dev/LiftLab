@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.map
 class RestTimerInProgressRepository(
     private val restTimerInProgressDao: RestTimerInProgressDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun get(): RestTimerInProgressDto? {
         val restTimerInProgress = restTimerInProgressDao.get()
@@ -58,29 +57,10 @@ class RestTimerInProgressRepository(
                 timeStartedInMillis = getCurrentDate().time,
                 restTime = restTime,
             )
-        val id = restTimerInProgressDao.insert(toInsert)
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
-                collectionName = FirestoreConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
-                entity = toInsert.copy(id = id).toFirestoreDto(),
-                onSynced = {
-                    restTimerInProgressDao.update(it.toEntity())
-                }
-            )
-        }
+        restTimerInProgressDao.insert(toInsert)
     }
 
     suspend fun deleteAll() {
-        val toDelete = restTimerInProgressDao.getAll()
-        if (toDelete.isEmpty()) return
-
-        restTimerInProgressDao.deleteMany(toDelete)
-
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.deleteMany(
-                collectionName = FirestoreConstants.REST_TIMER_IN_PROGRESS_COLLECTION,
-                firestoreIds = toDelete.mapNotNull { it.firestoreId },
-            )
-        }
+        restTimerInProgressDao.deleteAll()
     }
 }

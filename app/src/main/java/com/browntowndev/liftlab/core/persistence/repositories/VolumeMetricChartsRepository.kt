@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -23,7 +24,7 @@ class VolumeMetricChartsRepository(
             id = volumeMetricChart.id,
             volumeType = volumeMetricChart.volumeType,
             volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
-        ).copyWithFirestoreMetadata(
+        ).applyFirestoreMetadata(
             firestoreId = current?.firestoreId,
             lastUpdated = current?.lastUpdated,
             synced = false
@@ -54,7 +55,7 @@ class VolumeMetricChartsRepository(
                     id = volumeMetricChart.id,
                     volumeType = volumeMetricChart.volumeType,
                     volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
-                ).copyWithFirestoreMetadata(
+                ).applyFirestoreMetadata(
                     firestoreId = current?.firestoreId,
                     lastUpdated = current?.lastUpdated,
                     synced = false

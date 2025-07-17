@@ -1,11 +1,13 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -63,7 +65,12 @@ class WorkoutLiftsRepository (
     }
 
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {
-        val toUpdate = workoutLiftsDao.get(workoutLiftId)?.copy(liftId = newLiftId) ?: return
+        val current = workoutLiftsDao.get(workoutLiftId) ?: return
+        val toUpdate = current.copy(liftId = newLiftId).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
         workoutLiftsDao.update(toUpdate)
 
         syncScope.fireAndForgetSync {
@@ -78,10 +85,8 @@ class WorkoutLiftsRepository (
     }
 
     suspend fun update(workoutLift: GenericWorkoutLift) {
-        val current = workoutLiftsDao.get(workoutLift.id)
-        if (current == null) return
-
-        val toUpdate = workoutLiftMapper.map(workoutLift).copyWithFirestoreMetadata(
+        val current = workoutLiftsDao.get(workoutLift.id) ?: return
+        val toUpdate = workoutLiftMapper.map(workoutLift).applyFirestoreMetadata(
             firestoreId = current.firestoreId,
             lastUpdated = current.lastUpdated,
             synced = false,
@@ -103,14 +108,15 @@ class WorkoutLiftsRepository (
         val currentEntities = workoutLiftsDao.getMany(workoutLifts.map { it.id }).associateBy { it.id }
         if (currentEntities.isEmpty()) return
 
-        val toUpdate = workoutLifts.fastMap { workoutLift ->
-            val current = currentEntities[workoutLift.id]
-            workoutLiftMapper.map(workoutLift).copyWithFirestoreMetadata(
-                firestoreId = current?.firestoreId,
-                lastUpdated = current?.lastUpdated,
+        val toUpdate = workoutLifts.fastMapNotNull { workoutLift ->
+            val current = currentEntities[workoutLift.id] ?: return@fastMapNotNull null
+            workoutLiftMapper.map(workoutLift).applyFirestoreMetadata(
+                firestoreId = current.firestoreId,
+                lastUpdated = current.lastUpdated,
                 synced = false,
             )
         }
+        if (toUpdate.isEmpty()) return
         workoutLiftsDao.updateMany(toUpdate)
 
         syncScope.fireAndForgetSync {

@@ -5,6 +5,7 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.PreviousSetResultFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.ProgramFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
@@ -30,6 +31,9 @@ class ProgramsSyncRepository(
 ), KoinComponent {
     override suspend fun getAll(): List<ProgramFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }
+
+    override suspend fun getMany(ids: List<Long>): List<ProgramFirestoreDto> =
+        dao.getMany(ids).map { it.toFirestoreDto() }
 
     override suspend fun updateMany(dtos: List<ProgramFirestoreDto>) {
         super.updateMany(dtos)

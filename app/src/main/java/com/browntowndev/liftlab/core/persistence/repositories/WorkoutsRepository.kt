@@ -1,12 +1,15 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -28,7 +31,12 @@ class WorkoutsRepository(
     private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun updateName(id: Long, newName: String) {
-        val toUpdate = workoutsDao.get(id)?.copy(name = newName) ?: return
+        val current = workoutsDao.get(id) ?: return
+        val toUpdate = current.copy(name = newName).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
         workoutsDao.update(toUpdate)
 
         syncScope.fireAndForgetSync {
@@ -36,7 +44,8 @@ class WorkoutsRepository(
                 collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
                 entity = toUpdate.toFirestoreDto(),
                 onSynced = {
-                    workoutsDao.update(it.toEntity())
+                    val firestoreUpdate = it.toEntity()
+                    workoutsDao.update(firestoreUpdate)
                 }
             )
         }
@@ -46,15 +55,14 @@ class WorkoutsRepository(
         val toInsert = workoutMapper.map(workout)
         val id = workoutsDao.insert(toInsert)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                entity = toInsert.toFirestoreDto().copy(id = id),
-                onSynced = {
-                    workoutsDao.update(it.toEntity())
-                }
-            )
-        }
+        firestoreSyncManager.syncSingle(
+            collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
+            entity = toInsert.toFirestoreDto().copy(id = id),
+            onSynced = {
+                val toUpdate = it.toEntity()
+                workoutsDao.update(toUpdate)
+            }
+        )
 
         return id
     }
@@ -107,14 +115,15 @@ class WorkoutsRepository(
         val currentEntities = workoutsDao.getMany(workouts.map { it.id }).associateBy { it.id }
         if (currentEntities.isEmpty()) return
 
-        val toUpdate = workouts.fastMap { workout ->
-            val current = currentEntities[workout.id]
+        val toUpdate = workouts.fastMapNotNull { workout ->
+            val current = currentEntities[workout.id] ?: return@fastMapNotNull null
             workoutMapper.map(workout).copyWithFirestoreMetadata(
-                firestoreId = current?.firestoreId,
-                lastUpdated = current?.lastUpdated,
+                firestoreId = current.firestoreId,
+                lastUpdated = current.lastUpdated,
                 synced = false,
             )
         }
+        if (toUpdate.isEmpty()) return
         workoutsDao.updateMany(toUpdate)
 
         syncScope.fireAndForgetSync {
@@ -129,9 +138,7 @@ class WorkoutsRepository(
     }
 
     suspend fun update(workout: WorkoutDto) {
-        val current = workoutsDao.get(workout.id)
-        if (current == null) return
-
+        val current = workoutsDao.get(workout.id) ?: return
         val updWorkout = workoutMapper.map(workout).copyWithFirestoreMetadata(
             firestoreId = current.firestoreId,
             lastUpdated = current.lastUpdated,

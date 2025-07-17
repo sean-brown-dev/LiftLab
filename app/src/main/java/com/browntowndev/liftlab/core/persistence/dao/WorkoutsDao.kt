@@ -20,6 +20,10 @@ interface WorkoutsDao: BaseDao<Workout> {
     @Query("SELECT * FROM workouts")
     suspend fun getAll(): List<Workout>
 
+    @Transaction
+    @Query("SELECT * FROM workouts")
+    fun getAllFlow(): Flow<List<Workout>>
+
     @Query("DELETE FROM workouts")
     suspend fun deleteAll()
 

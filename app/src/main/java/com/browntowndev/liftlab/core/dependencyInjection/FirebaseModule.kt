@@ -5,9 +5,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.persistence.sync.*
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -53,13 +50,6 @@ val firebaseModule = module {
     single {
         ProgramsSyncRepository(
             dao = get<LiftLabDatabase>().programsDao(),
-            firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
-        )
-    }
-    single {
-        RestTimerInProgressSyncRepository(
-            dao = get<LiftLabDatabase>().restTimerInProgressDao(),
             firestore = get(),
             firebaseAuth = get<FirebaseAuth>(),
         )
@@ -116,19 +106,19 @@ val firebaseModule = module {
         FirestoreSyncManager(
             firebaseAuth = get(),
             firestore = get(),
-            customSetSyncRepository = get(),
-            historicalWorkoutNameSyncRepository = get(),
-            liftMetricChartSyncRepository = get(),
+            syncScope = get(named("FirestoreSyncScope")),
+            customLiftSetsSyncRepository = get(),
+            historicalWorkoutNamesSyncRepository = get(),
+            liftMetricChartsSyncRepository = get(),
             liftsSyncRepository = get(),
-            previousSetResultSyncRepository = get(),
-            programSyncRepository = get(),
-            restTimerInProgressSyncRepository = get(),
-            setLogEntrySyncRepository = get(),
-            volumeMetricChartSyncRepository = get(),
+            previousSetResultsSyncRepository = get(),
+            programsSyncRepository = get(),
+            setLogEntriesSyncRepository = get(),
+            volumeMetricChartsSyncRepository = get(),
             workoutInProgressSyncRepository = get(),
-            workoutLiftSyncRepository = get(),
-            workoutLogEntrySyncRepository = get(),
-            workoutSyncRepository = get(),
+            workoutLiftsSyncRepository = get(),
+            workoutLogEntriesSyncRepository = get(),
+            workoutsSyncRepository = get(),
             syncRepository = get()
         )
     }

@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.update
         VolumeMetricChart::class,
         SyncMetadata::class,
    ],
-    version = 14,
+    version = 15,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -94,7 +94,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
         private fun buildDatabase(context: Context): LiftLabDatabase {
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, DATABASE_NAME)
-                .addMigrations(LiftNoteMigration())
+                .addMigrations(LiftNoteMigration(), WorkoutInProgressMigration())
                 .fallbackToDestructiveMigration(false)
                 .build()
 

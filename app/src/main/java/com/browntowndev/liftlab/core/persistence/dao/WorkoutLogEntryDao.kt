@@ -14,6 +14,9 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntry> {
     @Query("SELECT * FROM workoutLogEntries")
     fun getAll(): List<WorkoutLogEntry>
 
+    @Query("SELECT * FROM workoutLogEntries WHERE workout_log_entry_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<WorkoutLogEntry>
+
     @Query("DELETE FROM workoutLogEntries")
     suspend fun deleteAll()
 

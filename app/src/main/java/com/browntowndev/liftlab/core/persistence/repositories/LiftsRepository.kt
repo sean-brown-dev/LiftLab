@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.entities.Lift
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -52,9 +53,7 @@ class LiftsRepository(
     }
 
     suspend fun update(lift: LiftDto) {
-        val current = liftsDao.get(lift.id)
-        if (current == null) return
-
+        val current = liftsDao.get(lift.id) ?: return
         val toUpdate =
             Lift(
                 id = lift.id,
@@ -68,7 +67,7 @@ class LiftsRepository(
                 isHidden = lift.isHidden,
                 isBodyweight = lift.isBodyweight,
                 note = lift.note,
-            ).copyWithFirestoreMetadata(
+            ).applyFirestoreMetadata(
                 firestoreId = current.firestoreId,
                 lastUpdated = current.lastUpdated,
                 synced = false,
@@ -146,22 +145,36 @@ class LiftsRepository(
     }
 
     suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?) {
-        val toUpdate = liftsDao.get(id) ?: return
-        updateWithoutRefetch(toUpdate.copy(restTimerEnabled = enabled, restTime = newRestTime))
+        val current = liftsDao.get(id) ?: return
+        val toUpdate = current.copy(restTimerEnabled = enabled, restTime = newRestTime).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
+        updateWithoutRefetch(toUpdate)
     }
 
     suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {
-        val toUpdate = liftsDao.get(id) ?: return
-        updateWithoutRefetch(toUpdate.copy(incrementOverride = newIncrement))
+        val current = liftsDao.get(id) ?: return
+        val toUpdate = current.copy(incrementOverride = newIncrement).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
+        updateWithoutRefetch(toUpdate)
     }
 
     suspend fun updateNote(id: Long, note: String?) {
-        val toUpdate = liftsDao.get(id) ?: return
-        updateWithoutRefetch(toUpdate.copy(note = note))
+        val current = liftsDao.get(id) ?: return
+        val toUpdate = current.copy(note = note).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
+        updateWithoutRefetch(toUpdate)
     }
 
     private suspend fun updateWithoutRefetch(lift: Lift) {
-        lift.synced = false
         liftsDao.update(lift)
 
         syncScope.fireAndForgetSync {

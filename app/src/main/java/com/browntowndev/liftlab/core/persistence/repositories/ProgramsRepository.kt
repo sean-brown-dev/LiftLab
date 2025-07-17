@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.FirestoreConstants
@@ -10,6 +11,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
 import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.entities.Program
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -72,18 +74,28 @@ class ProgramsRepository(
     }
 
     suspend fun updateName(id: Long, newName: String) {
-        val toUpdate = programsDao.get(id)?.copy(name = newName) ?: return
+        val current = programsDao.get(id) ?: return
+        val toUpdate = current.copy(name = newName).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
         updateWithoutRefetch(toUpdate)
     }
 
     suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int) {
-        val toUpdate = programsDao.get(id)?.copy(deloadWeek = newDeloadWeek) ?: return
+        val current = programsDao.get(id) ?: return
+        val toUpdate = current.copy(deloadWeek = newDeloadWeek).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
         updateWithoutRefetch(toUpdate)
     }
 
     suspend fun update(program: ProgramDto) {
         val current = programsDao.get(program.id) ?: return
-        val toUpdate = programMapper.map(program).copyWithFirestoreMetadata(
+        val toUpdate = programMapper.map(program).applyFirestoreMetadata(
             firestoreId = current.firestoreId,
             lastUpdated = current.lastUpdated,
             synced = false
@@ -102,7 +114,6 @@ class ProgramsRepository(
     }
 
     private suspend fun updateWithoutRefetch(program: Program) {
-        program.synced = false
         programsDao.update(program)
 
         syncScope.fireAndForgetSync {
@@ -121,11 +132,12 @@ class ProgramsRepository(
         if (currentEntities.isEmpty()) return
 
         val toUpdate =
-            programs.fastMap { program ->
+            programs.fastMapNotNull { program ->
                 val current = currentEntities[program.id]
+                if (current == null) return@fastMapNotNull null
                 programMapper.map(program).copyWithFirestoreMetadata(
-                    firestoreId = current?.firestoreId,
-                    lastUpdated = current?.lastUpdated,
+                    firestoreId = current.firestoreId,
+                    lastUpdated = current.lastUpdated,
                     synced = false
                 )
             }
@@ -179,6 +191,20 @@ class ProgramsRepository(
                 )
             }
         }
+
+        if (toDelete.isActive) {
+            val newActiveProgram = programsDao.getAll().firstOrNull()?.copy(isActive = true) ?: return
+            programsDao.update(newActiveProgram)
+            syncScope.fireAndForgetSync {
+                firestoreSyncManager.syncSingle(
+                    collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
+                    entity = newActiveProgram.toFirestoreDto(),
+                    onSynced = {
+                        programsDao.update(it.toEntity())
+                    }
+                )
+            }
+        }
     }
 
     suspend fun delete(programToDelete: ProgramDto) {
@@ -186,10 +212,16 @@ class ProgramsRepository(
     }
 
     suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int) {
-        val toUpdate = programsDao.get(id)?.copy(
+        val current = programsDao.get(id) ?: return
+        val toUpdate = current.copy(
             currentMesocycle = mesoCycle,
             currentMicrocycle = microCycle,
-            currentMicrocyclePosition = microCyclePosition) ?: return
+            currentMicrocyclePosition = microCyclePosition
+        ).applyFirestoreMetadata(
+            firestoreId = current.firestoreId,
+            lastUpdated = current.lastUpdated,
+            synced = false,
+        )
         programsDao.update(toUpdate)
 
         syncScope.fireAndForgetSync {

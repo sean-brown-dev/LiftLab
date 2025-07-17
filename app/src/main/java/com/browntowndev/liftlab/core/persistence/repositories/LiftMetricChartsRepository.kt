@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
 import com.browntowndev.liftlab.core.persistence.entities.LiftMetricChart
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -56,7 +57,7 @@ class LiftMetricChartsRepository(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
                 chartType = liftMetricChart.chartType,
-            ).copyWithFirestoreMetadata(
+            ).applyFirestoreMetadata(
                 firestoreId = current?.firestoreId,
                 lastUpdated = current?.lastUpdated,
                 synced = false,
@@ -88,7 +89,7 @@ class LiftMetricChartsRepository(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
                 chartType = liftMetricChart.chartType,
-            ).copyWithFirestoreMetadata(
+            ).applyFirestoreMetadata(
                 firestoreId = current?.firestoreId,
                 lastUpdated = current?.lastUpdated,
                 synced = false,

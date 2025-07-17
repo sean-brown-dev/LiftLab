@@ -55,7 +55,7 @@ val repositoryModule = module {
             syncScope = get(named("FirestoreSyncScope"))
         )
     }
-    single { RestTimerInProgressRepository(get(), get(), get(named("FirestoreSyncScope"))) }
+    single { RestTimerInProgressRepository(get(), get()) }
     single { LiftMetricChartsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
     single { VolumeMetricChartsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
     single { SyncMetadataRepository(get()) }

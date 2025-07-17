@@ -1,15 +1,19 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 
 class CustomLiftSetsRepository(
@@ -35,11 +39,9 @@ class CustomLiftSetsRepository(
     }
 
     suspend fun update(set: GenericLiftSet) {
-        val current = customSetsDao.get(set.id)
-        if (current == null) return
-
+        val current = customSetsDao.get(set.id) ?: return
         val toUpdate = customLiftSetMapper.map(set)
-            .copyWithFirestoreMetadata(
+            .applyFirestoreMetadata(
                 firestoreId = current.firestoreId,
                 lastUpdated = current.lastUpdated,
                 synced = false,
@@ -60,17 +62,17 @@ class CustomLiftSetsRepository(
         val currentById = customSetsDao.getMany(sets.map { it.id }).associateBy { it.id }
         if (currentById.isEmpty()) return
 
-        val toUpdate = sets.fastMap {
-            val current = currentById[it.id]
+        val toUpdate = sets.fastMapNotNull {
+            val current = currentById[it.id] ?: return@fastMapNotNull null
             customLiftSetMapper.map(it)
                 .copyWithFirestoreMetadata(
-                    firestoreId = current?.firestoreId,
-                    lastUpdated = current?.lastUpdated,
+                    firestoreId = current.firestoreId,
+                    lastUpdated = current.lastUpdated,
                     synced = false,
                 )
         }
+        if (toUpdate.isEmpty()) return
         customSetsDao.updateMany(toUpdate)
-
         syncScope.fireAndForgetSync {
             firestoreSyncManager.syncMany(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,

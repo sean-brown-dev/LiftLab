@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.annotation_generator
 
-import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
+import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -9,14 +9,14 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 
-class CopyWithFirestoreMetadataProcessor(
+class FirestoreMetadataProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.info("🔥 KSP Processor is running!")
-        val symbols = resolver.getSymbolsWithAnnotation(GenerateCopyWithFirestoreMetadata::class.qualifiedName!!)
+        val symbols = resolver.getSymbolsWithAnnotation(GenerateFirestoreMetadataExtensions::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
 
         logger.info("Found ${symbols.count()} classes annotated with @GenerateCopyWithMetadata")
@@ -47,6 +47,13 @@ class CopyWithFirestoreMetadataProcessor(
                                 this.lastUpdated = lastUpdated
                                 this.synced = synced
                             }
+                        }
+                        
+                        fun $className.applyFirestoreMetadata(firestoreId: String?, lastUpdated: Date?, synced: Boolean): $className {
+                            this.firestoreId = firestoreId
+                            this.lastUpdated = lastUpdated
+                            this.synced = synced
+                            return this
                         }
                         """.trimIndent()
                     )

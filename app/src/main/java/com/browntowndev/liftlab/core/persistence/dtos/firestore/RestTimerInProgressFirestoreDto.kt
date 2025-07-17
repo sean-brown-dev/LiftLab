@@ -4,7 +4,7 @@ import androidx.annotation.Keep
 
 @Keep
 data class RestTimerInProgressFirestoreDto(
-    var id: Long = 0L,
+    override var id: Long = 0L,
     var timeStartedInMillis: Long = 0L,
     var restTime: Long = 0L
 ): BaseFirestoreDto() {

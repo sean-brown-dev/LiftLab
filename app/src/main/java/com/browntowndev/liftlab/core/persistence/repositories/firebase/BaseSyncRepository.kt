@@ -23,9 +23,17 @@ abstract class BaseSyncRepository<D : BaseFirestoreDto, E: BaseEntity>(
 
     abstract suspend fun getAll(): List<D>
 
+    abstract suspend fun getMany(ids: List<Long>): List<D>
+
     open suspend fun updateMany(dtos: List<D>) =
         dao.updateMany(dtos.map(toEntity))
 
     open suspend fun upsertMany(dtos: List<D>): List<Long> =
         dao.upsertMany(dtos.map(toEntity))
+
+    open suspend fun deleteMany(dtos: List<D>) =
+        dao.deleteMany(dtos.map(toEntity))
+
+    open suspend fun delete(dto: D) =
+        dao.delete(toEntity(dto))
 }

@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Keep
 data class CustomLiftSetFirestoreDto(
-    var id: Long = 0L,
+    override var id: Long = 0L,
     var workoutLiftId: Long = 0L,
     var type: SetType = SetType.STANDARD,
     var position: Int = 0,

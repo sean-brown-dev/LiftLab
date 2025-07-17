@@ -5,7 +5,7 @@ import java.util.Date
 
 @Keep
 data class WorkoutInProgressFirestoreDto(
-    var id: Long = 0L,
+    override var id: Long = 0L,
     var workoutId: Long = 0L,
     var startTime: Date = Date()
 ): BaseFirestoreDto() {

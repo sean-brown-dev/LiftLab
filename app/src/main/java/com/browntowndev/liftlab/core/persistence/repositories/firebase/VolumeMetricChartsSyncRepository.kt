@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.SetLogEntryFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.VolumeMetricChartFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
@@ -22,4 +23,7 @@ class VolumeMetricChartsSyncRepository(
 ) {
     override suspend fun getAll(): List<VolumeMetricChartFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }
+
+    override suspend fun getMany(ids: List<Long>): List<VolumeMetricChartFirestoreDto> =
+        dao.getMany(ids).map { it.toFirestoreDto() }
 }

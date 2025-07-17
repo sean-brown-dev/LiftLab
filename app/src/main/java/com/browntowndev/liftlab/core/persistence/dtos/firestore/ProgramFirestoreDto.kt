@@ -5,7 +5,7 @@ import com.google.firebase.firestore.PropertyName
 
 @Keep
 data class ProgramFirestoreDto(
-    var id: Long = 0L,
+    override var id: Long = 0L,
     var name: String = "",
     var deloadWeek: Int = 0,
     @get:PropertyName("isActive")

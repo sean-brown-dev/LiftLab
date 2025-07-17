@@ -5,9 +5,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
+import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 
-@GenerateCopyWithFirestoreMetadata
+@GenerateFirestoreMetadataExtensions
 @Entity(tableName = "workouts",
     indices = [Index("programId"), Index("position")],
     foreignKeys = [ForeignKey(entity = Program::class,

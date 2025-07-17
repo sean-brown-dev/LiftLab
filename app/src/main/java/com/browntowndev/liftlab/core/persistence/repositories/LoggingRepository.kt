@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
+import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -215,7 +216,7 @@ class LoggingRepository(
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
         val current = setLogEntryDao.get(setLogEntry.id)
         val toUpsert = workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
-            .copyWithFirestoreMetadata(
+            .applyFirestoreMetadata(
                 firestoreId = current?.firestoreId,
                 lastUpdated = current?.lastUpdated,
                 synced = false
@@ -243,7 +244,7 @@ class LoggingRepository(
         var toUpsert = setLogEntries.fastMap { setLogEntry ->
             val current = currentEntries[setLogEntry.id]
             workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
-                .copyWithFirestoreMetadata(
+                .applyFirestoreMetadata(
                     firestoreId = current?.firestoreId,
                     lastUpdated = current?.lastUpdated,
                     synced = false

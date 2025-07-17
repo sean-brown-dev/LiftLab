@@ -41,7 +41,6 @@ object FirestoreConstants {
     const val LIFTS_COLLECTION = "lifts"
     const val PREVIOUS_SET_RESULTS_COLLECTION = "previousSetResults"
     const val PROGRAMS_COLLECTION = "programs"
-    const val REST_TIMER_IN_PROGRESS_COLLECTION = "restTimerInProgress"
     const val SET_LOG_ENTRIES_COLLECTION = "setLogEntries"
     const val VOLUME_METRIC_CHARTS_COLLECTION = "volumeMetricCharts"
     const val WORKOUT_IN_PROGRESS_COLLECTION = "workoutInProgress"

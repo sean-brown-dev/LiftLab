@@ -33,6 +33,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -70,8 +71,22 @@ suspend fun<T, R>  List<T>.flatMapParallel(maxDegreesOfParallelism: Int, transfo
     }.awaitAll().flatten()
 }
 
-inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend CoroutineScope.() -> Unit) {
-    this.launch {
+suspend fun<T>  List<T>.forEachParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> Unit) = coroutineScope {
+    if (this@forEachParallel.isEmpty()) return@coroutineScope emptyList()
+
+    val thisList = this@forEachParallel
+    val batchSize = thisList.size / maxDegreesOfParallelism +
+            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
+
+    thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll()
+}
+
+inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend CoroutineScope.() -> Unit): Job {
+    return this.launch {
         try {
             block() // this is now a receiver lambda, so 'this' is the CoroutineScope
         } catch (e: Exception) {

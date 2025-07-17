@@ -2,12 +2,17 @@ package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.VolumeMetricChartFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutInProgressFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlin.collections.map
 
 class WorkoutInProgressSyncRepository(
     private val dao: WorkoutInProgressDao,
@@ -24,4 +29,12 @@ class WorkoutInProgressSyncRepository(
         dao.get()?.let { workoutInProgress ->
             listOf(workoutInProgress.toFirestoreDto())
         } ?: emptyList()
+
+    fun getAllFlow(): Flow<List<WorkoutInProgressFirestoreDto>> =
+        dao.getAllFlow().map { workoutInProgress ->
+            workoutInProgress.map { workoutInProgress -> workoutInProgress.toFirestoreDto() }
+        }
+
+    override suspend fun getMany(ids: List<Long>): List<WorkoutInProgressFirestoreDto> =
+        dao.getMany(ids).map { it.toFirestoreDto() }
 }

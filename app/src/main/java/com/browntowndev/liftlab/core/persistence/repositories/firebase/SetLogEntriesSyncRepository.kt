@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.ProgramFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.SetLogEntryFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.SetLogEntry
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
@@ -22,4 +23,7 @@ class SetLogEntriesSyncRepository(
 ) {
     override suspend fun getAll(): List<SetLogEntryFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }
+
+    override suspend fun getMany(ids: List<Long>): List<SetLogEntryFirestoreDto> =
+        dao.getMany(ids).map { it.toFirestoreDto() }
 }

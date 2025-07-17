@@ -12,6 +12,10 @@ interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutName> {
     @Query("SELECT * FROM historicalWorkoutNames")
     suspend fun getAll(): List<HistoricalWorkoutName>
 
+    @Transaction
+    @Query("SELECT * FROM historicalWorkoutNames WHERE historical_workout_name_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<HistoricalWorkoutName>
+
     @Query("DELETE FROM historicalWorkoutNames")
     suspend fun deleteAll()
 

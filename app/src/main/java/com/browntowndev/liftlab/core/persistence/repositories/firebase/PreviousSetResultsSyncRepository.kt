@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories.firebase
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.LiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.PreviousSetResultFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
@@ -22,4 +23,7 @@ class PreviousSetResultsSyncRepository(
 ) {
     override suspend fun getAll(): List<PreviousSetResultFirestoreDto> =
         dao.getAll().map { it.toFirestoreDto() }
+
+    override suspend fun getMany(ids: List<Long>): List<PreviousSetResultFirestoreDto> =
+        dao.getMany(ids).map { it.toFirestoreDto() }
 }

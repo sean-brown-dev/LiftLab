@@ -16,4 +16,7 @@ interface RestTimerInProgressDao: BaseDao<RestTimerInProgress> {
 
     @Query("SELECT * FROM restTimerInProgress")
     suspend fun getAll(): List<RestTimerInProgress>
+
+    @Query("DELETE FROM restTimerInProgress")
+    suspend fun deleteAll()
 }

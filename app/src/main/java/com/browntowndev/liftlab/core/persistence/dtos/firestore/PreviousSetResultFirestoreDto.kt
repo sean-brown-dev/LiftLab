@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Keep
 data class PreviousSetResultFirestoreDto(
-    var id: Long = 0L,
+    override var id: Long = 0L,
     var workoutId: Long = 0L,
     var liftId: Long = 0L,
     var setType: SetType = SetType.STANDARD,

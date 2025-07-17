@@ -4,9 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.browntowndev.liftlab.annotations.GenerateCopyWithFirestoreMetadata
+import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 
-@GenerateCopyWithFirestoreMetadata
+@GenerateFirestoreMetadataExtensions
 @Entity("historicalWorkoutNames",
     indices = [Index(value = ["programName", "workoutName"])])
 data class HistoricalWorkoutName(

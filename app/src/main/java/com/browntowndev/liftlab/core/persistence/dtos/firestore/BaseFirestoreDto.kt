@@ -10,6 +10,8 @@ abstract class BaseFirestoreDto {
     @DocumentId
     open var firestoreId: String? = null
 
+    abstract var id: Long
+
     @ServerTimestamp
     open var lastUpdated: Date? = null
 

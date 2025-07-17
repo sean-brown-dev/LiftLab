@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
+import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 @Dao
@@ -23,6 +24,10 @@ interface CustomSetsDao: BaseDao<CustomLiftSet> {
     @Transaction
     @Query("SELECT * FROM sets")
     suspend fun getAll(): List<CustomLiftSet>
+
+    @Transaction
+    @Query("SELECT * FROM sets")
+    fun getAllFlow(): Flow<List<CustomLiftSet>>
 
     @Query("DELETE FROM sets")
     suspend fun deleteAll()

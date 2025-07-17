@@ -119,7 +119,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
