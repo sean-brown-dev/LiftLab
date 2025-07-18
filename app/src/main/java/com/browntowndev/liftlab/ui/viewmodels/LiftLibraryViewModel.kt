@@ -40,8 +40,6 @@ class LiftLibraryViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
-    private var _liftsLiveData: LiveData<List<LiftDto>>? = null
-    private var _liftsObserver: Observer<List<LiftDto>>? = null
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 
@@ -65,9 +63,10 @@ class LiftLibraryViewModel(
                     }
                 )
             }
+        }
 
-            _liftsLiveData = liftsRepository.getAllAsLiveData()
-            _liftsObserver = Observer { lifts ->
+        viewModelScope.launch {
+            liftsRepository.getAllFlow().collect { lifts ->
                 val sortedLifts = lifts.sortedBy { it.name }
                 _state.update { currentState ->
                     currentState.copy(
@@ -76,14 +75,7 @@ class LiftLibraryViewModel(
                     )
                 }
             }
-
-            _liftsLiveData!!.observeForever(_liftsObserver!!)
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        _liftsLiveData?.removeObserver(_liftsObserver!!)
     }
 
     @Subscribe

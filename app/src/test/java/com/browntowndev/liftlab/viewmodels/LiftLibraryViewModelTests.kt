@@ -161,7 +161,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }
@@ -223,7 +223,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }
@@ -293,7 +293,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }
@@ -358,7 +358,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }
@@ -426,7 +426,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }
@@ -497,7 +497,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }
@@ -575,7 +575,7 @@ class LiftLibraryViewModelTests {
         val mockLiveData = mockk<LiveData<List<LiftDto>>>()
         val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
+        every { liftsRepository.getAllFlow() } returns mockLiveData
         every { mockLiveData.observeForever(capture(observerSlot)) } answers {
             observerSlot.captured.onChanged(lifts)
         }

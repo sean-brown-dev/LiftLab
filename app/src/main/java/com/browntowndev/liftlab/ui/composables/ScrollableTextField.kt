@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.InterceptPlatformTextInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -75,13 +74,14 @@ fun ScrollableTextField(
     val customKeyboardTextField: @Composable (width: Dp?) -> Unit = { width ->
         val placeholderAsState by remember(placeholder) { mutableStateOf(placeholder) }
         val keyboardController = LocalSoftwareKeyboardController.current
-        val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
+        val windowHeightDp: Dp = rememberWindowHeight()
         val screenDensity = LocalDensity.current
         val pickerHeightInPixels = with(screenDensity) {
-            (screenHeight * .30f).toPx()
+            (windowHeightDp.times(.3f)).toPx()
         }
         val screenInPixels = with(screenDensity) {
-            screenHeight.toPx()
+            windowHeightDp.toPx()
         }
         var topOfTextFieldPosition by remember { mutableFloatStateOf(0f) }
         val coroutineScope = rememberCoroutineScope()

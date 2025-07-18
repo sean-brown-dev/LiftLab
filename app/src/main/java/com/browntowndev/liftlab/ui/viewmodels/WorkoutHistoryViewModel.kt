@@ -5,6 +5,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.PROGRAM
@@ -23,6 +24,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
@@ -33,66 +35,67 @@ class WorkoutHistoryViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
-    private var _loggingLiveData: LiveData<List<WorkoutLogEntryDto>>? = null
-    private var _logObserver: Observer<List<WorkoutLogEntryDto>>? = null
     private val _state = MutableStateFlow(WorkoutHistoryState())
     val state = _state.asStateFlow()
 
     init {
-        _logObserver = Observer { workoutLogs ->
-            val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
-            val topSets = getTopSets(dateOrderedWorkoutLogs)
-            val workoutNamesById = dateOrderedWorkoutLogs
-                .distinctBy { workoutLog -> workoutLog.workoutId }
-                .sortedBy { it.workoutName }
-                .associate { workoutLog ->
-                    workoutLog.workoutId to workoutLog.workoutName
-                }
-            val programNamesById = dateOrderedWorkoutLogs
-                .distinctBy { workoutLog -> workoutLog.programId }
-                .sortedBy { it.programName }
-                .associate { workoutLog ->
-                    workoutLog.programId to workoutLog.programName
-                }
-            _state.update {
-                it.copy(
-                    dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
-                    filteredWorkoutLogs = dateOrderedWorkoutLogs,
-                    topSets = topSets,
-                    workoutNamesById = workoutNamesById,
-                    programNamesById = programNamesById,
-                    programAndWorkoutFilterSections = listOf(
-                        object : FlowRowFilterChipSection {
-                            override val sectionName: String
-                                get() = "Programs"
-                            override val filterChipOptions: Lazy<List<FilterChipOption>>
-                                get() = lazy {
-                                    programNamesById.map { program ->
-                                        FilterChipOption(type = PROGRAM, value = program.value, key = program.key)
+        viewModelScope.launch {
+            loggingRepository.getAllFlow().collect { workoutLogs ->
+                val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
+                val topSets = getTopSets(dateOrderedWorkoutLogs)
+                val workoutNamesById = dateOrderedWorkoutLogs
+                    .distinctBy { workoutLog -> workoutLog.workoutId }
+                    .sortedBy { it.workoutName }
+                    .associate { workoutLog ->
+                        workoutLog.workoutId to workoutLog.workoutName
+                    }
+                val programNamesById = dateOrderedWorkoutLogs
+                    .distinctBy { workoutLog -> workoutLog.programId }
+                    .sortedBy { it.programName }
+                    .associate { workoutLog ->
+                        workoutLog.programId to workoutLog.programName
+                    }
+                _state.update {
+                    it.copy(
+                        dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                        filteredWorkoutLogs = dateOrderedWorkoutLogs,
+                        topSets = topSets,
+                        workoutNamesById = workoutNamesById,
+                        programNamesById = programNamesById,
+                        programAndWorkoutFilterSections = listOf(
+                            object : FlowRowFilterChipSection {
+                                override val sectionName: String
+                                    get() = "Programs"
+                                override val filterChipOptions: Lazy<List<FilterChipOption>>
+                                    get() = lazy {
+                                        programNamesById.map { program ->
+                                            FilterChipOption(
+                                                type = PROGRAM,
+                                                value = program.value,
+                                                key = program.key
+                                            )
+                                        }
                                     }
-                                }
-                        },
-                        object : FlowRowFilterChipSection {
-                            override val sectionName: String
-                                get() = "Workouts"
-                            override val filterChipOptions: Lazy<List<FilterChipOption>>
-                                get() = lazy {
-                                    workoutNamesById.map { workout ->
-                                        FilterChipOption(type = WORKOUT, value = workout.value, key = workout.key)
+                            },
+                            object : FlowRowFilterChipSection {
+                                override val sectionName: String
+                                    get() = "Workouts"
+                                override val filterChipOptions: Lazy<List<FilterChipOption>>
+                                    get() = lazy {
+                                        workoutNamesById.map { workout ->
+                                            FilterChipOption(
+                                                type = WORKOUT,
+                                                value = workout.value,
+                                                key = workout.key
+                                            )
+                                        }
                                     }
-                                }
-                        },
+                            },
+                        )
                     )
-                )
+                }
             }
         }
-        _loggingLiveData = loggingRepository.getAll()
-        _loggingLiveData!!.observeForever(_logObserver!!)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        _loggingLiveData?.removeObserver(_logObserver!!)
     }
 
     @Subscribe

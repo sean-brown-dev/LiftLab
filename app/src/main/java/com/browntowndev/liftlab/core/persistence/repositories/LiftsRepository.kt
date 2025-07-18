@@ -1,22 +1,18 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
 import com.browntowndev.liftlab.core.persistence.entities.Lift
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
-import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlin.time.Duration
 
 class LiftsRepository(
@@ -121,27 +117,24 @@ class LiftsRepository(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun getAllAsLiveData(): LiveData<List<LiftDto>> {
-        return liftsDao.getAllAsFlow().flatMapLatest{ lifts ->
-            flowOf(
-                lifts.fastMap {
-                    LiftDto(
-                        id = it.id,
-                        name = it.name,
-                        movementPattern = it.movementPattern,
-                        volumeTypesBitmask = it.volumeTypesBitmask,
-                        secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                        incrementOverride = it.incrementOverride,
-                        restTime = it.restTime,
-                        restTimerEnabled = it.restTimerEnabled,
-                        isHidden = it.isHidden,
-                        isBodyweight = it.isBodyweight,
-                        note = it.note,
-                    )
-                }
-            )
-        }.asLiveData()
+    fun getAllFlow(): Flow<List<LiftDto>> {
+        return liftsDao.getAllAsFlow().map{ lifts ->
+            lifts.fastMap {
+                LiftDto(
+                    id = it.id,
+                    name = it.name,
+                    movementPattern = it.movementPattern,
+                    volumeTypesBitmask = it.volumeTypesBitmask,
+                    secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
+                    incrementOverride = it.incrementOverride,
+                    restTime = it.restTime,
+                    restTimerEnabled = it.restTimerEnabled,
+                    isHidden = it.isHidden,
+                    isBodyweight = it.isBodyweight,
+                    note = it.note,
+                )
+            }
+        }
     }
 
     suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?) {

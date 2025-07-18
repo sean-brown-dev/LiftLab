@@ -6,7 +6,6 @@ import android.content.Intent
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -57,7 +56,7 @@ class NotificationHelper(
     }
 
     private suspend fun getActiveWorkoutMetadata(): ActiveWorkoutNotificationMetadata? {
-        return programRepository.getActiveNotAsLiveData()?.let { activeProgramMetadata ->
+        return programRepository.getActive()?.let { activeProgramMetadata ->
             val workoutInProgress = workoutInProgressRepository.get(
                 mesoCycle = activeProgramMetadata.currentMesocycle,
                 microCycle = activeProgramMetadata.currentMicrocycle,

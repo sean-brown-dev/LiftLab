@@ -11,8 +11,6 @@ import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
 import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
@@ -27,8 +25,6 @@ class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val restTimerInProgressRepository: RestTimerInProgressRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -41,13 +37,15 @@ class LabViewModel(
         }
 
         viewModelScope.launch {
-            programsRepository.getActive().observeForever { activeProgram ->
-                _state.update {
-                    it.copy(
-                        program = activeProgram
-                    )
+            programsRepository.getAllFlow()
+                .collect { allPrograms ->
+                    _state.update {
+                        it.copy(
+                            program = allPrograms.firstOrNull { program -> program.isActive },
+                            allPrograms = allPrograms,
+                        )
+                    }
                 }
-            }
         }
     }
 
@@ -276,61 +274,27 @@ class LabViewModel(
         executeInTransactionScope {
             if (_state.value.isManagingPrograms) {
                 val programToDelete = _state.value.allPrograms.find { it.id == programId }!!
-                val isActive = programToDelete.id == _state.value.program?.id
-                var newActiveProgram: ProgramDto? = null
-
-                if (isActive) {
-                    deleteActiveProgram()
-                    newActiveProgram = _state.value.allPrograms
-                        .firstOrNull { it.id != programId }
-                        ?.copy(isActive = true)
-                        ?.also {
-                            programsRepository.update(it)
-                        }
-                } else {
-                    programsRepository.delete(programToDelete)
-                }
+                programsRepository.delete(programToDelete)
+                val programs = programsRepository.getAll()
 
                 _state.update {
                     it.copy(
-                        program = if (isActive) newActiveProgram else it.program,
+                        program = programs.firstOrNull { it.isActive },
                         idOfProgramToDelete = null,
                         isDeletingProgram = false,
-                        allPrograms = it.allPrograms.mapNotNull { program ->
-                            if (program.id == newActiveProgram?.id) {
-                                newActiveProgram
-                            } else if (program.id != programId) {
-                                program
-                            }
-                            else null
-                        }
+                        allPrograms = programs,
                     )
                 }
             } else {
-                deleteActiveProgram()
-                val newActiveProgram = programsRepository.getAll()
-                    .firstOrNull()
-                    ?.copy(isActive = true)
-                    ?.also {
-                        programsRepository.update(it)
-                    }
-
+                programsRepository.delete(_state.value.program!!)
+                val activeProgram = programsRepository.getActive()
                 _state.update {
                     it.copy(
-                        program = newActiveProgram,
+                        program = activeProgram,
                         isDeletingProgram = false,
                     )
                 }
             }
-        }
-    }
-
-    private suspend fun deleteActiveProgram() {
-        val program = _state.value.program
-        if (program != null) {
-            programsRepository.delete(program)
-            workoutInProgressRepository.delete()
-            restTimerInProgressRepository.deleteAll()
         }
     }
 
@@ -368,15 +332,10 @@ class LabViewModel(
     }
 
     fun toggleManageProgramsScreen() {
-        executeInTransactionScope {
-            // This UI will rarely be clicked, so I think it's fine to just get this each time it's opened
-            val allPrograms = programsRepository.getAll().sortedBy { it.name }
-            _state.update {
-                it.copy(
-                    allPrograms = allPrograms,
-                    isManagingPrograms = !it.isManagingPrograms,
-                )
-            }
+        _state.update {
+            it.copy(
+                isManagingPrograms = !it.isManagingPrograms,
+            )
         }
     }
 
@@ -402,24 +361,7 @@ class LabViewModel(
 
                 programsRepository.updateMany(programsToUpdate)
 
-                _state.update {
-                    it.copy(
-                        program = null, // Will get retrieved by observe in init
-                        allPrograms = it.allPrograms.map { program ->
-                            when (program.id) {
-                                programId -> {
-                                    newActiveProgram
-                                }
-                                programToArchive?.id -> {
-                                    programToArchive
-                                }
-                                else -> {
-                                    program
-                                }
-                            }
-                        }
-                    )
-                }
+                // State updated via observer collect
             }
         }
     }

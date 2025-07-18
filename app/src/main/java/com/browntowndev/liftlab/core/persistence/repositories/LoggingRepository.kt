@@ -1,8 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
@@ -14,16 +12,14 @@ import com.browntowndev.liftlab.core.persistence.dtos.queryable.FlattenedWorkout
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
-import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.Date
 
 class LoggingRepository(
@@ -35,11 +31,10 @@ class LoggingRepository(
     private val syncScope: CoroutineScope,
 ): Repository {
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun getAll(): LiveData<List<WorkoutLogEntryDto>> {
-        return workoutLogEntryDao.getAllFlattened().flatMapLatest {
-            flowOf(workoutLogEntryMapper.map(it))
-        }.asLiveData()
+    fun getAllFlow(): Flow<List<WorkoutLogEntryDto>> {
+        return workoutLogEntryDao.getAllFlattened().map {
+            workoutLogEntryMapper.map(it)
+        }
     }
 
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryDto? {

@@ -18,11 +18,11 @@ interface ProgramsDao: BaseDao<Program> {
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1")
-    fun getActive(): Flow<ProgramWithRelationships?>
+    fun getActiveWithRelationshipsFlow(): Flow<ProgramWithRelationships?>
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1")
-    suspend fun getActiveNotAsLiveData(): ProgramWithRelationships?
+    suspend fun getActiveWithRelationships(): ProgramWithRelationships?
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1")
@@ -31,6 +31,10 @@ interface ProgramsDao: BaseDao<Program> {
     @Transaction
     @Query("SELECT * FROM programs")
     suspend fun getAll(): List<Program>
+
+    @Transaction
+    @Query("SELECT * FROM programs")
+    fun getAllWithRelationshipsFlow(): Flow<List<ProgramWithRelationships>>
 
     @Query("SELECT * FROM programs WHERE program_id = :id")
     suspend fun get(id: Long) : Program?

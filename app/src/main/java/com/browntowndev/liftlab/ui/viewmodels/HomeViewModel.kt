@@ -6,8 +6,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -73,91 +71,92 @@ class HomeViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
-    private var _programLiveData: LiveData<ProgramDto?>? = null
-    private var _programObserver: Observer<ProgramDto?>? = null
-    private var _loggingLiveData:  LiveData<List<WorkoutLogEntryDto>>? = null
-    private var _loggingObserver: Observer<List<WorkoutLogEntryDto>>? = null
-    private var _liftLiveData: LiveData<List<LiftDto>>? = null
-    private var _liftObserver: Observer<List<LiftDto>>? = null
     private var _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    liftMetricOptions = getLiftMetricChartOptions(),
-                    firebaseUsername = firebaseAuth.currentUser?.email
-                )
-            }
+        val dateRange = getSevenWeeksDateRange()
+        val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
+        _state.update {
+            it.copy(
+                liftMetricOptions = getLiftMetricChartOptions(),
+                firebaseUsername = firebaseAuth.currentUser?.email
+            )
+        }
 
-            val dateRange = getSevenWeeksDateRange()
-            val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
+        viewModelScope.launch {
             val liftMetricCharts = liftMetricChartsRepository.getAll()
             val volumeMetricCharts = volumeMetricChartsRepository.getAll()
                 .sortedWith(compareBy<VolumeMetricChartDto> { it.volumeType.bitMask }
                     .thenBy { it.volumeTypeImpact.bitmask }
                 )
 
-            _programObserver = Observer { activeProgram ->
-                _state.update {
-                    it.copy(activeProgramName = activeProgram?.name ?: "")
-                }
-
-                if (_liftLiveData == null) {
-                    _liftObserver = Observer { lifts ->
-                        _state.update {
-                            it.copy(
-                                lifts = lifts,
-                                volumeMetricCharts = volumeMetricCharts,
-                            )
-                        }
-
-                        if (_loggingLiveData == null) {
-                            _loggingObserver = Observer { workoutLogs ->
-                                onWorkoutLogsChanged(
-                                    workoutLogs = workoutLogs,
-                                    dateRange = dateRange,
-                                    volumeMetricCharts = volumeMetricCharts,
-                                    liftMetricCharts = liftMetricCharts,
-                                    workoutCompletionRange = workoutCompletionRange,
-                                    activeProgram = activeProgram
-                                )
-                            }
-
-                            _loggingLiveData = loggingRepository.getAll()
-                            _loggingLiveData!!.observeForever(_loggingObserver!!)
-                        } else {
-                            onActiveProgramOrLiftsChanged(
-                                workoutCompletionRange = workoutCompletionRange,
-                                dateRange = dateRange,
-                                activeProgram = activeProgram,
-                                volumeMetricCharts = volumeMetricCharts
-                            )
-                        }
-                    }
-
-                    _liftLiveData = liftsRepository.getAllAsLiveData()
-                    _liftLiveData!!.observeForever(_liftObserver!!)
-                } else {
-                    onActiveProgramOrLiftsChanged(
-                        workoutCompletionRange = workoutCompletionRange,
-                        dateRange = dateRange,
-                        activeProgram = activeProgram,
-                        volumeMetricCharts = volumeMetricCharts
-                    )
-                }
+            _state.update {
+                it.copy(
+                    liftMetricCharts = liftMetricCharts,
+                    volumeMetricCharts = volumeMetricCharts,
+                )
             }
-            _programLiveData = programsRepository.getActive()
-            _programLiveData!!.observeForever(_programObserver!!)
+
+            reconstructChartsForProgramAndLifts(
+                workoutCompletionRange = workoutCompletionRange,
+                dateRange = dateRange,
+                activeProgram = _state.value.activeProgram,
+                volumeMetricCharts = volumeMetricCharts
+            )
+
+            reconstructChartsForWorkoutLogs(
+                workoutLogs = _state.value.workoutLogs,
+                dateRange = dateRange,
+                volumeMetricCharts = volumeMetricCharts,
+                liftMetricCharts = liftMetricCharts,
+                workoutCompletionRange = workoutCompletionRange,
+                activeProgram = _state.value.activeProgram
+            )
         }
-    }
 
-    override fun onCleared() {
-        super.onCleared()
+        viewModelScope.launch {
+            programsRepository.getActiveProgramFlow().collect { activeProgram ->
+                _state.update {
+                    it.copy(activeProgram = activeProgram)
+                }
 
-        _programLiveData?.removeObserver(_programObserver!!)
-        _loggingLiveData?.removeObserver(_loggingObserver!!)
+                reconstructChartsForProgramAndLifts(
+                    workoutCompletionRange = workoutCompletionRange,
+                    dateRange = dateRange,
+                    activeProgram = activeProgram,
+                    volumeMetricCharts = _state.value.volumeMetricCharts
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            liftsRepository.getAllFlow().collect { lifts ->
+                _state.update {
+                    it.copy(lifts = lifts)
+                }
+
+                reconstructChartsForProgramAndLifts(
+                    workoutCompletionRange = workoutCompletionRange,
+                    dateRange = dateRange,
+                    activeProgram = _state.value.activeProgram,
+                    volumeMetricCharts = _state.value.volumeMetricCharts,
+                )
+            }
+        }
+
+        viewModelScope.launch {
+            loggingRepository.getAllFlow().collect { workoutLogs ->
+                reconstructChartsForWorkoutLogs(
+                    workoutLogs = workoutLogs,
+                    dateRange = dateRange,
+                    volumeMetricCharts = _state.value.volumeMetricCharts,
+                    liftMetricCharts = _state.value.liftMetricCharts,
+                    workoutCompletionRange = workoutCompletionRange,
+                    activeProgram = _state.value.activeProgram,
+                )
+            }
+        }
     }
 
     @Subscribe
@@ -225,7 +224,7 @@ class HomeViewModel(
         )
     }
 
-    private fun onWorkoutLogsChanged(
+    private fun reconstructChartsForWorkoutLogs(
         workoutLogs: List<WorkoutLogEntryDto>,
         dateRange: Pair<Date, Date>,
         volumeMetricCharts: List<VolumeMetricChartDto>,
@@ -250,15 +249,17 @@ class HomeViewModel(
                     workoutCompletionRange = workoutCompletionRange,
                     workoutsInDateRange = workoutsInDateRange,
                 ),
-                microCycleCompletionChart = getMicroCycleCompletionChart(
-                    workoutLogs = workoutLogs,
-                    program = activeProgram,
-                )
+                microCycleCompletionChart = activeProgram?.let { program ->
+                    getMicroCycleCompletionChart(
+                        workoutLogs = workoutLogs,
+                        program = activeProgram,
+                    )
+                }
             )
         }
     }
 
-    private fun onActiveProgramOrLiftsChanged(
+    private fun reconstructChartsForProgramAndLifts(
         workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
         dateRange: Pair<Date, Date>,
         activeProgram: ProgramDto?,
@@ -273,10 +274,12 @@ class HomeViewModel(
                         dateRange
                     ),
                 ),
-                microCycleCompletionChart = getMicroCycleCompletionChart(
-                    workoutLogs = _state.value.workoutLogs,
-                    program = activeProgram,
-                ),
+                microCycleCompletionChart = activeProgram?.let { program ->
+                    getMicroCycleCompletionChart(
+                        workoutLogs = _state.value.workoutLogs,
+                        program = program,
+                    )
+                },
                 volumeMetricChartModels = getVolumeMetricCharts(
                     volumeMetricCharts = volumeMetricCharts,
                     workoutLogs = _state.value.workoutLogs,
@@ -366,6 +369,7 @@ class HomeViewModel(
         workoutLogs: List<WorkoutLogEntryDto>,
         lifts: List<LiftDto>,
     ): List<VolumeMetricChartModel> {
+        if (volumeMetricCharts.isEmpty() || workoutLogs.isEmpty()) return emptyList()
         val primaryVolumeTypesById = lifts.associate { it.id to it.volumeTypesBitmask }
         val secondaryVolumeTypesById = lifts.associate { it.id to it.secondaryVolumeTypesBitmask }
 

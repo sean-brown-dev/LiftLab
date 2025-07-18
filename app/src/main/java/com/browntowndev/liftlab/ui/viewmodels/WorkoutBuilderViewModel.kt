@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateFirstCompleteStepSequence
@@ -380,7 +379,7 @@ class WorkoutBuilderViewModel(
             workoutLiftsRepository.updateMany(updatedWorkoutCopy.lifts)
 
             if (workoutInProgressRepository.getWithoutCompletedSets() != null) {
-                programsRepository.getActiveNotAsLiveData()?.let { programMetadata ->
+                programsRepository.getActive()?.let { programMetadata ->
                     val workoutLiftIdByLiftId = _state.value.workout!!.lifts.associate { it.liftId to it.id }
                     val updatedInProgressSetResults = setResultsRepository.getForWorkout(
                         workoutId = workoutId,

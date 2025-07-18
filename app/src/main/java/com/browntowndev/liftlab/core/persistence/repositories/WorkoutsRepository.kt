@@ -1,7 +1,5 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
-import android.util.Log
-import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
@@ -53,7 +51,6 @@ class WorkoutsRepository(
         val toInsert = workoutMapper.map(workout)
         val id = workoutsDao.insert(toInsert)
 
-
         firestoreSyncManager.enqueueSyncRequest(
             entry = SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
@@ -97,7 +94,7 @@ class WorkoutsRepository(
 
         // If current microcycle position is now greater than the number of workouts
         // set it to the last workout index
-        programsRepository.getActiveNotAsLiveData()?.let { program ->
+        programsRepository.getActive()?.let { program ->
             if (program.currentMicrocyclePosition > workoutsWithNewPositions.lastIndex) {
                 programsRepository.updateMesoAndMicroCycle(
                     id = program.id,

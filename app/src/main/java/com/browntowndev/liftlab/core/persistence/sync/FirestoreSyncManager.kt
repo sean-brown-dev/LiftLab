@@ -36,7 +36,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -74,7 +73,7 @@ class FirestoreSyncManager (
         private const val BATCH_SIZE = 400 // Stay under 500 to be safe
 
         // Queue every distinct request
-        private val syncQueue: MutableList<SyncQueueEntry> = mutableListOf()
+        private val syncQueue: MutableMap<String, List<SyncQueueEntry>> = mutableMapOf()
 
         // One running sync per collection
         private val processingSyncs: MutableMap<String, SyncQueueEntry> = mutableMapOf()
@@ -88,10 +87,9 @@ class FirestoreSyncManager (
             if (!isAlreadyProcessing) {
                 processingSyncs.put(entry.collectionName, entry)
             } else {
-                syncQueue.add(entry)
-                val uniqueEntries = syncQueue.distinct()
-                syncQueue.clear()
-                syncQueue.addAll(uniqueEntries)
+                val entriesForCollection = syncQueue.getOrElse(entry.collectionName) { listOf() }.toMutableList()
+                entriesForCollection.add(entry)
+                syncQueue.put(entry.collectionName, entriesForCollection.distinct())
             }
 
             !isAlreadyProcessing
@@ -105,7 +103,33 @@ class FirestoreSyncManager (
     private suspend fun processQueue(queueEntry: SyncQueueEntry) {
         var entryToProcess = queueEntry.copy()
 
-        while (true) {when (entryToProcess.collectionName) {
+        while (true) {
+            Log.d(TAG, "Processing queue for ${entryToProcess.collectionName}")
+            executeSyncRequestForCollection(entryToProcess = entryToProcess)
+
+            val nextEntry = mutex.withLock {
+                val entriesForCollection = syncQueue[entryToProcess.collectionName]
+                val nextEntryForCollection = entriesForCollection?.firstOrNull()
+                val hasMoreWork = nextEntryForCollection != null
+
+                if (!hasMoreWork)
+                    processingSyncs.remove(entryToProcess.collectionName)
+                else
+                    syncQueue[entryToProcess.collectionName] = entriesForCollection.drop(1)
+
+                nextEntryForCollection
+            }
+
+            if (nextEntry != null)
+                entryToProcess = nextEntry
+            else break
+        }
+    }
+
+    private suspend fun executeSyncRequestForCollection(
+        entryToProcess: SyncQueueEntry,
+    ) {
+        when (entryToProcess.collectionName) {
             customLiftSetsSyncRepository.collectionName ->
                 executeSyncRequest(
                     collectionName = customLiftSetsSyncRepository.collectionName,
@@ -204,22 +228,6 @@ class FirestoreSyncManager (
 
             else -> {}
         }
-
-            val nextEntry = mutex.withLock {
-                val nextEntryForCollection = syncQueue.firstOrNull { it.collectionName == entryToProcess.collectionName }
-                syncQueue.remove(nextEntryForCollection)
-
-                val hasMoreWork = nextEntryForCollection != null
-                if (!hasMoreWork)
-                    processingSyncs.remove(entryToProcess.collectionName)
-
-                nextEntryForCollection
-            }
-
-            if (nextEntry != null)
-                entryToProcess = nextEntry
-            else break
-        }
     }
 
     private suspend inline fun<reified T: BaseFirestoreDto> executeSyncRequest(
@@ -295,14 +303,14 @@ class FirestoreSyncManager (
         }
 
         val job = syncScope.fireAndForgetSync {
-            val knownIds = ConcurrentHashMap.newKeySet<Long>()
+            val knownIds = ConcurrentHashMap.newKeySet<String>()
             entityFlow.collect { currentDtos ->
                 try {
-                    val currentIds = currentDtos.map { it.id }.toSet()
+                    val currentIds = currentDtos.mapNotNull { it.firestoreId }.toSet()
                     val deletedIds = knownIds - currentIds
 
                     if (deletedIds.isNotEmpty()) {
-                        deleteMany(collectionName, deletedIds.map { it.toString() })
+                        deleteMany(collectionName, deletedIds.map { it })
                     }
 
                     knownIds.clear()

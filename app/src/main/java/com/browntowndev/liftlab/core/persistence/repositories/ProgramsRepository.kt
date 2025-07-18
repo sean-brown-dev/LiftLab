@@ -1,9 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
-import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
@@ -12,20 +9,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
-import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.ProgramMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 class ProgramsRepository(
     private val programsDao: ProgramsDao,
     private val programMapper: ProgramMapper,
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val firestoreSyncManager: FirestoreSyncManager,
     private val syncScope: CoroutineScope,
 ) : Repository {
@@ -33,23 +29,26 @@ class ProgramsRepository(
         return programsDao.getAll().map { programMapper.map(it) }
     }
 
-    suspend fun getActiveNotAsLiveData(): ProgramDto? {
-        return programsDao.getActiveNotAsLiveData()?.let { programEntity ->
+    fun getAllFlow(): Flow<List<ProgramDto>> {
+        return programsDao.getAllWithRelationshipsFlow().map { programEntities ->
+            programEntities.map { programMapper.map(it) }
+        }
+    }
+
+    suspend fun getActive(): ProgramDto? {
+        return programsDao.getActiveWithRelationships()?.let { programEntity ->
             val program = programMapper.map(programEntity)
             getSortedCopy(program)
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun getActive(): LiveData<ProgramDto?> {
-        val programMeta = programsDao.getActive().flatMapLatest { programEntity ->
-            flowOf(
-                if (programEntity != null) {
-                    val program = programMapper.map(programEntity)
-                    getSortedCopy(program)
-                } else null
-            )
-        }.asLiveData()
+    fun getActiveProgramFlow(): Flow<ProgramDto?> {
+        val programMeta = programsDao.getActiveWithRelationshipsFlow().map { programEntity ->
+            if (programEntity != null) {
+                val program = programMapper.map(programEntity)
+                getSortedCopy(program)
+            } else null
+        }
 
         return programMeta
     }
@@ -209,6 +208,9 @@ class ProgramsRepository(
                     }
                 )
             }
+
+            workoutInProgressRepository.delete()
+            restTimerInProgressRepository.deleteAll()
         }
     }
 

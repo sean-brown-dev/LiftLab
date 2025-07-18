@@ -26,7 +26,7 @@ class HistoricalWorkoutNamesRepository(
         syncScope.fireAndForgetSync {
             firestoreSyncManager.syncSingle(
                 collectionName = FirestoreConstants.HISTORICAL_WORKOUT_NAMES_COLLECTION,
-                entity = toInsert.toFirestoreDto(),
+                entity = toInsert.toFirestoreDto().copy(id = id),
                 onSynced = {
                     historicalWorkoutNamesDao.update(it.toEntity())
                 }

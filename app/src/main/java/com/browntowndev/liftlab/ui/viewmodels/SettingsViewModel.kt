@@ -117,7 +117,7 @@ class SettingsViewModel(
             if (!_state.value.queriedForProgram) {
                 _state.update {
                     it.copy(
-                        activeProgram = programsRepository.getActiveNotAsLiveData(),
+                        activeProgram = programsRepository.getActive(),
                         queriedForProgram = true,
                     )
                 }

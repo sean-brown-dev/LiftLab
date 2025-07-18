@@ -87,8 +87,8 @@ class WorkoutViewModel(
         initialize()
     }
     private fun initialize() {
-        // Observe Rest Timer
         viewModelScope.launch {
+            // Observe Rest Timer
             restTimerInProgressRepository.getFlow()
                 .collect { restTimerInProgress ->
                     mutableWorkoutState.update { currentState ->
@@ -100,8 +100,8 @@ class WorkoutViewModel(
                 }
         }
 
-        // Observe Program Metadata
         viewModelScope.launch {
+            // Observe Program Metadata
             programsRepository.getActiveProgramMetadataFlow()
                 .collect { programMetadata ->
                     if (programMetadata != null) {
@@ -116,29 +116,27 @@ class WorkoutViewModel(
         }
     }
 
-    private fun observeWorkoutForProgram(programMetadata: ActiveProgramMetadataDto) {
-        viewModelScope.launch {
-            getNextToPerformFlow(programMetadata).collect { workout ->
-                executeInTransactionScope {
-                    val inProgressWorkout = workoutInProgressRepository.get(
-                        programMetadata.currentMesocycle,
-                        programMetadata.currentMicrocycle
-                    )
+    private fun observeWorkoutForProgram(programMetadata: ActiveProgramMetadataDto) = viewModelScope.launch {
+        getNextToPerformFlow(programMetadata).collect { workout ->
+            executeInTransactionScope {
+                val inProgressWorkout = workoutInProgressRepository.get(
+                    programMetadata.currentMesocycle,
+                    programMetadata.currentMicrocycle
+                )
 
-                    mutableWorkoutState.update { currentState ->
-                        currentState.copy(
-                            inProgressWorkout = inProgressWorkout,
-                            programMetadata = programMetadata,
-                            workout = workout,
-                            personalRecords = getPersonalRecords(
-                                workoutId = workout?.id ?: 0L,
-                                mesoCycle = programMetadata.currentMesocycle,
-                                microCycle = programMetadata.currentMicrocycle,
-                                liftIds = workout?.lifts?.map { it.liftId } ?: listOf()
-                            ),
-                            initialized = true,
-                        )
-                    }
+                mutableWorkoutState.update { currentState ->
+                    currentState.copy(
+                        inProgressWorkout = inProgressWorkout,
+                        programMetadata = programMetadata,
+                        workout = workout,
+                        personalRecords = getPersonalRecords(
+                            workoutId = workout?.id ?: 0L,
+                            mesoCycle = programMetadata.currentMesocycle,
+                            microCycle = programMetadata.currentMicrocycle,
+                            liftIds = workout?.lifts?.map { it.liftId } ?: listOf()
+                        ),
+                        initialized = true,
+                    )
                 }
             }
         }

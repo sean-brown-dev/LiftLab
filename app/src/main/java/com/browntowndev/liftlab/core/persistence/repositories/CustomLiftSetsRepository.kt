@@ -29,7 +29,7 @@ class CustomLiftSetsRepository(
         syncScope.fireAndForgetSync {
             firestoreSyncManager.syncSingle(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entity = entity.toFirestoreDto(),
+                entity = entity.toFirestoreDto().copy(id = id),
                 onSynced = { firestoreEntity ->
                     customSetsDao.update(firestoreEntity.toEntity())
                 },
@@ -127,10 +127,13 @@ class CustomLiftSetsRepository(
     suspend fun insertAll(customSets: List<GenericLiftSet>): List<Long> {
         val toInsert = customSets.map { customLiftSetMapper.map(it) }
         val insertedIds = customSetsDao.insertMany(toInsert)
+        val insertedWithIds = toInsert.zip(insertedIds).map { (entity, id) ->
+            entity.copy(id = id)
+        }
         syncScope.fireAndForgetSync {
             firestoreSyncManager.syncMany(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entities = toInsert.map { it.toFirestoreDto() },
+                entities = insertedWithIds.map { it.toFirestoreDto() },
                 onSynced = { firebaseEntities ->
                     customSetsDao.updateMany(firebaseEntities.map { it.toEntity() })
                 },

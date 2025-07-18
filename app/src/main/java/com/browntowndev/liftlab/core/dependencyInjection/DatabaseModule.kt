@@ -4,6 +4,7 @@ import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.*
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.SyncMetadataRepository
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -27,7 +28,7 @@ val repositoryModule = module {
     single { get<LiftLabDatabase>().syncDao() }
 
     // Repositories
-    single { ProgramsRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
+    single { ProgramsRepository(get(), get(), get(), get(), get(),get(named("FirestoreSyncScope"))) }
     single { WorkoutLiftsRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
     single {
         WorkoutsRepository(
@@ -55,9 +56,8 @@ val repositoryModule = module {
             syncScope = get(named("FirestoreSyncScope"))
         )
     }
-    single { RestTimerInProgressRepository(get(), get()) }
     single { LiftMetricChartsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
     single { VolumeMetricChartsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
-    single { SyncMetadataRepository(get()) }
-
+    singleOf(::SyncMetadataRepository)
+    singleOf(::RestTimerInProgressRepository)
 }
