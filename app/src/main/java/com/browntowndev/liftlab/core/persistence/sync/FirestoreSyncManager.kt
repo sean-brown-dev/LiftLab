@@ -1,14 +1,28 @@
 package com.browntowndev.liftlab.core.persistence.sync
 
 import android.util.Log
+import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.copyForUpload
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.common.flatMapParallel
 import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.BaseFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.CustomLiftSetFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.HistoricalWorkoutNameFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.LiftFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.LiftMetricChartFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.PreviousSetResultFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.ProgramFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.SetLogEntryFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.SyncMetadataDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.VolumeMetricChartFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutInProgressFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLogEntryFirestoreDto
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.CustomLiftSetsSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.HistoricalWorkoutNamesSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftMetricChartsSyncRepository
@@ -36,6 +50,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -75,15 +90,35 @@ class FirestoreSyncManager (
         // Queue every distinct request
         private val syncQueue: MutableMap<String, List<SyncQueueEntry>> = mutableMapOf()
 
+        // Queue for batch syncs
+        private val batchSyncQueue: MutableList<BatchSyncQueueEntry> = mutableListOf()
+
         // One running sync per collection
         private val processingSyncs: MutableMap<String, SyncQueueEntry> = mutableMapOf()
 
+        // Batch related sync operations
+        private val processingBatchSyncs: MutableList<BatchSyncQueueEntry> = mutableListOf()
+
+        private val processingBatchCollections
+            get() = processingBatchSyncs.fastFlatMap { batchQueueEntry -> batchQueueEntry.batch.fastMap { it.collectionName } }.toHashSet()
+
         private val mutex: Mutex = Mutex()
+
+        private fun isCollectionAlreadyProcessing(batch: BatchSyncQueueEntry): Boolean {
+            val batchEntryCollectionNames = batch.batch.map { it.collectionName }
+            return batchEntryCollectionNames.any { collectionName ->
+                collectionName in processingBatchCollections
+            }
+        }
+
+        private fun isCollectionAlreadyProcessing(collectionName: String): Boolean {
+            return collectionName in processingSyncs
+        }
     }
 
     fun enqueueSyncRequest(entry: SyncQueueEntry) = syncScope.fireAndForgetSync {
         val shouldStart = mutex.withLock {
-            val isAlreadyProcessing = processingSyncs.containsKey(entry.collectionName)
+            val isAlreadyProcessing = isCollectionAlreadyProcessing(collectionName = entry.collectionName)
             if (!isAlreadyProcessing) {
                 processingSyncs.put(entry.collectionName, entry)
             } else {
@@ -96,37 +131,64 @@ class FirestoreSyncManager (
         }
 
         if (shouldStart) {
-            processQueue(entry)
+            try {
+                processQueue(entry)
+            } catch(e: Exception) {
+                // Super crazy error for this to happen. Only place it could happen is trying
+                // to dequeue and add next to processing
+                processingSyncs.clear()
+                syncQueue.clear()
+
+                Log.e(TAG, "Error during processQueue. Dequeueing all: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+            }
         }
     }
 
     private suspend fun processQueue(queueEntry: SyncQueueEntry) {
-        var entryToProcess = queueEntry.copy()
+        var entryToProcess: SyncQueueEntry? = queueEntry.copy()
 
-        while (true) {
-            Log.d(TAG, "Processing queue for ${entryToProcess.collectionName}")
-            executeSyncRequestForCollection(entryToProcess = entryToProcess)
+        while (entryToProcess != null) {
+            try {
+                val waitForBatchQueue = mutex.withLock {
+                    entryToProcess.collectionName in processingBatchCollections
+                }
+                if (waitForBatchQueue) {
+                    Log.d(TAG, "Waiting for batch queue")
+                    delay(50)
+                    continue
+                }
 
-            val nextEntry = mutex.withLock {
-                val entriesForCollection = syncQueue[entryToProcess.collectionName]
-                val nextEntryForCollection = entriesForCollection?.firstOrNull()
-                val hasMoreWork = nextEntryForCollection != null
+                Log.d(TAG, "Processing queue for ${entryToProcess.collectionName}")
+                executeSyncRequest(entryToProcess = entryToProcess)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during processQueue: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+            } finally {
+                val nextEntry = mutex.withLock {
+                    val entriesForCollection = syncQueue[entryToProcess.collectionName]
+                    val nextEntryForCollection = entriesForCollection?.firstOrNull()
+                    val hasMoreWork = nextEntryForCollection != null
+                    Log.d(TAG, "Next entry for ${entryToProcess.collectionName}: $nextEntryForCollection")
 
-                if (!hasMoreWork)
-                    processingSyncs.remove(entryToProcess.collectionName)
-                else
-                    syncQueue[entryToProcess.collectionName] = entriesForCollection.drop(1)
+                    if (!hasMoreWork) {
+                        processingSyncs.remove(entryToProcess.collectionName)
+                        Log.d(TAG, "Processing: $processingSyncs")
+                    }
+                    else {
+                        syncQueue[entryToProcess.collectionName] = entriesForCollection.drop(1)
+                        Log.d(TAG, "Queue: $syncQueue")
+                    }
 
-                nextEntryForCollection
-            }
+                    nextEntryForCollection
+                }
 
-            if (nextEntry != null)
                 entryToProcess = nextEntry
-            else break
+            }
         }
     }
 
-    private suspend fun executeSyncRequestForCollection(
+    private suspend fun executeSyncRequest(
         entryToProcess: SyncQueueEntry,
     ) {
         when (entryToProcess.collectionName) {
@@ -266,6 +328,198 @@ class FirestoreSyncManager (
             Log.e(TAG, "Error during processQueueEntry: ${e.message}", e)
             FirebaseCrashlytics.getInstance().recordException(e)
         }
+    }
+
+    fun enqueueBatchSyncRequest(batch: BatchSyncQueueEntry) = syncScope.fireAndForgetSync {
+        val shouldStart = mutex.withLock {
+            val isAlreadyProcessing = isCollectionAlreadyProcessing(batch)
+            if (!isAlreadyProcessing) {
+                processingBatchSyncs.add(batch)
+            } else {
+                batchSyncQueue.add(batch)
+            }
+
+            !isAlreadyProcessing
+        }
+
+        if (shouldStart) {
+            try {
+                processBatchQueue(batch)
+            } catch (e: Exception) {
+                // Super crazy error for this to happen. Only place it could happen is trying
+                // to dequeue and add next to processing
+                processingBatchSyncs.clear()
+                batchSyncQueue.clear()
+
+                Log.e(TAG, "Error during processBatchQueue. Dequeueing all: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+            }
+        }
+    }
+
+    private suspend fun processBatchQueue(batch: BatchSyncQueueEntry) {
+        var batchToProcess: BatchSyncQueueEntry? = batch
+        while (batchToProcess != null) {
+            try {
+                val waitForNonBatchQueue = mutex.withLock {
+                    batchToProcess.batch.any { it.collectionName in processingSyncs }
+                }
+                if (waitForNonBatchQueue) {
+                    Log.d(TAG, "Waiting for non-batch queue")
+                    delay(50)
+                    continue
+                }
+
+                Log.d(TAG, "Processing batch queue: $batchToProcess")
+                executeBatchSyncRequest(batchToProcess)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during processBatchQueue: ${e.message}", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+            } finally {
+                val nextBatch = mutex.withLock {
+                    val nextBatch = batchSyncQueue.firstOrNull()
+                    val hasMoreWork = nextBatch != null
+                    Log.d(TAG, "Next batch: $nextBatch")
+
+                    // Remove current from processing
+                    val processingWithoutCurrent = processingBatchSyncs.filter { it.id != batchToProcess.id }
+                    processingBatchSyncs.clear()
+                    processingBatchSyncs.addAll(processingWithoutCurrent)
+                    Log.d(TAG, "Processing: $processingBatchSyncs")
+
+                    if (hasMoreWork) {
+                        val queueWithoutNext = batchSyncQueue.filter { it.id != nextBatch.id }
+                        batchSyncQueue.clear()
+                        batchSyncQueue.addAll(queueWithoutNext)
+                        processingBatchSyncs.add(nextBatch)
+                        Log.d(TAG, "Queue: $batchSyncQueue")
+                    }
+
+                    nextBatch
+                }
+
+                batchToProcess = nextBatch
+            }
+        }
+    }
+
+    private suspend fun executeBatchSyncRequest(batch: BatchSyncQueueEntry) {
+        val batchSyncCollections = batch.batch.fastMap { entry ->
+            BatchSyncCollection(
+                collectionName = entry.collectionName,
+                roomEntityIds = entry.roomEntityIds,
+                syncType = entry.syncType,
+            )
+        }
+        executeBatchSyncRequest(
+            batchSyncCollections = batchSyncCollections,
+            onRequestEntities = { collectionName, roomEntityIds ->
+                when (collectionName) {
+                    customLiftSetsSyncRepository.collectionName -> customLiftSetsSyncRepository.getMany(roomEntityIds)
+                    historicalWorkoutNamesSyncRepository.collectionName -> historicalWorkoutNamesSyncRepository.getMany(roomEntityIds)
+                    liftMetricChartsSyncRepository.collectionName -> liftMetricChartsSyncRepository.getMany(roomEntityIds)
+                    liftsSyncRepository.collectionName -> liftsSyncRepository.getMany(roomEntityIds)
+                    previousSetResultsSyncRepository.collectionName -> previousSetResultsSyncRepository.getMany(roomEntityIds)
+                    programsSyncRepository.collectionName -> programsSyncRepository.getMany(roomEntityIds)
+                    setLogEntriesSyncRepository.collectionName -> setLogEntriesSyncRepository.getMany(roomEntityIds)
+                    volumeMetricChartsSyncRepository.collectionName -> volumeMetricChartsSyncRepository.getMany(roomEntityIds)
+                    workoutInProgressSyncRepository.collectionName -> workoutInProgressSyncRepository.getMany(roomEntityIds)
+                    workoutLiftsSyncRepository.collectionName -> workoutLiftsSyncRepository.getMany(roomEntityIds)
+                    workoutLogEntriesSyncRepository.collectionName -> workoutLogEntriesSyncRepository.getMany(roomEntityIds)
+                    workoutsSyncRepository.collectionName -> workoutsSyncRepository.getMany(roomEntityIds)
+                    else -> listOf()
+                }
+            },
+            onSynced = { collectionName, entities ->
+                @Suppress("UNCHECKED_CAST")
+                when (collectionName) {
+                    customLiftSetsSyncRepository.collectionName -> customLiftSetsSyncRepository.upsertMany(
+                        entities as List<CustomLiftSetFirestoreDto>
+                    )
+                    historicalWorkoutNamesSyncRepository.collectionName -> historicalWorkoutNamesSyncRepository.upsertMany(
+                        entities as List<HistoricalWorkoutNameFirestoreDto>
+                    )
+                    liftMetricChartsSyncRepository.collectionName -> liftMetricChartsSyncRepository.upsertMany(
+                        entities as List<LiftMetricChartFirestoreDto>
+                    )
+                    liftsSyncRepository.collectionName -> liftsSyncRepository.upsertMany(
+                        entities as List<LiftFirestoreDto>
+                    )
+                    previousSetResultsSyncRepository.collectionName -> previousSetResultsSyncRepository.upsertMany(
+                        entities as List<PreviousSetResultFirestoreDto>
+                    )
+                    programsSyncRepository.collectionName -> programsSyncRepository.upsertMany(
+                        entities as List<ProgramFirestoreDto>
+                    )
+                    setLogEntriesSyncRepository.collectionName -> setLogEntriesSyncRepository.upsertMany(
+                        entities as List<SetLogEntryFirestoreDto>
+                    )
+                    volumeMetricChartsSyncRepository.collectionName -> volumeMetricChartsSyncRepository.upsertMany(
+                        entities as List<VolumeMetricChartFirestoreDto>
+                    )
+                    workoutInProgressSyncRepository.collectionName -> workoutInProgressSyncRepository.upsertMany(
+                        entities as List<WorkoutInProgressFirestoreDto>
+                    )
+                    workoutLiftsSyncRepository.collectionName -> workoutLiftsSyncRepository.upsertMany(
+                        entities as List<WorkoutLiftFirestoreDto>
+                    )
+                    workoutLogEntriesSyncRepository.collectionName -> workoutLogEntriesSyncRepository.upsertMany(
+                        entities as List<WorkoutLogEntryFirestoreDto>
+                    )
+                    workoutsSyncRepository.collectionName -> workoutsSyncRepository.upsertMany(
+                        entities as List<WorkoutFirestoreDto>
+                    )
+
+                    else -> listOf()
+                }
+            },
+        )
+    }
+
+    private suspend inline fun<reified T: BaseFirestoreDto> executeBatchSyncRequest(
+        batchSyncCollections: List<BatchSyncCollection>,
+        crossinline onRequestEntities: suspend (collectionName: String, roomEntityIds: List<Long>) -> List<T>,
+        noinline onSynced: suspend (collectionName: String, entities: List<T>) -> Unit,
+    ) {
+        val deletedIds = mutableListOf<String>()
+        val syncedEntities = mutableMapOf<String, List<T>>()
+        val firestoreBatch = firestore.batch()
+
+        batchSyncCollections.fastForEach { batch ->
+            val collection = firestore.collection("users")
+                .document(userId!!)
+                .collection(batch.collectionName)
+
+            onRequestEntities(batch.collectionName, batch.roomEntityIds).fastForEach { entity ->
+                when (batch.syncType) {
+                    SyncType.Sync -> {
+                        val docRef =
+                            if (entity.firestoreId != null) collection.document(entity.firestoreId!!)
+                            else collection.document()
+                        firestoreBatch.set(docRef, entity.copyForUpload(docRef.id))
+                        val firestoreEntity = collection.document(docRef.id).get().await().toObject<T>()
+                        if (firestoreEntity == null) throw Exception("Firestore entity did not sync.")
+                        val existingEntities = syncedEntities.getOrDefault(batch.collectionName, listOf()).toMutableList()
+                        existingEntities.add(firestoreEntity)
+                        syncedEntities[batch.collectionName] = existingEntities
+                    }
+
+                    SyncType.Delete -> {
+                        if (entity.firestoreId == null) return@fastForEach
+                        val docRef = collection.document(entity.firestoreId!!)
+                        firestoreBatch.delete(docRef)
+                        deletedIds.add(entity.firestoreId!!)
+                    }
+                }
+            }
+        }
+
+        firestoreBatch.commit().await()
+        syncedEntities.forEach { (collectionName, entities) ->
+            onSynced(collectionName, entities)
+        }
+
+        Log.d(TAG, "Batch sync complete. Deleted: $deletedIds, Synced: $syncedEntities")
     }
 
     fun tryStartDeletionWatchers() {
