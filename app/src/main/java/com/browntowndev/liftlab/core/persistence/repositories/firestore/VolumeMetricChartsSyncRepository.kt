@@ -1,8 +1,7 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.SetLogEntryFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.VolumeMetricChartFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.VolumeMetricChart
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity

@@ -113,7 +113,7 @@ class WorkoutBuilderViewModelTest {
             ),
         )
 
-        coEvery { mockWorkoutsRepository.get(workoutId) } returns dummyWorkout
+        coEvery { mockWorkoutsRepository.getFlow(workoutId) } returns dummyWorkout
         coEvery { mockProgramsRepository.getDeloadWeek(any()) } returns 4
 
         viewModel = WorkoutBuilderViewModel(

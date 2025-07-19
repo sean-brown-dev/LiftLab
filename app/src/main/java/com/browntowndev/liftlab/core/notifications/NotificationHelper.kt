@@ -18,6 +18,8 @@ import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgres
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.models.ActiveWorkoutNotificationMetadata
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 class NotificationHelper(
     private val programRepository: ProgramsRepository,
@@ -63,8 +65,7 @@ class NotificationHelper(
             )
 
             if (workoutInProgress != null) {
-                val workout = workoutsRepository.get(workoutInProgress.workoutId)!!
-
+                val workout = workoutsRepository.get(workoutInProgress.workoutId) ?: return null
                 ActiveWorkoutNotificationMetadata(
                     workoutName = workout.name,
                     startTime = workoutInProgress.startTime,

@@ -8,11 +8,13 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.browntowndev.liftlab.BuildConfig
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
@@ -86,16 +88,23 @@ abstract class LiftLabDatabase : RoomDatabase() {
             }
 
         fun getInstance(context: Context): LiftLabDatabase {
+            Log.d("LiftLabDatabase", "getInstance called. Current instance: $instance")
             return instance ?: synchronized(this) {
-                instance ?: buildDatabase(context).also { instance = it }
+                instance ?: buildDatabase(context.applicationContext).also { instance = it }
             }
         }
 
         private fun buildDatabase(context: Context): LiftLabDatabase {
+            val dbName = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DATABASE_NAME" else DATABASE_NAME
             val db: LiftLabDatabase = Room
-                .databaseBuilder(context, LiftLabDatabase::class.java, DATABASE_NAME)
+                .databaseBuilder(context, LiftLabDatabase::class.java, dbName)
                 .addMigrations(LiftNoteMigration(), WorkoutInProgressMigration())
                 .fallbackToDestructiveMigration(false)
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        Log.d("LiftLabDatabase", "DB opened at: $db, hash: ${db.hashCode()}")
+                    }
+                })
                 .build()
 
             submitDataInitializationJob(context)
@@ -104,7 +113,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
         }
 
         private fun submitDataInitializationJob(context: Context) {
-            val isDatabaseInitialized = SettingsManager.getSetting(DB_INITIALIZED, false)
+            val dbInitializedSetting = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DB_INITIALIZED" else DB_INITIALIZED
+            val isDatabaseInitialized = SettingsManager.getSetting(dbInitializedSetting, false)
             if (!isDatabaseInitialized) {
                 val workManager = WorkManager.getInstance(context)
                 val request = OneTimeWorkRequestBuilder<LiftLabDatabaseWorker>()
@@ -135,7 +145,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
         }
 
         private fun setAsInitialized(success: Boolean) {
-            SettingsManager.setSetting(DB_INITIALIZED, success)
+            val dbInitializedSetting = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DB_INITIALIZED" else DB_INITIALIZED
+            SettingsManager.setSetting(dbInitializedSetting, success)
             _initialized.update { true }
         }
     }

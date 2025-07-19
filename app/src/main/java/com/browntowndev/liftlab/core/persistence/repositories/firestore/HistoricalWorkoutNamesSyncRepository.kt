@@ -1,8 +1,7 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.CustomLiftSetFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.HistoricalWorkoutNameFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity

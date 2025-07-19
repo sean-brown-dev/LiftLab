@@ -1,9 +1,8 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
+import android.util.Log
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutFirestoreDto
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutInProgressFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity

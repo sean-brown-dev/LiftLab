@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.copyForUpload
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
@@ -23,19 +24,19 @@ import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutFirestore
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutInProgressFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLogEntryFirestoreDto
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.CustomLiftSetsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.HistoricalWorkoutNamesSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftMetricChartsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.LiftsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.PreviousSetResultsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.ProgramsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.SetLogEntriesSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.SyncMetadataRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.VolumeMetricChartsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutInProgressSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutLiftsSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutLogEntriesSyncRepository
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.WorkoutsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.CustomLiftSetsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.HistoricalWorkoutNamesSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.LiftMetricChartsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.LiftsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.PreviousSetResultsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.ProgramsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.SetLogEntriesSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.SyncMetadataRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.VolumeMetricChartsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutInProgressSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutLiftsSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutLogEntriesSyncRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutsSyncRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.CollectionReference
@@ -81,11 +82,12 @@ class FirestoreSyncManager (
     private val syncRepository: SyncMetadataRepository,
 ) {
     private val userId: String? get() = firebaseAuth.currentUser?.uid
-    private val deletionWatcherJobs: MutableMap<String, Job> = ConcurrentHashMap()
 
     companion object {
-        private const val TAG = "FirebaseSyncManager"
+        private const val TAG = "FirestoreSyncManager"
         private const val BATCH_SIZE = 400 // Stay under 500 to be safe
+
+        private val deletionWatcherJobs: MutableMap<String, Job> = ConcurrentHashMap()
 
         // Queue every distinct request
         private val syncQueue: MutableMap<String, List<SyncQueueEntry>> = mutableMapOf()
@@ -117,6 +119,7 @@ class FirestoreSyncManager (
     }
 
     fun enqueueSyncRequest(entry: SyncQueueEntry) = syncScope.fireAndForgetSync {
+        Log.d(TAG, "Received sync request: $entry")
         val shouldStart = mutex.withLock {
             val isAlreadyProcessing = isCollectionAlreadyProcessing(collectionName = entry.collectionName)
             if (!isAlreadyProcessing) {
@@ -129,7 +132,7 @@ class FirestoreSyncManager (
 
             !isAlreadyProcessing
         }
-
+        Log.d(TAG, "shouldStart=$shouldStart")
         if (shouldStart) {
             try {
                 processQueue(entry)
@@ -331,6 +334,7 @@ class FirestoreSyncManager (
     }
 
     fun enqueueBatchSyncRequest(batch: BatchSyncQueueEntry) = syncScope.fireAndForgetSync {
+        Log.d(TAG, "Received batch sync request: $batch")
         val shouldStart = mutex.withLock {
             val isAlreadyProcessing = isCollectionAlreadyProcessing(batch)
             if (!isAlreadyProcessing) {
@@ -342,6 +346,7 @@ class FirestoreSyncManager (
             !isAlreadyProcessing
         }
 
+        Log.d(TAG, "shouldStart=$shouldStart")
         if (shouldStart) {
             try {
                 processBatchQueue(batch)
@@ -353,6 +358,8 @@ class FirestoreSyncManager (
 
                 Log.e(TAG, "Error during processBatchQueue. Dequeueing all: ${e.message}", e)
                 FirebaseCrashlytics.getInstance().recordException(e)
+            } finally {
+                Log.d(TAG, "Completed processing batch queue.")
             }
         }
     }
@@ -473,6 +480,36 @@ class FirestoreSyncManager (
                     else -> listOf()
                 }
             },
+            onRequestObjectConversion = { collectionName, documentSnapshot ->
+                @Suppress("UNCHECKED_CAST")
+                when(collectionName) {
+                    customLiftSetsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<CustomLiftSetFirestoreDto>()
+                    historicalWorkoutNamesSyncRepository.collectionName ->
+                        documentSnapshot.toObject<HistoricalWorkoutNameFirestoreDto>()
+                    liftMetricChartsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<LiftMetricChartFirestoreDto>()
+                    liftsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<LiftFirestoreDto>()
+                    previousSetResultsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<PreviousSetResultFirestoreDto>()
+                    programsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<ProgramFirestoreDto>()
+                    setLogEntriesSyncRepository.collectionName ->
+                        documentSnapshot.toObject<SetLogEntryFirestoreDto>()
+                    volumeMetricChartsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<VolumeMetricChartFirestoreDto>()
+                    workoutInProgressSyncRepository.collectionName ->
+                        documentSnapshot.toObject<WorkoutInProgressFirestoreDto>()
+                    workoutLiftsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<WorkoutLiftFirestoreDto>()
+                    workoutLogEntriesSyncRepository.collectionName ->
+                        documentSnapshot.toObject<WorkoutLogEntryFirestoreDto>()
+                    workoutsSyncRepository.collectionName ->
+                        documentSnapshot.toObject<WorkoutFirestoreDto>()
+                    else -> null
+                }
+            },
         )
     }
 
@@ -480,9 +517,10 @@ class FirestoreSyncManager (
         batchSyncCollections: List<BatchSyncCollection>,
         crossinline onRequestEntities: suspend (collectionName: String, roomEntityIds: List<Long>) -> List<T>,
         noinline onSynced: suspend (collectionName: String, entities: List<T>) -> Unit,
+        onRequestObjectConversion: (collectionName: String, documentSnapshot: DocumentSnapshot) -> T?,
     ) {
         val deletedIds = mutableListOf<String>()
-        val syncedEntities = mutableMapOf<String, List<T>>()
+        val batchedSyncDocuments = mutableMapOf<String, List<DocumentReference>>()
         val firestoreBatch = firestore.batch()
 
         batchSyncCollections.fastForEach { batch ->
@@ -490,21 +528,23 @@ class FirestoreSyncManager (
                 .document(userId!!)
                 .collection(batch.collectionName)
 
-            onRequestEntities(batch.collectionName, batch.roomEntityIds).fastForEach { entity ->
-                when (batch.syncType) {
-                    SyncType.Sync -> {
+            val batchEntities = onRequestEntities(batch.collectionName, batch.roomEntityIds)
+            when (batch.syncType) {
+                SyncType.Sync -> {
+                    batchEntities.fastForEach { entity ->
                         val docRef =
                             if (entity.firestoreId != null) collection.document(entity.firestoreId!!)
                             else collection.document()
                         firestoreBatch.set(docRef, entity.copyForUpload(docRef.id))
-                        val firestoreEntity = collection.document(docRef.id).get().await().toObject<T>()
-                        if (firestoreEntity == null) throw Exception("Firestore entity did not sync.")
-                        val existingEntities = syncedEntities.getOrDefault(batch.collectionName, listOf()).toMutableList()
-                        existingEntities.add(firestoreEntity)
-                        syncedEntities[batch.collectionName] = existingEntities
-                    }
 
-                    SyncType.Delete -> {
+                        val currentDocRefs = batchedSyncDocuments.getOrDefault(batch.collectionName, listOf()).toMutableList()
+                        currentDocRefs.add(docRef)
+                        batchedSyncDocuments[batch.collectionName] = currentDocRefs
+                    }
+                }
+
+                SyncType.Delete -> {
+                    batchEntities.fastForEach { entity ->
                         if (entity.firestoreId == null) return@fastForEach
                         val docRef = collection.document(entity.firestoreId!!)
                         firestoreBatch.delete(docRef)
@@ -515,11 +555,17 @@ class FirestoreSyncManager (
         }
 
         firestoreBatch.commit().await()
-        syncedEntities.forEach { (collectionName, entities) ->
-            onSynced(collectionName, entities)
-        }
+        Log.d(TAG, "Batch delete complete: $deletedIds")
 
-        Log.d(TAG, "Batch sync complete. Deleted: $deletedIds, Synced: $syncedEntities")
+        batchedSyncDocuments.forEach { (collectionName, docRefs) ->
+            val firestoreEntities = docRefs.fastMapNotNull { docRef ->
+                val snapshot = docRef.get().await()
+                if (snapshot == null) return@fastMapNotNull null
+                onRequestObjectConversion(collectionName, snapshot)
+            }
+            onSynced(collectionName, firestoreEntities)
+            Log.d(TAG, "Batch sync complete: $firestoreEntities [$collectionName]")
+        }
     }
 
     fun tryStartDeletionWatchers() {
@@ -560,15 +606,18 @@ class FirestoreSyncManager (
             val knownIds = ConcurrentHashMap.newKeySet<String>()
             entityFlow.collect { currentDtos ->
                 try {
+                    Log.d(TAG, "Deletion watcher for $collectionName triggered: $currentDtos")
                     val currentIds = currentDtos.mapNotNull { it.firestoreId }.toSet()
                     val deletedIds = knownIds - currentIds
 
                     if (deletedIds.isNotEmpty()) {
                         deleteMany(collectionName, deletedIds.map { it })
+                        Log.d(TAG, "Deleted $deletedIds")
                     }
 
                     knownIds.clear()
                     knownIds.addAll(currentIds)
+                    Log.d(TAG, "Known ids: $knownIds")
                 } catch (e: Exception) {
                     Log.e(TAG, "Error during deletion watcher for $collectionName: ${e.message}", e)
                     FirebaseCrashlytics.getInstance().recordException(e)
@@ -904,6 +953,8 @@ class FirestoreSyncManager (
             .filter { it.firestoreId != null }
             .associateBy { it.firestoreId!! }
 
+        Log.d(TAG, "Checking for outdated entities. ${localEntitiesInFirestore.size} local entities have firestoreId. [$collectionName]")
+
         while (!done) {
             val query = collection
                 .whereGreaterThanOrEqualTo("lastUpdated", lastSyncDate)
@@ -930,7 +981,7 @@ class FirestoreSyncManager (
                         val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
                         val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
                         if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
-                            Log.d(TAG, "Found outdated entity: ${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
+                            Log.d(TAG, "Found outdated entity - firestoreEntity Id=${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
                             firestoreEntity
                         } else null
                     }
@@ -978,7 +1029,7 @@ class FirestoreSyncManager (
                     batch.set(docRef, unsyncedEntity)
 
                     currFirestoreDocBatch.add(docRef)
-                    Log.d(TAG, "Uploading entity ${unsyncedEntity.firestoreId} [$collectionName]")
+                    Log.d(TAG, "Adding entity to batch. firestoreId=${unsyncedEntity.firestoreId}, roomId=${unsyncedEntity.id} [$collectionName]")
                 }
 
                 val updatedEntities = commitBatchAndUpdate<T>(

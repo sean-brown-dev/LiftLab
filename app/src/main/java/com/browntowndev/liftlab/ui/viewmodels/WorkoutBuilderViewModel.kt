@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
@@ -34,6 +35,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
@@ -56,18 +58,28 @@ class WorkoutBuilderViewModel(
     val state = _state.asStateFlow()
 
     init {
-        executeInTransactionScope {
-            val workout = workoutsRepository.get(workoutId)
-            val programDeloadWeek = programsRepository.getDeloadWeek(workout!!.programId)
-            val workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(workout = workout, programDeloadWeek = programDeloadWeek)
+        viewModelScope.launch {
+        }
 
-            _state.update {
-                it.copy(
-                    workout = workout,
-                    programDeloadWeek = programDeloadWeek,
-                    workoutLiftStepSizeOptions = workoutLiftStepSizeOptions,
-                )
-            }
+        viewModelScope.launch {
+            workoutsRepository.getFlow(workoutId)
+                .collect { workout ->
+                    _state.update { currentState ->
+                        val programDeloadWeek = if (workout != null && workout.programId != _state.value.workout?.programId) {
+                            programsRepository.getDeloadWeek(workout.programId)
+                        } else _state.value.programDeloadWeek
+
+                        currentState.copy(
+                            workout = workout,
+                            programDeloadWeek = programDeloadWeek,
+                            workoutLiftStepSizeOptions = workout?.let {
+                                getRecalculatedWorkoutLiftStepSizeOptions(
+                                    workout = workout,
+                                    programDeloadWeek = programDeloadWeek!!)
+                            } ?: mapOf(),
+                        )
+                    }
+                }
         }
     }
 
@@ -679,13 +691,12 @@ class WorkoutBuilderViewModel(
 
     fun deleteSet(workoutLiftId: Long, position: Int) {
         executeInTransactionScope {
-            var updatedWorkoutLift: GenericWorkoutLift? = null
-            val updatedState = _state.value.let { currentState ->
+            _state.update { currentState ->
                 currentState.copy(
                     workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.map { workoutLift ->
+                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
                             if(workoutLift.id == workoutLiftId) {
-                                updatedWorkoutLift = (workoutLift as CustomWorkoutLiftDto).copy(
+                                (workoutLift as CustomWorkoutLiftDto).copy(
                                     setCount = workoutLift.setCount - 1,
                                     customLiftSets = workoutLift.customLiftSets
                                         .filter { it.position != position }
@@ -698,19 +709,13 @@ class WorkoutBuilderViewModel(
                                             }
                                         }
                                 )
-                                updatedWorkoutLift
                             } else workoutLift
                         }
                     )
                 )
             }
 
-            if (updatedWorkoutLift != null) {
-                customLiftSetsRepository.deleteByPosition(workoutLiftId, position)
-                workoutLiftsRepository.update(updatedWorkoutLift)
-
-                _state.update { updatedState }
-            }
+            customLiftSetsRepository.deleteByPosition(workoutLiftId, position)
         }
     }
 

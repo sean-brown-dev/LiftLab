@@ -215,7 +215,7 @@ fun Home(
             )
         }
 
-        FirebaseSyncDialog(
+        FirestoreSyncDialog(
             loginModalVisible = state.loginModalVisible,
             firebaseUsername = state.firebaseUsername,
             loggedIn = state.loggedIn,

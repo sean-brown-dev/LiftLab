@@ -4,7 +4,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.persistence.sync.*
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.*
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.*
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -14,91 +14,91 @@ val firebaseModule = module {
 
     single {
         CustomLiftSetsSyncRepository(
-            dao = get<LiftLabDatabase>().customSetsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         HistoricalWorkoutNamesSyncRepository(
-            dao = get<LiftLabDatabase>().historicalWorkoutNamesDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         LiftMetricChartsSyncRepository(
-            dao = get<LiftLabDatabase>().liftMetricChartsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         LiftsSyncRepository(
-            dao = get<LiftLabDatabase>().liftsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         PreviousSetResultsSyncRepository(
-            dao = get<LiftLabDatabase>().previousSetResultsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         ProgramsSyncRepository(
-            dao = get<LiftLabDatabase>().programsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         SetLogEntriesSyncRepository(
-            dao = get<LiftLabDatabase>().setLogEntryDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         VolumeMetricChartsSyncRepository(
-            dao = get<LiftLabDatabase>().volumeMetricChartsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         WorkoutInProgressSyncRepository(
-            dao = get<LiftLabDatabase>().workoutInProgressDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         WorkoutLiftsSyncRepository(
-            dao = get<LiftLabDatabase>().workoutLiftsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         WorkoutLogEntriesSyncRepository(
-            dao = get<LiftLabDatabase>().workoutLogEntryDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         WorkoutsSyncRepository(
-            dao = get<LiftLabDatabase>().workoutsDao(),
+            dao = get(),
             firestore = get(),
-            firebaseAuth = get<FirebaseAuth>(),
+            firebaseAuth = get(),
         )
     }
     single {
         SyncMetadataRepository(
-            dao = get<LiftLabDatabase>().syncDao(),
+            dao = get(),
         )
     }
 
@@ -119,7 +119,7 @@ val firebaseModule = module {
             workoutLiftsSyncRepository = get(),
             workoutLogEntriesSyncRepository = get(),
             workoutsSyncRepository = get(),
-            syncRepository = get()
+            syncRepository = get(),
         )
     }
 }

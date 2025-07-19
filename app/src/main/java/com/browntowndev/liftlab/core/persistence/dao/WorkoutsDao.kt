@@ -34,6 +34,10 @@ interface WorkoutsDao: BaseDao<Workout> {
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
     suspend fun getWithRelationships(id: Long) : WorkoutWithRelationships?
 
+    @Transaction
+    @Query("SELECT * FROM workouts WHERE workout_id = :id")
+    fun getWithRelationshipsFlow(id: Long) : Flow<WorkoutWithRelationships?>
+
     @Query("SELECT MAX(position) FROM workouts WHERE programId = :programId")
     suspend fun getFinalPosition(programId: Long): Int
 

@@ -3,16 +3,17 @@ package com.browntowndev.liftlab.core.persistence.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
-import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 
 class WorkoutLiftsRepository (
@@ -21,10 +22,6 @@ class WorkoutLiftsRepository (
     private val firestoreSyncManager: FirestoreSyncManager,
     private val syncScope: CoroutineScope,
 ): Repository {
-
-    suspend fun getAll(): List<WorkoutLift> {
-        return workoutLiftsDao.getAll()
-    }
 
     suspend fun insert(workoutLift: GenericWorkoutLift): Long {
         val toInsert = workoutLiftMapper.map(workoutLift)
@@ -93,15 +90,13 @@ class WorkoutLiftsRepository (
         )
         workoutLiftsDao.update(toUpdate)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
-                entity = toUpdate.toFirestoreDto(),
-                onSynced = {
-                    workoutLiftsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(toUpdate.id),
+                syncType = SyncType.Sync,
             )
-        }
+        )
     }
 
     suspend fun updateMany(workoutLifts: List<GenericWorkoutLift>) {

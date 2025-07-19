@@ -1,40 +1,41 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
-import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
+import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
-import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
+import com.browntowndev.liftlab.core.persistence.sync.BatchSyncQueueEntry
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
-import kotlinx.coroutines.CoroutineScope
+import java.util.UUID
 
 class CustomLiftSetsRepository(
     private val customSetsDao: CustomSetsDao,
     private val customLiftSetMapper: CustomLiftSetMapper,
+    private val workoutLiftsDao: WorkoutLiftsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun insert(newSet: GenericLiftSet): Long {
         val entity = customLiftSetMapper.map(newSet)
         val id = customSetsDao.insert(entity)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entity = entity.toFirestoreDto().copy(id = id),
-                onSynced = { firestoreEntity ->
-                    customSetsDao.update(firestoreEntity.toEntity())
-                },
+                roomEntityIds = listOf(id),
+                SyncType.Sync,
             )
-        }
+        )
         return id
     }
 
@@ -47,15 +48,13 @@ class CustomLiftSetsRepository(
                 synced = false,
             )
         customSetsDao.update(toUpdate)
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entity = toUpdate.toFirestoreDto(),
-                onSynced = { firestoreEntity ->
-                    customSetsDao.update(firestoreEntity.toEntity())
-                },
+                roomEntityIds = listOf(toUpdate.id),
+                SyncType.Sync,
             )
-        }
+        )
     }
 
     suspend fun updateMany(sets: List<GenericLiftSet>) {
@@ -72,16 +71,16 @@ class CustomLiftSetsRepository(
                 )
         }
         if (toUpdate.isEmpty()) return
+
         customSetsDao.updateMany(toUpdate)
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
+
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entities = toUpdate.map { it.toFirestoreDto() },
-                onSynced = { firebaseEntities ->
-                    customSetsDao.updateMany(firebaseEntities.map { it.toEntity() })
-                },
+                roomEntityIds = toUpdate.fastMap { it.id },
+                SyncType.Sync,
             )
-        }
+        )
     }
 
     suspend fun deleteAllForLift(workoutLiftId: Long) {
@@ -89,39 +88,68 @@ class CustomLiftSetsRepository(
         if (toDelete.isEmpty()) return
 
         customSetsDao.deleteMany(toDelete)
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.deleteMany(
+
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                firestoreIds = toDelete.mapNotNull { it.firestoreId },
+                roomEntityIds = toDelete.fastMap { it.id },
+                SyncType.Delete,
             )
-        }
+        )
     }
 
     suspend fun deleteByPosition(workoutLiftId: Long, position: Int) {
-        val toDelete = customSetsDao.getByWorkoutLiftId(workoutLiftId)
-            .singleOrNull { it.position == position } ?: return
+        Log.d("CustomLiftSetsRepository", "deleteByPosition: $workoutLiftId, $position")
+
+        val setsForLift = customSetsDao.getByWorkoutLiftId(workoutLiftId)
+        Log.d("CustomLiftSetsRepository", "deleteByPosition: $setsForLift")
+
+        val toDelete = setsForLift.singleOrNull { it.position == position } ?: return
+        Log.d("CustomLiftSetsRepository", "deleteByPosition: $toDelete")
 
         customSetsDao.delete(toDelete)
-        if (toDelete.firestoreId != null) {
-            syncScope.fireAndForgetSync {
-                firestoreSyncManager.deleteSingle(
-                    collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                    firestoreId = toDelete.firestoreId!!,
-                )
-            }
-        }
-
         customSetsDao.syncPositions(workoutLiftId, position)
         val entitiesToUpdate = customSetsDao.getByWorkoutLiftId(workoutLiftId).map { it.toFirestoreDto() }
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
-                collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entities = entitiesToUpdate,
-                onSynced = { firebaseEntities ->
-                    customSetsDao.updateMany(firebaseEntities.map { it.toEntity() })
-                },
+        Log.d("CustomLiftSetsRepository", "deleteByPosition: $entitiesToUpdate")
+
+        // Update set count of workout lift
+        val currentWorkoutLift = workoutLiftsDao.get(workoutLiftId)!!
+        val workoutLiftToUpdate = currentWorkoutLift.copy(setCount = entitiesToUpdate.size).applyFirestoreMetadata(
+            firestoreId = currentWorkoutLift.firestoreId,
+            lastUpdated = currentWorkoutLift.lastUpdated,
+            synced = false,
+        )
+        workoutLiftsDao.update(workoutLiftToUpdate)
+        Log.d("CustomLiftSetsRepository", "deleteByPosition: $workoutLiftToUpdate")
+
+        firestoreSyncManager.enqueueBatchSyncRequest(
+            BatchSyncQueueEntry(
+                id = UUID.randomUUID().toString(),
+                batch = listOf(
+                    SyncQueueEntry(
+                        collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
+                        roomEntityIds = entitiesToUpdate.fastMap { it.id },
+                        syncType = SyncType.Sync,
+                    ),
+                    SyncQueueEntry(
+                        collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
+                        roomEntityIds = listOf(workoutLiftToUpdate.id),
+                        syncType = SyncType.Sync,
+                    ),
+                ).let { batches ->
+                    val batchesMaybeWithDelete = batches.toMutableList()
+                    if (toDelete.firestoreId != null) {
+                        val deleteEntry = SyncQueueEntry(
+                            collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
+                            roomEntityIds = listOf(toDelete.id),
+                            syncType = SyncType.Delete,
+                        )
+                        batchesMaybeWithDelete.add(0, deleteEntry)
+                    }
+                    batchesMaybeWithDelete
+                }
             )
-        }
+        )
     }
 
     suspend fun insertAll(customSets: List<GenericLiftSet>): List<Long> {
@@ -130,15 +158,14 @@ class CustomLiftSetsRepository(
         val insertedWithIds = toInsert.zip(insertedIds).map { (entity, id) ->
             entity.copy(id = id)
         }
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
+
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                entities = insertedWithIds.map { it.toFirestoreDto() },
-                onSynced = { firebaseEntities ->
-                    customSetsDao.updateMany(firebaseEntities.map { it.toEntity() })
-                },
+                roomEntityIds = insertedWithIds.fastMap { it.id },
+                syncType = SyncType.Sync,
             )
-        }
+        )
 
         return insertedIds
     }

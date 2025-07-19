@@ -25,6 +25,7 @@ import androidx.compose.ui.window.Dialog
 
 @Composable
 fun LiftLabDialog(
+    modifier: Modifier = Modifier.padding(15.dp),
     isVisible: Boolean,
     header: String,
     subHeader: String = "",
@@ -46,7 +47,7 @@ fun LiftLabDialog(
             shape = RoundedCornerShape(12.dp)
         ) {
             Column (
-                modifier = Modifier.padding(15.dp),
+                modifier = modifier,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(

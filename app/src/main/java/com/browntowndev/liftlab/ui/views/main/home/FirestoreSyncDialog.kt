@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -27,13 +26,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.SignIntoFirebaseWithGoogleButton
 import dev.gitlive.firebase.auth.FirebaseUser
 
 @Composable
-fun FirebaseSyncDialog(
+fun FirestoreSyncDialog(
     loginModalVisible: Boolean,
     firebaseUsername: String?,
     loggedIn: Boolean,
@@ -46,6 +46,7 @@ fun FirebaseSyncDialog(
     onSyncAll: () -> Unit,
 ) {
     LiftLabDialog(
+        modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 15.dp),
         isVisible = loginModalVisible,
         header = "Cloud Sync",
         onDismiss = onDismiss,
@@ -69,29 +70,37 @@ fun FirebaseSyncDialog(
                     )
                     firebaseUsername?.let { Text(text = it) }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
                 Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    IconButton(
+                    Button(
                         onClick = onSyncAll,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(
+                            modifier = Modifier.padding(end = 12.dp),
                             painter = painterResource(id = R.drawable.cloud_sync),
                             contentDescription = "Sync All",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                        )
+                        Text(
+                            text = "Sync",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
-                    Text(text = "Sync All")
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Logout")
+                    Text(
+                        text = "Logout",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 18.sp,
+                    )
                 }
             }
         } else {
@@ -145,11 +154,11 @@ fun FirebaseSyncDialog(
                 }
                 TextButton(
                     onClick = { isCreatingAccount = !isCreatingAccount },
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                 ) {
                     Text(
                         if (isCreatingAccount) "Already have an account? Login"
-                        else "Don't have an account? Create one"
+                        else "No account? Create one"
                     )
                 }
             }

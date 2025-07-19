@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.dependencyInjection
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.persistence.repositories.*
-import com.browntowndev.liftlab.core.persistence.repositories.firebase.SyncMetadataRepository
+import com.browntowndev.liftlab.core.persistence.repositories.firestore.SyncMetadataRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -25,6 +25,7 @@ val repositoryModule = module {
     single { get<LiftLabDatabase>().restTimerInProgressDao() }
     single { get<LiftLabDatabase>().liftMetricChartsDao() }
     single { get<LiftLabDatabase>().volumeMetricChartsDao() }
+    single { get<LiftLabDatabase>().setLogEntryDao() }
     single { get<LiftLabDatabase>().syncDao() }
 
     // Repositories
@@ -43,13 +44,13 @@ val repositoryModule = module {
     }
     single { PreviousSetResultsRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
     single { LiftsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
-    single { CustomLiftSetsRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
+    single { CustomLiftSetsRepository(get(), get(), get(), get()) }
     single { WorkoutInProgressRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
     single { HistoricalWorkoutNamesRepository(get(), get(), get(named("FirestoreSyncScope"))) }
     single {
         LoggingRepository(
             workoutLogEntryDao = get(),
-            setLogEntryDao = get<LiftLabDatabase>().setLogEntryDao(),
+            setLogEntryDao = get(),
             workoutLogEntryMapper = get(),
             setResultMapper = get(),
             firestoreSyncManager = get(),

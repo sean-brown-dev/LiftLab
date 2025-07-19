@@ -20,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 class WorkoutsRepository(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
@@ -162,8 +163,14 @@ class WorkoutsRepository(
     }
 
     suspend fun get(workoutId: Long): WorkoutDto? {
-        return workoutsDao.getWithRelationships(workoutId)?.let {
-             workoutMapper.map(it)
+        return workoutsDao.getWithRelationships(workoutId)?.let { workoutMapper.map(it) }
+    }
+
+    fun getFlow(workoutId: Long): Flow<WorkoutDto?> {
+        return workoutsDao.getWithRelationshipsFlow(workoutId).map { workout ->
+            workout?.let {
+                workoutMapper.map(it)
+            }
         }
     }
 

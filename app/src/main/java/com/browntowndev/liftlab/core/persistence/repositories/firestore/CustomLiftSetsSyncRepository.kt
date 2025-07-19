@@ -1,9 +1,9 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
+import android.util.Log
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.CustomLiftSetFirestoreDto
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
@@ -27,7 +27,12 @@ class CustomLiftSetsSyncRepository(
         dao.getAll().map { it.toFirestoreDto() }
 
     override suspend fun getMany(ids: List<Long>): List<CustomLiftSetFirestoreDto> =
-        dao.getMany(ids).map { it.toFirestoreDto() }
+        dao.getMany(ids).map {
+            Log.d("CustomLiftSetsSyncRepository", "getMany: $it")
+            val firestoreLift = it.toFirestoreDto()
+            Log.d("CustomLiftSetsSyncRepository", "getMany: $firestoreLift")
+            firestoreLift
+        }
 
     fun getAllFlow(): Flow<List<CustomLiftSetFirestoreDto>> =
         dao.getAllFlow().map { sets ->

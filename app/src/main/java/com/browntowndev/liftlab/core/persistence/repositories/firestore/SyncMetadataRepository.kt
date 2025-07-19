@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
 import com.browntowndev.liftlab.core.persistence.dao.SyncDao
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.SyncMetadataDto

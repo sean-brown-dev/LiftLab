@@ -1,11 +1,8 @@
 package com.browntowndev.liftlab.core.persistence.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +11,10 @@ import kotlinx.coroutines.flow.Flow
 interface WorkoutLiftsDao: BaseDao<WorkoutLift> {
     @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
     suspend fun get(id: Long): WorkoutLift?
+
+    @Transaction
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
+    suspend fun getWithRelationships(id: Long): WorkoutLiftWithRelationships?
 
     @Transaction
     @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids)")

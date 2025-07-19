@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.persistence.dtos.firestore
 
+import android.util.Log
 import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.common.enums.SetType
 
@@ -19,6 +20,7 @@ data class CustomLiftSetFirestoreDto(
     var setMatching: Boolean = false
 ): BaseFirestoreDto() {
     override fun copyWithBase(): BaseFirestoreDto {
+        Log.d("CustomLiftSetFirestoreDto", "copyWithBase: $this")
         return this.copy().apply {
             firestoreId = this@CustomLiftSetFirestoreDto.firestoreId
             lastUpdated = this@CustomLiftSetFirestoreDto.lastUpdated

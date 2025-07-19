@@ -1,11 +1,9 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
 import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.ProgramsDao
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.PreviousSetResultFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.ProgramFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.Program
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
@@ -13,10 +11,8 @@ import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFires
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.qualifier.named
 
 class ProgramsSyncRepository(
     private val dao: ProgramsDao,

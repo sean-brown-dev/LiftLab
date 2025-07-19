@@ -1,8 +1,7 @@
-package com.browntowndev.liftlab.core.persistence.repositories.firebase
+package com.browntowndev.liftlab.core.persistence.repositories.firestore
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.dao.PreviousSetResultDao
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.LiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.firestore.PreviousSetResultFirestoreDto
 import com.browntowndev.liftlab.core.persistence.entities.PreviousSetResult
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
