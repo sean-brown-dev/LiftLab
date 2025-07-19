@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,11 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
@@ -75,6 +78,7 @@ fun WorkoutBuilder(
     workoutId: Long,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
+    val context = LocalContext.current
     val workoutBuilderViewModel: WorkoutBuilderViewModel = koinViewModel {
         parametersOf(
             workoutId,
@@ -93,6 +97,12 @@ fun WorkoutBuilder(
                     payload = state.workout!!.name
                 )
             )
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        workoutBuilderViewModel.toastEvents.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
 

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
+import android.util.Log
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -90,6 +91,7 @@ inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend Coroutine
         try {
             block() // this is now a receiver lambda, so 'this' is the CoroutineScope
         } catch (e: Exception) {
+            Log.e("FireAndForgetSync", "Error during fireAndForgetSync: ${e.message}", e)
             FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
