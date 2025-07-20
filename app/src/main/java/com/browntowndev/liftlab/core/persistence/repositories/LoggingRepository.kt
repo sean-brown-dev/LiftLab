@@ -1,7 +1,9 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLogEntryDao
@@ -16,11 +18,14 @@ import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntit
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.mapping.SetResultMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLogEntryMapper
+import com.browntowndev.liftlab.core.persistence.sync.BatchSyncQueueEntry
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.Date
+import java.util.UUID
 
 class LoggingRepository(
     private val workoutLogEntryDao: WorkoutLogEntryDao,
@@ -28,7 +33,6 @@ class LoggingRepository(
     private val workoutLogEntryMapper: WorkoutLogEntryMapper,
     private val setResultMapper: SetResultMapper,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
 
     fun getAllFlow(): Flow<List<WorkoutLogEntryDto>> {
@@ -121,15 +125,13 @@ class LoggingRepository(
             microcycle = microcycle,
         )
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                entities = insertedEntities.map { it.toFirestoreDto() },
-                onSynced = { firestoreEntities ->
-                    setLogEntryDao.updateMany(firestoreEntities.map { it.toEntity() })
-                }
+                roomEntityIds = insertedEntities.fastMap { it.id },
+                SyncType.Upsert,
             )
-        }
+        )
     }
 
     suspend fun insertWorkoutLogEntry(
@@ -155,15 +157,13 @@ class LoggingRepository(
             )
         val id = workoutLogEntryDao.insert(toInsert)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
-                entity = toInsert.toFirestoreDto().copy(id = id),
-                onSynced = { firestoreEntity ->
-                    workoutLogEntryDao.update(firestoreEntity.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
 
         return id
     }
@@ -174,38 +174,52 @@ class LoggingRepository(
 
         setLogEntryDao.deleteMany(setLogEntriesToDelete)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.deleteMany(
-                collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                firestoreIds = setLogEntriesToDelete.mapNotNull { it.firestoreId },
-            )
-        }
-
-        val workoutLogEntryToDelete = workoutLogEntryDao.get(workoutLogEntryId) ?: return
+        val workoutLogEntryToDelete = workoutLogEntryDao.get(workoutLogEntryId) ?:
+            throw Exception("Workout log entry not found")
         workoutLogEntryDao.delete(workoutLogEntryToDelete)
 
-        if (workoutLogEntryToDelete.firestoreId != null) {
-            syncScope.fireAndForgetSync {
-                firestoreSyncManager.deleteSingle(
+        val batchesToSync = buildList {
+            setLogEntriesToDelete
+                .fastMapNotNull { it.firestoreId?.let { _ -> it.id } }
+                .takeIf { it.isNotEmpty() }
+                ?.let { ids ->
+                    add(SyncQueueEntry(
+                        collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
+                        roomEntityIds = ids,
+                        syncType = SyncType.Delete,
+                    ))
+                }
+
+            workoutLogEntryToDelete.firestoreId?.let {
+                add(SyncQueueEntry(
                     collectionName = FirestoreConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
-                    firestoreId = workoutLogEntryToDelete.firestoreId!!,
-                )
+                    roomEntityIds = listOf(workoutLogEntryToDelete.id),
+                    syncType = SyncType.Delete,
+                ))
             }
         }
+
+        if (batchesToSync.isEmpty()) return
+        firestoreSyncManager.enqueueBatchSyncRequest(
+            BatchSyncQueueEntry(
+                id = UUID.randomUUID().toString(),
+                batch = batchesToSync
+            )
+        )
     }
 
     suspend fun deleteSetLogEntryById(id: Long) {
         val toDelete = setLogEntryDao.get(id) ?: return
         setLogEntryDao.delete(toDelete)
 
-        if (toDelete.firestoreId != null) {
-            syncScope.fireAndForgetSync {
-                firestoreSyncManager.deleteSingle(
-                    collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                    firestoreId = toDelete.firestoreId!!,
-                )
-            }
-        }
+        if (toDelete.firestoreId == null) return
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
+                roomEntityIds = listOf(toDelete.id),
+                SyncType.Delete,
+            )
+        )
     }
 
     suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntryDto): Long {
@@ -221,22 +235,20 @@ class LoggingRepository(
             if (it == -1L) toUpsert.id else it
         }
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                entity = toUpsert.toFirestoreDto().copy(id = id),
-                onSynced = { firestoreEntity ->
-                    setLogEntryDao.update(firestoreEntity.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
 
         return id
     }
 
     suspend fun upsertMany(workoutLogEntryId: Long, setLogEntries: List<SetLogEntryDto>): List<Long> {
         val currentEntries = setLogEntryDao.getMany(setLogEntries.map { it.id }).associateBy { it.id }
-        var toUpsert = setLogEntries.fastMap { setLogEntry ->
+        val toUpsert = setLogEntries.fastMap { setLogEntry ->
             val current = currentEntries[setLogEntry.id]
             workoutLogEntryMapper.map(workoutLogEntryId, setLogEntry)
                 .applyFirestoreMetadata(
@@ -246,19 +258,17 @@ class LoggingRepository(
                 )
         }
         val ids = setLogEntryDao.upsertMany(toUpsert)
-        toUpsert = toUpsert.zip(ids).map {
+        toUpsert.zip(ids).map {
             if (it.second == -1L) it.first else it.first.copy(id = it.second)
         }
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                entities = toUpsert.map { it.toFirestoreDto() },
-                onSynced = { firestoreEntities ->
-                    setLogEntryDao.updateMany(firestoreEntities.map { it.toEntity() })
-                }
+                roomEntityIds = toUpsert.fastMap { it.id },
+                SyncType.Upsert,
             )
-        }
+        )
 
         return ids
     }

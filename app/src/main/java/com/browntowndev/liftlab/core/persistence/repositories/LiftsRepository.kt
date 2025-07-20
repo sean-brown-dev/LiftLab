@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.LiftsDao
 import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
@@ -10,6 +11,7 @@ import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,7 +20,6 @@ import kotlin.time.Duration
 class LiftsRepository(
     private val liftsDao: LiftsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun createLift(lift: LiftDto) {
         val toInsert =
@@ -37,15 +38,13 @@ class LiftsRepository(
             )
         val id = liftsDao.insert(toInsert)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                entity = toInsert.toFirestoreDto().copy(id = id),
-                onSynced = {
-                    liftsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
     }
 
     suspend fun update(lift: LiftDto) {
@@ -70,15 +69,13 @@ class LiftsRepository(
             )
         liftsDao.update(toUpdate)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                entity = toUpdate.toFirestoreDto(),
-                onSynced = {
-                    liftsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(toUpdate.id),
+                SyncType.Upsert,
             )
-        }
+        )
     }
 
     suspend fun get(id: Long): LiftDto {
@@ -170,14 +167,12 @@ class LiftsRepository(
     private suspend fun updateWithoutRefetch(lift: Lift) {
         liftsDao.update(lift)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                entity = lift.toFirestoreDto(),
-                onSynced = {
-                    liftsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(lift.id),
+                SyncType.Upsert,
             )
-        }
+        )
     }
 }

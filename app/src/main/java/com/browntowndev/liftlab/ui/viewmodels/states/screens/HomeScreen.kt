@@ -26,7 +26,7 @@ data class HomeScreen(
 ) : BaseScreen() {
     companion object {
         private const val SETTINGS = "Settings"
-        const val SYNC_STATUS = "Sync Status"
+        const val SYNC_STATUS = "Upsert Status"
         val navigation = BottomNavItem("Home", "", R.drawable.home_icon, Route.Home)
     }
 
@@ -76,7 +76,7 @@ data class HomeScreen(
         listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = SYNC_STATUS,
-                title = "Sync Status",
+                title = "Upsert Status",
                 icon = syncIcon,
                 color = syncIconColor,
                 isVisible = true,

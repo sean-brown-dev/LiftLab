@@ -48,7 +48,7 @@ fun FirestoreSyncDialog(
     LiftLabDialog(
         modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 15.dp),
         isVisible = loginModalVisible,
-        header = "Cloud Sync",
+        header = "Cloud Upsert",
         onDismiss = onDismiss,
     ) {
         if (loggedIn) {
@@ -82,7 +82,7 @@ fun FirestoreSyncDialog(
                         Icon(
                             modifier = Modifier.padding(end = 12.dp),
                             painter = painterResource(id = R.drawable.cloud_sync),
-                            contentDescription = "Sync All",
+                            contentDescription = "Upsert All",
                             tint = MaterialTheme.colorScheme.onPrimary,
                         )
                         Text(

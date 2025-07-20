@@ -34,7 +34,7 @@ class FirestoreSyncViewModel(
                     retryWithBackoff {
                         syncManager.syncAll()
                     }
-                    Log.d("FirestoreSyncViewModel", "Sync complete")
+                    Log.d("FirestoreSyncViewModel", "Upsert complete")
 
                     Log.d("FirestoreSyncViewModel", "Starting deletion watchers")
                     tryStartDeletionWatchers()

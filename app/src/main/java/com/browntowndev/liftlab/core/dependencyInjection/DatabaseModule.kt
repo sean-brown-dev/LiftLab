@@ -29,8 +29,8 @@ val repositoryModule = module {
     single { get<LiftLabDatabase>().syncDao() }
 
     // Repositories
-    single { ProgramsRepository(get(), get(), get(), get(), get(),get(named("FirestoreSyncScope"))) }
-    single { WorkoutLiftsRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
+    single { ProgramsRepository(get(), get(), get(), get()) }
+    single { WorkoutLiftsRepository(get(), get(), get()) }
     single {
         WorkoutsRepository(
             workoutsDao = get(),
@@ -39,14 +39,13 @@ val repositoryModule = module {
             workoutLiftsRepository = get(),
             customLiftSetsRepository = get(),
             firestoreSyncManager = get(),
-            syncScope = get(named("FirestoreSyncScope")),
         )
     }
-    single { PreviousSetResultsRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
-    single { LiftsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
+    single { PreviousSetResultsRepository(get(), get(), get()) }
+    single { LiftsRepository(get(), get()) }
     single { CustomLiftSetsRepository(get(), get(), get(), get()) }
-    single { WorkoutInProgressRepository(get(), get(), get(), get(named("FirestoreSyncScope"))) }
-    single { HistoricalWorkoutNamesRepository(get(), get(), get(named("FirestoreSyncScope"))) }
+    single { WorkoutInProgressRepository(get(), get(), get()) }
+    single { HistoricalWorkoutNamesRepository(get(), get()) }
     single {
         LoggingRepository(
             workoutLogEntryDao = get(),
@@ -54,11 +53,10 @@ val repositoryModule = module {
             workoutLogEntryMapper = get(),
             setResultMapper = get(),
             firestoreSyncManager = get(),
-            syncScope = get(named("FirestoreSyncScope"))
         )
     }
-    single { LiftMetricChartsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
-    single { VolumeMetricChartsRepository(get(), get(), get(named("FirestoreSyncScope"))) }
+    single { LiftMetricChartsRepository(get(), get()) }
+    single { VolumeMetricChartsRepository(get(), get()) }
     singleOf(::SyncMetadataRepository)
     singleOf(::RestTimerInProgressRepository)
 }

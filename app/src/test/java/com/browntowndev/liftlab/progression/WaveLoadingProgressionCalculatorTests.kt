@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.progression
 import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -15,17 +14,15 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.progression.WaveLoadingProgressionCalculator
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import io.mockk.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class WaveLoadingProgressionCalculatorTests {
     private val calculator = WaveLoadingProgressionCalculator(4, 1)
     private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
 
-    @Before
+    @BeforeEach
     fun setup() {
         // Set the main dispatcher to the test dispatcher
         val sharedPrefs = mockk<SharedPreferences>()
@@ -64,7 +61,7 @@ class WaveLoadingProgressionCalculatorTests {
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(80f, it.weightRecommendation)
+            assertEquals(80f, it.weightRecommendation)
         }
     }
 
@@ -98,7 +95,7 @@ class WaveLoadingProgressionCalculatorTests {
             .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach {
-            Assert.assertEquals(70f, it.weightRecommendation)
+            assertEquals(70f, it.weightRecommendation)
         }
     }
 
@@ -130,7 +127,7 @@ class WaveLoadingProgressionCalculatorTests {
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, true)
         result.forEach {
-            Assert.assertEquals(65f, it.weightRecommendation)
+            assertEquals(65f, it.weightRecommendation)
         }
     }
 
@@ -164,7 +161,7 @@ class WaveLoadingProgressionCalculatorTests {
             .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.forEach {
-            Assert.assertEquals(80f, it.weightRecommendation)
+            assertEquals(80f, it.weightRecommendation)
         }
     }
 
@@ -197,8 +194,8 @@ class WaveLoadingProgressionCalculatorTests {
             .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.forEach {
-            Assert.assertEquals("8", it.repRangePlaceholder)
-            Assert.assertEquals(80f, it.weightRecommendation)
+            assertEquals("8", it.repRangePlaceholder)
+            assertEquals(80f, it.weightRecommendation)
         }
     }
 
@@ -231,8 +228,8 @@ class WaveLoadingProgressionCalculatorTests {
             .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.forEach {
-            Assert.assertEquals("6", it.repRangePlaceholder)
-            Assert.assertEquals(90f, it.weightRecommendation)
+            assertEquals("6", it.repRangePlaceholder)
+            assertEquals(90f, it.weightRecommendation)
         }
     }
 
@@ -266,8 +263,8 @@ class WaveLoadingProgressionCalculatorTests {
             .calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.forEach {
-            Assert.assertEquals("10", it.repRangePlaceholder)
-            Assert.assertEquals(80f, it.weightRecommendation)
+            assertEquals("10", it.repRangePlaceholder)
+            assertEquals(80f, it.weightRecommendation)
         }
     }
 
@@ -276,26 +273,26 @@ class WaveLoadingProgressionCalculatorTests {
         var deloadWeek = 4
         var stepSizes = getPossibleStepSizes(10, 6, deloadWeek - 2)
 
-        Assert.assertEquals(1, stepSizes.size)
-        Assert.assertEquals(2, stepSizes[0])
+        assertEquals(1, stepSizes.size)
+        assertEquals(2, stepSizes[0])
 
         deloadWeek = 5
         stepSizes = getPossibleStepSizes(10, 6, deloadWeek - 2)
 
-        Assert.assertEquals(1, stepSizes.size)
-        Assert.assertEquals(4, stepSizes[0])
+        assertEquals(1, stepSizes.size)
+        assertEquals(4, stepSizes[0])
 
         deloadWeek = 4
         stepSizes = getPossibleStepSizes(8, 6, deloadWeek - 2)
 
-        Assert.assertEquals(1, stepSizes.size)
-        Assert.assertEquals(1, stepSizes[0])
+        assertEquals(1, stepSizes.size)
+        assertEquals(1, stepSizes[0])
 
         deloadWeek = 7
         stepSizes = getPossibleStepSizes(8, 6, deloadWeek - 2)
 
-        Assert.assertEquals(2, stepSizes.size)
-        Assert.assertEquals(1, stepSizes[0])
-        Assert.assertEquals(2, stepSizes[1])
+        assertEquals(2, stepSizes.size)
+        assertEquals(1, stepSizes[0])
+        assertEquals(2, stepSizes[1])
     }
 }

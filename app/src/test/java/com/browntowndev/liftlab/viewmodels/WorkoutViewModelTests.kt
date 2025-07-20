@@ -176,7 +176,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -259,7 +259,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -317,7 +317,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -423,7 +423,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -481,7 +481,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -611,7 +611,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -669,7 +669,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -775,7 +775,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -834,7 +834,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -940,7 +940,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -999,7 +999,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -1128,7 +1128,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1193,7 +1193,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -1273,7 +1273,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -1338,7 +1338,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -1420,7 +1420,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(0, args[1])
                 Assert.assertEquals(0, args[2])
@@ -1458,7 +1458,7 @@ class WorkoutViewModelTests {
             coEvery { workoutInProgressRepository.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -1511,7 +1511,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(1, args[1])
                 Assert.assertEquals(0, args[2])
@@ -1549,7 +1549,7 @@ class WorkoutViewModelTests {
             coEvery { workoutInProgressRepository.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -1602,7 +1602,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery { programsRepository.updateMesoAndMicroCycle(any(), any(), any(), any()) } coAnswers {
                 Assert.assertEquals(0, args[1])
                 Assert.assertEquals(1, args[2])
@@ -1640,7 +1640,7 @@ class WorkoutViewModelTests {
             coEvery { workoutInProgressRepository.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -1693,7 +1693,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1776,7 +1776,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
@@ -1885,7 +1885,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -1968,7 +1968,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
             coEvery { restTimerInProgramsRepository.deleteAll() } just runs
 
@@ -2110,7 +2110,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2211,7 +2211,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -2270,7 +2270,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2371,7 +2371,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -2427,7 +2427,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
             coEvery {
                 programsRepository.updateMesoAndMicroCycle(
                     any(),
@@ -2510,7 +2510,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
             coEvery { restTimerInProgramsRepository.insert(any()) } just runs
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
@@ -2613,7 +2613,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2643,7 +2643,7 @@ class WorkoutViewModelTests {
             coEvery { workoutInProgressRepository.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()
@@ -2705,7 +2705,7 @@ class WorkoutViewModelTests {
                 workoutCount = 4,
                 deloadWeek = 4,
             )
-            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata).asLiveData()
+            coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
             val workoutsRepository = mockk<WorkoutsRepository>()
             val workout = WorkoutDto(
@@ -2761,7 +2761,7 @@ class WorkoutViewModelTests {
             } returns workoutInProgressMetadata
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
-            coEvery { restTimerInProgramsRepository.getLive() } returns flowOf(null).asLiveData()
+            coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
 
             val setResultsRepository = mockk<PreviousSetResultsRepository>()
             coEvery { setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any()) } returns listOf()

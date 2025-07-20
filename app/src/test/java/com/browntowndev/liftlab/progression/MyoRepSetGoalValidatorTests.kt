@@ -2,8 +2,12 @@ package com.browntowndev.liftlab.progression
 
 import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
 import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
-import org.junit.Assert
-import org.junit.Test
+import io.mockk.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.test.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class MyoRepSetGoalValidatorTests {
     @Test
@@ -68,7 +72,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        Assert.assertEquals(false, result)
+        assertEquals(false, result)
     }
 
     @Test
@@ -133,7 +137,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        Assert.assertEquals(true, result)
+        assertEquals(true, result)
     }
 
     @Test
@@ -162,7 +166,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        Assert.assertEquals(false, result)
+        assertEquals(false, result)
     }
 
     @Test
@@ -228,7 +232,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        Assert.assertEquals(false, result)
+        assertEquals(false, result)
     }
 
     @Test
@@ -296,7 +300,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        Assert.assertEquals(true, result)
+        assertEquals(true, result)
     }
 
     @Test
@@ -323,7 +327,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = listOf(justCompletedSet),
         )
 
-        Assert.assertEquals(true, result)
+        assertEquals(true, result)
     }
 
     @Test
@@ -350,7 +354,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = listOf(justCompletedSet),
         )
 
-        Assert.assertEquals(false, result)
+        assertEquals(false, result)
     }
 
     @Test
@@ -412,6 +416,6 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        Assert.assertEquals(false, result)
+        assertEquals(false, result)
     }
 }

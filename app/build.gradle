@@ -40,16 +40,16 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled = false
+            minifyEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig = signingConfigs.release
             buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
-            buildConfigField("boolean", "USE_SCRATCH_DB", "true")
+            buildConfigField("boolean", "USE_SCRATCH_DB", "false")
         }
 
         debug {
             buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
-            buildConfigField("boolean", "USE_SCRATCH_DB", "true")
+            buildConfigField("boolean", "USE_SCRATCH_DB", "false")
         }
     }
     compileOptions {
@@ -65,139 +65,167 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
+    testOptions {
+        unitTests {
+            // return default values for any un‑mocked android.* calls
+            returnDefaultValues = true
+
+            // configure *all* Test tasks for unit tests
+            all { Test testTask ->
+                // add the dynamic‑agent flag (hides that Byte‑Buddy warning)
+                testTask.jvmArgs += '-XX:+EnableDynamicAgentLoading'
+                // enable JUnit‑5 discovery
+                testTask.useJUnitPlatform()
+            }
+        }
+    }
 }
 
 dependencies {
-    def nav_version = '2.9.1'
-    def material_version = '1.3.1'
-    def room_version = '2.7.2'
-    def lifecycle_version = '2.9.1'
-    def kotlin_coroutines_version = '1.10.1'
-    def compose_version = '1.7.8'
-    def kotlin_reflect_version = '2.1.20'
-    def eventbus_version = '3.3.1'
-    def mockkVersion = '1.13.17'
-    def vico_version = '2.1.3'
-    def koin_version = '4.1.0'
-    def activity_version = '1.9.3'
-
+    // =================== MODULE PROJECTS ======================
     implementation(project(":annotations"))
     ksp(project(":annotation_generator"))
-    implementation "com.google.devtools.ksp:symbol-processing-api:2.2.0-2.0.2"
-    implementation "androidx.activity:activity-ktx:$activity_version"
 
+    // =================== KSP ======================
+    implementation "com.google.devtools.ksp:symbol-processing-api:2.2.0-2.0.2"
+
+    // =================== ANDROIDX CORE & ACTIVITY ======================
+    def activity_version = '1.9.3'
+    implementation "androidx.activity:activity-ktx:$activity_version"
+    implementation 'androidx.core:core-ktx:1.16.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+
+    // =================== KOTLIN ======================
+    def kotlin_coroutines_version = '1.10.2'
+    implementation "org.jetbrains.kotlin:kotlin-reflect:2.1.20"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
 
-    // Firebase
+    // =================== FIREBASE (BOM Managed) & GOOGLE SERVICES ======================
+    def feature_delivery_version = '2.1.0'
     implementation platform('com.google.firebase:firebase-bom:33.16.0')
-    implementation("com.google.firebase:firebase-appcheck-playintegrity")
-    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation "com.google.firebase:firebase-appcheck-playintegrity"
+    implementation "com.google.firebase:firebase-auth-ktx"
     implementation "com.google.firebase:firebase-firestore"
     implementation "com.google.firebase:firebase-crashlytics"
     implementation "com.google.firebase:firebase-ai"
     implementation "com.google.firebase:firebase-appcheck-debug"
-    implementation("io.github.mirzemehdi:kmpauth-google:2.3.1") //Google One Tap Sign-In
-    implementation("io.github.mirzemehdi:kmpauth-firebase:2.3.1") //Integrated Authentications with Firebase
-    implementation("io.github.mirzemehdi:kmpauth-uihelper:2.3.1") //UiHelper SignIn buttons (AppleSignIn, GoogleSignInButton)
-
+    implementation "com.google.android.play:feature-delivery:$feature_delivery_version"
+    implementation "com.google.android.play:feature-delivery-ktx:$feature_delivery_version"
+    implementation "com.android.billingclient:billing-ktx:8.0.0"
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation 'androidx.security:security-crypto-ktx:1.1.0-beta01'
 
-    implementation 'com.google.android.play:feature-delivery:2.1.0'
-    implementation 'com.google.android.play:feature-delivery-ktx:2.1.0'
-    implementation 'com.android.billingclient:billing-ktx:8.0.0'
+    // ---- Firebase Auth helpers ----
+    def firebase_auth_helper_version = '2.3.1'
+    implementation("io.github.mirzemehdi:kmpauth-google:$firebase_auth_helper_version")
+    implementation("io.github.mirzemehdi:kmpauth-firebase:$firebase_auth_helper_version")
+    implementation("io.github.mirzemehdi:kmpauth-uihelper:$firebase_auth_helper_version")
 
-    implementation 'androidx.core:core-splashscreen:1.0.1'
-
+    // =================== EVENTBUS ======================
+    def eventbus_version = '3.3.1'
     implementation "org.greenrobot:eventbus:$eventbus_version"
     ksp "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
 
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_reflect_version"
-    implementation 'androidx.core:core-ktx:1.16.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.1'
-    implementation 'androidx.activity:activity-compose:1.10.1'
-    implementation platform('androidx.compose:compose-bom:2025.06.01')
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
+    // =================== ANNOTATIONS ======================
+    implementation "javax.annotation:javax.annotation-api:1.3.2"
     implementation 'com.google.j2objc:j2objc-annotations:3.0.0'
 
-    // Compose
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.ui:ui-graphics:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "androidx.compose.foundation:foundation:$compose_version"
+    // =================== COMPOSE (BOM Managed) ======================
+    implementation platform('androidx.compose:compose-bom:2025.07.00')
+    implementation "androidx.activity:activity-compose:1.10.1"
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-graphics"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.foundation:foundation"
     implementation 'androidx.compose.runtime:runtime-livedata:1.8.3'
-    implementation "androidx.compose.ui:ui-util:$compose_version"
+    implementation "androidx.compose.ui:ui-util"
+    implementation "androidx.compose.material:material"
+    implementation "androidx.compose.material3:material3"
 
-    implementation "androidx.compose.material:material:$compose_version"
-    implementation "androidx.compose.material3:material3:$material_version"
+    // =================== NAVIGATION ======================
+    def nav_version = '2.9.2'
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
+    implementation "androidx.navigation:navigation-compose:$nav_version"
+    androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
 
-    // Third Party
-    implementation 'sh.calvin.reorderable:reorderable:2.5.1'
-    implementation 'io.arrow-kt:arrow-core:2.1.2'
-    implementation 'io.arrow-kt:arrow-fx-coroutines:2.1.2'
-    implementation 'com.valentinilk.shimmer:compose-shimmer:1.3.3'
-    implementation 'dev.shreyaspatil:capturable:3.0.1'
-
-    // Work
-    implementation 'androidx.work:work-runtime-ktx:2.10.2'
-    implementation 'androidx.work:work-runtime:2.10.2'
-
-    // Annotation
-    implementation "javax.annotation:javax.annotation-api:1.3.2"
-
-    // Room
+    // =================== ROOM ======================
+    def room_version = '2.7.2'
     implementation "androidx.room:room-ktx:$room_version"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-common:$room_version"
     ksp "androidx.room:room-compiler:$room_version"
 
-    // Navigation
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
-    implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
-    androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
-    implementation "androidx.navigation:navigation-compose:$nav_version"
-
-    // Gson
-    implementation 'com.google.code.gson:gson:2.13.1'
-
-    // Koin
-    implementation "io.insert-koin:koin-core:$koin_version"
-    implementation "io.insert-koin:koin-android:$koin_version"
-    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
-
-    // Lifecycle
+    // =================== LIFECYCLE ======================
+    def lifecycle_version = '2.9.2'
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
-    // Testing
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
-    testImplementation 'androidx.arch.core:core-testing:2.2.0'
-    testImplementation "io.mockk:mockk:$mockkVersion"
-    testImplementation 'junit:junit:4.13.2'
+    // =================== WORK ======================
+    def work_version = '2.10.2'
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+    implementation "androidx.work:work-runtime:$work_version"
+
+    // =================== KOIN ======================
+    def koin_version = '4.1.0'
+    implementation "io.insert-koin:koin-core:$koin_version"
+    implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+
+    // =================== THIRD PARTY UI ======================
+    implementation 'sh.calvin.reorderable:reorderable:2.5.1'
+    implementation 'com.valentinilk.shimmer:compose-shimmer:1.3.3'
+    implementation 'dev.shreyaspatil:capturable:3.0.1'
+
+    // =================== VICO CHARTS ======================
+    def vico_version = '2.1.3'
+    implementation("com.patrykandpatrick.vico:compose:$vico_version")
+    implementation("com.patrykandpatrick.vico:compose-m3:$vico_version")
+    implementation("com.patrykandpatrick.vico:core:$vico_version")
+    implementation("com.patrykandpatrick.vico:views:$vico_version")
+
+    // =================== ARROW ======================
+    def arrow_version = '2.1.2'
+    implementation "io.arrow-kt:arrow-core:$arrow_version"
+    implementation "io.arrow-kt:arrow-fx-coroutines:$arrow_version"
+
+    // =================== GSON ======================
+    implementation 'com.google.code.gson:gson:2.13.1'
+
+    // =================== TESTING (UNIT/INSTRUMENTATION) ======================
+    // JUnit 5 (BOM Managed)
+    def junit_jupiter_version = '5.13.3'
+    testImplementation platform("org.junit:junit-bom:$junit_jupiter_version")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation "org.junit.jupiter:junit-jupiter-params"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
+    // --- To run old JUnit 4 tests temporarily, uncomment below: ---
+    // testImplementation 'junit:junit:4.13.2'
+    // testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+
+    // Kotlin & coroutine test helpers
+    testImplementation "io.mockk:mockk:1.14.5"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutines_version"
+    testImplementation "androidx.arch.core:core-testing:2.2.0"
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.9.23") // Use for kotlin assertions, fine w/ JUnit5
+
+    // AndroidX Instrumentation/Compose Test
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    androidTestImplementation platform('androidx.compose:compose-bom:2025.06.01')
+    androidTestImplementation platform('androidx.compose:compose-bom:2025.07.00')
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.8.3'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.8.3'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest:1.8.3'
 
-    // Vico Charts
-    // For Jetpack Compose.
-    implementation("com.patrykandpatrick.vico:compose:$vico_version")
-    // For `compose`. Creates a `ChartStyle` based on an M3 Material Theme.
-    implementation("com.patrykandpatrick.vico:compose-m3:$vico_version")
-    // Houses the core logic for charts and other elements. Included in all other modules.
-    implementation("com.patrykandpatrick.vico:core:$vico_version")
-    // For the view system.
-    implementation("com.patrykandpatrick.vico:views:$vico_version")
+    // Compose debug/test utilities (BOM Managed)
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 }
+
 ksp {
     arg("room.generateKotlin", "true")
-}
-kapt {
-    arguments {
-        arg('eventBusIndex', 'com.com.browntowndev.liftlab.EventBusIndex')
-    }
+    arg('eventBusIndex', 'com.com.browntowndev.liftlab.EventBusIndex')
 }

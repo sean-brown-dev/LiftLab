@@ -37,12 +37,10 @@ import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutI
 import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutLiftsSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutLogEntriesSyncRepository
 import com.browntowndev.liftlab.core.persistence.repositories.firestore.WorkoutsSyncRepository
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.toObject
@@ -64,8 +62,7 @@ import kotlin.coroutines.suspendCoroutine
 
 
 class FirestoreSyncManager (
-    private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val firestoreClient: FirestoreClient,
     private val syncScope: CoroutineScope,
     private val customLiftSetsSyncRepository: CustomLiftSetsSyncRepository,
     private val historicalWorkoutNamesSyncRepository: HistoricalWorkoutNamesSyncRepository,
@@ -81,7 +78,7 @@ class FirestoreSyncManager (
     private val workoutsSyncRepository: WorkoutsSyncRepository,
     private val syncRepository: SyncMetadataRepository,
 ) {
-    private val userId: String? get() = firebaseAuth.currentUser?.uid
+    private val userId: String? get() = firestoreClient.userId
 
     companion object {
         private const val TAG = "FirestoreSyncManager"
@@ -302,7 +299,7 @@ class FirestoreSyncManager (
         noinline onSynced: suspend (List<T>) -> Unit,
     ) {
         try {
-            if (entities.size == 1 && syncType == SyncType.Sync) {
+            if (entities.size == 1 && syncType == SyncType.Upsert) {
                 syncSingle(
                     collectionName = collectionName,
                     entity = entities[0],
@@ -310,7 +307,7 @@ class FirestoreSyncManager (
                         onSynced(listOf(it))
                     }
                 )
-            } else if (entities.size > 1 && syncType == SyncType.Sync) {
+            } else if (entities.size > 1 && syncType == SyncType.Upsert) {
                 syncMany(
                     collectionName = collectionName,
                     entities = entities,
@@ -521,16 +518,14 @@ class FirestoreSyncManager (
     ) {
         val deletedIds = mutableListOf<String>()
         val batchedSyncDocuments = mutableMapOf<String, List<DocumentReference>>()
-        val firestoreBatch = firestore.batch()
+        val firestoreBatch = firestoreClient.batch()
 
         batchSyncCollections.fastForEach { batch ->
-            val collection = firestore.collection("users")
-                .document(userId!!)
-                .collection(batch.collectionName)
+            val collection = firestoreClient.userCollection(batch.collectionName)
 
             val batchEntities = onRequestEntities(batch.collectionName, batch.roomEntityIds)
             when (batch.syncType) {
-                SyncType.Sync -> {
+                SyncType.Upsert -> {
                     batchEntities.fastForEach { entity ->
                         val docRef =
                             if (entity.firestoreId != null) collection.document(entity.firestoreId!!)
@@ -576,25 +571,74 @@ class FirestoreSyncManager (
 
         tryStartDeletionWatcher(
             collectionName = workoutsSyncRepository.collectionName,
-            entityFlow = workoutsSyncRepository.getAllFlow()
+            entityFlow = workoutsSyncRepository.getAllFlow(),
+            onGetFirestoreIdsForEntitiesWithDeletedParents = { workoutFirestoreDtos ->
+                val workoutProgramIds = workoutFirestoreDtos.fastMap { it.programId }.distinct()
+                val programIds = programsSyncRepository.getMany(workoutProgramIds)
+                    .fastMap { it.id }
+                    .toHashSet()
+
+                workoutFirestoreDtos.mapNotNull { dto ->
+                    if (dto.programId !in programIds && dto.firestoreId != null) {
+                        dto.firestoreId
+                    } else null
+                }
+            },
         )
         tryStartDeletionWatcher(
             collectionName = workoutLiftsSyncRepository.collectionName,
-            entityFlow = workoutLiftsSyncRepository.getAllFlow()
+            entityFlow = workoutLiftsSyncRepository.getAllFlow(),
+            onGetFirestoreIdsForEntitiesWithDeletedParents = { workoutLiftFirestoreDtos ->
+                val workoutLiftWorkoutIds = workoutLiftFirestoreDtos.fastMap { it.workoutId }.distinct()
+                val workoutIds = workoutsSyncRepository.getMany(workoutLiftWorkoutIds)
+                    .fastMap { it.id }
+                    .toHashSet()
+
+                workoutLiftFirestoreDtos.mapNotNull { dto ->
+                    if (dto.workoutId !in workoutIds && dto.firestoreId != null) {
+                        dto.firestoreId
+                    } else null
+                }
+            },
         )
         tryStartDeletionWatcher(
             collectionName = customLiftSetsSyncRepository.collectionName,
-            entityFlow = customLiftSetsSyncRepository.getAllFlow()
+            entityFlow = customLiftSetsSyncRepository.getAllFlow(),
+            onGetFirestoreIdsForEntitiesWithDeletedParents = { customLiftSetsFirestoreDtos ->
+                val customLiftSetWorkoutIds = customLiftSetsFirestoreDtos.fastMap { it.workoutLiftId }.distinct()
+                val workoutLiftIds = workoutLiftsSyncRepository.getMany(customLiftSetWorkoutIds)
+                    .fastMap { it.id }
+                    .toHashSet()
+
+                customLiftSetsFirestoreDtos.mapNotNull { dto ->
+                    if (dto.workoutLiftId !in workoutLiftIds && dto.firestoreId != null) {
+                        dto.firestoreId
+                    } else null
+                }
+            },
         )
         tryStartDeletionWatcher(
             collectionName = workoutInProgressSyncRepository.collectionName,
-            entityFlow = workoutInProgressSyncRepository.getAllFlow()
+            entityFlow = workoutInProgressSyncRepository.getAllFlow(),
+            onGetFirestoreIdsForEntitiesWithDeletedParents = { workoutInProgressFirestoreDtos ->
+                val workoutInProgressWorkoutIds = workoutInProgressFirestoreDtos.fastMap { it.workoutId }.distinct()
+                val workoutIds = workoutsSyncRepository.getMany(workoutInProgressWorkoutIds)
+                    .fastMap { it.id }
+                    .toHashSet()
+
+                workoutInProgressFirestoreDtos.mapNotNull { dto ->
+                    if (dto.workoutId !in workoutIds && dto.firestoreId != null) {
+                        dto.firestoreId
+                    } else null
+                }
+            },
         )
     }
 
     private fun<T: BaseFirestoreDto> tryStartDeletionWatcher(
         collectionName: String,
         entityFlow: Flow<List<T>>,
+        onGetFirestoreIdsForEntitiesWithDeletedParents: suspend (List<T>) -> List<String>,
     ) {
         val existingJob = deletionWatcherJobs[collectionName]
         if (existingJob?.isActive == true) {
@@ -606,18 +650,20 @@ class FirestoreSyncManager (
             val knownIds = ConcurrentHashMap.newKeySet<String>()
             entityFlow.collect { currentDtos ->
                 try {
-                    Log.d(TAG, "Deletion watcher for $collectionName triggered: $currentDtos")
+                    Log.d(TAG, "Deletion watcher triggered: $currentDtos [$collectionName]")
                     val currentIds = currentDtos.mapNotNull { it.firestoreId }.toSet()
                     val deletedIds = knownIds - currentIds
+                    val deletedEntities = currentDtos.filter { it.firestoreId in deletedIds }
+                    val idsForDelete = onGetFirestoreIdsForEntitiesWithDeletedParents(deletedEntities)
 
-                    if (deletedIds.isNotEmpty()) {
-                        deleteMany(collectionName, deletedIds.map { it })
-                        Log.d(TAG, "Deleted $deletedIds")
+                    if (idsForDelete.isNotEmpty()) {
+                        deleteMany(collectionName, idsForDelete.map { it })
+                        Log.d(TAG, "Deleted $idsForDelete")
                     }
 
                     knownIds.clear()
                     knownIds.addAll(currentIds)
-                    Log.d(TAG, "Known ids: $knownIds")
+                    Log.d(TAG, "Known ids: $knownIds [$collectionName]")
                 } catch (e: Exception) {
                     Log.e(TAG, "Error during deletion watcher for $collectionName: ${e.message}", e)
                     FirebaseCrashlytics.getInstance().recordException(e)
@@ -638,9 +684,7 @@ class FirestoreSyncManager (
         }
 
         try {
-            val docRef = firestore.collection("users")
-                .document(userId!!)
-                .collection(collectionName)
+            val docRef = firestoreClient.userCollection(collectionName)
                 .document(firestoreId)
 
             docRef.delete().await()
@@ -666,13 +710,11 @@ class FirestoreSyncManager (
 
         firestoreIds.forEachParallel(10) { chunk ->
             try {
-                val batch = firestore.batch()
+                val batch = firestoreClient.batch()
                 val deletedIds = mutableListOf<String>()
 
                 chunk.forEach { firestoreId ->
-                    val docRef = firestore.collection("users")
-                        .document(userId!!)
-                        .collection(collectionName)
+                    val docRef = firestoreClient.userCollection(collectionName)
                         .document(firestoreId)
 
                     batch.delete(docRef)
@@ -702,10 +744,7 @@ class FirestoreSyncManager (
         }
 
         try {
-            val collection = firestore.collection("users")
-                .document(userId!!)
-                .collection(collectionName)
-
+            val collection = firestoreClient.userCollection(collectionName)
             val docRef = if (entity.firestoreId != null)
                 collection.document(entity.firestoreId!!)
             else
@@ -745,13 +784,10 @@ class FirestoreSyncManager (
         coroutineScope {
             entities.forEachParallel(10) { entityChunk ->
                 try {
-                    val batch = firestore.batch()
+                    val batch = firestoreClient.batch()
                     val firestoreDocumentBatch = mutableListOf<DocumentReference>()
                     entityChunk.fastForEach { entity ->
-                        val collection = firestore.collection("users")
-                            .document(userId!!)
-                            .collection(collectionName)
-
+                        val collection = firestoreClient.userCollection(collectionName)
                         val docRef = if (entity.firestoreId != null)
                             collection.document(entity.firestoreId!!)
                         else
@@ -915,7 +951,7 @@ class FirestoreSyncManager (
             onUpsertMany = onUpsertMany,
         )
 
-        // Sync any unsynced entities up to Firestore
+        // Upsert any unsynced entities up to Firestore
         allSyncedEntities += uploadUnsyncedEntities<T>(
             localEntities = onGetLocalEntities(),
             collection = collection,
@@ -1019,7 +1055,7 @@ class FirestoreSyncManager (
         val syncedEntities = coroutineScope {
             unsyncedEntities.flatMapParallel(10) { unsyncedEntityChunk ->
                 val currFirestoreDocBatch = mutableListOf<DocumentReference>()
-                val batch = firestore.batch()
+                val batch = firestoreClient.batch()
 
                 unsyncedEntityChunk.forEach { unsyncedEntity ->
                     val docRef = unsyncedEntity.firestoreId?.let(collection::document)

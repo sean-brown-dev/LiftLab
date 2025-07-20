@@ -14,17 +14,19 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.progression.LinearProgressionCalculator
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import io.mockk.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.test.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 
 class LinearProgressionCalculatorTests {
     private val calculator = LinearProgressionCalculator()
     private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
 
-    @Before
+    @BeforeEach
     fun setup() {
         // Set the main dispatcher to the test dispatcher
         val sharedPrefs = mockk<SharedPreferences>()
@@ -62,7 +64,7 @@ class LinearProgressionCalculatorTests {
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(80f, it.weightRecommendation)
+            assertEquals(80f, it.weightRecommendation)
         }
     }
 
@@ -93,7 +95,7 @@ class LinearProgressionCalculatorTests {
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(75f, it.weightRecommendation)
+            assertEquals(75f, it.weightRecommendation)
         }
     }
 
@@ -124,7 +126,7 @@ class LinearProgressionCalculatorTests {
 
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(90f, it.weightRecommendation)
+            assertEquals(90f, it.weightRecommendation)
         }
     }
 
@@ -150,7 +152,7 @@ class LinearProgressionCalculatorTests {
         val previousSetData = listOf<LinearProgressionSetResultDto>()
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(null, it.weightRecommendation)
+            assertEquals(null, it.weightRecommendation)
         }
     }
 
@@ -179,7 +181,7 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResultDto(missedLpGoals = 2, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        Assert.assertThrows(Exception::class.java) {
+        assertThrows(Exception::class.java) {
             calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         }
     }
@@ -216,7 +218,7 @@ class LinearProgressionCalculatorTests {
         val previousSetData = listOf<LinearProgressionSetResultDto>()
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(null, it.weightRecommendation)
+            assertEquals(null, it.weightRecommendation)
         }
     }
 }

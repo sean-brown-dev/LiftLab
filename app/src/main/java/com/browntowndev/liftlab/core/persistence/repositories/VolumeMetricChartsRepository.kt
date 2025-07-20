@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
@@ -11,12 +12,12 @@ import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetad
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 
 class VolumeMetricChartsRepository(
     private val volumeMetricChartsDao: VolumeMetricChartsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ) {
     suspend fun upsert(volumeMetricChart: VolumeMetricChartDto): Long {
         val current = volumeMetricChartsDao.get(volumeMetricChart.id)
@@ -33,15 +34,13 @@ class VolumeMetricChartsRepository(
             if (it == -1L) toUpsert.id else it
         }
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                entity = toUpsert.toFirestoreDto().copy(id = id),
-                onSynced = {
-                    volumeMetricChartsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
 
         return id
     }
@@ -67,15 +66,13 @@ class VolumeMetricChartsRepository(
             if (upsertId == -1L) toUpsert else toUpsert.copy(id = upsertId)
         }
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                entities = toUpsert.map { it.toFirestoreDto() },
-                onSynced = { firestoreEntities ->
-                    volumeMetricChartsDao.updateMany(firestoreEntities.fastMap { it.toEntity() })
-                }
+                roomEntityIds = toUpsert.fastMap { it.id },
+                SyncType.Upsert,
             )
-        }
+        )
 
         return upsertIds
     }
@@ -95,12 +92,13 @@ class VolumeMetricChartsRepository(
         volumeMetricChartsDao.delete(toDelete)
 
         if (toDelete.firestoreId != null) {
-            syncScope.fireAndForgetSync {
-                firestoreSyncManager.deleteSingle(
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
                     collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                    firestoreId = toDelete.firestoreId!!
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete,
                 )
-            }
+            )
         }
     }
 }

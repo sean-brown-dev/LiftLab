@@ -14,13 +14,12 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.greenrobot.eventbus.EventBus
-import org.junit.After
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.displayName
@@ -30,55 +29,47 @@ import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit4.MockKRule
+import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
-import io.mockk.slot
-import org.junit.Rule
+import kotlinx.coroutines.flow.flowOf
+import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.time.Duration
 
 @ExperimentalCoroutinesApi
+@ExtendWith(MockKExtension::class)
 class LiftLibraryViewModelTests {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
-    @get:Rule
-    val mockkRule = MockKRule(this)
+    @MockK
+    lateinit var liftsRepository: LiftsRepository
 
     @MockK
-    private lateinit var liftsRepository: LiftsRepository
+    lateinit var workoutLiftsRepository: WorkoutLiftsRepository
 
     @MockK
-    private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
+    lateinit var liftMetricChartsRepository: LiftMetricChartsRepository
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateHome: () -> Unit
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateToActiveWorkout: () -> Unit
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateToLiftDetails: (liftId: Long?) -> Unit
 
     @MockK
-    private lateinit var liftMetricChartsRepository: LiftMetricChartsRepository
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateHome: () -> Unit
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateToActiveWorkout: () -> Unit
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateToLiftDetails: (liftId: Long?) -> Unit
-
-    @MockK
-    private lateinit var transactionScope: TransactionScope
+    lateinit var transactionScope: TransactionScope
 
     private val eventBus = EventBus.getDefault()
-
     private lateinit var viewModel: LiftLibraryViewModel
-
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    @Before
+    @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-
         transactionScope = mockk<TransactionScope>()
         coEvery { transactionScope.execute(any()) } coAnswers {
             val function = args[0] as (suspend () -> Unit)
@@ -86,10 +77,11 @@ class LiftLibraryViewModelTests {
         }
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
     }
+
 
     private fun initializeViewModel(
         workoutId: Long? = null,
@@ -158,14 +150,9 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
+
 
         initializeViewModel()
 
@@ -220,14 +207,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -290,14 +270,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -355,14 +328,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -423,14 +389,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -494,14 +453,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
         coEvery { workoutLiftsRepository.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
 
         initializeViewModel(workoutId = 1)
@@ -572,14 +524,7 @@ class LiftLibraryViewModelTests {
             ),
         )
 
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllFlow() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
         coEvery { workoutLiftsRepository.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
 
         initializeViewModel(workoutId = 1)

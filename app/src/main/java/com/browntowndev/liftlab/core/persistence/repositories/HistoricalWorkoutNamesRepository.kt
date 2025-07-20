@@ -1,18 +1,15 @@
 package com.browntowndev.liftlab.core.persistence.repositories
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.common.fireAndForgetSync
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.persistence.dao.HistoricalWorkoutNamesDao
 import com.browntowndev.liftlab.core.persistence.entities.HistoricalWorkoutName
-import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
-import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
-import kotlinx.coroutines.CoroutineScope
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 
 class HistoricalWorkoutNamesRepository(
     private val historicalWorkoutNamesDao: HistoricalWorkoutNamesDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
 
     suspend fun insert(programId: Long, workoutId: Long, programName: String, workoutName: String): Long {
@@ -23,15 +20,14 @@ class HistoricalWorkoutNamesRepository(
             workoutName = workoutName,
         )
         val id = historicalWorkoutNamesDao.insert(toInsert)
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.HISTORICAL_WORKOUT_NAMES_COLLECTION,
-                entity = toInsert.toFirestoreDto().copy(id = id),
-                onSynced = {
-                    historicalWorkoutNamesDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
 
         return id
     }

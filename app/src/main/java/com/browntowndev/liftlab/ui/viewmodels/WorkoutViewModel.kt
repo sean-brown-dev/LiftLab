@@ -105,6 +105,7 @@ class WorkoutViewModel(
             programsRepository.getActiveProgramMetadataFlow()
                 .collect { programMetadata ->
                     if (programMetadata != null) {
+                        //TODO: break this out so not collecting in collect
                         // Observe Workout based on program
                         observeWorkoutForProgram(programMetadata)
                     } else {

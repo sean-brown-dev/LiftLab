@@ -15,17 +15,18 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.progression.DynamicDoubleProgressionCalculator
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import io.mockk.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.test.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class DynamicDoubleProgressionCalculatorTests {
     private val calculator = DynamicDoubleProgressionCalculator()
     private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
 
-    @Before
+    @BeforeEach
     fun setup() {
         // Set the main dispatcher to the test dispatcher
         val sharedPrefs = mockk<SharedPreferences>()
@@ -64,7 +65,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(80f, p.weightRecommendation)
+            assertEquals(80f, p.weightRecommendation)
         }
     }
 
@@ -91,7 +92,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertNull(p.weightRecommendation)
+            assertNull(p.weightRecommendation)
         }
     }
 
@@ -124,7 +125,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(80f, p.weightRecommendation)
+            assertEquals(80f, p.weightRecommendation)
         }
     }
 
@@ -156,7 +157,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if (p.position != 3) 80f else null, p.weightRecommendation)
+            assertEquals(if (p.position != 3) 80f else null, p.weightRecommendation)
         }
     }
 
@@ -188,7 +189,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if(p.position == 2) 75f else if (p.position == 3) null else 80f, p.weightRecommendation)
+            assertEquals(if(p.position == 2) 75f else if (p.position == 3) null else 80f, p.weightRecommendation)
         }
     }
 
@@ -244,7 +245,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(80f, p.weightRecommendation)
+            assertEquals(80f, p.weightRecommendation)
         }
     }
 
@@ -300,7 +301,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(if(p.position == 2) 75f else 80f, p.weightRecommendation)
+            assertEquals(if(p.position == 2) 75f else 80f, p.weightRecommendation)
         }
     }
 
@@ -343,7 +344,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(80f, p.weightRecommendation)
+            assertEquals(80f, p.weightRecommendation)
         }
     }
 
@@ -396,9 +397,9 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.fastForEach { p ->
             if (p.position == 0)
-                Assert.assertEquals(75f, p.weightRecommendation)
+                assertEquals(75f, p.weightRecommendation)
             else
-                Assert.assertEquals(80f, p.weightRecommendation)
+                assertEquals(80f, p.weightRecommendation)
         }
     }
 
@@ -452,9 +453,9 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.fastForEach { p ->
             if (p.position == 0)
-                Assert.assertEquals(75f, p.weightRecommendation)
+                assertEquals(75f, p.weightRecommendation)
             else
-                Assert.assertEquals(80f,  p.weightRecommendation)
+                assertEquals(80f,  p.weightRecommendation)
         }
     }
 
@@ -498,7 +499,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(75f, p.weightRecommendation)
+            assertEquals(75f, p.weightRecommendation)
         }
     }
 
@@ -541,7 +542,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(75f, p.weightRecommendation)
+            assertEquals(75f, p.weightRecommendation)
         }
     }
 
@@ -568,7 +569,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertNull(p.weightRecommendation)
+            assertNull(p.weightRecommendation)
         }
     }
 
@@ -613,7 +614,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertNull(p.weightRecommendation)
+            assertNull(p.weightRecommendation)
         }
     }
 
@@ -655,7 +656,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(75f, p.weightRecommendation)
+            assertEquals(75f, p.weightRecommendation)
         }
     }
 
@@ -698,7 +699,7 @@ class DynamicDoubleProgressionCalculatorTests {
         val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
-            Assert.assertEquals(75f, p.weightRecommendation)
+            assertEquals(75f, p.weightRecommendation)
         }
     }
 
@@ -762,9 +763,9 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.forEachIndexed { index, p ->
             when (index) {
-                0 -> Assert.assertEquals(105f, p.weightRecommendation)
-                1 -> Assert.assertEquals(95f, p.weightRecommendation)
-                2 -> Assert.assertEquals(85f, p.weightRecommendation)
+                0 -> assertEquals(105f, p.weightRecommendation)
+                1 -> assertEquals(95f, p.weightRecommendation)
+                2 -> assertEquals(85f, p.weightRecommendation)
             }
         }
     }
@@ -829,9 +830,9 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.forEachIndexed { index, p ->
             when (index) {
-                0 -> Assert.assertEquals(100f, p.weightRecommendation)
-                1 -> Assert.assertEquals(90f, p.weightRecommendation)
-                2 -> Assert.assertEquals(80f, p.weightRecommendation)
+                0 -> assertEquals(100f, p.weightRecommendation)
+                1 -> assertEquals(90f, p.weightRecommendation)
+                2 -> assertEquals(80f, p.weightRecommendation)
             }
         }
     }
@@ -896,9 +897,9 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.forEachIndexed { index, p ->
             when (index) {
-                0 -> Assert.assertEquals(100f, p.weightRecommendation)
-                1 -> Assert.assertEquals(90f, p.weightRecommendation)
-                2 -> Assert.assertEquals(75f, p.weightRecommendation)
+                0 -> assertEquals(100f, p.weightRecommendation)
+                1 -> assertEquals(90f, p.weightRecommendation)
+                2 -> assertEquals(75f, p.weightRecommendation)
             }
         }
     }
@@ -963,9 +964,9 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.forEachIndexed { index, p ->
             when (index) {
-                0 -> Assert.assertEquals(95f, p.weightRecommendation)
-                1 -> Assert.assertEquals(90f, p.weightRecommendation)
-                2 -> Assert.assertEquals(80f, p.weightRecommendation)
+                0 -> assertEquals(95f, p.weightRecommendation)
+                1 -> assertEquals(90f, p.weightRecommendation)
+                2 -> assertEquals(80f, p.weightRecommendation)
             }
         }
     }

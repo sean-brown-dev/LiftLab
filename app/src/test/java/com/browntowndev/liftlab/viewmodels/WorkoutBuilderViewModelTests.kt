@@ -42,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -52,7 +53,7 @@ import org.junit.Test
 import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class WorkoutBuilderViewModelTest {
+class WorkoutBuilderViewModelTests {
 
     private lateinit var viewModel: WorkoutBuilderViewModel
     private val mockProgramsRepository: ProgramsRepository = mockk()
@@ -113,7 +114,7 @@ class WorkoutBuilderViewModelTest {
             ),
         )
 
-        coEvery { mockWorkoutsRepository.getFlow(workoutId) } returns dummyWorkout
+        coEvery { mockWorkoutsRepository.getFlow(workoutId) } returns flowOf(dummyWorkout)
         coEvery { mockProgramsRepository.getDeloadWeek(any()) } returns 4
 
         viewModel = WorkoutBuilderViewModel(

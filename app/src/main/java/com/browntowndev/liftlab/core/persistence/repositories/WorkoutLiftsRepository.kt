@@ -6,7 +6,6 @@ import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.WorkoutLiftFirestoreDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
@@ -20,22 +19,19 @@ class WorkoutLiftsRepository (
     private val workoutLiftsDao: WorkoutLiftsDao,
     private val workoutLiftMapper: WorkoutLiftMapper,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
 
     suspend fun insert(workoutLift: GenericWorkoutLift): Long {
         val toInsert = workoutLiftMapper.map(workoutLift)
         val id = workoutLiftsDao.insert(toInsert)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
-                entity = toInsert.toFirestoreDto().copy(id = id),
-                onSynced = {
-                    workoutLiftsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
         
         return id
     }
@@ -48,15 +44,13 @@ class WorkoutLiftsRepository (
             workoutLift.copy(id = id)
         }
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
-                entities = toInsert.map { it.toFirestoreDto() },
-                onSynced = { firestoreEntities ->
-                    workoutLiftsDao.updateMany(firestoreEntities.map { it.toEntity() })
-                }
+                roomEntityIds = toInsert.fastMap { it.id },
+                SyncType.Upsert,
             )
-        }
+        )
 
         return insertIds
     }
@@ -70,15 +64,13 @@ class WorkoutLiftsRepository (
         )
         workoutLiftsDao.update(toUpdate)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
-                entity = toUpdate.toFirestoreDto(),
-                onSynced = {
-                    workoutLiftsDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(toUpdate.id),
+                SyncType.Upsert,
             )
-        }
+        )
     }
 
     suspend fun update(workoutLift: GenericWorkoutLift) {
@@ -94,14 +86,14 @@ class WorkoutLiftsRepository (
             SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
                 roomEntityIds = listOf(toUpdate.id),
-                syncType = SyncType.Sync,
+                SyncType.Upsert,
             )
         )
     }
 
-    suspend fun updateMany(workoutLifts: List<GenericWorkoutLift>) {
+    suspend fun updateManyAndGetSyncQueueEntry(workoutLifts: List<GenericWorkoutLift>): SyncQueueEntry? {
         val currentEntities = workoutLiftsDao.getMany(workoutLifts.map { it.id }).associateBy { it.id }
-        if (currentEntities.isEmpty()) return
+        if (currentEntities.isEmpty()) return null
 
         val toUpdate = workoutLifts.fastMapNotNull { workoutLift ->
             val current = currentEntities[workoutLift.id] ?: return@fastMapNotNull null
@@ -111,18 +103,19 @@ class WorkoutLiftsRepository (
                 synced = false,
             )
         }
-        if (toUpdate.isEmpty()) return
+        if (toUpdate.isEmpty()) return null
         workoutLiftsDao.updateMany(toUpdate)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncMany(
-                collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
-                entities = toUpdate.map { it.toFirestoreDto() },
-                onSynced = { firestoreEntities ->
-                    workoutLiftsDao.updateMany(firestoreEntities.map { it.toEntity() })
-                }
-            )
-        }
+        return SyncQueueEntry(
+            collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
+            roomEntityIds = toUpdate.fastMap { it.id },
+            SyncType.Upsert,
+        )
+    }
+
+    suspend fun updateMany(workoutLifts: List<GenericWorkoutLift>) {
+        val syncQueueEntry = updateManyAndGetSyncQueueEntry(workoutLifts) ?: return
+        firestoreSyncManager.enqueueSyncRequest(syncQueueEntry)
     }
 
     suspend fun delete(workoutLift: GenericWorkoutLift) {
@@ -130,12 +123,13 @@ class WorkoutLiftsRepository (
         workoutLiftsDao.delete(toDelete)
 
         if (toDelete.firestoreId != null) {
-            syncScope.fireAndForgetSync {
-                firestoreSyncManager.deleteSingle(
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
                     collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
-                    firestoreId = toDelete.firestoreId!!,
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete,
                 )
-            }
+            )
         }
     }
 

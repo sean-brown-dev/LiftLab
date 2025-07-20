@@ -7,8 +7,6 @@ import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.persistence.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
 import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.copyWithFirestoreMetadata
@@ -33,7 +31,7 @@ class CustomLiftSetsRepository(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
                 roomEntityIds = listOf(id),
-                SyncType.Sync,
+                SyncType.Upsert,
             )
         )
         return id
@@ -52,14 +50,14 @@ class CustomLiftSetsRepository(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
                 roomEntityIds = listOf(toUpdate.id),
-                SyncType.Sync,
+                SyncType.Upsert,
             )
         )
     }
 
-    suspend fun updateMany(sets: List<GenericLiftSet>) {
+    suspend fun updateManyAndGetSyncQueueEntry(sets: List<GenericLiftSet>): SyncQueueEntry? {
         val currentById = customSetsDao.getMany(sets.map { it.id }).associateBy { it.id }
-        if (currentById.isEmpty()) return
+        if (currentById.isEmpty()) return null
 
         val toUpdate = sets.fastMapNotNull {
             val current = currentById[it.id] ?: return@fastMapNotNull null
@@ -70,17 +68,20 @@ class CustomLiftSetsRepository(
                     synced = false,
                 )
         }
-        if (toUpdate.isEmpty()) return
+        if (toUpdate.isEmpty()) return null
 
         customSetsDao.updateMany(toUpdate)
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                roomEntityIds = toUpdate.fastMap { it.id },
-                SyncType.Sync,
-            )
+        return SyncQueueEntry(
+            collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
+            roomEntityIds = toUpdate.fastMap { it.id },
+            SyncType.Upsert,
         )
+    }
+
+    suspend fun updateMany(sets: List<GenericLiftSet>) {
+        val syncQueueEntry = updateManyAndGetSyncQueueEntry(sets) ?: return
+        firestoreSyncManager.enqueueSyncRequest(syncQueueEntry)
     }
 
     suspend fun deleteAllForLift(workoutLiftId: Long) {
@@ -88,14 +89,18 @@ class CustomLiftSetsRepository(
         if (toDelete.isEmpty()) return
 
         customSetsDao.deleteMany(toDelete)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                roomEntityIds = toDelete.fastMap { it.id },
-                SyncType.Delete,
-            )
-        )
+        toDelete
+            .fastMapNotNull { it.firestoreId?.let { _ -> it.id } }
+            .takeIf({ it.isNotEmpty() })
+            ?.let { ids ->
+                firestoreSyncManager.enqueueSyncRequest(
+                    SyncQueueEntry(
+                        collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
+                        roomEntityIds = toDelete.fastMap { it.id },
+                        SyncType.Delete,
+                    )
+                )
+            }
     }
 
     suspend fun deleteByPosition(workoutLiftId: Long, position: Int) {
@@ -129,12 +134,12 @@ class CustomLiftSetsRepository(
                     SyncQueueEntry(
                         collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
                         roomEntityIds = entitiesToUpdate.fastMap { it.id },
-                        syncType = SyncType.Sync,
+                        syncType = SyncType.Upsert,
                     ),
                     SyncQueueEntry(
                         collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
                         roomEntityIds = listOf(workoutLiftToUpdate.id),
-                        syncType = SyncType.Sync,
+                        syncType = SyncType.Upsert,
                     ),
                 ).let { batches ->
                     val batchesMaybeWithDelete = batches.toMutableList()
@@ -163,7 +168,7 @@ class CustomLiftSetsRepository(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
                 roomEntityIds = insertedWithIds.fastMap { it.id },
-                syncType = SyncType.Sync,
+                syncType = SyncType.Upsert,
             )
         )
 

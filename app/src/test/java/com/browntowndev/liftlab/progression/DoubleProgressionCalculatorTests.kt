@@ -18,17 +18,17 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
 import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.progression.DoubleProgressionCalculator
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
+import io.mockk.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class DoubleProgressionCalculatorTests {
     private val calculator = DoubleProgressionCalculator()
     private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
 
-    @Before
+    @BeforeEach
     fun setup() {
         // Set the main dispatcher to the test dispatcher
         val sharedPrefs = mockk<SharedPreferences>()

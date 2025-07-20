@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.persistence.repositories
 
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
+import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.persistence.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
@@ -9,13 +10,13 @@ import com.browntowndev.liftlab.core.persistence.entities.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toEntity
 import com.browntowndev.liftlab.core.persistence.mapping.FirebaseMappers.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.sync.SyncQueueEntry
 import kotlinx.coroutines.CoroutineScope
 
 class WorkoutInProgressRepository(
     private val workoutInProgressDao: WorkoutInProgressDao,
     private val previousSetResultsRepository: PreviousSetResultsRepository,
     private val firestoreSyncManager: FirestoreSyncManager,
-    private val syncScope: CoroutineScope,
 ): Repository {
     suspend fun insert(workoutInProgress: WorkoutInProgressDto) {
         // Delete any that exist. Just calling delete because selecting then checking for null
@@ -29,15 +30,13 @@ class WorkoutInProgressRepository(
             )
         val id = workoutInProgressDao.insert(toInsert)
 
-        syncScope.fireAndForgetSync {
-            firestoreSyncManager.syncSingle(
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
                 collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                entity = toInsert.toFirestoreDto().copy(id = id),
-                onSynced = {
-                    workoutInProgressDao.update(it.toEntity())
-                }
+                roomEntityIds = listOf(id),
+                SyncType.Upsert,
             )
-        }
+        )
     }
 
     suspend fun delete() {
@@ -45,12 +44,13 @@ class WorkoutInProgressRepository(
         workoutInProgressDao.delete(toDelete)
 
         if (toDelete.firestoreId != null) {
-            syncScope.fireAndForgetSync {
-                firestoreSyncManager.deleteSingle(
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
                     collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                    firestoreId = toDelete.firestoreId!!,
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete,
                 )
-            }
+            )
         }
     }
 

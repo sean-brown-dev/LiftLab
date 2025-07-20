@@ -5,12 +5,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.persistence.sync.*
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.repositories.firestore.*
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val firebaseModule = module {
     single { FirebaseAuth.getInstance() }
     single { FirebaseFirestore.getInstance() }
+    singleOf(::LiftLabFirestoreClient)
 
     single {
         CustomLiftSetsSyncRepository(
@@ -104,8 +106,7 @@ val firebaseModule = module {
 
     single {
         FirestoreSyncManager(
-            firebaseAuth = get(),
-            firestore = get(),
+            firestoreClient = get<LiftLabFirestoreClient>(),
             syncScope = get(named("FirestoreSyncScope")),
             customLiftSetsSyncRepository = get(),
             historicalWorkoutNamesSyncRepository = get(),

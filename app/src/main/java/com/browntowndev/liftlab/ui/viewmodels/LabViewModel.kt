@@ -39,9 +39,16 @@ class LabViewModel(
         viewModelScope.launch {
             programsRepository.getAllFlow()
                 .collect { allPrograms ->
+                    val activeProgram = allPrograms
+                        .firstOrNull { program -> program.isActive }
+                        ?.let { program ->
+                            program.copy(
+                                workouts = program.workouts.sortedBy { it.position }
+                            )
+                        }
                     _state.update {
                         it.copy(
-                            program = allPrograms.firstOrNull { program -> program.isActive },
+                            program = activeProgram,
                             allPrograms = allPrograms,
                         )
                     }

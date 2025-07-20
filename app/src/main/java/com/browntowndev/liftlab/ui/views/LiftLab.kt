@@ -129,11 +129,11 @@ fun LiftLab(
 
         LiftLabDialog(
             isVisible = showSyncFailedDialog,
-            header = "Sync Failed",
+            header = "Upsert Failed",
             onDismiss = onCloseSyncFailedDialog,
         ) {
             Text(
-                text = "Failed to Sync Data. Try a manual sync from the sync menu on the Home screen.",
+                text = "Failed to Upsert Data. Try a manual sync from the sync menu on the Home screen.",
                 textAlign = TextAlign.Center,
             )
         }
