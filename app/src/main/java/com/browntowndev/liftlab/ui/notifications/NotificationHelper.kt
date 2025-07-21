@@ -15,15 +15,15 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.models.ActiveWorkoutNotificationMetadata
 import kotlinx.coroutines.flow.firstOrNull
 
 class NotificationHelper(
     private val programRepository: ProgramsRepository,
-    private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val workoutsRepository: WorkoutsRepository,
+    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
+    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
     private val restTimerInProgressRepository: RestTimerInProgressRepository
 ) {
     companion object {
@@ -58,13 +58,13 @@ class NotificationHelper(
 
     private suspend fun getActiveWorkoutMetadata(): ActiveWorkoutNotificationMetadata? {
         return programRepository.getActive()?.let { activeProgramMetadata ->
-            val workoutInProgress = workoutInProgressRepository.getFlow(
+            val workoutInProgress = workoutInProgressRepositoryImpl.getFlow(
                 mesoCycle = activeProgramMetadata.currentMesocycle,
                 microCycle = activeProgramMetadata.currentMicrocycle,
             ).firstOrNull()
 
             if (workoutInProgress != null) {
-                val workout = workoutsRepository.get(workoutInProgress.workoutId) ?: return null
+                val workout = workoutsRepositoryImpl.get(workoutInProgress.workoutId) ?: return null
                 ActiveWorkoutNotificationMetadata(
                     workoutName = workout.name,
                     startTime = workoutInProgress.startTime,

@@ -11,15 +11,15 @@ import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.repositories.standard.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 
 class ProgramCloner {
     companion object {
         suspend fun clone(
             programsRepository: ProgramsRepository,
-            workoutsRepository: WorkoutsRepository,
-            workoutLiftsRepository: WorkoutLiftsRepository,
+            workoutsRepositoryImpl: WorkoutsRepositoryImpl,
+            workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
             setsRepository: CustomLiftSetsRepositoryImpl,
             program: Program
         ) {
@@ -31,13 +31,13 @@ class ProgramCloner {
 
             val programId = programsRepository.insert(clonedProgram)
             clonedProgram.workouts.fastForEach { workout ->
-                clone(workoutsRepository, workoutLiftsRepository, setsRepository, programId, workout)
+                clone(workoutsRepositoryImpl, workoutLiftsRepositoryImpl, setsRepository, programId, workout)
             }
         }
 
         suspend fun clone(
-            workoutsRepository: WorkoutsRepository,
-            workoutLiftsRepository: WorkoutLiftsRepository,
+            workoutsRepositoryImpl: WorkoutsRepositoryImpl,
+            workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
             setsRepository: CustomLiftSetsRepositoryImpl,
             programId: Long,
             workout: Workout
@@ -49,7 +49,7 @@ class ProgramCloner {
                 lifts = listOf(),
             )
 
-            val workoutId = workoutsRepository.insert(workoutClone)
+            val workoutId = workoutsRepositoryImpl.insert(workoutClone)
             workout.lifts.fastForEach { lift ->
                 val clonedLift = when (lift) {
                     is StandardWorkoutLift -> StandardWorkoutLift(
@@ -92,7 +92,7 @@ class ProgramCloner {
                     else -> throw Exception("Type ${lift::class.simpleName} is not defined.")
                 }
 
-                val workoutLiftId = workoutLiftsRepository.insert(clonedLift)
+                val workoutLiftId = workoutLiftsRepositoryImpl.insert(clonedLift)
                 if (lift is CustomWorkoutLift) {
                     clone(setsRepository, workoutLiftId, lift.customLiftSets)
                 }

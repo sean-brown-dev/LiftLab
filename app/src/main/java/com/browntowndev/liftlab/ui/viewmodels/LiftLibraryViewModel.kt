@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ import org.greenrobot.eventbus.Subscribe
 
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
@@ -99,7 +99,7 @@ class LiftLibraryViewModel(
         workoutId: Long?,
     ): HashSet<Long> {
         return if (workoutId != null) {
-            workoutLiftsRepository.getLiftIdsForWorkout(workoutId).toHashSet()
+            workoutLiftsRepositoryImpl.getLiftIdsForWorkout(workoutId).toHashSet()
         } else hashSetOf()
     }
 
@@ -173,7 +173,7 @@ class LiftLibraryViewModel(
                     )
                 }
 
-            workoutLiftsRepository.insertAll(newLifts)
+            workoutLiftsRepositoryImpl.insertAll(newLifts)
             navigateBackToWorkoutBuilder()
         }
     }
@@ -186,7 +186,7 @@ class LiftLibraryViewModel(
         _state.update { it.copy(replacingLift = true) }
 
         viewModelScope.launch {
-            workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
+            workoutLiftsRepositoryImpl.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
             if (callerRouteId == Route.WorkoutBuilder.id) {
                 navigateBackToWorkoutBuilder()
             } else {

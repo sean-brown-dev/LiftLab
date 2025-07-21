@@ -7,7 +7,6 @@ import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
-import com.browntowndev.liftlab.core.domain.mapping.WorkoutMapper
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutsDao
@@ -21,8 +20,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
-class WorkoutsRepository(
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+class WorkoutsRepositoryImpl(
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
     private val customLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl,
     private val programsRepository: ProgramsRepository,
     private val workoutsDao: WorkoutsDao,
@@ -160,7 +159,7 @@ class WorkoutsRepository(
             }
 
         workoutsDao.update(updWorkout)
-        val workoutLiftSyncQueueEntry = workoutLiftsRepository.updateManyAndGetSyncQueueEntry(workout.lifts)
+        val workoutLiftSyncQueueEntry = workoutLiftsRepositoryImpl.updateManyAndGetSyncQueueEntry(workout.lifts)
         val customLiftSetsSyncQueueEntry = customLiftSetsRepositoryImpl.updateManyAndGetSyncQueueEntry(updSets)
 
         val syncQueueEntries = listOfNotNull(

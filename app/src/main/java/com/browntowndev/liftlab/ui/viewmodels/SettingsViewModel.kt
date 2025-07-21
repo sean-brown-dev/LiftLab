@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +24,7 @@ import kotlin.time.toDuration
 
 class SettingsViewModel(
     private val programsRepository: ProgramsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -132,7 +132,7 @@ class SettingsViewModel(
                 } ?: mapOf()
 
             if (liftsWithNewStepSizes.isNotEmpty()) {
-                workoutLiftsRepository.updateMany(liftsWithNewStepSizes.values.toList())
+                workoutLiftsRepositoryImpl.updateMany(liftsWithNewStepSizes.values.toList())
                 SettingsManager.setSetting(
                     SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING,
                     useLiftLevel

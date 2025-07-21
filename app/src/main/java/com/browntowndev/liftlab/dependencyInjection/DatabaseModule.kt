@@ -29,13 +29,13 @@ val repositoryModule = module {
 
     // Repositories
     single { ProgramsRepository(get(), get(), get(), get()) }
-    single { WorkoutLiftsRepository(get(), get(), get()) }
+    single { WorkoutLiftsRepositoryImpl(get(), get(), get()) }
     single {
-        WorkoutsRepository(
+        WorkoutsRepositoryImpl(
             workoutsDao = get(),
             workoutMapper = get(),
             programsRepository = get(),
-            workoutLiftsRepository = get(),
+            workoutLiftsRepositoryImpl = get(),
             customLiftSetsRepositoryImpl = get(),
             firestoreSyncManager = get(),
         )
@@ -43,8 +43,8 @@ val repositoryModule = module {
     single { PreviousSetResultsRepository(get(), get(), get()) }
     single { LiftsRepository(get(), get()) }
     single { CustomLiftSetsRepositoryImpl(get(), get(), get(), get()) }
-    single { WorkoutInProgressRepository(get(), get(), get()) }
-    single { HistoricalWorkoutNamesRepository(get(), get()) }
+    single { WorkoutInProgressRepositoryImpl(get(), get(), get()) }
+    single { HistoricalWorkoutNamesRepositoryImpl(get(), get()) }
     single {
         LoggingRepository(
             workoutLogEntryDao = get(),
@@ -55,7 +55,7 @@ val repositoryModule = module {
         )
     }
     single { LiftMetricChartsRepository(get(), get()) }
-    single { VolumeMetricChartsRepository(get(), get()) }
+    single { VolumeMetricChartsRepositoryImpl(get(), get()) }
     singleOf(::SyncMetadataRepository)
     singleOf(::RestTimerInProgressRepository)
 }

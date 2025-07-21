@@ -30,7 +30,7 @@ import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChar
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.VolumeMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.VolumeMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
@@ -62,7 +62,7 @@ class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val loggingRepository: LoggingRepository,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
-    private val volumeMetricChartsRepository: VolumeMetricChartsRepository,
+    private val volumeMetricChartsRepositoryImpl: VolumeMetricChartsRepositoryImpl,
     private val liftsRepository: LiftsRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
@@ -86,7 +86,7 @@ class HomeViewModel(
 
         viewModelScope.launch {
             val liftMetricCharts = liftMetricChartsRepository.getAll()
-            val volumeMetricCharts = volumeMetricChartsRepository.getAll()
+            val volumeMetricCharts = volumeMetricChartsRepositoryImpl.getAll()
                 .sortedWith(compareBy<VolumeMetricChart> { it.volumeType.bitMask }
                     .thenBy { it.volumeTypeImpact.bitmask }
                 )
@@ -571,7 +571,7 @@ class HomeViewModel(
                     volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
                 )
             }
-            volumeMetricChartsRepository.upsertMany(charts)
+            volumeMetricChartsRepositoryImpl.upsertMany(charts)
 
             val chartsWithNewAdded = _state.value.volumeMetricCharts.toMutableList().apply {
                 addAll(charts)
@@ -631,7 +631,7 @@ class HomeViewModel(
 
     fun deleteVolumeMetricChart(id: Long) {
         executeInTransactionScope {
-            volumeMetricChartsRepository.delete(id)
+            volumeMetricChartsRepositoryImpl.delete(id)
             _state.update {
                 it.copy(
                     volumeMetricCharts = it.volumeMetricCharts.filter { chart -> chart.id != id },

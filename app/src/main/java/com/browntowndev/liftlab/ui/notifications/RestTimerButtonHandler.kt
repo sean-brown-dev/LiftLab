@@ -7,8 +7,8 @@ import android.util.Log
 import com.browntowndev.liftlab.core.common.executeInCoroutineScope
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.core.Koin
@@ -35,8 +35,8 @@ class RestTimerButtonHandler: BroadcastReceiver() {
                         val firestore: FirebaseFirestore = koin.get()
                         val restTimerRepository: RestTimerInProgressRepository = koin.get()
                         val programsRepository: ProgramsRepository = koin.get()
-                        val workoutsRepository: WorkoutsRepository = koin.get()
-                        val workoutInProgressRepository: WorkoutInProgressRepository = koin.get()
+                        val workoutsRepositoryImpl: WorkoutsRepositoryImpl = koin.get()
+                        val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl = koin.get()
 
                         restTimerRepository.deleteAll()
 
@@ -45,8 +45,8 @@ class RestTimerButtonHandler: BroadcastReceiver() {
 
                         NotificationHelper(
                             programRepository = programsRepository,
-                            workoutsRepository = workoutsRepository,
-                            workoutInProgressRepository = workoutInProgressRepository,
+                            workoutsRepositoryImpl = workoutsRepositoryImpl,
+                            workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                             restTimerInProgressRepository = restTimerRepository,
                         ).startActiveWorkoutNotification(context)
                     }

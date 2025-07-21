@@ -25,8 +25,8 @@ import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.FirestoreSyncViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
@@ -85,15 +85,15 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         lifecycleScope.launch {
             val programRepository: ProgramsRepository by inject()
-            val workoutsRepository: WorkoutsRepository by inject()
-            val workoutInProgressRepository: WorkoutInProgressRepository by inject()
+            val workoutsRepositoryImpl: WorkoutsRepositoryImpl by inject()
+            val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl by inject()
             val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
 
             // TODO: make this injectable via Koin
             val notificationHelper = NotificationHelper(
                 programRepository = programRepository,
-                workoutsRepository = workoutsRepository,
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgressRepository,
             )
 
@@ -109,14 +109,14 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         lifecycleScope.launch {
             val programRepository: ProgramsRepository by inject()
-            val workoutsRepository: WorkoutsRepository by inject()
-            val workoutInProgressRepository: WorkoutInProgressRepository by inject()
+            val workoutsRepositoryImpl: WorkoutsRepositoryImpl by inject()
+            val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl by inject()
             val restTimerInProgressRepository: RestTimerInProgressRepository by inject()
 
             NotificationHelper(
                 programRepository = programRepository,
-                workoutsRepository = workoutsRepository,
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgressRepository,
             ).stopActiveNotifications(context)
         }

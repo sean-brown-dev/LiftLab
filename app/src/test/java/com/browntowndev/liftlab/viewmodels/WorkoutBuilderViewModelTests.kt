@@ -19,9 +19,9 @@ import com.browntowndev.liftlab.core.domain.repositories.standard.CustomLiftSets
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
@@ -57,11 +57,11 @@ class WorkoutBuilderViewModelTests {
 
     private lateinit var viewModel: WorkoutBuilderViewModel
     private val mockProgramsRepository: ProgramsRepository = mockk()
-    private val mockWorkoutsRepository: WorkoutsRepository = mockk()
-    private val mockWorkoutLiftsRepository: WorkoutLiftsRepository = mockk()
+    private val mockWorkoutsRepositoryImpl: WorkoutsRepositoryImpl = mockk()
+    private val mockWorkoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl = mockk()
     private val mockCustomLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl = mockk()
     private val mockLiftsRepository: LiftsRepository = mockk()
-    private val mockWorkoutInProgressRepository: WorkoutInProgressRepository = mockk()
+    private val mockWorkoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl = mockk()
     private val mockSetResultsRepository: PreviousSetResultsRepository = mockk()
     private val mockEventBus: EventBus = mockk(relaxUnitFun = true)
     private val mockOnNavigateBack: () -> Unit = mockk()
@@ -114,19 +114,19 @@ class WorkoutBuilderViewModelTests {
             ),
         )
 
-        coEvery { mockWorkoutsRepository.getFlow(workoutId) } returns flowOf(dummyWorkoutEntity)
+        coEvery { mockWorkoutsRepositoryImpl.getFlow(workoutId) } returns flowOf(dummyWorkoutEntity)
         coEvery { mockProgramsRepository.getDeloadWeek(any()) } returns 4
 
         viewModel = WorkoutBuilderViewModel(
             workoutId = workoutId,
             onNavigateBack = mockOnNavigateBack,
             programsRepository = mockProgramsRepository,
-            workoutsRepository = mockWorkoutsRepository,
-            workoutLiftsRepository = mockWorkoutLiftsRepository,
+            workoutsRepositoryImpl = mockWorkoutsRepositoryImpl,
+            workoutLiftsRepositoryImpl = mockWorkoutLiftsRepositoryImpl,
             customLiftSetsRepositoryImpl = mockCustomLiftSetsRepositoryImpl,
             liftsRepository = mockLiftsRepository,
             liftLevelDeloadsEnabled = liftLevelDeloadsEnabled,
-            workoutInProgressRepository = mockWorkoutInProgressRepository,
+            workoutInProgressRepositoryImpl = mockWorkoutInProgressRepositoryImpl,
             setResultsRepository = mockSetResultsRepository,
             transactionScope = transactionScope,
             eventBus = mockEventBus
@@ -202,11 +202,11 @@ class WorkoutBuilderViewModelTests {
 
         viewModel.toggleMovementPatternDeletionModal(liftEntityToDelete.id)
 
-        coEvery { mockWorkoutLiftsRepository.delete(any()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.delete(any()) } just Runs
 
         viewModel.deleteMovementPattern()
 
-        coVerify { mockWorkoutLiftsRepository.delete(liftEntityToDelete) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.delete(liftEntityToDelete) }
         assertFalse(viewModel.state.first().workout?.lifts?.contains(liftEntityToDelete) ?: true)
         assertNull(viewModel.state.first().workoutLiftIdToDelete)
     }
@@ -215,11 +215,11 @@ class WorkoutBuilderViewModelTests {
     fun `updateWorkoutName should update workout name and update state`() = runTest {
         val newName = "New WorkoutEntity Name"
 
-        coEvery { mockWorkoutsRepository.updateName(any(), any()) } just Runs
+        coEvery { mockWorkoutsRepositoryImpl.updateName(any(), any()) } just Runs
 
         viewModel.updateWorkoutName(newName)
 
-        coVerify { mockWorkoutsRepository.updateName(workoutId, newName) }
+        coVerify { mockWorkoutsRepositoryImpl.updateName(workoutId, newName) }
         assertEquals(newName, viewModel.state.first().workout?.name)
         assertFalse(viewModel.state.first().isEditingName)
     }
@@ -319,12 +319,12 @@ class WorkoutBuilderViewModelTests {
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
         mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardLiftEntity))) }
 
-        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<CustomWorkoutLift>()) } just Runs
         coEvery { mockCustomLiftSetsRepositoryImpl.insertMany(any()) } returns listOf(1L)
 
         viewModel.toggleHasCustomLiftSets(workoutLiftId, true)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { it is CustomWorkoutLift }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { it is CustomWorkoutLift }) }
         coVerify { mockCustomLiftSetsRepositoryImpl.insertMany(any()) }
         val updatedLift = viewModel.state.first().workout!!.lifts.find { it.id == workoutLiftId }
         assertTrue(updatedLift is CustomWorkoutLift)
@@ -370,12 +370,12 @@ class WorkoutBuilderViewModelTests {
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
         mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
         coEvery { mockCustomLiftSetsRepositoryImpl.deleteAllForLift(any()) } just Runs
 
         viewModel.toggleHasCustomLiftSets(workoutLiftId, false)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { it is StandardWorkoutLift }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { it is StandardWorkoutLift }) }
         coVerify { mockCustomLiftSetsRepositoryImpl.deleteAllForLift(workoutLiftId) }
         val updatedLift = viewModel.state.first().workout!!.lifts.find { it.id == workoutLiftId }
         assertTrue(updatedLift is StandardWorkoutLift)
@@ -470,12 +470,12 @@ class WorkoutBuilderViewModelTests {
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
         mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(workoutLiftEntity1, workoutLiftEntity2))) }
 
-        coEvery { mockWorkoutLiftsRepository.updateMany(any()) } just Runs
-        coEvery { mockWorkoutInProgressRepository.getWithoutCompletedSets() } returns null
+        coEvery { mockWorkoutLiftsRepositoryImpl.updateMany(any()) } just Runs
+        coEvery { mockWorkoutInProgressRepositoryImpl.getWithoutCompletedSets() } returns null
 
         viewModel.reorderLifts(newLiftOrder)
 
-        coVerify { mockWorkoutLiftsRepository.updateMany(any()) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.updateMany(any()) }
         val updatedLifts = viewModel.state.first().workout?.lifts
         assertEquals(workoutLiftEntity2.id, updatedLifts?.get(0)?.id)
         assertEquals(0, (updatedLifts?.get(0) as StandardWorkoutLift).position)
@@ -489,11 +489,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newDeloadWeek = 2
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.updateDeloadWeek(workoutLiftId, newDeloadWeek)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.deloadWeek == newDeloadWeek }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.deloadWeek == newDeloadWeek }) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newDeloadWeek, updatedLift?.deloadWeek)
@@ -504,11 +504,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newSetCount = 5
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftSetCount(workoutLiftId, newSetCount)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.setCount == newSetCount }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.setCount == newSetCount }) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newSetCount, updatedLift?.setCount)
@@ -519,11 +519,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newRepRangeBottom = 6
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftRepRangeBottom(workoutLiftId, newRepRangeBottom)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.repRangeBottom == newRepRangeBottom }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.repRangeBottom == newRepRangeBottom }) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRepRangeBottom, updatedLift?.repRangeBottom)
@@ -534,11 +534,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newRepRangeTop = 12
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftRepRangeTop(workoutLiftId, newRepRangeTop)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.repRangeTop == newRepRangeTop }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.repRangeTop == newRepRangeTop }) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRepRangeTop, updatedLift?.repRangeTop)
@@ -549,11 +549,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newRpeTarget = 9f
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftRpeTarget(workoutLiftId, newRpeTarget)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.rpeTarget == newRpeTarget }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.rpeTarget == newRpeTarget }) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRpeTarget, updatedLift?.rpeTarget)
@@ -564,11 +564,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newProgressionScheme = ProgressionScheme.DOUBLE_PROGRESSION
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftProgressionScheme(workoutLiftId, newProgressionScheme)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.progressionScheme == newProgressionScheme }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.progressionScheme == newProgressionScheme }) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newProgressionScheme, updatedLift?.progressionScheme)
@@ -579,11 +579,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newStepSize = 3
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.updateStepSize(workoutLiftId, newStepSize)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.stepSize == newStepSize }) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(match { (it as? StandardWorkoutLift)?.stepSize == newStepSize }) }
         val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newStepSize, updatedLift?.stepSize)
     }
@@ -628,12 +628,12 @@ class WorkoutBuilderViewModelTests {
         mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
         coEvery { mockCustomLiftSetsRepositoryImpl.insert(any()) } returns 2L
-        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<CustomWorkoutLift>()) } just Runs
 
         viewModel.addSet(workoutLiftId)
 
         coVerify { mockCustomLiftSetsRepositoryImpl.insert(any()) }
-        coVerify { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(any<CustomWorkoutLift>()) }
         val updatedLift =
             viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift
         assertEquals(2, updatedLift?.setCount)
@@ -675,12 +675,12 @@ class WorkoutBuilderViewModelTests {
         mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
         coEvery { mockCustomLiftSetsRepositoryImpl.deleteByPosition(any(), any()) } just Runs
-        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<CustomWorkoutLift>()) } just Runs
 
         viewModel.deleteSet(workoutLiftId, 0)
 
         coVerify { mockCustomLiftSetsRepositoryImpl.deleteByPosition(workoutLiftId, 0) }
-        coVerify { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) }
+        coVerify { mockWorkoutLiftsRepositoryImpl.update(any<CustomWorkoutLift>()) }
         val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift
         assertEquals(1, updatedLift?.setCount)
         assertEquals(1, updatedLift?.customLiftSets?.size)
@@ -1249,12 +1249,12 @@ class WorkoutBuilderViewModelTests {
             val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
             mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardWorkoutLiftEntity))) }
 
-            coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+            coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
             viewModel.confirmStandardSetRepRangeBottom(workoutLiftId)
 
             coVerify {
-                mockWorkoutLiftsRepository.update(
+                mockWorkoutLiftsRepositoryImpl.update(
                     match {
                         (it as? StandardWorkoutLift)?.repRangeBottom == validatedRepRangeBottom
                     }
@@ -1300,12 +1300,12 @@ class WorkoutBuilderViewModelTests {
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
         mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardWorkoutLiftEntity))) }
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockWorkoutLiftsRepositoryImpl.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.confirmStandardSetRepRangeTop(workoutLiftId)
 
         coVerify {
-            mockWorkoutLiftsRepository.update(
+            mockWorkoutLiftsRepositoryImpl.update(
                 match {
                     (it as? StandardWorkoutLift)?.repRangeTop == validatedRepRangeTop
                 }

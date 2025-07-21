@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -41,7 +41,7 @@ class LiftLibraryViewModelTests {
     lateinit var liftsRepository: LiftsRepository
 
     @MockK
-    lateinit var workoutLiftsRepository: WorkoutLiftsRepository
+    lateinit var workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl
 
     @MockK
     lateinit var liftMetricChartsRepository: LiftMetricChartsRepository
@@ -89,7 +89,7 @@ class LiftLibraryViewModelTests {
     ) {
         viewModel = LiftLibraryViewModel(
             liftsRepository,
-            workoutLiftsRepository,
+            workoutLiftsRepositoryImpl,
             liftMetricChartsRepository,
             onNavigateHome,
             onNavigateToWorkoutBuilder,
@@ -452,7 +452,7 @@ class LiftLibraryViewModelTests {
             )
         )
         every { liftsRepository.getAllFlow() } returns flowOf(lifts)
-        coEvery { workoutLiftsRepository.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
+        coEvery { workoutLiftsRepositoryImpl.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
 
         initializeViewModel(workoutId = 1)
 
@@ -523,7 +523,7 @@ class LiftLibraryViewModelTests {
         )
 
         every { liftsRepository.getAllFlow() } returns flowOf(lifts)
-        coEvery { workoutLiftsRepository.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
+        coEvery { workoutLiftsRepositoryImpl.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
 
         initializeViewModel(workoutId = 1)
 

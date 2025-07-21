@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 
-class VolumeMetricChartsRepository(
+class VolumeMetricChartsRepositoryImpl(
     private val volumeMetricChartsDao: VolumeMetricChartsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
 ) {

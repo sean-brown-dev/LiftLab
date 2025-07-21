@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-class WorkoutInProgressRepository(
+class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
     private val previousSetResultsRepository: PreviousSetResultsRepository,
     private val firestoreSyncManager: FirestoreSyncManager,

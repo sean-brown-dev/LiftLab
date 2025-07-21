@@ -38,15 +38,15 @@ import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.room.dtos.PersonalRecordDto
-import com.browntowndev.liftlab.core.domain.repositories.standard.HistoricalWorkoutNamesRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.browntowndev.liftlab.core.domain.progression.ProgressionFactory
 import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
@@ -71,11 +71,11 @@ import kotlin.time.Duration
 class WorkoutViewModel(
     private val progressionFactory: ProgressionFactory,
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepository: WorkoutsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
     private val setResultsRepository: PreviousSetResultsRepository,
-    private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
+    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
+    private val historicalWorkoutNamesRepositoryImpl: HistoricalWorkoutNamesRepositoryImpl,
     private val loggingRepository: LoggingRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
@@ -96,7 +96,7 @@ class WorkoutViewModel(
         programsRepository.getActiveProgramMetadataFlow()
             .flatMapLatest { programMetadata ->
                 if (programMetadata == null) return@flatMapLatest flowOf(WorkoutState(initialized = true))
-                val inProgressWorkoutFlow = workoutInProgressRepository.getFlow(
+                val inProgressWorkoutFlow = workoutInProgressRepositoryImpl.getFlow(
                     programMetadata.currentMesocycle,
                     programMetadata.currentMicrocycle
                 )
@@ -159,7 +159,7 @@ class WorkoutViewModel(
             DEFAULT_LIFT_SPECIFIC_DELOADING
         )
 
-        return workoutsRepository
+        return workoutsRepositoryImpl
             .getByMicrocyclePosition(
                 programId = programMetadata.programId,
                 microcyclePosition = programMetadata.currentMicrocyclePosition
@@ -406,7 +406,7 @@ class WorkoutViewModel(
             )
 
             val workoutId = mutableWorkoutState.value.workout!!.id
-            val updatedLifts = workoutLiftsRepository.getForWorkout(workoutId)
+            val updatedLifts = workoutLiftsRepositoryImpl.getForWorkout(workoutId)
                 .map {
                     when (it) {
                         is StandardWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
@@ -414,7 +414,7 @@ class WorkoutViewModel(
                         else -> throw Exception("${it::class.simpleName} is not defined.")
                     }
                 }
-            workoutLiftsRepository.updateMany(updatedLifts)
+            workoutLiftsRepositoryImpl.updateMany(updatedLifts)
 
             val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
             val updatedInProgressWorkoutCopy = mutableWorkoutState.value.inProgressWorkout!!.let { inProgressWorkout ->
@@ -503,7 +503,7 @@ class WorkoutViewModel(
                 workoutId = mutableWorkoutState.value.workout!!.id,
                 completedSets = listOf(),
             )
-            workoutInProgressRepository.insert(inProgressWorkout)
+            workoutInProgressRepositoryImpl.insert(inProgressWorkout)
             mutableWorkoutState.update {
                 it.copy(
                     inProgressWorkout = inProgressWorkout,
@@ -636,7 +636,7 @@ class WorkoutViewModel(
             val workout = mutableWorkoutState.value.workout!!
 
             // Remove the workoutEntity from in progress
-            workoutInProgressRepository.delete()
+            workoutInProgressRepositoryImpl.delete()
             restTimerInProgressRepository.deleteAll()
 
             // Increment the mesocycle and microcycle
@@ -655,12 +655,12 @@ class WorkoutViewModel(
 
             // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
             var historicalWorkoutNameId =
-                historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
+                historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(
                     programId = programMetadata.programId,
                     workoutId = workout.id,
                 )
             if (historicalWorkoutNameId == null) {
-                historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
+                historicalWorkoutNameId = historicalWorkoutNamesRepositoryImpl.insert(
                     programId = programMetadata.programId,
                     workoutId = workout.id,
                     programName = programMetadata.name,
@@ -766,7 +766,7 @@ class WorkoutViewModel(
 
         executeInTransactionScope {
             // Remove the workoutEntity from in progress
-            workoutInProgressRepository.delete()
+            workoutInProgressRepositoryImpl.delete()
 
             // Delete all set results from the workoutEntity
             val programMetadata = mutableWorkoutState.value.programMetadata!!

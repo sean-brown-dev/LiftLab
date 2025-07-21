@@ -7,13 +7,12 @@ import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
-import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 
-class WorkoutLiftsRepository (
+class WorkoutLiftsRepositoryImpl (
     private val workoutLiftsDao: WorkoutLiftsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
 ): Repository {

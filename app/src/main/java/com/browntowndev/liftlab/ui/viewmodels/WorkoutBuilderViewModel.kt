@@ -27,9 +27,9 @@ import com.browntowndev.liftlab.core.domain.repositories.standard.CustomLiftSets
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
@@ -46,12 +46,12 @@ class WorkoutBuilderViewModel(
     private val workoutId: Long,
     private val onNavigateBack: () -> Unit,
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepository: WorkoutsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
     private val customLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl,
     private val liftsRepository: LiftsRepository,
     private val liftLevelDeloadsEnabled: Boolean,
-    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
     private val setResultsRepository: PreviousSetResultsRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -66,7 +66,7 @@ class WorkoutBuilderViewModel(
 
     init {
         viewModelScope.launch {
-            workoutsRepository.getFlow(workoutId)
+            workoutsRepositoryImpl.getFlow(workoutId)
                 .collect { workout ->
                     Log.d(TAG, "workoutEntity=$workout")
                     _state.update { currentState ->
@@ -127,7 +127,7 @@ class WorkoutBuilderViewModel(
         val liftToDelete = _state.value.workout?.lifts?.find { it.id == _state.value.workoutLiftIdToDelete }
         if (liftToDelete != null) {
             executeInTransactionScope {
-                workoutLiftsRepository.delete(liftToDelete)
+                workoutLiftsRepositoryImpl.delete(liftToDelete)
                 _state.update { currentState ->
                     val mutableLifts = currentState.workout!!.lifts.toMutableList()
                     mutableLifts.remove(liftToDelete)
@@ -145,7 +145,7 @@ class WorkoutBuilderViewModel(
     fun updateWorkoutName(newName: String) {
         if (_state.value.workout != null) {
             executeInTransactionScope {
-                workoutsRepository.updateName(_state.value.workout!!.id, newName)
+                workoutsRepositoryImpl.updateName(_state.value.workout!!.id, newName)
                 _state.update {
                     it.copy(workout = it.workout?.copy(name = newName), isEditingName = false)
                 }
@@ -228,7 +228,7 @@ class WorkoutBuilderViewModel(
                                 restTimerEnabled = lift.restTimerEnabled,
                                 progressionScheme = lift.progressionScheme,
                             )
-                            workoutLiftsRepository.update(standardWorkoutLift)
+                            workoutLiftsRepositoryImpl.update(standardWorkoutLift)
                             standardWorkoutLift
                         } else lift
                     })
@@ -293,7 +293,7 @@ class WorkoutBuilderViewModel(
                         restTimerEnabled = lift.restTimerEnabled,
                         customLiftSets = customSets
                     )
-                    workoutLiftsRepository.update(customWorkoutLift)
+                    workoutLiftsRepositoryImpl.update(customWorkoutLift)
                     customWorkoutLift
                 }
                 else if (lift is CustomWorkoutLift) {
@@ -393,9 +393,9 @@ class WorkoutBuilderViewModel(
                 )
             }
 
-            workoutLiftsRepository.updateMany(updatedWorkoutCopy.lifts)
+            workoutLiftsRepositoryImpl.updateMany(updatedWorkoutCopy.lifts)
 
-            if (workoutInProgressRepository.getWithoutCompletedSets() != null) {
+            if (workoutInProgressRepositoryImpl.getWithoutCompletedSets() != null) {
                 programsRepository.getActive()?.let { programMetadata ->
                     val workoutLiftIdByLiftId = _state.value.workout!!.lifts.associate { it.liftId to it.id }
                     val updatedInProgressSetResults = setResultsRepository.getForWorkout(
@@ -455,7 +455,7 @@ class WorkoutBuilderViewModel(
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift)
+                workoutLiftsRepositoryImpl.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -481,7 +481,7 @@ class WorkoutBuilderViewModel(
             )
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift)
+                workoutLiftsRepositoryImpl.update(updatedWorkoutLift)
                 _state.update { updatedStateCopy }
             }
         }
@@ -501,7 +501,7 @@ class WorkoutBuilderViewModel(
             )
 
             if(updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift)
+                workoutLiftsRepositoryImpl.update(updatedWorkoutLift)
                 _state.update { updatedStateCopy }
             }
         }
@@ -529,7 +529,7 @@ class WorkoutBuilderViewModel(
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift)
+                workoutLiftsRepositoryImpl.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -552,7 +552,7 @@ class WorkoutBuilderViewModel(
             }
 
             if (updatedWorkoutLift != null) {
-                workoutLiftsRepository.update(updatedWorkoutLift)
+                workoutLiftsRepositoryImpl.update(updatedWorkoutLift)
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
@@ -586,7 +586,7 @@ class WorkoutBuilderViewModel(
                             lift.copy(
                                 customLiftSets = lift.customLiftSets + addedSet,
                                 setCount = lift.setCount + 1
-                            ).also { workoutLiftsRepository.update(it) }
+                            ).also { workoutLiftsRepositoryImpl.update(it) }
                         } else lift
                     }
                 )
@@ -1017,7 +1017,7 @@ class WorkoutBuilderViewModel(
         updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
 
         safeExecute("update liftEntity", originalWorkout) {
-            workoutLiftsRepository.update(workoutLift)
+            workoutLiftsRepositoryImpl.update(workoutLift)
         }
     }
 
@@ -1044,7 +1044,7 @@ class WorkoutBuilderViewModel(
 
         updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
         safeExecute("update liftEntity", originalWorkout) {
-            workoutLiftsRepository.update(workoutLift)
+            workoutLiftsRepositoryImpl.update(workoutLift)
         }
     }
 

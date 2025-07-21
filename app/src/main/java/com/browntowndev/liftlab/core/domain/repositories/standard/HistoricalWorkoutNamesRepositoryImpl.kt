@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.persistence.entities.room.HistoricalWorkout
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 
-class HistoricalWorkoutNamesRepository(
+class HistoricalWorkoutNamesRepositoryImpl(
     private val historicalWorkoutNamesDao: HistoricalWorkoutNamesDao,
     private val firestoreSyncManager: FirestoreSyncManager,
 ): Repository {

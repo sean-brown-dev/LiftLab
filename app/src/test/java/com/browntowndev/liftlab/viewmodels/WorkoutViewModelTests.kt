@@ -30,15 +30,15 @@ import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
-import com.browntowndev.liftlab.core.domain.repositories.standard.HistoricalWorkoutNamesRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.progression.StandardProgressionFactory
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.coEvery
@@ -120,7 +120,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -157,18 +157,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -201,12 +201,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -260,7 +260,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -298,18 +298,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -342,12 +342,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -424,7 +424,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -462,18 +462,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -507,12 +507,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -612,7 +612,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -650,18 +650,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -694,12 +694,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -776,7 +776,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -815,18 +815,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -859,12 +859,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -941,7 +941,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -980,18 +980,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -1024,12 +1024,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1129,7 +1129,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1174,18 +1174,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -1218,12 +1218,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1274,7 +1274,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1319,18 +1319,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -1364,12 +1364,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1426,8 +1426,8 @@ class WorkoutViewModelTests {
                 Assert.assertEquals(1, args[3])
             }
 
-            val historicalWorkoutNamesRepository = mockk<HistoricalWorkoutNamesRepository>()
-            coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
+            val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
+            coEvery { historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
@@ -1435,7 +1435,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1443,18 +1443,18 @@ class WorkoutViewModelTests {
                 name = "Test WorkoutEntity",
                 lifts = listOf(),
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
-            coEvery { workoutInProgressRepository.getFlow(any(), any()) } returns flowOf(workoutInProgressMetadata)
-            coEvery { workoutInProgressRepository.delete() } just runs
+            coEvery { workoutInProgressRepositoryImpl.getFlow(any(), any()) } returns flowOf(workoutInProgressMetadata)
+            coEvery { workoutInProgressRepositoryImpl.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
             coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
@@ -1479,12 +1479,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
+                historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1517,8 +1517,8 @@ class WorkoutViewModelTests {
                 Assert.assertEquals(0, args[3])
             }
 
-            val historicalWorkoutNamesRepository = mockk<HistoricalWorkoutNamesRepository>()
-            coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
+            val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
+            coEvery { historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
@@ -1526,7 +1526,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1534,18 +1534,18 @@ class WorkoutViewModelTests {
                 name = "Test WorkoutEntity",
                 lifts = listOf(),
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
-            coEvery { workoutInProgressRepository.getFlow(any(), any()) } returns flowOf(workoutInProgressMetadata)
-            coEvery { workoutInProgressRepository.delete() } just runs
+            coEvery { workoutInProgressRepositoryImpl.getFlow(any(), any()) } returns flowOf(workoutInProgressMetadata)
+            coEvery { workoutInProgressRepositoryImpl.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
             coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
@@ -1570,12 +1570,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
+                historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1608,8 +1608,8 @@ class WorkoutViewModelTests {
                 Assert.assertEquals(0, args[3])
             }
 
-            val historicalWorkoutNamesRepository = mockk<HistoricalWorkoutNamesRepository>()
-            coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
+            val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
+            coEvery { historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
             val loggingRepository = mockk<LoggingRepository>()
             coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
@@ -1617,7 +1617,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1625,18 +1625,18 @@ class WorkoutViewModelTests {
                 name = "Test WorkoutEntity",
                 lifts = listOf(),
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
-            coEvery { workoutInProgressRepository.getFlow(any(), any()) } returns flowOf(workoutInProgressMetadata)
-            coEvery { workoutInProgressRepository.delete() } just runs
+            coEvery { workoutInProgressRepositoryImpl.getFlow(any(), any()) } returns flowOf(workoutInProgressMetadata)
+            coEvery { workoutInProgressRepositoryImpl.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
             coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
@@ -1661,12 +1661,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
+                historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1702,9 +1702,9 @@ class WorkoutViewModelTests {
                 )
             } just runs
 
-            val historicalWorkoutNamesRepository = mockk<HistoricalWorkoutNamesRepository>()
+            val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
             coEvery {
-                historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
+                historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(
                     any(),
                     any()
                 )
@@ -1727,7 +1727,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1756,19 +1756,19 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
-            coEvery { workoutInProgressRepository.delete() } just runs
+            coEvery { workoutInProgressRepositoryImpl.delete() } just runs
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -1807,12 +1807,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
+                historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -1894,9 +1894,9 @@ class WorkoutViewModelTests {
                 )
             } just runs
 
-            val historicalWorkoutNamesRepository = mockk<HistoricalWorkoutNamesRepository>()
+            val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
             coEvery {
-                historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
+                historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(
                     any(),
                     any()
                 )
@@ -1919,7 +1919,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -1948,19 +1948,19 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
-            coEvery { workoutInProgressRepository.delete() } just runs
+            coEvery { workoutInProgressRepositoryImpl.delete() } just runs
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -2032,12 +2032,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = historicalWorkoutNamesRepository,
+                historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -2136,7 +2136,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -2192,18 +2192,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -2232,12 +2232,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -2296,7 +2296,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -2352,18 +2352,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -2395,12 +2395,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = liftsRepository,
                 navigateToWorkoutHistory = { },
@@ -2453,7 +2453,7 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -2491,18 +2491,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -2532,12 +2532,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -2614,7 +2614,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -2622,24 +2622,24 @@ class WorkoutViewModelTests {
                 name = "Test WorkoutEntity",
                 lifts = listOf()
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
-            coEvery { workoutInProgressRepository.insert(any()) } just runs
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
+            coEvery { workoutInProgressRepositoryImpl.insert(any()) } just runs
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
             } returns flowOf(workoutInProgressMetadata)
-            coEvery { workoutInProgressRepository.delete() } just runs
+            coEvery { workoutInProgressRepositoryImpl.delete() } just runs
 
             val restTimerInProgramsRepository = mockk<RestTimerInProgressRepository>()
             coEvery { restTimerInProgramsRepository.getFlow() } returns flowOf(null)
@@ -2664,17 +2664,17 @@ class WorkoutViewModelTests {
             coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
             coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
-            val workoutLiftsRepository = mockk<WorkoutLiftsRepository>()
+            val workoutLiftsRepositoryImpl = mockk<WorkoutLiftsRepositoryImpl>()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = workoutLiftsRepository,
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = workoutLiftsRepositoryImpl,
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
@@ -2687,7 +2687,7 @@ class WorkoutViewModelTests {
             viewModel.toggleConfirmCancelWorkoutModal()
             viewModel.cancelWorkout()
 
-            coVerify(exactly = 1) { workoutInProgressRepository.delete() }
+            coVerify(exactly = 1) { workoutInProgressRepositoryImpl.delete() }
             coVerify(exactly = 1) { setResultsRepository.deleteAllForWorkout(any(), any(), any()) }
         }
 
@@ -2706,7 +2706,7 @@ class WorkoutViewModelTests {
             )
             coEvery { programsRepository.getActiveProgramMetadataFlow() } returns flowOf(activeProgramMetadata)
 
-            val workoutsRepository = mockk<WorkoutsRepository>()
+            val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
                 id = 0L,
                 programId = 0L,
@@ -2742,18 +2742,18 @@ class WorkoutViewModelTests {
                     )
                 )
             )
-            coEvery { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(
+            coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
                 workoutEntity
             )
 
-            val workoutInProgressRepository = mockk<WorkoutInProgressRepository>()
+            val workoutInProgressRepositoryImpl = mockk<WorkoutInProgressRepositoryImpl>()
             val workoutInProgressMetadata = WorkoutInProgress(
                 workoutId = 0L,
                 startTime = getCurrentDate(),
                 completedSets = listOf()
             )
             coEvery {
-                workoutInProgressRepository.getFlow(
+                workoutInProgressRepositoryImpl.getFlow(
                     any(),
                     any()
                 )
@@ -2786,12 +2786,12 @@ class WorkoutViewModelTests {
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
                 programsRepository = programsRepository,
-                workoutsRepository = workoutsRepository,
-                workoutLiftsRepository = mockk(),
-                workoutInProgressRepository = workoutInProgressRepository,
+                workoutsRepositoryImpl = workoutsRepositoryImpl,
+                workoutLiftsRepositoryImpl = mockk(),
+                workoutInProgressRepositoryImpl = workoutInProgressRepositoryImpl,
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
-                historicalWorkoutNamesRepository = mockk(),
+                historicalWorkoutNamesRepositoryImpl = mockk(),
                 loggingRepository = loggingRepository,
                 liftsRepository = liftsRepository,
                 navigateToWorkoutHistory = { },
