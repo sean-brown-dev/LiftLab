@@ -178,7 +178,7 @@ class CustomLiftSetsRepositoryImpl(
         Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $entitiesToUpdate")
 
         // Update set count of workoutEntity liftEntity
-        val currentWorkoutLift = workoutLiftsDao.get(workoutLiftId)!!
+        val currentWorkoutLift = workoutLiftsDao.getWithoutRelationships(workoutLiftId)!!
         val workoutLiftToUpdate = currentWorkoutLift.copy(setCount = entitiesToUpdate.size).applyFirestoreMetadata(
             firestoreId = currentWorkoutLift.firestoreId,
             lastUpdated = currentWorkoutLift.lastUpdated,

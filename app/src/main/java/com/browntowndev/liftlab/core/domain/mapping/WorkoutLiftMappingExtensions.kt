@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.domain.mapping
 
+import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.mapping.CustomLiftSetMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -12,6 +14,14 @@ object WorkoutLiftMappingExtensions {
             toStandardWorkoutLift()
         }
         else {
+            toCustomWorkoutLift()
+        }
+    }
+
+    fun WorkoutLiftEntity.toDomainModel(): GenericWorkoutLift {
+        return if (this.repRangeTop != null && this.repRangeBottom != null && this.rpeTarget != null) {
+            toStandardWorkoutLift()
+        } else {
             toCustomWorkoutLift()
         }
     }
@@ -65,7 +75,54 @@ object WorkoutLiftMappingExtensions {
             setCount = this.workoutLiftEntity.setCount,
             progressionScheme = this.workoutLiftEntity.progressionScheme,
             liftNote = this.liftEntity.note,
-            customLiftSets = this.customLiftSetEntities.map { it.toDomainModel() }
+            customLiftSets = this.customLiftSetEntities
+                .map { it.toDomainModel() }
+                .sortedBy { it.position }
+        )
+    }
+
+    private fun WorkoutLiftEntity.toStandardWorkoutLift(): StandardWorkoutLift {
+        return StandardWorkoutLift(
+            id = this.id,
+            workoutId = this.workoutId,
+            liftId = this.liftId,
+            liftName = "LIFT NOT LOADED",
+            liftMovementPattern = MovementPattern.CHEST_ISO,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            deloadWeek = this.deloadWeek,
+            incrementOverride = null,
+            restTime = null,
+            restTimerEnabled = false,
+            position = this.position,
+            setCount = this.setCount,
+            repRangeBottom = this.repRangeBottom!!,
+            repRangeTop = this.repRangeTop!!,
+            rpeTarget = this.rpeTarget!!,
+            progressionScheme = this.progressionScheme,
+            liftNote = "LIFT NOT LOADED",
+            stepSize = this.stepSize,
+        )
+    }
+
+    private fun WorkoutLiftEntity.toCustomWorkoutLift(): CustomWorkoutLift {
+        return CustomWorkoutLift(
+            id = this.id,
+            workoutId = this.workoutId,
+            liftId = this.liftId,
+            liftName = "LIFT NOT LOADED",
+            liftMovementPattern = MovementPattern.CHEST_ISO,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            deloadWeek = this.deloadWeek,
+            incrementOverride = null,
+            restTime = null,
+            restTimerEnabled = false,
+            position = this.position,
+            setCount = this.setCount,
+            progressionScheme = this.progressionScheme,
+            liftNote = "LIFT NOT LOADED",
+            customLiftSets = emptyList(),
         )
     }
 

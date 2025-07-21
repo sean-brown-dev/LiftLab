@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.mapping
 
+import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.persistence.room.dtos.WorkoutWithRelationships
 import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutEntity
@@ -12,8 +13,8 @@ object WorkoutMappingExtensions {
             name = this.workoutEntity.name,
             position = this.workoutEntity.position,
             lifts = this.lifts
-                .sortedBy { it.workoutLiftEntity.position }
                 .map { it.toDomainModel() }
+                .sortedBy { it.position }
         )
     }
 

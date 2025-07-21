@@ -15,7 +15,9 @@ object ProgramMappingExtensions {
             currentMesocycle = this.programEntity.currentMesocycle,
             currentMicrocycle = this.programEntity.currentMicrocycle,
             currentMicrocyclePosition = this.programEntity.currentMicrocyclePosition,
-            workouts = this.workouts.map { it.toDomainModel() }
+            workouts = this.workouts
+                .map { it.toDomainModel() }
+                .sortedBy { it.position }
         )
     }
 
