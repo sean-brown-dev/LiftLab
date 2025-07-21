@@ -5,33 +5,25 @@ import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.room.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.persistence.room.entities.SetLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLogEntryEntity
 
 object WorkoutLogEntryMappingExtensions {
-    fun SetLogEntry.toEntity(workoutLogEntryId: Long): SetLogEntryEntity {
-        return SetLogEntryEntity(
-            id = this.id,
-            workoutLogEntryId = workoutLogEntryId,
-            liftId = this.liftId,
-            liftName = this.liftName,
-            liftMovementPattern = this.liftMovementPattern,
-            progressionScheme = this.progressionScheme,
-            setType = this.setType,
-            liftPosition = this.liftPosition,
-            setPosition = this.setPosition,
-            myoRepSetPosition = this.myoRepSetPosition,
-            weightRecommendation = this.weightRecommendation,
-            weight = this.weight,
-            reps = this.reps,
-            rpe = this.rpe,
-            mesoCycle = this.mesoCycle,
-            microCycle = this.microCycle,
-            repRangeBottom = this.repRangeBottom,
-            repRangeTop = this.repRangeTop,
-            rpeTarget = this.rpeTarget,
-            repFloor = this.repFloor,
-            maxSets = this.maxSets,
-            setMatching = this.setMatching,
-            oneRepMax = this.oneRepMax,
+    fun WorkoutLogEntryEntity.toDomainModel(): WorkoutLogEntry {
+        return WorkoutLogEntry(
+            id = id,
+            programId = 0,
+            workoutId = 0,
+            historicalWorkoutNameId = historicalWorkoutNameId,
+            workoutName = "NOT LOADED",
+            programName = "NOT LOADED",
+            programDeloadWeek = programDeloadWeek,
+            programWorkoutCount = programWorkoutCount,
+            microcycle = microcycle,
+            mesocycle = mesocycle,
+            microcyclePosition = microcyclePosition,
+            date = date,
+            durationInMillis = durationInMillis,
+            setResults = emptyList()
         )
     }
 
@@ -57,7 +49,8 @@ object WorkoutLogEntryMappingExtensions {
                         durationInMillis = firstEntry.durationInMillis,
                         setResults = workoutLog.value.fastMap {
                             SetLogEntry(
-                                id = it.setLogEntryId!!,
+                                id = it.setLogEntryId,
+                                workoutLogEntryId = it.id,
                                 liftId = it.liftId,
                                 liftName = it.liftName,
                                 liftMovementPattern = it.liftMovementPattern,

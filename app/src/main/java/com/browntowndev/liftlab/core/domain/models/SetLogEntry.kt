@@ -7,6 +7,7 @@ import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 
 data class SetLogEntry(
     val id: Long,
+    val workoutLogEntryId: Long,
     val liftId: Long,
     val workoutLiftDeloadWeek: Int? = null,
     val liftName: String,

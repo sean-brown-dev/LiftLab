@@ -6,14 +6,10 @@ import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.domain.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutLogEntryMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.domain.mapping.WorkoutLogEntryMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
-import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.persistence.room.dtos.FlattenedWorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.room.dtos.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.persistence.firestore.sync.BatchSyncQueueEntry
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
@@ -25,11 +21,14 @@ import kotlinx.coroutines.flow.map
 import java.util.Date
 import java.util.UUID
 
-class LoggingRepositoryImpl(
+class WorkoutLogRepositoryImpl(
     private val workoutLogEntryDao: WorkoutLogEntryDao,
     private val setLogEntryDao: SetLogEntryDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-) : LoggingRepository {
+) : WorkoutLogRepository {
+
+    override fun getAll(): List<WorkoutLogEntry> =
+        workoutLogEntryDao.getAll().fastMap { it.toDomainModel() }
 
     override fun getAllFlow(): Flow<List<WorkoutLogEntry>> {
         return workoutLogEntryDao.getAllFlattened().map {
@@ -97,40 +96,6 @@ class LoggingRepositoryImpl(
                     )
                 }
             }
-    }
-
-    override suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecordDto> {
-        return setLogEntryDao.getPersonalRecordsForLifts(liftIds)
-    }
-
-    override suspend fun insertFromPreviousSetResults(
-        workoutLogEntryId: Long,
-        workoutId: Long,
-        mesocycle: Int,
-        microcycle: Int,
-        excludeFromCopy: List<Long>
-    ) {
-        setLogEntryDao.insertFromPreviousSetResults(
-            workoutLogEntryId = workoutLogEntryId,
-            workoutId = workoutId,
-            mesocycle = mesocycle,
-            microcycle = microcycle,
-            excludeFromCopy = excludeFromCopy,
-        )
-
-        val insertedEntities = setLogEntryDao.getForWorkoutLogEntryMesoAndMicro(
-            workoutLogEntryId = workoutLogEntryId,
-            mesocycle = mesocycle,
-            microcycle = microcycle,
-        )
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                roomEntityIds = insertedEntities.fastMap { it.id },
-                SyncType.Upsert,
-            )
-        )
     }
 
     override suspend fun insertWorkoutLogEntry(
@@ -209,74 +174,5 @@ class LoggingRepositoryImpl(
                 batch = batchesToSync
             )
         )
-    }
-
-    override suspend fun deleteSetLogEntryById(id: Long) {
-        val toDelete = setLogEntryDao.get(id) ?: return
-        setLogEntryDao.delete(toDelete)
-
-        if (toDelete.firestoreId == null) return
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                roomEntityIds = listOf(toDelete.id),
-                SyncType.Delete,
-            )
-        )
-    }
-
-    override suspend fun upsert(workoutLogEntryId: Long, setLogEntry: SetLogEntry): Long {
-        val current = setLogEntryDao.get(setLogEntry.id)
-        val toUpsert = setLogEntry.toEntity(workoutLogEntryId)
-            .applyFirestoreMetadata(
-                firestoreId = current?.firestoreId,
-                lastUpdated = current?.lastUpdated,
-                synced = false
-            )
-
-        val id = setLogEntryDao.upsert(toUpsert).let {
-            if (it == -1L) toUpsert.id else it
-        }
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                roomEntityIds = listOf(id),
-                SyncType.Upsert,
-            )
-        )
-
-        return if (id == -1L) toUpsert.id else id
-    }
-
-    override suspend fun upsertMany(
-        workoutLogEntryId: Long,
-        setLogEntries: List<SetLogEntry>
-    ): List<Long> {
-        val currentEntries = setLogEntryDao.getMany(setLogEntries.fastMap { it.id })
-            .associateBy { it.id }
-        val toUpsert = setLogEntries.fastMap { setLogEntry ->
-            val current = currentEntries[setLogEntry.id]
-            setLogEntry.toEntity(workoutLogEntryId)
-                .applyFirestoreMetadata(
-                    firestoreId = current?.firestoreId,
-                    lastUpdated = current?.lastUpdated,
-                    synced = false
-                )
-        }
-        val ids = setLogEntryDao.upsertMany(toUpsert)
-        val entityIds = toUpsert.zip(ids).map {
-            if (it.second == -1L) it.first else it.first.copy(id = it.second)
-        }.fastMap { it.id }
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                roomEntityIds = entityIds,
-                SyncType.Upsert,
-            )
-        )
-
-        return entityIds
     }
 }

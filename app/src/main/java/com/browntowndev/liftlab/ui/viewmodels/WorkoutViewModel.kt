@@ -40,7 +40,6 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.persistence.room.dtos.PersonalRecordDto
 import com.browntowndev.liftlab.core.persistence.room.repositories.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
@@ -76,7 +75,7 @@ class WorkoutViewModel(
     private val setResultsRepository: PreviousSetResultsRepository,
     private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
     private val historicalWorkoutNamesRepositoryImpl: HistoricalWorkoutNamesRepositoryImpl,
-    private val loggingRepository: LoggingRepository,
+    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
     private val navigateToWorkoutHistory: () -> Unit,
@@ -299,7 +298,7 @@ class WorkoutViewModel(
 
             existingResultsForOtherLifts.toMutableList().apply {
                 val resultsFromOtherWorkouts =
-                    loggingRepository.getMostRecentSetResultsForLiftIds(
+                    workoutLogRepository.getMostRecentSetResultsForLiftIds(
                         liftIds = liftIdsToSearchFor,
                         linearProgressionLiftIds = linearProgressionLiftIds,
                         includeDeload = includeDeload,
@@ -373,7 +372,7 @@ class WorkoutViewModel(
             microCycle = microCycle,
             liftIds = liftIds,
         )
-        return loggingRepository.getPersonalRecordsForLifts(liftIds)
+        return workoutLogRepository.getPersonalRecordsForLifts(liftIds)
             .associateBy { it.liftId }
             .toMutableMap()
             .apply {
@@ -667,7 +666,7 @@ class WorkoutViewModel(
                     workoutName = workout.name,
                 )
             }
-            val workoutLogEntryId = loggingRepository.insertWorkoutLogEntry(
+            val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
                 historicalWorkoutNameId = historicalWorkoutNameId,
                 programDeloadWeek = programMetadata.deloadWeek,
                 programWorkoutCount = programMetadata.workoutCount,
@@ -718,7 +717,7 @@ class WorkoutViewModel(
             }
 
         // Copy all of the set results from this workoutEntity into the set history table
-        loggingRepository.insertFromPreviousSetResults(
+        workoutLogRepository.insertFromPreviousSetResults(
             workoutLogEntryId = workoutLogEntryId,
             workoutId = mutableWorkoutState.value.workout!!.id,
             mesocycle = programMetadata.currentMesocycle,

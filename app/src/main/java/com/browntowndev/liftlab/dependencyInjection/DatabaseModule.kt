@@ -2,15 +2,16 @@ package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.persistence.room.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.domain.repositories.sync.SyncMetadataRepository
+import com.browntowndev.liftlab.core.persistence.room.entities.SetLogEntryRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.LiftMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.LiftsRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.LoggingRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLogRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.PreviousSetResultsRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.ProgramsRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.RestTimerInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.SyncMetadataRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.VolumeMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
 import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
@@ -57,9 +58,11 @@ val repositoryModule = module {
     singleOf(::CustomLiftSetsRepositoryImpl)
     singleOf(::WorkoutInProgressRepositoryImpl)
     singleOf(::HistoricalWorkoutNamesRepositoryImpl)
-    singleOf(::LoggingRepositoryImpl)
+    singleOf(::WorkoutLogRepositoryImpl)
     singleOf(::LiftMetricChartsRepositoryImpl)
     singleOf(::VolumeMetricChartsRepositoryImpl)
     singleOf(::RestTimerInProgressRepositoryImpl)
-    singleOf(::SyncMetadataRepository)
+    singleOf(::SyncMetadataRepositoryImpl)
+    singleOf(::WorkoutLogRepositoryImpl)
+    singleOf(::SetLogEntryRepositoryImpl)
 }

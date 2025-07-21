@@ -16,7 +16,6 @@ import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +27,7 @@ import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
 
 class WorkoutHistoryViewModel(
-    private val loggingRepository: LoggingRepository,
+    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -38,7 +37,7 @@ class WorkoutHistoryViewModel(
 
     init {
         viewModelScope.launch {
-            loggingRepository.getAllFlow().collect { workoutLogs ->
+            workoutLogRepository.getAllFlow().collect { workoutLogs ->
                 val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
                 val topSets = getTopSets(dateOrderedWorkoutLogs)
                 val workoutNamesById = dateOrderedWorkoutLogs
@@ -267,7 +266,7 @@ class WorkoutHistoryViewModel(
 
     fun delete(id: Long) {
         executeInTransactionScope {
-            loggingRepository.deleteWorkoutLogEntry(workoutLogEntryId = id)
+            workoutLogRepository.deleteWorkoutLogEntry(workoutLogEntryId = id)
         }
     }
 }

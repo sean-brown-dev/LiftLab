@@ -32,7 +32,6 @@ import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.persistence.room.repositories.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
@@ -194,9 +193,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -207,7 +206,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -335,9 +334,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -348,7 +347,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -500,9 +499,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -513,7 +512,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -687,9 +686,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -700,7 +699,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -852,9 +851,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -865,7 +864,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1017,9 +1016,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1030,7 +1029,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1211,9 +1210,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1224,7 +1223,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1357,9 +1356,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
                 progressionFactory = StandardProgressionFactory(),
@@ -1370,7 +1369,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1429,11 +1428,11 @@ class WorkoutViewModelTests {
             val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
             coEvery { historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -1485,7 +1484,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1520,11 +1519,11 @@ class WorkoutViewModelTests {
             val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
             coEvery { historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -1576,7 +1575,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1611,11 +1610,11 @@ class WorkoutViewModelTests {
             val historicalWorkoutNamesRepositoryImpl = mockk<HistoricalWorkoutNamesRepositoryImpl>()
             coEvery { historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(any(), any()) } returns 0L
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 0L
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -1667,7 +1666,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1710,9 +1709,9 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
 
-            val loggingRepository = mockk<LoggingRepository>()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
             coEvery {
-                loggingRepository.insertWorkoutLogEntry(
+                workoutLogRepository.insertWorkoutLogEntry(
                     any(),
                     any(),
                     any(),
@@ -1723,9 +1722,9 @@ class WorkoutViewModelTests {
                     any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -1813,7 +1812,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -1902,9 +1901,9 @@ class WorkoutViewModelTests {
                 )
             } returns 0L
 
-            val loggingRepository = mockk<LoggingRepository>()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
             coEvery {
-                loggingRepository.insertWorkoutLogEntry(
+                workoutLogRepository.insertWorkoutLogEntry(
                     any(),
                     any(),
                     any(),
@@ -1915,9 +1914,9 @@ class WorkoutViewModelTests {
                     any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -2038,7 +2037,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = historicalWorkoutNamesRepositoryImpl,
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -2119,9 +2118,9 @@ class WorkoutViewModelTests {
                 )
             } just runs
 
-            val loggingRepository = mockk<LoggingRepository>()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
             coEvery {
-                loggingRepository.insertWorkoutLogEntry(
+                workoutLogRepository.insertWorkoutLogEntry(
                     any(),
                     any(),
                     any(),
@@ -2132,9 +2131,9 @@ class WorkoutViewModelTests {
                     any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -2238,7 +2237,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -2279,9 +2278,9 @@ class WorkoutViewModelTests {
                 )
             } just runs
 
-            val loggingRepository = mockk<LoggingRepository>()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
             coEvery {
-                loggingRepository.insertWorkoutLogEntry(
+                workoutLogRepository.insertWorkoutLogEntry(
                     any(),
                     any(),
                     any(),
@@ -2292,9 +2291,9 @@ class WorkoutViewModelTests {
                     any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -2401,7 +2400,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = liftsRepository,
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -2436,9 +2435,9 @@ class WorkoutViewModelTests {
                 )
             } just runs
 
-            val loggingRepository = mockk<LoggingRepository>()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
             coEvery {
-                loggingRepository.insertWorkoutLogEntry(
+                workoutLogRepository.insertWorkoutLogEntry(
                     any(),
                     any(),
                     any(),
@@ -2449,9 +2448,9 @@ class WorkoutViewModelTests {
                     any(),
                 )
             } returns 0L
-            coEvery { loggingRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            coEvery { workoutLogRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) } just runs
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutsRepositoryImpl = mockk<WorkoutsRepositoryImpl>()
             val workoutEntity = Workout(
@@ -2538,7 +2537,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -2660,9 +2659,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val workoutLiftsRepositoryImpl = mockk<WorkoutLiftsRepositoryImpl>()
 
@@ -2675,7 +2674,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = mockk(),
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},
@@ -2777,9 +2776,9 @@ class WorkoutViewModelTests {
                 function()
             }
 
-            val loggingRepository = mockk<LoggingRepository>()
-            coEvery { loggingRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
-            coEvery { loggingRepository.getPersonalRecordsForLifts(any()) } returns listOf()
+            val workoutLogRepository = mockk<com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl>()
+            coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns listOf()
+            coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
             val liftsRepository = mockk<LiftsRepository>()
             coEvery { liftsRepository.updateNote(any(), any()) } just runs
 
@@ -2792,7 +2791,7 @@ class WorkoutViewModelTests {
                 restTimerInProgressRepository = restTimerInProgramsRepository,
                 setResultsRepository = setResultsRepository,
                 historicalWorkoutNamesRepositoryImpl = mockk(),
-                loggingRepository = loggingRepository,
+                workoutLogRepository = workoutLogRepository,
                 liftsRepository = liftsRepository,
                 navigateToWorkoutHistory = { },
                 cancelRestTimer = {},

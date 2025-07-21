@@ -5,26 +5,15 @@ import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
+import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.copyForUpload
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.common.flatMapParallel
 import com.browntowndev.liftlab.core.common.forEachParallel
-import com.browntowndev.liftlab.core.domain.repositories.sync.*
+import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
 import com.browntowndev.liftlab.core.persistence.firestore.documents.BaseFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.CustomLiftSetFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.HistoricalWorkoutNameFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.LiftFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.LiftMetricChartFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.PreviousSetResultFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.ProgramFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.SetLogEntryFirestoreDoc
 import com.browntowndev.liftlab.core.persistence.firestore.documents.SyncMetadataDto
-import com.browntowndev.liftlab.core.persistence.firestore.documents.VolumeMetricChartFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutInProgressFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLiftFirestoreDoc
-import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLogEntryFirestoreDoc
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -53,18 +42,7 @@ import kotlin.coroutines.suspendCoroutine
 class FirestoreSyncManager (
     private val firestoreClient: FirestoreClient,
     private val syncScope: CoroutineScope,
-    private val customLiftSetsSyncRepository: CustomLiftSetsSyncRepository,
-    private val historicalWorkoutNamesSyncRepository: HistoricalWorkoutNamesSyncRepository,
-    private val liftMetricChartsSyncRepository: LiftMetricChartsSyncRepository,
-    private val liftsSyncRepository: LiftsSyncRepository,
-    private val previousSetResultsSyncRepository: PreviousSetResultsSyncRepository,
-    private val programsSyncRepository: ProgramsSyncRepository,
-    private val setLogEntriesSyncRepository: SetLogEntriesSyncRepository,
-    private val volumeMetricChartsSyncRepository: VolumeMetricChartsSyncRepository,
-    private val workoutInProgressSyncRepository: WorkoutInProgressSyncRepository,
-    private val workoutLiftsSyncRepository: WorkoutLiftsSyncRepository,
-    private val workoutLogEntriesSyncRepository: WorkoutLogEntriesSyncRepository,
-    private val workoutsSyncRepository: WorkoutsSyncRepository,
+    private val dataSources: Map<String, SyncableDataSource>,
     private val syncRepository: SyncMetadataRepository,
 ) {
     private val userId: String? get() = firestoreClient.userId
@@ -180,112 +158,24 @@ class FirestoreSyncManager (
     private suspend fun executeSyncRequest(
         entryToProcess: SyncQueueEntry,
     ) {
-        when (entryToProcess.collectionName) {
-            customLiftSetsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = customLiftSetsSyncRepository.collectionName,
-                    entities = customLiftSetsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = customLiftSetsSyncRepository::upsertMany,
-                )
-
-            historicalWorkoutNamesSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = historicalWorkoutNamesSyncRepository.collectionName,
-                    entities = historicalWorkoutNamesSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = historicalWorkoutNamesSyncRepository::upsertMany,
-                )
-
-            liftMetricChartsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = liftMetricChartsSyncRepository.collectionName,
-                    entities = liftMetricChartsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = liftMetricChartsSyncRepository::upsertMany,
-                )
-
-            liftsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = liftsSyncRepository.collectionName,
-                    entities = liftsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = liftsSyncRepository::upsertMany,
-                )
-
-            previousSetResultsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = previousSetResultsSyncRepository.collectionName,
-                    entities = previousSetResultsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = previousSetResultsSyncRepository::upsertMany,
-                )
-
-            programsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = programsSyncRepository.collectionName,
-                    entities = programsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = programsSyncRepository::upsertMany,
-                )
-
-            setLogEntriesSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = setLogEntriesSyncRepository.collectionName,
-                    entities = setLogEntriesSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = setLogEntriesSyncRepository::upsertMany,
-                )
-
-            volumeMetricChartsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = volumeMetricChartsSyncRepository.collectionName,
-                    entities = volumeMetricChartsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = volumeMetricChartsSyncRepository::upsertMany,
-                )
-
-            workoutInProgressSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = workoutInProgressSyncRepository.collectionName,
-                    entities = workoutInProgressSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = workoutInProgressSyncRepository::upsertMany,
-                )
-
-            workoutLiftsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = workoutLiftsSyncRepository.collectionName,
-                    entities = workoutLiftsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = workoutLiftsSyncRepository::upsertMany,
-                )
-
-            workoutLogEntriesSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = workoutLogEntriesSyncRepository.collectionName,
-                    entities = workoutLogEntriesSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = workoutLogEntriesSyncRepository::upsertMany,
-                )
-
-            workoutsSyncRepository.collectionName ->
-                executeSyncRequest(
-                    collectionName = workoutsSyncRepository.collectionName,
-                    entities = workoutsSyncRepository.getMany(entryToProcess.roomEntityIds),
-                    syncType = entryToProcess.syncType,
-                    onSynced = workoutsSyncRepository::upsertMany,
-                )
-
-            else -> {}
+        val dataSource = dataSources[entryToProcess.collectionName] ?: run {
+            Log.e(TAG, "No data source found for collection: ${entryToProcess.collectionName}")
+            return
         }
+
+        executeSyncRequest(
+            collectionName = dataSource.collectionName,
+            entities = dataSource.getMany(entryToProcess.roomEntityIds),
+            syncType = entryToProcess.syncType,
+            onSynced = { entities -> dataSource.upsertMany(entities) }
+        )
     }
 
-    private suspend inline fun<reified T: BaseFirestoreDoc> executeSyncRequest(
+    private suspend fun executeSyncRequest(
         collectionName: String,
-        entities: List<T>,
+        entities: List<BaseFirestoreDoc>,
         syncType: SyncType,
-        noinline onSynced: suspend (List<T>) -> Unit,
+        onSynced: suspend (List<BaseFirestoreDoc>) -> Unit,
     ) {
         try {
             if (entities.size == 1 && syncType == SyncType.Upsert) {
@@ -407,103 +297,25 @@ class FirestoreSyncManager (
         executeBatchSyncRequest(
             batchSyncCollections = batchSyncCollections,
             onRequestEntities = { collectionName, roomEntityIds ->
-                when (collectionName) {
-                    customLiftSetsSyncRepository.collectionName -> customLiftSetsSyncRepository.getMany(roomEntityIds)
-                    historicalWorkoutNamesSyncRepository.collectionName -> historicalWorkoutNamesSyncRepository.getMany(roomEntityIds)
-                    liftMetricChartsSyncRepository.collectionName -> liftMetricChartsSyncRepository.getMany(roomEntityIds)
-                    liftsSyncRepository.collectionName -> liftsSyncRepository.getMany(roomEntityIds)
-                    previousSetResultsSyncRepository.collectionName -> previousSetResultsSyncRepository.getMany(roomEntityIds)
-                    programsSyncRepository.collectionName -> programsSyncRepository.getMany(roomEntityIds)
-                    setLogEntriesSyncRepository.collectionName -> setLogEntriesSyncRepository.getMany(roomEntityIds)
-                    volumeMetricChartsSyncRepository.collectionName -> volumeMetricChartsSyncRepository.getMany(roomEntityIds)
-                    workoutInProgressSyncRepository.collectionName -> workoutInProgressSyncRepository.getMany(roomEntityIds)
-                    workoutLiftsSyncRepository.collectionName -> workoutLiftsSyncRepository.getMany(roomEntityIds)
-                    workoutLogEntriesSyncRepository.collectionName -> workoutLogEntriesSyncRepository.getMany(roomEntityIds)
-                    workoutsSyncRepository.collectionName -> workoutsSyncRepository.getMany(roomEntityIds)
-                    else -> listOf()
-                }
+                dataSources[collectionName]?.getMany(roomEntityIds) ?: listOf()
             },
             onSynced = { collectionName, entities ->
-                @Suppress("UNCHECKED_CAST")
-                when (collectionName) {
-                    customLiftSetsSyncRepository.collectionName -> customLiftSetsSyncRepository.upsertMany(
-                        entities as List<CustomLiftSetFirestoreDoc>
-                    )
-                    historicalWorkoutNamesSyncRepository.collectionName -> historicalWorkoutNamesSyncRepository.upsertMany(
-                        entities as List<HistoricalWorkoutNameFirestoreDoc>
-                    )
-                    liftMetricChartsSyncRepository.collectionName -> liftMetricChartsSyncRepository.upsertMany(
-                        entities as List<LiftMetricChartFirestoreDoc>
-                    )
-                    liftsSyncRepository.collectionName -> liftsSyncRepository.upsertMany(
-                        entities as List<LiftFirestoreDoc>
-                    )
-                    previousSetResultsSyncRepository.collectionName -> previousSetResultsSyncRepository.upsertMany(
-                        entities as List<PreviousSetResultFirestoreDoc>
-                    )
-                    programsSyncRepository.collectionName -> programsSyncRepository.upsertMany(
-                        entities as List<ProgramFirestoreDoc>
-                    )
-                    setLogEntriesSyncRepository.collectionName -> setLogEntriesSyncRepository.upsertMany(
-                        entities as List<SetLogEntryFirestoreDoc>
-                    )
-                    volumeMetricChartsSyncRepository.collectionName -> volumeMetricChartsSyncRepository.upsertMany(
-                        entities as List<VolumeMetricChartFirestoreDoc>
-                    )
-                    workoutInProgressSyncRepository.collectionName -> workoutInProgressSyncRepository.upsertMany(
-                        entities as List<WorkoutInProgressFirestoreDoc>
-                    )
-                    workoutLiftsSyncRepository.collectionName -> workoutLiftsSyncRepository.upsertMany(
-                        entities as List<WorkoutLiftFirestoreDoc>
-                    )
-                    workoutLogEntriesSyncRepository.collectionName -> workoutLogEntriesSyncRepository.upsertMany(
-                        entities as List<WorkoutLogEntryFirestoreDoc>
-                    )
-                    workoutsSyncRepository.collectionName -> workoutsSyncRepository.upsertMany(
-                        entities as List<WorkoutFirestoreDoc>
-                    )
-
-                    else -> listOf()
-                }
+                dataSources[collectionName]?.upsertMany(entities)
             },
             onRequestObjectConversion = { collectionName, documentSnapshot ->
-                @Suppress("UNCHECKED_CAST")
-                when(collectionName) {
-                    customLiftSetsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<CustomLiftSetFirestoreDoc>()
-                    historicalWorkoutNamesSyncRepository.collectionName ->
-                        documentSnapshot.toObject<HistoricalWorkoutNameFirestoreDoc>()
-                    liftMetricChartsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<LiftMetricChartFirestoreDoc>()
-                    liftsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<LiftFirestoreDoc>()
-                    previousSetResultsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<PreviousSetResultFirestoreDoc>()
-                    programsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<ProgramFirestoreDoc>()
-                    setLogEntriesSyncRepository.collectionName ->
-                        documentSnapshot.toObject<SetLogEntryFirestoreDoc>()
-                    volumeMetricChartsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<VolumeMetricChartFirestoreDoc>()
-                    workoutInProgressSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutInProgressFirestoreDoc>()
-                    workoutLiftsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutLiftFirestoreDoc>()
-                    workoutLogEntriesSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutLogEntryFirestoreDoc>()
-                    workoutsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutFirestoreDoc>()
-                    else -> null
+                val dataSource = dataSources[collectionName]
+                dataSource?.let {
+                    documentSnapshot.toObject(it.firestoreDocClass.java)
                 }
             },
         )
     }
 
-    private suspend inline fun<reified T: BaseFirestoreDoc> executeBatchSyncRequest(
+    private suspend fun executeBatchSyncRequest(
         batchSyncCollections: List<BatchSyncCollection>,
-        crossinline onRequestEntities: suspend (collectionName: String, roomEntityIds: List<Long>) -> List<T>,
-        noinline onSynced: suspend (collectionName: String, entities: List<T>) -> Unit,
-        onRequestObjectConversion: (collectionName: String, documentSnapshot: DocumentSnapshot) -> T?,
+        onRequestEntities: suspend (collectionName: String, roomEntityIds: List<Long>) -> List<BaseFirestoreDoc>,
+        onSynced: suspend (collectionName: String, entities: List<BaseFirestoreDoc>) -> Unit,
+        onRequestObjectConversion: (collectionName: String, documentSnapshot: DocumentSnapshot) -> BaseFirestoreDoc?,
     ) {
         val deletedIds = mutableListOf<String>()
         val batchedSyncDocuments = mutableMapOf<String, List<DocumentReference>>()
@@ -558,70 +370,15 @@ class FirestoreSyncManager (
             return
         }
 
-        tryStartDeletionWatcher(
-            collectionName = workoutsSyncRepository.collectionName,
-            entityFlow = workoutsSyncRepository.getAllFlow(),
-            onGetFirestoreIdsForEntitiesWithDeletedParents = { workoutFirestoreDtos ->
-                val workoutProgramIds = workoutFirestoreDtos.fastMap { it.programId }.distinct()
-                val programIds = programsSyncRepository.getMany(workoutProgramIds)
-                    .fastMap { it.id }
-                    .toHashSet()
-
-                workoutFirestoreDtos.mapNotNull { dto ->
-                    if (dto.programId !in programIds && dto.firestoreId != null) {
-                        dto.firestoreId
-                    } else null
+        dataSources.values.forEach { dataSource ->
+            tryStartDeletionWatcher(
+                collectionName = dataSource.collectionName,
+                entityFlow = dataSource.getAllFlow(),
+                onGetFirestoreIdsForEntitiesWithDeletedParents = { entities ->
+                    dataSource.getFirestoreIdsForEntitiesWithDeletedParents(entities)
                 }
-            },
-        )
-        tryStartDeletionWatcher(
-            collectionName = workoutLiftsSyncRepository.collectionName,
-            entityFlow = workoutLiftsSyncRepository.getAllFlow(),
-            onGetFirestoreIdsForEntitiesWithDeletedParents = { workoutLiftFirestoreDtos ->
-                val workoutLiftWorkoutIds = workoutLiftFirestoreDtos.fastMap { it.workoutId }.distinct()
-                val workoutIds = workoutsSyncRepository.getMany(workoutLiftWorkoutIds)
-                    .fastMap { it.id }
-                    .toHashSet()
-
-                workoutLiftFirestoreDtos.mapNotNull { dto ->
-                    if (dto.workoutId !in workoutIds && dto.firestoreId != null) {
-                        dto.firestoreId
-                    } else null
-                }
-            },
-        )
-        tryStartDeletionWatcher(
-            collectionName = customLiftSetsSyncRepository.collectionName,
-            entityFlow = customLiftSetsSyncRepository.getAllFlow(),
-            onGetFirestoreIdsForEntitiesWithDeletedParents = { customLiftSetsFirestoreDtos ->
-                val customLiftSetWorkoutIds = customLiftSetsFirestoreDtos.fastMap { it.workoutLiftId }.distinct()
-                val workoutLiftIds = workoutLiftsSyncRepository.getMany(customLiftSetWorkoutIds)
-                    .fastMap { it.id }
-                    .toHashSet()
-
-                customLiftSetsFirestoreDtos.mapNotNull { dto ->
-                    if (dto.workoutLiftId !in workoutLiftIds && dto.firestoreId != null) {
-                        dto.firestoreId
-                    } else null
-                }
-            },
-        )
-        tryStartDeletionWatcher(
-            collectionName = workoutInProgressSyncRepository.collectionName,
-            entityFlow = workoutInProgressSyncRepository.getAllFlow(),
-            onGetFirestoreIdsForEntitiesWithDeletedParents = { workoutInProgressFirestoreDtos ->
-                val workoutInProgressWorkoutIds = workoutInProgressFirestoreDtos.fastMap { it.workoutId }.distinct()
-                val workoutIds = workoutsSyncRepository.getMany(workoutInProgressWorkoutIds)
-                    .fastMap { it.id }
-                    .toHashSet()
-
-                workoutInProgressFirestoreDtos.mapNotNull { dto ->
-                    if (dto.workoutId !in workoutIds && dto.firestoreId != null) {
-                        dto.firestoreId
-                    } else null
-                }
-            },
-        )
+            )
+        }
     }
 
     private fun<T: BaseFirestoreDoc> tryStartDeletionWatcher(
@@ -763,10 +520,10 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun <reified T : BaseFirestoreDoc> syncMany(
+    private suspend fun syncMany(
         collectionName: String,
-        entities: List<T>,
-        crossinline onSynced: suspend (List<T>) -> Unit
+        entities: List<BaseFirestoreDoc>,
+        onSynced: suspend (List<BaseFirestoreDoc>) -> Unit,
     ) {
         if (userId == null) {
             Log.d(TAG, "No user logged in. Skipping sync.")
@@ -812,104 +569,54 @@ class FirestoreSyncManager (
         }
         Log.d(TAG, "User $userId logged in. Starting initial sync.")
 
-        try {
-            syncEntities(
-                collection = liftsSyncRepository.collection,
-                lastSyncDate = syncRepository.get(liftsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                onGetLocalEntities = liftsSyncRepository::getAll,
-                onUpdateMany = liftsSyncRepository::updateMany,
-                onUpsertMany = liftsSyncRepository::upsertMany,
-            )
+        val syncLevels = listOf(
+            // Level 0: No dependencies
+            listOf(
+                FirestoreConstants.LIFTS_COLLECTION,
+                FirestoreConstants.PROGRAMS_COLLECTION,
+                FirestoreConstants.HISTORICAL_WORKOUT_NAMES_COLLECTION,
+                FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
+                FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION
+            ),
+            // Level 1: Depends on Level 0
+            listOf(
+                FirestoreConstants.WORKOUTS_COLLECTION,
+                FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION
+            ),
+            // Level 2: Depends on Level 1
+            listOf(
+                FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
+                FirestoreConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
+                FirestoreConstants.WORKOUT_LIFTS_COLLECTION
+            ),
+            // Level 3: Depends on Level 2
+            listOf(
+                FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
+                FirestoreConstants.SET_LOG_ENTRIES_COLLECTION
+            ),
+        )
 
-            awaitAll(
-                async {
-                    syncEntities(
-                        collection = programsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(programsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = programsSyncRepository::getAll,
-                        onUpdateMany = programsSyncRepository::updateMany,
-                        onUpsertMany = programsSyncRepository::upsertMany,
-                    )
-                    syncEntities(
-                        collection = workoutsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(workoutsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = workoutsSyncRepository::getAll,
-                        onUpdateMany = workoutsSyncRepository::updateMany,
-                        onUpsertMany = workoutsSyncRepository::upsertMany,
-                    )
-                    syncEntities(
-                        collection = workoutLiftsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(workoutLiftsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = workoutLiftsSyncRepository::getAll,
-                        onUpdateMany = workoutLiftsSyncRepository::updateMany,
-                        onUpsertMany = workoutLiftsSyncRepository::upsertMany,
-                    )
-                    syncEntities(
-                        collection = customLiftSetsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(customLiftSetsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = customLiftSetsSyncRepository::getAll,
-                        onUpdateMany = customLiftSetsSyncRepository::updateMany,
-                        onUpsertMany = customLiftSetsSyncRepository::upsertMany,
-                    )
-                    syncEntities(
-                        collection = previousSetResultsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(previousSetResultsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = previousSetResultsSyncRepository::getAll,
-                        onUpdateMany = previousSetResultsSyncRepository::updateMany,
-                        onUpsertMany = previousSetResultsSyncRepository::upsertMany,
-                    )
-                },
-                async {
-                    syncEntities(
-                        collection = historicalWorkoutNamesSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(historicalWorkoutNamesSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = historicalWorkoutNamesSyncRepository::getAll,
-                        onUpdateMany = historicalWorkoutNamesSyncRepository::updateMany,
-                        onUpsertMany = historicalWorkoutNamesSyncRepository::upsertMany,
-                    )
-                    syncEntities(
-                        collection = workoutLogEntriesSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(workoutLogEntriesSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = workoutLogEntriesSyncRepository::getAll,
-                        onUpdateMany = workoutLogEntriesSyncRepository::updateMany,
-                        onUpsertMany = workoutLogEntriesSyncRepository::upsertMany,
-                    )
-                    syncEntities(
-                        collection = setLogEntriesSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(setLogEntriesSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = setLogEntriesSyncRepository::getAll,
-                        onUpdateMany = setLogEntriesSyncRepository::updateMany,
-                        onUpsertMany = setLogEntriesSyncRepository::upsertMany,
-                    )
-                },
-                async {
-                    syncEntities(
-                        collection = volumeMetricChartsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(volumeMetricChartsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = volumeMetricChartsSyncRepository::getAll,
-                        onUpdateMany = volumeMetricChartsSyncRepository::updateMany,
-                        onUpsertMany = volumeMetricChartsSyncRepository::upsertMany,
-                    )
-                },
-                async {
-                    syncEntities(
-                        collection = liftMetricChartsSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(liftMetricChartsSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = liftMetricChartsSyncRepository::getAll,
-                        onUpdateMany = liftMetricChartsSyncRepository::updateMany,
-                        onUpsertMany = liftMetricChartsSyncRepository::upsertMany,
-                    )
-                },
-                async {
-                    syncEntities(
-                        collection = workoutInProgressSyncRepository.collection,
-                        lastSyncDate = syncRepository.get(workoutInProgressSyncRepository.collectionName)?.lastSyncTimestamp ?: Date(0),
-                        onGetLocalEntities = workoutInProgressSyncRepository::getAll,
-                        onUpdateMany = workoutInProgressSyncRepository::updateMany,
-                        onUpsertMany = workoutInProgressSyncRepository::upsertMany,
-                    )
-                },
-            )
+        try {
+            syncLevels.fastMap { level ->
+                level.map { collectionName ->
+                    async {
+                        val dataSource = dataSources[collectionName]
+                        if (dataSource != null) {
+                            @Suppress("UNCHECKED_CAST")
+                            syncEntities(
+                                collection = dataSource.collection,
+                                lastSyncDate = syncRepository.get(dataSource.collectionName)?.lastSyncTimestamp
+                                    ?: Date(0),
+                                onGetLocalEntities = { dataSource.getAll() },
+                                onUpdateMany = { entities -> dataSource.updateMany(entities) },
+                                onUpsertMany = { entities -> dataSource.upsertMany(entities) }
+                            )
+                        } else {
+                            Log.e(TAG, "No data source found for collection: $collectionName")
+                        }
+                    }
+                }.awaitAll()
+            }
 
             Log.d(TAG, "Sync completed for user $userId.")
             FirebaseCrashlytics.getInstance().log("Sync completed for user $userId.")
@@ -923,20 +630,20 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun<reified T: BaseFirestoreDoc> syncEntities(
+    private suspend fun syncEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
-        onGetLocalEntities: suspend () -> List<T>,
-        crossinline onUpdateMany: suspend (List<T>) -> Unit,
-        crossinline onUpsertMany: suspend (List<T>) -> Unit,
+        onGetLocalEntities: suspend () -> List<BaseFirestoreDoc>,
+        onUpdateMany: suspend (List<BaseFirestoreDoc>) -> Unit,
+        onUpsertMany: suspend (List<BaseFirestoreDoc>) -> Unit,
     ) {
         val collectionName = collection.id
-        val allSyncedEntities: MutableList<T> = mutableListOf()
+        val allSyncedEntities: MutableList<BaseFirestoreDoc> = mutableListOf()
 
         // Update local entities that are outdated first since cloud wins.
         // Prevents duplicate ids from being uploaded to Firestore since any locals
         // with different/no firestoreId will be updated here.
-        allSyncedEntities += updateOutdatedLocalEntities<T>(
+        allSyncedEntities += updateOutdatedLocalEntities(
             collection = collection,
             lastSyncDate = lastSyncDate,
             localEntities = onGetLocalEntities(),
@@ -944,7 +651,7 @@ class FirestoreSyncManager (
         )
 
         // Upsert any unsynced entities up to Firestore
-        allSyncedEntities += uploadUnsyncedEntities<T>(
+        allSyncedEntities += uploadUnsyncedEntities(
             localEntities = onGetLocalEntities(),
             collection = collection,
             collectionName = collectionName,
@@ -971,14 +678,14 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun <reified T : BaseFirestoreDoc> updateOutdatedLocalEntities(
+    private suspend fun updateOutdatedLocalEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
-        localEntities: List<T>,
-        onUpsertMany: suspend (List<T>) -> Unit,
-    ): List<T> {
+        localEntities: List<BaseFirestoreDoc>,
+        onUpsertMany: suspend (List<BaseFirestoreDoc>) -> Unit,
+    ): List<BaseFirestoreDoc> {
         val collectionName = collection.id
-        val allSyncedEntities = mutableListOf<T>()
+        val allSyncedEntities = mutableListOf<BaseFirestoreDoc>()
         var lastVisible: DocumentSnapshot? = null
         var done = false
         val localEntitiesInFirestore = localEntities
@@ -1009,10 +716,11 @@ class FirestoreSyncManager (
             } else {
                 val currFirestoreBatch = docs.flatMapParallel(10) { docChunk ->
                     docChunk.mapNotNull { doc ->
-                        val firestoreEntity = doc.toObject<T>() ?: return@mapNotNull null
-                        val localEntity = localEntitiesInFirestore[firestoreEntity.firestoreId]
+                        val dataSource = dataSources[collectionName]
+                        val firestoreEntity = dataSource?.let { doc.toObject(it.firestoreDocClass.java) }
+                        val localEntity = localEntitiesInFirestore[firestoreEntity?.firestoreId]
                         val localLastUpdated = localEntity?.lastUpdated ?: Date(0)
-                        if (firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
+                        if (firestoreEntity != null && firestoreEntity.lastUpdated?.after(localLastUpdated) == true) {
                             Log.d(TAG, "Found outdated entity - firestoreEntity Id=${firestoreEntity.firestoreId}: firestore last updated ${firestoreEntity.lastUpdated}, local last updated $localLastUpdated, local firestoreId ${localEntity?.firestoreId} [$collectionName]")
                             firestoreEntity
                         } else null
@@ -1036,12 +744,12 @@ class FirestoreSyncManager (
         return allSyncedEntities
     }
 
-    private suspend inline fun <reified T : BaseFirestoreDoc> uploadUnsyncedEntities(
-        localEntities: List<T>,
+    private suspend fun uploadUnsyncedEntities(
+        localEntities: List<BaseFirestoreDoc>,
         collection: CollectionReference,
         collectionName: String,
-        crossinline onUpdateMany: suspend (List<T>) -> Unit
-    ): List<T> {
+        onUpdateMany: suspend (List<BaseFirestoreDoc>) -> Unit
+    ): List<BaseFirestoreDoc> {
         val unsyncedEntities = localEntities.filter { !it.synced }
         if (unsyncedEntities.isEmpty()) return emptyList()
 
@@ -1064,7 +772,7 @@ class FirestoreSyncManager (
                     Log.d(TAG, "Adding entity to batch. firestoreId=${unsyncedEntity.firestoreId}, roomId=${unsyncedEntity.id} [$collectionName]")
                 }
 
-                val updatedEntities = commitBatchAndUpdate<T>(
+                val updatedEntities = commitBatchAndUpdate(
                     batch = batch,
                     batchSize = currFirestoreDocBatch.size,
                     collectionName = collectionName,
@@ -1080,21 +788,22 @@ class FirestoreSyncManager (
         return syncedEntities
     }
 
-    private suspend inline fun <reified T : BaseFirestoreDoc> CoroutineScope.commitBatchAndUpdate(
+    private suspend fun commitBatchAndUpdate(
         batch: WriteBatch,
         batchSize: Int,
         collectionName: String,
         currFirestoreDocBatch: MutableList<DocumentReference>,
-        onUpdateMany: suspend (List<T>) -> Unit
-    ): List<T> {
+        onUpdateMany: suspend (List<BaseFirestoreDoc>) -> Unit
+    ): List<BaseFirestoreDoc> {
         batch.commit().await()
         Log.d(TAG, "Uploaded $batchSize entities [$collectionName]")
 
+        val dataSource = dataSources[collectionName]
         // Get updated entities from Firestore and update local database so lastUpdated is up to date
         val updatedEntities = currFirestoreDocBatch.flatMapParallel(10) { docChunk ->
             docChunk.map { docRef ->
                 runCatching {
-                    docRef.get().await().toObject<T>()
+                    dataSource?.let { docRef.get().await().toObject(it.firestoreDocClass.java) }
                 }.onFailure { e ->
                     Log.e(
                         TAG,

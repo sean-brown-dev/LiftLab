@@ -23,7 +23,6 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +34,7 @@ import java.lang.Integer.max
 
 class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
-    private val loggingRepository: LoggingRepository,
+    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
     private val setResultsRepository: PreviousSetResultsRepository,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
@@ -68,8 +67,8 @@ class EditWorkoutViewModel(
 
     init {
         executeInTransactionScope {
-            val workoutLog = loggingRepository.get(workoutLogEntryId = workoutLogEntryId)
-            val previousResults = loggingRepository.getMostRecentSetResultsForLiftIdsPriorToDate(
+            val workoutLog = workoutLogRepository.get(workoutLogEntryId = workoutLogEntryId)
+            val previousResults = workoutLogRepository.getMostRecentSetResultsForLiftIdsPriorToDate(
                 liftIds = workoutLog!!.setResults.map { it.liftId },
                 linearProgressionLiftIds = workoutLog.setResults
                     .filter { it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
@@ -292,7 +291,7 @@ class EditWorkoutViewModel(
             }
         }
 
-        return loggingRepository.upsertMany(
+        return workoutLogRepository.upsertMany(
             workoutLogEntryId = workoutLogEntryId,
             updatedResults.fastMap { setResult ->
                 getSetLogEntryFromSetResult(setResult = setResult)
@@ -304,14 +303,14 @@ class EditWorkoutViewModel(
         if (_editWorkoutState.value.setResults.isNotEmpty()) {
             updateSetResult(updatedResult = updatedResult)
         }
-        return loggingRepository.upsert(
+        return workoutLogRepository.upsert(
             workoutLogEntryId = workoutLogEntryId,
             getSetLogEntryFromSetResult(setResult = updatedResult),
         )
     }
 
     override suspend fun deleteSetResult(id: Long) {
-        loggingRepository.deleteSetLogEntryById(id)
+        workoutLogRepository.deleteSetLogEntryById(id)
     }
 
     private suspend fun updateSetResult(updatedResult: SetResult) {

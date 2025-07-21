@@ -28,7 +28,6 @@ import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.persistence.room.repositories.VolumeMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
@@ -60,7 +59,7 @@ import java.util.Date
 
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
-    private val loggingRepository: LoggingRepository,
+    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val volumeMetricChartsRepositoryImpl: VolumeMetricChartsRepositoryImpl,
     private val liftsRepository: LiftsRepository,
@@ -146,7 +145,7 @@ class HomeViewModel(
         }
 
         viewModelScope.launch {
-            loggingRepository.getAllFlow().collect { workoutLogs ->
+            workoutLogRepository.getAllFlow().collect { workoutLogs ->
                 reconstructChartsForWorkoutLogs(
                     workoutLogs = workoutLogs,
                     dateRange = dateRange,
