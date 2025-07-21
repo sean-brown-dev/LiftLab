@@ -26,8 +26,8 @@ class WorkoutsRepositoryImpl(
     private val programsRepository: ProgramsRepository,
     private val workoutsDao: WorkoutsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-): Repository {
-    suspend fun updateName(id: Long, newName: String) {
+): WorkoutsRepository {
+    override suspend fun updateName(id: Long, newName: String) {
         val current = workoutsDao.get(id) ?: return
         val toUpdate = current.copy(name = newName).applyFirestoreMetadata(
             firestoreId = current.firestoreId,
@@ -44,7 +44,7 @@ class WorkoutsRepositoryImpl(
         )
     }
 
-    suspend fun insert(workout: Workout): Long {
+    override suspend fun insert(workout: Workout): Long {
         val toInsert = workout.toEntity()
         val id = workoutsDao.insert(toInsert)
 
@@ -59,8 +59,8 @@ class WorkoutsRepositoryImpl(
         return id
     }
 
-    suspend fun delete(workout: Workout) {
-        val toDelete = workoutsDao.get(workout.id) ?: return
+    override suspend fun delete(workout: Workout): Int {
+        val toDelete = workoutsDao.get(workout.id) ?: return 0
         workoutsDao.delete(toDelete)
 
         val syncQueueEntries = mutableListOf<SyncQueueEntry>()
@@ -119,9 +119,10 @@ class WorkoutsRepositoryImpl(
                 )
             )
         }
+        return 1
     }
 
-    suspend fun updateMany(workouts: List<Workout>) {
+    override suspend fun updateMany(workouts: List<Workout>) {
         val currentEntities = workoutsDao.getMany(workouts.map { it.id }).associateBy { it.id }
         if (currentEntities.isEmpty()) return
 
@@ -145,7 +146,7 @@ class WorkoutsRepositoryImpl(
         )
     }
 
-    suspend fun update(workout: Workout) {
+    override suspend fun update(workout: Workout) {
         val current = workoutsDao.get(workout.id) ?: return
         val updWorkout = workout.toEntity().copyWithFirestoreMetadata(
             firestoreId = current.firestoreId,
@@ -185,18 +186,18 @@ class WorkoutsRepositoryImpl(
         }
     }
 
-    suspend fun get(workoutId: Long): Workout? {
-        return workoutsDao.getWithRelationships(workoutId)?.toDomainModel()
+    override suspend fun getById(id: Long): Workout? {
+        return workoutsDao.getWithRelationships(id)?.toDomainModel()
     }
 
-    fun getFlow(workoutId: Long): Flow<Workout?> {
+    override fun getFlow(workoutId: Long): Flow<Workout?> {
         return workoutsDao.getWithRelationshipsFlow(workoutId).map { workout ->
             workout?.toDomainModel()
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun getByMicrocyclePosition(
+    override fun getByMicrocyclePosition(
         programId: Long,
         microcyclePosition: Int,
     ): Flow<Workout?> {

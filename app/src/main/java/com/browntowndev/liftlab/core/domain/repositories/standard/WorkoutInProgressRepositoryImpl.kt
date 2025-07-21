@@ -16,11 +16,11 @@ class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
     private val previousSetResultsRepository: PreviousSetResultsRepository,
     private val firestoreSyncManager: FirestoreSyncManager,
-): Repository {
-    suspend fun insert(workoutInProgress: WorkoutInProgress) {
+): WorkoutInProgressRepository {
+    override suspend fun insert(workoutInProgress: WorkoutInProgress): Long {
         // Delete any that exist. Just calling delete because selecting then checking for null
         // still results in 1 SQL query anyway
-        delete()
+        deleteAll()
 
         val toInsert =
             WorkoutInProgressEntity(
@@ -36,9 +36,10 @@ class WorkoutInProgressRepositoryImpl(
                 SyncType.Upsert,
             )
         )
+        return id
     }
 
-    suspend fun delete() {
+    override suspend fun deleteAll() {
         val toDelete = workoutInProgressDao.get() ?: return
         workoutInProgressDao.delete(toDelete)
 
@@ -53,7 +54,7 @@ class WorkoutInProgressRepositoryImpl(
         }
     }
 
-    suspend fun getWithoutCompletedSets(): WorkoutInProgress? {
+    override suspend fun getWithoutCompletedSets(): WorkoutInProgress? {
         return workoutInProgressDao.get()?.let { inProgressEntity ->
             WorkoutInProgress(
                 workoutId = inProgressEntity.workoutId,
@@ -63,7 +64,7 @@ class WorkoutInProgressRepositoryImpl(
         }
     }
 
-    suspend fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
+    override suspend fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
         return workoutInProgressDao.get().let { inProgressWorkout ->
             if (inProgressWorkout == null) {
                 return flowOf(null)

@@ -15,9 +15,9 @@ import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 class WorkoutLiftsRepositoryImpl (
     private val workoutLiftsDao: WorkoutLiftsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-): Repository {
+): WorkoutLiftsRepository {
 
-    suspend fun insert(workoutLift: GenericWorkoutLift): Long {
+    override suspend fun insert(workoutLift: GenericWorkoutLift): Long {
         val toInsert = workoutLift.toEntity()
         val id = workoutLiftsDao.insert(toInsert)
 
@@ -28,11 +28,11 @@ class WorkoutLiftsRepositoryImpl (
                 SyncType.Upsert,
             )
         )
-        
+
         return id
     }
 
-    suspend fun insertAll(workoutLifts: List<GenericWorkoutLift>): List<Long> {
+    override suspend fun insertMany(workoutLifts: List<GenericWorkoutLift>): List<Long> {
         var toInsert = workoutLifts.map { it.toEntity() }
         val insertIds = workoutLiftsDao.insertMany(toInsert)
 
@@ -51,7 +51,7 @@ class WorkoutLiftsRepositoryImpl (
         return insertIds
     }
 
-    suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {
+    override suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {
         val current = workoutLiftsDao.get(workoutLiftId) ?: return
         val toUpdate = current.copy(liftId = newLiftId).applyFirestoreMetadata(
             firestoreId = current.firestoreId,
@@ -69,7 +69,7 @@ class WorkoutLiftsRepositoryImpl (
         )
     }
 
-    suspend fun update(workoutLift: GenericWorkoutLift) {
+    override suspend fun update(workoutLift: GenericWorkoutLift) {
         val current = workoutLiftsDao.get(workoutLift.id) ?: return
         val toUpdate = workoutLift.toEntity().applyFirestoreMetadata(
             firestoreId = current.firestoreId,
@@ -109,13 +109,13 @@ class WorkoutLiftsRepositoryImpl (
         )
     }
 
-    suspend fun updateMany(workoutLifts: List<GenericWorkoutLift>) {
+    override suspend fun updateMany(workoutLifts: List<GenericWorkoutLift>) {
         val syncQueueEntry = updateManyAndGetSyncQueueEntry(workoutLifts) ?: return
         firestoreSyncManager.enqueueSyncRequest(syncQueueEntry)
     }
 
-    suspend fun delete(workoutLift: GenericWorkoutLift) {
-        val toDelete = workoutLiftsDao.get(workoutLift.id) ?: return
+    override suspend fun delete(workoutLift: GenericWorkoutLift): Int {
+        val toDelete = workoutLiftsDao.get(workoutLift.id) ?: return 0
         workoutLiftsDao.delete(toDelete)
 
         if (toDelete.firestoreId != null) {
@@ -127,13 +127,14 @@ class WorkoutLiftsRepositoryImpl (
                 )
             )
         }
+        return 1
     }
 
-    suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long> {
+    override suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long> {
         return workoutLiftsDao.getLiftIdsForWorkout(workoutId)
     }
 
-    suspend fun getForWorkout(workoutId: Long): List<GenericWorkoutLift> {
+    override suspend fun getForWorkout(workoutId: Long): List<GenericWorkoutLift> {
         return workoutLiftsDao.getForWorkout(workoutId).map { liftEntity ->
             liftEntity.toDomainModel()
         }
