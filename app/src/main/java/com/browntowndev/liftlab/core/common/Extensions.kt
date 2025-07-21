@@ -18,18 +18,18 @@ import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
-import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.firestore.BaseFirestoreDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.persistence.firestore.entities.BaseFirestoreEntity
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -98,7 +98,7 @@ inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend Coroutine
 }
 
 
-fun BaseFirestoreDto.copyForUpload(firestoreId: String): BaseFirestoreDto {
+fun BaseFirestoreEntity.copyForUpload(firestoreId: String): BaseFirestoreEntity {
     val copy = this.copyWithBase()
     copy.firestoreId = firestoreId
     copy.lastUpdated = null
@@ -159,7 +159,7 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLif
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Float, Boolean>? = volumeCounts.getOrDefault(displayName, null)
-            val hasMyoReps = (lift as? CustomWorkoutLiftDto)?.customLiftSets?.any { it is MyoRepSetDto } ?: false
+            val hasMyoReps = (lift as? CustomWorkoutLift)?.customLiftSets?.any { it is MyoRepSet } ?: false
             var newTotalVolume: Float = if(secondaryVolumeTypes?.contains(volumeType) == true)
                 lift.setCount / 2f
             else
@@ -176,7 +176,7 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLif
     return volumeCounts
 }
 
-private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
+private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLift>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
     lifts.fastForEach { lift ->
         val volumeTypes = when(impact) {
@@ -188,7 +188,7 @@ private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLif
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
-            val hasMyoReps = lift.sets.any { it is LoggingMyoRepSetDto }
+            val hasMyoReps = lift.sets.any { it is LoggingMyoRepSet }
             var newTotalVolume: Int = lift.setCount
 
             if (currTotalVolume != null) {
@@ -216,11 +216,11 @@ private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<GenericWorkout
     }
 }
 
-fun WorkoutDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun Workout.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts, impact)
 }
 
-private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>, impact: VolumeTypeImpact): List<CharSequence> {
+private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLift>, impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeMapForLoggingWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
         val plainVolumeString = "$volumeType: ${totalVolume.first}"
         if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
@@ -228,11 +228,11 @@ private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkout
     }
 }
 
-fun LoggingWorkoutDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun LoggingWorkout.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts, impact)
 }
 
-fun ProgramDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun Program.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(
         lifts = this.workouts.flatMap { workout ->
             workout.lifts
@@ -472,7 +472,7 @@ fun Int.toFriendlyMessage(): String {
 
 fun GenericLoggingSet.copyGeneric(
     position: Int = this.position,
-    myoRepSetPosition: Int? = (this as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+    myoRepSetPosition: Int? = (this as? LoggingMyoRepSet)?.myoRepSetPosition,
     rpeTarget: Float = this.rpeTarget,
     repRangeBottom: Int? = this.repRangeBottom,
     repRangeTop: Int? = this.repRangeTop,
@@ -486,7 +486,7 @@ fun GenericLoggingSet.copyGeneric(
     completedRpe: Float? = this.completedRpe,
     complete: Boolean = this.complete
 ): GenericLoggingSet = when(this) {
-    is LoggingStandardSetDto -> this.copy(
+    is LoggingStandardSet -> this.copy(
         position = position,
         rpeTarget = rpeTarget,
         repRangeBottom = repRangeBottom!!,
@@ -501,7 +501,7 @@ fun GenericLoggingSet.copyGeneric(
         completedRpe = completedRpe,
         complete = complete
     )
-    is LoggingMyoRepSetDto -> this.copy(
+    is LoggingMyoRepSet -> this.copy(
         position = position,
         myoRepSetPosition = myoRepSetPosition,
         rpeTarget = rpeTarget,
@@ -517,7 +517,7 @@ fun GenericLoggingSet.copyGeneric(
         completedRpe = completedRpe,
         complete = complete
     )
-    is LoggingDropSetDto -> this.copy(
+    is LoggingDropSet -> this.copy(
         position = position,
         rpeTarget = rpeTarget,
         repRangeBottom = repRangeBottom!!,

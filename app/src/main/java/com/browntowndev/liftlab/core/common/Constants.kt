@@ -35,7 +35,7 @@ const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"
 
 // Firebase
 object FirestoreConstants {
-    const val CUSTOM_LIFT_SETS_COLLECTION = "customLiftSets"
+    const val CUSTOM_LIFT_SETS_COLLECTION = "customLiftSetEntities"
     const val HISTORICAL_WORKOUT_NAMES_COLLECTION = "historicalWorkoutNames"
     const val LIFT_METRIC_CHARTS_COLLECTION = "liftMetricCharts"
     const val LIFTS_COLLECTION = "lifts"

@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 
 data class EditWorkoutState(
     val duration: String = "00:00:00",

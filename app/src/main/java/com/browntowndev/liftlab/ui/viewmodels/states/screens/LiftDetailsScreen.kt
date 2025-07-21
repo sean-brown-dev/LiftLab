@@ -24,7 +24,7 @@ data class LiftDetailsScreen(
     private val isConfirmCreateLiftVisible: Boolean = false,
 ): BaseScreen() {
     companion object {
-        val navigation = NavItem("Lift Metrics", "", Route.LiftDetails())
+        val navigation = NavItem("LiftEntity Metrics", "", Route.LiftDetails())
         const val CONFIRM_CREATE_LIFT_ICON = "confirmCreateLiftIcon"
     }
 
@@ -73,7 +73,7 @@ data class LiftDetailsScreen(
         listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CONFIRM_CREATE_LIFT_ICON,
-                title = "Confirm Create Lift",
+                title = "Confirm Create LiftEntity",
                 isVisible = isConfirmCreateLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmCreateNewLift))

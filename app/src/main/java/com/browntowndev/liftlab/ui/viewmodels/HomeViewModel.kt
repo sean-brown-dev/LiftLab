@@ -21,16 +21,16 @@ import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
-import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.VolumeMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
@@ -87,7 +87,7 @@ class HomeViewModel(
         viewModelScope.launch {
             val liftMetricCharts = liftMetricChartsRepository.getAll()
             val volumeMetricCharts = volumeMetricChartsRepository.getAll()
-                .sortedWith(compareBy<VolumeMetricChartDto> { it.volumeType.bitMask }
+                .sortedWith(compareBy<VolumeMetricChart> { it.volumeType.bitMask }
                     .thenBy { it.volumeTypeImpact.bitmask }
                 )
 
@@ -174,10 +174,10 @@ class HomeViewModel(
             completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             options = listOf(
                 LiftMetricOptions(
-                    options = listOf("Lift Metrics"),
+                    options = listOf("LiftEntity Metrics"),
                     child = LiftMetricOptions(
                         options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
-                        completionButtonText = "Choose Lift",
+                        completionButtonText = "Choose LiftEntity",
                         completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         onCompletion = { selectLiftForMetricCharts() },
                         onSelectionChanged = { type, selected ->
@@ -225,12 +225,12 @@ class HomeViewModel(
     }
 
     private fun reconstructChartsForWorkoutLogs(
-        workoutLogs: List<WorkoutLogEntryDto>,
+        workoutLogs: List<WorkoutLogEntry>,
         dateRange: Pair<Date, Date>,
-        volumeMetricCharts: List<VolumeMetricChartDto>,
-        liftMetricCharts: List<LiftMetricChartDto>,
+        volumeMetricCharts: List<VolumeMetricChart>,
+        liftMetricCharts: List<LiftMetricChart>,
         workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-        activeProgram: ProgramDto?
+        activeProgram: Program?
     ) {
         val workoutsInDateRange = getWorkoutsInDateRange(workoutLogs, dateRange)
         _state.update {
@@ -262,8 +262,8 @@ class HomeViewModel(
     private fun reconstructChartsForProgramAndLifts(
         workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
         dateRange: Pair<Date, Date>,
-        activeProgram: ProgramDto?,
-        volumeMetricCharts: List<VolumeMetricChartDto>
+        activeProgram: Program?,
+        volumeMetricCharts: List<VolumeMetricChart>
     ) {
         _state.update {
             it.copy(
@@ -296,9 +296,9 @@ class HomeViewModel(
     }
 
     private fun getWorkoutsInDateRange(
-        workoutLogs: List<WorkoutLogEntryDto>,
+        workoutLogs: List<WorkoutLogEntry>,
         dateRange: Pair<Date, Date>
-    ): List<WorkoutLogEntryDto> {
+    ): List<WorkoutLogEntry> {
         return workoutLogs
             .filter { workoutLog ->
                 dateRange.first <= workoutLog.date &&
@@ -315,11 +315,11 @@ class HomeViewModel(
     }
 
     private fun getLiftMetricCharts(
-        liftMetricCharts: List<LiftMetricChartDto>,
-        workoutLogs: List<WorkoutLogEntryDto>,
+        liftMetricCharts: List<LiftMetricChart>,
+        workoutLogs: List<WorkoutLogEntry>,
     ): List<LiftMetricChartModel> {
         return liftMetricCharts.groupBy { it.liftId }.flatMap { liftCharts ->
-            // Filter the workout logs to only include results for the current chart's lift
+            // Filter the workoutEntity logs to only include results for the current chart's liftEntity
             val resultsForLift = workoutLogs.mapNotNull { workoutLog ->
                 workoutLog.setResults
                     .filter { it.liftId == liftCharts.key }
@@ -334,7 +334,7 @@ class HomeViewModel(
                     }
             }.sortedBy { it.date }
 
-            // Build all the selected charts for the lift
+            // Build all the selected charts for the liftEntity
             val liftName = resultsForLift.lastOrNull()?.setResults?.get(0)?.liftName
             if (liftName != null) {
                 liftCharts.value.fastMap { chart ->
@@ -365,9 +365,9 @@ class HomeViewModel(
     }
 
     private fun getVolumeMetricCharts(
-        volumeMetricCharts: List<VolumeMetricChartDto>,
-        workoutLogs: List<WorkoutLogEntryDto>,
-        lifts: List<LiftDto>,
+        volumeMetricCharts: List<VolumeMetricChart>,
+        workoutLogs: List<WorkoutLogEntry>,
+        lifts: List<Lift>,
     ): List<VolumeMetricChartModel> {
         if (volumeMetricCharts.isEmpty() || workoutLogs.isEmpty()) return emptyList()
         val primaryVolumeTypesById = lifts.associate { it.id to it.volumeTypesBitmask }
@@ -566,7 +566,7 @@ class HomeViewModel(
     private fun addVolumeMetricChart() {
         executeInTransactionScope {
             val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
-                VolumeMetricChartDto(
+                VolumeMetricChart(
                     volumeType = volumeTypeStr.toVolumeType(),
                     volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
                 )
@@ -607,7 +607,7 @@ class HomeViewModel(
     private fun selectLiftForMetricCharts() {
         viewModelScope.launch {
             val charts = _state.value.liftChartTypeSelections.fastMap {
-                LiftMetricChartDto(
+                LiftMetricChart(
                     chartType = it.toLiftMetricChartType()
                 )
             }

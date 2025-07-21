@@ -33,12 +33,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
+import com.browntowndev.liftlab.core.domain.models.Program
 
 @Composable
 fun ProgramManager(
     paddingValues: PaddingValues,
-    programs: List<ProgramDto>,
+    programs: List<Program>,
     onCreateProgram: () -> Unit,
     onSetProgramAsActive: (programId: Long) -> Unit,
     onDeleteProgram: (programId: Long) -> Unit,
@@ -119,7 +119,7 @@ fun ProgramManager(
             ) {
                 TextButton(onClick = onCreateProgram) {
                     Text(
-                        text = "Create New Program",
+                        text = "Create New ProgramEntity",
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 17.sp,
                         textAlign = TextAlign.Center,

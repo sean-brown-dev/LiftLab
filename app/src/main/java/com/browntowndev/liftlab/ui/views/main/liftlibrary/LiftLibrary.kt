@@ -134,8 +134,8 @@ fun LiftLibrary(
                             mutableStateOf(state.selectedNewLiftsHashSet.contains(lift.id))
                         }
                         DeleteableOnSwipeLeft(
-                            confirmationDialogHeader = "Delete Lift?",
-                            confirmationDialogBody = "Deleting this lift will hide it from the Lifts menu. It can be restored from the Settings menu.",
+                            confirmationDialogHeader = "Delete LiftEntity?",
+                            confirmationDialogBody = "Deleting this liftEntity will hide it from the Lifts menu. It can be restored from the Settings menu.",
                             enabled = !isAddingToWorkout && !isReplacingLiftInWorkoutBuilder && !isCreatingLiftMetricCharts && !isReplacingLiftInWorkout,
                             onDelete = { liftLibraryViewModel.hideLift(lift) },
                         ) {

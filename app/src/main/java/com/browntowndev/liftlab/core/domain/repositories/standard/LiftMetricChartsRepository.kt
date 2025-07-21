@@ -1,0 +1,7 @@
+package com.browntowndev.liftlab.core.domain.repositories.standard
+
+import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
+
+interface LiftMetricChartsRepository : Repository<LiftMetricChart, Long> {
+    suspend fun deleteAllWithNoLifts()
+}

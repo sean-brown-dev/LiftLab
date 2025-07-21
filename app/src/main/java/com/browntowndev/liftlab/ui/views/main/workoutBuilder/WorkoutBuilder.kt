@@ -36,7 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
@@ -44,8 +43,8 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
+import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
@@ -112,7 +111,7 @@ fun WorkoutBuilder(
     if(!state.isReordering) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = false,
-            title = "Workout Volume",
+            title = "WorkoutEntity Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
             primaryVolumeChipLabels = state.primaryVolumeTypes,
             secondaryVolumeChipLabels = state.secondaryVolumeTypes,
@@ -129,8 +128,8 @@ fun WorkoutBuilder(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     items(state.workout?.lifts ?: listOf(), { it.id }) { workoutLift ->
-                        val standardLift = workoutLift as? StandardWorkoutLiftDto
-                        val customLift = workoutLift as? CustomWorkoutLiftDto
+                        val standardLift = workoutLift as? StandardWorkoutLift
+                        val customLift = workoutLift as? CustomWorkoutLift
                         val incrementOverride = remember(
                             key1 = workoutLift.incrementOverride,
                         ) {
@@ -223,7 +222,7 @@ fun WorkoutBuilder(
                             )
                             WavePatternDropdown(
                                 workoutLiftId = workoutLift.id,
-                                stepSize = (workoutLift as? StandardWorkoutLiftDto)?.stepSize,
+                                stepSize = (workoutLift as? StandardWorkoutLift)?.stepSize,
                                 progressionScheme = workoutLift.progressionScheme,
                                 workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
                                 onUpdateStepSize = { workoutLiftId, newStepSize ->

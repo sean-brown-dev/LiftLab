@@ -51,7 +51,7 @@ fun LiftDetails(
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     controlName = Screen.TITLE,
-                    payload = "Create Lift"
+                    payload = "Create LiftEntity"
                 )
             )
         }
@@ -90,7 +90,7 @@ fun LiftDetails(
             when (currentPage) {
                 0 -> DetailsTab(
                     liftName = state.lift?.name ?: "",
-                    liftNamePlaceholder = remember(id) { if (id == null) "New Lift" else "" },
+                    liftNamePlaceholder = remember(id) { if (id == null) "New LiftEntity" else "" },
                     movementPattern = state.lift?.movementPattern ?: MovementPattern.AB_ISO,
                     volumeTypes = state.volumeTypeDisplayNames,
                     secondaryVolumeTypes = state.secondaryVolumeTypeDisplayNames,

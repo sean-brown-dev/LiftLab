@@ -2,10 +2,10 @@ package com.browntowndev.liftlab.viewmodels
 
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.displayName
@@ -32,7 +31,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
-import org.junit.jupiter.api.extension.RegisterExtension
 import kotlin.time.Duration
 
 @ExperimentalCoroutinesApi
@@ -110,9 +108,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should return all lifts when no filters are applied`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -123,9 +121,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -136,9 +134,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -167,7 +165,7 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by name correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
                 name = "Barbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -180,7 +178,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
                 name = "Dumbbell Row",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
@@ -193,7 +191,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
                 name = "Barbell Squat",
                 movementPattern = MovementPattern.LEG_PUSH,
@@ -230,9 +228,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by movement pattern correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -243,9 +241,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -256,9 +254,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -288,9 +286,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by multiple movement patterns correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -301,9 +299,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -314,9 +312,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -349,7 +347,7 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by name and movement pattern correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
                 name = "Barbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -362,7 +360,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
                 name = "Dumbbell Row",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
@@ -375,7 +373,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
                 name = "Barbell Squat",
                 movementPattern = MovementPattern.LEG_PUSH,
@@ -413,9 +411,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should exclude lifts based on liftIdFilters`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -426,9 +424,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -439,9 +437,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -470,7 +468,7 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should apply all filters correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
                 name = "Barbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -483,7 +481,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
                 name = "Dumbbell Row",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
@@ -496,7 +494,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
                 name = "Barbell Squat",
                 movementPattern = MovementPattern.LEG_PUSH,
@@ -509,7 +507,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 4,
                 name = "Dumbbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,

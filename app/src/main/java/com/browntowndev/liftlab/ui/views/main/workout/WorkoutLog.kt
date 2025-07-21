@@ -47,8 +47,8 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
@@ -61,7 +61,7 @@ fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
     isEdit: Boolean = false,
-    lifts: List<LoggingWorkoutLiftDto>,
+    lifts: List<LoggingWorkoutLift>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
@@ -84,7 +84,7 @@ fun WorkoutLog(
         mutableStateOf(
             lifts.flatMap { workoutLift ->
                 workoutLift.sets
-                    .filterIsInstance<LoggingMyoRepSetDto>()
+                    .filterIsInstance<LoggingMyoRepSet>()
                     .fastMap { set ->
                         "${workoutLift.id}-${set.myoRepSetPosition}"
                     }
@@ -187,7 +187,7 @@ fun WorkoutLog(
                             onClick = cancelWorkout
                         ) {
                             Text(
-                                text = "Cancel Workout",
+                                text = "Cancel WorkoutEntity",
                                 fontSize = 18.sp,
                             )
                         }
@@ -214,9 +214,9 @@ fun WorkoutLog(
     LaunchedEffect(lifts) {
         indicesOfExistingMyoRepSets = lifts.flatMap { workoutLift ->
             workoutLift.sets
-                .filterIsInstance<LoggingMyoRepSetDto>()
+                .filterIsInstance<LoggingMyoRepSet>()
                 .fastMap { set ->
-                    "${workoutLift.id}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}"
+                    "${workoutLift.id}-${(set as? LoggingMyoRepSet)?.myoRepSetPosition}"
                 }
         }.toSet()
     }

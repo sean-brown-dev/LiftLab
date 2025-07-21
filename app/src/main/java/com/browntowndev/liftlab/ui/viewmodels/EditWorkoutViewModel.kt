@@ -9,22 +9,22 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
-import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
-import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
-import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
+import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,7 +55,7 @@ class EditWorkoutViewModel(
         mutableWorkoutState.value.workout!!.lifts
             .associate { lift ->
                 lift.position to
-                        lift.sets.associateBy { set -> "${set.position}-${(set as? LoggingMyoRepSetDto)?.myoRepSetPosition}" }
+                        lift.sets.associateBy { set -> "${set.position}-${(set as? LoggingMyoRepSet)?.myoRepSetPosition}" }
             }
     }
 
@@ -82,20 +82,22 @@ class EditWorkoutViewModel(
                 it.copy(workout = workout)
             }
             val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
-
-            _editWorkoutState.update {
-                it.copy(
-                    duration = workoutLog.durationInMillis.toTimeString(),
-                    setResults = setResultsRepository.getForWorkout(
-                        workoutId = workoutLog.workoutId,
-                        mesoCycle = workoutLog.mesocycle,
-                        microCycle = workoutLog.microcycle
+            setResultsRepository.getForWorkoutFlow(
+                workoutId = workoutLog.workoutId,
+                mesoCycle = workoutLog.mesocycle,
+                microCycle = workoutLog.microcycle
+            ).collect { setResults ->
+                _editWorkoutState.update {
+                    it.copy(
+                        duration = workoutLog.durationInMillis.toTimeString(),
+                        setResults = setResults
                     )
-                )
+                }
             }
+
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
-                    programMetadata = ActiveProgramMetadataDto(
+                    programMetadata = ActiveProgramMetadata(
                         programId = 0L,
                         name = "",
                         deloadWeek = workoutLog.programDeloadWeek,
@@ -104,7 +106,7 @@ class EditWorkoutViewModel(
                         currentMicrocycle = workoutLog.microcycle,
                         currentMicrocyclePosition = workoutLog.microcyclePosition,
                     ),
-                    inProgressWorkout = WorkoutInProgressDto(
+                    inProgressWorkout = WorkoutInProgress(
                         workoutId = workoutLogEntryId,
                         startTime = getCurrentDate(),
                         completedSets = completedSetResults,
@@ -141,22 +143,22 @@ class EditWorkoutViewModel(
         }
     }
 
-    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntryDto, previousResults: List<SetResult>): LoggingWorkoutDto {
+    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntry, previousResults: List<SetResult>): LoggingWorkout {
         val previousSetResults = previousResults
             .groupBy { it.liftId }
             .entries
             .associate {  lift ->
                 lift.key to
-                        lift.value.associateBy { "${it.setPosition}-${(it as? MyoRepSetResultDto)?.myoRepSetPosition}" }
+                        lift.value.associateBy { "${it.setPosition}-${(it as? MyoRepSetResult)?.myoRepSetPosition}" }
             }
         var fauxWorkoutLiftId = 0L
-        return LoggingWorkoutDto(
+        return LoggingWorkout(
             id = workoutLog.workoutId,
             name = workoutLog.workoutName,
             lifts = workoutLog.setResults.groupBy { it.liftPosition }.map { groupedResults ->
                 fauxWorkoutLiftId++
                 val lift = groupedResults.value[0]
-                LoggingWorkoutLiftDto(
+                LoggingWorkoutLift(
                     id = fauxWorkoutLiftId,
                     liftId = lift.liftId,
                     liftName = lift.liftName,
@@ -173,12 +175,12 @@ class EditWorkoutViewModel(
                     note = null,
                     sets = groupedResults.value
                         .sortedWith(
-                            compareBy<SetLogEntryDto> { it.setPosition }
+                            compareBy<SetLogEntry> { it.setPosition }
                                 .thenBy { it.myoRepSetPosition ?: -1 }
                         ).fastMap { setLogEntry ->
                         when (setLogEntry.setType) {
                             SetType.STANDARD ->
-                                LoggingStandardSetDto(
+                                LoggingStandardSet(
                                     position = setLogEntry.setPosition,
                                     repRangeTop = setLogEntry.repRangeTop!!,
                                     repRangeBottom = setLogEntry.repRangeBottom!!,
@@ -198,7 +200,7 @@ class EditWorkoutViewModel(
                                     completedRpe = setLogEntry.rpe,
                                 )
                             SetType.MYOREP ->
-                                LoggingMyoRepSetDto(
+                                LoggingMyoRepSet(
                                     position = setLogEntry.setPosition,
                                     myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                     repRangeTop = setLogEntry.repRangeTop,
@@ -224,7 +226,7 @@ class EditWorkoutViewModel(
                                     completedRpe = setLogEntry.rpe,
                                 )
                             SetType.DROP_SET ->
-                                LoggingDropSetDto(
+                                LoggingDropSet(
                                     position = setLogEntry.setPosition,
                                     repRangeTop = setLogEntry.repRangeTop!!,
                                     repRangeBottom = setLogEntry.repRangeBottom!!,
@@ -262,7 +264,7 @@ class EditWorkoutViewModel(
         }
     }
 
-    private fun buildCompletedSetResultsFromLog(workoutLog: WorkoutLogEntryDto): List<SetResult> {
+    private fun buildCompletedSetResultsFromLog(workoutLog: WorkoutLogEntry): List<SetResult> {
         return workoutLog.setResults.fastMap { setLogEntry ->
             super.buildSetResult(
                 id = setLogEntry.id,
@@ -317,19 +319,19 @@ class EditWorkoutViewModel(
         val resultToUpsert = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"]
             ?.let { prevSetResult ->
                 when (prevSetResult) {
-                    is StandardSetResultDto -> prevSetResult.copy(
+                    is StandardSetResult -> prevSetResult.copy(
                         reps = updatedResult.reps,
                         weight = updatedResult.weight,
                         rpe = updatedResult.rpe,
                     )
 
-                    is MyoRepSetResultDto -> prevSetResult.copy(
+                    is MyoRepSetResult -> prevSetResult.copy(
                         reps = updatedResult.reps,
                         weight = updatedResult.weight,
                         rpe = updatedResult.rpe,
                     )
 
-                    is LinearProgressionSetResultDto -> prevSetResult.copy(
+                    is LinearProgressionSetResult -> prevSetResult.copy(
                         reps = updatedResult.reps,
                         weight = updatedResult.weight,
                         rpe = updatedResult.rpe,
@@ -344,9 +346,9 @@ class EditWorkoutViewModel(
         // If it was a new result
         if (updatedResult.id != id) {
             val resultWithId = when (updatedResult) {
-                is MyoRepSetResultDto -> updatedResult.copy(id = id)
-                is StandardSetResultDto -> updatedResult.copy(id = id)
-                is LinearProgressionSetResultDto -> updatedResult.copy(id = id)
+                is MyoRepSetResult -> updatedResult.copy(id = id)
+                is StandardSetResult -> updatedResult.copy(id = id)
+                is LinearProgressionSetResult -> updatedResult.copy(id = id)
                 else -> throw Exception("${updatedResult::class.simpleName} is not defined.")
             }
             _editWorkoutState.update {
@@ -374,7 +376,7 @@ class EditWorkoutViewModel(
                             val lastSet = last()
                             newSet = lastSet.copyGeneric(
                                 position = lastSet.position + 1,
-                                myoRepSetPosition = (lastSet as? LoggingMyoRepSetDto)?.myoRepSetPosition?.let {
+                                myoRepSetPosition = (lastSet as? LoggingMyoRepSet)?.myoRepSetPosition?.let {
                                     it + 1
                                 },
                             )
@@ -398,16 +400,16 @@ class EditWorkoutViewModel(
                 completeSet(
                     restTime = 0L, restTimerEnabled = false, result = buildSetResult(
                         setType = when (newSet) {
-                            is LoggingStandardSetDto -> SetType.STANDARD
-                            is LoggingDropSetDto -> SetType.DROP_SET
-                            is LoggingMyoRepSetDto -> SetType.MYOREP
+                            is LoggingStandardSet -> SetType.STANDARD
+                            is LoggingDropSet -> SetType.DROP_SET
+                            is LoggingMyoRepSet -> SetType.MYOREP
                             else -> throw Exception("${newSet!!::class.simpleName} is not defined")
                         },
                         liftId = workoutLiftWithNewSet.liftId,
                         progressionScheme = workoutLiftWithNewSet.progressionScheme,
                         liftPosition = workoutLiftWithNewSet.position,
                         setPosition = newSet!!.position,
-                        myoRepSetPosition = (newSet as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+                        myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
                         weight = newSet!!.completedWeight ?: 0f,
                         reps = newSet!!.completedReps ?: 0,
                         rpe = newSet!!.completedRpe ?: 8f,
@@ -422,15 +424,15 @@ class EditWorkoutViewModel(
         return setsForLift["$setPosition-$myoRepSetPosition"]!!
     }
 
-    private fun getSetLogEntryFromSetResult(setResult: SetResult): SetLogEntryDto {
+    private fun getSetLogEntryFromSetResult(setResult: SetResult): SetLogEntry {
         val lift = _liftsById[setResult.liftId]!!
         val set = getSet(
             liftPosition = setResult.liftPosition,
             setPosition = setResult.setPosition,
-            myoRepSetPosition = (setResult as? MyoRepSetResultDto)?.myoRepSetPosition
+            myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
         )
 
-        return SetLogEntryDto(
+        return SetLogEntry(
             id = setResult.id,
             liftId = setResult.liftId,
             liftName = lift.liftName,
@@ -439,7 +441,7 @@ class EditWorkoutViewModel(
             setType = setResult.setType,
             liftPosition = setResult.liftPosition,
             setPosition = setResult.setPosition,
-            myoRepSetPosition = (setResult as? MyoRepSetResultDto)?.myoRepSetPosition,
+            myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition,
             repRangeTop = set.repRangeTop,
             repRangeBottom = set.repRangeBottom,
             rpeTarget = set.rpeTarget,

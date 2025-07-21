@@ -2,12 +2,12 @@ package com.browntowndev.liftlab
 
 import android.app.Application
 import android.util.Log
-import com.browntowndev.liftlab.core.dependencyInjection.eventBusModule
-import com.browntowndev.liftlab.core.dependencyInjection.firebaseModule
-import com.browntowndev.liftlab.core.dependencyInjection.mapperModule
-import com.browntowndev.liftlab.core.dependencyInjection.repositoryModule
-import com.browntowndev.liftlab.core.dependencyInjection.liftLabScopeModule
-import com.browntowndev.liftlab.core.dependencyInjection.viewModelModule
+import com.browntowndev.liftlab.dependencyInjection.eventBusModule
+import com.browntowndev.liftlab.dependencyInjection.firebaseModule
+import com.browntowndev.liftlab.dependencyInjection.mapperModule
+import com.browntowndev.liftlab.dependencyInjection.repositoryModule
+import com.browntowndev.liftlab.dependencyInjection.liftLabScopeModule
+import com.browntowndev.liftlab.dependencyInjection.viewModelModule
 import com.google.firebase.Firebase
 import com.google.firebase.appcheck.AppCheckProviderFactory
 import com.google.firebase.appcheck.appCheck

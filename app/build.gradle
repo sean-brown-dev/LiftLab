@@ -44,12 +44,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig = signingConfigs.release
             buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
-            buildConfigField("boolean", "USE_SCRATCH_DB", "false")
+            buildConfigField("boolean", "USE_SCRATCH_DB", "true")
         }
 
         debug {
             buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
-            buildConfigField("boolean", "USE_SCRATCH_DB", "false")
+            buildConfigField("boolean", "USE_SCRATCH_DB", "true")
         }
     }
     compileOptions {

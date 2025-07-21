@@ -3,20 +3,20 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.Workout
 
 @Stable
 data class LabState(
-    val allPrograms: List<ProgramDto> = listOf(),
-    val program: ProgramDto? = null,
+    val allPrograms: List<Program> = listOf(),
+    val program: Program? = null,
     val idOfProgramToDelete: Long? = null,
     val isCreatingProgram: Boolean = false,
     val isEditingProgramName: Boolean = false,
     val isDeletingProgram: Boolean = false,
     val originalWorkoutName: String? = null,
     val workoutIdToRename: Long? = null,
-    val workoutToDelete: WorkoutDto? = null,
+    val workoutToDelete: Workout? = null,
     val isReordering: Boolean = false,
     val isManagingPrograms: Boolean = false,
     val workoutCreated: Boolean = false,

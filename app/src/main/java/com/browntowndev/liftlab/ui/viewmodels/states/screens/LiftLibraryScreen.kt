@@ -145,7 +145,7 @@ data class LiftLibraryScreen(
             ),
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CREATE_NEW_LIFT_ICON,
-                title = "Create Lift",
+                title = "Create LiftEntity",
                 isVisible = !isSearchBarVisible && isFilterIconVisible && isCreateNewLiftIconVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewLift))
@@ -156,7 +156,7 @@ data class LiftLibraryScreen(
             ),
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CONFIRM_ADD_LIFT_ICON,
-                title = "Confirm Add Lift",
+                title = "Confirm Add LiftEntity",
                 isVisible = isConfirmAddLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))

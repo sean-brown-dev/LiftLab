@@ -7,12 +7,12 @@ import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLifts
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -80,7 +80,7 @@ class LabViewModel(
     fun updateDeloadWeek(deloadWeek: Int) {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
-            val liftsWithNewStepSizes: Map<Long, StandardWorkoutLiftDto> = if (_state.value.program != null) {
+            val liftsWithNewStepSizes: Map<Long, StandardWorkoutLift> = if (_state.value.program != null) {
                 getAllLiftsWithRecalculatedStepSize(
                     workouts = _state.value.program!!.workouts,
                     deloadToUseInsteadOfLiftLevel = deloadWeek,
@@ -119,7 +119,7 @@ class LabViewModel(
 
     fun createProgram(name: String) {
         executeInTransactionScope {
-            var newProgram = ProgramDto(name = name, isActive = !_state.value.isManagingPrograms)
+            var newProgram = Program(name = name, isActive = !_state.value.isManagingPrograms)
             if (_state.value.program != null && !_state.value.isManagingPrograms) {
                 val programToArchive = _state.value.program!!.copy(isActive = false)
                 programsRepository.update(programToArchive)
@@ -140,21 +140,21 @@ class LabViewModel(
 
     private fun createNewWorkout() {
         executeInTransactionScope {
-            val newWorkout = WorkoutDto(
+            val newWorkoutEntity = Workout(
                 programId = _state.value.program!!.id,
-                name = "New Workout",
+                name = "New WorkoutEntity",
                 position = _state.value.program!!.workouts.count(),
                 lifts = listOf()
             )
-            val newWorkoutId = workoutsRepository.insert(newWorkout)
+            val newWorkoutId = workoutsRepository.insert(newWorkoutEntity)
             _state.update { currentState ->
                 currentState.copy(
                     workoutIdToRename = newWorkoutId,
-                    originalWorkoutName = newWorkout.name,
+                    originalWorkoutName = newWorkoutEntity.name,
                     program = currentState.program!!.copy(
                         workouts = currentState.program.workouts.toMutableList().apply {
                             add(
-                                newWorkout.copy(
+                                newWorkoutEntity.copy(
                                     id = newWorkoutId
                                 )
                             )
@@ -229,7 +229,7 @@ class LabViewModel(
         }
     }
 
-    fun deleteWorkout(workout: WorkoutDto) {
+    fun deleteWorkout(workout: Workout) {
         viewModelScope.launch {
             workoutsRepository.delete(workout)
             _state.update {
@@ -245,7 +245,7 @@ class LabViewModel(
         }
     }
 
-    fun beginDeleteWorkout(workout: WorkoutDto) {
+    fun beginDeleteWorkout(workout: Workout) {
         _state.update {
             it.copy(workoutToDelete = workout)
         }
@@ -347,11 +347,11 @@ class LabViewModel(
     }
 
     fun setProgramAsActive(programId: Long) {
-        // Program is already active
+        // ProgramEntity is already active
         if (_state.value.program?.id == programId) return
 
         executeInTransactionScope {
-            val programsToUpdate = mutableListOf<ProgramDto>()
+            val programsToUpdate = mutableListOf<Program>()
             val newActiveProgram = _state.value.allPrograms
                 .find { it.id == programId }
                 ?.copy(isActive = true)
@@ -359,8 +359,8 @@ class LabViewModel(
             if (newActiveProgram != null) {
                 programsToUpdate.add(newActiveProgram)
 
-                // Theoretically, this should never be null. You can only open program management
-                // if a program exists. Just in case though!
+                // Theoretically, this should never be null. You can only open programEntity management
+                // if a programEntity exists. Just in case though!
                 val programToArchive = _state.value.program?.copy(isActive = false)?.let { programToArchive ->
                     programsToUpdate.add(programToArchive)
                     programToArchive

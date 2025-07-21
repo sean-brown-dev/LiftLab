@@ -1,18 +1,14 @@
 package com.browntowndev.liftlab.progression
 
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
-import io.mockk.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.test.*
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.progression.MyoRepSetGoalValidator
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 
 class MyoRepSetGoalValidatorTests {
     @Test
     fun `returns false when rep floor is hit`() {
-         val justCompletedSet = LoggingMyoRepSetDto(
+         val justCompletedSet = LoggingMyoRepSet(
              position = 0,
              myoRepSetPosition = 2,
              rpeTarget = 8f,
@@ -31,7 +27,7 @@ class MyoRepSetGoalValidatorTests {
         )
 
         val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
@@ -47,7 +43,7 @@ class MyoRepSetGoalValidatorTests {
                 completedRpe = 8f,
                 completedWeight = 100f,
             ),
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 myoRepSetPosition = 1,
                 rpeTarget = 8f,
@@ -77,7 +73,7 @@ class MyoRepSetGoalValidatorTests {
 
     @Test
     fun `returns true when rep floor not hit`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
+        val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             myoRepSetPosition = 2,
             rpeTarget = 8f,
@@ -96,7 +92,7 @@ class MyoRepSetGoalValidatorTests {
         )
 
         val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
@@ -112,7 +108,7 @@ class MyoRepSetGoalValidatorTests {
                 completedRpe = 8f,
                 completedWeight = 100f,
             ),
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 myoRepSetPosition = 1,
                 rpeTarget = 8f,
@@ -143,7 +139,7 @@ class MyoRepSetGoalValidatorTests {
     @Test
     fun `returns false when RPE target is missed on activation set`() {
         val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
@@ -171,7 +167,7 @@ class MyoRepSetGoalValidatorTests {
 
     @Test
     fun `returns false when set matching myorep set goals are achieved`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
+        val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             myoRepSetPosition = 2,
             setMatching = true,
@@ -191,7 +187,7 @@ class MyoRepSetGoalValidatorTests {
         )
 
         val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
@@ -207,7 +203,7 @@ class MyoRepSetGoalValidatorTests {
                 completedRpe = 8f,
                 completedWeight = 100f,
             ),
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 myoRepSetPosition = 1,
                 rpeTarget = 8f,
@@ -237,7 +233,7 @@ class MyoRepSetGoalValidatorTests {
 
     @Test
     fun `returns true when set matching myorep set goals are not achieved`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
+        val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             myoRepSetPosition = 1,
             setMatching = true,
@@ -257,7 +253,7 @@ class MyoRepSetGoalValidatorTests {
         )
 
         val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 setMatching = true,
                 rpeTarget = 8f,
@@ -274,7 +270,7 @@ class MyoRepSetGoalValidatorTests {
                 completedRpe = 8f,
                 completedWeight = 100f,
             ),
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 myoRepSetPosition = 0,
                 setMatching = true,
@@ -305,7 +301,7 @@ class MyoRepSetGoalValidatorTests {
 
     @Test
     fun `returns true when activation set goals are achieved`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
+        val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             rpeTarget = 8f,
             repRangeBottom = 25,
@@ -332,7 +328,7 @@ class MyoRepSetGoalValidatorTests {
 
     @Test
     fun `returns false when activation set goals are not achieved`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
+        val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             rpeTarget = 8f,
             repRangeBottom = 25,
@@ -359,7 +355,7 @@ class MyoRepSetGoalValidatorTests {
 
     @Test
     fun `returns false when incomplete set is passed in even if complete is true`() {
-        val justCompletedSet = LoggingMyoRepSetDto(
+        val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             myoRepSetPosition = 2,
             rpeTarget = 8f,
@@ -375,7 +371,7 @@ class MyoRepSetGoalValidatorTests {
         )
 
         val previouslyCompletedSets = listOf(
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 rpeTarget = 8f,
                 repRangeBottom = 25,
@@ -391,7 +387,7 @@ class MyoRepSetGoalValidatorTests {
                 completedRpe = 8f,
                 completedWeight = 100f,
             ),
-            LoggingMyoRepSetDto(
+            LoggingMyoRepSet(
                 position = 0,
                 myoRepSetPosition = 1,
                 rpeTarget = 8f,

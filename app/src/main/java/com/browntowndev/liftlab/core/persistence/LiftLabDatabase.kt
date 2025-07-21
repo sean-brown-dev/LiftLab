@@ -18,9 +18,39 @@ import com.browntowndev.liftlab.BuildConfig
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
 import com.browntowndev.liftlab.core.persistence.LiftLabDatabaseWorker.Companion.KEY_FILENAME
-import com.browntowndev.liftlab.core.persistence.dao.*
-import com.browntowndev.liftlab.core.persistence.entities.*
-import com.browntowndev.liftlab.core.persistence.migrations.*
+import com.browntowndev.liftlab.core.persistence.entities.room.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.HistoricalWorkoutNameEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.LiftMetricChartEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.PreviousSetResultEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.ProgramEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.RestTimerInProgressEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.SetLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.SyncMetadataEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.VolumeMetricChartEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutInProgressEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.room.Converters
+import com.browntowndev.liftlab.core.persistence.room.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.persistence.room.dao.HistoricalWorkoutNamesDao
+import com.browntowndev.liftlab.core.persistence.room.dao.LiftMetricChartsDao
+import com.browntowndev.liftlab.core.persistence.room.dao.LiftsDao
+import com.browntowndev.liftlab.core.persistence.room.dao.PreviousSetResultDao
+import com.browntowndev.liftlab.core.persistence.room.dao.ProgramsDao
+import com.browntowndev.liftlab.core.persistence.room.dao.RestTimerInProgressDao
+import com.browntowndev.liftlab.core.persistence.room.dao.SetLogEntryDao
+import com.browntowndev.liftlab.core.persistence.room.dao.SyncDao
+import com.browntowndev.liftlab.core.persistence.room.dao.VolumeMetricChartsDao
+import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutInProgressDao
+import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutLogEntryDao
+import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutsDao
+import com.browntowndev.liftlab.core.persistence.room.migrations.LiftNoteMigration
+import com.browntowndev.liftlab.core.persistence.room.migrations.OneRepMaxAutoMigration
+import com.browntowndev.liftlab.core.persistence.room.migrations.StepSizeAutoMigration
+import com.browntowndev.liftlab.core.persistence.room.migrations.WorkoutInProgressMigration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -28,20 +58,20 @@ import kotlinx.coroutines.flow.update
 @TypeConverters(Converters::class)
 @Database(
     entities = [
-        Lift::class,
-        CustomLiftSet::class,
-        HistoricalWorkoutName::class,
-        PreviousSetResult::class,
-        Program::class,
-        WorkoutLogEntry::class,
-        SetLogEntry::class,
-        Workout::class,
-        WorkoutLift::class,
-        WorkoutInProgress::class,
-        RestTimerInProgress::class,
-        LiftMetricChart::class,
-        VolumeMetricChart::class,
-        SyncMetadata::class,
+        LiftEntity::class,
+        CustomLiftSetEntity::class,
+        HistoricalWorkoutNameEntity::class,
+        PreviousSetResultEntity::class,
+        ProgramEntity::class,
+        WorkoutLogEntryEntity::class,
+        SetLogEntryEntity::class,
+        WorkoutEntity::class,
+        WorkoutLiftEntity::class,
+        WorkoutInProgressEntity::class,
+        RestTimerInProgressEntity::class,
+        LiftMetricChartEntity::class,
+        VolumeMetricChartEntity::class,
+        SyncMetadataEntity::class,
    ],
     version = 15,
     exportSchema = true,

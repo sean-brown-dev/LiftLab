@@ -69,7 +69,7 @@ data class WorkoutBuilderScreen(
         get() = listOf(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_WORKOUT_ICON,
-                title = "Rename Workout",
+                title = "Rename WorkoutEntity",
                 icon = Icons.Filled.Edit.left(),
                 isVisible = true,
                 onClick = {

@@ -1,18 +1,18 @@
 package com.browntowndev.liftlab.core.common
 
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.core.persistence.repositories.CustomLiftSetsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.DropSet
+import com.browntowndev.liftlab.core.domain.models.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.StandardSet
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.repositories.standard.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
 
 class ProgramCloner {
     companion object {
@@ -20,10 +20,10 @@ class ProgramCloner {
             programsRepository: ProgramsRepository,
             workoutsRepository: WorkoutsRepository,
             workoutLiftsRepository: WorkoutLiftsRepository,
-            setsRepository: CustomLiftSetsRepository,
-            program: ProgramDto
+            setsRepository: CustomLiftSetsRepositoryImpl,
+            program: Program
         ) {
-            val clonedProgram = ProgramDto(
+            val clonedProgram = Program(
                 name = program.name,
                 isActive = program.isActive,
                 deloadWeek = program.deloadWeek,
@@ -38,11 +38,11 @@ class ProgramCloner {
         suspend fun clone(
             workoutsRepository: WorkoutsRepository,
             workoutLiftsRepository: WorkoutLiftsRepository,
-            setsRepository: CustomLiftSetsRepository,
+            setsRepository: CustomLiftSetsRepositoryImpl,
             programId: Long,
-            workout: WorkoutDto
+            workout: Workout
         ) {
-            val workoutClone = WorkoutDto(
+            val workoutClone = Workout(
                 programId = programId,
                 name = workout.name,
                 position = workout.position,
@@ -52,7 +52,7 @@ class ProgramCloner {
             val workoutId = workoutsRepository.insert(workoutClone)
             workout.lifts.fastForEach { lift ->
                 val clonedLift = when (lift) {
-                    is StandardWorkoutLiftDto -> StandardWorkoutLiftDto(
+                    is StandardWorkoutLift -> StandardWorkoutLift(
                         workoutId = workoutId,
                         liftId = lift.liftId,
                         liftName = lift.liftName,
@@ -72,7 +72,7 @@ class ProgramCloner {
                         repRangeTop = lift.repRangeTop,
                         stepSize = lift.stepSize
                     )
-                    is CustomWorkoutLiftDto -> CustomWorkoutLiftDto(
+                    is CustomWorkoutLift -> CustomWorkoutLift(
                         workoutId = workoutId,
                         liftId = lift.liftId,
                         liftName = lift.liftName,
@@ -93,23 +93,23 @@ class ProgramCloner {
                 }
 
                 val workoutLiftId = workoutLiftsRepository.insert(clonedLift)
-                if (lift is CustomWorkoutLiftDto) {
+                if (lift is CustomWorkoutLift) {
                     clone(setsRepository, workoutLiftId, lift.customLiftSets)
                 }
             }
         }
 
-        suspend fun clone(setsRepository: CustomLiftSetsRepository, workoutLiftId: Long, setsToClone: List<GenericLiftSet>) {
+        suspend fun clone(setsRepository: CustomLiftSetsRepositoryImpl, workoutLiftId: Long, setsToClone: List<GenericLiftSet>) {
             setsToClone.fastForEach { set ->
                 val clonedSet = when (set) {
-                    is StandardSetDto -> StandardSetDto(
+                    is StandardSet -> StandardSet(
                         workoutLiftId = workoutLiftId,
                         position = set.position,
                         repRangeTop = set.repRangeTop,
                         repRangeBottom = set.repRangeBottom,
                         rpeTarget = set.rpeTarget,
                     )
-                    is DropSetDto -> DropSetDto(
+                    is DropSet -> DropSet(
                         workoutLiftId = workoutLiftId,
                         position = set.position,
                         repRangeTop = set.repRangeTop,
@@ -117,7 +117,7 @@ class ProgramCloner {
                         rpeTarget = set.rpeTarget,
                         dropPercentage = set.dropPercentage,
                     )
-                    is MyoRepSetDto -> MyoRepSetDto(
+                    is MyoRepSet -> MyoRepSet(
                         workoutLiftId = workoutLiftId,
                         position = set.position,
                         repRangeTop = set.repRangeTop,

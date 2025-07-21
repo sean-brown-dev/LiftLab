@@ -35,7 +35,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
+import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
@@ -149,7 +149,7 @@ fun Workout(
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,
-                    "Workout".left()
+                    "WorkoutEntity".left()
                 )
             )
             mutateTopAppBarControlValue(
@@ -245,7 +245,7 @@ fun Workout(
             onSetCompleted = { setType, progressionScheme, liftPosition, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
                 val hasDropSetAfter = state.workout!!.lifts[liftPosition].sets.fastAny { set ->
                     set.position == (setPosition + 1) &&
-                            set is LoggingDropSetDto
+                            set is LoggingDropSet
                 }
                 val startRestTimer =
                     !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled

@@ -4,11 +4,11 @@ import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.domain.models.Workout
 
 @Stable
 data class WorkoutBuilderState (
-    val workout: WorkoutDto? = null,
+    val workout: Workout? = null,
     val programDeloadWeek: Int? = null,
     val isEditingName: Boolean = false,
     val isReordering: Boolean = false,

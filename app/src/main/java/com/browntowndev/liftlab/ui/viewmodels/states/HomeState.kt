@@ -1,10 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.VolumeMetricChartDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
@@ -12,18 +12,18 @@ import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 data class HomeState(
-    val activeProgram: ProgramDto? = null,
-    val workoutLogs: List<WorkoutLogEntryDto> = emptyList(),
-    val lifts: List<LiftDto> = emptyList(),
+    val activeProgram: Program? = null,
+    val workoutLogs: List<WorkoutLogEntry> = emptyList(),
+    val lifts: List<Lift> = emptyList(),
     val workoutCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,
     val microCycleCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,
     val showLiftChartPicker: Boolean = false,
-    val volumeMetricCharts: List<VolumeMetricChartDto> = emptyList(),
+    val volumeMetricCharts: List<VolumeMetricChart> = emptyList(),
     val volumeTypeSelections: List<String> = emptyList(),
     val volumeImpactSelection: String? = null,
     val liftChartTypeSelections: List<String> = emptyList(),
     val liftMetricOptions: LiftMetricOptionTree? = null,
-    val liftMetricCharts: List<LiftMetricChartDto> = emptyList(),
+    val liftMetricCharts: List<LiftMetricChart> = emptyList(),
     val liftMetricChartModels: List<LiftMetricChartModel> = emptyList(),
     val volumeMetricChartModels: List<VolumeMetricChartModel> = emptyList(),
     val loginModalVisible: Boolean = false,

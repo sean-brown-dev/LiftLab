@@ -183,12 +183,12 @@ fun Settings(
                 ) {
                     Column {
                         Text(
-                            text = "Lift Specific Deloads",
+                            text = "LiftEntity Specific Deloads",
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Set deloads at the lift level. Disables deload microcycles.",
+                            text = "Set deloads at the liftEntity level. Disables deload microcycles.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
@@ -219,7 +219,7 @@ fun Settings(
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Only Sets from Previous Workout",
+                            text = "Only Sets from Previous WorkoutEntity",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
@@ -305,7 +305,7 @@ fun Settings(
                 LiftLabDialog(
                     isVisible = isIncrementDialogVisible,
                     header = "Default Weight Increment",
-                    subHeader = "Used Unless Overridden on Lift",
+                    subHeader = "Used Unless Overridden on LiftEntity",
                     onDismiss = { isIncrementDialogVisible = false }
                 ) {
                     NumberPickerSpinner(
@@ -339,7 +339,7 @@ fun Settings(
                 LiftLabDialog(
                     isVisible = isRestTimeDialogVisible,
                     header = "Default Weight Increment",
-                    subHeader = "Used Unless Overridden on Lift",
+                    subHeader = "Used Unless Overridden on LiftEntity",
                     onDismiss = { isRestTimeDialogVisible = false }
                 ) {
                     TimeSelectionSpinner(

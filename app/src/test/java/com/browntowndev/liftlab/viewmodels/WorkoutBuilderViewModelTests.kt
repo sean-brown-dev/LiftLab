@@ -8,20 +8,20 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.core.persistence.repositories.CustomLiftSetsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.PreviousSetResultsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.DropSet
+import com.browntowndev.liftlab.core.domain.models.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.StandardSet
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.repositories.standard.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
@@ -59,7 +59,7 @@ class WorkoutBuilderViewModelTests {
     private val mockProgramsRepository: ProgramsRepository = mockk()
     private val mockWorkoutsRepository: WorkoutsRepository = mockk()
     private val mockWorkoutLiftsRepository: WorkoutLiftsRepository = mockk()
-    private val mockCustomLiftSetsRepository: CustomLiftSetsRepository = mockk()
+    private val mockCustomLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl = mockk()
     private val mockLiftsRepository: LiftsRepository = mockk()
     private val mockWorkoutInProgressRepository: WorkoutInProgressRepository = mockk()
     private val mockSetResultsRepository: PreviousSetResultsRepository = mockk()
@@ -84,17 +84,17 @@ class WorkoutBuilderViewModelTests {
             function()
         }
 
-        val dummyWorkout = WorkoutDto(
+        val dummyWorkoutEntity = Workout(
             id = workoutId,
             programId = 1,
-            name = "Test Workout",
+            name = "Test WorkoutEntity",
             position = 0,
             lifts = listOf(
-                StandardWorkoutLiftDto(
+                StandardWorkoutLift(
                     id = 1,
                     workoutId = workoutId,
                     liftId = 1,
-                    liftName = "Test Lift",
+                    liftName = "Test LiftEntity",
                     liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
                     liftVolumeTypes = VolumeType.CHEST.bitMask,
                     liftSecondaryVolumeTypes = null,
@@ -114,7 +114,7 @@ class WorkoutBuilderViewModelTests {
             ),
         )
 
-        coEvery { mockWorkoutsRepository.getFlow(workoutId) } returns flowOf(dummyWorkout)
+        coEvery { mockWorkoutsRepository.getFlow(workoutId) } returns flowOf(dummyWorkoutEntity)
         coEvery { mockProgramsRepository.getDeloadWeek(any()) } returns 4
 
         viewModel = WorkoutBuilderViewModel(
@@ -123,7 +123,7 @@ class WorkoutBuilderViewModelTests {
             programsRepository = mockProgramsRepository,
             workoutsRepository = mockWorkoutsRepository,
             workoutLiftsRepository = mockWorkoutLiftsRepository,
-            customLiftSetsRepository = mockCustomLiftSetsRepository,
+            customLiftSetsRepositoryImpl = mockCustomLiftSetsRepositoryImpl,
             liftsRepository = mockLiftsRepository,
             liftLevelDeloadsEnabled = liftLevelDeloadsEnabled,
             workoutInProgressRepository = mockWorkoutInProgressRepository,
@@ -172,11 +172,11 @@ class WorkoutBuilderViewModelTests {
 
     @Test
     fun `deleteMovementPattern should delete lift and update state`() = runTest {
-        val liftToDelete = StandardWorkoutLiftDto(
+        val liftEntityToDelete = StandardWorkoutLift(
             id = 1,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -193,27 +193,27 @@ class WorkoutBuilderViewModelTests {
             progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
             stepSize = 2,
         )
-        //Simulate that there is a lift to delete by updating the private _state
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(liftToDelete))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(liftEntityToDelete))) }
 
-        viewModel.toggleMovementPatternDeletionModal(liftToDelete.id)
+        viewModel.toggleMovementPatternDeletionModal(liftEntityToDelete.id)
 
         coEvery { mockWorkoutLiftsRepository.delete(any()) } just Runs
 
         viewModel.deleteMovementPattern()
 
-        coVerify { mockWorkoutLiftsRepository.delete(liftToDelete) }
-        assertFalse(viewModel.state.first().workout?.lifts?.contains(liftToDelete) ?: true)
+        coVerify { mockWorkoutLiftsRepository.delete(liftEntityToDelete) }
+        assertFalse(viewModel.state.first().workout?.lifts?.contains(liftEntityToDelete) ?: true)
         assertNull(viewModel.state.first().workoutLiftIdToDelete)
     }
 
     @Test
     fun `updateWorkoutName should update workout name and update state`() = runTest {
-        val newName = "New Workout Name"
+        val newName = "New WorkoutEntity Name"
 
         coEvery { mockWorkoutsRepository.updateName(any(), any()) } just Runs
 
@@ -289,11 +289,11 @@ class WorkoutBuilderViewModelTests {
     @Test
     fun `toggleHasCustomLiftSets should update lift to CustomWorkoutLiftDto and insert custom sets`() = runTest {
         val workoutLiftId = 1L
-        val standardLift = StandardWorkoutLiftDto(
+        val standardLiftEntity = StandardWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -311,31 +311,31 @@ class WorkoutBuilderViewModelTests {
             stepSize = 2,
         )
 
-        // Update the state to include a StandardWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a StandardWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardLiftEntity))) }
 
-        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLiftDto>()) } just Runs
-        coEvery { mockCustomLiftSetsRepository.insertAll(any()) } returns listOf(1L)
+        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.insertMany(any()) } returns listOf(1L)
 
         viewModel.toggleHasCustomLiftSets(workoutLiftId, true)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { it is CustomWorkoutLiftDto }) }
-        coVerify { mockCustomLiftSetsRepository.insertAll(any()) }
+        coVerify { mockWorkoutLiftsRepository.update(match { it is CustomWorkoutLift }) }
+        coVerify { mockCustomLiftSetsRepositoryImpl.insertMany(any()) }
         val updatedLift = viewModel.state.first().workout!!.lifts.find { it.id == workoutLiftId }
-        assertTrue(updatedLift is CustomWorkoutLiftDto)
-        assertFalse((updatedLift as CustomWorkoutLiftDto).customLiftSets.isEmpty())
+        assertTrue(updatedLift is CustomWorkoutLift)
+        assertFalse((updatedLift as CustomWorkoutLift).customLiftSets.isEmpty())
     }
 
     @Test
     fun `toggleHasCustomLiftSets should update lift to StandardWorkoutLiftDto and delete custom sets`() = runTest {
         val workoutLiftId = 1L
         val customSets = listOf(
-            StandardSetDto(
+            StandardSet(
                 workoutLiftId = workoutLiftId,
                 position = 0,
                 rpeTarget = 8f,
@@ -343,11 +343,11 @@ class WorkoutBuilderViewModelTests {
                 repRangeTop = 10
             )
         )
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -362,23 +362,23 @@ class WorkoutBuilderViewModelTests {
             customLiftSets = customSets
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
-        coEvery { mockCustomLiftSetsRepository.deleteAllForLift(any()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.deleteAllForLift(any()) } just Runs
 
         viewModel.toggleHasCustomLiftSets(workoutLiftId, false)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { it is StandardWorkoutLiftDto }) }
-        coVerify { mockCustomLiftSetsRepository.deleteAllForLift(workoutLiftId) }
+        coVerify { mockWorkoutLiftsRepository.update(match { it is StandardWorkoutLift }) }
+        coVerify { mockCustomLiftSetsRepositoryImpl.deleteAllForLift(workoutLiftId) }
         val updatedLift = viewModel.state.first().workout!!.lifts.find { it.id == workoutLiftId }
-        assertTrue(updatedLift is StandardWorkoutLiftDto)
+        assertTrue(updatedLift is StandardWorkoutLift)
     }
 
     @Test
@@ -393,7 +393,7 @@ class WorkoutBuilderViewModelTests {
 
         coVerify { mockLiftsRepository.updateRestTime(any(), enabled, newRestTime) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRestTime, updatedLift?.restTime)
         assertEquals(enabled, updatedLift?.restTimerEnabled)
     }
@@ -409,17 +409,17 @@ class WorkoutBuilderViewModelTests {
 
         coVerify { mockLiftsRepository.updateIncrementOverride(any(), newIncrement) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newIncrement, updatedLift?.incrementOverride)
     }
 
     @Test
     fun `reorderLifts should update lift positions and persist changes`() = runTest {
-        val workoutLift1 = StandardWorkoutLiftDto(
+        val workoutLiftEntity1 = StandardWorkoutLift(
             id = 1,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Lift 1",
+            liftName = "LiftEntity 1",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -436,11 +436,11 @@ class WorkoutBuilderViewModelTests {
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             stepSize = 1
         )
-        val workoutLift2 = StandardWorkoutLiftDto(
+        val workoutLiftEntity2 = StandardWorkoutLift(
             id = 2,
             workoutId = workoutId,
             liftId = 2,
-            liftName = "Lift 2",
+            liftName = "LiftEntity 2",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -458,17 +458,17 @@ class WorkoutBuilderViewModelTests {
             stepSize = 1
         )
         val newLiftOrder = listOf(
-            ReorderableListItem(workoutLift2.liftName, workoutLift2.id),
-            ReorderableListItem(workoutLift1.liftName, workoutLift1.id)
+            ReorderableListItem(workoutLiftEntity2.liftName, workoutLiftEntity2.id),
+            ReorderableListItem(workoutLiftEntity1.liftName, workoutLiftEntity1.id)
         )
 
         // Update the state to include multiple lifts
-        //Simulate that there is a lift to delete by updating the private _state
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(workoutLift1, workoutLift2))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(workoutLiftEntity1, workoutLiftEntity2))) }
 
         coEvery { mockWorkoutLiftsRepository.updateMany(any()) } just Runs
         coEvery { mockWorkoutInProgressRepository.getWithoutCompletedSets() } returns null
@@ -477,10 +477,10 @@ class WorkoutBuilderViewModelTests {
 
         coVerify { mockWorkoutLiftsRepository.updateMany(any()) }
         val updatedLifts = viewModel.state.first().workout?.lifts
-        assertEquals(workoutLift2.id, updatedLifts?.get(0)?.id)
-        assertEquals(0, (updatedLifts?.get(0) as StandardWorkoutLiftDto).position)
-        assertEquals(workoutLift1.id, updatedLifts?.get(1)?.id)
-        assertEquals(1, (updatedLifts?.get(1) as StandardWorkoutLiftDto).position)
+        assertEquals(workoutLiftEntity2.id, updatedLifts?.get(0)?.id)
+        assertEquals(0, (updatedLifts?.get(0) as StandardWorkoutLift).position)
+        assertEquals(workoutLiftEntity1.id, updatedLifts?.get(1)?.id)
+        assertEquals(1, (updatedLifts?.get(1) as StandardWorkoutLift).position)
         assertFalse(viewModel.state.first().isReordering)
     }
 
@@ -489,13 +489,13 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newDeloadWeek = 2
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.updateDeloadWeek(workoutLiftId, newDeloadWeek)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.deloadWeek == newDeloadWeek }) }
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.deloadWeek == newDeloadWeek }) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newDeloadWeek, updatedLift?.deloadWeek)
     }
 
@@ -504,13 +504,13 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newSetCount = 5
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftSetCount(workoutLiftId, newSetCount)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.setCount == newSetCount }) }
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.setCount == newSetCount }) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newSetCount, updatedLift?.setCount)
     }
 
@@ -519,13 +519,13 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newRepRangeBottom = 6
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftRepRangeBottom(workoutLiftId, newRepRangeBottom)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.repRangeBottom == newRepRangeBottom }) }
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.repRangeBottom == newRepRangeBottom }) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRepRangeBottom, updatedLift?.repRangeBottom)
     }
 
@@ -534,13 +534,13 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newRepRangeTop = 12
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftRepRangeTop(workoutLiftId, newRepRangeTop)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.repRangeTop == newRepRangeTop }) }
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.repRangeTop == newRepRangeTop }) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRepRangeTop, updatedLift?.repRangeTop)
     }
 
@@ -549,13 +549,13 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newRpeTarget = 9f
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftRpeTarget(workoutLiftId, newRpeTarget)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.rpeTarget == newRpeTarget }) }
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.rpeTarget == newRpeTarget }) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newRpeTarget, updatedLift?.rpeTarget)
     }
 
@@ -564,13 +564,13 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newProgressionScheme = ProgressionScheme.DOUBLE_PROGRESSION
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.setLiftProgressionScheme(workoutLiftId, newProgressionScheme)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.progressionScheme == newProgressionScheme }) }
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.progressionScheme == newProgressionScheme }) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newProgressionScheme, updatedLift?.progressionScheme)
     }
 
@@ -579,23 +579,23 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val newStepSize = 3
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.updateStepSize(workoutLiftId, newStepSize)
 
-        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLiftDto)?.stepSize == newStepSize }) }
-        val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+        coVerify { mockWorkoutLiftsRepository.update(match { (it as? StandardWorkoutLift)?.stepSize == newStepSize }) }
+        val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(newStepSize, updatedLift?.stepSize)
     }
 
     @Test
     fun `addSet should add a new set to custom lift and update state`() = runTest {
         val workoutLiftId = 1L
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -608,7 +608,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                StandardSetDto(
+                StandardSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = 0,
@@ -619,23 +619,23 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.insert(any()) } returns 2L
-        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLiftDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.insert(any()) } returns 2L
+        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) } just Runs
 
         viewModel.addSet(workoutLiftId)
 
-        coVerify { mockCustomLiftSetsRepository.insert(any()) }
-        coVerify { mockWorkoutLiftsRepository.update(any<CustomWorkoutLiftDto>()) }
+        coVerify { mockCustomLiftSetsRepositoryImpl.insert(any()) }
+        coVerify { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) }
         val updatedLift =
-            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto
+            viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift
         assertEquals(2, updatedLift?.setCount)
         assertEquals(2, updatedLift?.customLiftSets?.size)
         assertTrue(viewModel.state.first().detailExpansionStates[workoutLiftId]?.contains(1) ?: false)
@@ -644,11 +644,11 @@ class WorkoutBuilderViewModelTests {
     @Test
     fun `deleteSet should remove set from custom lift and update state`() = runTest {
         val workoutLiftId = 1L
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -661,27 +661,27 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                StandardSetDto(id = 1, workoutLiftId = workoutLiftId, position = 0, rpeTarget = 8f, repRangeBottom = 8, repRangeTop = 10),
-                StandardSetDto(id = 2, workoutLiftId = workoutLiftId, position = 1, rpeTarget = 8f, repRangeBottom = 8, repRangeTop = 10)
+                StandardSet(id = 1, workoutLiftId = workoutLiftId, position = 0, rpeTarget = 8f, repRangeBottom = 8, repRangeTop = 10),
+                StandardSet(id = 2, workoutLiftId = workoutLiftId, position = 1, rpeTarget = 8f, repRangeBottom = 8, repRangeTop = 10)
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.deleteByPosition(any(), any()) } just Runs
-        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLiftDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.deleteByPosition(any(), any()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) } just Runs
 
         viewModel.deleteSet(workoutLiftId, 0)
 
-        coVerify { mockCustomLiftSetsRepository.deleteByPosition(workoutLiftId, 0) }
-        coVerify { mockWorkoutLiftsRepository.update(any<CustomWorkoutLiftDto>()) }
-        val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto
+        coVerify { mockCustomLiftSetsRepositoryImpl.deleteByPosition(workoutLiftId, 0) }
+        coVerify { mockWorkoutLiftsRepository.update(any<CustomWorkoutLift>()) }
+        val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift
         assertEquals(1, updatedLift?.setCount)
         assertEquals(1, updatedLift?.customLiftSets?.size)
         assertEquals(2L, updatedLift?.customLiftSets?.get(0)?.id)
@@ -693,11 +693,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newRepRangeBottom = 6
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -710,7 +710,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                StandardSetDto(
+                StandardSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -720,28 +720,28 @@ class WorkoutBuilderViewModelTests {
                 )
             )
         )
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<StandardSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<StandardSet>()) } just Runs
 
         viewModel.setCustomSetRepRangeBottom(workoutLiftId, position, newRepRangeBottom)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? StandardSetDto)?.repRangeBottom == newRepRangeBottom
+                    (it as? StandardSet)?.repRangeBottom == newRepRangeBottom
                 }
             )
         }
         val updatedSet =
-            (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-                ?.customLiftSets?.get(position) as? StandardSetDto
+            (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+                ?.customLiftSets?.get(position) as? StandardSet
         assertEquals(newRepRangeBottom, updatedSet?.repRangeBottom)
     }
 
@@ -750,11 +750,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newRepRangeTop = 12
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -767,7 +767,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                StandardSetDto(
+                StandardSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -777,28 +777,28 @@ class WorkoutBuilderViewModelTests {
                 )
             )
         )
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<StandardSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<StandardSet>()) } just Runs
 
         viewModel.setCustomSetRepRangeTop(workoutLiftId, position, newRepRangeTop)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? StandardSetDto)?.repRangeTop == newRepRangeTop
+                    (it as? StandardSet)?.repRangeTop == newRepRangeTop
                 }
             )
         }
         val updatedSet =
-            (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-                ?.customLiftSets?.get(position) as? StandardSetDto
+            (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+                ?.customLiftSets?.get(position) as? StandardSet
         assertEquals(newRepRangeTop, updatedSet?.repRangeTop)
     }
 
@@ -807,11 +807,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newRpeTarget = 9f
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -824,7 +824,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                StandardSetDto(
+                StandardSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -835,26 +835,26 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
-        coEvery { mockCustomLiftSetsRepository.update(any<StandardSetDto>()) } just Runs
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<StandardSet>()) } just Runs
 
         viewModel.setCustomSetRpeTarget(workoutLiftId, position, newRpeTarget)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? StandardSetDto)?.rpeTarget == newRpeTarget
+                    (it as? StandardSet)?.rpeTarget == newRpeTarget
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-            ?.customLiftSets?.get(position) as? StandardSetDto
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+            ?.customLiftSets?.get(position) as? StandardSet
         assertEquals(newRpeTarget, updatedSet?.rpeTarget)
     }
 
@@ -863,11 +863,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newRepFloor = 4
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -880,7 +880,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                MyoRepSetDto(
+                MyoRepSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -894,27 +894,27 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<MyoRepSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<MyoRepSet>()) } just Runs
 
         viewModel.setCustomSetRepFloor(workoutLiftId, position, newRepFloor)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? MyoRepSetDto)?.repFloor == newRepFloor
+                    (it as? MyoRepSet)?.repFloor == newRepFloor
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-            ?.customLiftSets?.get(position) as? MyoRepSetDto
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+            ?.customLiftSets?.get(position) as? MyoRepSet
         assertEquals(newRepFloor, updatedSet?.repFloor)
     }
 
@@ -923,11 +923,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val setMatching = true
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -940,7 +940,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                MyoRepSetDto(
+                MyoRepSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -954,27 +954,27 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<MyoRepSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<MyoRepSet>()) } just Runs
 
         viewModel.setCustomSetUseSetMatching(workoutLiftId, position, setMatching)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? MyoRepSetDto)?.setMatching == setMatching
+                    (it as? MyoRepSet)?.setMatching == setMatching
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-            ?.customLiftSets?.get(position) as? MyoRepSetDto
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+            ?.customLiftSets?.get(position) as? MyoRepSet
         assertEquals(setMatching, updatedSet?.setMatching)
     }
 
@@ -983,11 +983,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newMatchSetGoal = 5
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -1000,7 +1000,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                MyoRepSetDto(
+                MyoRepSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -1014,27 +1014,27 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<MyoRepSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<MyoRepSet>()) } just Runs
 
         viewModel.setCustomSetMatchSetGoal(workoutLiftId, position, newMatchSetGoal)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? MyoRepSetDto)?.setGoal == newMatchSetGoal
+                    (it as? MyoRepSet)?.setGoal == newMatchSetGoal
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-            ?.customLiftSets?.get(position) as? MyoRepSetDto
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+            ?.customLiftSets?.get(position) as? MyoRepSet
         assertEquals(newMatchSetGoal, updatedSet?.setGoal)
     }
 
@@ -1043,11 +1043,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newMaxSets = 5
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -1060,7 +1060,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                MyoRepSetDto(
+                MyoRepSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -1075,27 +1075,27 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<MyoRepSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<MyoRepSet>()) } just Runs
 
         viewModel.setCustomSetMaxSets(workoutLiftId, position, newMaxSets)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? MyoRepSetDto)?.maxSets == newMaxSets
+                    (it as? MyoRepSet)?.maxSets == newMaxSets
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-            ?.customLiftSets?.get(position) as? MyoRepSetDto
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+            ?.customLiftSets?.get(position) as? MyoRepSet
         assertEquals(newMaxSets, updatedSet?.maxSets)
     }
 
@@ -1104,11 +1104,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newDropPercentage = 0.2f
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -1121,7 +1121,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                DropSetDto(
+                DropSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -1133,27 +1133,27 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
-        //Simulate that there is a lift to delete by updating the private _state
+        // Update the state to include a CustomWorkoutLift
+        //Simulate that there is a liftEntity to delete by updating the private _state
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<DropSetDto>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<DropSet>()) } just Runs
 
         viewModel.setCustomSetDropPercentage(workoutLiftId, position, newDropPercentage)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    (it as? DropSetDto)?.dropPercentage == newDropPercentage
+                    (it as? DropSet)?.dropPercentage == newDropPercentage
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-            ?.customLiftSets?.get(position) as? DropSetDto
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+            ?.customLiftSets?.get(position) as? DropSet
         assertEquals(newDropPercentage, updatedSet?.dropPercentage)
     }
 
@@ -1162,11 +1162,11 @@ class WorkoutBuilderViewModelTests {
         val workoutLiftId = 1L
         val position = 0
         val newSetType = SetType.DROP_SET
-        val customLift = CustomWorkoutLiftDto(
+        val customLiftEntity = CustomWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -1179,7 +1179,7 @@ class WorkoutBuilderViewModelTests {
             restTime = 2.minutes,
             restTimerEnabled = true,
             customLiftSets = listOf(
-                StandardSetDto(
+                StandardSet(
                     id = 1,
                     workoutLiftId = workoutLiftId,
                     position = position,
@@ -1190,27 +1190,27 @@ class WorkoutBuilderViewModelTests {
             )
         )
 
-        // Update the state to include a CustomWorkoutLiftDto
+        // Update the state to include a CustomWorkoutLift
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-        coEvery { mockCustomLiftSetsRepository.update(any<GenericLiftSet>()) } just Runs
+        coEvery { mockCustomLiftSetsRepositoryImpl.update(any<GenericLiftSet>()) } just Runs
 
         viewModel.changeCustomSetType(workoutLiftId, position, newSetType)
 
         coVerify {
-            mockCustomLiftSetsRepository.update(
+            mockCustomLiftSetsRepositoryImpl.update(
                 match {
-                    it is DropSetDto
+                    it is DropSet
                 }
             )
         }
-        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
+        val updatedSet = (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
             ?.customLiftSets?.get(position)
-        assertTrue(updatedSet is DropSetDto)
+        assertTrue(updatedSet is DropSet)
     }
 
     @Test
@@ -1220,11 +1220,11 @@ class WorkoutBuilderViewModelTests {
             val initialRepRangeBottom = 10
             val initialRepRangeTop = 10
             val validatedRepRangeBottom = 9
-            val standardWorkoutLift = StandardWorkoutLiftDto(
+            val standardWorkoutLiftEntity = StandardWorkoutLift(
                 id = workoutLiftId,
                 workoutId = workoutId,
                 liftId = 1,
-                liftName = "Test Lift",
+                liftName = "Test LiftEntity",
                 liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
                 liftVolumeTypes = VolumeType.CHEST.bitMask,
                 liftSecondaryVolumeTypes = null,
@@ -1242,26 +1242,26 @@ class WorkoutBuilderViewModelTests {
                 stepSize = 2
             )
 
-            // Update the state to include a StandardWorkoutLiftDto
+            // Update the state to include a StandardWorkoutLift
             val viewModelClass = viewModel.javaClass
             val stateField = viewModelClass.getDeclaredField("_state")
             stateField.isAccessible = true
             val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-            mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardWorkoutLift))) }
+            mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardWorkoutLiftEntity))) }
 
-            coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+            coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
             viewModel.confirmStandardSetRepRangeBottom(workoutLiftId)
 
             coVerify {
                 mockWorkoutLiftsRepository.update(
                     match {
-                        (it as? StandardWorkoutLiftDto)?.repRangeBottom == validatedRepRangeBottom
+                        (it as? StandardWorkoutLift)?.repRangeBottom == validatedRepRangeBottom
                     }
                 )
             }
             val updatedLift =
-                viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+                viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
             assertEquals(validatedRepRangeBottom, updatedLift?.repRangeBottom)
         }
 
@@ -1271,11 +1271,11 @@ class WorkoutBuilderViewModelTests {
         val initialRepRangeBottom = 8
         val initialRepRangeTop = 8
         val validatedRepRangeTop = 9
-        val standardWorkoutLift = StandardWorkoutLiftDto(
+        val standardWorkoutLiftEntity = StandardWorkoutLift(
             id = workoutLiftId,
             workoutId = workoutId,
             liftId = 1,
-            liftName = "Test Lift",
+            liftName = "Test LiftEntity",
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = VolumeType.CHEST.bitMask,
             liftSecondaryVolumeTypes = null,
@@ -1293,25 +1293,25 @@ class WorkoutBuilderViewModelTests {
             stepSize = 2
         )
 
-        // Update the state to include a StandardWorkoutLiftDto
+        // Update the state to include a StandardWorkoutLift
         val viewModelClass = viewModel.javaClass
         val stateField = viewModelClass.getDeclaredField("_state")
         stateField.isAccessible = true
         val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardWorkoutLift))) }
+        mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(standardWorkoutLiftEntity))) }
 
-        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLiftDto>()) } just Runs
+        coEvery { mockWorkoutLiftsRepository.update(any<StandardWorkoutLift>()) } just Runs
 
         viewModel.confirmStandardSetRepRangeTop(workoutLiftId)
 
         coVerify {
             mockWorkoutLiftsRepository.update(
                 match {
-                    (it as? StandardWorkoutLiftDto)?.repRangeTop == validatedRepRangeTop
+                    (it as? StandardWorkoutLift)?.repRangeTop == validatedRepRangeTop
                 }
             )
         }
-        val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLiftDto
+        val updatedLift = viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? StandardWorkoutLift
         assertEquals(validatedRepRangeTop, updatedLift?.repRangeTop)
     }
 
@@ -1323,11 +1323,11 @@ class WorkoutBuilderViewModelTests {
             val initialRepRangeBottom = 10
             val initialRepRangeTop = 10
             val validatedRepRangeBottom = 9
-            val customLift = CustomWorkoutLiftDto(
+            val customLiftEntity = CustomWorkoutLift(
                 id = workoutLiftId,
                 workoutId = workoutId,
                 liftId = 1,
-                liftName = "Test Lift",
+                liftName = "Test LiftEntity",
                 liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
                 liftVolumeTypes = VolumeType.CHEST.bitMask,
                 liftSecondaryVolumeTypes = null,
@@ -1340,7 +1340,7 @@ class WorkoutBuilderViewModelTests {
                 restTime = 2.minutes,
                 restTimerEnabled = true,
                 customLiftSets = listOf(
-                    StandardSetDto(
+                    StandardSet(
                         id = 1,
                         workoutLiftId = workoutLiftId,
                         position = position,
@@ -1351,27 +1351,27 @@ class WorkoutBuilderViewModelTests {
                 )
             )
 
-            // Update the state to include a CustomWorkoutLiftDto
+            // Update the state to include a CustomWorkoutLift
             val viewModelClass = viewModel.javaClass
             val stateField = viewModelClass.getDeclaredField("_state")
             stateField.isAccessible = true
             val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-            mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+            mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-            coEvery { mockCustomLiftSetsRepository.update(any<StandardSetDto>()) } just Runs
+            coEvery { mockCustomLiftSetsRepositoryImpl.update(any<StandardSet>()) } just Runs
 
             viewModel.confirmCustomSetRepRangeBottom(workoutLiftId, position)
 
             coVerify {
-                mockCustomLiftSetsRepository.update(
+                mockCustomLiftSetsRepositoryImpl.update(
                     match {
-                        (it as? StandardSetDto)?.repRangeBottom == validatedRepRangeBottom
+                        (it as? StandardSet)?.repRangeBottom == validatedRepRangeBottom
                     }
                 )
             }
             val updatedSet =
-                (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-                    ?.customLiftSets?.get(position) as? StandardSetDto
+                (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+                    ?.customLiftSets?.get(position) as? StandardSet
             assertEquals(validatedRepRangeBottom, updatedSet?.repRangeBottom)
         }
 
@@ -1383,11 +1383,11 @@ class WorkoutBuilderViewModelTests {
             val initialRepRangeBottom = 8
             val initialRepRangeTop = 8
             val validatedRepRangeTop = 9
-            val customLift = CustomWorkoutLiftDto(
+            val customLiftEntity = CustomWorkoutLift(
                 id = workoutLiftId,
                 workoutId = workoutId,
                 liftId = 1,
-                liftName = "Test Lift",
+                liftName = "Test LiftEntity",
                 liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
                 liftVolumeTypes = VolumeType.CHEST.bitMask,
                 liftSecondaryVolumeTypes = null,
@@ -1400,7 +1400,7 @@ class WorkoutBuilderViewModelTests {
                 restTime = 2.minutes,
                 restTimerEnabled = true,
                 customLiftSets = listOf(
-                    StandardSetDto(
+                    StandardSet(
                         id = 1,
                         workoutLiftId = workoutLiftId,
                         position = position,
@@ -1411,27 +1411,27 @@ class WorkoutBuilderViewModelTests {
                 )
             )
 
-            // Update the state to include a CustomWorkoutLiftDto
+            // Update the state to include a CustomWorkoutLift
             val viewModelClass = viewModel.javaClass
             val stateField = viewModelClass.getDeclaredField("_state")
             stateField.isAccessible = true
             val mutableStateFlow = stateField.get(viewModel) as MutableStateFlow<WorkoutBuilderState>
-            mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLift))) }
+            mutableStateFlow.update { it.copy(workout = it.workout!!.copy(lifts = listOf(customLiftEntity))) }
 
-            coEvery { mockCustomLiftSetsRepository.update(any<StandardSetDto>()) } just Runs
+            coEvery { mockCustomLiftSetsRepositoryImpl.update(any<StandardSet>()) } just Runs
 
             viewModel.confirmCustomSetRepRangeTop(workoutLiftId, position)
 
             coVerify {
-                mockCustomLiftSetsRepository.update(
+                mockCustomLiftSetsRepositoryImpl.update(
                     match {
-                        (it as? StandardSetDto)?.repRangeTop == validatedRepRangeTop
+                        (it as? StandardSet)?.repRangeTop == validatedRepRangeTop
                     }
                 )
             }
             val updatedSet =
-                (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLiftDto)
-                    ?.customLiftSets?.get(position) as? StandardSetDto
+                (viewModel.state.first().workout?.lifts?.find { it.id == workoutLiftId } as? CustomWorkoutLift)
+                    ?.customLiftSets?.get(position) as? StandardSet
             assertEquals(validatedRepRangeTop, updatedSet?.repRangeTop)
         }
 }

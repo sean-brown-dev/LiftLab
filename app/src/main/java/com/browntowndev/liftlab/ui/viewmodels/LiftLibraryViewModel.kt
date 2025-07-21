@@ -1,8 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
@@ -10,12 +8,12 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -137,7 +135,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun updateChart(chart: LiftMetricChartDto, liftId: Long, firstLiftId: Long): LiftMetricChartDto {
+    private fun updateChart(chart: LiftMetricChart, liftId: Long, firstLiftId: Long): LiftMetricChart {
         return chart.copy(
             id = if (liftId == firstLiftId) chart.id else 0L,
             liftId = liftId
@@ -154,7 +152,7 @@ class LiftLibraryViewModel(
                 .filter { newLiftHashSet.contains(it.id) }
                 .fastMap { newLift ->
                     position++
-                    StandardWorkoutLiftDto(
+                    StandardWorkoutLift(
                         liftId = newLift.id,
                         workoutId = workoutId,
                         liftName = newLift.name,
@@ -245,7 +243,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun getFilteredLifts(liftsToFilter: List<LiftDto>): List<LiftDto> {
+    private fun getFilteredLifts(liftsToFilter: List<Lift>): List<Lift> {
         val nameFilter = _state.value.nameFilter
         val movementPatternFilters = _state.value.movementPatternFilters
         val liftIdFilters = _state.value.liftIdFilters
@@ -276,7 +274,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun hideLift(lift: LiftDto) {
+    fun hideLift(lift: Lift) {
         viewModelScope.launch {
             // No need to update state. The lifts are retrieved via Flow
             liftsRepository.update(lift.copy(isHidden = true))

@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.persistence.sync.FirestoreSyncManager
+import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.ui.viewmodels.states.FirestoreSyncState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers

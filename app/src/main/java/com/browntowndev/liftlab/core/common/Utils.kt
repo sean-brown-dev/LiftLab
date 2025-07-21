@@ -2,9 +2,8 @@ package com.browntowndev.liftlab.core.common
 
 import androidx.compose.ui.util.fastFlatMap
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import java.io.File
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.Workout
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Date
@@ -26,12 +25,12 @@ class Utils {
 
     sealed class StepSize {
         companion object {
-            fun getAllLiftsWithRecalculatedStepSize(workouts: List<WorkoutDto>, deloadToUseInsteadOfLiftLevel: Int?): Map<Long, StandardWorkoutLiftDto> {
+            fun getAllLiftsWithRecalculatedStepSize(workouts: List<Workout>, deloadToUseInsteadOfLiftLevel: Int?): Map<Long, StandardWorkoutLift> {
                 return workouts
                     .fastFlatMap { workout ->
                         workout.lifts
                     }
-                    .filterIsInstance<StandardWorkoutLiftDto>()
+                    .filterIsInstance<StandardWorkoutLift>()
                     .mapNotNull { workoutLift ->
                         getRecalculatedStepSizeForLift(
                             currStepSize = workoutLift.stepSize,

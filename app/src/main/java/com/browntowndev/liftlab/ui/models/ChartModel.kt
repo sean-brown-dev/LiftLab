@@ -2,10 +2,10 @@ package com.browntowndev.liftlab.ui.models
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
-import com.browntowndev.liftlab.core.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
@@ -61,7 +61,7 @@ class ComposedChartModel<T>(
 }
 
 fun getOneRepMaxChartModel(
-    workoutLogs: List<WorkoutLogEntryDto>,
+    workoutLogs: List<WorkoutLogEntry>,
     workoutFilters: Set<Long>
 ): ChartModel<LineCartesianLayerModel> {
     val oneRepMaxesByLocalDate = workoutLogs
@@ -112,7 +112,7 @@ fun getOneRepMaxChartModel(
 }
 
 fun getPerWorkoutVolumeChartModel(
-    workoutLogs: List<WorkoutLogEntryDto>,
+    workoutLogs: List<WorkoutLogEntry>,
     workoutFilters: Set<Long>
 ): ComposedChartModel<LineCartesianLayerModel> {
     val volumesByLocalDate = workoutLogs
@@ -184,7 +184,7 @@ fun getPerWorkoutVolumeChartModel(
 }
 
 fun getPerMicrocycleVolumeChartModel(
-    workoutLogs: List<WorkoutLogEntryDto>,
+    workoutLogs: List<WorkoutLogEntry>,
     secondaryVolumeTypesByLiftId: Map<Long, Int?>?,
 ): ComposedChartModel<LineCartesianLayerModel> {
     val volumesForEachMesoAndMicro = workoutLogs
@@ -269,7 +269,7 @@ fun getPerMicrocycleVolumeChartModel(
 }
 
 fun getIntensityChartModel(
-    workoutLogs: List<WorkoutLogEntryDto>,
+    workoutLogs: List<WorkoutLogEntry>,
     workoutFilters: Set<Long>
 ): ChartModel<LineCartesianLayerModel> {
     val relativeIntensitiesByLocalDate = workoutLogs
@@ -326,7 +326,7 @@ fun getIntensityChartModel(
 
 fun getWeeklyCompletionChart(
     workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-    workoutsInDateRange: List<WorkoutLogEntryDto>,
+    workoutsInDateRange: List<WorkoutLogEntry>,
 ): ChartModel<ColumnCartesianLayerModel> {
     val completedWorkoutsByWeek = workoutCompletionRange
         .fastMap { week ->
@@ -381,8 +381,8 @@ fun getWeeklyCompletionChart(
 }
 
 fun getMicroCycleCompletionChart(
-    workoutLogs: List<WorkoutLogEntryDto>,
-    program: ProgramDto?,
+    workoutLogs: List<WorkoutLogEntry>,
+    program: Program?,
 ): ChartModel<ColumnCartesianLayerModel> {
     val workoutsForCurrentMeso = workoutLogs
         .filter { it.programId == program?.id && it.mesocycle == program.currentMesocycle }
@@ -450,7 +450,7 @@ private fun getChartMaxY(maxY: Double, minY: Double, minAxisVerticalCont: Int, t
 }
 
 private fun getTotalWeightIfLifting1RmEachTime(
-    liftResults: List<SetLogEntryDto>,
+    liftResults: List<SetLogEntry>,
     totalWeight: Float
 ) = liftResults.maxOf {
     // if 0 weight was used for all then just use 1 for each one

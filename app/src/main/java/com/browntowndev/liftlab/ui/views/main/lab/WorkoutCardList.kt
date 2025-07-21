@@ -19,15 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.domain.models.Workout
 
 
 @Composable
 fun WorkoutCardList(
     paddingValues: PaddingValues,
-    workouts: List<WorkoutDto>,
-    showEditWorkoutNameModal: (WorkoutDto) -> Unit,
-    beginDeleteWorkout: (WorkoutDto) -> Unit,
+    workouts: List<Workout>,
+    showEditWorkoutNameModal: (Workout) -> Unit,
+    beginDeleteWorkout: (Workout) -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
