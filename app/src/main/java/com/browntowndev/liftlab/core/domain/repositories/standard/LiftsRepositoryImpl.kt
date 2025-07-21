@@ -3,6 +3,8 @@ package com.browntowndev.liftlab.core.domain.repositories.standard
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
+import com.browntowndev.liftlab.core.domain.mapping.LiftMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.core.domain.mapping.LiftMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.persistence.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
@@ -18,20 +20,7 @@ class LiftsRepositoryImpl(
     private val firestoreSyncManager: FirestoreSyncManager,
 ) : LiftsRepository {
     override suspend fun insert(model: Lift): Long {
-        val toInsert =
-            LiftEntity(
-                id = model.id,
-                name = model.name,
-                movementPattern = model.movementPattern,
-                volumeTypesBitmask = model.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = model.secondaryVolumeTypesBitmask,
-                incrementOverride = model.incrementOverride,
-                restTime = model.restTime,
-                restTimerEnabled = model.restTimerEnabled,
-                isHidden = model.isHidden,
-                isBodyweight = model.isBodyweight,
-                note = model.note,
-            )
+        val toInsert = model.toEntity()
         val id = liftsDao.insert(toInsert)
 
         firestoreSyncManager.enqueueSyncRequest(
@@ -46,20 +35,7 @@ class LiftsRepositoryImpl(
 
     override suspend fun update(model: Lift) {
         val current = liftsDao.get(model.id)
-        val toUpdate =
-            LiftEntity(
-                id = model.id,
-                name = model.name,
-                movementPattern = model.movementPattern,
-                volumeTypesBitmask = model.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = model.secondaryVolumeTypesBitmask,
-                incrementOverride = model.incrementOverride,
-                restTime = model.restTime,
-                restTimerEnabled = model.restTimerEnabled,
-                isHidden = model.isHidden,
-                isBodyweight = model.isBodyweight,
-                note = model.note,
-            ).applyFirestoreMetadata(
+        val toUpdate = model.toEntity().applyFirestoreMetadata(
                 firestoreId = current?.firestoreId,
                 lastUpdated = current?.lastUpdated,
                 synced = false,
@@ -76,40 +52,12 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun getAll(): List<Lift> {
-        return liftsDao.getAll().fastMap { lift ->
-            Lift(
-                id = lift.id,
-                name = lift.name,
-                movementPattern = lift.movementPattern,
-                volumeTypesBitmask = lift.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = lift.secondaryVolumeTypesBitmask,
-                incrementOverride = lift.incrementOverride,
-                restTime = lift.restTime,
-                restTimerEnabled = lift.restTimerEnabled,
-                isHidden = lift.isHidden,
-                isBodyweight = lift.isBodyweight,
-                note = lift.note,
-            )
-        }
+        return liftsDao.getAll().fastMap { it.toDomainModel() }
     }
 
     override fun getAllFlow(): Flow<List<Lift>> {
         return liftsDao.getAllAsFlow().map { lifts ->
-            lifts.fastMap {
-                Lift(
-                    id = it.id,
-                    name = it.name,
-                    movementPattern = it.movementPattern,
-                    volumeTypesBitmask = it.volumeTypesBitmask,
-                    secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                    incrementOverride = it.incrementOverride,
-                    restTime = it.restTime,
-                    restTimerEnabled = it.restTimerEnabled,
-                    isHidden = it.isHidden,
-                    isBodyweight = it.isBodyweight,
-                    note = it.note,
-                )
-            }
+            lifts.fastMap { it.toDomainModel() }
         }
     }
 
@@ -157,57 +105,15 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun getById(id: Long): Lift? {
-        return liftsDao.get(id)?.let {
-            Lift(
-                id = it.id,
-                name = it.name,
-                movementPattern = it.movementPattern,
-                volumeTypesBitmask = it.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                incrementOverride = it.incrementOverride,
-                restTime = it.restTime,
-                restTimerEnabled = it.restTimerEnabled,
-                isHidden = it.isHidden,
-                isBodyweight = it.isBodyweight,
-                note = it.note,
-            )
-        }
+        return liftsDao.get(id)?.toDomainModel()
     }
 
     override suspend fun getMany(ids: List<Long>): List<Lift> {
-        return liftsDao.getMany(ids).fastMap {
-            Lift(
-                id = it.id,
-                name = it.name,
-                movementPattern = it.movementPattern,
-                volumeTypesBitmask = it.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                incrementOverride = it.incrementOverride,
-                restTime = it.restTime,
-                restTimerEnabled = it.restTimerEnabled,
-                isHidden = it.isHidden,
-                isBodyweight = it.isBodyweight,
-                note = it.note,
-            )
-        }
+        return liftsDao.getMany(ids).fastMap { it.toDomainModel() }
     }
 
     override suspend fun updateMany(models: List<Lift>) {
-        val entities = models.map {
-            LiftEntity(
-                id = it.id,
-                name = it.name,
-                movementPattern = it.movementPattern,
-                volumeTypesBitmask = it.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                incrementOverride = it.incrementOverride,
-                restTime = it.restTime,
-                restTimerEnabled = it.restTimerEnabled,
-                isHidden = it.isHidden,
-                isBodyweight = it.isBodyweight,
-                note = it.note,
-            )
-        }
+        val entities = models.fastMap { it.toEntity() }
         liftsDao.updateMany(entities)
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
@@ -220,19 +126,7 @@ class LiftsRepositoryImpl(
 
     override suspend fun upsert(model: Lift): Long {
         val current = liftsDao.get(model.id)
-        val toUpsert = LiftEntity(
-            id = model.id,
-            name = model.name,
-            movementPattern = model.movementPattern,
-            volumeTypesBitmask = model.volumeTypesBitmask,
-            secondaryVolumeTypesBitmask = model.secondaryVolumeTypesBitmask,
-            incrementOverride = model.incrementOverride,
-            restTime = model.restTime,
-            restTimerEnabled = model.restTimerEnabled,
-            isHidden = model.isHidden,
-            isBodyweight = model.isBodyweight,
-            note = model.note,
-        ).applyFirestoreMetadata(
+        val toUpsert = model.toEntity().applyFirestoreMetadata(
             firestoreId = current?.firestoreId,
             lastUpdated = current?.lastUpdated,
             synced = false,
@@ -249,21 +143,7 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun upsertMany(models: List<Lift>): List<Long> {
-        var entities = models.map {
-            LiftEntity(
-                id = it.id,
-                name = it.name,
-                movementPattern = it.movementPattern,
-                volumeTypesBitmask = it.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                incrementOverride = it.incrementOverride,
-                restTime = it.restTime,
-                restTimerEnabled = it.restTimerEnabled,
-                isHidden = it.isHidden,
-                isBodyweight = it.isBodyweight,
-                note = it.note,
-            )
-        }
+        var entities = models.map { it.toEntity() }
         val ids = liftsDao.upsertMany(entities)
         entities = entities.zip(ids).fastMap { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
@@ -279,21 +159,7 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun insertMany(models: List<Lift>): List<Long> {
-        val entities = models.map {
-            LiftEntity(
-                id = it.id,
-                name = it.name,
-                movementPattern = it.movementPattern,
-                volumeTypesBitmask = it.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                incrementOverride = it.incrementOverride,
-                restTime = it.restTime,
-                restTimerEnabled = it.restTimerEnabled,
-                isHidden = it.isHidden,
-                isBodyweight = it.isBodyweight,
-                note = it.note,
-            )
-        }
+        val entities = models.map { it.toEntity() }
         val ids = liftsDao.insertMany(entities)
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
@@ -306,25 +172,13 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun delete(model: Lift): Int {
-        val entity = LiftEntity(
-            id = model.id,
-            name = model.name,
-            movementPattern = model.movementPattern,
-            volumeTypesBitmask = model.volumeTypesBitmask,
-            secondaryVolumeTypesBitmask = model.secondaryVolumeTypesBitmask,
-            incrementOverride = model.incrementOverride,
-            restTime = model.restTime,
-            restTimerEnabled = model.restTimerEnabled,
-            isHidden = model.isHidden,
-            isBodyweight = model.isBodyweight,
-            note = model.note,
-        )
-        val count = liftsDao.delete(entity)
-        if (entity.firestoreId != null && count > 0) {
+        val toDelete = model.toEntity()
+        val count = liftsDao.delete(toDelete)
+        if (toDelete.firestoreId != null && count > 0) {
             firestoreSyncManager.enqueueSyncRequest(
                 SyncQueueEntry(
                     collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                    roomEntityIds = listOf(entity.id),
+                    roomEntityIds = listOf(toDelete.id),
                     SyncType.Delete
                 )
             )
@@ -333,28 +187,14 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun deleteMany(models: List<Lift>): Int {
-        val entities = models.map {
-            LiftEntity(
-                id = it.id,
-                name = it.name,
-                movementPattern = it.movementPattern,
-                volumeTypesBitmask = it.volumeTypesBitmask,
-                secondaryVolumeTypesBitmask = it.secondaryVolumeTypesBitmask,
-                incrementOverride = it.incrementOverride,
-                restTime = it.restTime,
-                restTimerEnabled = it.restTimerEnabled,
-                isHidden = it.isHidden,
-                isBodyweight = it.isBodyweight,
-                note = it.note,
-            )
-        }
-        val count = liftsDao.deleteMany(entities)
-        val firestoreIds = entities.mapNotNull { it.firestoreId }
+        val toDelete = models.fastMap { it.toEntity() }
+        val count = liftsDao.deleteMany(toDelete)
+        val firestoreIds = toDelete.mapNotNull { it.firestoreId }
         if (firestoreIds.isNotEmpty() && count > 0) {
             firestoreSyncManager.enqueueSyncRequest(
                 SyncQueueEntry(
                     collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                    roomEntityIds = entities.fastMap { it.id },
+                    roomEntityIds = toDelete.fastMap { it.id },
                     SyncType.Delete
                 )
             )
@@ -363,21 +203,18 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = liftsDao.get(id)
-        return if (toDelete != null) {
-            val count = liftsDao.delete(toDelete)
-            if (toDelete.firestoreId != null && count > 0) {
-                firestoreSyncManager.enqueueSyncRequest(
-                    SyncQueueEntry(
-                        collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                        roomEntityIds = listOf(toDelete.id),
-                        SyncType.Delete,
-                    )
+        val toDelete = liftsDao.get(id) ?: return 0
+        val count = liftsDao.delete(toDelete)
+        if (toDelete.firestoreId != null && count > 0) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.LIFTS_COLLECTION,
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete,
                 )
-            }
-            count
-        } else {
-            0
+            )
         }
+        
+        return count
     }
 }
