@@ -63,10 +63,17 @@ class RestTimerInProgressRepositoryImpl(
         restTimerInProgressDao.updateMany(models.map { it.toEntity() })
 
     override suspend fun upsert(model: RestTimerInProgress): Long =
-        restTimerInProgressDao.upsert(model.toEntity())
+        restTimerInProgressDao.upsert(model.toEntity()).let { upsertId ->
+            if (upsertId == -1L) model.id else upsertId
+        }
 
     override suspend fun upsertMany(models: List<RestTimerInProgress>): List<Long> =
         restTimerInProgressDao.upsertMany(models.map { it.toEntity() })
+            .let { upsertIds ->
+                models.zip(upsertIds).fastMap { (model, upsertId) ->
+                    if (upsertId == -1L) model.id else upsertId
+                }
+            }
 
     override suspend fun insert(model: RestTimerInProgress): Long =
         restTimerInProgressDao.insert(model.toEntity())

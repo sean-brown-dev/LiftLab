@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
     @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
-    suspend fun get(id: Long): WorkoutLiftEntity?
+    suspend fun get(id: Long): WorkoutLiftWithRelationships?
+
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
+    suspend fun getWithoutRelationships(id: Long): WorkoutLiftEntity?
 
     @Transaction
     @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
@@ -18,15 +21,19 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
 
     @Transaction
     @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids)")
-    suspend fun getMany(ids: List<Long>): List<WorkoutLiftEntity>
+    suspend fun getMany(ids: List<Long>): List<WorkoutLiftWithRelationships>
+
+    @Transaction
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids)")
+    suspend fun getManyWithoutRelationships(ids: List<Long>): List<WorkoutLiftEntity>
 
     @Transaction
     @Query("SELECT * FROM workoutLifts")
-    suspend fun getAll(): List<WorkoutLiftEntity>
+    suspend fun getAll(): List<WorkoutLiftWithRelationships>
 
     @Transaction
     @Query("SELECT * FROM workoutLifts")
-    fun getAllFlow(): Flow<List<WorkoutLiftEntity>>
+    fun getAllFlow(): Flow<List<WorkoutLiftWithRelationships>>
 
     @Query("DELETE FROM workoutLifts")
     suspend fun deleteAll()

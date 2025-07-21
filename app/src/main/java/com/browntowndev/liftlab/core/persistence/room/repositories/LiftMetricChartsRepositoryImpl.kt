@@ -35,39 +35,6 @@ class LiftMetricChartsRepositoryImpl(
         )
     }
 
-    override suspend fun upsertMany(models: List<LiftMetricChart>): List<Long> {
-        val currentCharts = liftMetricChartsDao.getMany(models.fastMap { it.id })
-            .associateBy { it.id }
-
-        val charts = models.fastMap { liftMetricChart ->
-            val current = currentCharts[liftMetricChart.id]
-            LiftMetricChartEntity(
-                id = liftMetricChart.id,
-                liftId = liftMetricChart.liftId,
-                chartType = liftMetricChart.chartType,
-            ).applyFirestoreMetadata(
-                firestoreId = current?.firestoreId,
-                lastUpdated = current?.lastUpdated,
-                synced = false,
-            )
-        }
-
-        val upsertIds = liftMetricChartsDao.upsertMany(charts)
-        val chartsWithUpdatedIds = charts.zip(upsertIds).map { (chart, id) ->
-            if (id == -1L) chart else chart.copy(id = id)
-        }
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = chartsWithUpdatedIds.fastMap { it.id },
-                SyncType.Upsert,
-            )
-        )
-
-        return upsertIds
-    }
-
     override suspend fun upsert(model: LiftMetricChart): Long {
         val current = liftMetricChartsDao.get(model.id)
         val toUpsert =
@@ -93,7 +60,40 @@ class LiftMetricChartsRepositoryImpl(
             )
         )
 
-        return upsertId
+        return if (upsertId == -1L) toUpsert.id else upsertId
+    }
+
+    override suspend fun upsertMany(models: List<LiftMetricChart>): List<Long> {
+        val currentCharts = liftMetricChartsDao.getMany(models.fastMap { it.id })
+            .associateBy { it.id }
+
+        val charts = models.fastMap { liftMetricChart ->
+            val current = currentCharts[liftMetricChart.id]
+            LiftMetricChartEntity(
+                id = liftMetricChart.id,
+                liftId = liftMetricChart.liftId,
+                chartType = liftMetricChart.chartType,
+            ).applyFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
+            )
+        }
+
+        val upsertIds = liftMetricChartsDao.upsertMany(charts)
+        val entityIds = charts.zip(upsertIds).map { (chart, id) ->
+            if (id == -1L) chart else chart.copy(id = id)
+        }.fastMap { it.id }
+
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
+                roomEntityIds = entityIds,
+                SyncType.Upsert,
+            )
+        )
+
+        return entityIds
     }
 
     override suspend fun getAll(): List<LiftMetricChart> {
@@ -240,21 +240,17 @@ class LiftMetricChartsRepositoryImpl(
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = liftMetricChartsDao.get(id)
-        return if (toDelete != null) {
-            val count = liftMetricChartsDao.delete(toDelete)
-            if (toDelete.firestoreId != null && count > 0) {
-                firestoreSyncManager.enqueueSyncRequest(
-                    SyncQueueEntry(
-                        collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                        roomEntityIds = listOf(toDelete.id),
-                        SyncType.Delete,
-                    )
+        val toDelete = liftMetricChartsDao.get(id) ?: return 0
+        val count = liftMetricChartsDao.delete(toDelete)
+        if (toDelete.firestoreId != null && count > 0) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete,
                 )
-            }
-            count
-        } else {
-            0
+            )
         }
+        return count
     }
 }

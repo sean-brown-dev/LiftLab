@@ -91,25 +91,25 @@ class CustomLiftSetsRepositoryImpl(
             )
         )
 
-        return id
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(models: List<GenericLiftSet>): List<Long> {
-        var toUpsert = models.map { it.toEntity() }
-        val upsertIds = customSetsDao.upsertMany(toUpsert)
+        val toUpsert = models.map { it.toEntity() }
+        val upsertResultIds = customSetsDao.upsertMany(toUpsert)
 
-        toUpsert = toUpsert.zip(upsertIds).map { (entity, id) ->
+        val entityIds = toUpsert.zip(upsertResultIds).map { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
-        }
+        }.fastMap { it.id }
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.CUSTOM_LIFT_SETS_COLLECTION,
-                roomEntityIds = toUpsert.fastMap { it.id },
+                roomEntityIds = entityIds,
                 SyncType.Upsert,
             )
         )
 
-        return upsertIds
+        return entityIds
     }
 
     override suspend fun insertMany(models: List<GenericLiftSet>): List<Long> {

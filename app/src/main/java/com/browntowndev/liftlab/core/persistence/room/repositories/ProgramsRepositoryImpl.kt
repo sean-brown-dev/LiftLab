@@ -167,24 +167,24 @@ class ProgramsRepositoryImpl(
             )
         )
 
-        return id
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(models: List<Program>): List<Long> {
         val toUpsert = models.map { it.toEntity() }
         val ids = programsDao.upsertMany(toUpsert)
-        val updatedWithIds = toUpsert.zip(ids).map { (entity, id) ->
+        val entityIds = toUpsert.zip(ids).map { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
-        }
+        }.fastMap { it.id }
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = updatedWithIds.fastMap { it.id },
+                roomEntityIds = entityIds,
                 SyncType.Upsert,
             )
         )
 
-        return ids
+        return entityIds
     }
 
     override suspend fun insert(model: Program): Long {

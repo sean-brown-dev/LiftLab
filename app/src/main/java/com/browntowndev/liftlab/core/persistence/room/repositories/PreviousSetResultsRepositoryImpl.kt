@@ -56,23 +56,39 @@ class PreviousSetResultsRepositoryImpl(
     }
 
     override suspend fun getAll(): List<SetResult> {
-        TODO("Not yet implemented")
+        return previousSetResultDao.getAll().map { it.toSetResult() }
     }
 
     override suspend fun getById(id: Long): SetResult? {
-        TODO("Not yet implemented")
+        return previousSetResultDao.get(id)?.toSetResult()
     }
 
     override suspend fun getMany(ids: List<Long>): List<SetResult> {
-        TODO("Not yet implemented")
+        return previousSetResultDao.getMany(ids).map { it.toSetResult() }
     }
 
     override suspend fun update(model: SetResult) {
-        TODO("Not yet implemented")
+        val toUpdate = model.toEntity()
+        previousSetResultDao.update(toUpdate)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                roomEntityIds = listOf(toUpdate.id),
+                SyncType.Upsert
+            )
+        )
     }
 
     override suspend fun updateMany(models: List<SetResult>) {
-        TODO("Not yet implemented")
+        val toUpdate = models.map { it.toEntity() }
+        previousSetResultDao.updateMany(toUpdate)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                roomEntityIds = toUpdate.map { it.id },
+                SyncType.Upsert
+            )
+        )
     }
 
     override suspend fun upsert(model: SetResult): Long {
@@ -95,12 +111,12 @@ class PreviousSetResultsRepositoryImpl(
             )
         )
 
-        return id
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(models: List<SetResult>): List<Long> {
         val currentEntities = previousSetResultDao.getMany(models.map { it.id }).associateBy { it.id }
-        var toUpsert =
+        val toUpsert =
             models.fastMap { setResult ->
                 val current = currentEntities[setResult.id]
                 setResult.toEntity().applyFirestoreMetadata(
@@ -110,35 +126,76 @@ class PreviousSetResultsRepositoryImpl(
                 )
             }
         val ids = previousSetResultDao.upsertMany(toUpsert)
-        toUpsert = toUpsert.zip(ids).map { (entity, id) ->
+        val entityIds = toUpsert.zip(ids).map { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
-        }
+        }.fastMap { it.id }
 
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
-                roomEntityIds = toUpsert.fastMap { it.id },
+                roomEntityIds = entityIds,
                 SyncType.Upsert,
             )
         )
 
-        return ids
+        return entityIds
     }
 
     override suspend fun insert(model: SetResult): Long {
-        TODO("Not yet implemented")
+        val toInsert = model.toEntity()
+        val id = previousSetResultDao.insert(toInsert)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                roomEntityIds = listOf(id),
+                SyncType.Upsert
+            )
+        )
+        return id
     }
 
     override suspend fun insertMany(models: List<SetResult>): List<Long> {
-        TODO("Not yet implemented")
+        val toInsert = models.map { it.toEntity() }
+        val ids = previousSetResultDao.insertMany(toInsert)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                roomEntityIds = ids,
+                SyncType.Upsert
+            )
+        )
+        return ids
     }
 
     override suspend fun delete(model: SetResult): Int {
-        TODO("Not yet implemented")
+        val toDelete = model.toEntity()
+        val count = previousSetResultDao.delete(toDelete)
+        if (count > 0 && toDelete.firestoreId != null) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete
+                )
+            )
+        }
+        return count
     }
 
     override suspend fun deleteMany(models: List<SetResult>): Int {
-        TODO("Not yet implemented")
+        val toDelete = models.map { it.toEntity() }
+        val count = previousSetResultDao.deleteMany(toDelete)
+        val firestoreIds = toDelete.mapNotNull { it.firestoreId }
+        if (firestoreIds.isNotEmpty() && count > 0) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.PREVIOUS_SET_RESULTS_COLLECTION,
+                    roomEntityIds = toDelete.map { it.id },
+                    SyncType.Delete
+                )
+            )
+        }
+        return count
     }
 
     override suspend fun deleteAllForPreviousWorkout(

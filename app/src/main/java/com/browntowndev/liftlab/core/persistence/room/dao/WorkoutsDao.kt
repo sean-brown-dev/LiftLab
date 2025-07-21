@@ -10,19 +10,26 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
-    suspend fun get(id: Long): WorkoutEntity?
+    suspend fun get(id: Long): WorkoutWithRelationships?
+
+    @Query("SELECT * FROM workouts WHERE workout_id = :id")
+    suspend fun getWithoutRelationships(id: Long): WorkoutEntity?
 
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id IN (:ids)")
-    suspend fun getMany(ids: List<Long>): List<WorkoutEntity>
+    suspend fun getMany(ids: List<Long>): List<WorkoutWithRelationships>
+
+    @Transaction
+    @Query("SELECT * FROM workouts WHERE workout_id IN (:ids)")
+    suspend fun getManyWithoutRelationships(ids: List<Long>): List<WorkoutEntity>
 
     @Transaction
     @Query("SELECT * FROM workouts")
-    suspend fun getAll(): List<WorkoutEntity>
+    suspend fun getAll(): List<WorkoutWithRelationships>
 
     @Transaction
     @Query("SELECT * FROM workouts")
-    fun getAllFlow(): Flow<List<WorkoutEntity>>
+    fun getAllFlow(): Flow<List<WorkoutWithRelationships>>
 
     @Query("DELETE FROM workouts")
     suspend fun deleteAll()
@@ -32,11 +39,7 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
 
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
-    suspend fun getWithRelationships(id: Long) : WorkoutWithRelationships?
-
-    @Transaction
-    @Query("SELECT * FROM workouts WHERE workout_id = :id")
-    fun getWithRelationshipsFlow(id: Long) : Flow<WorkoutWithRelationships?>
+    fun getByIdFlow(id: Long) : Flow<WorkoutWithRelationships?>
 
     @Query("SELECT MAX(position) FROM workouts WHERE programId = :programId")
     suspend fun getFinalPosition(programId: Long): Int
@@ -50,5 +53,10 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Transaction
     @Query("SELECT * FROM workouts " +
             "WHERE programId = :programId")
-    suspend fun getAllForProgram(programId: Long): List<WorkoutEntity>
+    suspend fun getAllForProgram(programId: Long): List<WorkoutWithRelationships>
+
+    @Transaction
+    @Query("SELECT * FROM workouts " +
+            "WHERE programId = :programId")
+    suspend fun getAllForProgramWithoutRelationships(programId: Long): List<WorkoutEntity>
 }

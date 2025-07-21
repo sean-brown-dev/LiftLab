@@ -38,12 +38,12 @@ class VolumeMetricChartsRepositoryImpl(
             )
         )
 
-        return id
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(models: List<VolumeMetricChart>): List<Long> {
         val currentEntities = volumeMetricChartsDao.getMany(models.map { it.id }).associateBy { it.id }
-        var toUpsert =
+        val toUpsert =
             models.fastMap { volumeMetricChart ->
                 val current = currentEntities[volumeMetricChart.id]
                 VolumeMetricChartEntity(
@@ -57,36 +57,96 @@ class VolumeMetricChartsRepositoryImpl(
                 )
             }
         val upsertIds = volumeMetricChartsDao.upsertMany(toUpsert)
-
-        toUpsert = toUpsert.zip(upsertIds).fastMap { (toUpsert, upsertId) ->
+        val entityIds = toUpsert.zip(upsertIds).fastMap { (toUpsert, upsertId) ->
             if (upsertId == -1L) toUpsert else toUpsert.copy(id = upsertId)
-        }
+        }.fastMap { it.id }
 
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = toUpsert.fastMap { it.id },
+                roomEntityIds = entityIds,
                 SyncType.Upsert,
             )
         )
 
-        return upsertIds
+        return entityIds
     }
 
     override suspend fun insert(model: VolumeMetricChart): Long {
-        TODO("Not yet implemented")
+        val toInsert = VolumeMetricChartEntity(
+            id = model.id,
+            volumeType = model.volumeType,
+            volumeTypeImpact = model.volumeTypeImpact,
+        )
+        val id = volumeMetricChartsDao.insert(toInsert)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                roomEntityIds = listOf(id),
+                SyncType.Upsert
+            )
+        )
+        return id
     }
 
     override suspend fun insertMany(models: List<VolumeMetricChart>): List<Long> {
-        TODO("Not yet implemented")
+        val toInsert = models.map {
+            VolumeMetricChartEntity(
+                id = it.id,
+                volumeType = it.volumeType,
+                volumeTypeImpact = it.volumeTypeImpact,
+            )
+        }
+        val ids = volumeMetricChartsDao.insertMany(toInsert)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                roomEntityIds = ids,
+                SyncType.Upsert
+            )
+        )
+        return ids
     }
 
     override suspend fun delete(model: VolumeMetricChart): Int {
-        TODO("Not yet implemented")
+        val toDelete = VolumeMetricChartEntity(
+            id = model.id,
+            volumeType = model.volumeType,
+            volumeTypeImpact = model.volumeTypeImpact,
+        )
+        val count = volumeMetricChartsDao.delete(toDelete)
+        if (count > 0 && toDelete.firestoreId != null) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                    roomEntityIds = listOf(toDelete.id),
+                    SyncType.Delete
+                )
+            )
+        }
+        return count
     }
 
     override suspend fun deleteMany(models: List<VolumeMetricChart>): Int {
-        TODO("Not yet implemented")
+        val toDelete = models.map {
+            VolumeMetricChartEntity(
+                id = it.id,
+                volumeType = it.volumeType,
+                volumeTypeImpact = it.volumeTypeImpact,
+            )
+        }
+        val count = volumeMetricChartsDao.deleteMany(toDelete)
+        val firestoreIds = toDelete.mapNotNull { it.firestoreId }
+        if (firestoreIds.isNotEmpty() && count > 0) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                    roomEntityIds = toDelete.map { it.id },
+                    SyncType.Delete
+                )
+            )
+        }
+        return count
     }
 
     override suspend fun getAll(): List<VolumeMetricChart> {
@@ -100,26 +160,63 @@ class VolumeMetricChartsRepositoryImpl(
     }
 
     override suspend fun getById(id: Long): VolumeMetricChart? {
-        TODO("Not yet implemented")
+        return volumeMetricChartsDao.get(id)?.let {
+            VolumeMetricChart(
+                id = it.id,
+                volumeType = it.volumeType,
+                volumeTypeImpact = it.volumeTypeImpact,
+            )
+        }
     }
 
     override suspend fun getMany(ids: List<Long>): List<VolumeMetricChart> {
-        TODO("Not yet implemented")
+        return volumeMetricChartsDao.getMany(ids).map {
+            VolumeMetricChart(
+                id = it.id,
+                volumeType = it.volumeType,
+                volumeTypeImpact = it.volumeTypeImpact,
+            )
+        }
     }
 
     override suspend fun update(model: VolumeMetricChart) {
-        TODO("Not yet implemented")
+        val toUpdate = VolumeMetricChartEntity(
+            id = model.id,
+            volumeType = model.volumeType,
+            volumeTypeImpact = model.volumeTypeImpact,
+        )
+        volumeMetricChartsDao.update(toUpdate)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                roomEntityIds = listOf(toUpdate.id),
+                SyncType.Upsert
+            )
+        )
     }
 
     override suspend fun updateMany(models: List<VolumeMetricChart>) {
-        TODO("Not yet implemented")
+        val toUpdate = models.map {
+            VolumeMetricChartEntity(
+                id = it.id,
+                volumeType = it.volumeType,
+                volumeTypeImpact = it.volumeTypeImpact,
+            )
+        }
+        volumeMetricChartsDao.updateMany(toUpdate)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
+                roomEntityIds = toUpdate.map { it.id },
+                SyncType.Upsert
+            )
+        )
     }
 
     override suspend fun deleteById(id: Long): Int {
         val toDelete = volumeMetricChartsDao.get(id) ?: return 0
-        volumeMetricChartsDao.delete(toDelete)
-
-        if (toDelete.firestoreId != null) {
+        val count = volumeMetricChartsDao.delete(toDelete)
+        if (count > 0 && toDelete.firestoreId != null) {
             firestoreSyncManager.enqueueSyncRequest(
                 SyncQueueEntry(
                     collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
@@ -128,6 +225,6 @@ class VolumeMetricChartsRepositoryImpl(
                 )
             )
         }
-        return 1
+        return count
     }
 }

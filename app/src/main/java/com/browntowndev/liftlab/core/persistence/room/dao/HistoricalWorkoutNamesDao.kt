@@ -12,6 +12,10 @@ interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutNameEntity> {
     suspend fun getAll(): List<HistoricalWorkoutNameEntity>
 
     @Transaction
+    @Query("SELECT * FROM historicalWorkoutNames WHERE historical_workout_name_id = :id")
+    suspend fun get(id: Long): HistoricalWorkoutNameEntity?
+
+    @Transaction
     @Query("SELECT * FROM historicalWorkoutNames WHERE historical_workout_name_id IN (:ids)")
     suspend fun getMany(ids: List<Long>): List<HistoricalWorkoutNameEntity>
 

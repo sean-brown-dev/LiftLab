@@ -246,7 +246,7 @@ class LoggingRepositoryImpl(
             )
         )
 
-        return id
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(
@@ -265,18 +265,18 @@ class LoggingRepositoryImpl(
                 )
         }
         val ids = setLogEntryDao.upsertMany(toUpsert)
-        toUpsert.zip(ids).map {
+        val entityIds = toUpsert.zip(ids).map {
             if (it.second == -1L) it.first else it.first.copy(id = it.second)
-        }
+        }.fastMap { it.id }
 
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                roomEntityIds = toUpsert.fastMap { it.id },
+                roomEntityIds = entityIds,
                 SyncType.Upsert,
             )
         )
 
-        return ids
+        return entityIds
     }
 }

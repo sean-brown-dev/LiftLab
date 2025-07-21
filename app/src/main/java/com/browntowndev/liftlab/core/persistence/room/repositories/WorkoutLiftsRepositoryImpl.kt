@@ -53,7 +53,7 @@ class WorkoutLiftsRepositoryImpl (
     }
 
     override suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {
-        val current = workoutLiftsDao.get(workoutLiftId) ?: return
+        val current = workoutLiftsDao.getWithoutRelationships(workoutLiftId) ?: return
         val toUpdate = current.copy(liftId = newLiftId).applyFirestoreMetadata(
             firestoreId = current.firestoreId,
             lastUpdated = current.lastUpdated,
@@ -71,19 +71,19 @@ class WorkoutLiftsRepositoryImpl (
     }
 
     override suspend fun getAll(): List<GenericWorkoutLift> {
-        TODO("Not yet implemented")
+        return workoutLiftsDao.getAll().map { it.toDomainModel() }
     }
 
     override suspend fun getById(id: Long): GenericWorkoutLift? {
-        TODO("Not yet implemented")
+        return workoutLiftsDao.get(id)?.toDomainModel()
     }
 
     override suspend fun getMany(ids: List<Long>): List<GenericWorkoutLift> {
-        TODO("Not yet implemented")
+        return workoutLiftsDao.getMany(ids).map { it.toDomainModel() }
     }
 
     override suspend fun update(model: GenericWorkoutLift) {
-        val current = workoutLiftsDao.get(model.id) ?: return
+        val current = workoutLiftsDao.getWithoutRelationships(model.id) ?: return
         val toUpdate = model.toEntity().applyFirestoreMetadata(
             firestoreId = current.firestoreId,
             lastUpdated = current.lastUpdated,
@@ -101,7 +101,7 @@ class WorkoutLiftsRepositoryImpl (
     }
 
     suspend fun updateManyAndGetSyncQueueEntry(workoutLifts: List<GenericWorkoutLift>): SyncQueueEntry? {
-        val currentEntities = workoutLiftsDao.getMany(workoutLifts.map { it.id }).associateBy { it.id }
+        val currentEntities = workoutLiftsDao.getManyWithoutRelationships(workoutLifts.map { it.id }).associateBy { it.id }
         if (currentEntities.isEmpty()) return null
 
         val toUpdate = workoutLifts.fastMapNotNull { workoutLift ->
@@ -128,18 +128,53 @@ class WorkoutLiftsRepositoryImpl (
     }
 
     override suspend fun upsert(model: GenericWorkoutLift): Long {
-        TODO("Not yet implemented")
+        val current = workoutLiftsDao.getWithoutRelationships(model.id)
+        val toUpsert = model.toEntity().applyFirestoreMetadata(
+            firestoreId = current?.firestoreId,
+            lastUpdated = current?.lastUpdated,
+            synced = false,
+        )
+        val id = workoutLiftsDao.upsert(toUpsert)
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
+                roomEntityIds = listOf(if (id == -1L) toUpsert.id else id),
+                SyncType.Upsert,
+            )
+        )
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(models: List<GenericWorkoutLift>): List<Long> {
-        TODO("Not yet implemented")
+        val currentEntities = workoutLiftsDao.getManyWithoutRelationships(models.map { it.id }).associateBy { it.id }
+        val toUpsert = models.map { workoutLift ->
+            val current = currentEntities[workoutLift.id]
+            workoutLift.toEntity().applyFirestoreMetadata(
+                firestoreId = current?.firestoreId,
+                lastUpdated = current?.lastUpdated,
+                synced = false,
+            )
+        }
+        val ids = workoutLiftsDao.upsertMany(toUpsert)
+        val entityIds = toUpsert.zip(ids).map { (entity, returnedId) ->
+            if (returnedId == -1L) entity else entity.copy(id = returnedId)
+        }.fastMap { it.id }
+
+        firestoreSyncManager.enqueueSyncRequest(
+            SyncQueueEntry(
+                collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
+                roomEntityIds = entityIds,
+                SyncType.Upsert
+            )
+        )
+        return entityIds
     }
 
     override suspend fun delete(model: GenericWorkoutLift): Int {
-        val toDelete = workoutLiftsDao.get(model.id) ?: return 0
-        workoutLiftsDao.delete(toDelete)
+        val toDelete = workoutLiftsDao.getWithoutRelationships(model.id) ?: return 0
+        val count = workoutLiftsDao.delete(toDelete)
 
-        if (toDelete.firestoreId != null) {
+        if (count > 0 && toDelete.firestoreId != null) {
             firestoreSyncManager.enqueueSyncRequest(
                 SyncQueueEntry(
                     collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
@@ -148,15 +183,28 @@ class WorkoutLiftsRepositoryImpl (
                 )
             )
         }
-        return 1
+        return count
     }
 
     override suspend fun deleteMany(models: List<GenericWorkoutLift>): Int {
-        TODO("Not yet implemented")
+        val toDelete = models.map { it.toEntity() }
+        val count = workoutLiftsDao.deleteMany(toDelete)
+        val firestoreIds = toDelete.mapNotNull { it.firestoreId }
+        if (firestoreIds.isNotEmpty() && count > 0) {
+            firestoreSyncManager.enqueueSyncRequest(
+                SyncQueueEntry(
+                    collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
+                    roomEntityIds = toDelete.map { it.id },
+                    SyncType.Delete
+                )
+            )
+        }
+        return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        TODO("Not yet implemented")
+        val toDelete = workoutLiftsDao.get(id) ?: return 0
+        return delete(toDelete.toDomainModel())
     }
 
     override suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long> {

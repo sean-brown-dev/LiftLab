@@ -140,23 +140,24 @@ class LiftsRepositoryImpl(
                 SyncType.Upsert
             )
         )
-        return id
+        return if (id == -1L) toUpsert.id else id
     }
 
     override suspend fun upsertMany(models: List<Lift>): List<Long> {
-        var entities = models.map { it.toEntity() }
-        val ids = liftsDao.upsertMany(entities)
-        entities = entities.zip(ids).fastMap { (entity, id) ->
+        val entities = models.map { it.toEntity() }
+        val upsertResultIds = liftsDao.upsertMany(entities)
+        val entityIds = entities.zip(upsertResultIds).fastMap { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
-        }
+        }.fastMap { it.id }
+
         firestoreSyncManager.enqueueSyncRequest(
             SyncQueueEntry(
                 collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = entities.fastMap { it.id },
+                roomEntityIds = entityIds,
                 SyncType.Upsert
             )
         )
-        return ids
+        return entityIds
     }
 
     override suspend fun insertMany(models: List<Lift>): List<Long> {
