@@ -18,8 +18,8 @@ import kotlinx.coroutines.flow.map
 class PreviousSetResultsRepositoryImpl(
     private val previousSetResultDao: PreviousSetResultDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-): Repository {
-    suspend fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
+): PreviousSetResultsRepository {
+    override suspend fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
         return previousSetResultDao.getByWorkoutIdExcludingGivenMesoAndMicroFlow(
             workoutId,
             mesoCycle,
@@ -30,18 +30,18 @@ class PreviousSetResultsRepositoryImpl(
     }
 
 
-    suspend fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
+    override suspend fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
         return previousSetResultDao.getForWorkoutFlow(workoutId, mesoCycle, microCycle).map { results ->
             results.fastMap { it.toSetResult() }
         }
     }
 
-    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult> {
+    override suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult> {
         return previousSetResultDao.getForWorkout(workoutId, mesoCycle, microCycle)
             .fastMap { it.toSetResult() }
     }
 
-    suspend fun getPersonalRecordsForLiftsExcludingWorkout(
+    override suspend fun getPersonalRecordsForLiftsExcludingWorkout(
         workoutId: Long,
         mesoCycle: Int, microCycle: Int,
         liftIds: List<Long>
@@ -54,7 +54,7 @@ class PreviousSetResultsRepositoryImpl(
         )
     }
 
-    suspend fun upsert(setResult: SetResult): Long {
+    override suspend fun upsert(setResult: SetResult): Long {
         val current = previousSetResultDao.get(setResult.id)
         val toUpsert = setResult.toEntity()
             .applyFirestoreMetadata(
@@ -77,7 +77,7 @@ class PreviousSetResultsRepositoryImpl(
         return id
     }
 
-    suspend fun upsertMany(setResults: List<SetResult>): List<Long> {
+    override suspend fun upsertMany(setResults: List<SetResult>): List<Long> {
         val currentEntities = previousSetResultDao.getMany(setResults.map { it.id }).associateBy { it.id }
         var toUpsert =
             setResults.fastMap { setResult ->
@@ -104,7 +104,7 @@ class PreviousSetResultsRepositoryImpl(
         return ids
     }
 
-    suspend fun deleteAllForPreviousWorkout(
+    override suspend fun deleteAllForPreviousWorkout(
         workoutId: Long,
         currentMesocycle: Int,
         currentMicrocycle: Int,
@@ -133,7 +133,7 @@ class PreviousSetResultsRepositoryImpl(
             }
     }
 
-    suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
+    override suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
         val toDelete = previousSetResultDao.getAllForWorkout(workoutId, mesoCycle, microCycle)
         if (toDelete.isEmpty()) return
 
@@ -152,8 +152,8 @@ class PreviousSetResultsRepositoryImpl(
             }
     }
 
-    suspend fun deleteById(id: Long) {
-        val toDelete = previousSetResultDao.get(id) ?: return
+    override suspend fun deleteById(id: Long): Int {
+        val toDelete = previousSetResultDao.get(id) ?: return 0
         previousSetResultDao.delete(toDelete)
 
         if (toDelete.firestoreId != null) {
@@ -165,5 +165,6 @@ class PreviousSetResultsRepositoryImpl(
                 )
             )
         }
+        return 1
     }
 }

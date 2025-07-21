@@ -13,8 +13,8 @@ import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 class VolumeMetricChartsRepositoryImpl(
     private val volumeMetricChartsDao: VolumeMetricChartsDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-) {
-    suspend fun upsert(volumeMetricChart: VolumeMetricChart): Long {
+) : VolumeMetricChartsRepository {
+    override suspend fun upsert(volumeMetricChart: VolumeMetricChart): Long {
         val current = volumeMetricChartsDao.get(volumeMetricChart.id)
         val toUpsert = VolumeMetricChartEntity(
             id = volumeMetricChart.id,
@@ -40,7 +40,7 @@ class VolumeMetricChartsRepositoryImpl(
         return id
     }
 
-    suspend fun upsertMany(volumeMetricCharts: List<VolumeMetricChart>): List<Long> {
+    override suspend fun upsertMany(volumeMetricCharts: List<VolumeMetricChart>): List<Long> {
         val currentEntities = volumeMetricChartsDao.getMany(volumeMetricCharts.map { it.id }).associateBy { it.id }
         var toUpsert =
             volumeMetricCharts.fastMap { volumeMetricChart ->
@@ -72,7 +72,7 @@ class VolumeMetricChartsRepositoryImpl(
         return upsertIds
     }
 
-    suspend fun getAll(): List<VolumeMetricChart> {
+    override suspend fun getAll(): List<VolumeMetricChart> {
         return volumeMetricChartsDao.getAll().fastMap {
             VolumeMetricChart(
                 id = it.id,
@@ -82,8 +82,8 @@ class VolumeMetricChartsRepositoryImpl(
         }
     }
 
-    suspend fun delete(id: Long) {
-        val toDelete = volumeMetricChartsDao.get(id) ?: return
+    override suspend fun deleteById(id: Long): Int {
+        val toDelete = volumeMetricChartsDao.get(id) ?: return 0
         volumeMetricChartsDao.delete(toDelete)
 
         if (toDelete.firestoreId != null) {
@@ -95,5 +95,6 @@ class VolumeMetricChartsRepositoryImpl(
                 )
             )
         }
+        return 1
     }
 }

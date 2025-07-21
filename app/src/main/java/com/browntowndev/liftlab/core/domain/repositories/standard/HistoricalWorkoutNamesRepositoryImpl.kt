@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.domain.repositories.standard
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
+import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.persistence.room.dao.HistoricalWorkoutNamesDao
 import com.browntowndev.liftlab.core.persistence.entities.room.HistoricalWorkoutNameEntity
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
@@ -10,14 +11,14 @@ import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 class HistoricalWorkoutNamesRepositoryImpl(
     private val historicalWorkoutNamesDao: HistoricalWorkoutNamesDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-): HistoricalWorkoutNamesRepository {
+) : HistoricalWorkoutNamesRepository {
 
-    suspend fun insert(programId: Long, workoutId: Long, programName: String, workoutName: String): Long {
+    override suspend fun insert(historicalWorkoutName: HistoricalWorkoutName): Long {
         val toInsert = HistoricalWorkoutNameEntity(
-            programId = programId,
-            workoutId = workoutId,
-            programName = programName,
-            workoutName = workoutName,
+            programId = historicalWorkoutName.programId,
+            workoutId = historicalWorkoutName.workoutId,
+            programName = historicalWorkoutName.programName,
+            workoutName = historicalWorkoutName.workoutName,
         )
         val id = historicalWorkoutNamesDao.insert(toInsert)
 
