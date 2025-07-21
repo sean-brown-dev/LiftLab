@@ -45,7 +45,7 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
 
     @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id")
-    suspend fun getWithRelationships(id: Long) : ProgramWithRelationshipsDto
+    suspend fun getWithRelationships(id: Long) : ProgramWithRelationshipsDto?
 
     @Query("UPDATE programs SET deloadWeek = :newDeloadWeek WHERE program_id = :id")
     suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int)
