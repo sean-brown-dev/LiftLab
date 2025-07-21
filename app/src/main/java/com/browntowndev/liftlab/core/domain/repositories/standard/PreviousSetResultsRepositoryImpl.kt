@@ -15,7 +15,7 @@ import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class PreviousSetResultsRepository(
+class PreviousSetResultsRepositoryImpl(
     private val previousSetResultDao: PreviousSetResultDao,
     private val firestoreSyncManager: FirestoreSyncManager,
 ): Repository {

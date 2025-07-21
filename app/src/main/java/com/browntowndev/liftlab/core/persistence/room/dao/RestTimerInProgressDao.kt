@@ -10,6 +10,12 @@ interface RestTimerInProgressDao: BaseDao<RestTimerInProgressEntity> {
     @Query("SELECT * FROM restTimerInProgress")
     fun getAsFlow(): Flow<RestTimerInProgressEntity?>
 
+    @Query("SELECT * FROM restTimerInProgress WHERE rest_timer_in_progress_id = :id")
+    suspend fun getById(id: Long): RestTimerInProgressEntity?
+
+    @Query("SELECT * FROM restTimerInProgress WHERE rest_timer_in_progress_id IN (:ids)")
+    suspend fun getMany(ids: List<Long>): List<RestTimerInProgressEntity>
+
     @Query("SELECT * FROM restTimerInProgress")
     suspend fun get(): RestTimerInProgressEntity?
 
