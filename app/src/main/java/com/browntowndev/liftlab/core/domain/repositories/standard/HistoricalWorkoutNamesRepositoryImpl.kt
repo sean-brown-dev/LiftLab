@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
 class HistoricalWorkoutNamesRepositoryImpl(
     private val historicalWorkoutNamesDao: HistoricalWorkoutNamesDao,
     private val firestoreSyncManager: FirestoreSyncManager,
-): Repository {
+): HistoricalWorkoutNamesRepository {
 
     suspend fun insert(programId: Long, workoutId: Long, programName: String, workoutName: String): Long {
         val toInsert = HistoricalWorkoutNameEntity(
@@ -32,7 +32,7 @@ class HistoricalWorkoutNamesRepositoryImpl(
         return id
     }
 
-    suspend fun getIdByProgramAndWorkoutId(programId: Long, workoutId: Long): Long? {
+    override suspend fun getIdByProgramAndWorkoutId(programId: Long, workoutId: Long): Long? {
         return historicalWorkoutNamesDao.getByProgramAndWorkoutId(programId, workoutId)?.id
     }
 }
