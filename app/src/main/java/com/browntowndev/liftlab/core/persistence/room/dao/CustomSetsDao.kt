@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.persistence.room.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.browntowndev.liftlab.core.persistence.entities.room.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.CustomLiftSetEntity
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 

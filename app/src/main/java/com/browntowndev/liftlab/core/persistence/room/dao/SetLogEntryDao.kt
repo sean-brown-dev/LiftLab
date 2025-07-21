@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.room.dtos.PersonalRecordDto
-import com.browntowndev.liftlab.core.persistence.entities.room.SetLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.SetLogEntryEntity
 
 @Dao
 interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {

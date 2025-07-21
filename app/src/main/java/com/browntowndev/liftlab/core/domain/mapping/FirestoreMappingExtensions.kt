@@ -1,37 +1,37 @@
 package com.browntowndev.liftlab.core.domain.mapping
 
-import com.browntowndev.liftlab.core.persistence.firestore.entities.CustomLiftSetFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.HistoricalWorkoutNameFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.LiftFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.LiftMetricChartFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.PreviousSetResultFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.ProgramFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.RestTimerInProgressFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.SetLogEntryFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.VolumeMetricChartFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutInProgressFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutLiftFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutLogEntryFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.CustomLiftSetEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.HistoricalWorkoutNameEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftMetricChartEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.PreviousSetResultEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.ProgramEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.RestTimerInProgressEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.SetLogEntryEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.VolumeMetricChartEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutInProgressEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.CustomLiftSetFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.HistoricalWorkoutNameFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.LiftFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.LiftMetricChartFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.PreviousSetResultFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.ProgramFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.RestTimerInProgressFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.SetLogEntryFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.VolumeMetricChartFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutInProgressFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLiftFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLogEntryFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.room.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.HistoricalWorkoutNameEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftMetricChartEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.PreviousSetResultEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.ProgramEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.RestTimerInProgressEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.SetLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.VolumeMetricChartEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutInProgressEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLogEntryEntity
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 object FirestoreMappingExtensions {
 
-    fun LiftMetricChartFirestoreEntity.toEntity(): LiftMetricChartEntity = LiftMetricChartEntity(
+    fun LiftMetricChartFirestoreDoc.toEntity(): LiftMetricChartEntity = LiftMetricChartEntity(
         id = this.id,
         liftId = this.liftId,
         chartType = this.chartType,
@@ -41,7 +41,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun LiftMetricChartEntity.toFirestoreDto(): LiftMetricChartFirestoreEntity = LiftMetricChartFirestoreEntity(
+    fun LiftMetricChartEntity.toFirestoreDto(): LiftMetricChartFirestoreDoc = LiftMetricChartFirestoreDoc(
         id = this.id,
         liftId = this.liftId,
         chartType = this.chartType
@@ -50,7 +50,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun PreviousSetResultFirestoreEntity.toEntity(): PreviousSetResultEntity = PreviousSetResultEntity(
+    fun PreviousSetResultFirestoreDoc.toEntity(): PreviousSetResultEntity = PreviousSetResultEntity(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -72,7 +72,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun PreviousSetResultEntity.toFirestoreDto(): PreviousSetResultFirestoreEntity = PreviousSetResultFirestoreEntity(
+    fun PreviousSetResultEntity.toFirestoreDto(): PreviousSetResultFirestoreDoc = PreviousSetResultFirestoreDoc(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -94,7 +94,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun ProgramFirestoreEntity.toEntity(): ProgramEntity = ProgramEntity(
+    fun ProgramFirestoreDoc.toEntity(): ProgramEntity = ProgramEntity(
         id = this.id,
         name = this.name,
         deloadWeek = this.deloadWeek,
@@ -107,7 +107,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun ProgramEntity.toFirestoreDto(): ProgramFirestoreEntity = ProgramFirestoreEntity(
+    fun ProgramEntity.toFirestoreDto(): ProgramFirestoreDoc = ProgramFirestoreDoc(
         id = this.id,
         name = this.name,
         deloadWeek = this.deloadWeek,
@@ -120,7 +120,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun RestTimerInProgressFirestoreEntity.toEntity(): RestTimerInProgressEntity = RestTimerInProgressEntity(
+    fun RestTimerInProgressFirestoreDoc.toEntity(): RestTimerInProgressEntity = RestTimerInProgressEntity(
         id = this.id,
         timeStartedInMillis = this.timeStartedInMillis,
         restTime = this.restTime
@@ -129,7 +129,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun RestTimerInProgressEntity.toFirestoreDto(): RestTimerInProgressFirestoreEntity = RestTimerInProgressFirestoreEntity(
+    fun RestTimerInProgressEntity.toFirestoreDto(): RestTimerInProgressFirestoreDoc = RestTimerInProgressFirestoreDoc(
         id = this.id,
         timeStartedInMillis = this.timeStartedInMillis,
         restTime = this.restTime
@@ -138,7 +138,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun SetLogEntryFirestoreEntity.toEntity(): SetLogEntryEntity = SetLogEntryEntity(
+    fun SetLogEntryFirestoreDoc.toEntity(): SetLogEntryEntity = SetLogEntryEntity(
         id = this.id,
         workoutLogEntryId = this.workoutLogEntryId,
         liftId = this.liftId,
@@ -170,7 +170,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun SetLogEntryEntity.toFirestoreDto(): SetLogEntryFirestoreEntity = SetLogEntryFirestoreEntity(
+    fun SetLogEntryEntity.toFirestoreDto(): SetLogEntryFirestoreDoc = SetLogEntryFirestoreDoc(
         id = this.id,
         workoutLogEntryId = this.workoutLogEntryId,
         liftId = this.liftId,
@@ -202,7 +202,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun VolumeMetricChartFirestoreEntity.toEntity(): VolumeMetricChartEntity = VolumeMetricChartEntity(
+    fun VolumeMetricChartFirestoreDoc.toEntity(): VolumeMetricChartEntity = VolumeMetricChartEntity(
         id = this.id,
         volumeType = this.volumeType,
         volumeTypeImpact = this.volumeTypeImpact
@@ -211,7 +211,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun VolumeMetricChartEntity.toFirestoreDto(): VolumeMetricChartFirestoreEntity = VolumeMetricChartFirestoreEntity(
+    fun VolumeMetricChartEntity.toFirestoreDto(): VolumeMetricChartFirestoreDoc = VolumeMetricChartFirestoreDoc(
         id = this.id,
         volumeType = this.volumeType,
         volumeTypeImpact = this.volumeTypeImpact
@@ -220,7 +220,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun WorkoutFirestoreEntity.toEntity(): WorkoutEntity = WorkoutEntity(
+    fun WorkoutFirestoreDoc.toEntity(): WorkoutEntity = WorkoutEntity(
         id = this.id,
         programId = this.programId,
         name = this.name,
@@ -230,7 +230,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun WorkoutEntity.toFirestoreDto(): WorkoutFirestoreEntity = WorkoutFirestoreEntity(
+    fun WorkoutEntity.toFirestoreDto(): WorkoutFirestoreDoc = WorkoutFirestoreDoc(
         id = this.id,
         programId = this.programId,
         name = this.name,
@@ -240,7 +240,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun WorkoutInProgressFirestoreEntity.toEntity(): WorkoutInProgressEntity = WorkoutInProgressEntity(
+    fun WorkoutInProgressFirestoreDoc.toEntity(): WorkoutInProgressEntity = WorkoutInProgressEntity(
         id = this.id,
         workoutId = this.workoutId,
         startTime = this.startTime
@@ -249,7 +249,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun WorkoutInProgressEntity.toFirestoreDto(): WorkoutInProgressFirestoreEntity = WorkoutInProgressFirestoreEntity(
+    fun WorkoutInProgressEntity.toFirestoreDto(): WorkoutInProgressFirestoreDoc = WorkoutInProgressFirestoreDoc(
         id = this.id,
         workoutId = this.workoutId,
         startTime = this.startTime
@@ -258,7 +258,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun WorkoutLiftFirestoreEntity.toEntity(): WorkoutLiftEntity = WorkoutLiftEntity(
+    fun WorkoutLiftFirestoreDoc.toEntity(): WorkoutLiftEntity = WorkoutLiftEntity(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -275,7 +275,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun WorkoutLiftEntity.toFirestoreDto(): WorkoutLiftFirestoreEntity = WorkoutLiftFirestoreEntity(
+    fun WorkoutLiftEntity.toFirestoreDto(): WorkoutLiftFirestoreDoc = WorkoutLiftFirestoreDoc(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -292,7 +292,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun WorkoutLogEntryFirestoreEntity.toEntity(): WorkoutLogEntryEntity = WorkoutLogEntryEntity(
+    fun WorkoutLogEntryFirestoreDoc.toEntity(): WorkoutLogEntryEntity = WorkoutLogEntryEntity(
         id = this.id,
         historicalWorkoutNameId = this.historicalWorkoutNameId,
         programWorkoutCount = this.programWorkoutCount,
@@ -307,7 +307,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun WorkoutLogEntryEntity.toFirestoreDto(): WorkoutLogEntryFirestoreEntity = WorkoutLogEntryFirestoreEntity(
+    fun WorkoutLogEntryEntity.toFirestoreDto(): WorkoutLogEntryFirestoreDoc = WorkoutLogEntryFirestoreDoc(
         id = this.id,
         historicalWorkoutNameId = this.historicalWorkoutNameId,
         programWorkoutCount = this.programWorkoutCount,
@@ -322,7 +322,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun CustomLiftSetFirestoreEntity.toEntity(): CustomLiftSetEntity = CustomLiftSetEntity(
+    fun CustomLiftSetFirestoreDoc.toEntity(): CustomLiftSetEntity = CustomLiftSetEntity(
         id = this.id,
         workoutLiftId = this.workoutLiftId,
         type = this.type,
@@ -340,7 +340,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun CustomLiftSetEntity.toFirestoreDto(): CustomLiftSetFirestoreEntity = CustomLiftSetFirestoreEntity(
+    fun CustomLiftSetEntity.toFirestoreDto(): CustomLiftSetFirestoreDoc = CustomLiftSetFirestoreDoc(
         id = this.id,
         workoutLiftId = this.workoutLiftId,
         type = this.type,
@@ -358,7 +358,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun HistoricalWorkoutNameFirestoreEntity.toEntity(): HistoricalWorkoutNameEntity = HistoricalWorkoutNameEntity(
+    fun HistoricalWorkoutNameFirestoreDoc.toEntity(): HistoricalWorkoutNameEntity = HistoricalWorkoutNameEntity(
         id = this.id,
         programId = this.programId,
         workoutId = this.workoutId,
@@ -369,7 +369,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun HistoricalWorkoutNameEntity.toFirestoreDto(): HistoricalWorkoutNameFirestoreEntity = HistoricalWorkoutNameFirestoreEntity(
+    fun HistoricalWorkoutNameEntity.toFirestoreDto(): HistoricalWorkoutNameFirestoreDoc = HistoricalWorkoutNameFirestoreDoc(
         id = this.id,
         programId = this.programId,
         workoutId = this.workoutId,
@@ -380,7 +380,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toFirestoreDto.lastUpdated
         this.synced = this@toFirestoreDto.synced
     }
-    fun LiftFirestoreEntity.toEntity(): LiftEntity = LiftEntity(
+    fun LiftFirestoreDoc.toEntity(): LiftEntity = LiftEntity(
         id = this.id,
         name = this.name,
         movementPattern = this.movementPattern,
@@ -397,7 +397,7 @@ object FirestoreMappingExtensions {
         this.lastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
-    fun LiftEntity.toFirestoreDto(): LiftFirestoreEntity = LiftFirestoreEntity(
+    fun LiftEntity.toFirestoreDto(): LiftFirestoreDoc = LiftFirestoreDoc(
         id = this.id,
         name = this.name,
         movementPattern = this.movementPattern,

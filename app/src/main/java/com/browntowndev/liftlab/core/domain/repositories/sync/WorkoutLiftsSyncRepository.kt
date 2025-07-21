@@ -2,8 +2,8 @@ package com.browntowndev.liftlab.core.domain.repositories.sync
 
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.persistence.room.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutLiftFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLiftFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.domain.mapping.FirestoreMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.mapping.FirestoreMappingExtensions.toFirestoreDto
 import com.google.firebase.auth.FirebaseAuth
@@ -15,21 +15,21 @@ class WorkoutLiftsSyncRepository(
     private val dao: WorkoutLiftsDao,
     firestore: FirebaseFirestore,
     firebaseAuth: FirebaseAuth,
-) : BaseSyncRepository<WorkoutLiftFirestoreEntity, WorkoutLiftEntity>(
+) : BaseSyncRepository<WorkoutLiftFirestoreDoc, WorkoutLiftEntity>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.WORKOUT_LIFTS_COLLECTION,
     firebaseAuth = firebaseAuth,
 ) {
-    override suspend fun getAll(): List<WorkoutLiftFirestoreEntity> =
+    override suspend fun getAll(): List<WorkoutLiftFirestoreDoc> =
         dao.getAll().map { it.toFirestoreDto() }
 
-    fun getAllFlow(): Flow<List<WorkoutLiftFirestoreEntity>> =
+    fun getAllFlow(): Flow<List<WorkoutLiftFirestoreDoc>> =
         dao.getAllFlow().map { workoutLifts ->
             workoutLifts.map { workoutLift -> workoutLift.toFirestoreDto() }
         }
 
-    override suspend fun getMany(ids: List<Long>): List<WorkoutLiftFirestoreEntity> =
+    override suspend fun getMany(ids: List<Long>): List<WorkoutLiftFirestoreDoc> =
         dao.getMany(ids).map { it.toFirestoreDto() }
 }

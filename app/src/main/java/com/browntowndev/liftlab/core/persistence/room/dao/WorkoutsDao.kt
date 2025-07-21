@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.room.dtos.WorkoutWithRelationships
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

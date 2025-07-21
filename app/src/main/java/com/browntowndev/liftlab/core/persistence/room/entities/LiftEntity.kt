@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.persistence.entities.room
+package com.browntowndev.liftlab.core.persistence.room.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

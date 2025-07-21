@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.persistence.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutInProgressEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutInProgressEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -11,20 +11,20 @@ import com.browntowndev.liftlab.core.common.fireAndForgetSync
 import com.browntowndev.liftlab.core.common.flatMapParallel
 import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.domain.repositories.sync.*
-import com.browntowndev.liftlab.core.persistence.firestore.entities.BaseFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.CustomLiftSetFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.HistoricalWorkoutNameFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.LiftFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.LiftMetricChartFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.PreviousSetResultFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.ProgramFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.SetLogEntryFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.SyncMetadataDto
-import com.browntowndev.liftlab.core.persistence.firestore.entities.VolumeMetricChartFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutInProgressFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutLiftFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutLogEntryFirestoreEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.BaseFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.CustomLiftSetFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.HistoricalWorkoutNameFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.LiftFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.LiftMetricChartFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.PreviousSetResultFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.ProgramFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.SetLogEntryFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.SyncMetadataDto
+import com.browntowndev.liftlab.core.persistence.firestore.documents.VolumeMetricChartFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutInProgressFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLiftFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutLogEntryFirestoreDoc
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
@@ -281,7 +281,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun<reified T: BaseFirestoreEntity> executeSyncRequest(
+    private suspend inline fun<reified T: BaseFirestoreDoc> executeSyncRequest(
         collectionName: String,
         entities: List<T>,
         syncType: SyncType,
@@ -427,40 +427,40 @@ class FirestoreSyncManager (
                 @Suppress("UNCHECKED_CAST")
                 when (collectionName) {
                     customLiftSetsSyncRepository.collectionName -> customLiftSetsSyncRepository.upsertMany(
-                        entities as List<CustomLiftSetFirestoreEntity>
+                        entities as List<CustomLiftSetFirestoreDoc>
                     )
                     historicalWorkoutNamesSyncRepository.collectionName -> historicalWorkoutNamesSyncRepository.upsertMany(
-                        entities as List<HistoricalWorkoutNameFirestoreEntity>
+                        entities as List<HistoricalWorkoutNameFirestoreDoc>
                     )
                     liftMetricChartsSyncRepository.collectionName -> liftMetricChartsSyncRepository.upsertMany(
-                        entities as List<LiftMetricChartFirestoreEntity>
+                        entities as List<LiftMetricChartFirestoreDoc>
                     )
                     liftsSyncRepository.collectionName -> liftsSyncRepository.upsertMany(
-                        entities as List<LiftFirestoreEntity>
+                        entities as List<LiftFirestoreDoc>
                     )
                     previousSetResultsSyncRepository.collectionName -> previousSetResultsSyncRepository.upsertMany(
-                        entities as List<PreviousSetResultFirestoreEntity>
+                        entities as List<PreviousSetResultFirestoreDoc>
                     )
                     programsSyncRepository.collectionName -> programsSyncRepository.upsertMany(
-                        entities as List<ProgramFirestoreEntity>
+                        entities as List<ProgramFirestoreDoc>
                     )
                     setLogEntriesSyncRepository.collectionName -> setLogEntriesSyncRepository.upsertMany(
-                        entities as List<SetLogEntryFirestoreEntity>
+                        entities as List<SetLogEntryFirestoreDoc>
                     )
                     volumeMetricChartsSyncRepository.collectionName -> volumeMetricChartsSyncRepository.upsertMany(
-                        entities as List<VolumeMetricChartFirestoreEntity>
+                        entities as List<VolumeMetricChartFirestoreDoc>
                     )
                     workoutInProgressSyncRepository.collectionName -> workoutInProgressSyncRepository.upsertMany(
-                        entities as List<WorkoutInProgressFirestoreEntity>
+                        entities as List<WorkoutInProgressFirestoreDoc>
                     )
                     workoutLiftsSyncRepository.collectionName -> workoutLiftsSyncRepository.upsertMany(
-                        entities as List<WorkoutLiftFirestoreEntity>
+                        entities as List<WorkoutLiftFirestoreDoc>
                     )
                     workoutLogEntriesSyncRepository.collectionName -> workoutLogEntriesSyncRepository.upsertMany(
-                        entities as List<WorkoutLogEntryFirestoreEntity>
+                        entities as List<WorkoutLogEntryFirestoreDoc>
                     )
                     workoutsSyncRepository.collectionName -> workoutsSyncRepository.upsertMany(
-                        entities as List<WorkoutFirestoreEntity>
+                        entities as List<WorkoutFirestoreDoc>
                     )
 
                     else -> listOf()
@@ -470,36 +470,36 @@ class FirestoreSyncManager (
                 @Suppress("UNCHECKED_CAST")
                 when(collectionName) {
                     customLiftSetsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<CustomLiftSetFirestoreEntity>()
+                        documentSnapshot.toObject<CustomLiftSetFirestoreDoc>()
                     historicalWorkoutNamesSyncRepository.collectionName ->
-                        documentSnapshot.toObject<HistoricalWorkoutNameFirestoreEntity>()
+                        documentSnapshot.toObject<HistoricalWorkoutNameFirestoreDoc>()
                     liftMetricChartsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<LiftMetricChartFirestoreEntity>()
+                        documentSnapshot.toObject<LiftMetricChartFirestoreDoc>()
                     liftsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<LiftFirestoreEntity>()
+                        documentSnapshot.toObject<LiftFirestoreDoc>()
                     previousSetResultsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<PreviousSetResultFirestoreEntity>()
+                        documentSnapshot.toObject<PreviousSetResultFirestoreDoc>()
                     programsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<ProgramFirestoreEntity>()
+                        documentSnapshot.toObject<ProgramFirestoreDoc>()
                     setLogEntriesSyncRepository.collectionName ->
-                        documentSnapshot.toObject<SetLogEntryFirestoreEntity>()
+                        documentSnapshot.toObject<SetLogEntryFirestoreDoc>()
                     volumeMetricChartsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<VolumeMetricChartFirestoreEntity>()
+                        documentSnapshot.toObject<VolumeMetricChartFirestoreDoc>()
                     workoutInProgressSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutInProgressFirestoreEntity>()
+                        documentSnapshot.toObject<WorkoutInProgressFirestoreDoc>()
                     workoutLiftsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutLiftFirestoreEntity>()
+                        documentSnapshot.toObject<WorkoutLiftFirestoreDoc>()
                     workoutLogEntriesSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutLogEntryFirestoreEntity>()
+                        documentSnapshot.toObject<WorkoutLogEntryFirestoreDoc>()
                     workoutsSyncRepository.collectionName ->
-                        documentSnapshot.toObject<WorkoutFirestoreEntity>()
+                        documentSnapshot.toObject<WorkoutFirestoreDoc>()
                     else -> null
                 }
             },
         )
     }
 
-    private suspend inline fun<reified T: BaseFirestoreEntity> executeBatchSyncRequest(
+    private suspend inline fun<reified T: BaseFirestoreDoc> executeBatchSyncRequest(
         batchSyncCollections: List<BatchSyncCollection>,
         crossinline onRequestEntities: suspend (collectionName: String, roomEntityIds: List<Long>) -> List<T>,
         noinline onSynced: suspend (collectionName: String, entities: List<T>) -> Unit,
@@ -624,7 +624,7 @@ class FirestoreSyncManager (
         )
     }
 
-    private fun<T: BaseFirestoreEntity> tryStartDeletionWatcher(
+    private fun<T: BaseFirestoreDoc> tryStartDeletionWatcher(
         collectionName: String,
         entityFlow: Flow<List<T>>,
         onGetFirestoreIdsForEntitiesWithDeletedParents: suspend (List<T>) -> List<String>,
@@ -725,7 +725,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun <reified T : BaseFirestoreEntity> syncSingle(
+    private suspend inline fun <reified T : BaseFirestoreDoc> syncSingle(
         collectionName: String,
         entity: T,
         noinline onSynced: suspend (firestoreEntity: T) -> Unit
@@ -763,7 +763,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun <reified T : BaseFirestoreEntity> syncMany(
+    private suspend inline fun <reified T : BaseFirestoreDoc> syncMany(
         collectionName: String,
         entities: List<T>,
         crossinline onSynced: suspend (List<T>) -> Unit
@@ -923,7 +923,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun<reified T: BaseFirestoreEntity> syncEntities(
+    private suspend inline fun<reified T: BaseFirestoreDoc> syncEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
         onGetLocalEntities: suspend () -> List<T>,
@@ -971,7 +971,7 @@ class FirestoreSyncManager (
         }
     }
 
-    private suspend inline fun <reified T : BaseFirestoreEntity> updateOutdatedLocalEntities(
+    private suspend inline fun <reified T : BaseFirestoreDoc> updateOutdatedLocalEntities(
         collection: CollectionReference,
         lastSyncDate: Date,
         localEntities: List<T>,
@@ -1036,7 +1036,7 @@ class FirestoreSyncManager (
         return allSyncedEntities
     }
 
-    private suspend inline fun <reified T : BaseFirestoreEntity> uploadUnsyncedEntities(
+    private suspend inline fun <reified T : BaseFirestoreDoc> uploadUnsyncedEntities(
         localEntities: List<T>,
         collection: CollectionReference,
         collectionName: String,
@@ -1080,7 +1080,7 @@ class FirestoreSyncManager (
         return syncedEntities
     }
 
-    private suspend inline fun <reified T : BaseFirestoreEntity> CoroutineScope.commitBatchAndUpdate(
+    private suspend inline fun <reified T : BaseFirestoreDoc> CoroutineScope.commitBatchAndUpdate(
         batch: WriteBatch,
         batchSize: Int,
         collectionName: String,

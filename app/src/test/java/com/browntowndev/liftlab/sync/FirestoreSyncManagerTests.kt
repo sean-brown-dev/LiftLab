@@ -6,10 +6,10 @@ import com.browntowndev.liftlab.core.domain.repositories.sync.CustomLiftSetsSync
 import com.browntowndev.liftlab.core.domain.repositories.sync.HistoricalWorkoutNamesSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.sync.ProgramsSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.sync.WorkoutsSyncRepository
-import com.browntowndev.liftlab.core.persistence.firestore.entities.CustomLiftSetFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.HistoricalWorkoutNameFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.ProgramFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.firestore.entities.WorkoutFirestoreEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.CustomLiftSetFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.HistoricalWorkoutNameFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.ProgramFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.firestore.documents.WorkoutFirestoreDoc
 import com.browntowndev.liftlab.core.persistence.firestore.sync.BatchSyncQueueEntry
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreClient
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
@@ -101,7 +101,7 @@ class FirestoreSyncManagerTest {
     @Test
     fun `enqueueSyncRequest processes single upsert happy path`() = runTest {
         // Prepare a DTO
-        val dto = CustomLiftSetFirestoreEntity(id = 42)
+        val dto = CustomLiftSetFirestoreDoc(id = 42)
 
         // Mock the Repo
         coEvery { customRepo.getMany(listOf(42L)) } returns listOf(dto)
@@ -121,7 +121,7 @@ class FirestoreSyncManagerTest {
 
         // Mock DocumentSnapshot
         val mockSnapshot = mockk<DocumentSnapshot>()
-        every { mockSnapshot.toObject<CustomLiftSetFirestoreEntity>() } returns dto
+        every { mockSnapshot.toObject<CustomLiftSetFirestoreDoc>() } returns dto
         val getTcs = TaskCompletionSource<DocumentSnapshot>()
         getTcs.setResult(mockSnapshot)
         every { mockDocRef.get() } returns getTcs.task
@@ -137,10 +137,10 @@ class FirestoreSyncManagerTest {
 
     @Test
     fun `enqueueBatchSyncRequest processes batch upsert happy path`() = runTest {
-        val dtoA1 = CustomLiftSetFirestoreEntity(id = 1)
-        val dtoA2 = CustomLiftSetFirestoreEntity(id = 2)
-        val dtoB3 = HistoricalWorkoutNameFirestoreEntity(id = 3)
-        val dtoB4 = HistoricalWorkoutNameFirestoreEntity(id = 4)
+        val dtoA1 = CustomLiftSetFirestoreDoc(id = 1)
+        val dtoA2 = CustomLiftSetFirestoreDoc(id = 2)
+        val dtoB3 = HistoricalWorkoutNameFirestoreDoc(id = 3)
+        val dtoB4 = HistoricalWorkoutNameFirestoreDoc(id = 4)
 
         coEvery { customRepo.getMany(listOf(1L, 2L)) } returns listOf(dtoA1, dtoA2)
         coEvery { historicalRepo.getMany(listOf(3L, 4L)) } returns listOf(dtoB3, dtoB4)
@@ -185,10 +185,10 @@ class FirestoreSyncManagerTest {
         val getTcsB4 = TaskCompletionSource<DocumentSnapshot>()
         getTcsB4.setResult(snapB4)
         every { docB4.get() } returns getTcsB4.task
-        every { snapA1.toObject<CustomLiftSetFirestoreEntity>() } returns dtoA1
-        every { snapA2.toObject<CustomLiftSetFirestoreEntity>() } returns dtoA2
-        every { snapB3.toObject<HistoricalWorkoutNameFirestoreEntity>() } returns dtoB3
-        every { snapB4.toObject<HistoricalWorkoutNameFirestoreEntity>() } returns dtoB4
+        every { snapA1.toObject<CustomLiftSetFirestoreDoc>() } returns dtoA1
+        every { snapA2.toObject<CustomLiftSetFirestoreDoc>() } returns dtoA2
+        every { snapB3.toObject<HistoricalWorkoutNameFirestoreDoc>() } returns dtoB3
+        every { snapB4.toObject<HistoricalWorkoutNameFirestoreDoc>() } returns dtoB4
 
         coEvery { customRepo.upsertMany(any()) } returns emptyList()
         coEvery { historicalRepo.upsertMany(any()) } returns emptyList()
@@ -212,7 +212,7 @@ class FirestoreSyncManagerTest {
     fun `enqueueSyncRequest waits for batch request processing the same collection`() = runTest {
         val batchTcs = TaskCompletionSource<Void>()
 
-        val dtoA1 = CustomLiftSetFirestoreEntity(id = 1)
+        val dtoA1 = CustomLiftSetFirestoreDoc(id = 1)
         coEvery { customRepo.getMany(listOf(1L)) } returns listOf(dtoA1)
         coEvery { customRepo.upsertMany(any()) } returns emptyList()
 
@@ -227,7 +227,7 @@ class FirestoreSyncManagerTest {
         every { collA.document() } returnsMany listOf(docA1, mockSingleDocRef)
         val getTcsA1 = TaskCompletionSource<DocumentSnapshot>()
         val mockSnapshotA1 = mockk<DocumentSnapshot>()
-        every { mockSnapshotA1.toObject<CustomLiftSetFirestoreEntity>() } returns dtoA1
+        every { mockSnapshotA1.toObject<CustomLiftSetFirestoreDoc>() } returns dtoA1
         getTcsA1.setResult(mockSnapshotA1)
         every { docA1.get() } returns getTcsA1.task
 
@@ -239,7 +239,7 @@ class FirestoreSyncManagerTest {
 
         advanceUntilIdle()
 
-        val singleDto = CustomLiftSetFirestoreEntity(id = 42)
+        val singleDto = CustomLiftSetFirestoreDoc(id = 42)
         coEvery { customRepo.getMany(listOf(42L)) } returns listOf(singleDto)
         var singleRequestProcessed = false
         coEvery { customRepo.upsertMany(listOf(singleDto)) } answers {
@@ -252,7 +252,7 @@ class FirestoreSyncManagerTest {
         every { mockSingleDocRef.set(any()) } returns setTcs.task
         val getTcsSingle = TaskCompletionSource<DocumentSnapshot>()
         val mockSnapshotSingle = mockk<DocumentSnapshot>()
-        every { mockSnapshotSingle.toObject<CustomLiftSetFirestoreEntity>() } returns singleDto
+        every { mockSnapshotSingle.toObject<CustomLiftSetFirestoreDoc>() } returns singleDto
         getTcsSingle.setResult(mockSnapshotSingle)
         every { mockSingleDocRef.get() } returns getTcsSingle.task
 
@@ -273,7 +273,7 @@ class FirestoreSyncManagerTest {
     fun `enqueueBatchSyncRequest waits for single request processing the same collection`() = runTest {
         val singleTcs = TaskCompletionSource<DocumentSnapshot>()
 
-        val singleDto = CustomLiftSetFirestoreEntity(id = 42)
+        val singleDto = CustomLiftSetFirestoreDoc(id = 42)
         coEvery { customRepo.getMany(listOf(42L)) } returns listOf(singleDto)
         coEvery { customRepo.upsertMany(listOf(singleDto)) } returns emptyList()
 
@@ -292,7 +292,7 @@ class FirestoreSyncManagerTest {
 
         advanceUntilIdle()
 
-        val batchDto = CustomLiftSetFirestoreEntity(id = 1)
+        val batchDto = CustomLiftSetFirestoreDoc(id = 1)
         coEvery { customRepo.getMany(listOf(1L)) } returns listOf(batchDto)
         var batchRequestProcessed = false
         coEvery { customRepo.upsertMany(listOf(batchDto)) } answers {
@@ -307,7 +307,7 @@ class FirestoreSyncManagerTest {
         every { mockBatch.commit() } returns commitTcs.task
         val getTcsBatch = TaskCompletionSource<DocumentSnapshot>()
         val mockSnapshot = mockk<DocumentSnapshot>()
-        every { mockSnapshot.toObject<CustomLiftSetFirestoreEntity>() } returns batchDto
+        every { mockSnapshot.toObject<CustomLiftSetFirestoreDoc>() } returns batchDto
         getTcsBatch.setResult(mockSnapshot)
         every { mockBatchDocRef.get() } returns getTcsBatch.task
 
@@ -322,7 +322,7 @@ class FirestoreSyncManagerTest {
         assertFalse(batchRequestProcessed, "Batch request should not be processed while single request is running")
 
         val mockSingleSnapshot = mockk<DocumentSnapshot>()
-        every { mockSingleSnapshot.toObject<CustomLiftSetFirestoreEntity>() } returns singleDto
+        every { mockSingleSnapshot.toObject<CustomLiftSetFirestoreDoc>() } returns singleDto
         singleTcs.setResult(mockSingleSnapshot)
         advanceUntilIdle()
 
@@ -331,8 +331,8 @@ class FirestoreSyncManagerTest {
 
     @Test
     fun `deletion watcher deletes child when parent is deleted`() = runTest {
-        val workout1 = WorkoutFirestoreEntity(id = 1, programId = 10).apply { firestoreId = "fId1" }
-        val workout2 = WorkoutFirestoreEntity(id = 2, programId = 10).apply { firestoreId = "fId2" }
+        val workout1 = WorkoutFirestoreDoc(id = 1, programId = 10).apply { firestoreId = "fId1" }
+        val workout2 = WorkoutFirestoreDoc(id = 2, programId = 10).apply { firestoreId = "fId2" }
         val workoutsFlow = MutableStateFlow(listOf(workout1, workout2))
         every { workoutsSyncRepository.getAllFlow() } returns workoutsFlow
         coEvery { programsSyncRepository.getMany(any()) } returns emptyList()
@@ -360,12 +360,12 @@ class FirestoreSyncManagerTest {
 
     @Test
     fun `deletion watcher does not delete child when parent exists`() = runTest {
-        val workout1 = WorkoutFirestoreEntity(id = 1, programId = 10).apply { firestoreId = "fId1" }
-        val workout2 = WorkoutFirestoreEntity(id = 2, programId = 10).apply { firestoreId = "fId2" }
+        val workout1 = WorkoutFirestoreDoc(id = 1, programId = 10).apply { firestoreId = "fId1" }
+        val workout2 = WorkoutFirestoreDoc(id = 2, programId = 10).apply { firestoreId = "fId2" }
         val workoutsFlow = MutableStateFlow(listOf(workout1, workout2))
         every { workoutsSyncRepository.getAllFlow() } returns workoutsFlow
 
-        val program = ProgramFirestoreEntity(id = 10)
+        val program = ProgramFirestoreDoc(id = 10)
         coEvery { programsSyncRepository.getMany(listOf(10L)) } returns listOf(program)
         val mockBatch = mockk<WriteBatch>(relaxed = true)
         every { firestoreClient.batch() } returns mockBatch

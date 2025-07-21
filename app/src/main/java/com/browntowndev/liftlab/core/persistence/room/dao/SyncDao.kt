@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.persistence.room.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import com.browntowndev.liftlab.core.persistence.entities.room.SyncMetadataEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.SyncMetadataEntity
 
 @Dao
 interface SyncDao {

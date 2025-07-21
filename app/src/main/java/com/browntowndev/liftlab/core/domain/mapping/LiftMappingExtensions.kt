@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.mapping
 
 import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftEntity
 
 object LiftMappingExtensions {
     fun Lift.toEntity(): LiftEntity {

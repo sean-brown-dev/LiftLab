@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.persistence.room.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftMetricChartEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftMetricChartEntity
 
 @Dao
 interface LiftMetricChartsDao: BaseDao<LiftMetricChartEntity> {

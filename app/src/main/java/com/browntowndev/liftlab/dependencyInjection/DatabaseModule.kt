@@ -1,14 +1,35 @@
 package com.browntowndev.liftlab.dependencyInjection
 
-import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
+import com.browntowndev.liftlab.core.persistence.room.LiftLabDatabase
 import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.domain.repositories.standard.*
 import com.browntowndev.liftlab.core.domain.repositories.sync.SyncMetadataRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.HistoricalWorkoutNamesRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.LiftMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.LiftsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.LoggingRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.PreviousSetResultsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.ProgramsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.RestTimerInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.VolumeMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.workers.LiftLabDatabaseWorker
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    single { LiftLabDatabase.getInstance(get()) }
+    single {
+        LiftLabDatabase.getInstance(
+            context = get(),
+            populateInitialData = LiftLabDatabase.PopulateInitialDataCallback(
+                onOpen = {
+                    LiftLabDatabaseWorker.startDatabaseInitialization(get())
+                }
+            )
+        )
+    }
     single { TransactionScope(get()) }
 
     // DAOs
@@ -28,34 +49,17 @@ val repositoryModule = module {
     single { get<LiftLabDatabase>().syncDao() }
 
     // Repositories
-    single { ProgramsRepository(get(), get(), get(), get()) }
-    single { WorkoutLiftsRepositoryImpl(get(), get(), get()) }
-    single {
-        WorkoutsRepositoryImpl(
-            workoutsDao = get(),
-            workoutMapper = get(),
-            programsRepository = get(),
-            workoutLiftsRepositoryImpl = get(),
-            customLiftSetsRepositoryImpl = get(),
-            firestoreSyncManager = get(),
-        )
-    }
-    single { PreviousSetResultsRepository(get(), get(), get()) }
-    single { LiftsRepository(get(), get()) }
-    single { CustomLiftSetsRepositoryImpl(get(), get(), get(), get()) }
-    single { WorkoutInProgressRepositoryImpl(get(), get(), get()) }
-    single { HistoricalWorkoutNamesRepositoryImpl(get(), get()) }
-    single {
-        LoggingRepository(
-            workoutLogEntryDao = get(),
-            setLogEntryDao = get(),
-            workoutLogEntryMapper = get(),
-            setResultMapper = get(),
-            firestoreSyncManager = get(),
-        )
-    }
-    single { LiftMetricChartsRepository(get(), get()) }
-    single { VolumeMetricChartsRepositoryImpl(get(), get()) }
+    singleOf(::ProgramsRepositoryImpl)
+    singleOf(::WorkoutLiftsRepositoryImpl)
+    singleOf(::WorkoutsRepositoryImpl)
+    singleOf(::PreviousSetResultsRepositoryImpl)
+    singleOf(::LiftsRepositoryImpl)
+    singleOf(::CustomLiftSetsRepositoryImpl)
+    singleOf(::WorkoutInProgressRepositoryImpl)
+    singleOf(::HistoricalWorkoutNamesRepositoryImpl)
+    singleOf(::LoggingRepositoryImpl)
+    singleOf(::LiftMetricChartsRepositoryImpl)
+    singleOf(::VolumeMetricChartsRepositoryImpl)
+    singleOf(::RestTimerInProgressRepositoryImpl)
     singleOf(::SyncMetadataRepository)
-    singleOf(::RestTimerInProgressRepository)
 }

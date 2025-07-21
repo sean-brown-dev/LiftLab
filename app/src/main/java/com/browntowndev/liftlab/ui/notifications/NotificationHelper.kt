@@ -13,10 +13,10 @@ import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.models.ActiveWorkoutNotificationMetadata
 import kotlinx.coroutines.flow.firstOrNull
 

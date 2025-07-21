@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.persistence.entities.room.PreviousSetResultEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.PreviousSetResultEntity
 
 object SetResultMappingExtensions {
 

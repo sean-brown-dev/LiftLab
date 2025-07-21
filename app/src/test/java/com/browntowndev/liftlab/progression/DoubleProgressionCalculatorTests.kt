@@ -12,9 +12,9 @@ import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.persistence.room.dtos.WorkoutLiftWithRelationships
-import com.browntowndev.liftlab.core.persistence.entities.room.CustomLiftSetEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.domain.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.domain.progression.DoubleProgressionCalculator

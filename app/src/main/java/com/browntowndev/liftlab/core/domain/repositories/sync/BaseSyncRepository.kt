@@ -1,14 +1,14 @@
 package com.browntowndev.liftlab.core.domain.repositories.sync
 
-import com.browntowndev.liftlab.core.persistence.firestore.entities.BaseFirestoreEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.BaseFirestoreDoc
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.persistence.room.dao.BaseDao
-import com.browntowndev.liftlab.core.persistence.entities.room.BaseEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.BaseEntity
 import com.google.firebase.auth.FirebaseAuth
 
 
-abstract class BaseSyncRepository<D : BaseFirestoreEntity, E: BaseEntity>(
+abstract class BaseSyncRepository<D : BaseFirestoreDoc, E: BaseEntity>(
     private val dao: BaseDao<E>,
     private val toEntity: (D) -> E,
     private val firestore: FirebaseFirestore,

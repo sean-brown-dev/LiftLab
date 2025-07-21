@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.persistence.room.dao
 
 import androidx.room.Dao
 import androidx.room.Query
-import com.browntowndev.liftlab.core.persistence.entities.room.RestTimerInProgressEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.RestTimerInProgressEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

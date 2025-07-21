@@ -4,8 +4,8 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.common.enums.SyncType
 import com.browntowndev.liftlab.core.persistence.room.dao.ProgramsDao
-import com.browntowndev.liftlab.core.persistence.firestore.entities.ProgramFirestoreEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.ProgramEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.ProgramFirestoreDoc
+import com.browntowndev.liftlab.core.persistence.room.entities.ProgramEntity
 import com.browntowndev.liftlab.core.domain.mapping.FirestoreMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.mapping.FirestoreMappingExtensions.toFirestoreDto
 import com.browntowndev.liftlab.core.persistence.firestore.sync.FirestoreSyncManager
@@ -19,20 +19,20 @@ class ProgramsSyncRepository(
     private val dao: ProgramsDao,
     firestore: FirebaseFirestore,
     firebaseAuth: FirebaseAuth,
-) : BaseSyncRepository<ProgramFirestoreEntity, ProgramEntity>(
+) : BaseSyncRepository<ProgramFirestoreDoc, ProgramEntity>(
     dao = dao,
     toEntity = { it.toEntity() },
     firestore = firestore,
     collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
     firebaseAuth = firebaseAuth,
 ), KoinComponent {
-    override suspend fun getAll(): List<ProgramFirestoreEntity> =
+    override suspend fun getAll(): List<ProgramFirestoreDoc> =
         dao.getAll().map { it.toFirestoreDto() }
 
-    override suspend fun getMany(ids: List<Long>): List<ProgramFirestoreEntity> =
+    override suspend fun getMany(ids: List<Long>): List<ProgramFirestoreDoc> =
         dao.getMany(ids).map { it.toFirestoreDto() }
 
-    override suspend fun updateMany(dtos: List<ProgramFirestoreEntity>) {
+    override suspend fun updateMany(dtos: List<ProgramFirestoreDoc>) {
         super.updateMany(dtos)
 
         // Deactivate all other programs
@@ -40,7 +40,7 @@ class ProgramsSyncRepository(
         setOnlyOneProgramAsActive(activeProgramFromUpdate)
     }
 
-    override suspend fun upsertMany(dtos: List<ProgramFirestoreEntity>): List<Long> {
+    override suspend fun upsertMany(dtos: List<ProgramFirestoreDoc>): List<Long> {
         val upsertIds = super.upsertMany(dtos)
 
         // Pick one active programEntity from the upsert, if it exists
@@ -56,7 +56,7 @@ class ProgramsSyncRepository(
         return upsertIds
     }
 
-    private suspend fun setOnlyOneProgramAsActive(activeProgramFromUpsert: ProgramFirestoreEntity?) {
+    private suspend fun setOnlyOneProgramAsActive(activeProgramFromUpsert: ProgramFirestoreDoc?) {
         if (activeProgramFromUpsert != null) {
             dao.getAllActive().fastForEach { program ->
                 if (program.id != activeProgramFromUpsert.id) {

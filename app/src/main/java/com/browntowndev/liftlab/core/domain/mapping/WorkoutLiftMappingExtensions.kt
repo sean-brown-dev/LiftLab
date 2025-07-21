@@ -4,7 +4,7 @@ import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.persistence.room.dtos.WorkoutLiftWithRelationships
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLiftEntity
 
 object WorkoutLiftMappingExtensions {
     fun WorkoutLiftWithRelationships.toDomainModel(): GenericWorkoutLift {

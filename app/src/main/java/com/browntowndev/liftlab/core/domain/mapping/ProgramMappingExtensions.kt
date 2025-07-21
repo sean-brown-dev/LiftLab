@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.domain.mapping
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.persistence.room.dtos.ProgramWithRelationshipsDto
-import com.browntowndev.liftlab.core.persistence.entities.room.ProgramEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.ProgramEntity
 
 object ProgramMappingExtensions {
     fun ProgramWithRelationshipsDto.toDomainModel(): Program {

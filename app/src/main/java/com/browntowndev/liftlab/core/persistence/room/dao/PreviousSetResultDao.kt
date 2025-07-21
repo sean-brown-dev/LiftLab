@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.room.dtos.PersonalRecordDto
-import com.browntowndev.liftlab.core.persistence.entities.room.PreviousSetResultEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.PreviousSetResultEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

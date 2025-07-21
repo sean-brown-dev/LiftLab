@@ -9,8 +9,8 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.persistence.room.dtos.WorkoutLiftWithRelationships
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.domain.mapping.CustomLiftSetMapper
 import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMapper
 import com.browntowndev.liftlab.core.domain.progression.WaveLoadingProgressionCalculator

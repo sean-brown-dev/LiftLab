@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

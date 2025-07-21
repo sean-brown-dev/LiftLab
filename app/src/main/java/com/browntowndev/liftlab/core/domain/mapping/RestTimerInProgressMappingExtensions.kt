@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.mapping
 
 import com.browntowndev.liftlab.core.domain.models.RestTimerInProgress
-import com.browntowndev.liftlab.core.persistence.entities.room.RestTimerInProgressEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.RestTimerInProgressEntity
 
 object RestTimerInProgressMappingExtensions {
     fun RestTimerInProgress.toEntity(): RestTimerInProgressEntity {

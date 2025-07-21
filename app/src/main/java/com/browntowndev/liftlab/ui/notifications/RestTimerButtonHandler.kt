@@ -5,10 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.browntowndev.liftlab.core.common.executeInCoroutineScope
-import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.core.Koin

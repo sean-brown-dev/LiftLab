@@ -11,9 +11,9 @@ import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow

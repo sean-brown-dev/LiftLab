@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.domain.models.DropSet
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.StandardSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.core.persistence.entities.room.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.CustomLiftSetEntity
 
 object CustomLiftSetMappingExtensions {
     /**

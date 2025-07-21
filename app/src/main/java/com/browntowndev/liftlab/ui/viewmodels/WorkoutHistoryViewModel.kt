@@ -16,7 +16,7 @@ import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
+import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
 import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
 import kotlinx.coroutines.flow.MutableStateFlow

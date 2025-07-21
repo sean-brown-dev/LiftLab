@@ -22,11 +22,10 @@ import androidx.lifecycle.lifecycleScope
 import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.ui.notifications.NotificationHelper
-import com.browntowndev.liftlab.core.persistence.LiftLabDatabase
-import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.FirestoreSyncViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
@@ -42,20 +41,20 @@ class MainActivity : ComponentActivity(), KoinComponent {
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val firestoreSyncViewModel: FirestoreSyncViewModel by inject()
+        firestoreSyncViewModel.syncAll()
+
         installSplashScreen().apply {
             setKeepOnScreenCondition {
-                !LiftLabDatabase.initialized.value
+                !firestoreSyncViewModel.syncState.value.syncing
             }
         }
 
         requestNotificationPermission(this)
         SettingsManager.initialize(this@MainActivity)
 
-        val firestoreSyncViewModel: FirestoreSyncViewModel by inject()
-        firestoreSyncViewModel.syncAll()
-
         setContent {
-            val isInitialized by LiftLabDatabase.initialized.collectAsState()
             val syncState by firestoreSyncViewModel.syncState.collectAsState()
 
             val donationViewModel: DonationViewModel = remember {
@@ -63,7 +62,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
             }
             val donationState by donationViewModel.state.collectAsState()
             LiftLab(
-                initializing = !isInitialized || syncState.syncing,
+                initializing = syncState.syncing,
                 showSyncFailedDialog = syncState.showSyncFailedDialog,
                 donationState = donationState,
                 onClearBillingError = donationViewModel::clearBillingError,

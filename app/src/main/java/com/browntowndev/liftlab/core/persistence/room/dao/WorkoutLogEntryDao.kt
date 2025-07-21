@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.persistence.room.dtos.FlattenedWorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLogEntryEntity
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 

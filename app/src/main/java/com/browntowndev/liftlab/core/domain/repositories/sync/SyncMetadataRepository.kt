@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.core.domain.repositories.sync
 
 import com.browntowndev.liftlab.core.persistence.room.dao.SyncDao
-import com.browntowndev.liftlab.core.persistence.firestore.entities.SyncMetadataDto
-import com.browntowndev.liftlab.core.persistence.entities.room.SyncMetadataEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.SyncMetadataDto
+import com.browntowndev.liftlab.core.persistence.room.entities.SyncMetadataEntity
 
 class SyncMetadataRepository(private val dao: SyncDao) {
     suspend fun upsert(syncMetadata: SyncMetadataDto) {

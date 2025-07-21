@@ -10,9 +10,9 @@ import com.browntowndev.liftlab.core.persistence.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
-import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

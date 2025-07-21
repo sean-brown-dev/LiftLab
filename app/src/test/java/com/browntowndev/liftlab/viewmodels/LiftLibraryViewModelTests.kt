@@ -3,9 +3,9 @@ package com.browntowndev.liftlab.viewmodels
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first

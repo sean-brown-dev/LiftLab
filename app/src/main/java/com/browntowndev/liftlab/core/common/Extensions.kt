@@ -27,7 +27,7 @@ import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.domain.models.Workout
-import com.browntowndev.liftlab.core.persistence.firestore.entities.BaseFirestoreEntity
+import com.browntowndev.liftlab.core.persistence.firestore.documents.BaseFirestoreDoc
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -98,7 +98,7 @@ inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend Coroutine
 }
 
 
-fun BaseFirestoreEntity.copyForUpload(firestoreId: String): BaseFirestoreEntity {
+fun BaseFirestoreDoc.copyForUpload(firestoreId: String): BaseFirestoreDoc {
     val copy = this.copyWithBase()
     copy.firestoreId = firestoreId
     copy.lastUpdated = null

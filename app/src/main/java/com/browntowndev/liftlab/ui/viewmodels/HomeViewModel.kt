@@ -26,11 +26,11 @@ import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.repositories.standard.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.VolumeMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.persistence.room.repositories.VolumeMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions

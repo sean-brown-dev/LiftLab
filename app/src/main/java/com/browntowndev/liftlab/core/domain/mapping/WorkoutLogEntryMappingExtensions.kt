@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.persistence.room.dtos.FlattenedWorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.entities.room.SetLogEntryEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.SetLogEntryEntity
 
 object WorkoutLogEntryMappingExtensions {
     fun SetLogEntry.toEntity(workoutLogEntryId: Long): SetLogEntryEntity {

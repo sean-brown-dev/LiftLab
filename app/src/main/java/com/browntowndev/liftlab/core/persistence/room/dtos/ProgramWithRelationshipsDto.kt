@@ -2,11 +2,11 @@ package com.browntowndev.liftlab.core.persistence.room.dtos
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.browntowndev.liftlab.core.persistence.entities.room.CustomLiftSetEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.LiftEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.ProgramEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutEntity
-import com.browntowndev.liftlab.core.persistence.entities.room.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.LiftEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.ProgramEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.WorkoutLiftEntity
 
 typealias WorkoutLiftWithRelationships = ProgramWithRelationshipsDto.WorkoutWithRelationshipsDto.WorkoutLiftWithRelationshipsDto
 typealias WorkoutWithRelationships = ProgramWithRelationshipsDto.WorkoutWithRelationshipsDto

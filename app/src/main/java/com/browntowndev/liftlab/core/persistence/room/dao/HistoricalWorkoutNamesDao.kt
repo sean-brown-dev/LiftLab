@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.persistence.room.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.browntowndev.liftlab.core.persistence.entities.room.HistoricalWorkoutNameEntity
+import com.browntowndev.liftlab.core.persistence.room.entities.HistoricalWorkoutNameEntity
 
 @Dao
 interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutNameEntity> {

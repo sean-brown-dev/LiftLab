@@ -23,8 +23,8 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.standard.LoggingRepository
-import com.browntowndev.liftlab.core.domain.repositories.standard.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LoggingRepository
+import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
