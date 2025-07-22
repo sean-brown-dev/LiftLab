@@ -7,6 +7,9 @@ import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 
 @Dao
 interface VolumeMetricChartsDao: BaseDao<VolumeMetricChartEntity> {
+    @Query("SELECT * FROM volumeMetricCharts WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<VolumeMetricChartEntity>
+
     @Query("SELECT * FROM volumeMetricCharts WHERE lift_volume_chart_id = :id")
     suspend fun get(id: Long): VolumeMetricChartEntity?
 

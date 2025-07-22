@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LiftsDao: BaseDao<LiftEntity> {
+    @Query("SELECT * FROM lifts WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<LiftEntity>
+
     @Query("DELETE FROM lifts")
     suspend fun deleteAll()
 

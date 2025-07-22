@@ -11,7 +11,11 @@ import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 @GenerateFirestoreMetadataExtensions
 @Entity(
     tableName = "liftMetricCharts",
-    indices = [Index("liftId")],
+    indices = [
+        Index("liftId"),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ],
     foreignKeys = [ForeignKey(entity = LiftEntity::class,
         parentColumns = arrayOf("lift_id"),
         childColumns = arrayOf("liftId"),

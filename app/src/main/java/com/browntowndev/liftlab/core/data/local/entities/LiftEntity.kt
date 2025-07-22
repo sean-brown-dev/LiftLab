@@ -9,7 +9,13 @@ import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import kotlin.time.Duration
 
 @GenerateFirestoreMetadataExtensions
-@Entity(tableName = "lifts", indices = [Index("movementPattern"), Index("lift_id", "restTime")])
+@Entity(tableName = "lifts",
+    indices = [
+        Index("movementPattern"),
+        Index("lift_id", "restTime"),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ])
 data class LiftEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("lift_id")
     val id: Long = 0,

@@ -1,9 +1,6 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLogEntryMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
@@ -11,20 +8,17 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
-import com.browntowndev.liftlab.core.data.remote.sync.BatchSyncQueueEntry
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLogEntryDao
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.Date
-import java.util.UUID
 
 class WorkoutLogRepositoryImpl(
     private val workoutLogEntryDao: WorkoutLogEntryDao,
     private val setLogEntryDao: SetLogEntryDao,
-    private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScheduler: SyncScheduler,
 ) : WorkoutLogRepository {
 
     override fun getAll(): List<WorkoutLogEntry> =
@@ -120,14 +114,7 @@ class WorkoutLogRepositoryImpl(
                 durationInMillis = durationInMillis,
             )
         val id = workoutLogEntryDao.insert(toInsert)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
-                roomEntityIds = listOf(id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return id
     }
@@ -142,37 +129,6 @@ class WorkoutLogRepositoryImpl(
             ?: throw Exception("WorkoutEntity log entry not found")
         workoutLogEntryDao.delete(workoutLogEntryToDelete)
 
-        val batchesToSync = buildList {
-            setLogEntriesToDelete
-                .fastMapNotNull { it.remoteId?.let { _ -> it.id } }
-                .takeIf { it.isNotEmpty() }
-                ?.let { ids ->
-                    add(
-                        SyncQueueEntry(
-                            collectionName = FirestoreConstants.SET_LOG_ENTRIES_COLLECTION,
-                            roomEntityIds = ids,
-                            syncType = SyncType.Delete,
-                        )
-                    )
-                }
-
-            workoutLogEntryToDelete.remoteId?.let {
-                add(
-                    SyncQueueEntry(
-                        collectionName = FirestoreConstants.WORKOUT_LOG_ENTRIES_COLLECTION,
-                        roomEntityIds = listOf(workoutLogEntryToDelete.id),
-                        syncType = SyncType.Delete,
-                    )
-                )
-            }
-        }
-
-        if (batchesToSync.isEmpty()) return
-        firestoreSyncManager.enqueueBatchSyncRequest(
-            BatchSyncQueueEntry(
-                id = UUID.randomUUID().toString(),
-                batch = batchesToSync
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 }

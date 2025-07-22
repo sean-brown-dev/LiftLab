@@ -4,8 +4,8 @@ import androidx.work.*
 import androidx.work.WorkRequest.Companion.MIN_BACKOFF_MILLIS
 import java.util.concurrent.TimeUnit
 
-class WorkManagerSyncScheduler constructor(
-    private val workManager: WorkManager
+class WorkManagerSyncScheduler(
+    private val workManager: WorkManager,
 ) : SyncScheduler {
     companion object {
         const val WORK_NAME = "LiftLabSyncWork"

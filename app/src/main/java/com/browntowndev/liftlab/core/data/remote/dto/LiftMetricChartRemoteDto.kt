@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 
 @Keep
 data class LiftMetricChartRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var liftId: Long? = null,
     var chartType: LiftMetricChartType = LiftMetricChartType.ESTIMATED_ONE_REP_MAX,
 ): BaseRemoteDto() {

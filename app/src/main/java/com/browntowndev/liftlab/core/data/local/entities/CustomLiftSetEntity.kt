@@ -10,7 +10,12 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 
 @GenerateFirestoreMetadataExtensions
 @Entity("sets",
-    indices = [Index("workoutLiftId"), Index("workoutLiftId", "position")],
+    indices = [
+        Index("workoutLiftId"),
+        Index("workoutLiftId", "position"),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ],
     foreignKeys = [ForeignKey(entity = WorkoutLiftEntity::class,
         parentColumns = arrayOf("workout_lift_id"),
         childColumns = arrayOf("workoutLiftId"),

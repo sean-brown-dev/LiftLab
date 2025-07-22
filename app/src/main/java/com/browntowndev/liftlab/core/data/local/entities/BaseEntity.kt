@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.data.local.entities
 
 import androidx.room.ColumnInfo
+import androidx.room.Index
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
@@ -16,4 +17,7 @@ open class BaseEntity() {
 
     @ColumnInfo(defaultValue = false.toString())
     open var synced: Boolean = false
+
+    @ColumnInfo(defaultValue = false.toString())
+    open var deleted: Boolean = false
 }

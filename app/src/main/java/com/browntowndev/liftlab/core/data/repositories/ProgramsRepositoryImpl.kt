@@ -3,8 +3,6 @@ package com.browntowndev.liftlab.core.data.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.work.WorkManager
-import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
@@ -14,21 +12,15 @@ import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.data.remote.sync.BatchSyncQueueEntry
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
 import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
-import com.browntowndev.liftlab.core.data.local.dao.SyncMetadataDao
-import com.browntowndev.liftlab.core.data.local.dao.SyncQueueDao
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 
 class ProgramsRepositoryImpl(
     private val programsDao: ProgramsDao,
     private val restTimerInProgressDao: RestTimerInProgressDao,
-    private val syncQueueDao: SyncQueueDao,
-    private val syncMetadataDao: SyncMetadataDao,
-    private val workManager: WorkManager,
+    private val syncScheduler: SyncScheduler,
 ) : ProgramsRepository {
     override suspend fun getAll(): List<Program> {
         return programsDao.getAll().map { it.toDomainModel() }
@@ -113,26 +105,12 @@ class ProgramsRepositoryImpl(
             synced = false
         )
         programsDao.update(toUpdate)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = listOf(toUpdate.id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     private suspend fun updateWithoutRefetch(programEntity: ProgramEntity) {
         programsDao.update(programEntity)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = listOf(programEntity.id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<Program>) {
@@ -150,26 +128,13 @@ class ProgramsRepositoryImpl(
                 )
             }
         programsDao.updateMany(toUpdate)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = toUpdate.fastMap { it.id },
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: Program): Long {
         val toUpsert = model.toEntity()
         val id = programsDao.upsert(toUpsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = listOf(if (id == -1L) toUpsert.id else id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return if (id == -1L) toUpsert.id else id
     }
@@ -180,13 +145,8 @@ class ProgramsRepositoryImpl(
         val entityIds = toUpsert.zip(ids).map { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)
         }.fastMap { it.id }
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = entityIds,
-                SyncType.Upsert,
-            )
-        )
+
+        syncScheduler.scheduleSync()
 
         return entityIds
     }
@@ -194,14 +154,7 @@ class ProgramsRepositoryImpl(
     override suspend fun insert(model: Program): Long {
         val toInsert = model.toEntity()
         val id = programsDao.insert(toInsert)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = listOf(model.id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return id
     }
@@ -209,13 +162,7 @@ class ProgramsRepositoryImpl(
     override suspend fun insertMany(models: List<Program>): List<Long> {
         val toInsert = models.map { it.toEntity() }
         val ids = programsDao.insertMany(toInsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = ids,
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return ids
     }
@@ -243,16 +190,6 @@ class ProgramsRepositoryImpl(
         val toDelete = programsDao.get(id) ?: return 0
         val deletedProgramCount = programsDao.delete(toDelete)
 
-        val syncQueueEntries = mutableListOf<SyncQueueEntry>()
-        if (toDelete.remoteId != null) {
-            syncQueueEntries.add(
-                SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = listOf(toDelete.id),
-                SyncType.Delete,
-            ))
-        }
-
         if (toDelete.isActive) {
             restTimerInProgressDao.deleteAll()
 
@@ -265,28 +202,10 @@ class ProgramsRepositoryImpl(
                     synced = false,
                 )
                 programsDao.update(newActiveProgram)
-                syncQueueEntries.add(
-                    SyncQueueEntry(
-                        collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                        roomEntityIds = listOf(newActiveProgram.id),
-                        SyncType.Upsert,
-                    )
-                )
             }
         }
 
-        if (syncQueueEntries.size == 1) {
-            firestoreSyncManager.enqueueSyncRequest(
-                syncQueueEntries.first()
-            )
-        } else if (syncQueueEntries.size > 1) {
-            firestoreSyncManager.enqueueBatchSyncRequest(
-                BatchSyncQueueEntry(
-                    id = UUID.randomUUID().toString(),
-                    batch = syncQueueEntries,
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
 
         return deletedProgramCount
     }
@@ -300,16 +219,6 @@ class ProgramsRepositoryImpl(
         val toDelete = models.fastMap { it.toEntity() }
         val deletedProgramCount = programsDao.deleteMany(toDelete)
         if (deletedProgramCount == 0) return 0
-
-        // Add an entry to the sync queue for the deletions
-        val syncQueueEntries = mutableListOf<SyncQueueEntry>()
-        syncQueueEntries.add(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                roomEntityIds = toDelete.fastMap { it.id },
-                SyncType.Delete,
-            )
-        )
 
         // See if we deleted the active program
         if (toDelete.any { it.isActive }) {
@@ -325,29 +234,16 @@ class ProgramsRepositoryImpl(
                     synced = false,
                 )
                 programsDao.update(newActiveProgram)
-                syncQueueEntries.add(
-                    SyncQueueEntry(
-                        collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-                        roomEntityIds = listOf(newActiveProgram.id),
-                        SyncType.Upsert,
-                    )
-                )
             }
         }
 
-        // Submit the batch
-        firestoreSyncManager.enqueueBatchSyncRequest(
-            BatchSyncQueueEntry(
-                id = UUID.randomUUID().toString(),
-                batch = syncQueueEntries,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return deletedProgramCount
     }
 
-    override suspend fun updateMesoAndMicroCycleAndGetSyncQueueEntry(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int): SyncQueueEntry? {
-        val current = programsDao.get(id) ?: return null
+    override suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int) {
+        val current = programsDao.get(id) ?: return
         val toUpdate = current.copy(
             currentMesocycle = mesoCycle,
             currentMicrocycle = microCycle,
@@ -358,16 +254,6 @@ class ProgramsRepositoryImpl(
             synced = false,
         )
         programsDao.update(toUpdate)
-
-        return SyncQueueEntry(
-            collectionName = FirestoreConstants.PROGRAMS_COLLECTION,
-            roomEntityIds = listOf(toUpdate.id),
-            SyncType.Upsert,
-        )
-    }
-
-    override suspend fun updateMesoAndMicroCycle(id: Long, mesoCycle: Int, microCycle: Int, microCyclePosition: Int) {
-        val syncQueEntry = updateMesoAndMicroCycleAndGetSyncQueueEntry(id, mesoCycle, microCycle, microCyclePosition) ?: return
-        firestoreSyncManager.enqueueSyncRequest(syncQueEntry)
+        syncScheduler.scheduleSync()
     }
 }

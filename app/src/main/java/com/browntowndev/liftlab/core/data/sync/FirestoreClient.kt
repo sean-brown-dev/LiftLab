@@ -4,7 +4,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.WriteBatch
 
 interface FirestoreClient {
-    val userId: String?
+    val isUserLoggedIn: Boolean
     fun batch(): WriteBatch
     fun userCollection(collectionName: String): CollectionReference
 }

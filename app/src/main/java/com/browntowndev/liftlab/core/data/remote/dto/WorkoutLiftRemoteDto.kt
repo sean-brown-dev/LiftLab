@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 
 @Keep
 data class WorkoutLiftRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var workoutId: Long = 0L,
     var liftId: Long = 0L,
     var progressionScheme: ProgressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,

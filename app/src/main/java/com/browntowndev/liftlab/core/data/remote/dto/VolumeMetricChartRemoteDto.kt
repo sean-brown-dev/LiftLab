@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 
 @Keep
 data class VolumeMetricChartRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var volumeType: VolumeType = VolumeType.CHEST,
     var volumeTypeImpact: VolumeTypeImpact = VolumeTypeImpact.PRIMARY,
 ): BaseRemoteDto() {

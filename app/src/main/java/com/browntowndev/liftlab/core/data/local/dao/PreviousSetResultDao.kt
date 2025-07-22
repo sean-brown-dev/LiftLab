@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
+    @Query("SELECT * FROM previousSetResults WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<PreviousSetResultEntity>
+
     @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id = :id")
     suspend fun get(id: Long): PreviousSetResultEntity?
 
@@ -19,6 +22,10 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
     @Transaction
     @Query("SELECT * FROM previousSetResults")
     suspend fun getAll(): List<PreviousSetResultEntity>
+
+    @Transaction
+    @Query("SELECT * FROM previousSetResults")
+    fun getAllFlow(): Flow<List<PreviousSetResultEntity>>
 
     @Query("DELETE FROM previousSetResults")
     suspend fun deleteAll()

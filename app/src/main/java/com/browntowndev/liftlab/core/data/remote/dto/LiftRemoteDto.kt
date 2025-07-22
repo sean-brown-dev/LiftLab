@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.MovementPattern
 
 @Keep
 data class LiftRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var name: String = "",
     var movementPattern: MovementPattern = MovementPattern.HORIZONTAL_PUSH,
     var volumeTypesBitmask: Int = 0,

@@ -3,8 +3,6 @@ package com.browntowndev.liftlab.core.data.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
@@ -14,9 +12,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.data.entities.copyWithFirestoreMetadata
-import com.browntowndev.liftlab.core.data.remote.sync.BatchSyncQueueEntry
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -27,7 +23,7 @@ class WorkoutsRepositoryImpl(
     private val customLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl,
     private val programsRepository: ProgramsRepository,
     private val workoutsDao: WorkoutsDao,
-    private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScheduler: SyncScheduler,
 ): WorkoutsRepository {
     override suspend fun updateName(id: Long, newName: String) {
         val current = workoutsDao.getWithoutRelationships(id) ?: return
@@ -37,26 +33,13 @@ class WorkoutsRepositoryImpl(
             synced = false,
         )
         workoutsDao.update(toUpdate)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = listOf(toUpdate.id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun insert(model: Workout): Long {
         val toInsert = model.toEntity()
         val id = workoutsDao.insert(toInsert)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            entry = SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = listOf(id),
-                syncType = SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return id
     }
@@ -64,30 +47,14 @@ class WorkoutsRepositoryImpl(
     override suspend fun insertMany(models: List<Workout>): List<Long> {
         val toInsert = models.map { it.toEntity() }
         val ids = workoutsDao.insertMany(toInsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            entry = SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = ids,
-                syncType = SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return ids
     }
 
     override suspend fun delete(model: Workout): Int {
         val toDelete = workoutsDao.getWithoutRelationships(model.id) ?: return 0
-        workoutsDao.delete(toDelete)
-
-        val syncQueueEntries = mutableListOf<SyncQueueEntry>()
-        if (toDelete.remoteId != null) {
-            syncQueueEntries.add(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete,
-                )
-            )
-        }
+        val deleteCount = workoutsDao.delete(toDelete)
 
         // Update workoutEntity positions
         val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(model.programId)
@@ -97,47 +64,23 @@ class WorkoutsRepositoryImpl(
             }
         workoutsDao.updateMany(workoutsWithNewPositions)
 
-        if(workoutsWithNewPositions.isNotEmpty()){
-            syncQueueEntries.add(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                    roomEntityIds = workoutsWithNewPositions.fastMap { it.id },
-                    SyncType.Upsert,
-                )
-            )
-        }
-
 
         // If current microcycle position is now greater than the number of workouts
         // set it to the last workoutEntity index
         programsRepository.getActive()?.let { program ->
             if (program.currentMicrocyclePosition > workoutsWithNewPositions.lastIndex) {
-                val syncQueueEntry = programsRepository.updateMesoAndMicroCycleAndGetSyncQueueEntry(
+                programsRepository.updateMesoAndMicroCycle(
                     id = program.id,
                     mesoCycle = program.currentMesocycle,
                     microCycle = program.currentMicrocycle,
                     microCyclePosition = workoutsWithNewPositions.lastIndex
                 )
-
-                if (syncQueueEntry != null) {
-                    syncQueueEntries.add(syncQueueEntry)
-                }
             }
         }
 
-        if (syncQueueEntries.size == 1) {
-            firestoreSyncManager.enqueueSyncRequest(
-                syncQueueEntries.first()
-            )
-        } else if (syncQueueEntries.size > 1) {
-            firestoreSyncManager.enqueueBatchSyncRequest(
-                BatchSyncQueueEntry(
-                    id = UUID.randomUUID().toString(),
-                    batch = syncQueueEntries,
-                )
-            )
-        }
-        return 1
+        syncScheduler.scheduleSync()
+
+        return deleteCount
     }
 
     override suspend fun deleteMany(models: List<Workout>): Int {
@@ -147,18 +90,6 @@ class WorkoutsRepositoryImpl(
         val deletedCount = workoutsDao.deleteMany(toDelete)
         if (deletedCount == 0) return 0
 
-        val syncQueueEntries = mutableListOf<SyncQueueEntry>()
-        val workoutsToDeleteWithFirestoreIds = toDelete.filter { it.remoteId != null }
-        if (workoutsToDeleteWithFirestoreIds.isNotEmpty()) {
-            syncQueueEntries.add(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                    roomEntityIds = workoutsToDeleteWithFirestoreIds.map { it.id },
-                    SyncType.Delete
-                )
-            )
-        }
-
         val affectedProgramIds = toDelete.map { it.programId }.toSet()
         for (programId in affectedProgramIds) {
             val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(programId)
@@ -167,39 +98,23 @@ class WorkoutsRepositoryImpl(
                     workoutEntity.copy(position = index)
                 }
             workoutsDao.updateMany(workoutsWithNewPositions)
-            if (workoutsWithNewPositions.isNotEmpty()) {
-                syncQueueEntries.add(
-                    SyncQueueEntry(
-                        collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                        roomEntityIds = workoutsWithNewPositions.map { it.id },
-                        SyncType.Upsert
-                    )
-                )
-            }
         }
 
         programsRepository.getActive()?.let { program ->
             if (affectedProgramIds.contains(program.id)) {
                 val workoutCount = workoutsDao.getAllForProgram(program.id).size
                 if (workoutCount > 0 && program.currentMicrocyclePosition >= workoutCount) {
-                    programsRepository.updateMesoAndMicroCycleAndGetSyncQueueEntry(
+                    programsRepository.updateMesoAndMicroCycle(
                         id = program.id,
                         mesoCycle = program.currentMesocycle,
                         microCycle = program.currentMicrocycle,
                         microCyclePosition = workoutCount - 1
-                    )?.let { syncQueueEntries.add(it) }
+                    )
                 }
             }
         }
 
-        if (syncQueueEntries.isNotEmpty()) {
-            firestoreSyncManager.enqueueBatchSyncRequest(
-                BatchSyncQueueEntry(
-                    id = UUID.randomUUID().toString(),
-                    batch = syncQueueEntries
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
 
         return deletedCount
     }
@@ -223,14 +138,7 @@ class WorkoutsRepositoryImpl(
         }
         if (toUpdate.isEmpty()) return
         workoutsDao.updateMany(toUpdate)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            entry = SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = toUpdate.fastMap { it.id },
-                syncType = SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: Workout): Long {
@@ -241,13 +149,8 @@ class WorkoutsRepositoryImpl(
             synced = false,
         )
         val id = workoutsDao.upsert(toUpsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            entry = SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = listOf(if (id == -1L) toUpsert.id else id),
-                syncType = SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return if (id == -1L) toUpsert.id else id
     }
 
@@ -266,13 +169,7 @@ class WorkoutsRepositoryImpl(
             if (returnedId == -1L) entity else entity.copy(id = returnedId)
         }.fastMap { it.id }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            entry = SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = entityIds,
-                syncType = SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return entityIds
     }
@@ -291,34 +188,20 @@ class WorkoutsRepositoryImpl(
             }
 
         workoutsDao.update(updWorkout)
-        val workoutLiftSyncQueueEntry = workoutLiftsRepositoryImpl.updateManyAndGetSyncQueueEntry(model.lifts)
-        val customLiftSetsSyncQueueEntry = customLiftSetsRepositoryImpl.updateManyAndGetSyncQueueEntry(updSets)
+        workoutLiftsRepositoryImpl.updateMany(model.lifts)
+        customLiftSetsRepositoryImpl.updateMany(updSets)
 
-        val syncQueueEntries = listOfNotNull(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUTS_COLLECTION,
-                roomEntityIds = listOf(updWorkout.id),
-                syncType = SyncType.Upsert
-            ),
-            workoutLiftSyncQueueEntry,
-            customLiftSetsSyncQueueEntry
-        )
-        if (syncQueueEntries.size == 1) {
-            firestoreSyncManager.enqueueSyncRequest(
-                syncQueueEntries.first()
-            )
-        } else if (syncQueueEntries.size > 1) {
-            firestoreSyncManager.enqueueBatchSyncRequest(
-                BatchSyncQueueEntry(
-                    id = UUID.randomUUID().toString(),
-                    batch = syncQueueEntries,
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun getAll(): List<Workout> {
         return workoutsDao.getAll().map { it.toDomainModel() }
+    }
+
+    override fun getAllFlow(): Flow<List<Workout>> {
+        return workoutsDao.getAllFlow().map { workouts ->
+            workouts.map { it.toDomainModel() }
+        }
     }
 
     override suspend fun getById(id: Long): Workout? {

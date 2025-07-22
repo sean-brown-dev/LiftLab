@@ -13,7 +13,7 @@ class SyncWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            syncOrchestrator.performSync()
+            syncOrchestrator.syncAll()
             Result.success()
         } catch (e: Exception) {
             // Let WorkManager handle retries based on the policy

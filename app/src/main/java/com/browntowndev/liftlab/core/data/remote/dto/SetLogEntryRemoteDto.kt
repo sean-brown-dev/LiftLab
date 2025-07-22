@@ -8,7 +8,7 @@ import com.google.firebase.firestore.PropertyName
 
 @Keep
 data class SetLogEntryRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var workoutLogEntryId: Long = 0L,
     var liftId: Long = 0L,
     var workoutLiftDeloadWeek: Int? = null,

@@ -8,6 +8,9 @@ import com.browntowndev.liftlab.core.data.local.entities.SetLogEntryEntity
 
 @Dao
 interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
+    @Query("SELECT * FROM setLogEntries WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<SetLogEntryEntity>
+
     @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id = :id")
     suspend fun get(id: Long): SetLogEntryEntity?
 

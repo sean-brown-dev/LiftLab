@@ -10,6 +10,9 @@ import java.util.Date
 
 @Dao
 interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
+    @Query("SELECT * FROM workoutLogEntries WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<WorkoutLogEntryEntity>
+
     @Transaction
     @Query("SELECT * FROM workoutLogEntries")
     fun getAll(): List<WorkoutLogEntryEntity>

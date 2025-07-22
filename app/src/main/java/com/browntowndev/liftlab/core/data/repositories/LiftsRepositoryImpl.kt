@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.FirestoreConstants
 import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.mapping.LiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.LiftMappingExtensions.toEntity
@@ -9,28 +8,21 @@ import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
 import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration
 
 class LiftsRepositoryImpl(
     private val liftsDao: LiftsDao,
-    private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScheduler: SyncScheduler,
 ) : LiftsRepository {
     override suspend fun insert(model: Lift): Long {
         val toInsert = model.toEntity()
         val id = liftsDao.insert(toInsert)
+        syncScheduler.scheduleSync()
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = listOf(id),
-                SyncType.Upsert,
-            )
-        )
         return id
     }
 
@@ -42,14 +34,7 @@ class LiftsRepositoryImpl(
                 synced = false,
             )
         liftsDao.update(toUpdate)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = listOf(toUpdate.id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun getAll(): List<Lift> {
@@ -95,14 +80,7 @@ class LiftsRepositoryImpl(
 
     private suspend fun updateWithoutRefetch(liftEntity: LiftEntity) {
         liftsDao.update(liftEntity)
-
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = listOf(liftEntity.id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun getById(id: Long): Lift? {
@@ -116,13 +94,7 @@ class LiftsRepositoryImpl(
     override suspend fun updateMany(models: List<Lift>) {
         val entities = models.fastMap { it.toEntity() }
         liftsDao.updateMany(entities)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = entities.map { it.id },
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: Lift): Long {
@@ -133,13 +105,8 @@ class LiftsRepositoryImpl(
             synced = false,
         )
         val id = liftsDao.upsert(toUpsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = listOf(if (id == -1L) toUpsert.id else id),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return if (id == -1L) toUpsert.id else id
     }
 
@@ -150,72 +117,39 @@ class LiftsRepositoryImpl(
             if (id == -1L) entity else entity.copy(id = id)
         }.fastMap { it.id }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = entityIds,
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return entityIds
     }
 
     override suspend fun insertMany(models: List<Lift>): List<Long> {
         val entities = models.map { it.toEntity() }
         val ids = liftsDao.insertMany(entities)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                roomEntityIds = ids,
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return ids
     }
 
     override suspend fun delete(model: Lift): Int {
         val toDelete = model.toEntity()
         val count = liftsDao.delete(toDelete)
-        if (toDelete.remoteId != null && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
     override suspend fun deleteMany(models: List<Lift>): Int {
         val toDelete = models.fastMap { it.toEntity() }
         val count = liftsDao.deleteMany(toDelete)
-        val firestoreIds = toDelete.mapNotNull { it.remoteId }
-        if (firestoreIds.isNotEmpty() && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                    roomEntityIds = toDelete.fastMap { it.id },
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
         val toDelete = liftsDao.get(id) ?: return 0
         val count = liftsDao.delete(toDelete)
-        if (toDelete.remoteId != null && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.LIFTS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete,
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
 
         return count
     }

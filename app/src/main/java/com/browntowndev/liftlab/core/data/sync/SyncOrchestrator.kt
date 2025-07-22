@@ -1,51 +1,90 @@
 package com.browntowndev.liftlab.core.data.sync
 
-import com.browntowndev.liftlab.core.data.common.RemoteCollectionNames
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.data.common.SyncType
-import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
-import com.browntowndev.liftlab.core.data.local.dao.SyncQueueDao
+import com.browntowndev.liftlab.core.data.local.dao.SyncMetadataDao
+import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
+import com.browntowndev.liftlab.core.data.sync.repositories.RemoteSyncRepository
+import java.util.Date
 
-// In data/sync/SyncOrchestrator.kt
 class SyncOrchestrator(
-    private val syncQueueDao: SyncQueueDao,
-    private val programsDao: ProgramsDao,
-    private val remoteDataSource: MasterRemoteDataSource,
-    private val syncPrefs: SyncPreferences
+    private val syncMetadataDao: SyncMetadataDao,
+    private val syncRepositories: List<RemoteSyncRepository>,
+    private val remoteDataClient: RemoteDataClient,
 ) {
-    suspend fun performSync() {
-        uploadPendingChanges()
+    suspend fun syncAll() {
         downloadNewerChanges()
+        uploadPendingChanges()
     }
 
     private suspend fun uploadPendingChanges() {
-        val pendingSyncs = syncQueueDao.getAll()
-        if (pendingSyncs.isEmpty()) return
+        syncRepositories.fastForEach { syncRepository ->
+                val unsyncedEntities = syncRepository.getAllUnsynced()
+                if (unsyncedEntities.isNotEmpty()) return@fastForEach
 
-        val deletes = pendingSyncs.filter { it.syncType == SyncType.Upsert }
-        val upserts = pendingSyncs.filter { it.syncType == SyncType.Delete }
+                val toUpsert = unsyncedEntities.filter { !it.deleted }
+                val toDelete = unsyncedEntities - toUpsert
 
-        // Fetch the actual data for upserts
-        val programIdsToUpsert = upserts.filter { it.collectionName == RemoteCollectionNames.PROGRAMS_COLLECTION }.map { it.entityId }
-        val programEntities = programsDao.getMany(programIdsToUpsert)
-        val programDtos = programEntities.map { it.toDto() } // Assumes an Entity -> DTO mapper
+                val syncBatches: List<BatchSyncCollection> = buildList {
+                    if (toUpsert.isNotEmpty()) {
+                        add(
+                            BatchSyncCollection(
+                                collectionName = syncRepository.collectionName,
+                                remoteEntities = toUpsert,
+                                syncType = SyncType.Upsert
+                            )
+                        )
+                    }
+                    if (toDelete.isNotEmpty()) {
+                        add(
+                            BatchSyncCollection(
+                                collectionName = syncRepository.collectionName,
+                                remoteEntities = toDelete,
+                                syncType = SyncType.Delete
+                            )
+                        )
+                    }
+                }
 
-        // Execute the batch remotely
-        remoteDataSource.executeSyncBatch(deletes, mapOf("programs" to programDtos))
-
-        // On success, clear the queue
-        syncQueueDao.deleteAll(pendingSyncs)
+                remoteDataClient.executeBatchSync(syncBatches)
+            }
     }
 
     private suspend fun downloadNewerChanges() {
-        val lastSync = syncPrefs.getLastSyncTimestamp("programs")
-        val newProgramDtos = remoteDataSource.getNewPrograms(lastSync)
+        val collectionNames = syncRepositories.forEach { syncRepository ->
+            val collectionName = syncRepository.collectionName
+            val syncMetadata = syncMetadataDao.getForCollection(collectionName = collectionName)
+            val lastSynced = syncMetadata?.lastSyncTimestamp ?: Date(0)
 
-        if (newProgramDtos.isNotEmpty()) {
-            val newEntities = newProgramDtos.map { it.toEntity() } // Assumes a DTO -> Entity mapper
-            programsDao.upsertAll(newEntities)
-
-            val latestTimestamp = newProgramDtos.maxOf { it.lastUpdated?.time ?: 0L }
-            syncPrefs.setLastSyncTimestamp("programs", latestTimestamp)
+            remoteDataClient.getAllSince(
+                collectionName = collectionName, lastUpdated = lastSynced
+            ).forEachParallel(10) { remoteEntityChunk ->
+                processRemoteEntityChunk(
+                    remoteEntityChunk = remoteEntityChunk,
+                    syncRepository = syncRepository,
+                )
+            }
         }
+    }
+
+    private suspend fun processRemoteEntityChunk(
+        remoteEntityChunk: List<BaseRemoteDto>,
+        syncRepository: RemoteSyncRepository,
+    ) {
+        val localEntities = syncRepository.getManyByRemoteId(remoteEntityChunk.mapNotNull { it.remoteId })
+            .associateBy { it.remoteId }
+
+        val remoteEntitiesToUpsert = remoteEntityChunk.mapNotNull { remoteEntity ->
+            val localEntity = localEntities[remoteEntity.remoteId]
+            val localEntityLastUpdated = localEntity?.lastUpdated ?: Date(0)
+
+            if (remoteEntity.lastUpdated?.after(localEntityLastUpdated) == true) {
+                remoteEntity
+            } else null
+        }
+
+        syncRepository.upsertMany(remoteEntitiesToUpsert)
     }
 }

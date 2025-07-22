@@ -8,7 +8,11 @@ import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 
 @GenerateFirestoreMetadataExtensions
 @Entity("historicalWorkoutNames",
-    indices = [Index(value = ["programName", "workoutName"])])
+    indices = [
+        Index(value = ["programName", "workoutName"]),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ])
 data class HistoricalWorkoutNameEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("historical_workout_name_id")
     val id: Long = 0,

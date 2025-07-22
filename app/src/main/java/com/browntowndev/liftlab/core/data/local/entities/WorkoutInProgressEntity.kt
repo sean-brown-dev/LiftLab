@@ -11,7 +11,11 @@ import java.util.Date
 @GenerateFirestoreMetadataExtensions
 @Entity(
     tableName = "workoutsInProgress",
-    indices = [Index("workoutId")],
+    indices = [
+        Index("workoutId"),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ],
     foreignKeys = [
         ForeignKey(
             entity = WorkoutEntity::class,

@@ -5,7 +5,7 @@ import java.util.Date
 
 @Keep
 data class WorkoutLogEntryRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var historicalWorkoutNameId: Long = 0L,
     var programWorkoutCount: Int = 0,
     var programDeloadWeek: Int = 0,

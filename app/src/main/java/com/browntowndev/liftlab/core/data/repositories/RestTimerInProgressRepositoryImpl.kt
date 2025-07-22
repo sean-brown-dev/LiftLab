@@ -50,6 +50,12 @@ class RestTimerInProgressRepositoryImpl(
     override suspend fun getAll(): List<RestTimerInProgress> =
         restTimerInProgressDao.getAll().fastMap { it.toDomainModel() }
 
+    override fun getAllFlow(): Flow<List<RestTimerInProgress>> {
+        return restTimerInProgressDao.getAllFlow().map { restTimerInProgressEntities ->
+            restTimerInProgressEntities.fastMap { it.toDomainModel() }
+        }
+    }
+
     override suspend fun getById(id: Long): RestTimerInProgress? =
         restTimerInProgressDao.getById(id)?.toDomainModel()
 

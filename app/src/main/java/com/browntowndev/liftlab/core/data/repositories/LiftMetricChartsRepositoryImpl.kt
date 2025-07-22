@@ -2,37 +2,26 @@ package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 
 class LiftMetricChartsRepositoryImpl(
     private val liftMetricChartsDao: LiftMetricChartsDao,
-    private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScheduler: SyncScheduler,
 ) : LiftMetricChartsRepository {
     override suspend fun deleteAllWithNoLifts() {
         val toDelete = liftMetricChartsDao.getAllWithNoLift()
         if (toDelete.isEmpty()) return
 
         liftMetricChartsDao.deleteMany(toDelete)
-        val toDeleteInFirestore = toDelete.fastMapNotNull {
-            it.remoteId?.let { _ -> it.id }
-        }
-        if (toDeleteInFirestore.isEmpty()) return
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = toDeleteInFirestore,
-                SyncType.Delete,
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: LiftMetricChart): Long {
@@ -52,13 +41,7 @@ class LiftMetricChartsRepositoryImpl(
             if (it == -1L) toUpsert.id else it
         }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = listOf(upsertId),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return if (upsertId == -1L) toUpsert.id else upsertId
     }
@@ -85,13 +68,7 @@ class LiftMetricChartsRepositoryImpl(
             if (id == -1L) chart else chart.copy(id = id)
         }.fastMap { it.id }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = entityIds,
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return entityIds
     }
@@ -105,6 +82,19 @@ class LiftMetricChartsRepositoryImpl(
             )
         }
     }
+
+    override fun getAllFlow(): Flow<List<LiftMetricChart>> {
+        return liftMetricChartsDao.getAllFlow().map {
+            it.fastMap { entity ->
+                LiftMetricChart(
+                    id = entity.id,
+                    liftId = entity.liftId,
+                    chartType = entity.chartType,
+                )
+            }
+        }
+    }
+
 
     override suspend fun getMany(ids: List<Long>): List<LiftMetricChart> {
         return liftMetricChartsDao.getMany(ids).fastMap {
@@ -133,13 +123,7 @@ class LiftMetricChartsRepositoryImpl(
             chartType = model.chartType
         )
         liftMetricChartsDao.update(entity)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = listOf(entity.id),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<LiftMetricChart>) {
@@ -151,13 +135,7 @@ class LiftMetricChartsRepositoryImpl(
             )
         }
         liftMetricChartsDao.updateMany(entities)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = entities.map { it.id },
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun insert(model: LiftMetricChart): Long {
@@ -167,13 +145,8 @@ class LiftMetricChartsRepositoryImpl(
             chartType = model.chartType
         )
         val newId = liftMetricChartsDao.insert(entity)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = listOf(newId),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return newId
     }
 
@@ -186,13 +159,8 @@ class LiftMetricChartsRepositoryImpl(
             )
         }
         val newIds = liftMetricChartsDao.insertMany(entities)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = newIds,
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return newIds
     }
 
@@ -203,15 +171,8 @@ class LiftMetricChartsRepositoryImpl(
             chartType = model.chartType
         )
         val count = liftMetricChartsDao.delete(entity)
-        if (entity.remoteId != null && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                    roomEntityIds = listOf(entity.id),
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
@@ -224,33 +185,16 @@ class LiftMetricChartsRepositoryImpl(
             )
         }
         val count = liftMetricChartsDao.deleteMany(entities)
-        val toDeleteWithFirestoreIds = entities
-            .filter { it.remoteId != null }
-            .fastMap { it.id }
-        if (toDeleteWithFirestoreIds.isNotEmpty() && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                    roomEntityIds = toDeleteWithFirestoreIds,
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
         val toDelete = liftMetricChartsDao.get(id) ?: return 0
         val count = liftMetricChartsDao.delete(toDelete)
-        if (toDelete.remoteId != null && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.LIFT_METRIC_CHARTS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete,
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 }

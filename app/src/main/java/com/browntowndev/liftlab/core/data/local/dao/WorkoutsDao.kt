@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutsDao: BaseDao<WorkoutEntity> {
+    @Query("SELECT * FROM workouts WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<WorkoutEntity>
+
     @Query("SELECT * FROM workouts WHERE workout_id = :id")
     suspend fun get(id: Long): WorkoutWithRelationships?
 

@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProgramsDao: BaseDao<ProgramEntity> {
+    @Query("SELECT * FROM programs WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<ProgramEntity>
+
     @Query("DELETE FROM programs")
     suspend fun deleteAll()
 

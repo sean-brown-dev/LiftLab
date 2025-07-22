@@ -7,13 +7,13 @@ class FirestoreClientImpl(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
 ): FirestoreClient {
-    override val userId: String?
-        get() = auth.currentUser?.uid
+    override val isUserLoggedIn: Boolean
+        get() = auth.currentUser?.uid != null
 
     override fun batch() = firestore.batch()
 
     override fun userCollection(collectionName: String) =
         firestore.collection("users")
-            .document(userId ?: throw IllegalStateException("User not logged in"))
+            .document(auth.uid ?: throw IllegalStateException("User not logged in"))
             .collection(collectionName)
 }

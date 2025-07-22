@@ -7,11 +7,20 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutInProgressDao: BaseDao<WorkoutInProgressEntity> {
+    @Query("SELECT * FROM workoutsInProgress WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<WorkoutInProgressEntity>
+
     @Query("DELETE FROM workoutsInProgress")
     suspend fun deleteAll()
 
     @Query("SELECT * FROM workoutsInProgress")
     suspend fun get(): WorkoutInProgressEntity?
+
+    @Query("SELECT * FROM workoutsInProgress")
+    suspend fun getAll(): List<WorkoutInProgressEntity>
+
+    @Query("SELECT * FROM workoutsInProgress WHERE workout_in_progress_id = :id")
+    suspend fun get(id: Long): WorkoutInProgressEntity?
 
     @Query("SELECT * FROM workoutsInProgress")
     fun getAllFlow(): Flow<List<WorkoutInProgressEntity>>

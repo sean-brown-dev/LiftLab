@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.data.local.entities.SetLogEntryRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.SetLogEntryRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.LiftMetricChartsRepositoryImpl

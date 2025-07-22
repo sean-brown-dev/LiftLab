@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 
 @Keep
 data class CustomLiftSetRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var workoutLiftId: Long = 0L,
     var type: SetType = SetType.STANDARD,
     var position: Int = 0,

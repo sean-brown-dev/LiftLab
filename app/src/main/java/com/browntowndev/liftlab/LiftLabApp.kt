@@ -3,7 +3,7 @@ package com.browntowndev.liftlab
 import android.app.Application
 import android.util.Log
 import com.browntowndev.liftlab.dependencyInjection.eventBusModule
-import com.browntowndev.liftlab.dependencyInjection.firebaseModule
+import com.browntowndev.liftlab.dependencyInjection.syncModule
 import com.browntowndev.liftlab.dependencyInjection.mapperModule
 import com.browntowndev.liftlab.dependencyInjection.repositoryModule
 import com.browntowndev.liftlab.dependencyInjection.liftLabScopeModule
@@ -34,7 +34,7 @@ class LiftLabApp : Application() {
         startKoin {
             androidLogger()
             androidContext(this@LiftLabApp)
-            modules(liftLabScopeModule, mapperModule, repositoryModule, firebaseModule, viewModelModule, eventBusModule)
+            modules(liftLabScopeModule, mapperModule, repositoryModule, syncModule, viewModelModule, eventBusModule)
         }
     }
 

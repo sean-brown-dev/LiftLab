@@ -2,15 +2,12 @@ package com.browntowndev.liftlab.core.data.repositories
 
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -18,7 +15,7 @@ import kotlinx.coroutines.flow.map
 class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
     private val previousSetResultsRepository: PreviousSetResultsRepository,
-    private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScheduler: SyncScheduler,
 ): WorkoutInProgressRepository {
     override suspend fun getAll(): List<WorkoutInProgress> {
         return workoutInProgressDao.getAll().map {
@@ -27,6 +24,18 @@ class WorkoutInProgressRepositoryImpl(
                 startTime = it.startTime,
                 completedSets = emptyList()
             )
+        }
+    }
+
+    override fun getAllFlow(): Flow<List<WorkoutInProgress>> {
+        return workoutInProgressDao.getAllFlow().map {
+            it.map { entity ->
+                WorkoutInProgress(
+                    workoutId = entity.workoutId,
+                    startTime = entity.startTime,
+                    completedSets = emptyList()
+                )
+            }
         }
     }
 
@@ -57,13 +66,7 @@ class WorkoutInProgressRepositoryImpl(
             startTime = model.startTime,
         )
         workoutInProgressDao.update(toUpdate)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                roomEntityIds = listOf(toUpdate.id),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<WorkoutInProgress>) {
@@ -75,13 +78,7 @@ class WorkoutInProgressRepositoryImpl(
             )
         }
         workoutInProgressDao.updateMany(toUpdate)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                roomEntityIds = toUpdate.map { it.id },
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: WorkoutInProgress): Long {
@@ -91,13 +88,8 @@ class WorkoutInProgressRepositoryImpl(
             startTime = model.startTime,
         )
         val id = workoutInProgressDao.upsert(toUpsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                roomEntityIds = listOf(if (id == -1L) toUpsert.id else id),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return if (id == -1L) toUpsert.id else id
     }
 
@@ -114,13 +106,8 @@ class WorkoutInProgressRepositoryImpl(
             if (returnedId == -1L) entity else entity.copy(id = returnedId)
         }.fastMap { it.id }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                roomEntityIds = entityIds,
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return entityIds
     }
 
@@ -135,14 +122,8 @@ class WorkoutInProgressRepositoryImpl(
                 startTime = model.startTime,
             )
         val id = workoutInProgressDao.insert(toInsert)
+        syncScheduler.scheduleSync()
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                roomEntityIds = listOf(id),
-                SyncType.Upsert,
-            )
-        )
         return id
     }
 
@@ -155,28 +136,16 @@ class WorkoutInProgressRepositoryImpl(
             )
         }
         val ids = workoutInProgressDao.insertMany(toInsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                roomEntityIds = ids,
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return ids
     }
 
     override suspend fun delete(model: WorkoutInProgress): Int {
         val toDelete = workoutInProgressDao.get(model.workoutId) ?: return 0
         val count = workoutInProgressDao.delete(toDelete)
-        if (count > 0 && toDelete.remoteId != null) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
@@ -189,47 +158,23 @@ class WorkoutInProgressRepositoryImpl(
             )
         }
         val count = workoutInProgressDao.deleteMany(toDelete)
-        val firestoreIds = toDelete.mapNotNull { it.remoteId }
-        if (firestoreIds.isNotEmpty() && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                    roomEntityIds = toDelete.map { it.id },
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
         val toDelete = workoutInProgressDao.get(id) ?: return 0
         val count = workoutInProgressDao.delete(toDelete)
-        if (count > 0 && toDelete.remoteId != null) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
     override suspend fun deleteAll(): Int {
         val toDelete = workoutInProgressDao.get() ?: return 0
         val deleteCount = workoutInProgressDao.delete(toDelete)
-
-        if (toDelete.remoteId != null) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.WORKOUT_IN_PROGRESS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete,
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
 
         return deleteCount
     }

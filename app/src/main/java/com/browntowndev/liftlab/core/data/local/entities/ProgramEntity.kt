@@ -2,11 +2,16 @@ package com.browntowndev.liftlab.core.data.local.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 
 @GenerateFirestoreMetadataExtensions
-@Entity("programs")
+@Entity("programs",
+    indices = [
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ])
 data class ProgramEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "program_id")
     val id: Long = 0,

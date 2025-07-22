@@ -4,7 +4,7 @@ import androidx.annotation.Keep
 
 @Keep
 data class RestTimerInProgressRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var timeStartedInMillis: Long = 0L,
     var restTime: Long = 0L
 ): BaseRemoteDto() {

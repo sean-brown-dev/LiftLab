@@ -4,7 +4,7 @@ import androidx.annotation.Keep
 
 @Keep
 data class HistoricalWorkoutNameRemoteDto(
-    override var id: Long = 0L,
+    var id: Long = 0L,
     var programId: Long = 0L,
     var workoutId: Long = 0L,
     var programName: String = "",

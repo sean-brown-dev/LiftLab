@@ -1,19 +1,17 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.FirestoreConstants
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.local.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
+import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import kotlinx.coroutines.flow.Flow
 
 class VolumeMetricChartsRepositoryImpl(
     private val volumeMetricChartsDao: VolumeMetricChartsDao,
-    private val firestoreSyncManager: FirestoreSyncManager,
+    private val syncScheduler: SyncScheduler,
 ) : VolumeMetricChartsRepository {
     override suspend fun upsert(model: VolumeMetricChart): Long {
         val current = volumeMetricChartsDao.get(model.id)
@@ -30,13 +28,7 @@ class VolumeMetricChartsRepositoryImpl(
             if (it == -1L) toUpsert.id else it
         }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = listOf(id),
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return if (id == -1L) toUpsert.id else id
     }
@@ -61,13 +53,7 @@ class VolumeMetricChartsRepositoryImpl(
             if (upsertId == -1L) toUpsert else toUpsert.copy(id = upsertId)
         }.fastMap { it.id }
 
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = entityIds,
-                SyncType.Upsert,
-            )
-        )
+        syncScheduler.scheduleSync()
 
         return entityIds
     }
@@ -79,13 +65,8 @@ class VolumeMetricChartsRepositoryImpl(
             volumeTypeImpact = model.volumeTypeImpact,
         )
         val id = volumeMetricChartsDao.insert(toInsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = listOf(id),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return id
     }
 
@@ -98,13 +79,8 @@ class VolumeMetricChartsRepositoryImpl(
             )
         }
         val ids = volumeMetricChartsDao.insertMany(toInsert)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = ids,
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
+
         return ids
     }
 
@@ -115,15 +91,8 @@ class VolumeMetricChartsRepositoryImpl(
             volumeTypeImpact = model.volumeTypeImpact,
         )
         val count = volumeMetricChartsDao.delete(toDelete)
-        if (count > 0 && toDelete.remoteId != null) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
@@ -136,16 +105,8 @@ class VolumeMetricChartsRepositoryImpl(
             )
         }
         val count = volumeMetricChartsDao.deleteMany(toDelete)
-        val firestoreIds = toDelete.mapNotNull { it.remoteId }
-        if (firestoreIds.isNotEmpty() && count > 0) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                    roomEntityIds = toDelete.map { it.id },
-                    SyncType.Delete
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 
@@ -157,6 +118,10 @@ class VolumeMetricChartsRepositoryImpl(
                 volumeTypeImpact = it.volumeTypeImpact,
             )
         }
+    }
+
+    override fun getAllFlow(): Flow<List<VolumeMetricChart>> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun getById(id: Long): VolumeMetricChart? {
@@ -186,13 +151,7 @@ class VolumeMetricChartsRepositoryImpl(
             volumeTypeImpact = model.volumeTypeImpact,
         )
         volumeMetricChartsDao.update(toUpdate)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = listOf(toUpdate.id),
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<VolumeMetricChart>) {
@@ -204,27 +163,14 @@ class VolumeMetricChartsRepositoryImpl(
             )
         }
         volumeMetricChartsDao.updateMany(toUpdate)
-        firestoreSyncManager.enqueueSyncRequest(
-            SyncQueueEntry(
-                collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                roomEntityIds = toUpdate.map { it.id },
-                SyncType.Upsert
-            )
-        )
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun deleteById(id: Long): Int {
         val toDelete = volumeMetricChartsDao.get(id) ?: return 0
         val count = volumeMetricChartsDao.delete(toDelete)
-        if (count > 0 && toDelete.remoteId != null) {
-            firestoreSyncManager.enqueueSyncRequest(
-                SyncQueueEntry(
-                    collectionName = FirestoreConstants.VOLUME_METRIC_CHARTS_COLLECTION,
-                    roomEntityIds = listOf(toDelete.id),
-                    SyncType.Delete,
-                )
-            )
-        }
+        syncScheduler.scheduleSync()
+
         return count
     }
 }

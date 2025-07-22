@@ -4,15 +4,23 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LiftMetricChartsDao: BaseDao<LiftMetricChartEntity> {
+    @Query("SELECT * FROM liftMetricCharts WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<LiftMetricChartEntity>
+
     @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id = :id")
     suspend fun get(id: Long): LiftMetricChartEntity?
 
     @Transaction
     @Query("SELECT * FROM liftMetricCharts")
     suspend fun getAll(): List<LiftMetricChartEntity>
+
+    @Transaction
+    @Query("SELECT * FROM liftMetricCharts")
+    fun getAllFlow(): Flow<List<LiftMetricChartEntity>>
 
     @Query("DELETE FROM liftMetricCharts")
     suspend fun deleteAll()

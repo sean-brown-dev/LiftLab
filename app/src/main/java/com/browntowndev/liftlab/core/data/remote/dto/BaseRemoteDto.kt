@@ -10,12 +10,12 @@ abstract class BaseRemoteDto {
     @DocumentId
     open var remoteId: String? = null
 
-    abstract var id: Long
-
     @ServerTimestamp
     open var lastUpdated: Date? = null
 
     open var synced: Boolean = false
+
+    open var deleted: Boolean = false
 
     abstract fun copyWithBase(): BaseRemoteDto
 }

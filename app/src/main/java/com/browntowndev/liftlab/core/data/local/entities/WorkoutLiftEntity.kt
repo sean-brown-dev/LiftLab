@@ -10,7 +10,12 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 
 @GenerateFirestoreMetadataExtensions
 @Entity("workoutLifts",
-    indices = [Index("liftId"), Index("workoutId")],
+    indices = [
+        Index("liftId"),
+        Index("workoutId"),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ],
     foreignKeys = [
         ForeignKey(entity = WorkoutEntity::class,
             parentColumns = arrayOf("workout_id"),

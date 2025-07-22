@@ -9,7 +9,12 @@ import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 
 @GenerateFirestoreMetadataExtensions
 @Entity(tableName = "workouts",
-    indices = [Index("programId"), Index("position")],
+    indices = [
+        Index("programId"),
+        Index("position"),
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ],
     foreignKeys = [ForeignKey(entity = ProgramEntity::class,
         parentColumns = arrayOf("program_id"),
         childColumns = arrayOf("programId"),

@@ -4,12 +4,20 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.data.local.entities.HistoricalWorkoutNameEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutNameEntity> {
+    @Query("SELECT * FROM historicalWorkoutNames WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<HistoricalWorkoutNameEntity>
+
     @Transaction
     @Query("SELECT * FROM historicalWorkoutNames")
     suspend fun getAll(): List<HistoricalWorkoutNameEntity>
+
+    @Transaction
+    @Query("SELECT * FROM historicalWorkoutNames")
+    fun getAllFlow(): Flow<List<HistoricalWorkoutNameEntity>>
 
     @Transaction
     @Query("SELECT * FROM historicalWorkoutNames WHERE historical_workout_name_id = :id")

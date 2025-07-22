@@ -9,6 +9,9 @@ import java.util.Date
 
 @Dao
 interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
+    @Query("SELECT * FROM sets WHERE synced = 0")
+    suspend fun getAllUnsynced(): List<CustomLiftSetEntity>
+
     @Query("UPDATE sets SET remoteId = :firestoreId, lastUpdated = :lastUpdated, synced = 1 WHERE set_id = :id")
     suspend fun updateFirestoreMetadata(id: Long, firestoreId: String, lastUpdated: Date)
 
