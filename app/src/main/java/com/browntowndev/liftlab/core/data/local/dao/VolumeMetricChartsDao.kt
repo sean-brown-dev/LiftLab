@@ -10,18 +10,18 @@ interface VolumeMetricChartsDao: BaseDao<VolumeMetricChartEntity> {
     @Query("SELECT * FROM volumeMetricCharts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<VolumeMetricChartEntity>
 
-    @Query("SELECT * FROM volumeMetricCharts WHERE lift_volume_chart_id = :id")
+    @Query("SELECT * FROM volumeMetricCharts WHERE lift_volume_chart_id = :id AND deleted = 0")
     suspend fun get(id: Long): VolumeMetricChartEntity?
 
     @Transaction
-    @Query("SELECT * FROM volumeMetricCharts WHERE lift_volume_chart_id IN (:ids)")
+    @Query("SELECT * FROM volumeMetricCharts WHERE lift_volume_chart_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<VolumeMetricChartEntity>
 
     @Query("DELETE FROM volumeMetricCharts")
     suspend fun deleteAll()
 
     @Transaction
-    @Query("SELECT * FROM volumeMetricCharts")
+    @Query("SELECT * FROM volumeMetricCharts WHERE deleted = 0")
     suspend fun getAll(): List<VolumeMetricChartEntity>
 
     @Query("UPDATE volumeMetricCharts SET deleted = 1, synced = 0 WHERE lift_volume_chart_id = :id")

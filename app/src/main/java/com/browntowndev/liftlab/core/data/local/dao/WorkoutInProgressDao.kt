@@ -13,19 +13,19 @@ interface WorkoutInProgressDao: BaseDao<WorkoutInProgressEntity> {
     @Query("DELETE FROM workoutsInProgress")
     suspend fun deleteAll()
 
-    @Query("SELECT * FROM workoutsInProgress")
+    @Query("SELECT * FROM workoutsInProgress WHERE deleted = 0")
     suspend fun get(): WorkoutInProgressEntity?
 
-    @Query("SELECT * FROM workoutsInProgress")
+    @Query("SELECT * FROM workoutsInProgress WHERE deleted = 0")
     suspend fun getAll(): List<WorkoutInProgressEntity>
 
-    @Query("SELECT * FROM workoutsInProgress WHERE workout_in_progress_id = :id")
+    @Query("SELECT * FROM workoutsInProgress WHERE workout_in_progress_id = :id AND deleted = 0")
     suspend fun get(id: Long): WorkoutInProgressEntity?
 
-    @Query("SELECT * FROM workoutsInProgress")
+    @Query("SELECT * FROM workoutsInProgress WHERE deleted = 0")
     fun getAllFlow(): Flow<List<WorkoutInProgressEntity>>
 
-    @Query("SELECT * FROM workoutsInProgress WHERE workout_in_progress_id IN (:ids)")
+    @Query("SELECT * FROM workoutsInProgress WHERE workout_in_progress_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<WorkoutInProgressEntity>
 
     @Query("DELETE FROM workoutsInProgress")

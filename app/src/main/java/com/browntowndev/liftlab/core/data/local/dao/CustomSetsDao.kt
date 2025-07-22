@@ -16,25 +16,25 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
     suspend fun updateFirestoreMetadata(id: Long, firestoreId: String, lastUpdated: Date)
 
     @Transaction
-    @Query("SELECT * FROM sets WHERE set_id IN (:ids)")
+    @Query("SELECT * FROM sets WHERE set_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<CustomLiftSetEntity>
 
     @Transaction
     @Query("SELECT * FROM sets WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<CustomLiftSetEntity>
 
-    @Query("SELECT * FROM sets WHERE set_id = :id")
+    @Query("SELECT * FROM sets WHERE set_id = :id AND deleted = 0")
     suspend fun get(id: Long): CustomLiftSetEntity?
 
     @Query("SELECT * FROM sets WHERE remoteId = :remoteId")
     suspend fun getByRemoteId(remoteId: String): CustomLiftSetEntity?
 
     @Transaction
-    @Query("SELECT * FROM sets")
+    @Query("SELECT * FROM sets WHERE deleted = 0")
     suspend fun getAll(): List<CustomLiftSetEntity>
 
     @Transaction
-    @Query("SELECT * FROM sets")
+    @Query("SELECT * FROM sets WHERE deleted = 0")
     fun getAllFlow(): Flow<List<CustomLiftSetEntity>>
 
     @Query("DELETE FROM sets")
@@ -43,7 +43,7 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
     @Query("UPDATE sets SET position = position - 1 WHERE workoutLiftId = :workoutLiftId AND position > :afterPosition")
     suspend fun syncPositions(workoutLiftId: Long, afterPosition: Int)
 
-    @Query("SELECT * FROM sets WHERE workoutLiftId = :workoutLiftId")
+    @Query("SELECT * FROM sets WHERE workoutLiftId = :workoutLiftId AND deleted = 0")
     suspend fun getByWorkoutLiftId(workoutLiftId: Long): List<CustomLiftSetEntity>
 
     @Query("UPDATE sets SET deleted = 1, synced = 0 WHERE set_id = :id")

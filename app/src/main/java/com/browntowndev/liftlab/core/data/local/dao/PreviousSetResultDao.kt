@@ -12,19 +12,19 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
     @Query("SELECT * FROM previousSetResults WHERE synced = 0")
     suspend fun getAllUnsynced(): List<PreviousSetResultEntity>
 
-    @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id = :id")
+    @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id = :id AND deleted = 0")
     suspend fun get(id: Long): PreviousSetResultEntity?
 
     @Transaction
-    @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id IN (:ids)")
+    @Query("SELECT * FROM previousSetResults WHERE previously_completed_set_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<PreviousSetResultEntity>
 
     @Transaction
-    @Query("SELECT * FROM previousSetResults")
+    @Query("SELECT * FROM previousSetResults WHERE deleted = 0")
     suspend fun getAll(): List<PreviousSetResultEntity>
 
     @Transaction
-    @Query("SELECT * FROM previousSetResults")
+    @Query("SELECT * FROM previousSetResults WHERE deleted = 0")
     fun getAllFlow(): Flow<List<PreviousSetResultEntity>>
 
     @Query("DELETE FROM previousSetResults")
@@ -34,26 +34,26 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "(mesoCycle != :mesoCycle OR " +
-            "microCycle != :microCycle)")
+            "microCycle != :microCycle) AND deleted = 0")
     fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<PreviousSetResultEntity>>
 
     @Transaction
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
-            "microCycle = :microCycle")
+            "microCycle = :microCycle AND deleted = 0")
     fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<PreviousSetResultEntity>>
 
     @Transaction
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
-            "microCycle = :microCycle")
+            "microCycle = :microCycle AND deleted = 0")
     suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResultEntity>
 
     @Transaction
     @Query("SELECT * FROM previousSetResults " +
-            "WHERE liftId = :liftId")
+            "WHERE liftId = :liftId AND deleted = 0")
     suspend fun getForLift(liftId: Long): List<PreviousSetResultEntity>
 
     @Transaction
@@ -61,6 +61,7 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
             "FROM previousSetResults " +
             "WHERE liftId IN (:liftIds) AND " +
             "(workoutId != :workoutId OR mesoCycle != :mesoCycle OR microCycle != :microCycle) " +
+            "AND deleted = 0 " +
             "GROUP BY liftId")
     suspend fun getPersonalRecordsForLiftsExcludingWorkout(
         workoutId: Long,
@@ -92,7 +93,7 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
               WHERE dsr.previously_completed_set_id IN (:currentResultsToDelete)
                 AND psr.previously_completed_set_id NOT IN (:currentResultsToDelete)
           )
-    )
+    ) AND deleted = 0
 """)
     suspend fun getAllForPreviousWorkout(
         workoutId: Long,
@@ -104,7 +105,7 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
-            "microCycle = :microCycle")
+            "microCycle = :microCycle AND deleted = 0")
     suspend fun getAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResultEntity>
 
     @Query("UPDATE previousSetResults SET deleted = 1, synced = 0 WHERE previously_completed_set_id = :id")

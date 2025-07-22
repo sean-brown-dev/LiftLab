@@ -11,15 +11,15 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     @Query("SELECT * FROM setLogEntries WHERE synced = 0")
     suspend fun getAllUnsynced(): List<SetLogEntryEntity>
 
-    @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id = :id")
+    @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id = :id AND deleted = 0")
     suspend fun get(id: Long): SetLogEntryEntity?
 
     @Transaction
-    @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id IN (:ids)")
+    @Query("SELECT * FROM setLogEntries WHERE set_log_entry_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<SetLogEntryEntity>
 
     @Transaction
-    @Query("SELECT * FROM setLogEntries")
+    @Query("SELECT * FROM setLogEntries WHERE deleted = 0")
     suspend fun getAll(): List<SetLogEntryEntity>
 
     @Query("DELETE FROM setLogEntries")
@@ -111,7 +111,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     FROM setLogEntries
     WHERE workoutLogEntryId = :workoutLogEntryId
       AND mesoCycle = :mesocycle
-      AND microCycle = :microcycle
+      AND microCycle = :microcycle AND deleted = 0
 """)
     suspend fun getForWorkoutLogEntryMesoAndMicro(
         workoutLogEntryId: Long,
@@ -125,13 +125,13 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         liftId,
         MAX(oneRepMax) AS personalRecord
     FROM setLogEntries
-    WHERE liftId IN (:liftIds)
+    WHERE liftId IN (:liftIds) AND deleted = 0
     GROUP BY liftId
     """)
     suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecordDto>
 
     @Transaction
-    @Query("SELECT * FROM setLogEntries WHERE workoutLogEntryId = :workoutLogEntryId")
+    @Query("SELECT * FROM setLogEntries WHERE workoutLogEntryId = :workoutLogEntryId AND deleted = 0")
     suspend fun getForWorkoutLogEntry(workoutLogEntryId: Long): List<SetLogEntryEntity>
 
     @Query("DELETE FROM setLogEntries WHERE set_log_entry_id IN (:ids)")

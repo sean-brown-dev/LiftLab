@@ -12,41 +12,41 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
     @Query("SELECT * FROM workoutLifts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<WorkoutLiftEntity>
 
-    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id AND deleted = 0")
     suspend fun get(id: Long): WorkoutLiftWithRelationships?
 
-    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id AND deleted = 0")
     suspend fun getWithoutRelationships(id: Long): WorkoutLiftEntity?
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id AND deleted = 0")
     suspend fun getWithRelationships(id: Long): WorkoutLiftWithRelationships?
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids)")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<WorkoutLiftWithRelationships>
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids)")
+    @Query("SELECT * FROM workoutLifts WHERE workout_lift_id IN (:ids) AND deleted = 0")
     suspend fun getManyWithoutRelationships(ids: List<Long>): List<WorkoutLiftEntity>
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts")
+    @Query("SELECT * FROM workoutLifts WHERE deleted = 0")
     suspend fun getAll(): List<WorkoutLiftWithRelationships>
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts")
+    @Query("SELECT * FROM workoutLifts WHERE deleted = 0")
     fun getAllFlow(): Flow<List<WorkoutLiftWithRelationships>>
 
     @Query("DELETE FROM workoutLifts")
     suspend fun deleteAll()
 
     @Transaction
-    @Query("SELECT liftId FROM workoutLifts WHERE workoutId = :workoutId")
+    @Query("SELECT liftId FROM workoutLifts WHERE workoutId = :workoutId AND deleted = 0")
     suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long>
 
     @Transaction
-    @Query("SELECT * FROM workoutLifts WHERE workoutId = :workoutId")
+    @Query("SELECT * FROM workoutLifts WHERE workoutId = :workoutId AND deleted = 0")
     suspend fun getForWorkout(workoutId: Long): List<WorkoutLiftWithRelationships>
 
     @Query("UPDATE workoutLifts SET deleted = 1, synced = 0 WHERE workout_lift_id = :id")

@@ -11,15 +11,15 @@ interface LiftMetricChartsDao: BaseDao<LiftMetricChartEntity> {
     @Query("SELECT * FROM liftMetricCharts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<LiftMetricChartEntity>
 
-    @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id = :id")
+    @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id = :id AND deleted = 0")
     suspend fun get(id: Long): LiftMetricChartEntity?
 
     @Transaction
-    @Query("SELECT * FROM liftMetricCharts")
+    @Query("SELECT * FROM liftMetricCharts WHERE deleted = 0")
     suspend fun getAll(): List<LiftMetricChartEntity>
 
     @Transaction
-    @Query("SELECT * FROM liftMetricCharts")
+    @Query("SELECT * FROM liftMetricCharts WHERE deleted = 0")
     fun getAllFlow(): Flow<List<LiftMetricChartEntity>>
 
     @Query("DELETE FROM liftMetricCharts")
@@ -29,15 +29,15 @@ interface LiftMetricChartsDao: BaseDao<LiftMetricChartEntity> {
     @Query("SELECT c.* " +
             "FROM liftMetricCharts c " +
             "INNER JOIN lifts l ON c.liftId = l.lift_id " +
-            "WHERE liftId IS NOT NULL " +
+            "WHERE liftId IS NOT NULL AND c.deleted = 0" +
             "ORDER BY l.name, c.chartType")
     suspend fun getAllForExistingLifts(): List<LiftMetricChartEntity>
 
     @Transaction
-    @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id IN (:ids)")
+    @Query("SELECT * FROM liftMetricCharts WHERE lift_metric_chart_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<LiftMetricChartEntity>
 
-    @Query("SELECT * FROM liftMetricCharts WHERE liftId IS NULL")
+    @Query("SELECT * FROM liftMetricCharts WHERE liftId IS NULL AND deleted = 0")
     suspend fun getAllWithNoLift(): List<LiftMetricChartEntity>
 
     @Query("DELETE FROM liftMetricCharts WHERE lift_metric_chart_id = :id")

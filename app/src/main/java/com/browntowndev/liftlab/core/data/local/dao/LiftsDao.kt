@@ -15,26 +15,23 @@ interface LiftsDao: BaseDao<LiftEntity> {
     @Query("DELETE FROM lifts")
     suspend fun deleteAll()
 
-    @Query("UPDATE lifts SET isHidden = 0")
-    suspend fun show()
-
-    @Query("SELECT * FROM lifts WHERE lift_id = :id")
+    @Query("SELECT * FROM lifts WHERE lift_id = :id AND deleted = 0")
     suspend fun get(id: Long): LiftEntity?
 
     @Transaction
-    @Query("SELECT * FROM lifts WHERE lift_id IN (:ids)")
+    @Query("SELECT * FROM lifts WHERE lift_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<LiftEntity>
 
     @Transaction
-    @Query("SELECT * FROM lifts WHERE isHidden = 0")
+    @Query("SELECT * FROM lifts WHERE deleted = 0")
     fun getAllAsFlow(): Flow<List<LiftEntity>>
 
     @Transaction
-    @Query("SELECT * FROM lifts WHERE isHidden == 0 OR isHidden = :includeHidden")
+    @Query("SELECT * FROM lifts WHERE deleted = 0")
     suspend fun getAll(includeHidden: Boolean = false): List<LiftEntity>
 
     @Transaction
-    @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")
+    @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern AND deleted = 0")
     suspend fun getByCategory(movementPattern: MovementPattern): List<LiftEntity>
 
     @Query("UPDATE lifts SET deleted = 1, synced = 0 WHERE lift_id = :id")
