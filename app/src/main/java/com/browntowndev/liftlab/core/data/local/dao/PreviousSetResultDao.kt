@@ -108,8 +108,8 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
     suspend fun getAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResultEntity>
 
     @Query("UPDATE previousSetResults SET deleted = 1, synced = 0 WHERE previously_completed_set_id = :id")
-    suspend fun softDelete(id: Long)
+    suspend fun softDelete(id: Long): Int
 
     @Query("UPDATE previousSetResults SET deleted = 1, synced = 0 WHERE previously_completed_set_id IN (:ids)")
-    suspend fun softDeleteMany(ids: List<Long>)
+    suspend fun softDeleteMany(ids: List<Long>): Int
 }

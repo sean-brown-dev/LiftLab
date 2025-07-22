@@ -124,14 +124,20 @@ class SetLogEntryRepositoryImpl(
         deleteById(model.id)
 
     override suspend fun deleteMany(models: List<SetLogEntry>): Int {
-        TODO("Not yet implemented")
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = setLogEntryDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = setLogEntryDao.get(id) ?: return 0
-        val deleteCount = setLogEntryDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val deleteCount = setLogEntryDao.softDelete(id)
+        if (deleteCount > 0) {
+            syncScheduler.scheduleSync()
+        }
         return deleteCount
     }
 }

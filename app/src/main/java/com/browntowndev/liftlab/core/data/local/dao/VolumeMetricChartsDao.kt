@@ -25,8 +25,8 @@ interface VolumeMetricChartsDao: BaseDao<VolumeMetricChartEntity> {
     suspend fun getAll(): List<VolumeMetricChartEntity>
 
     @Query("UPDATE volumeMetricCharts SET deleted = 1, synced = 0 WHERE lift_volume_chart_id = :id")
-    suspend fun softDelete(id: Long)
+    suspend fun softDelete(id: Long): Int
 
     @Query("UPDATE volumeMetricCharts SET deleted = 1, synced = 0 WHERE lift_volume_chart_id IN (:ids)")
-    suspend fun softDeleteMany(ids: List<Long>)
+    suspend fun softDeleteMany(ids: List<Long>): Int
 }

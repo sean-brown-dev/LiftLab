@@ -27,6 +27,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.workoutId, histWorkoutName.programName, histWorkoutName.workoutName, " +
             "log.programDeloadWeek, log.programWorkoutCount, log.microcyclePosition, log.date, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
             "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, setResult.mesoCycle, setResult.microCycle, " +
+
             "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
             "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
             "FROM workoutLogEntries log " +
@@ -119,8 +120,8 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryEntity?
 
     @Query("UPDATE workoutLogEntries SET deleted = 1, synced = 0 WHERE workout_log_entry_id = :id")
-    suspend fun softDelete(id: Long)
+    suspend fun softDelete(id: Long): Int
 
     @Query("UPDATE workoutLogEntries SET deleted = 1, synced = 0 WHERE workout_log_entry_id IN (:ids)")
-    suspend fun softDeleteMany(ids: List<Long>)
+    suspend fun softDeleteMany(ids: List<Long>): Int
 }

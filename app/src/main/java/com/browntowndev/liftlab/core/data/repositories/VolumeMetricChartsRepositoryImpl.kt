@@ -85,28 +85,20 @@ class VolumeMetricChartsRepositoryImpl(
     }
 
     override suspend fun delete(model: VolumeMetricChart): Int {
-        val toDelete = VolumeMetricChartEntity(
-            id = model.id,
-            volumeType = model.volumeType,
-            volumeTypeImpact = model.volumeTypeImpact,
-        )
-        val count = volumeMetricChartsDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = volumeMetricChartsDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<VolumeMetricChart>): Int {
-        val toDelete = models.map {
-            VolumeMetricChartEntity(
-                id = it.id,
-                volumeType = it.volumeType,
-                volumeTypeImpact = it.volumeTypeImpact,
-            )
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = volumeMetricChartsDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
         }
-        val count = volumeMetricChartsDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
-
         return count
     }
 
@@ -167,10 +159,10 @@ class VolumeMetricChartsRepositoryImpl(
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = volumeMetricChartsDao.get(id) ?: return 0
-        val count = volumeMetricChartsDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = volumeMetricChartsDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 }

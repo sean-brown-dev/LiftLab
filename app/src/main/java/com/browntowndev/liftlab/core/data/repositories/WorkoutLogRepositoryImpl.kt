@@ -121,14 +121,13 @@ class WorkoutLogRepositoryImpl(
 
     override suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long) {
         val setLogEntriesToDelete = setLogEntryDao.getForWorkoutLogEntry(workoutLogEntryId)
-        if (setLogEntriesToDelete.isEmpty()) return
-
-        setLogEntryDao.deleteMany(setLogEntriesToDelete)
-
-        val workoutLogEntryToDelete = workoutLogEntryDao.get(workoutLogEntryId)
-            ?: throw Exception("WorkoutEntity log entry not found")
-        workoutLogEntryDao.delete(workoutLogEntryToDelete)
-
-        syncScheduler.scheduleSync()
+        var deletedCount = 0
+        if (setLogEntriesToDelete.isNotEmpty()) {
+            deletedCount += setLogEntryDao.softDeleteMany(setLogEntriesToDelete.map { it.id })
+        }
+        deletedCount += workoutLogEntryDao.softDelete(workoutLogEntryId)
+        if (deletedCount > 0) {
+            syncScheduler.scheduleSync()
+        }
     }
 }

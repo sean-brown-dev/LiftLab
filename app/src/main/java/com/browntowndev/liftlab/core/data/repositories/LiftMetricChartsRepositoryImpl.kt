@@ -19,8 +19,10 @@ class LiftMetricChartsRepositoryImpl(
         val toDelete = liftMetricChartsDao.getAllWithNoLift()
         if (toDelete.isEmpty()) return
 
-        liftMetricChartsDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
+        val count = liftMetricChartsDao.softDeleteMany(toDelete.map { it.id })
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
     }
 
     override suspend fun upsert(model: LiftMetricChart): Long {
@@ -164,36 +166,28 @@ class LiftMetricChartsRepositoryImpl(
     }
 
     override suspend fun delete(model: LiftMetricChart): Int {
-        val entity = LiftMetricChartEntity(
-            id = model.id,
-            liftId = model.liftId,
-            chartType = model.chartType
-        )
-        val count = liftMetricChartsDao.delete(entity)
-        syncScheduler.scheduleSync()
-
+        val count = liftMetricChartsDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<LiftMetricChart>): Int {
-        val entities = models.map {
-            LiftMetricChartEntity(
-                id = it.id,
-                liftId = it.liftId,
-                chartType = it.chartType
-            )
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = liftMetricChartsDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
         }
-        val count = liftMetricChartsDao.deleteMany(entities)
-        syncScheduler.scheduleSync()
-
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = liftMetricChartsDao.get(id) ?: return 0
-        val count = liftMetricChartsDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = liftMetricChartsDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 }

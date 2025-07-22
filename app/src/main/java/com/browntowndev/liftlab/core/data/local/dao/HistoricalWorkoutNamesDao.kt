@@ -35,8 +35,8 @@ interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutNameEntity> {
     suspend fun getByProgramAndWorkoutId(programId: Long, workoutId: Long): HistoricalWorkoutNameEntity?
 
     @Query("UPDATE historicalWorkoutNames SET deleted = 1, synced = 0 WHERE historical_workout_name_id = :id")
-    suspend fun softDelete(id: Long)
+    suspend fun softDelete(id: Long): Int
 
     @Query("UPDATE historicalWorkoutNames SET deleted = 1, synced = 0 WHERE historical_workout_name_id IN (:ids)")
-    suspend fun softDeleteMany(ids: List<Long>)
+    suspend fun softDeleteMany(ids: List<Long>): Int
 }

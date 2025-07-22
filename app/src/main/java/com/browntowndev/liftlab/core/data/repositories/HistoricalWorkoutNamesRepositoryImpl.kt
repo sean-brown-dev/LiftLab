@@ -79,26 +79,28 @@ class HistoricalWorkoutNamesRepositoryImpl(
     }
 
     override suspend fun delete(model: HistoricalWorkoutName): Int {
-        val toDelete = model.toEntity()
-        val count = historicalWorkoutNamesDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = historicalWorkoutNamesDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<HistoricalWorkoutName>): Int {
-        val toDelete = models.map { it.toEntity() }
-        val count = historicalWorkoutNamesDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
-
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = historicalWorkoutNamesDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = historicalWorkoutNamesDao.get(id) ?: return 0
-        val count = historicalWorkoutNamesDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = historicalWorkoutNamesDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 

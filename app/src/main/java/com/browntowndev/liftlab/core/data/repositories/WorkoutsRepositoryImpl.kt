@@ -51,68 +51,68 @@ class WorkoutsRepositoryImpl(
     }
 
     override suspend fun delete(model: Workout): Int {
-        val toDelete = workoutsDao.getWithoutRelationships(model.id) ?: return 0
-        val deleteCount = workoutsDao.delete(toDelete)
-
-        // Update workoutEntity positions
-        val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(model.programId)
-            .sortedBy { it.position }
-            .fastMapIndexed { index, workoutEntity ->
-                workoutEntity.copy(position = index)
-            }
-        workoutsDao.updateMany(workoutsWithNewPositions)
-
-
-        // If current microcycle position is now greater than the number of workouts
-        // set it to the last workoutEntity index
-        programsRepository.getActive()?.let { program ->
-            if (program.currentMicrocyclePosition > workoutsWithNewPositions.lastIndex) {
-                programsRepository.updateMesoAndMicroCycle(
-                    id = program.id,
-                    mesoCycle = program.currentMesocycle,
-                    microCycle = program.currentMicrocycle,
-                    microCyclePosition = workoutsWithNewPositions.lastIndex
-                )
-            }
-        }
-
-        syncScheduler.scheduleSync()
-
-        return deleteCount
-    }
-
-    override suspend fun deleteMany(models: List<Workout>): Int {
-        val toDelete = workoutsDao.getManyWithoutRelationships(models.map { it.id })
-        if (toDelete.isEmpty()) return 0
-
-        val deletedCount = workoutsDao.deleteMany(toDelete)
-        if (deletedCount == 0) return 0
-
-        val affectedProgramIds = toDelete.map { it.programId }.toSet()
-        for (programId in affectedProgramIds) {
-            val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(programId)
+        val deleteCount = workoutsDao.softDelete(model.id)
+        if (deleteCount > 0) {
+            // Update workoutEntity positions
+            val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(model.programId)
                 .sortedBy { it.position }
                 .fastMapIndexed { index, workoutEntity ->
                     workoutEntity.copy(position = index)
                 }
             workoutsDao.updateMany(workoutsWithNewPositions)
-        }
 
-        programsRepository.getActive()?.let { program ->
-            if (affectedProgramIds.contains(program.id)) {
-                val workoutCount = workoutsDao.getAllForProgram(program.id).size
-                if (workoutCount > 0 && program.currentMicrocyclePosition >= workoutCount) {
+
+            // If current microcycle position is now greater than the number of workouts
+            // set it to the last workoutEntity index
+            programsRepository.getActive()?.let { program ->
+                if (program.currentMicrocyclePosition > workoutsWithNewPositions.lastIndex) {
                     programsRepository.updateMesoAndMicroCycle(
                         id = program.id,
                         mesoCycle = program.currentMesocycle,
                         microCycle = program.currentMicrocycle,
-                        microCyclePosition = workoutCount - 1
+                        microCyclePosition = workoutsWithNewPositions.lastIndex
                     )
                 }
             }
+
+            syncScheduler.scheduleSync()
         }
 
-        syncScheduler.scheduleSync()
+        return deleteCount
+    }
+
+    override suspend fun deleteMany(models: List<Workout>): Int {
+        val toDeleteIds = models.map { it.id }
+        if (toDeleteIds.isEmpty()) return 0
+
+        val deletedCount = workoutsDao.softDeleteMany(toDeleteIds)
+        if (deletedCount > 0) {
+            val affectedProgramIds = models.map { it.programId }.toSet()
+            for (programId in affectedProgramIds) {
+                val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(programId)
+                    .sortedBy { it.position }
+                    .fastMapIndexed { index, workoutEntity ->
+                        workoutEntity.copy(position = index)
+                    }
+                workoutsDao.updateMany(workoutsWithNewPositions)
+            }
+
+            programsRepository.getActive()?.let { program ->
+                if (affectedProgramIds.contains(program.id)) {
+                    val workoutCount = workoutsDao.getAllForProgram(program.id).size
+                    if (workoutCount > 0 && program.currentMicrocyclePosition >= workoutCount) {
+                        programsRepository.updateMesoAndMicroCycle(
+                            id = program.id,
+                            mesoCycle = program.currentMesocycle,
+                            microCycle = program.currentMicrocycle,
+                            microCyclePosition = workoutCount - 1
+                        )
+                    }
+                }
+            }
+
+            syncScheduler.scheduleSync()
+        }
 
         return deletedCount
     }

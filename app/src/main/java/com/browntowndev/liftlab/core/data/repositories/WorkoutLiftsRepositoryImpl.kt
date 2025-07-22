@@ -122,24 +122,29 @@ class WorkoutLiftsRepositoryImpl (
     }
 
     override suspend fun delete(model: GenericWorkoutLift): Int {
-        val toDelete = workoutLiftsDao.getWithoutRelationships(model.id) ?: return 0
-        val count = workoutLiftsDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = workoutLiftsDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<GenericWorkoutLift>): Int {
-        val toDelete = models.map { it.toEntity() }
-        val count = workoutLiftsDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
-
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = workoutLiftsDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = workoutLiftsDao.get(id) ?: return 0
-        return delete(toDelete.toDomainModel())
+        val count = workoutLiftsDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
     }
 
     override suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long> {

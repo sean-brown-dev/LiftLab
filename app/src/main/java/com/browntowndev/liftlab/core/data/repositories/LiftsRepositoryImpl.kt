@@ -130,26 +130,28 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun delete(model: Lift): Int {
-        val toDelete = model.toEntity()
-        val count = liftsDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = liftsDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<Lift>): Int {
-        val toDelete = models.fastMap { it.toEntity() }
-        val count = liftsDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
-
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = liftsDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = liftsDao.get(id) ?: return 0
-        val count = liftsDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = liftsDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 }

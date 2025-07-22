@@ -134,18 +134,20 @@ class PreviousSetResultsRepositoryImpl(
     }
 
     override suspend fun delete(model: SetResult): Int {
-        val toDelete = model.toEntity()
-        val count = previousSetResultDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = previousSetResultDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<SetResult>): Int {
-        val toDelete = models.map { it.toEntity() }
-        val count = previousSetResultDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
-
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = previousSetResultDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
@@ -163,23 +165,27 @@ class PreviousSetResultsRepositoryImpl(
         )
         if (toDelete.isEmpty()) return
 
-        previousSetResultDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
+        val count = previousSetResultDao.softDeleteMany(toDelete.map { it.id })
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
     }
 
     override suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
         val toDelete = previousSetResultDao.getAllForWorkout(workoutId, mesoCycle, microCycle)
         if (toDelete.isEmpty()) return
 
-        previousSetResultDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
+        val count = previousSetResultDao.softDeleteMany(toDelete.map { it.id })
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = previousSetResultDao.get(id) ?: return 0
-        previousSetResultDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
-        return 1
+        val count = previousSetResultDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
     }
 }

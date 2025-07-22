@@ -187,25 +187,23 @@ class ProgramsRepositoryImpl(
 
     override suspend fun deleteById(id: Long): Int {
         val toDelete = programsDao.get(id) ?: return 0
-        val deletedProgramCount = programsDao.delete(toDelete)
-
-        if (toDelete.isActive) {
-            restTimerInProgressDao.deleteAll()
-
-            val allPrograms = programsDao.getAll()
-            if (allPrograms.isNotEmpty()) {
-                var newActiveProgram = allPrograms.first()
-                newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
-                    remoteId = newActiveProgram.remoteId,
-                    remoteLastUpdated = newActiveProgram.lastUpdated,
-                    synced = false,
-                )
-                programsDao.update(newActiveProgram)
+        val deletedProgramCount = programsDao.softDelete(id)
+        if (deletedProgramCount > 0) {
+            if (toDelete.isActive) {
+                restTimerInProgressDao.deleteAll()
+                val allPrograms = programsDao.getAll()
+                if (allPrograms.isNotEmpty()) {
+                    var newActiveProgram = allPrograms.first()
+                    newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
+                        remoteId = newActiveProgram.remoteId,
+                        remoteLastUpdated = newActive_program.lastUpdated,
+                        synced = false,
+                    )
+                    programsDao.update(newActiveProgram)
+                }
             }
+            syncScheduler.scheduleSync()
         }
-
-        syncScheduler.scheduleSync()
-
         return deletedProgramCount
     }
 
@@ -214,30 +212,25 @@ class ProgramsRepositoryImpl(
     }
 
     override suspend fun deleteMany(models: List<Program>): Int {
-        // Delete the programs
-        val toDelete = models.fastMap { it.toEntity() }
-        val deletedProgramCount = programsDao.deleteMany(toDelete)
-        if (deletedProgramCount == 0) return 0
-
-        // See if we deleted the active program
-        if (toDelete.any { it.isActive }) {
-
-            // Activate a new program if there is no active programs (there shouldn't be, we deleted it!)
-            val allPrograms = programsDao.getAll()
-            val hasActiveProgram = allPrograms.any { it.isActive }
-            if (!hasActiveProgram && allPrograms.isNotEmpty()) {
-                var newActiveProgram = allPrograms.first()
-                newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
-                    remoteId = newActiveProgram.remoteId,
-                    remoteLastUpdated = newActiveProgram.lastUpdated,
-                    synced = false,
-                )
-                programsDao.update(newActiveProgram)
+        val toDeleteIds = models.map { it.id }
+        if (toDeleteIds.isEmpty()) return 0
+        val deletedProgramCount = programsDao.softDeleteMany(toDeleteIds)
+        if (deletedProgramCount > 0) {
+            if (models.any { it.isActive }) {
+                val allPrograms = programsDao.getAll()
+                val hasActiveProgram = allPrograms.any { it.isActive }
+                if (!hasActiveProgram && allPrograms.isNotEmpty()) {
+                    var newActiveProgram = allPrograms.first()
+                    newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
+                        remoteId = newActiveProgram.remoteId,
+                        remoteLastUpdated = newActiveProgram.lastUpdated,
+                        synced = false,
+                    )
+                    programsDao.update(newActiveProgram)
+                }
             }
+            syncScheduler.scheduleSync()
         }
-
-        syncScheduler.scheduleSync()
-
         return deletedProgramCount
     }
 

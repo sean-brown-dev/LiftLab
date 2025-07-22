@@ -142,40 +142,37 @@ class WorkoutInProgressRepositoryImpl(
     }
 
     override suspend fun delete(model: WorkoutInProgress): Int {
-        val toDelete = workoutInProgressDao.get(model.workoutId) ?: return 0
-        val count = workoutInProgressDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = workoutInProgressDao.softDelete(model.workoutId)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteMany(models: List<WorkoutInProgress>): Int {
-        val toDelete = models.map {
-            WorkoutInProgressEntity(
-                id = it.workoutId,
-                workoutId = it.workoutId,
-                startTime = it.startTime
-            )
+        val ids = models.map { it.workoutId }
+        if (ids.isEmpty()) return 0
+        val count = workoutInProgressDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
         }
-        val count = workoutInProgressDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
-
         return count
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = workoutInProgressDao.get(id) ?: return 0
-        val count = workoutInProgressDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val count = workoutInProgressDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
         return count
     }
 
     override suspend fun deleteAll(): Int {
         val toDelete = workoutInProgressDao.get() ?: return 0
-        val deleteCount = workoutInProgressDao.delete(toDelete)
-        syncScheduler.scheduleSync()
-
+        val deleteCount = workoutInProgressDao.softDelete(toDelete.id)
+        if (deleteCount > 0) {
+            syncScheduler.scheduleSync()
+        }
         return deleteCount
     }
 

@@ -102,8 +102,10 @@ class CustomLiftSetsRepositoryImpl(
         val toDelete = customSetsDao.getByWorkoutLiftId(workoutLiftId)
         if (toDelete.isEmpty()) return
 
-        customSetsDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
+        val deletedCount = customSetsDao.softDeleteMany(toDelete.map { it.id })
+        if (deletedCount > 0) {
+            syncScheduler.scheduleSync()
+        }
     }
 
     override suspend fun deleteByPosition(workoutLiftId: Long, position: Int) {
@@ -115,46 +117,50 @@ class CustomLiftSetsRepositoryImpl(
         val toDelete = setsForLift.singleOrNull { it.position == position } ?: return
         Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $toDelete")
 
-        customSetsDao.delete(toDelete)
-        customSetsDao.syncPositions(workoutLiftId, position)
-        val entitiesToUpdate = customSetsDao.getByWorkoutLiftId(workoutLiftId)
-        Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $entitiesToUpdate")
+        val deletedCount = customSetsDao.softDelete(toDelete.id)
+        if (deletedCount > 0) {
+            customSetsDao.syncPositions(workoutLiftId, position)
+            val entitiesToUpdate = customSetsDao.getByWorkoutLiftId(workoutLiftId)
+            Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $entitiesToUpdate")
 
-        // Update set count of workoutEntity liftEntity
-        val currentWorkoutLift = workoutLiftsDao.getWithoutRelationships(workoutLiftId)!!
-        val workoutLiftToUpdate = currentWorkoutLift.copy(setCount = entitiesToUpdate.size).applyRemoteStorageMetadata(
-            remoteId = currentWorkoutLift.remoteId,
-            remoteLastUpdated = currentWorkoutLift.lastUpdated,
-            synced = false,
-        )
-        workoutLiftsDao.update(workoutLiftToUpdate)
-        Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $workoutLiftToUpdate")
+            // Update set count of workoutEntity liftEntity
+            val currentWorkoutLift = workoutLiftsDao.getWithoutRelationships(workoutLiftId)!!
+            val workoutLiftToUpdate = currentWorkoutLift.copy(setCount = entitiesToUpdate.size).applyRemoteStorageMetadata(
+                remoteId = currentWorkoutLift.remoteId,
+                remoteLastUpdated = currentWorkoutLift.lastUpdated,
+                synced = false,
+            )
+            workoutLiftsDao.update(workoutLiftToUpdate)
+            Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $workoutLiftToUpdate")
 
-        syncScheduler.scheduleSync()
+            syncScheduler.scheduleSync()
+        }
     }
 
     override suspend fun delete(model: GenericLiftSet): Int {
-        val toDelete = customSetsDao.get(model.id) ?: return 0
-        return deleteWithoutRefetch(toDelete)
+        return deleteWithoutRefetch(model.id)
     }
 
     override suspend fun deleteMany(models: List<GenericLiftSet>): Int {
-        val toDelete = customSetsDao.getMany(models.map { it.id })
-        if (toDelete.isEmpty()) return 0
-        val deleteCount = customSetsDao.deleteMany(toDelete)
-        syncScheduler.scheduleSync()
+        val toDeleteIds = models.map { it.id }
+        if (toDeleteIds.isEmpty()) return 0
+        val deleteCount = customSetsDao.softDeleteMany(toDeleteIds)
+        if (deleteCount > 0) {
+            syncScheduler.scheduleSync()
+        }
 
         return deleteCount
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val toDelete = customSetsDao.get(id) ?: return 0
-        return deleteWithoutRefetch(toDelete)
+        return deleteWithoutRefetch(id)
     }
 
-    private suspend fun deleteWithoutRefetch(entity: CustomLiftSetEntity): Int {
-        val deleteCount = customSetsDao.delete(entity)
-        syncScheduler.scheduleSync()
+    private suspend fun deleteWithoutRefetch(id: Long): Int {
+        val deleteCount = customSetsDao.softDelete(id)
+        if (deleteCount > 0) {
+            syncScheduler.scheduleSync()
+        }
 
         return deleteCount
     }
