@@ -15,9 +15,8 @@ class ProgramSyncRepository(
     override val collectionName: String = RemoteCollectionNames.PROGRAMS_COLLECTION
     override val remoteDtoClass: KClass<ProgramRemoteDto> = ProgramRemoteDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<ProgramRemoteDto> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<ProgramRemoteDto> =
+        programsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<ProgramRemoteDto> =
         programsDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -33,4 +32,15 @@ class ProgramSyncRepository(
                     }
                 }
             }
+
+    override suspend fun deleteByRemoteId(remoteId: String): Int {
+        val toDelete = programsDao.getByRemoteId(remoteId) ?: return 0
+        return programsDao.delete(toDelete)
+    }
+
+    override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
+        val toDelete = programsDao.getManyByRemoteId(remoteIds)
+        if (toDelete.isEmpty()) return 0
+        return programsDao.deleteMany(toDelete)
+    }
 }

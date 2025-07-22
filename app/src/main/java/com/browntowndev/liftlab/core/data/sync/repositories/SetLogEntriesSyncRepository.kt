@@ -15,9 +15,8 @@ class SetLogEntriesSyncRepository(
     override val collectionName: String = RemoteCollectionNames.SET_LOG_ENTRIES_COLLECTION
     override val remoteDtoClass: KClass<SetLogEntryRemoteDto> = SetLogEntryRemoteDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<SetLogEntryRemoteDto> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<SetLogEntryRemoteDto> =
+        setLogEntryDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<SetLogEntryRemoteDto> =
         setLogEntryDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -33,4 +32,15 @@ class SetLogEntriesSyncRepository(
                     }
                 }
             }
+
+    override suspend fun deleteByRemoteId(remoteId: String): Int {
+        val toDelete = setLogEntryDao.getByRemoteId(remoteId) ?: return 0
+        return setLogEntryDao.delete(toDelete)
+    }
+
+    override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
+        val toDelete = setLogEntryDao.getManyByRemoteId(remoteIds)
+        if (toDelete.isEmpty()) return 0
+        return setLogEntryDao.deleteMany(toDelete)
+    }
 }

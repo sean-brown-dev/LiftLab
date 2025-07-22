@@ -15,9 +15,8 @@ class VolumeMetricChartsSyncRepository(
     override val collectionName: String = RemoteCollectionNames.VOLUME_METRIC_CHARTS_COLLECTION
     override val remoteDtoClass: KClass<VolumeMetricChartRemoteDto> = VolumeMetricChartRemoteDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<VolumeMetricChartRemoteDto> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<VolumeMetricChartRemoteDto> =
+        volumeMetricChartsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<VolumeMetricChartRemoteDto> =
         volumeMetricChartsDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -33,4 +32,15 @@ class VolumeMetricChartsSyncRepository(
                     }
                 }
             }
+
+    override suspend fun deleteByRemoteId(remoteId: String): Int {
+        val toDelete = volumeMetricChartsDao.getByRemoteId(remoteId) ?: return 0
+        return volumeMetricChartsDao.delete(toDelete)
+    }
+
+    override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
+        val toDelete = volumeMetricChartsDao.getManyByRemoteId(remoteIds)
+        if (toDelete.isEmpty()) return 0
+        return volumeMetricChartsDao.deleteMany(toDelete)
+    }
 }

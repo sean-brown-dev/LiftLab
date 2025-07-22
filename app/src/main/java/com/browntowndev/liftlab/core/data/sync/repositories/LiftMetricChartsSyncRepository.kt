@@ -15,9 +15,8 @@ class LiftMetricChartsSyncRepository(
     override val collectionName: String = RemoteCollectionNames.LIFT_METRIC_CHARTS_COLLECTION
     override val remoteDtoClass: KClass<LiftMetricChartRemoteDto> = LiftMetricChartRemoteDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<LiftMetricChartRemoteDto> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<LiftMetricChartRemoteDto> =
+        liftMetricChartsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<LiftMetricChartRemoteDto> =
         liftMetricChartsDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -33,4 +32,15 @@ class LiftMetricChartsSyncRepository(
                     }
                 }
             }
+
+    override suspend fun deleteByRemoteId(remoteId: String): Int {
+        val toDelete = liftMetricChartsDao.getByRemoteId(remoteId) ?: return 0
+        return liftMetricChartsDao.delete(toDelete)
+    }
+
+    override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
+        val toDelete = liftMetricChartsDao.getManyByRemoteId(remoteIds)
+        if (toDelete.isEmpty()) return 0
+        return liftMetricChartsDao.deleteMany(toDelete)
+    }
 }

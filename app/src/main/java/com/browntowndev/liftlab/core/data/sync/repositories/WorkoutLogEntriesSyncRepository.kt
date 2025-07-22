@@ -15,9 +15,8 @@ class WorkoutLogEntriesSyncRepository(
     override val collectionName: String = RemoteCollectionNames.WORKOUT_LOG_ENTRIES_COLLECTION
     override val remoteDtoClass: KClass<WorkoutLogEntryRemoteDto> = WorkoutLogEntryRemoteDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<WorkoutLogEntryRemoteDto> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<WorkoutLogEntryRemoteDto> =
+        workoutLogEntriesDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<WorkoutLogEntryRemoteDto> =
         workoutLogEntriesDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -33,4 +32,15 @@ class WorkoutLogEntriesSyncRepository(
                     }
                 }
             }
+
+    override suspend fun deleteByRemoteId(remoteId: String): Int {
+        val toDelete = workoutLogEntriesDao.getByRemoteId(remoteId) ?: return 0
+        return workoutLogEntriesDao.delete(toDelete)
+    }
+
+    override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
+        val toDelete = workoutLogEntriesDao.getManyByRemoteId(remoteIds)
+        if (toDelete.isEmpty()) return 0
+        return workoutLogEntriesDao.deleteMany(toDelete)
+    }
 }

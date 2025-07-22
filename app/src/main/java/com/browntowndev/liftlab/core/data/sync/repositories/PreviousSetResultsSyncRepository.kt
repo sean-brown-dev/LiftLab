@@ -15,9 +15,8 @@ class PreviousSetResultsSyncRepository(
     override val collectionName: String = RemoteCollectionNames.PREVIOUS_SET_RESULTS_COLLECTION
     override val remoteDtoClass: KClass<PreviousSetResultRemoteDto> = PreviousSetResultRemoteDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<PreviousSetResultRemoteDto> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<PreviousSetResultRemoteDto> =
+        previousSetResultsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<PreviousSetResultRemoteDto> =
         previousSetResultsDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -33,4 +32,15 @@ class PreviousSetResultsSyncRepository(
                     }
                 }
             }
+
+    override suspend fun deleteByRemoteId(remoteId: String): Int {
+        val toDelete = previousSetResultsDao.getByRemoteId(remoteId) ?: return 0
+        return previousSetResultsDao.delete(toDelete)
+    }
+
+    override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
+        val toDelete = previousSetResultsDao.getManyByRemoteId(remoteIds)
+        if (toDelete.isEmpty()) return 0
+        return previousSetResultsDao.deleteMany(toDelete)
+    }
 }
