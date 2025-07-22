@@ -19,8 +19,15 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
     @Query("SELECT * FROM sets WHERE set_id IN (:ids)")
     suspend fun getMany(ids: List<Long>): List<CustomLiftSetEntity>
 
+    @Transaction
+    @Query("SELECT * FROM sets WHERE remoteId IN (:ids)")
+    suspend fun getManyByRemoteId(ids: List<String>): List<CustomLiftSetEntity>
+
     @Query("SELECT * FROm sets WHERE set_id = :id")
     suspend fun get(id: Long): CustomLiftSetEntity?
+
+    @Query("SELECT * FROm sets WHERE remoteId = :id")
+    suspend fun getByRemoteId(id: String): CustomLiftSetEntity?
 
     @Transaction
     @Query("SELECT * FROM sets")
