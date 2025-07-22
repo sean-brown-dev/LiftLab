@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
+import kotlinx.coroutines.flow.Flow
+
 
 /**
  * A generic base interface for repositories providing common CRUD operations.
@@ -8,6 +10,8 @@ package com.browntowndev.liftlab.core.domain.repositories
  */
 interface Repository<T, K> {
     suspend fun getAll(): List<T>
+
+    fun getAllFlow(): Flow<List<T>>
 
     suspend fun getById(id: K): T?
 

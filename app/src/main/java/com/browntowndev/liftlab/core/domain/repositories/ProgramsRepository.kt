@@ -2,11 +2,10 @@ package com.browntowndev.liftlab.core.domain.repositories
 
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.Program
-import com.browntowndev.liftlab.core.persistence.firestore.sync.SyncQueueEntry
+import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
 import kotlinx.coroutines.flow.Flow
 
 interface ProgramsRepository: Repository<Program, Long> {
-    fun getAllFlow(): Flow<List<Program>>
     suspend fun getActive(): Program?
     fun getActiveProgramFlow(): Flow<Program?>
     suspend fun updateName(id: Long, newName: String)

@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.persistence.room.dtos.PersonalRecordDto
+import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
 import kotlinx.coroutines.flow.Flow
 
 interface PreviousSetResultsRepository : Repository<SetResult, Long> {

@@ -11,5 +11,4 @@ data class Program(
     val currentMicrocyclePosition: Int = 0,
     val currentMesocycle: Int = 0,
     val workouts: List<Workout> = listOf(),
-    val lastUpdated: Date? = null,
 )

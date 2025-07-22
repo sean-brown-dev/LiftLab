@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toMediumDateString
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository

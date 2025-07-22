@@ -24,8 +24,8 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.FirestoreSyncViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab

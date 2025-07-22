@@ -9,10 +9,10 @@ import com.browntowndev.liftlab.core.domain.models.StandardSet
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.core.persistence.room.repositories.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 
 class ProgramCloner {
     companion object {

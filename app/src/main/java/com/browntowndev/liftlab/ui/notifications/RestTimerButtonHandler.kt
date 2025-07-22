@@ -7,8 +7,8 @@ import android.util.Log
 import com.browntowndev.liftlab.core.common.executeInCoroutineScope
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.core.Koin

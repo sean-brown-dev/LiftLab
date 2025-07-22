@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDa
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet

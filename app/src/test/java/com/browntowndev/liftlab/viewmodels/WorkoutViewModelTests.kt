@@ -17,7 +17,7 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDa
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.DropSet
@@ -30,14 +30,14 @@ import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
-import com.browntowndev.liftlab.core.persistence.room.repositories.HistoricalWorkoutNamesRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.progression.StandardProgressionFactory
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.coEvery

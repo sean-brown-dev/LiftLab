@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.DropSet
 import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
@@ -23,13 +23,13 @@ import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.persistence.room.repositories.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState

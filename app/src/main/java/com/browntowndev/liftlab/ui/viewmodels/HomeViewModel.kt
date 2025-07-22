@@ -20,7 +20,7 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.Program
@@ -29,7 +29,7 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.VolumeMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.VolumeMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions

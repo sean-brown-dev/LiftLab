@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -23,7 +23,7 @@ import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import io.mockk.coEvery
 import io.mockk.every

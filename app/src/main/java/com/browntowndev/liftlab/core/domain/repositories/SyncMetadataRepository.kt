@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.persistence.firestore.documents.SyncMetadataDto
+import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
 
 interface SyncMetadataRepository {
     suspend fun upsert(syncMetadata: SyncMetadataDto)

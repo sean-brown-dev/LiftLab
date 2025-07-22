@@ -7,13 +7,13 @@ import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.room.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
