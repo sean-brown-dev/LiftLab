@@ -62,4 +62,10 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
             "FROM programs " +
             "WHERE isActive = 1")
     fun getActiveProgramMetadata(): Flow<ProgramMetadataDto?>
+
+    @Query("UPDATE programs SET deleted = 1, synced = 0 WHERE program_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE programs SET deleted = 1, synced = 0 WHERE program_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

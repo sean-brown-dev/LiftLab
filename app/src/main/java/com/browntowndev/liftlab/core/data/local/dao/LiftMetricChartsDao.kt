@@ -42,4 +42,10 @@ interface LiftMetricChartsDao: BaseDao<LiftMetricChartEntity> {
 
     @Query("DELETE FROM liftMetricCharts WHERE lift_metric_chart_id = :id")
     suspend fun delete(id: Long)
+
+    @Query("UPDATE liftMetricCharts SET deleted = 1, synced = 0 WHERE lift_metric_chart_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE liftMetricCharts SET deleted = 1, synced = 0 WHERE lift_metric_chart_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

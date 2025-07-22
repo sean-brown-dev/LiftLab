@@ -36,4 +36,10 @@ interface LiftsDao: BaseDao<LiftEntity> {
     @Transaction
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern")
     suspend fun getByCategory(movementPattern: MovementPattern): List<LiftEntity>
+
+    @Query("UPDATE lifts SET deleted = 1, synced = 0 WHERE lift_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE lifts SET deleted = 1, synced = 0 WHERE lift_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

@@ -62,4 +62,10 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Query("SELECT * FROM workouts " +
             "WHERE programId = :programId")
     suspend fun getAllForProgramWithoutRelationships(programId: Long): List<WorkoutEntity>
+
+    @Query("UPDATE workouts SET deleted = 1, synced = 0 WHERE workout_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE workouts SET deleted = 1, synced = 0 WHERE workout_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

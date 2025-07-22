@@ -38,4 +38,10 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
 
     @Query("SELECT * FROM sets WHERE workoutLiftId = :workoutLiftId")
     suspend fun getByWorkoutLiftId(workoutLiftId: Long): List<CustomLiftSetEntity>
+
+    @Query("UPDATE sets SET deleted = 1, synced = 0 WHERE set_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE sets SET deleted = 1, synced = 0 WHERE set_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

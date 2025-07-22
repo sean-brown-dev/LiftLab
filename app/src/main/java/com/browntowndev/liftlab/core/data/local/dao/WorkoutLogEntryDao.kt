@@ -117,4 +117,10 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
 
     @Query("SELECT * FROM workoutLogEntries WHERE workout_log_entry_id = :workoutLogEntryId")
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryEntity?
+
+    @Query("UPDATE workoutLogEntries SET deleted = 1, synced = 0 WHERE workout_log_entry_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE workoutLogEntries SET deleted = 1, synced = 0 WHERE workout_log_entry_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

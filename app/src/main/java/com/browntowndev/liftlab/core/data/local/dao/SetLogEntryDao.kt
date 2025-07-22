@@ -136,4 +136,10 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
 
     @Query("DELETE FROM setLogEntries WHERE set_log_entry_id IN (:ids)")
     suspend fun deleteManySetLogEntries(ids: List<Long>)
+
+    @Query("UPDATE setLogEntries SET deleted = 1, synced = 0 WHERE set_log_entry_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE setLogEntries SET deleted = 1, synced = 0 WHERE set_log_entry_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }

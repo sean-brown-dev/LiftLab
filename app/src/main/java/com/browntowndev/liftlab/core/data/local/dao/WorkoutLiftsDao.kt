@@ -48,4 +48,10 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
     @Transaction
     @Query("SELECT * FROM workoutLifts WHERE workoutId = :workoutId")
     suspend fun getForWorkout(workoutId: Long): List<WorkoutLiftWithRelationships>
+
+    @Query("UPDATE workoutLifts SET deleted = 1, synced = 0 WHERE workout_lift_id = :id")
+    suspend fun softDelete(id: Long)
+
+    @Query("UPDATE workoutLifts SET deleted = 1, synced = 0 WHERE workout_lift_id IN (:ids)")
+    suspend fun softDeleteMany(ids: List<Long>)
 }
