@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.data.sync
 
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.local.dao.SyncMetadataDao
@@ -21,39 +22,56 @@ class SyncOrchestrator(
 
     private suspend fun uploadPendingChanges() {
         syncRepositories.fastForEach { syncRepository ->
-                val unsyncedEntities = syncRepository.getAllUnsynced()
-                if (unsyncedEntities.isNotEmpty()) return@fastForEach
+            processSyncBatches(syncRepository)
+        }
+    }
 
-                val toUpsert = unsyncedEntities.filter { !it.deleted }
-                val toDelete = unsyncedEntities - toUpsert
+    private suspend fun processSyncBatches(syncRepository: RemoteSyncRepository) {
+        val unsyncedEntities = syncRepository.getAllUnsynced()
+        if (unsyncedEntities.isEmpty()) return
 
-                val syncBatches: List<BatchSyncCollection> = buildList {
-                    if (toUpsert.isNotEmpty()) {
-                        add(
-                            BatchSyncCollection(
-                                collectionName = syncRepository.collectionName,
-                                remoteEntities = toUpsert,
-                                syncType = SyncType.Upsert
-                            )
-                        )
-                    }
-                    if (toDelete.isNotEmpty()) {
-                        add(
-                            BatchSyncCollection(
-                                collectionName = syncRepository.collectionName,
-                                remoteEntities = toDelete,
-                                syncType = SyncType.Delete
-                            )
-                        )
-                    }
-                }
+        val toUpsert = unsyncedEntities.filter { !it.deleted }
+        val toDelete = (unsyncedEntities - toUpsert).filter { it.remoteId != null }
 
-                remoteDataClient.executeBatchSync(syncBatches)
+        val syncBatches: List<BatchSyncCollection> = buildList {
+            if (toUpsert.isNotEmpty()) {
+                add(
+                    BatchSyncCollection(
+                        collectionName = syncRepository.collectionName,
+                        remoteEntities = toUpsert,
+                        syncType = SyncType.Upsert
+                    )
+                )
             }
+            if (toDelete.isNotEmpty()) {
+                add(
+                    BatchSyncCollection(
+                        collectionName = syncRepository.collectionName,
+                        remoteEntities = toDelete,
+                        syncType = SyncType.Delete
+                    )
+                )
+            }
+        }
+
+        val upsertDocumentIds = remoteDataClient.executeBatchSync(syncBatches)
+
+        if (upsertDocumentIds.isNotEmpty()) {
+            val upsertedRemoteDtos = remoteDataClient.getMany(
+                collectionName = syncRepository.collectionName,
+                ids = upsertDocumentIds
+            )
+            syncRepository.upsertMany(upsertedRemoteDtos)
+        }
+        if (toDelete.isNotEmpty()) {
+            syncRepository.deleteManyByRemoteId(toDelete.fastMapNotNull { it.remoteId })
+        }
+
+        // TODO: Update last sync time
     }
 
     private suspend fun downloadNewerChanges() {
-        val collectionNames = syncRepositories.forEach { syncRepository ->
+        syncRepositories.forEach { syncRepository ->
             val collectionName = syncRepository.collectionName
             val syncMetadata = syncMetadataDao.getForCollection(collectionName = collectionName)
             val lastSynced = syncMetadata?.lastSyncTimestamp ?: Date(0)

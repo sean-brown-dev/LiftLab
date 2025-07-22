@@ -389,7 +389,6 @@ object RemoteMappingExtensions {
         restTime = this.restTime?.toDuration(DurationUnit.MILLISECONDS),
         restTimerEnabled = this.restTimerEnabled,
         incrementOverride = this.incrementOverride,
-        isHidden = this.isHidden,
         isBodyweight = this.isBodyweight,
         note = this.note
     ).apply {
@@ -406,7 +405,6 @@ object RemoteMappingExtensions {
         restTime = this.restTime?.inWholeMilliseconds,
         restTimerEnabled = this.restTimerEnabled,
         incrementOverride = this.incrementOverride,
-        isHidden = this.isHidden,
         isBodyweight = this.isBodyweight,
         note = this.note
     ).apply {

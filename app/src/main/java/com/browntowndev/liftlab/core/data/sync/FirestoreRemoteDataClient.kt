@@ -34,8 +34,10 @@ class FirestoreRemoteDataClient(
             .toDtos(collectionName)
     }
 
-    override suspend fun executeBatchSync(batches: List<BatchSyncCollection>) {
-        if (!firestoreClient.isUserLoggedIn) return
+    override suspend fun executeBatchSync(batches: List<BatchSyncCollection>): List<String> {
+        if (!firestoreClient.isUserLoggedIn) return emptyList()
+
+        val upsertDocumentIds = mutableListOf<String>()
         batches.forEachParallel(10) { syncCollectionChunk ->
             val batch = firestoreClient.batch()
 
@@ -46,6 +48,7 @@ class FirestoreRemoteDataClient(
                         val document = if (entity.remoteId == null) collectionRef.document()
                             else collectionRef.document(entity.remoteId!!)
 
+                        upsertDocumentIds.add(document.id)
                         batch.set(document, entity)
                     }
 
@@ -60,7 +63,7 @@ class FirestoreRemoteDataClient(
             batch.commit()
         }
 
-
+        return upsertDocumentIds
     }
 
     private fun List<DocumentSnapshot>.toDtos(collectionName: String): List<BaseRemoteDto> {
