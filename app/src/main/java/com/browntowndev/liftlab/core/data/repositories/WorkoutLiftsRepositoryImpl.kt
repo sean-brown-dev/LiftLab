@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.sync.SyncScheduler
@@ -35,9 +35,9 @@ class WorkoutLiftsRepositoryImpl (
 
     override suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long) {
         val current = workoutLiftsDao.getWithoutRelationships(workoutLiftId) ?: return
-        val toUpdate = current.copy(liftId = newLiftId).applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = current.copy(liftId = newLiftId).applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         workoutLiftsDao.update(toUpdate)
@@ -62,9 +62,9 @@ class WorkoutLiftsRepositoryImpl (
 
     override suspend fun update(model: GenericWorkoutLift) {
         val current = workoutLiftsDao.getWithoutRelationships(model.id) ?: return
-        val toUpdate = model.toEntity().applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         workoutLiftsDao.update(toUpdate)
@@ -77,9 +77,9 @@ class WorkoutLiftsRepositoryImpl (
 
         val toUpdate = models.fastMapNotNull { workoutLift ->
             val current = currentEntities[workoutLift.id] ?: return@fastMapNotNull null
-            workoutLift.toEntity().applyFirestoreMetadata(
-                firestoreId = current.remoteId,
-                lastUpdated = current.lastUpdated,
+            workoutLift.toEntity().applyRemoteStorageMetadata(
+                remoteId = current.remoteId,
+                remoteLastUpdated = current.lastUpdated,
                 synced = false,
             )
         }
@@ -90,9 +90,9 @@ class WorkoutLiftsRepositoryImpl (
 
     override suspend fun upsert(model: GenericWorkoutLift): Long {
         val current = workoutLiftsDao.getWithoutRelationships(model.id)
-        val toUpsert = model.toEntity().applyFirestoreMetadata(
-            firestoreId = current?.remoteId,
-            lastUpdated = current?.lastUpdated,
+        val toUpsert = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current?.remoteId,
+            remoteLastUpdated = current?.lastUpdated,
             synced = false,
         )
         val id = workoutLiftsDao.upsert(toUpsert)
@@ -105,9 +105,9 @@ class WorkoutLiftsRepositoryImpl (
         val currentEntities = workoutLiftsDao.getManyWithoutRelationships(models.map { it.id }).associateBy { it.id }
         val toUpsert = models.map { workoutLift ->
             val current = currentEntities[workoutLift.id]
-            workoutLift.toEntity().applyFirestoreMetadata(
-                firestoreId = current?.remoteId,
-                lastUpdated = current?.lastUpdated,
+            workoutLift.toEntity().applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.lastUpdated,
                 synced = false,
             )
         }

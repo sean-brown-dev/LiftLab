@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.data.local.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 
@@ -19,9 +19,9 @@ class VolumeMetricChartsRepositoryImpl(
             id = model.id,
             volumeType = model.volumeType,
             volumeTypeImpact = model.volumeTypeImpact,
-        ).applyFirestoreMetadata(
-            firestoreId = current?.remoteId,
-            lastUpdated = current?.lastUpdated,
+        ).applyRemoteStorageMetadata(
+            remoteId = current?.remoteId,
+            remoteLastUpdated = current?.lastUpdated,
             synced = false
         )
         val id = volumeMetricChartsDao.upsert(toUpsert).let {
@@ -42,9 +42,9 @@ class VolumeMetricChartsRepositoryImpl(
                     id = volumeMetricChart.id,
                     volumeType = volumeMetricChart.volumeType,
                     volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
-                ).applyFirestoreMetadata(
-                    firestoreId = current?.remoteId,
-                    lastUpdated = current?.lastUpdated,
+                ).applyRemoteStorageMetadata(
+                    remoteId = current?.remoteId,
+                    remoteLastUpdated = current?.lastUpdated,
                     synced = false
                 )
             }

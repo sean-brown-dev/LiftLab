@@ -40,16 +40,8 @@ class FirestoreMetadataProcessor(
                         package $packageName
                         
                         import java.util.Date
-
-                        fun $className.copyWithFirestoreMetadata(remoteId: String?, remoteLastUpdated: Date?, synced: Boolean): $className {
-                            return this.copy().apply {
-                                this.remoteId = remoteId
-                                this.remoteLastUpdated = remoteLastUpdated
-                                this.synced = synced
-                            }
-                        }
                         
-                        fun $className.applyFirestoreMetadata(remoteId: String?, remoteLastUpdated: Date?, synced: Boolean): $className {
+                        fun $className.applyRemoteStorageMetadata(remoteId: String?, remoteLastUpdated: Date?, synced: Boolean): $className {
                             this.remoteId = remoteId
                             this.remoteLastUpdated = remoteLastUpdated
                             this.synced = synced

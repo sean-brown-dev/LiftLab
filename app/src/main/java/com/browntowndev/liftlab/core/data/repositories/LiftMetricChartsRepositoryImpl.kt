@@ -1,12 +1,11 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -31,9 +30,9 @@ class LiftMetricChartsRepositoryImpl(
                 id = model.id,
                 liftId = model.liftId,
                 chartType = model.chartType,
-            ).applyFirestoreMetadata(
-                firestoreId = current?.remoteId,
-                lastUpdated = current?.lastUpdated,
+            ).applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.lastUpdated,
                 synced = false,
             )
 
@@ -56,9 +55,9 @@ class LiftMetricChartsRepositoryImpl(
                 id = liftMetricChart.id,
                 liftId = liftMetricChart.liftId,
                 chartType = liftMetricChart.chartType,
-            ).applyFirestoreMetadata(
-                firestoreId = current?.remoteId,
-                lastUpdated = current?.lastUpdated,
+            ).applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.lastUpdated,
                 synced = false,
             )
         }

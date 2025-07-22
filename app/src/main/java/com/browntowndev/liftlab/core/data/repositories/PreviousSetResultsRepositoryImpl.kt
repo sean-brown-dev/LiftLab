@@ -1,12 +1,10 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.sync.SyncScheduler
@@ -84,9 +82,9 @@ class PreviousSetResultsRepositoryImpl(
     override suspend fun upsert(model: SetResult): Long {
         val current = previousSetResultDao.get(model.id)
         val toUpsert = model.toEntity()
-            .applyFirestoreMetadata(
-                firestoreId = current?.remoteId,
-                lastUpdated = current?.lastUpdated,
+            .applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.lastUpdated,
                 synced = false
             )
         val id = previousSetResultDao.upsert(toUpsert).let {
@@ -103,9 +101,9 @@ class PreviousSetResultsRepositoryImpl(
         val toUpsert =
             models.fastMap { setResult ->
                 val current = currentEntities[setResult.id]
-                setResult.toEntity().applyFirestoreMetadata(
-                    firestoreId = current?.remoteId,
-                    lastUpdated = current?.lastUpdated,
+                setResult.toEntity().applyRemoteStorageMetadata(
+                    remoteId = current?.remoteId,
+                    remoteLastUpdated = current?.lastUpdated,
                     synced = false
                 )
             }

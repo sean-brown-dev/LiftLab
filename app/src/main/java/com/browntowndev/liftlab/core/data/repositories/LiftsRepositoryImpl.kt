@@ -1,12 +1,11 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.mapping.LiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.LiftMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
 import com.browntowndev.liftlab.core.data.sync.SyncScheduler
@@ -28,9 +27,9 @@ class LiftsRepositoryImpl(
 
     override suspend fun update(model: Lift) {
         val current = liftsDao.get(model.id)
-        val toUpdate = model.toEntity().applyFirestoreMetadata(
-                firestoreId = current?.remoteId,
-                lastUpdated = current?.lastUpdated,
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.lastUpdated,
                 synced = false,
             )
         liftsDao.update(toUpdate)
@@ -50,9 +49,9 @@ class LiftsRepositoryImpl(
     override suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?) {
         val current = liftsDao.get(id) ?: return
         val toUpdate = current.copy(restTimerEnabled = enabled, restTime = newRestTime)
-            .applyFirestoreMetadata(
-                firestoreId = current.remoteId,
-                lastUpdated = current.lastUpdated,
+            .applyRemoteStorageMetadata(
+                remoteId = current.remoteId,
+                remoteLastUpdated = current.lastUpdated,
                 synced = false,
             )
         updateWithoutRefetch(toUpdate)
@@ -60,9 +59,9 @@ class LiftsRepositoryImpl(
 
     override suspend fun updateIncrementOverride(id: Long, newIncrement: Float?) {
         val current = liftsDao.get(id) ?: return
-        val toUpdate = current.copy(incrementOverride = newIncrement).applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = current.copy(incrementOverride = newIncrement).applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -70,9 +69,9 @@ class LiftsRepositoryImpl(
 
     override suspend fun updateNote(id: Long, note: String?) {
         val current = liftsDao.get(id) ?: return
-        val toUpdate = current.copy(note = note).applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = current.copy(note = note).applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -99,9 +98,9 @@ class LiftsRepositoryImpl(
 
     override suspend fun upsert(model: Lift): Long {
         val current = liftsDao.get(model.id)
-        val toUpsert = model.toEntity().applyFirestoreMetadata(
-            firestoreId = current?.remoteId,
-            lastUpdated = current?.lastUpdated,
+        val toUpsert = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current?.remoteId,
+            remoteLastUpdated = current?.lastUpdated,
             synced = false,
         )
         val id = liftsDao.upsert(toUpsert)

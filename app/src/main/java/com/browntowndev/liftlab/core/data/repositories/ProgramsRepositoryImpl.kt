@@ -2,13 +2,12 @@ package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import androidx.work.WorkManager
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -79,9 +78,9 @@ class ProgramsRepositoryImpl(
 
     override suspend fun updateName(id: Long, newName: String) {
         val current = programsDao.get(id) ?: return
-        val toUpdate = current.copy(name = newName).applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = current.copy(name = newName).applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -89,9 +88,9 @@ class ProgramsRepositoryImpl(
 
     override suspend fun updateDeloadWeek(id: Long, newDeloadWeek: Int) {
         val current = programsDao.get(id) ?: return
-        val toUpdate = current.copy(deloadWeek = newDeloadWeek).applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = current.copy(deloadWeek = newDeloadWeek).applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -99,9 +98,9 @@ class ProgramsRepositoryImpl(
 
     override suspend fun update(model: Program) {
         val current = programsDao.get(model.id) ?: return
-        val toUpdate = model.toEntity().applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false
         )
         programsDao.update(toUpdate)
@@ -121,9 +120,9 @@ class ProgramsRepositoryImpl(
             models.fastMapNotNull { program ->
                 val current = currentEntities[program.id]
                 if (current == null) return@fastMapNotNull null
-                program.toEntity().applyFirestoreMetadata(
-                    firestoreId = current.remoteId,
-                    lastUpdated = current.lastUpdated,
+                program.toEntity().applyRemoteStorageMetadata(
+                    remoteId = current.remoteId,
+                    remoteLastUpdated = current.lastUpdated,
                     synced = false
                 )
             }
@@ -196,9 +195,9 @@ class ProgramsRepositoryImpl(
             val allPrograms = programsDao.getAll()
             if (allPrograms.isNotEmpty()) {
                 var newActiveProgram = allPrograms.first()
-                newActiveProgram = newActiveProgram.copy(isActive = true).applyFirestoreMetadata(
-                    firestoreId = newActiveProgram.remoteId,
-                    lastUpdated = newActiveProgram.lastUpdated,
+                newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
+                    remoteId = newActiveProgram.remoteId,
+                    remoteLastUpdated = newActiveProgram.lastUpdated,
                     synced = false,
                 )
                 programsDao.update(newActiveProgram)
@@ -228,9 +227,9 @@ class ProgramsRepositoryImpl(
             val hasActiveProgram = allPrograms.any { it.isActive }
             if (!hasActiveProgram && allPrograms.isNotEmpty()) {
                 var newActiveProgram = allPrograms.first()
-                newActiveProgram = newActiveProgram.copy(isActive = true).applyFirestoreMetadata(
-                    firestoreId = newActiveProgram.remoteId,
-                    lastUpdated = newActiveProgram.lastUpdated,
+                newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
+                    remoteId = newActiveProgram.remoteId,
+                    remoteLastUpdated = newActiveProgram.lastUpdated,
                     synced = false,
                 )
                 programsDao.update(newActiveProgram)
@@ -248,9 +247,9 @@ class ProgramsRepositoryImpl(
             currentMesocycle = mesoCycle,
             currentMicrocycle = microCycle,
             currentMicrocyclePosition = microCyclePosition
-        ).applyFirestoreMetadata(
-            firestoreId = current.remoteId,
-            lastUpdated = current.lastUpdated,
+        ).applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.lastUpdated,
             synced = false,
         )
         programsDao.update(toUpdate)

@@ -1,7 +1,8 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.entities.applyFirestoreMetadata
+
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toEntity
@@ -73,9 +74,9 @@ class SetLogEntryRepositoryImpl(
     override suspend fun upsert(model: SetLogEntry): Long {
         val current = setLogEntryDao.get(model.id)
         val toUpsert = model.toEntity()
-            .applyFirestoreMetadata(
-                firestoreId = current?.remoteId,
-                lastUpdated = current?.lastUpdated,
+            .applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.lastUpdated,
                 synced = false
             )
 
@@ -95,9 +96,9 @@ class SetLogEntryRepositoryImpl(
         val toUpsert = models.fastMap { setLogEntry ->
             val current = currentEntries[setLogEntry.id]
             setLogEntry.toEntity()
-                .applyFirestoreMetadata(
-                    firestoreId = current?.remoteId,
-                    lastUpdated = current?.lastUpdated,
+                .applyRemoteStorageMetadata(
+                    remoteId = current?.remoteId,
+                    remoteLastUpdated = current?.lastUpdated,
                     synced = false
                 )
         }
