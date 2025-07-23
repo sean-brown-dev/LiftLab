@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.sync.repositories
+package com.browntowndev.liftlab.core.data.remote.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.remote.dto.WorkoutLogEntryRemoteDto

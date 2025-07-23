@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +35,7 @@ import java.lang.Integer.max
 
 class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
-    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
+    private val workoutLogRepository: WorkoutLogRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,

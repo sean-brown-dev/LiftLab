@@ -28,7 +28,7 @@ interface LiftsDao: BaseDao<LiftEntity> {
 
     @Transaction
     @Query("SELECT * FROM lifts WHERE deleted = 0")
-    suspend fun getAll(includeHidden: Boolean = false): List<LiftEntity>
+    suspend fun getAll(): List<LiftEntity>
 
     @Transaction
     @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern AND deleted = 0")

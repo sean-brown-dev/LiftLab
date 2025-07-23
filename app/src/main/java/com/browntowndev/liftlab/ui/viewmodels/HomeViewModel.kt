@@ -59,7 +59,7 @@ import java.util.Date
 
 class HomeViewModel(
     private val programsRepository: ProgramsRepository,
-    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
+    private val workoutLogRepository: WorkoutLogRepository,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val volumeMetricChartsRepositoryImpl: VolumeMetricChartsRepositoryImpl,
     private val liftsRepository: LiftsRepository,

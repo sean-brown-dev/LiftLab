@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration
@@ -29,7 +29,7 @@ class LiftsRepositoryImpl(
         val current = liftsDao.get(model.id)
         val toUpdate = model.toEntity().applyRemoteStorageMetadata(
                 remoteId = current?.remoteId,
-                remoteLastUpdated = current?.lastUpdated,
+                remoteLastUpdated = current?.remoteLastUpdated,
                 synced = false,
             )
         liftsDao.update(toUpdate)
@@ -51,7 +51,7 @@ class LiftsRepositoryImpl(
         val toUpdate = current.copy(restTimerEnabled = enabled, restTime = newRestTime)
             .applyRemoteStorageMetadata(
                 remoteId = current.remoteId,
-                remoteLastUpdated = current.lastUpdated,
+                remoteLastUpdated = current.remoteLastUpdated,
                 synced = false,
             )
         updateWithoutRefetch(toUpdate)
@@ -61,7 +61,7 @@ class LiftsRepositoryImpl(
         val current = liftsDao.get(id) ?: return
         val toUpdate = current.copy(incrementOverride = newIncrement).applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -71,7 +71,7 @@ class LiftsRepositoryImpl(
         val current = liftsDao.get(id) ?: return
         val toUpdate = current.copy(note = note).applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -100,7 +100,7 @@ class LiftsRepositoryImpl(
         val current = liftsDao.get(model.id)
         val toUpsert = model.toEntity().applyRemoteStorageMetadata(
             remoteId = current?.remoteId,
-            remoteLastUpdated = current?.lastUpdated,
+            remoteLastUpdated = current?.remoteLastUpdated,
             synced = false,
         )
         val id = liftsDao.upsert(toUpsert)

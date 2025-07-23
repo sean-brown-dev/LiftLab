@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.sync
+package com.browntowndev.liftlab.core.data.remote
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.forEachParallel
@@ -13,6 +13,7 @@ class FirestoreRemoteDataClient(
     private val firestoreClient: FirestoreClient,
     private val collectionTypes: Map<String, KClass<out BaseRemoteDto>>
 ): RemoteDataClient {
+
     override suspend fun getAllSince(collectionName: String, lastUpdated: Date): List<BaseRemoteDto> {
         if (!firestoreClient.isUserLoggedIn) return emptyList()
         return firestoreClient

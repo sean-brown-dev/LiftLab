@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.data.remote.dto.HistoricalWorkoutNameRemote
 import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.WorkoutRemoteDto
 import com.browntowndev.liftlab.core.data.remote.sync.BatchSyncQueueEntry
-import com.browntowndev.liftlab.core.data.sync.FirestoreClient
+import com.browntowndev.liftlab.core.data.remote.FirestoreClient
 import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
 import com.browntowndev.liftlab.core.data.remote.sync.SyncQueueEntry
 import com.google.android.gms.tasks.TaskCompletionSource

@@ -38,7 +38,7 @@ object RemoteMappingExtensions {
 
         ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun LiftMetricChartEntity.toRemoteDto(): LiftMetricChartRemoteDto = LiftMetricChartRemoteDto(
@@ -47,7 +47,7 @@ object RemoteMappingExtensions {
         chartType = this.chartType
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun PreviousSetResultRemoteDto.toEntity(): PreviousSetResultEntity = PreviousSetResultEntity(
@@ -69,7 +69,7 @@ object RemoteMappingExtensions {
         isDeload = this.isDeload
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun PreviousSetResultEntity.toRemoteDto(): PreviousSetResultRemoteDto = PreviousSetResultRemoteDto(
@@ -91,7 +91,7 @@ object RemoteMappingExtensions {
         isDeload = this.isDeload
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun ProgramRemoteDto.toEntity(): ProgramEntity = ProgramEntity(
@@ -104,7 +104,7 @@ object RemoteMappingExtensions {
         currentMesocycle = this.currentMesocycle
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun ProgramEntity.toRemoteDto(): ProgramRemoteDto = ProgramRemoteDto(
@@ -117,27 +117,19 @@ object RemoteMappingExtensions {
         currentMesocycle = this.currentMesocycle
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun RestTimerInProgressRemoteDto.toEntity(): RestTimerInProgressEntity = RestTimerInProgressEntity(
         id = this.id,
         timeStartedInMillis = this.timeStartedInMillis,
         restTime = this.restTime
-    ).apply {
-        this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
-        this.synced = true
-    }
+    )
     fun RestTimerInProgressEntity.toRemoteDto(): RestTimerInProgressRemoteDto = RestTimerInProgressRemoteDto(
         id = this.id,
         timeStartedInMillis = this.timeStartedInMillis,
         restTime = this.restTime
-    ).apply {
-        this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
-        this.synced = this@toRemoteDto.synced
-    }
+    )
     fun SetLogEntryRemoteDto.toEntity(): SetLogEntryEntity = SetLogEntryEntity(
         id = this.id,
         workoutLogEntryId = this.workoutLogEntryId,
@@ -167,7 +159,7 @@ object RemoteMappingExtensions {
         isDeload = this.isDeload
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun SetLogEntryEntity.toRemoteDto(): SetLogEntryRemoteDto = SetLogEntryRemoteDto(
@@ -199,7 +191,7 @@ object RemoteMappingExtensions {
         isDeload = this.isDeload
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun VolumeMetricChartRemoteDto.toEntity(): VolumeMetricChartEntity = VolumeMetricChartEntity(
@@ -208,7 +200,7 @@ object RemoteMappingExtensions {
         volumeTypeImpact = this.volumeTypeImpact
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun VolumeMetricChartEntity.toRemoteDto(): VolumeMetricChartRemoteDto = VolumeMetricChartRemoteDto(
@@ -217,7 +209,7 @@ object RemoteMappingExtensions {
         volumeTypeImpact = this.volumeTypeImpact
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutRemoteDto.toEntity(): WorkoutEntity = WorkoutEntity(
@@ -227,7 +219,7 @@ object RemoteMappingExtensions {
         position = this.position
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun WorkoutEntity.toRemoteDto(): WorkoutRemoteDto = WorkoutRemoteDto(
@@ -237,7 +229,7 @@ object RemoteMappingExtensions {
         position = this.position
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutInProgressRemoteDto.toEntity(): WorkoutInProgressEntity = WorkoutInProgressEntity(
@@ -246,7 +238,7 @@ object RemoteMappingExtensions {
         startTime = this.startTime
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun WorkoutInProgressEntity.toRemoteDto(): WorkoutInProgressRemoteDto = WorkoutInProgressRemoteDto(
@@ -255,7 +247,7 @@ object RemoteMappingExtensions {
         startTime = this.startTime
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutLiftRemoteDto.toEntity(): WorkoutLiftEntity = WorkoutLiftEntity(
@@ -272,7 +264,7 @@ object RemoteMappingExtensions {
         stepSize = this.stepSize
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun WorkoutLiftEntity.toRemoteDto(): WorkoutLiftRemoteDto = WorkoutLiftRemoteDto(
@@ -289,7 +281,7 @@ object RemoteMappingExtensions {
         stepSize = this.stepSize
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutLogEntryRemoteDto.toEntity(): WorkoutLogEntryEntity = WorkoutLogEntryEntity(
@@ -304,7 +296,7 @@ object RemoteMappingExtensions {
         durationInMillis = this.durationInMillis
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun WorkoutLogEntryEntity.toRemoteDto(): WorkoutLogEntryRemoteDto = WorkoutLogEntryRemoteDto(
@@ -319,7 +311,7 @@ object RemoteMappingExtensions {
         durationInMillis = this.durationInMillis
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun CustomLiftSetRemoteDto.toEntity(): CustomLiftSetEntity = CustomLiftSetEntity(
@@ -337,7 +329,7 @@ object RemoteMappingExtensions {
         setMatching = this.setMatching
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun CustomLiftSetEntity.toRemoteDto(): CustomLiftSetRemoteDto = CustomLiftSetRemoteDto(
@@ -355,7 +347,7 @@ object RemoteMappingExtensions {
         setMatching = this.setMatching
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun HistoricalWorkoutNameRemoteDto.toEntity(): HistoricalWorkoutNameEntity = HistoricalWorkoutNameEntity(
@@ -366,7 +358,7 @@ object RemoteMappingExtensions {
         workoutName = this.workoutName
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun HistoricalWorkoutNameEntity.toRemoteDto(): HistoricalWorkoutNameRemoteDto = HistoricalWorkoutNameRemoteDto(
@@ -377,7 +369,7 @@ object RemoteMappingExtensions {
         workoutName = this.workoutName
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
     fun LiftRemoteDto.toEntity(): LiftEntity = LiftEntity(
@@ -393,7 +385,7 @@ object RemoteMappingExtensions {
         note = this.note
     ).apply {
         this.remoteId = this@toEntity.remoteId
-        this.lastUpdated = this@toEntity.lastUpdated
+        this.remoteLastUpdated = this@toEntity.lastUpdated
         this.synced = true
     }
     fun LiftEntity.toRemoteDto(): LiftRemoteDto = LiftRemoteDto(
@@ -409,7 +401,7 @@ object RemoteMappingExtensions {
         note = this.note
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
-        this.lastUpdated = this@toRemoteDto.lastUpdated
+        this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
 }

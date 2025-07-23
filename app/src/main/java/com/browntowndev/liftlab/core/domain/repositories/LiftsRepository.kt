@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
 
 interface LiftsRepository : Repository<Lift, Long> {
-    fun getAllFlow(): Flow<List<Lift>>
     suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?)
     suspend fun updateIncrementOverride(id: Long, newIncrement: Float?)
     suspend fun updateNote(id: Long, note: String?)

@@ -14,7 +14,6 @@ object LiftMappingExtensions {
             restTime = this.restTime,
             restTimerEnabled = this.restTimerEnabled,
             incrementOverride = this.incrementOverride,
-            isHidden = this.isHidden,
             isBodyweight = this.isBodyweight,
             note = this.note,
         )
@@ -30,7 +29,6 @@ object LiftMappingExtensions {
             restTime = this.restTime,
             restTimerEnabled = this.restTimerEnabled,
             incrementOverride = this.incrementOverride,
-            isHidden = this.isHidden,
             isBodyweight = this.isBodyweight,
             note = this.note,
         )

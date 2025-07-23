@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.sync.repositories
+package com.browntowndev.liftlab.core.data.remote.repositories
 
 import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
 import kotlin.reflect.KClass

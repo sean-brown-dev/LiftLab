@@ -48,6 +48,7 @@ import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImp
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.browntowndev.liftlab.core.domain.progression.ProgressionFactory
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -75,7 +76,7 @@ class WorkoutViewModel(
     private val setResultsRepository: PreviousSetResultsRepository,
     private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
     private val historicalWorkoutNamesRepositoryImpl: HistoricalWorkoutNamesRepositoryImpl,
-    private val workoutLogRepository: com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepositoryImpl,
+    private val workoutLogRepository: WorkoutLogRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
     private val navigateToWorkoutHistory: () -> Unit,

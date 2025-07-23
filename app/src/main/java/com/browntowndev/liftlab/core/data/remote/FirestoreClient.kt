@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.sync
+package com.browntowndev.liftlab.core.data.remote
 
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.WriteBatch

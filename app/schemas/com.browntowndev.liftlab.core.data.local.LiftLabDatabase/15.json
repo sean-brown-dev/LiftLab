@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 15,
-    "identityHash": "b8f8ba205d114357e8a8d1ed187a3354",
+    "identityHash": "6164376866d97feb0804eb6ef0cd01ad",
     "entities": [
       {
         "tableName": "lifts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL, `incrementOverride` REAL, `isHidden` INTEGER NOT NULL, `isBodyweight` INTEGER NOT NULL, `note` TEXT, `remoteId` TEXT DEFAULT NULL, `lastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL, `incrementOverride` REAL, `isBodyweight` INTEGER NOT NULL, `note` TEXT, `remoteId` TEXT DEFAULT NULL, `lastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
         "fields": [
           {
             "fieldPath": "id",
@@ -52,12 +52,6 @@
             "fieldPath": "incrementOverride",
             "columnName": "incrementOverride",
             "affinity": "REAL"
-          },
-          {
-            "fieldPath": "isHidden",
-            "columnName": "isHidden",
-            "affinity": "INTEGER",
-            "notNull": true
           },
           {
             "fieldPath": "isBodyweight",
@@ -1748,7 +1742,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b8f8ba205d114357e8a8d1ed187a3354')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6164376866d97feb0804eb6ef0cd01ad')"
     ]
   }
 }

@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.data.local.entities
 
 import androidx.room.ColumnInfo
-import androidx.room.Index
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
@@ -13,7 +12,7 @@ open class BaseEntity() {
 
     @ServerTimestamp
     @ColumnInfo(defaultValue = "NULL")
-    open var lastUpdated: Date? = null
+    open var remoteLastUpdated: Date? = null
 
     @ColumnInfo(defaultValue = false.toString())
     open var synced: Boolean = false

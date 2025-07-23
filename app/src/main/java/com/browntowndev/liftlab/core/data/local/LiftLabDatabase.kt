@@ -39,6 +39,7 @@ import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.migrations.LiftNoteMigration
 import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxAutoMigration
+import com.browntowndev.liftlab.core.data.local.migrations.RemoteSyncAutoMigration
 import com.browntowndev.liftlab.core.data.local.migrations.StepSizeAutoMigration
 import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigration
 
@@ -60,7 +61,7 @@ import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigr
         VolumeMetricChartEntity::class,
         SyncMetadataEntity::class,
    ],
-    version = 15,
+    version = 16,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -75,6 +76,7 @@ import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigr
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
         AutoMigration(from = 12, to = 13),
         AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 15, to = 16, spec = RemoteSyncAutoMigration::class),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao

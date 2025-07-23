@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -84,7 +84,7 @@ class PreviousSetResultsRepositoryImpl(
         val toUpsert = model.toEntity()
             .applyRemoteStorageMetadata(
                 remoteId = current?.remoteId,
-                remoteLastUpdated = current?.lastUpdated,
+                remoteLastUpdated = current?.remoteLastUpdated,
                 synced = false
             )
         val id = previousSetResultDao.upsert(toUpsert).let {
@@ -103,7 +103,7 @@ class PreviousSetResultsRepositoryImpl(
                 val current = currentEntities[setResult.id]
                 setResult.toEntity().applyRemoteStorageMetadata(
                     remoteId = current?.remoteId,
-                    remoteLastUpdated = current?.lastUpdated,
+                    remoteLastUpdated = current?.remoteLastUpdated,
                     synced = false
                 )
             }

@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.sync
+package com.browntowndev.liftlab.core.data.remote
 
 import androidx.work.*
 import androidx.work.WorkRequest.Companion.MIN_BACKOFF_MILLIS

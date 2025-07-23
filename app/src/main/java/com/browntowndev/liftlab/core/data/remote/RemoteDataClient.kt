@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.sync
+package com.browntowndev.liftlab.core.data.remote
 
 import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
 import java.util.Date

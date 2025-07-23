@@ -6,18 +6,11 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 
-@GenerateFirestoreMetadataExtensions
-@Entity(
-    tableName="restTimerInProgress",
-    indices = [
-        Index("synced"),
-        Index("remoteId", unique = true),
-    ]
-)
+@Entity(tableName="restTimerInProgress")
 data class RestTimerInProgressEntity(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("rest_timer_in_progress_id")
     val id: Long = 0,
     val timeStartedInMillis: Long,
     val restTime: Long,
-): BaseEntity()
+)
 

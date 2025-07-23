@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 
 class VolumeMetricChartsRepositoryImpl(
@@ -21,7 +21,7 @@ class VolumeMetricChartsRepositoryImpl(
             volumeTypeImpact = model.volumeTypeImpact,
         ).applyRemoteStorageMetadata(
             remoteId = current?.remoteId,
-            remoteLastUpdated = current?.lastUpdated,
+            remoteLastUpdated = current?.remoteLastUpdated,
             synced = false
         )
         val id = volumeMetricChartsDao.upsert(toUpsert).let {
@@ -44,7 +44,7 @@ class VolumeMetricChartsRepositoryImpl(
                     volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
                 ).applyRemoteStorageMetadata(
                     remoteId = current?.remoteId,
-                    remoteLastUpdated = current?.lastUpdated,
+                    remoteLastUpdated = current?.remoteLastUpdated,
                     synced = false
                 )
             }

@@ -12,7 +12,7 @@ import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toDom
 import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -80,7 +80,7 @@ class ProgramsRepositoryImpl(
         val current = programsDao.get(id) ?: return
         val toUpdate = current.copy(name = newName).applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -90,7 +90,7 @@ class ProgramsRepositoryImpl(
         val current = programsDao.get(id) ?: return
         val toUpdate = current.copy(deloadWeek = newDeloadWeek).applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
@@ -100,7 +100,7 @@ class ProgramsRepositoryImpl(
         val current = programsDao.get(model.id) ?: return
         val toUpdate = model.toEntity().applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false
         )
         programsDao.update(toUpdate)
@@ -122,7 +122,7 @@ class ProgramsRepositoryImpl(
                 if (current == null) return@fastMapNotNull null
                 program.toEntity().applyRemoteStorageMetadata(
                     remoteId = current.remoteId,
-                    remoteLastUpdated = current.lastUpdated,
+                    remoteLastUpdated = current.remoteLastUpdated,
                     synced = false
                 )
             }
@@ -196,7 +196,7 @@ class ProgramsRepositoryImpl(
                     var newActiveProgram = allPrograms.first()
                     newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
                         remoteId = newActiveProgram.remoteId,
-                        remoteLastUpdated = newActive_program.lastUpdated,
+                        remoteLastUpdated = newActiveProgram.remoteLastUpdated,
                         synced = false,
                     )
                     programsDao.update(newActiveProgram)
@@ -223,7 +223,7 @@ class ProgramsRepositoryImpl(
                     var newActiveProgram = allPrograms.first()
                     newActiveProgram = newActiveProgram.copy(isActive = true).applyRemoteStorageMetadata(
                         remoteId = newActiveProgram.remoteId,
-                        remoteLastUpdated = newActiveProgram.lastUpdated,
+                        remoteLastUpdated = newActiveProgram.remoteLastUpdated,
                         synced = false,
                     )
                     programsDao.update(newActiveProgram)
@@ -242,7 +242,7 @@ class ProgramsRepositoryImpl(
             currentMicrocyclePosition = microCyclePosition
         ).applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         programsDao.update(toUpdate)

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
+import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.HistoricalWorkoutNameEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,13 @@ interface HistoricalWorkoutNamesDao: BaseDao<HistoricalWorkoutNameEntity> {
     @Transaction
     @Query("SELECT * FROM historicalWorkoutNames WHERE deleted = 0")
     suspend fun getAll(): List<HistoricalWorkoutNameEntity>
+
+    @Transaction
+    @Query("SELECT * FROM historicalWorkoutNames WHERE remoteId IN (:remoteIds)")
+    suspend fun getManyByRemoteId(remoteIds: List<String>): List<HistoricalWorkoutNameEntity>
+
+    @Query("SELECT * FROM historicalWorkoutNames WHERE remoteId = :remoteId")
+    suspend fun getByRemoteId(remoteId: String): HistoricalWorkoutNameEntity?
 
     @Transaction
     @Query("SELECT * FROM historicalWorkoutNames WHERE deleted = 0")

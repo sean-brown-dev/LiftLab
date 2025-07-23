@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLogEntryDao
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.Date
@@ -21,13 +21,57 @@ class WorkoutLogRepositoryImpl(
     private val syncScheduler: SyncScheduler,
 ) : WorkoutLogRepository {
 
-    override fun getAll(): List<WorkoutLogEntry> =
+    override suspend fun getAll(): List<WorkoutLogEntry> =
         workoutLogEntryDao.getAll().fastMap { it.toDomainModel() }
 
     override fun getAllFlow(): Flow<List<WorkoutLogEntry>> {
         return workoutLogEntryDao.getAllFlattened().map {
             it.toDomainModel()
         }
+    }
+
+    override suspend fun getById(id: Long): WorkoutLogEntry? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getMany(ids: List<Long>): List<WorkoutLogEntry> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun update(model: WorkoutLogEntry) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateMany(models: List<WorkoutLogEntry>) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun upsert(model: WorkoutLogEntry): Long {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun upsertMany(models: List<WorkoutLogEntry>): List<Long> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun insert(model: WorkoutLogEntry): Long {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun insertMany(models: List<WorkoutLogEntry>): List<Long> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun delete(model: WorkoutLogEntry): Int {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteMany(models: List<WorkoutLogEntry>): Int {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteById(id: Long): Int {
+        TODO("Not yet implemented")
     }
 
     override suspend fun get(workoutLogEntryId: Long): WorkoutLogEntry? {

@@ -5,9 +5,9 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
-interface WorkoutLogRepository {
-    fun getAll(): List<WorkoutLogEntry>
-    fun getAllFlow(): Flow<List<WorkoutLogEntry>>
+interface WorkoutLogRepository: Repository<WorkoutLogEntry, Long> {
+    override suspend fun getAll(): List<WorkoutLogEntry>
+    override fun getAllFlow(): Flow<List<WorkoutLogEntry>>
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntry?
     suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntry>
     suspend fun getMostRecentSetResultsForLiftIds(

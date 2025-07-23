@@ -29,7 +29,7 @@ interface LiftMetricChartsDao: BaseDao<LiftMetricChartEntity> {
     @Query("SELECT c.* " +
             "FROM liftMetricCharts c " +
             "INNER JOIN lifts l ON c.liftId = l.lift_id " +
-            "WHERE liftId IS NOT NULL AND c.deleted = 0" +
+            "WHERE liftId IS NOT NULL AND c.deleted = 0 " +
             "ORDER BY l.name, c.chartType")
     suspend fun getAllForExistingLifts(): List<LiftMetricChartEntity>
 

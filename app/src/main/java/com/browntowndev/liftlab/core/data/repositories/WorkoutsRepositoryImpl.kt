@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -27,7 +27,7 @@ class WorkoutsRepositoryImpl(
         val current = workoutsDao.getWithoutRelationships(id) ?: return
         val toUpdate = current.copy(name = newName).applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         workoutsDao.update(toUpdate)
@@ -130,7 +130,7 @@ class WorkoutsRepositoryImpl(
             val current = currentEntities[workout.id] ?: return@fastMapNotNull null
             workout.toEntity().applyRemoteStorageMetadata(
                 remoteId = current.remoteId,
-                remoteLastUpdated = current.lastUpdated,
+                remoteLastUpdated = current.remoteLastUpdated,
                 synced = false,
             )
         }
@@ -143,7 +143,7 @@ class WorkoutsRepositoryImpl(
         val current = workoutsDao.getWithoutRelationships(model.id)
         val toUpsert = model.toEntity().applyRemoteStorageMetadata(
             remoteId = current?.remoteId,
-            remoteLastUpdated = current?.lastUpdated,
+            remoteLastUpdated = current?.remoteLastUpdated,
             synced = false,
         )
         val id = workoutsDao.upsert(toUpsert)
@@ -158,7 +158,7 @@ class WorkoutsRepositoryImpl(
             val current = currentEntities[workout.id]
             workout.toEntity().applyRemoteStorageMetadata(
                 remoteId = current?.remoteId,
-                remoteLastUpdated = current?.lastUpdated,
+                remoteLastUpdated = current?.remoteLastUpdated,
                 synced = false,
             )
         }
@@ -176,7 +176,7 @@ class WorkoutsRepositoryImpl(
         val current = workoutsDao.getWithoutRelationships(model.id) ?: return
         val updWorkout = model.toEntity().applyRemoteStorageMetadata(
             remoteId = current.remoteId,
-            remoteLastUpdated = current.lastUpdated,
+            remoteLastUpdated = current.remoteLastUpdated,
             synced = false,
         )
         val updSets = model.lifts

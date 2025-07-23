@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetad
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
@@ -76,7 +76,7 @@ class SetLogEntryRepositoryImpl(
         val toUpsert = model.toEntity()
             .applyRemoteStorageMetadata(
                 remoteId = current?.remoteId,
-                remoteLastUpdated = current?.lastUpdated,
+                remoteLastUpdated = current?.remoteLastUpdated,
                 synced = false
             )
 
@@ -98,7 +98,7 @@ class SetLogEntryRepositoryImpl(
             setLogEntry.toEntity()
                 .applyRemoteStorageMetadata(
                     remoteId = current?.remoteId,
-                    remoteLastUpdated = current?.lastUpdated,
+                    remoteLastUpdated = current?.remoteLastUpdated,
                     synced = false
                 )
         }

@@ -9,9 +9,8 @@ import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
-import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.collections.map
@@ -38,7 +37,7 @@ class CustomLiftSetsRepositoryImpl(
         val toUpdate = model.toEntity()
             .applyRemoteStorageMetadata(
                 remoteId = current.remoteId,
-                remoteLastUpdated = current.lastUpdated,
+                remoteLastUpdated = current.remoteLastUpdated,
                 synced = false,
             )
         customSetsDao.update(toUpdate)
@@ -53,7 +52,7 @@ class CustomLiftSetsRepositoryImpl(
             val current = currentById[it.id] ?: return@fastMapNotNull null
             it.toEntity().applyRemoteStorageMetadata(
                 remoteId = current.remoteId,
-                remoteLastUpdated = current.lastUpdated,
+                remoteLastUpdated = current.remoteLastUpdated,
                 synced = false,
             )
         }
@@ -127,7 +126,7 @@ class CustomLiftSetsRepositoryImpl(
             val currentWorkoutLift = workoutLiftsDao.getWithoutRelationships(workoutLiftId)!!
             val workoutLiftToUpdate = currentWorkoutLift.copy(setCount = entitiesToUpdate.size).applyRemoteStorageMetadata(
                 remoteId = currentWorkoutLift.remoteId,
-                remoteLastUpdated = currentWorkoutLift.lastUpdated,
+                remoteLastUpdated = currentWorkoutLift.remoteLastUpdated,
                 synced = false,
             )
             workoutLiftsDao.update(workoutLiftToUpdate)

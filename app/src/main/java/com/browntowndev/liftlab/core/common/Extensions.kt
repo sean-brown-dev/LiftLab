@@ -72,6 +72,20 @@ suspend fun<T, R>  List<T>.flatMapParallel(maxDegreesOfParallelism: Int, transfo
     }.awaitAll().flatten()
 }
 
+suspend fun<T, R>  List<T>.mapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> R): List<R> = coroutineScope {
+    if (this@mapParallel.isEmpty()) return@coroutineScope emptyList()
+
+    val thisList = this@mapParallel
+    val batchSize = thisList.size / maxDegreesOfParallelism +
+            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
+
+    return@coroutineScope thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll()
+}
+
 suspend fun<T>  List<T>.forEachParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> Unit) = coroutineScope {
     if (this@forEachParallel.isEmpty()) return@coroutineScope emptyList()
 
@@ -80,6 +94,15 @@ suspend fun<T>  List<T>.forEachParallel(maxDegreesOfParallelism: Int, transform:
             if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
 
     thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll()
+}
+
+suspend fun<T>  List<T>.forEachParallel(transform: suspend CoroutineScope.(item: T) -> Unit) = coroutineScope {
+    if (this@forEachParallel.isEmpty()) return@coroutineScope emptyList()
+    map {
         async {
             transform(it)
         }

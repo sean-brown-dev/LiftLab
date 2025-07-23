@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsReposit
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.sync.SyncScheduler
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -34,7 +34,7 @@ class LiftMetricChartsRepositoryImpl(
                 chartType = model.chartType,
             ).applyRemoteStorageMetadata(
                 remoteId = current?.remoteId,
-                remoteLastUpdated = current?.lastUpdated,
+                remoteLastUpdated = current?.remoteLastUpdated,
                 synced = false,
             )
 
@@ -59,7 +59,7 @@ class LiftMetricChartsRepositoryImpl(
                 chartType = liftMetricChart.chartType,
             ).applyRemoteStorageMetadata(
                 remoteId = current?.remoteId,
-                remoteLastUpdated = current?.lastUpdated,
+                remoteLastUpdated = current?.remoteLastUpdated,
                 synced = false,
             )
         }

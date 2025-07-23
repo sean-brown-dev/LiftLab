@@ -12,9 +12,6 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
     @Query("SELECT * FROM sets WHERE synced = 0")
     suspend fun getAllUnsynced(): List<CustomLiftSetEntity>
 
-    @Query("UPDATE sets SET remoteId = :firestoreId, lastUpdated = :lastUpdated, synced = 1 WHERE set_id = :id")
-    suspend fun updateFirestoreMetadata(id: Long, firestoreId: String, lastUpdated: Date)
-
     @Transaction
     @Query("SELECT * FROM sets WHERE set_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<CustomLiftSetEntity>
@@ -23,11 +20,11 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
     @Query("SELECT * FROM sets WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<CustomLiftSetEntity>
 
-    @Query("SELECT * FROM sets WHERE set_id = :id AND deleted = 0")
-    suspend fun get(id: Long): CustomLiftSetEntity?
-
     @Query("SELECT * FROM sets WHERE remoteId = :remoteId")
     suspend fun getByRemoteId(remoteId: String): CustomLiftSetEntity?
+
+    @Query("SELECT * FROM sets WHERE set_id = :id AND deleted = 0")
+    suspend fun get(id: Long): CustomLiftSetEntity?
 
     @Transaction
     @Query("SELECT * FROM sets WHERE deleted = 0")

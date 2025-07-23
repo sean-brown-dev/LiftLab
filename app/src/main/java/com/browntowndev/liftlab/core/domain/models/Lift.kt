@@ -13,7 +13,6 @@ data class Lift(
     val incrementOverride: Float?,
     val restTime: Duration?,
     val restTimerEnabled: Boolean,
-    val isHidden: Boolean,
     val isBodyweight: Boolean,
     val note: String?,
 ) {
