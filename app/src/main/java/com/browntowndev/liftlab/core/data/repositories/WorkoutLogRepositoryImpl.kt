@@ -10,6 +10,9 @@ import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLogEntryDao
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
+import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.WorkoutLogEntryMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -30,16 +33,32 @@ class WorkoutLogRepositoryImpl(
         }
     }
 
-    override suspend fun getById(id: Long): WorkoutLogEntry? {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getById(id: Long): WorkoutLogEntry? =
+        workoutLogEntryDao.get(id)?.toDomainModel()
 
-    override suspend fun getMany(ids: List<Long>): List<WorkoutLogEntry> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getMany(ids: List<Long>): List<WorkoutLogEntry> =
+        workoutLogEntryDao.getMany(ids).fastMap { it.toDomainModel() }
 
     override suspend fun update(model: WorkoutLogEntry) {
-        TODO("Not yet implemented")
+        val current = workoutLogEntryDao.get(model.id) ?: return
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.remoteLastUpdated,
+            synced = false,
+        )
+        workoutLogEntryDao.update(toUpdate)
+
+        val currentSetLogs = setLogEntryDao.getForWorkoutLogEntry(model.id)
+            .associateBy { it.id }
+        val toUpdateSetLogs = model.setResults.map {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = currentSetLogs[it.id]?.remoteId,
+                remoteLastUpdated = currentSetLogs[it.id]?.remoteLastUpdated,
+                synced = false,
+            )
+        }
+        setLogEntryDao.updateMany(toUpdateSetLogs)
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<WorkoutLogEntry>) {

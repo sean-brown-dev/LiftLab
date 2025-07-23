@@ -7,6 +7,20 @@ import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 
 object WorkoutLogEntryMappingExtensions {
+    fun WorkoutLogEntry.toEntity(): WorkoutLogEntryEntity {
+        return WorkoutLogEntryEntity(
+            id = id,
+            historicalWorkoutNameId = historicalWorkoutNameId,
+            programDeloadWeek = programDeloadWeek,
+            programWorkoutCount = programWorkoutCount,
+            microcycle = microcycle,
+            mesocycle = mesocycle,
+            microcyclePosition = microcyclePosition,
+            date = date,
+            durationInMillis = durationInMillis
+        )
+    }
+
     fun WorkoutLogEntryEntity.toDomainModel(): WorkoutLogEntry {
         return WorkoutLogEntry(
             id = id,
