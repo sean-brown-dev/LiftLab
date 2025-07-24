@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 16,
-    "identityHash": "e0cfa914ba099a481fd5340a08b5551d",
+    "identityHash": "a6af70009c10f88eddd62d10d3ee2833",
     "entities": [
       {
         "tableName": "lifts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL, `incrementOverride` REAL, `isBodyweight` INTEGER NOT NULL, `note` TEXT, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL DEFAULT true, `incrementOverride` REAL, `isBodyweight` INTEGER NOT NULL DEFAULT false, `note` TEXT, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
         "fields": [
           {
             "fieldPath": "id",
@@ -46,7 +46,8 @@
             "fieldPath": "restTimerEnabled",
             "columnName": "restTimerEnabled",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "true"
           },
           {
             "fieldPath": "incrementOverride",
@@ -57,7 +58,8 @@
             "fieldPath": "isBodyweight",
             "columnName": "isBodyweight",
             "affinity": "INTEGER",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "false"
           },
           {
             "fieldPath": "note",
@@ -1696,7 +1698,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e0cfa914ba099a481fd5340a08b5551d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a6af70009c10f88eddd62d10d3ee2833')"
     ]
   }
 }

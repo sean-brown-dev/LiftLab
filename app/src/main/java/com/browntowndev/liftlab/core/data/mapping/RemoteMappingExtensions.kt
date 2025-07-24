@@ -1,18 +1,5 @@
 package com.browntowndev.liftlab.core.data.mapping
 
-import com.browntowndev.liftlab.core.data.remote.dto.CustomLiftSetRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.HistoricalWorkoutNameRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.LiftRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.LiftMetricChartRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.PreviousSetResultRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.RestTimerInProgressRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.SetLogEntryRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.VolumeMetricChartRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.WorkoutRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.WorkoutInProgressRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.WorkoutLiftRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.WorkoutLogEntryRemoteDto
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.HistoricalWorkoutNameEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
@@ -26,6 +13,19 @@ import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
+import com.browntowndev.liftlab.core.data.remote.dto.CustomLiftSetRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.HistoricalWorkoutNameRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.LiftMetricChartRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.LiftRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.PreviousSetResultRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.RestTimerInProgressRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.SetLogEntryRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.VolumeMetricChartRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.WorkoutInProgressRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.WorkoutLiftRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.WorkoutLogEntryRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.WorkoutRemoteDto
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -120,16 +120,18 @@ object RemoteMappingExtensions {
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
         this.synced = this@toRemoteDto.synced
     }
-    fun RestTimerInProgressRemoteDto.toEntity(): RestTimerInProgressEntity = RestTimerInProgressEntity(
-        id = this.id,
-        timeStartedInMillis = this.timeStartedInMillis,
-        restTime = this.restTime
-    )
-    fun RestTimerInProgressEntity.toRemoteDto(): RestTimerInProgressRemoteDto = RestTimerInProgressRemoteDto(
-        id = this.id,
-        timeStartedInMillis = this.timeStartedInMillis,
-        restTime = this.restTime
-    )
+    fun RestTimerInProgressRemoteDto.toEntity(): RestTimerInProgressEntity =
+        RestTimerInProgressEntity(
+            id = this.id,
+            timeStartedInMillis = this.timeStartedInMillis,
+            restTime = this.restTime
+        )
+    fun RestTimerInProgressEntity.toRemoteDto(): RestTimerInProgressRemoteDto =
+        RestTimerInProgressRemoteDto(
+            id = this.id,
+            timeStartedInMillis = this.timeStartedInMillis,
+            restTime = this.restTime
+        )
     fun SetLogEntryRemoteDto.toEntity(): SetLogEntryEntity = SetLogEntryEntity(
         id = this.id,
         workoutLogEntryId = this.workoutLogEntryId,

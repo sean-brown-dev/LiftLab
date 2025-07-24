@@ -187,7 +187,7 @@ fun WorkoutLog(
                             onClick = cancelWorkout
                         ) {
                             Text(
-                                text = "Cancel WorkoutEntity",
+                                text = "Cancel Workout",
                                 fontSize = 18.sp,
                             )
                         }

@@ -110,7 +110,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -124,7 +124,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -250,7 +250,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -264,7 +264,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -414,7 +414,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -428,7 +428,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -602,7 +602,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -616,7 +616,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -766,7 +766,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -780,7 +780,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -931,7 +931,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -945,7 +945,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -1119,7 +1119,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -1133,7 +1133,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -1264,7 +1264,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -1278,7 +1278,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -1411,7 +1411,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -1439,7 +1439,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(),
             )
             coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
@@ -1502,7 +1502,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 3,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 3,
@@ -1530,7 +1530,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(),
             )
             coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
@@ -1593,7 +1593,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 3,
@@ -1621,7 +1621,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(),
             )
             coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
@@ -1684,7 +1684,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -1731,7 +1731,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     StandardWorkoutLift(
                         id = 0L,
@@ -1876,7 +1876,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -1923,7 +1923,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     StandardWorkoutLift(
                         id = 0L,
@@ -2101,7 +2101,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -2140,7 +2140,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -2261,7 +2261,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -2300,7 +2300,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -2418,7 +2418,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -2457,7 +2457,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,
@@ -2604,7 +2604,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -2618,7 +2618,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf()
             )
             coEvery { workoutsRepositoryImpl.getByMicrocyclePosition(any(), any()) } returns flowOf(
@@ -2696,7 +2696,7 @@ class WorkoutViewModelTests {
             val programsRepository = mockk<ProgramsRepository>()
             val activeProgramMetadata = ActiveProgramMetadata(
                 programId = 0L,
-                name = "Test ProgramEntity",
+                name = "Test Program",
                 currentMicrocycle = 0,
                 currentMesocycle = 0,
                 currentMicrocyclePosition = 0,
@@ -2710,7 +2710,7 @@ class WorkoutViewModelTests {
                 id = 0L,
                 programId = 0L,
                 position = 0,
-                name = "Test WorkoutEntity",
+                name = "Test Workout",
                 lifts = listOf(
                     CustomWorkoutLift(
                         id = 0L,

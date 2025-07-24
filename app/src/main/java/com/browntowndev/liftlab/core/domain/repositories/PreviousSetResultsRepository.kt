@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.domain.repositories
 
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
+import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import kotlinx.coroutines.flow.Flow
 
 interface PreviousSetResultsRepository : Repository<SetResult, Long> {
@@ -19,7 +20,7 @@ interface PreviousSetResultsRepository : Repository<SetResult, Long> {
         workoutId: Long,
         mesoCycle: Int, microCycle: Int,
         liftIds: List<Long>
-    ): List<PersonalRecordDto>
+    ): List<PersonalRecord>
 
     suspend fun deleteAllForPreviousWorkout(
         workoutId: Long,

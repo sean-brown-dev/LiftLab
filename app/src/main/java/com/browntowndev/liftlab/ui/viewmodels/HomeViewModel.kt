@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.authStateFlow
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.VolumeType
@@ -29,7 +30,8 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.data.repositories.VolumeMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
@@ -41,12 +43,15 @@ import com.browntowndev.liftlab.ui.models.getPerMicrocycleVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
-import kotlinx.coroutines.flow.MutableStateFlow
-import com.google.firebase.auth.FirebaseAuth
 import dev.gitlive.firebase.auth.FirebaseUser
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.AuthResult
+import com.google.android.gms.tasks.Task
+import dev.gitlive.firebase.auth.android
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -61,7 +66,7 @@ class HomeViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutLogRepository: WorkoutLogRepository,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
-    private val volumeMetricChartsRepositoryImpl: VolumeMetricChartsRepositoryImpl,
+    private val volumeMetricChartsRepository: VolumeMetricChartsRepository,
     private val liftsRepository: LiftsRepository,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
@@ -77,15 +82,32 @@ class HomeViewModel(
         val dateRange = getSevenWeeksDateRange()
         val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
         _state.update {
-            it.copy(
-                liftMetricOptions = getLiftMetricChartOptions(),
-                firebaseUsername = firebaseAuth.currentUser?.email
-            )
+            it.copy(liftMetricOptions = getLiftMetricChartOptions())
         }
+
+        // Now, start a coroutine to listen for auth changes and update the state
+        viewModelScope.launch {
+            firebaseAuth.authStateFlow()
+                .onEach { firebaseUser ->
+                    // THIS IS THE MOST IMPORTANT LOG
+                    Log.d(
+                        "HomeViewModel_Auth",
+                        "AuthStateListener FIRED. User email: ${firebaseUser?.email}"
+                    )
+                    _state.update {
+                        it.copy(
+                            firebaseUsername = firebaseUser?.email,
+                            emailVerified = firebaseUser?.isEmailVerified ?: false
+                        )
+                    }
+                }
+                .collect()
+        }
+
 
         viewModelScope.launch {
             val liftMetricCharts = liftMetricChartsRepository.getAll()
-            val volumeMetricCharts = volumeMetricChartsRepositoryImpl.getAll()
+            val volumeMetricCharts = volumeMetricChartsRepository.getAll()
                 .sortedWith(compareBy<VolumeMetricChart> { it.volumeType.bitMask }
                     .thenBy { it.volumeTypeImpact.bitmask }
                 )
@@ -176,7 +198,7 @@ class HomeViewModel(
                     options = listOf("LiftEntity Metrics"),
                     child = LiftMetricOptions(
                         options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
-                        completionButtonText = "Choose LiftEntity",
+                        completionButtonText = "Choose Lift",
                         completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         onCompletion = { selectLiftForMetricCharts() },
                         onSelectionChanged = { type, selected ->
@@ -482,6 +504,7 @@ class HomeViewModel(
     }
 
     fun logout() {
+        Log.d("Firebase", "Logging out user ${firebaseAuth.currentUser?.uid}.")
         firebaseAuth.signOut()
         _state.update {
             it.copy(
@@ -495,6 +518,7 @@ class HomeViewModel(
         if (signInResult.isSuccess) {
             val firebaseUser: FirebaseUser? = signInResult.getOrNull()
             if (firebaseUser != null) {
+                firebaseAuth.updateCurrentUser(firebaseUser.android)
                 Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
                 _state.update {
                     it.copy(
@@ -570,7 +594,7 @@ class HomeViewModel(
                     volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
                 )
             }
-            volumeMetricChartsRepositoryImpl.upsertMany(charts)
+            volumeMetricChartsRepository.upsertMany(charts)
 
             val chartsWithNewAdded = _state.value.volumeMetricCharts.toMutableList().apply {
                 addAll(charts)
@@ -619,7 +643,7 @@ class HomeViewModel(
 
     fun deleteLiftMetricChart(id: Long) {
         executeInTransactionScope {
-            liftMetricChartsRepository.delete(id)
+            liftMetricChartsRepository.deleteById(id)
             _state.update {
                 it.copy(
                     liftMetricChartModels = it.liftMetricChartModels.filter { chart -> chart.id != id }
@@ -630,7 +654,7 @@ class HomeViewModel(
 
     fun deleteVolumeMetricChart(id: Long) {
         executeInTransactionScope {
-            volumeMetricChartsRepositoryImpl.delete(id)
+            volumeMetricChartsRepository.deleteById(id)
             _state.update {
                 it.copy(
                     volumeMetricCharts = it.volumeMetricCharts.filter { chart -> chart.id != id },

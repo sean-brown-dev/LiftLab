@@ -119,7 +119,7 @@ fun ProgramManager(
             ) {
                 TextButton(onClick = onCreateProgram) {
                     Text(
-                        text = "Create New ProgramEntity",
+                        text = "Create New Program",
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 17.sp,
                         textAlign = TextAlign.Center,

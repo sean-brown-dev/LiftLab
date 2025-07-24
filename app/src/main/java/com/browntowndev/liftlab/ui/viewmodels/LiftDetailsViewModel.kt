@@ -45,7 +45,8 @@ class LiftDetailsViewModel(
     init {
         viewModelScope.launch {
             val lift = if (liftId != null) {
-                liftsRepository.get(liftId)
+                // TODO: Handle error
+                liftsRepository.getById(liftId)!!
             } else {
                 Lift(
                     id = 0L,
@@ -56,7 +57,6 @@ class LiftDetailsViewModel(
                     incrementOverride = null,
                     restTime = null,
                     restTimerEnabled = true,
-                    isHidden = false,
                     isBodyweight = false,
                     note = null,
                 )
@@ -326,10 +326,10 @@ class LiftDetailsViewModel(
         viewModelScope.launch {
             val lift = _state.value.lift!!
             val liftEntityToCreate = if (state.value.lift!!.name.isEmpty()) {
-                lift.copy(name = "New LiftEntity")
+                lift.copy(name = "New Lift")
             } else lift
 
-            liftsRepository.createLift(liftEntityToCreate)
+            liftsRepository.insert(liftEntityToCreate)
             onNavigateBack()
         }
     }

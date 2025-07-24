@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
-import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
+import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import java.util.Date
 
@@ -15,7 +15,7 @@ data class WorkoutState(
     val initialized: Boolean = false,
     val programMetadata: ActiveProgramMetadata? = null,
     val workout: LoggingWorkout? = null,
-    val personalRecords: Map<Long, PersonalRecordDto> = mapOf(),
+    val personalRecords: Map<Long, PersonalRecord> = mapOf(),
     val inProgressWorkout: WorkoutInProgress? = null,
     val workoutLogVisible: Boolean = false,
     val isReordering: Boolean = false,

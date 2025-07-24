@@ -30,6 +30,8 @@ import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -37,7 +39,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import java.text.DateFormat.LONG
 import java.text.DateFormat.MEDIUM
@@ -57,6 +62,25 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+
+
+fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> {
+    return callbackFlow {
+        // Create an AuthStateListener. This lambda will be called
+        // immediately with the current state and then on any future changes.
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            // Offer the latest user object to the flow.
+            // This can be the user or null if logged out.
+            trySend(auth.currentUser)
+        }
+
+        // Register the listener with Firebase Auth
+        addAuthStateListener(listener)
+
+        // When the flow is cancelled, unregister the listener
+        awaitClose { removeAuthStateListener(listener) }
+    }
+}
 
 suspend fun<T, R>  List<T>.flatMapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> List<R>): List<R> = coroutineScope {
     if (this@flatMapParallel.isEmpty()) return@coroutineScope emptyList()

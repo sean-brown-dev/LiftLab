@@ -1,13 +1,17 @@
 package com.browntowndev.liftlab.core.data.remote
 
+import android.util.Log
+import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.common.mapParallel
+import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.data.common.SyncType
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
 import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Date
@@ -16,43 +20,77 @@ class SyncOrchestrator(
     private val syncMetadataRepository: SyncMetadataRepository,
     private val syncRepositories: List<RemoteSyncRepository>,
     private val remoteDataClient: RemoteDataClient,
+    private val transactionScope: TransactionScope,
+    private val syncHierarchy: List<HashSet<String>>,
 ) {
     companion object {
         private val mutex = Mutex()
+        private const val TAG = "SyncOrchestrator"
     }
 
     suspend fun syncAll() {
-        mutex.withLock {
-            downloadNewerChanges()
-            uploadPendingChanges()
+        Log.d(TAG, "syncAll called")
+        if (!remoteDataClient.canSync) {
+            Log.d(TAG, "Cannot sync, remoteDataClient.canSync is false")
+            return
+        }
+
+        try {
+            mutex.withLock {
+                Log.d(TAG, "Starting sync process")
+                transactionScope.execute {
+                    downloadNewerChanges()
+                    uploadPendingChanges()
+                }
+                Log.d(TAG, "Sync process finished")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to sync", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            throw e
         }
     }
 
     private suspend fun downloadNewerChanges() {
-        syncRepositories.forEach { syncRepository ->
+        Log.d(TAG, "Starting downloadNewerChanges")
+
+        syncHierarchy.executeForEachRepositoryParallel { syncRepository ->
             val collectionName = syncRepository.collectionName
             val syncMetadata = syncMetadataRepository.get(collectionName = collectionName)
             val lastSynced = syncMetadata?.lastSyncTimestamp ?: Date(0)
+            var latestRemoteLastUpdated = lastSynced
 
-            val batchMaxLastUpdatedDates = remoteDataClient.getAllSince(
+            remoteDataClient.getAllSince(
                 collectionName = collectionName, lastUpdated = lastSynced
-            ).mapParallel(10) { remoteEntityChunk ->
+            ).collect { remoteEntities ->
+                if (remoteEntities.isEmpty()) return@collect
+
+                Log.d(
+                    TAG,
+                    "Processing chunk of ${remoteEntities.size} remote entities for collection $collectionName"
+                )
                 updateLocalEntitiesFromRemoteChunk(
-                    remoteEntityChunk = remoteEntityChunk,
+                    remoteEntityChunk = remoteEntities,
                     syncRepository = syncRepository,
                 )
-
-                remoteEntityChunk.maxOf { it.lastUpdated ?: Date(0) }
+                val latestRemoteLastUpdatedForBatch =
+                    remoteEntities.maxOf { it.lastUpdated ?: Date(0) }
+                latestRemoteLastUpdated =
+                    maxOf(latestRemoteLastUpdated, latestRemoteLastUpdatedForBatch)
             }
 
-            val newLastSynced = maxOf(lastSynced, batchMaxLastUpdatedDates.maxOrNull() ?: Date(0))
+            Log.d(
+                TAG,
+                "Updating sync metadata for $collectionName, newLastSynced: $latestRemoteLastUpdated"
+            )
             syncMetadataRepository.upsert(
                 SyncMetadataDto(
                     collectionName = collectionName,
-                    lastSyncTimestamp = newLastSynced
+                    lastSyncTimestamp = latestRemoteLastUpdated
                 )
             )
         }
+        Log.d(TAG, "Finished downloadNewerChanges")
     }
 
     private suspend fun updateLocalEntitiesFromRemoteChunk(
@@ -71,21 +109,37 @@ class SyncOrchestrator(
             } else null
         }
 
-        syncRepository.upsertMany(remoteEntitiesToUpsert)
-    }
-
-    private suspend fun uploadPendingChanges() {
-        syncRepositories.fastForEach { syncRepository ->
-            processSyncBatches(syncRepository)
+        if (remoteEntitiesToUpsert.isNotEmpty()) {
+            Log.d(TAG, "Upserting ${remoteEntitiesToUpsert.size} remote entities locally for collection ${syncRepository.collectionName}")
+            syncRepository.upsertMany(remoteEntitiesToUpsert)
+        } else {
+            Log.d(TAG, "No remote entities to upsert locally for collection ${syncRepository.collectionName}")
         }
     }
 
-    private suspend fun processSyncBatches(syncRepository: RemoteSyncRepository) {
-        val unsyncedEntities = syncRepository.getAllUnsynced()
-        if (unsyncedEntities.isEmpty()) return
+    private suspend fun uploadPendingChanges() {
+        Log.d(TAG, "Starting uploadPendingChanges")
+        syncHierarchy.executeForEachRepositoryParallel { syncRepository ->
+            processUpsertBatches(syncRepository)
+        }
+        syncHierarchy.asReversed().executeForEachRepositoryParallel { syncRepository ->
+            processDeleteBatches(syncRepository)
+        }
+        Log.d(TAG, "Finished uploadPendingChanges")
+    }
 
-        val toUpsert = unsyncedEntities.filter { !it.deleted }
-        val toDelete = (unsyncedEntities - toUpsert).filter { it.remoteId != null }
+    private suspend fun processUpsertBatches(syncRepository: RemoteSyncRepository) {
+        val unsyncedEntities = syncRepository.getAllUnsynced()
+        if (unsyncedEntities.isEmpty()) {
+            Log.d(TAG, "No unsynced entities for collection ${syncRepository.collectionName}")
+            return
+        }
+
+        val toUpsert = unsyncedEntities.fastFilter { !it.deleted }
+        if (toUpsert.isEmpty()) {
+            Log.d(TAG, "No entities to upsert for collection ${syncRepository.collectionName}")
+            return
+        }
 
         val syncBatches: List<BatchSyncCollection> = buildList {
             if (toUpsert.isNotEmpty()) {
@@ -97,6 +151,38 @@ class SyncOrchestrator(
                     )
                 )
             }
+        }
+
+        Log.d(TAG, "Executing upsert batch sync for ${syncRepository.collectionName}: ${syncBatches.size} batches")
+        val upsertDocumentIds = remoteDataClient.executeBatchSync(syncBatches)
+        if (upsertDocumentIds.isNotEmpty()) {
+            Log.d(TAG, "Successfully upserted ${upsertDocumentIds.size} documents for ${syncRepository.collectionName}, fetching updated DTOs")
+            remoteDataClient.getMany(
+                collectionName = syncRepository.collectionName,
+                ids = upsertDocumentIds
+            ).collect { upsertedRemoteDTOs ->
+                if (upsertedRemoteDTOs.isEmpty()) return@collect
+
+                syncRepository.upsertMany(upsertedRemoteDTOs)
+                Log.d(TAG, "Successfully updated local entities for ${syncRepository.collectionName}")
+            }
+        }
+    }
+
+    private suspend fun processDeleteBatches(syncRepository: RemoteSyncRepository) {
+        val unsyncedEntities = syncRepository.getAllUnsynced()
+        if (unsyncedEntities.isEmpty()) {
+            Log.d(TAG, "No unsynced entities for collection ${syncRepository.collectionName}")
+            return
+        }
+
+        val toDelete = unsyncedEntities.fastFilter { it.deleted && it.remoteId != null }
+        if (toDelete.isEmpty()) {
+            Log.d(TAG, "No entities to sync for collection ${syncRepository.collectionName}")
+            return
+        }
+
+        val syncBatches: List<BatchSyncCollection> = buildList {
             if (toDelete.isNotEmpty()) {
                 add(
                     BatchSyncCollection(
@@ -108,16 +194,22 @@ class SyncOrchestrator(
             }
         }
 
-        val upsertDocumentIds = remoteDataClient.executeBatchSync(syncBatches)
-        if (upsertDocumentIds.isNotEmpty()) {
-            val upsertedRemoteDtos = remoteDataClient.getMany(
-                collectionName = syncRepository.collectionName,
-                ids = upsertDocumentIds
-            )
-            syncRepository.upsertMany(upsertedRemoteDtos)
-        }
-        if (toDelete.isNotEmpty()) {
-            syncRepository.deleteManyByRemoteId(toDelete.fastMapNotNull { it.remoteId })
+        Log.d(TAG, "Executing batch sync for ${syncRepository.collectionName}: ${syncBatches.size} batches")
+        remoteDataClient.executeBatchSync(syncBatches)
+
+        Log.d(TAG, "Deleting ${toDelete.size} entities locally for ${syncRepository.collectionName}")
+        syncRepository.deleteManyByRemoteId(toDelete.fastMapNotNull { it.remoteId })
+    }
+
+    private suspend fun List<HashSet<String>>.executeForEachRepositoryParallel(
+        action: suspend (syncRepository: RemoteSyncRepository
+    ) -> Unit) {
+        fastForEach { collectionNames ->
+            syncRepositories
+                .filter { it.collectionName in collectionNames }
+                .forEachParallel { syncRepository ->
+                    action(syncRepository)
+                }
         }
     }
 }

@@ -73,7 +73,7 @@ data class LiftDetailsScreen(
         listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CONFIRM_CREATE_LIFT_ICON,
-                title = "Confirm Create LiftEntity",
+                title = "Confirm Create Lift",
                 isVisible = isConfirmCreateLiftVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmCreateNewLift))

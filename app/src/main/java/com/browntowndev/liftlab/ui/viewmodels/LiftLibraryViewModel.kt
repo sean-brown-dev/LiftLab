@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ import org.greenrobot.eventbus.Subscribe
 
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepository,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
@@ -130,7 +130,7 @@ class LiftLibraryViewModel(
                 }
             }
 
-            liftMetricChartsRepository.upsertMany(liftMetricCharts = liftMetricCharts)
+            liftMetricChartsRepository.upsertMany(liftMetricCharts)
             onNavigateHome()
         }
     }
@@ -173,7 +173,7 @@ class LiftLibraryViewModel(
                     )
                 }
 
-            workoutLiftsRepositoryImpl.insertAll(newLifts)
+            workoutLiftsRepositoryImpl.insertMany(newLifts)
             navigateBackToWorkoutBuilder()
         }
     }
@@ -274,10 +274,10 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun hideLift(lift: Lift) {
+    fun deleteLift(lift: Lift) {
         viewModelScope.launch {
             // No need to update state. The lifts are retrieved via Flow
-            liftsRepository.update(lift.copy(isHidden = true))
+            liftsRepository.delete(lift)
         }
     }
 }

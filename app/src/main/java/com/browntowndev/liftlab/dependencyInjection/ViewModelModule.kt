@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
-import com.browntowndev.liftlab.ui.viewmodels.FirestoreSyncViewModel
+import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
@@ -23,43 +23,119 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     factory { params ->
-        LiftDetailsViewModel(params.get(), params[0], get(), get(), get(), get())
+        LiftDetailsViewModel(
+            onNavigateBack = params.get(),
+            liftId = params.get(),
+            liftsRepository = get(),
+            workoutLogRepository = get(),
+            transactionScope = get(),
+            eventBus = get()
+        )
     }
     factory { params ->
         WorkoutBuilderViewModel(
-            params.get(), params.get(), get(), get(), get(), get(), get(),
-            params.get(), get(), get(), get(), get()
+            workoutId = params.get(),
+            onNavigateBack = params.get(),
+            programsRepository = get(),
+            workoutsRepositoryImpl = get(),
+            workoutLiftsRepositoryImpl = get(),
+            customLiftSetsRepositoryImpl = get(),
+            liftsRepository = get(),
+            liftLevelDeloadsEnabled = params.get(),
+            workoutInProgressRepositoryImpl = get(),
+            setResultsRepository = get(),
+            transactionScope = get(),
+            eventBus = get()
         )
     }
     factory { params ->
         LiftLibraryViewModel(
-            get(), get(), get(), params[0], params[1], params[2], params[3],
-            params[4], params[5], params.get(), params.get(), get(), get()
+            liftsRepository = get(),
+            workoutLiftsRepositoryImpl = get(),
+            liftMetricChartsRepository = get(),
+            onNavigateHome = params[0],
+            onNavigateToWorkoutBuilder = params[1],
+            onNavigateToActiveWorkout = params[2],
+            onNavigateToLiftDetails = params[3],
+            workoutId = params[4],
+            addAtPosition = params[5],
+            initialMovementPatternFilter = params.get(),
+            newLiftMetricChartIds = params.get(),
+            transactionScope = get(),
+            eventBus = get()
         )
     }
     factory { params ->
         WorkoutViewModel(
-            StandardProgressionFactory(), get(), get(), get(), get(), get(), get(),
-            get(), get(), get(), params[0], params[1], get(), get()
+            progressionFactory = StandardProgressionFactory(),
+            programsRepository = get(),
+            workoutsRepositoryImpl = get(),
+            workoutLiftsRepositoryImpl = get(),
+            setResultsRepository = get(),
+            workoutInProgressRepositoryImpl = get(),
+            historicalWorkoutNamesRepositoryImpl = get(),
+            workoutLogRepository = get(),
+            setLogEntryRepository = get(),
+            restTimerInProgressRepository = get(),
+            liftsRepository = get(),
+            navigateToWorkoutHistory = params[0],
+            cancelRestTimer = params[1],
+            transactionScope = get(),
+            eventBus = get()
         )
     }
     factory { params ->
-        EditWorkoutViewModel(params.get(), get(), get(), params.get(), get(), get())
+        EditWorkoutViewModel(
+            workoutLogEntryId = params.get(),
+            workoutLogRepository = get(),
+            setResultsRepository = get(),
+            setLogEntryRepository = get(),
+            onNavigateBack = params.get(),
+            transactionScope = get(),
+            eventBus = get()
+        )
     }
     factory { params ->
-        CountdownTimerViewModel(params.get())
+        CountdownTimerViewModel(onComplete = params.get())
     }
     factory { params ->
-        HomeViewModel(get(), get(), get(), get(), get(), params[0], params[1], params[2], get(), get(), get())
+        HomeViewModel(
+            programsRepository = get(),
+            workoutLogRepository = get(),
+            liftMetricChartsRepository = get(),
+            volumeMetricChartsRepository = get(),
+            liftsRepository = get(),
+            onNavigateToSettingsMenu = params[0],
+            onNavigateToLiftLibrary = params[1],
+            onUserLoggedIn = params[2],
+            firebaseAuth = get(),
+            transactionScope = get(),
+            eventBus = get()
+        )
     }
     factory { params ->
-        SettingsViewModel(get(), get(), params.get(), get(), get())
+        SettingsViewModel(
+            programsRepository = get(),
+            workoutLiftsRepository = get(),
+            onNavigateBack = params.get(),
+            transactionScope = get(),
+            eventBus = get()
+        )
     }
     factory { params ->
-        WorkoutHistoryViewModel(get(), params.get(), get(), get())
+        WorkoutHistoryViewModel(
+            workoutLogRepository = get(),
+            onNavigateBack = params.get(),
+            transactionScope = get(),
+            eventBus = get()
+        )
     }
     factory { params ->
-        DonationViewModel(params.get(), get(), get())
+        DonationViewModel(
+            billingClientBuilder = params.get(),
+            transactionScope = get(),
+            eventBus = get()
+        )
     }
 
     viewModelOf(::LabViewModel)
@@ -68,5 +144,5 @@ val viewModelModule = module {
     viewModelOf(::BottomSheetViewModel)
     viewModelOf(::TimerViewModel)
     viewModelOf(::PickerViewModel)
-    viewModelOf(::FirestoreSyncViewModel)
+    viewModelOf(::RemoteSyncViewModel)
 }

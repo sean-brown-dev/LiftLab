@@ -11,7 +11,7 @@ import com.mmk.kmpauth.uihelper.google.GoogleSignInButton
 import dev.gitlive.firebase.auth.FirebaseUser
 
 @Composable
-public fun SignIntoFirebaseWithGoogleButton(
+fun SignIntoFirebaseWithGoogleButton(
     onSignInComplete: (Result<FirebaseUser?>) -> Unit,
 ) {
     GoogleButtonUiContainerFirebase(onResult = onSignInComplete, linkAccount = false) {

@@ -128,7 +128,7 @@ data class LabScreen(
         listOf(
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_WORKOUT_ICON,
-                title = "Create WorkoutEntity",
+                title = "Create Workout",
                 icon = Icons.Filled.Add.left(),
                 isVisible = createWorkoutVisible,
                 dividerBelow = !reorderWorkoutsVisible,
@@ -150,7 +150,7 @@ data class LabScreen(
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = CREATE_NEW_PROGRAM_ICON,
-                title = "Create ProgramEntity",
+                title = "Create Program",
                 icon = Icons.Filled.Add.left(),
                 isVisible = true,
                 onClick = {
@@ -160,7 +160,7 @@ data class LabScreen(
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_PROGRAM_ICON,
-                title = "Rename ProgramEntity",
+                title = "Rename Program",
                 icon = Icons.Filled.Edit.left(),
                 isVisible = renameProgramVisible,
                 onClick = {
@@ -170,7 +170,7 @@ data class LabScreen(
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = DELETE_PROGRAM_ICON,
-                title = "Delete ProgramEntity",
+                title = "Delete Program",
                 icon = Icons.Filled.Delete.left(),
                 isVisible = deleteProgramVisible,
                 onClick = {

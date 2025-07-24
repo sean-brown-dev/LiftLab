@@ -17,7 +17,20 @@ import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressReposito
 import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.data.workers.LiftLabDatabaseWorker
-import org.koin.core.module.dsl.singleOf
+import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
+import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
+import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
+import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -25,7 +38,7 @@ val repositoryModule = module {
         LiftLabDatabase.getInstance(
             context = get(),
             populateInitialData = LiftLabDatabase.PopulateInitialDataCallback(
-                onOpen = {
+                onCreate = {
                     LiftLabDatabaseWorker.startDatabaseInitialization(get())
                 }
             )
@@ -50,19 +63,93 @@ val repositoryModule = module {
     single { get<LiftLabDatabase>().syncDao() }
 
     // Repositories
-    singleOf(::ProgramsRepositoryImpl)
-    singleOf(::WorkoutLiftsRepositoryImpl)
-    singleOf(::WorkoutsRepositoryImpl)
-    singleOf(::PreviousSetResultsRepositoryImpl)
-    singleOf(::LiftsRepositoryImpl)
-    singleOf(::CustomLiftSetsRepositoryImpl)
-    singleOf(::WorkoutInProgressRepositoryImpl)
-    singleOf(::HistoricalWorkoutNamesRepositoryImpl)
-    singleOf(::WorkoutLogRepositoryImpl)
-    singleOf(::LiftMetricChartsRepositoryImpl)
-    singleOf(::VolumeMetricChartsRepositoryImpl)
-    singleOf(::RestTimerInProgressRepositoryImpl)
-    singleOf(::SyncMetadataRepositoryImpl)
-    singleOf(::WorkoutLogRepositoryImpl)
-    singleOf(::SetLogEntryRepositoryImpl)
+    single<ProgramsRepository> {
+        ProgramsRepositoryImpl(
+            programsDao = get(),
+            restTimerInProgressDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<WorkoutLiftsRepository> {
+        WorkoutLiftsRepositoryImpl(
+            workoutLiftsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<WorkoutsRepository> {
+        WorkoutsRepositoryImpl(
+            workoutLiftsDao = get(),
+            customSetsDao = get(),
+            programsRepository = get(),
+            workoutsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<PreviousSetResultsRepository> {
+        PreviousSetResultsRepositoryImpl(
+            previousSetResultDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<LiftsRepository> {
+        LiftsRepositoryImpl(
+            liftsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<CustomLiftSetsRepository> {
+        CustomLiftSetsRepositoryImpl(
+            customSetsDao = get(),
+            workoutLiftsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<WorkoutInProgressRepository> {
+        WorkoutInProgressRepositoryImpl(
+            workoutInProgressDao = get(),
+            previousSetResultsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<HistoricalWorkoutNamesRepository> {
+        HistoricalWorkoutNamesRepositoryImpl(
+            historicalWorkoutNamesDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<WorkoutLogRepository> {
+        WorkoutLogRepositoryImpl(
+            workoutLogEntryDao = get(),
+            setLogEntryDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<LiftMetricChartsRepository> {
+        LiftMetricChartsRepositoryImpl(
+            liftMetricChartsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<VolumeMetricChartsRepository> {
+        VolumeMetricChartsRepositoryImpl(
+            volumeMetricChartsDao = get(),
+            syncScheduler = get(),
+        )
+    }
+    single<RestTimerInProgressRepository> {
+        RestTimerInProgressRepositoryImpl(
+            restTimerInProgressDao = get()
+        )
+    }
+    single<SyncMetadataRepository> {
+        SyncMetadataRepositoryImpl(
+            dao = get(),
+        )
+    }
+    single<SetLogEntryRepository> {
+        SetLogEntryRepositoryImpl(
+            setLogEntryDao = get(),
+            syncScheduler = get(),
+        )
+    }
 }

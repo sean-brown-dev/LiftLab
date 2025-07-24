@@ -69,7 +69,7 @@ fun WorkoutFilterDropdown(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Filter by WorkoutEntity",
+                            text = "Filter by Workout",
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 20.sp,
                         )

@@ -15,15 +15,15 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.models.ActiveWorkoutNotificationMetadata
 import kotlinx.coroutines.flow.firstOrNull
 
 class NotificationHelper(
     private val programRepository: ProgramsRepository,
-    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
-    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
+    private val workoutsRepository: WorkoutsRepository,
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository
 ) {
     companion object {
@@ -58,13 +58,13 @@ class NotificationHelper(
 
     private suspend fun getActiveWorkoutMetadata(): ActiveWorkoutNotificationMetadata? {
         return programRepository.getActive()?.let { activeProgramMetadata ->
-            val workoutInProgress = workoutInProgressRepositoryImpl.getFlow(
+            val workoutInProgress = workoutInProgressRepository.getFlow(
                 mesoCycle = activeProgramMetadata.currentMesocycle,
                 microCycle = activeProgramMetadata.currentMicrocycle,
             ).firstOrNull()
 
             if (workoutInProgress != null) {
-                val workout = workoutsRepositoryImpl.get(workoutInProgress.workoutId) ?: return null
+                val workout = workoutsRepository.getById(workoutInProgress.workoutId) ?: return null
                 ActiveWorkoutNotificationMetadata(
                     workoutName = workout.name,
                     startTime = workoutInProgress.startTime,
@@ -109,7 +109,7 @@ class NotificationHelper(
         is StandardWorkoutLift -> {
             val repText = if (workoutLift.stepSize != null && workoutLift.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
                 val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
-                val deloadWeek = if(liftLevelDeloadsEnabled && workoutLift.deloadWeek != null) workoutLift.deloadWeek!! else programDeloadWeek
+                val deloadWeek = if(liftLevelDeloadsEnabled && workoutLift.deloadWeek != null) workoutLift.deloadWeek else programDeloadWeek
 
                 if (microCycle < deloadWeek - 1) {
                     val stepSequence = generateCompleteStepSequence(

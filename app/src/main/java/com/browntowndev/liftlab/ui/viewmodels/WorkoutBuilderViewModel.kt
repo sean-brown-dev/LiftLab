@@ -30,6 +30,10 @@ import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
@@ -46,12 +50,12 @@ class WorkoutBuilderViewModel(
     private val workoutId: Long,
     private val onNavigateBack: () -> Unit,
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
-    private val customLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl,
+    private val workoutsRepositoryImpl: WorkoutsRepository,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepository,
+    private val customLiftSetsRepositoryImpl: CustomLiftSetsRepository,
     private val liftsRepository: LiftsRepository,
     private val liftLevelDeloadsEnabled: Boolean,
-    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
+    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -1016,7 +1020,7 @@ class WorkoutBuilderViewModel(
         )
         updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
 
-        safeExecute("update liftEntity", originalWorkout) {
+        safeExecute("update lift", originalWorkout) {
             workoutLiftsRepositoryImpl.update(workoutLift)
         }
     }
@@ -1043,7 +1047,7 @@ class WorkoutBuilderViewModel(
         )
 
         updateStateWithWorkoutLift(workoutLiftId = workoutLiftId, workoutLift = workoutLift)
-        safeExecute("update liftEntity", originalWorkout) {
+        safeExecute("update lift", originalWorkout) {
             workoutLiftsRepositoryImpl.update(workoutLift)
         }
     }

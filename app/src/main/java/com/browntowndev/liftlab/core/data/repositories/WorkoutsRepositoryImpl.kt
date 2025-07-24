@@ -3,6 +3,8 @@ package com.browntowndev.liftlab.core.data.repositories
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
+import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
@@ -11,14 +13,16 @@ import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
+import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class WorkoutsRepositoryImpl(
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
-    private val customLiftSetsRepositoryImpl: CustomLiftSetsRepositoryImpl,
+    private val workoutLiftsDao: WorkoutLiftsDao,
+    private val customSetsDao: CustomSetsDao,
     private val programsRepository: ProgramsRepository,
     private val workoutsDao: WorkoutsDao,
     private val syncScheduler: SyncScheduler,
@@ -186,8 +190,8 @@ class WorkoutsRepositoryImpl(
             }
 
         workoutsDao.update(updWorkout)
-        workoutLiftsRepositoryImpl.updateMany(model.lifts)
-        customLiftSetsRepositoryImpl.updateMany(updSets)
+        workoutLiftsDao.updateMany(model.lifts.fastMap { it.toEntity() })
+        customSetsDao.updateMany(updSets.fastMap { it.toEntity() })
 
         syncScheduler.scheduleSync()
     }

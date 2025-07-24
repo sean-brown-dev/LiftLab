@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-data class FirestoreSyncState(
-    val syncing: Boolean = false,
+data class RemoteSyncState(
+    val syncing: Boolean = true,
     val showSyncFailedDialog: Boolean = false,
 )

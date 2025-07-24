@@ -149,7 +149,7 @@ fun Workout(
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,
-                    "WorkoutEntity".left()
+                    "Workout".left()
                 )
             )
             mutateTopAppBarControlValue(

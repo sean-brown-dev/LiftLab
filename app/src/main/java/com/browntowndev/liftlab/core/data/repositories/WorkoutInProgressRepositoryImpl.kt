@@ -2,11 +2,13 @@ package com.browntowndev.liftlab.core.data.repositories
 
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
+import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -14,7 +16,7 @@ import kotlinx.coroutines.flow.map
 
 class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
-    private val previousSetResultsRepository: PreviousSetResultsRepository,
+    private val previousSetResultsDao: PreviousSetResultDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutInProgressRepository {
     override suspend fun getAll(): List<WorkoutInProgress> {
@@ -192,7 +194,7 @@ class WorkoutInProgressRepositoryImpl(
                 return flowOf(null)
             }
 
-            previousSetResultsRepository.getForWorkoutFlow(
+            previousSetResultsDao.getForWorkoutFlow(
                 workoutId = inProgressWorkout.workoutId,
                 mesoCycle = mesoCycle,
                 microCycle = microCycle,
@@ -200,7 +202,7 @@ class WorkoutInProgressRepositoryImpl(
                 WorkoutInProgress(
                     workoutId = inProgressWorkout.workoutId,
                     startTime = inProgressWorkout.startTime,
-                    completedSets = completedSets,
+                    completedSets = completedSets.fastMap { it.toSetResult() },
                 )
             }
         }

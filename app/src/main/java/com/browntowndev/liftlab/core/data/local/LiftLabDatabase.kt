@@ -39,7 +39,7 @@ import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.migrations.LiftNoteMigration
 import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxAutoMigration
-import com.browntowndev.liftlab.core.data.local.migrations.RemoteSyncAutoMigration
+import com.browntowndev.liftlab.core.data.local.migrations.RemoteSyncMigration
 import com.browntowndev.liftlab.core.data.local.migrations.StepSizeAutoMigration
 import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigration
 
@@ -76,7 +76,6 @@ import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigr
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
         AutoMigration(from = 12, to = 13),
         AutoMigration(from = 13, to = 14),
-        AutoMigration(from = 15, to = 16, spec = RemoteSyncAutoMigration::class),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -96,16 +95,17 @@ abstract class LiftLabDatabase : RoomDatabase() {
 
     /**
      * A custom callback to decouple the database creation from the data seeding logic.
-     * This callback accepts a lambda (`onFirstCreate`) which will be executed only when
+     * This callback accepts a lambda (`onCreate`) which will be executed only when
      * the database is created for the very first time.
      */
     class PopulateInitialDataCallback(
-        private val onOpen: () -> Unit
+        private val onCreate: () -> Unit
     ) : Callback() {
 
-        override fun onOpen(db: SupportSQLiteDatabase) {
+        override fun onCreate(db: SupportSQLiteDatabase) {
+            Log.d("PopulateInitialDataCallback", "onCreate called")
             super.onCreate(db)
-            onOpen()
+            onCreate()
         }
     }
 
@@ -124,7 +124,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
             val dbName = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DATABASE_NAME" else DATABASE_NAME
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, dbName)
-                .addMigrations(LiftNoteMigration(), WorkoutInProgressMigration())
+                .addMigrations(LiftNoteMigration(), WorkoutInProgressMigration(), RemoteSyncMigration())
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {
                         it.addCallback(populateInitialData)

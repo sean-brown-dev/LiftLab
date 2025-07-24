@@ -24,8 +24,10 @@ data class LiftEntity(
     val volumeTypesBitmask: Int,
     val secondaryVolumeTypesBitmask: Int? = null,
     val restTime: Duration? = null,
+    @ColumnInfo(defaultValue = true.toString())
     val restTimerEnabled: Boolean = true,
     val incrementOverride: Float? = null,
+    @ColumnInfo(defaultValue = false.toString())
     val isBodyweight: Boolean = false,
     val note: String? = null,
 ): BaseEntity()

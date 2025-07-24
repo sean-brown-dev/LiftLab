@@ -128,9 +128,36 @@ val syncModule = module {
     single {
         val syncRepositories = get<List<RemoteSyncRepository>>(named("RemoteSyncRepositories"))
         SyncOrchestrator(
-            get(),
-            syncRepositories,
-            get()
+            syncMetadataRepository = get(),
+            syncRepositories = syncRepositories,
+            remoteDataClient = get(),
+            transactionScope = get(),
+            syncHierarchy = listOf(
+                // Level 0: No dependencies
+                hashSetOf(
+                    RemoteCollectionNames.LIFTS_COLLECTION,
+                    RemoteCollectionNames.PROGRAMS_COLLECTION,
+                    RemoteCollectionNames.HISTORICAL_WORKOUT_NAMES_COLLECTION,
+                    RemoteCollectionNames.VOLUME_METRIC_CHARTS_COLLECTION,
+                ),
+                // Level 1: Depends on Level 0
+                hashSetOf(
+                    RemoteCollectionNames.LIFT_METRIC_CHARTS_COLLECTION,
+                    RemoteCollectionNames.WORKOUTS_COLLECTION,
+                ),
+                // Level 2: Depends on Level 1
+                hashSetOf(
+                    RemoteCollectionNames.WORKOUT_LIFTS_COLLECTION,
+                    RemoteCollectionNames.WORKOUT_LOG_ENTRIES_COLLECTION,
+                    RemoteCollectionNames.PREVIOUS_SET_RESULTS_COLLECTION,
+                ),
+                // Level 3: Depends on Level 2
+                hashSetOf(
+                    RemoteCollectionNames.CUSTOM_LIFT_SETS_COLLECTION,
+                    RemoteCollectionNames.SET_LOG_ENTRIES_COLLECTION,
+                    RemoteCollectionNames.WORKOUT_IN_PROGRESS_COLLECTION,
+                ),
+            )
         )
     }
 

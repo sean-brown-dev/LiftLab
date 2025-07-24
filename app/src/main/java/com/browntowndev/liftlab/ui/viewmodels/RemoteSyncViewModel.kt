@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.data.remote.sync.FirestoreSyncManager
-import com.browntowndev.liftlab.ui.viewmodels.states.FirestoreSyncState
+import com.browntowndev.liftlab.core.data.remote.SyncOrchestrator
+import com.browntowndev.liftlab.ui.viewmodels.states.RemoteSyncState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -14,10 +14,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class FirestoreSyncViewModel(
-    private val syncManager: FirestoreSyncManager,
+class RemoteSyncViewModel(
+    private val syncOrchestrator: SyncOrchestrator,
 ): ViewModel() {
-    private val _syncState = MutableStateFlow(FirestoreSyncState())
+    companion object {
+        private const val TAG = "RemoteSyncViewModel"
+    }
+
+    private val _syncState = MutableStateFlow(RemoteSyncState())
     val syncState = _syncState.asStateFlow()
 
     fun syncAll() {
@@ -30,15 +34,12 @@ class FirestoreSyncViewModel(
                             showSyncFailedDialog = false,
                         )
                     }
-                    Log.d("FirestoreSyncViewModel", "Syncing all")
-                    retryWithBackoff {
-                        syncManager.syncAll()
-                    }
-                    Log.d("FirestoreSyncViewModel", "Upsert complete")
 
-                    Log.d("FirestoreSyncViewModel", "Starting deletion watchers")
-                    tryStartDeletionWatchers()
-                    Log.d("FirestoreSyncViewModel", "Deletion watchers started")
+                    Log.d(TAG, "Syncing all")
+                    retryWithBackoff {
+                        syncOrchestrator.syncAll()
+                    }
+                    Log.d(TAG, "Sync complete")
                 } catch (e: Exception) {
                     toggleSyncErrorDialog()
                 } finally {
@@ -47,18 +48,6 @@ class FirestoreSyncViewModel(
                     }
                 }
             }
-        }
-    }
-
-    suspend fun tryStartDeletionWatchers() {
-        try {
-            retryWithBackoff {
-                syncManager.tryStartDeletionWatchers()
-            }
-        } catch (e: Exception) {
-            // Don't necessarily think user needs to know this failed to start. So just log.
-            Log.e("FirestoreSyncViewModel", "Failed to start deletion watchers: ${e.message}")
-            FirebaseCrashlytics.getInstance().recordException(e)
         }
     }
 
@@ -74,6 +63,7 @@ class FirestoreSyncViewModel(
                 block()
                 return // success
             } catch (e: Exception) {
+                Log.e(TAG, "Sync failed with exception: ${e.message}. Retrying=${attempt + 1 < maxRetries}", e)
                 FirebaseCrashlytics.getInstance().recordException(e)
                 delay(delayTime)
                 delayTime *= 2

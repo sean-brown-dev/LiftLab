@@ -100,7 +100,7 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
 private fun isSelectedRoute(currentRoute: String?, screen: BottomNavItem): Boolean =
     when (screen.route) {
         is Route.Home -> currentRoute?.endsWith("Home") ?: false
-        is Route.Workout -> currentRoute?.endsWith("WorkoutEntity") ?: false
+        is Route.Workout -> currentRoute?.endsWith("Workout") ?: false
         is Route.Lab -> currentRoute?.endsWith("Lab") ?: false
         is Route.LiftLibrary -> currentRoute?.endsWith("LiftLibrary") ?: false
         else -> throw Exception("Unrecognized bottom navigation screen.")

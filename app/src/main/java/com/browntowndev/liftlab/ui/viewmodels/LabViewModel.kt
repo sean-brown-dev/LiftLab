@@ -13,6 +13,8 @@ import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,8 +25,8 @@ import org.greenrobot.eventbus.Subscribe
 
 class LabViewModel(
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
+    private val workoutsRepository: WorkoutsRepository,
+    private val workoutLiftsRepository: WorkoutLiftsRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -88,7 +90,7 @@ class LabViewModel(
             } else mapOf()
 
             if (liftsWithNewStepSizes.isNotEmpty()) {
-                workoutLiftsRepositoryImpl.updateMany(liftsWithNewStepSizes.values.toList())
+                workoutLiftsRepository.updateMany(liftsWithNewStepSizes.values.toList())
             }
             _state.update {
                 it.copy(
@@ -142,11 +144,11 @@ class LabViewModel(
         executeInTransactionScope {
             val newWorkoutEntity = Workout(
                 programId = _state.value.program!!.id,
-                name = "New WorkoutEntity",
+                name = "New Workout",
                 position = _state.value.program!!.workouts.count(),
                 lifts = listOf()
             )
-            val newWorkoutId = workoutsRepositoryImpl.insert(newWorkoutEntity)
+            val newWorkoutId = workoutsRepository.insert(newWorkoutEntity)
             _state.update { currentState ->
                 currentState.copy(
                     workoutIdToRename = newWorkoutId,
@@ -194,7 +196,7 @@ class LabViewModel(
     fun updateWorkoutName(workoutId: Long, newName: String) {
         if (_state.value.originalWorkoutName != newName) {
             executeInTransactionScope {
-                workoutsRepositoryImpl.updateName(
+                workoutsRepository.updateName(
                     id = workoutId,
                     newName = newName
                 )
@@ -231,7 +233,7 @@ class LabViewModel(
 
     fun deleteWorkout(workout: Workout) {
         viewModelScope.launch {
-            workoutsRepositoryImpl.delete(workout)
+            workoutsRepository.delete(workout)
             _state.update {
                 _state.value.copy(
                     program = _state.value.program!!.copy(
@@ -311,7 +313,7 @@ class LabViewModel(
                 val workout = _state.value.program!!.workouts.find { workout -> workout.id == reorderableListItem.key }
                 workout!!.copy(position = index)
             }
-            workoutsRepositoryImpl.updateMany(reorderedWorkouts)
+            workoutsRepository.updateMany(reorderedWorkouts)
             _state.update { currentState ->
                 currentState.copy(
                     program = currentState.program!!.copy(

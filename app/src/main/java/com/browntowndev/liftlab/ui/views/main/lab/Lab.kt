@@ -168,7 +168,7 @@ fun Lab(
         } else ""
 
         TextFieldDialog(
-            header = "Create New ProgramEntity",
+            header = "Create New Program",
             textAboveTextField = subtext,
             placeholder = "Name",
             initialTextFieldValue = "",

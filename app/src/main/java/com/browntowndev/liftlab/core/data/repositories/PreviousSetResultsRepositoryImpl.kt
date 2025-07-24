@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetad
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -42,13 +43,20 @@ class PreviousSetResultsRepositoryImpl(
         workoutId: Long,
         mesoCycle: Int, microCycle: Int,
         liftIds: List<Long>
-    ): List<PersonalRecordDto> {
+    ): List<PersonalRecord> {
         return previousSetResultDao.getPersonalRecordsForLiftsExcludingWorkout(
             workoutId = workoutId,
             mesoCycle = mesoCycle,
             microCycle = microCycle,
             liftIds = liftIds,
-        )
+        ).let { records ->
+            records.fastMap {
+                PersonalRecord(
+                    liftId = it.liftId,
+                    personalRecord = it.personalRecord,
+                )
+            }
+        }
     }
 
     override suspend fun getAll(): List<SetResult> {

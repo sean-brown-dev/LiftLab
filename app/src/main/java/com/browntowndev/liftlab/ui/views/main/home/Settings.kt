@@ -219,7 +219,7 @@ fun Settings(
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Only Sets from Previous WorkoutEntity",
+                            text = "Only Sets from Previous Workout",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
@@ -305,7 +305,7 @@ fun Settings(
                 LiftLabDialog(
                     isVisible = isIncrementDialogVisible,
                     header = "Default Weight Increment",
-                    subHeader = "Used Unless Overridden on LiftEntity",
+                    subHeader = "Used Unless Overridden on Lift",
                     onDismiss = { isIncrementDialogVisible = false }
                 ) {
                     NumberPickerSpinner(
@@ -339,7 +339,7 @@ fun Settings(
                 LiftLabDialog(
                     isVisible = isRestTimeDialogVisible,
                     header = "Default Weight Increment",
-                    subHeader = "Used Unless Overridden on LiftEntity",
+                    subHeader = "Used Unless Overridden on Lift",
                     onDismiss = { isRestTimeDialogVisible = false }
                 ) {
                     TimeSelectionSpinner(

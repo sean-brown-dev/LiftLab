@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,7 @@ class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
     private val workoutLogRepository: WorkoutLogRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
+    private val setLogEntryRepository: SetLogEntryRepository,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -292,8 +294,7 @@ class EditWorkoutViewModel(
             }
         }
 
-        return workoutLogRepository.upsertMany(
-            workoutLogEntryId = workoutLogEntryId,
+        return setLogEntryRepository.upsertMany(
             updatedResults.fastMap { setResult ->
                 getSetLogEntryFromSetResult(setResult = setResult)
             }
@@ -304,14 +305,13 @@ class EditWorkoutViewModel(
         if (_editWorkoutState.value.setResults.isNotEmpty()) {
             updateSetResult(updatedResult = updatedResult)
         }
-        return workoutLogRepository.upsert(
-            workoutLogEntryId = workoutLogEntryId,
+        return setLogEntryRepository.upsert(
             getSetLogEntryFromSetResult(setResult = updatedResult),
         )
     }
 
     override suspend fun deleteSetResult(id: Long) {
-        workoutLogRepository.deleteSetLogEntryById(id)
+        setLogEntryRepository.deleteById(id)
     }
 
     private suspend fun updateSetResult(updatedResult: SetResult) {
@@ -434,6 +434,7 @@ class EditWorkoutViewModel(
 
         return SetLogEntry(
             id = setResult.id,
+            workoutLogEntryId = workoutLogEntryId,
             liftId = setResult.liftId,
             liftName = lift.liftName,
             liftMovementPattern = lift.liftMovementPattern,

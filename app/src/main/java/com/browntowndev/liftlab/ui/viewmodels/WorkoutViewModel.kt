@@ -26,6 +26,7 @@ import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
@@ -37,18 +38,19 @@ import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
-import com.browntowndev.liftlab.core.data.repositories.HistoricalWorkoutNamesRepositoryImpl
+import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.browntowndev.liftlab.core.domain.progression.ProgressionFactory
+import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
+import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.models.LiftCompletionSummary
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -71,12 +73,13 @@ import kotlin.time.Duration
 class WorkoutViewModel(
     private val progressionFactory: ProgressionFactory,
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepositoryImpl: WorkoutsRepositoryImpl,
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl,
+    private val workoutsRepositoryImpl: WorkoutsRepository,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
-    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl,
-    private val historicalWorkoutNamesRepositoryImpl: HistoricalWorkoutNamesRepositoryImpl,
+    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepository,
+    private val historicalWorkoutNamesRepositoryImpl: HistoricalWorkoutNamesRepository,
     private val workoutLogRepository: WorkoutLogRepository,
+    private val setLogEntryRepository: SetLogEntryRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val liftsRepository: LiftsRepository,
     private val navigateToWorkoutHistory: () -> Unit,
@@ -366,14 +369,14 @@ class WorkoutViewModel(
         mesoCycle: Int,
         microCycle: Int,
         liftIds: List<Long>
-    ): Map<Long, PersonalRecordDto> {
+    ): Map<Long, PersonalRecord> {
         val prevWorkoutPersonalRecords = setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(
             workoutId = workoutId,
             mesoCycle = mesoCycle,
             microCycle = microCycle,
             liftIds = liftIds,
         )
-        return workoutLogRepository.getPersonalRecordsForLifts(liftIds)
+        return setLogEntryRepository.getPersonalRecordsForLifts(liftIds)
             .associateBy { it.liftId }
             .toMutableMap()
             .apply {
@@ -582,7 +585,7 @@ class WorkoutViewModel(
                 }
 
                 LiftCompletionSummary(
-                    liftName = lift?.liftName ?: "Unknown LiftEntity",
+                    liftName = lift?.liftName ?: "Unknown Lift",
                     liftId = lift?.liftId ?: -1,
                     liftPosition = lift?.position ?: -1,
                     setsCompleted = setsCompleted,
@@ -636,7 +639,7 @@ class WorkoutViewModel(
             val workout = mutableWorkoutState.value.workout!!
 
             // Remove the workoutEntity from in progress
-            workoutInProgressRepositoryImpl.delete()
+            workoutInProgressRepositoryImpl.deleteAll()
             restTimerInProgressRepository.deleteAll()
 
             // Increment the mesocycle and microcycle
@@ -661,10 +664,12 @@ class WorkoutViewModel(
                 )
             if (historicalWorkoutNameId == null) {
                 historicalWorkoutNameId = historicalWorkoutNamesRepositoryImpl.insert(
-                    programId = programMetadata.programId,
-                    workoutId = workout.id,
-                    programName = programMetadata.name,
-                    workoutName = workout.name,
+                    HistoricalWorkoutName(
+                        programId = programMetadata.programId,
+                        workoutId = workout.id,
+                        programName = programMetadata.name,
+                        workoutName = workout.name,
+                    )
                 )
             }
             val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
@@ -718,7 +723,7 @@ class WorkoutViewModel(
             }
 
         // Copy all of the set results from this workoutEntity into the set history table
-        workoutLogRepository.insertFromPreviousSetResults(
+        setLogEntryRepository.insertFromPreviousSetResults(
             workoutLogEntryId = workoutLogEntryId,
             workoutId = mutableWorkoutState.value.workout!!.id,
             mesocycle = programMetadata.currentMesocycle,
@@ -766,7 +771,7 @@ class WorkoutViewModel(
 
         executeInTransactionScope {
             // Remove the workoutEntity from in progress
-            workoutInProgressRepositoryImpl.delete()
+            workoutInProgressRepositoryImpl.deleteAll()
 
             // Delete all set results from the workoutEntity
             val programMetadata = mutableWorkoutState.value.programMetadata!!

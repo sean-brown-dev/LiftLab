@@ -118,7 +118,7 @@ fun WorkoutHistoryCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 modifier = Modifier.padding(horizontal = 15.dp),
-                text = "LiftEntity",
+                text = "Lift",
                 color = MaterialTheme.colorScheme.outline,
                 textAlign = TextAlign.Center,
                 fontSize = 15.sp,

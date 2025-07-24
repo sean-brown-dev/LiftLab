@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -137,7 +136,7 @@ fun LiftLibrary(
                             confirmationDialogHeader = "Delete LiftEntity?",
                             confirmationDialogBody = "Deleting this liftEntity will hide it from the Lifts menu. It can be restored from the Settings menu.",
                             enabled = !isAddingToWorkout && !isReplacingLiftInWorkoutBuilder && !isCreatingLiftMetricCharts && !isReplacingLiftInWorkout,
-                            onDelete = { liftLibraryViewModel.hideLift(lift) },
+                            onDelete = { liftLibraryViewModel.deleteLift(lift) },
                         ) {
                             ListItem(
                                 modifier = Modifier.clickable {
