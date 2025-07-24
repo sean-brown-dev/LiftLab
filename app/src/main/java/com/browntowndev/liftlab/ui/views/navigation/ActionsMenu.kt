@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,7 +36,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 
 @Composable
-fun ActionsMenu(
+fun RowScope.ActionsMenu(
     topAppBarState: LiftLabTopAppBarState,
     topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
@@ -58,33 +60,45 @@ fun ActionsMenu(
         }
     }
 
-    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>().fastForEach { item ->
-        if (item.isVisible) {
-            IconButton(
-                onClick = {
-                    item.onClick().fastForEach {
-                        topAppBarViewModel.setControlVisibility(it.first, it.second)
-                    }
+    var prevWasAtStart = false
+    menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.IconMenuItem>()
+        .sortedBy { !it.placeAtStart }
+        .fastForEach { item ->
+            if (item.isVisible) {
+                if (prevWasAtStart && !item.placeAtStart) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
-            ) {
-                item.icon?.onLeft {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = it,
-                        contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }?.onRight {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = it),
-                        contentDescription = if(item.contentDescriptionResourceId != null)  stringResource(id = item.contentDescriptionResourceId as Int) else null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
+                prevWasAtStart = item.placeAtStart
+
+                IconButton(
+                    onClick = {
+                        item.onClick().fastForEach {
+                            topAppBarViewModel.setControlVisibility(it.first, it.second)
+                        }
+                    }
+                ) {
+                    item.icon?.onLeft {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            imageVector = it,
+                            contentDescription = if (item.contentDescriptionResourceId != null)
+                                stringResource(id = item.contentDescriptionResourceId as Int)
+                                else null,
+                            tint = item.color ?: MaterialTheme.colorScheme.primary,
+                        )
+                    }?.onRight {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(id = it),
+                            contentDescription = if (item.contentDescriptionResourceId != null)
+                                stringResource(id = item.contentDescriptionResourceId as Int)
+                                else null,
+                            tint = item.color ?: MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
             }
         }
-    }
 
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.ButtonMenuItem.AlwaysShown>().fastForEach { item ->
         if (item.isVisible) {

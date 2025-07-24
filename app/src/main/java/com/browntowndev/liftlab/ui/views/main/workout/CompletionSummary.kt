@@ -103,10 +103,10 @@ fun CompletionSummary(
                                 color = MaterialTheme.colorScheme.tertiary,
                             )
                             if (workoutCompletionSummary.totalIncompleteLifts > 0) {
-                                val liftOrLifts = if (workoutCompletionSummary.totalIncompleteLifts > 1) "Lifts" else "Lift"
+                                val liftEntityOrLifts = if (workoutCompletionSummary.totalIncompleteLifts > 1) "Lifts" else "Lift"
                                 Text(
                                     modifier = Modifier.padding(start = 5.dp),
-                                    text = "${workoutCompletionSummary.totalIncompleteLifts} Incomplete $liftOrLifts",
+                                    text = "${workoutCompletionSummary.totalIncompleteLifts} Incomplete $liftEntityOrLifts",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.error,

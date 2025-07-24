@@ -26,8 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -49,11 +49,13 @@ fun CustomKeyboard(
             animationSpec = tween(durationMillis = 100)
         ) + fadeOut(),
     ) {
+        val windowHeightDp: Dp = rememberWindowHeight()
+
         ElevatedCard(
             modifier = modifier.then(
                 Modifier
                     .fillMaxWidth()
-                    .height(LocalConfiguration.current.screenHeightDp.dp.times(.3f))
+                    .height(windowHeightDp.times(.3f))
             ),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface,

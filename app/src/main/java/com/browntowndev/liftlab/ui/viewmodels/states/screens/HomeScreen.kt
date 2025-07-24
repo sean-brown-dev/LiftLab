@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.right
@@ -9,18 +10,23 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
+import java.util.UUID
 
 data class HomeScreen(
     override val isOverflowMenuExpanded: Boolean = false,
     override val isOverflowMenuIconVisible: Boolean = true,
     override val navigationIconVisible: Boolean = false,
     override val title: String = navigation.title,
+    private val isSyncEnabled: Boolean = false,
 ) : BaseScreen() {
     companion object {
+        private const val SETTINGS = "Settings"
+        const val SYNC_STATUS = "Upsert Status"
         val navigation = BottomNavItem("Home", "", R.drawable.home_icon, Route.Home)
     }
 
@@ -42,6 +48,20 @@ data class HomeScreen(
         return if (title != newTitle) copy(title = newTitle) else this
     }
 
+    override fun <T> mutateControlValue(request: AppBarMutateControlRequest<T>): Screen {
+        return when (request.controlName) {
+            SYNC_STATUS -> {
+                if (request.payload !is Boolean) throw IllegalArgumentException("Payload must be of type Boolean")
+                copy(isSyncEnabled = request.payload)
+            }
+            else -> super.mutateControlValue(request)
+        }
+    }
+
+    private val syncIcon: Either<ImageVector, Int>
+        get() = (if (isSyncEnabled) R.drawable.cloud_done else R.drawable.cloud_off).right()
+    private val syncIconColor: Color?
+        get() = if (!isSyncEnabled) Color.LightGray else null
     override val route: Route
         get() = navigation.route
     override val isAppBarVisible: Boolean
@@ -55,7 +75,20 @@ data class HomeScreen(
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.IconMenuItem.AlwaysShown(
-                controlName = LiftLibraryScreen.SEARCH_ICON,
+                controlName = SYNC_STATUS,
+                title = "Upsert Status",
+                icon = syncIcon,
+                color = syncIconColor,
+                isVisible = true,
+                placeAtStart = true,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.OpenProfileMenu))
+                    listOf()
+                },
+                contentDescriptionResourceId = R.string.profile,
+            ),
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = SETTINGS,
                 title = "Settings",
                 icon = R.drawable.settings_cog.right(),
                 isVisible = true,

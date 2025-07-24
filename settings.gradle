@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "LiftLab"
 include ':app'
+include ':annotations'
+include ':annotation_generator'

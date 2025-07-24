@@ -27,8 +27,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.core.persistence.dtos.SetLogEntryDto
-import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -40,8 +39,8 @@ fun WorkoutHistoryCard(
     workoutDuration: Long,
     mesoCycle: Int,
     microCycle: Int,
-    setResults: List<SetLogEntryDto>,
-    topSets: Map<Long, Pair<Int, SetLogEntryDto>>?,
+    setResults: List<SetLogEntry>,
+    topSets: Map<Long, Pair<Int, SetLogEntry>>?,
     onEditWorkout: () -> Unit,
     onDeleteWorkout: () -> Unit,
 ) {

@@ -6,15 +6,15 @@ import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +27,6 @@ class LabViewModel(
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val restTimerInProgressRepository: RestTimerInProgressRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -41,13 +39,22 @@ class LabViewModel(
         }
 
         viewModelScope.launch {
-            programsRepository.getActive().observeForever { activeProgram ->
-                _state.update {
-                    it.copy(
-                        program = activeProgram
-                    )
+            programsRepository.getAllFlow()
+                .collect { allPrograms ->
+                    val activeProgram = allPrograms
+                        .firstOrNull { program -> program.isActive }
+                        ?.let { program ->
+                            program.copy(
+                                workouts = program.workouts.sortedBy { it.position }
+                            )
+                        }
+                    _state.update {
+                        it.copy(
+                            program = activeProgram,
+                            allPrograms = allPrograms,
+                        )
+                    }
                 }
-            }
         }
     }
 
@@ -75,7 +82,7 @@ class LabViewModel(
     fun updateDeloadWeek(deloadWeek: Int) {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
-            val liftsWithNewStepSizes: Map<Long, StandardWorkoutLiftDto> = if (_state.value.program != null) {
+            val liftsWithNewStepSizes: Map<Long, StandardWorkoutLift> = if (_state.value.program != null) {
                 getAllLiftsWithRecalculatedStepSize(
                     workouts = _state.value.program!!.workouts,
                     deloadToUseInsteadOfLiftLevel = deloadWeek,
@@ -114,7 +121,7 @@ class LabViewModel(
 
     fun createProgram(name: String) {
         executeInTransactionScope {
-            var newProgram = ProgramDto(name = name, isActive = !_state.value.isManagingPrograms)
+            var newProgram = Program(name = name, isActive = !_state.value.isManagingPrograms)
             if (_state.value.program != null && !_state.value.isManagingPrograms) {
                 val programToArchive = _state.value.program!!.copy(isActive = false)
                 programsRepository.update(programToArchive)
@@ -135,21 +142,21 @@ class LabViewModel(
 
     private fun createNewWorkout() {
         executeInTransactionScope {
-            val newWorkout = WorkoutDto(
+            val newWorkoutEntity = Workout(
                 programId = _state.value.program!!.id,
                 name = "New Workout",
                 position = _state.value.program!!.workouts.count(),
                 lifts = listOf()
             )
-            val newWorkoutId = workoutsRepository.insert(newWorkout)
+            val newWorkoutId = workoutsRepository.insert(newWorkoutEntity)
             _state.update { currentState ->
                 currentState.copy(
                     workoutIdToRename = newWorkoutId,
-                    originalWorkoutName = newWorkout.name,
+                    originalWorkoutName = newWorkoutEntity.name,
                     program = currentState.program!!.copy(
                         workouts = currentState.program.workouts.toMutableList().apply {
                             add(
-                                newWorkout.copy(
+                                newWorkoutEntity.copy(
                                     id = newWorkoutId
                                 )
                             )
@@ -224,7 +231,7 @@ class LabViewModel(
         }
     }
 
-    fun deleteWorkout(workout: WorkoutDto) {
+    fun deleteWorkout(workout: Workout) {
         viewModelScope.launch {
             workoutsRepository.delete(workout)
             _state.update {
@@ -240,7 +247,7 @@ class LabViewModel(
         }
     }
 
-    fun beginDeleteWorkout(workout: WorkoutDto) {
+    fun beginDeleteWorkout(workout: Workout) {
         _state.update {
             it.copy(workoutToDelete = workout)
         }
@@ -276,61 +283,27 @@ class LabViewModel(
         executeInTransactionScope {
             if (_state.value.isManagingPrograms) {
                 val programToDelete = _state.value.allPrograms.find { it.id == programId }!!
-                val isActive = programToDelete.id == _state.value.program?.id
-                var newActiveProgram: ProgramDto? = null
-
-                if (isActive) {
-                    deleteActiveProgram()
-                    newActiveProgram = _state.value.allPrograms
-                        .firstOrNull { it.id != programId }
-                        ?.copy(isActive = true)
-                        ?.also {
-                            programsRepository.update(it)
-                        }
-                } else {
-                    programsRepository.delete(programToDelete)
-                }
+                programsRepository.delete(programToDelete)
+                val programs = programsRepository.getAll()
 
                 _state.update {
                     it.copy(
-                        program = if (isActive) newActiveProgram else it.program,
+                        program = programs.firstOrNull { it.isActive },
                         idOfProgramToDelete = null,
                         isDeletingProgram = false,
-                        allPrograms = it.allPrograms.mapNotNull { program ->
-                            if (program.id == newActiveProgram?.id) {
-                                newActiveProgram
-                            } else if (program.id != programId) {
-                                program
-                            }
-                            else null
-                        }
+                        allPrograms = programs,
                     )
                 }
             } else {
-                deleteActiveProgram()
-                val newActiveProgram = programsRepository.getAll()
-                    .firstOrNull()
-                    ?.copy(isActive = true)
-                    ?.also {
-                        programsRepository.update(it)
-                    }
-
+                programsRepository.delete(_state.value.program!!)
+                val activeProgram = programsRepository.getActive()
                 _state.update {
                     it.copy(
-                        program = newActiveProgram,
+                        program = activeProgram,
                         isDeletingProgram = false,
                     )
                 }
             }
-        }
-    }
-
-    private suspend fun deleteActiveProgram() {
-        val program = _state.value.program
-        if (program != null) {
-            programsRepository.delete(program)
-            workoutInProgressRepository.delete()
-            restTimerInProgressRepository.deleteAll()
         }
     }
 
@@ -368,24 +341,19 @@ class LabViewModel(
     }
 
     fun toggleManageProgramsScreen() {
-        executeInTransactionScope {
-            // This UI will rarely be clicked, so I think it's fine to just get this each time it's opened
-            val allPrograms = programsRepository.getAll().sortedBy { it.name }
-            _state.update {
-                it.copy(
-                    allPrograms = allPrograms,
-                    isManagingPrograms = !it.isManagingPrograms,
-                )
-            }
+        _state.update {
+            it.copy(
+                isManagingPrograms = !it.isManagingPrograms,
+            )
         }
     }
 
     fun setProgramAsActive(programId: Long) {
-        // Program is already active
+        // ProgramEntity is already active
         if (_state.value.program?.id == programId) return
 
         executeInTransactionScope {
-            val programsToUpdate = mutableListOf<ProgramDto>()
+            val programsToUpdate = mutableListOf<Program>()
             val newActiveProgram = _state.value.allPrograms
                 .find { it.id == programId }
                 ?.copy(isActive = true)
@@ -393,8 +361,8 @@ class LabViewModel(
             if (newActiveProgram != null) {
                 programsToUpdate.add(newActiveProgram)
 
-                // Theoretically, this should never be null. You can only open program management
-                // if a program exists. Just in case though!
+                // Theoretically, this should never be null. You can only open programEntity management
+                // if a programEntity exists. Just in case though!
                 val programToArchive = _state.value.program?.copy(isActive = false)?.let { programToArchive ->
                     programsToUpdate.add(programToArchive)
                     programToArchive
@@ -402,24 +370,7 @@ class LabViewModel(
 
                 programsRepository.updateMany(programsToUpdate)
 
-                _state.update {
-                    it.copy(
-                        program = null, // Will get retrieved by observe in init
-                        allPrograms = it.allPrograms.map { program ->
-                            when (program.id) {
-                                programId -> {
-                                    newActiveProgram
-                                }
-                                programToArchive?.id -> {
-                                    programToArchive
-                                }
-                                else -> {
-                                    program
-                                }
-                            }
-                        }
-                    )
-                }
+                // State updated via observer collect
             }
         }
     }

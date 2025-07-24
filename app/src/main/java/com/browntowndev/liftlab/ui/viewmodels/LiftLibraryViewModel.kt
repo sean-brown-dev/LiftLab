@@ -1,21 +1,19 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.LiftMetricChartDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,8 +25,8 @@ import org.greenrobot.eventbus.Subscribe
 
 class LiftLibraryViewModel(
     private val liftsRepository: LiftsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val liftMetricChartRepository: LiftMetricChartRepository,
+    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepository,
+    private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     private val onNavigateToActiveWorkout: () -> Unit,
@@ -40,8 +38,6 @@ class LiftLibraryViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
-    private var _liftsLiveData: LiveData<List<LiftDto>>? = null
-    private var _liftsObserver: Observer<List<LiftDto>>? = null
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 
@@ -65,9 +61,10 @@ class LiftLibraryViewModel(
                     }
                 )
             }
+        }
 
-            _liftsLiveData = liftsRepository.getAllAsLiveData()
-            _liftsObserver = Observer { lifts ->
+        viewModelScope.launch {
+            liftsRepository.getAllFlow().collect { lifts ->
                 val sortedLifts = lifts.sortedBy { it.name }
                 _state.update { currentState ->
                     currentState.copy(
@@ -76,14 +73,7 @@ class LiftLibraryViewModel(
                     )
                 }
             }
-
-            _liftsLiveData!!.observeForever(_liftsObserver!!)
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        _liftsLiveData?.removeObserver(_liftsObserver!!)
     }
 
     @Subscribe
@@ -109,7 +99,7 @@ class LiftLibraryViewModel(
         workoutId: Long?,
     ): HashSet<Long> {
         return if (workoutId != null) {
-            workoutLiftsRepository.getLiftIdsForWorkout(workoutId).toHashSet()
+            workoutLiftsRepositoryImpl.getLiftIdsForWorkout(workoutId).toHashSet()
         } else hashSetOf()
     }
 
@@ -132,7 +122,7 @@ class LiftLibraryViewModel(
     private fun updateLiftMetricChartsWithSelectedLiftIds() {
         viewModelScope.launch {
             val newLiftIds = _state.value.selectedNewLiftsHashSet
-            var liftMetricCharts = liftMetricChartRepository.getMany(_state.value.newLiftMetricChartIds)
+            var liftMetricCharts = liftMetricChartsRepository.getMany(_state.value.newLiftMetricChartIds)
 
             liftMetricCharts = newLiftIds.flatMap { currLiftId ->
                 liftMetricCharts.fastMap { chart ->
@@ -140,12 +130,12 @@ class LiftLibraryViewModel(
                 }
             }
 
-            liftMetricChartRepository.upsertMany(liftMetricCharts = liftMetricCharts)
+            liftMetricChartsRepository.upsertMany(liftMetricCharts)
             onNavigateHome()
         }
     }
 
-    private fun updateChart(chart: LiftMetricChartDto, liftId: Long, firstLiftId: Long): LiftMetricChartDto {
+    private fun updateChart(chart: LiftMetricChart, liftId: Long, firstLiftId: Long): LiftMetricChart {
         return chart.copy(
             id = if (liftId == firstLiftId) chart.id else 0L,
             liftId = liftId
@@ -162,7 +152,7 @@ class LiftLibraryViewModel(
                 .filter { newLiftHashSet.contains(it.id) }
                 .fastMap { newLift ->
                     position++
-                    StandardWorkoutLiftDto(
+                    StandardWorkoutLift(
                         liftId = newLift.id,
                         workoutId = workoutId,
                         liftName = newLift.name,
@@ -183,7 +173,7 @@ class LiftLibraryViewModel(
                     )
                 }
 
-            workoutLiftsRepository.insertAll(newLifts)
+            workoutLiftsRepositoryImpl.insertMany(newLifts)
             navigateBackToWorkoutBuilder()
         }
     }
@@ -196,7 +186,7 @@ class LiftLibraryViewModel(
         _state.update { it.copy(replacingLift = true) }
 
         viewModelScope.launch {
-            workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
+            workoutLiftsRepositoryImpl.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
             if (callerRouteId == Route.WorkoutBuilder.id) {
                 navigateBackToWorkoutBuilder()
             } else {
@@ -253,7 +243,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun getFilteredLifts(liftsToFilter: List<LiftDto>): List<LiftDto> {
+    private fun getFilteredLifts(liftsToFilter: List<Lift>): List<Lift> {
         val nameFilter = _state.value.nameFilter
         val movementPatternFilters = _state.value.movementPatternFilters
         val liftIdFilters = _state.value.liftIdFilters
@@ -284,10 +274,10 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun hideLift(lift: LiftDto) {
+    fun deleteLift(lift: Lift) {
         viewModelScope.launch {
             // No need to update state. The lifts are retrieved via Flow
-            liftsRepository.update(lift.copy(isHidden = true))
+            liftsRepository.delete(lift)
         }
     }
 }

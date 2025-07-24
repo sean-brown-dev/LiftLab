@@ -3,20 +3,20 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.persistence.dtos.ActiveProgramMetadataDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutInProgressDto
-import com.browntowndev.liftlab.core.persistence.dtos.queryable.PersonalRecordDto
+import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
+import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
 import java.util.Date
 
 @Stable
 data class WorkoutState(
     val initialized: Boolean = false,
-    val programMetadata: ActiveProgramMetadataDto? = null,
-    val workout: LoggingWorkoutDto? = null,
-    val personalRecords: Map<Long, PersonalRecordDto> = mapOf(),
-    val inProgressWorkout: WorkoutInProgressDto? = null,
+    val programMetadata: ActiveProgramMetadata? = null,
+    val workout: LoggingWorkout? = null,
+    val personalRecords: Map<Long, PersonalRecord> = mapOf(),
+    val inProgressWorkout: WorkoutInProgress? = null,
     val workoutLogVisible: Boolean = false,
     val isReordering: Boolean = false,
     val restTimerStartedAt: Date? = null,

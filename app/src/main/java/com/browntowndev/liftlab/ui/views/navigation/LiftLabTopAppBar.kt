@@ -92,11 +92,6 @@ private fun LiftLabLargeTopAppBar(
     topAppBarViewModel: TopAppBarViewModel = koinViewModel(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 ) {
-    var isCollapsed by remember { mutableStateOf(false) }
-    LaunchedEffect(key1 = scrollBehavior.state.collapsedFraction) {
-        isCollapsed = scrollBehavior.state.collapsedFraction == 1.0f
-    }
-
     LargeTopAppBar(
         modifier = modifier,
         colors = topAppBarColors(

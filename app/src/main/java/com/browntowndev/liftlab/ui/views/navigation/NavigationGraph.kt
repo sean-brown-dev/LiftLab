@@ -13,7 +13,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.toRoute
-import arrow.core.Either
 import arrow.core.left
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
@@ -52,11 +51,10 @@ fun NavigationGraph(
     onProcessDonation: () -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Any>) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onSetScreen: (screen: Screen) -> Unit,
+    onBeginSync: () -> Unit,
 ) {
     NavHost(navHostController, startDestination = Route.Workout()) {
         composable<Route.Home> { backstackEntry ->
@@ -77,6 +75,15 @@ fun NavigationGraph(
                         navHostController.currentBackStackEntry!!.savedStateHandle[LIFT_METRIC_CHART_IDS] = chartIds
                         navHostController.navigate(Route.LiftLibrary())
                     },
+                    mutateTopAppBarControlValue = { request ->
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                controlName = request.controlName,
+                                payload = request.payload
+                            )
+                        )
+                    },
+                    onBeginSync = onBeginSync,
                 )
             }
         }
@@ -104,8 +111,6 @@ fun NavigationGraph(
                     onUpdateDonationProduct = onUpdateDonationProduct,
                     onProcessDonation = onProcessDonation,
                     onNavigateBack = { navHostController.popBackStack() },
-                    onBackup = onBackup,
-                    onRestore = onRestore,
                 )
             }
         }
@@ -139,9 +144,9 @@ fun NavigationGraph(
                     addAtPosition = liftLibraryParams.addAtPosition,
                     liftMetricChartIds = liftMetricChartIds,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
-                    onChangeTopAppBarTitle = {
+                    onChangeTopAppBarTitle = { title ->
                         mutateTopAppBarControlValue(
-                            AppBarMutateControlRequest(Screen.TITLE, it.left())
+                            AppBarMutateControlRequest(Screen.TITLE, title)
                         )
                     },
                     onToggleTopAppBarControlVisibility = setTopAppBarControlVisibility,
@@ -149,7 +154,7 @@ fun NavigationGraph(
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
                                 LiftLibraryScreen.LIFT_NAME_FILTER_TEXTVIEW,
-                                "".left()
+                                ""
                             )
                         )
                     },
@@ -212,8 +217,8 @@ fun NavigationGraph(
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
-                                request.controlName,
-                                request.payload.left()
+                                controlName = request.controlName,
+                                payload = request.payload as Any
                             )
                         )
                     },
@@ -248,7 +253,12 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
                     showLog = showLog,
-                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    mutateTopAppBarControlValue = { request ->
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                controlName = request.controlName,
+                                payload = request.payload))
+                    },
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setBottomNavBarVisibility = setBottomNavBarVisibility,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
@@ -298,7 +308,12 @@ fun NavigationGraph(
                     workoutLogEntryId = backstackEntry.toRoute<Route.EditWorkout>().workoutLogEntryId,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
-                    mutateTopAppBarControlValue = mutateTopAppBarControlValue,
+                    mutateTopAppBarControlValue = { request ->
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                controlName = request.controlName,
+                                payload = request.payload))
+                    },
                     onNavigateBack = {
                         navHostController.popBackStack()
                     }
@@ -321,8 +336,9 @@ fun NavigationGraph(
                     mutateTopAppBarControlValue = {
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
-                                it.controlName,
-                                it.payload.left()))
+                                controlName = it.controlName,
+                                payload = it.payload as Any)
+                        )
                     },
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
@@ -351,8 +367,8 @@ fun NavigationGraph(
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
-                                request.controlName,
-                                request.payload.left()
+                                controlName = request.controlName,
+                                payload = request.payload.left()
                             )
                         )
                     },

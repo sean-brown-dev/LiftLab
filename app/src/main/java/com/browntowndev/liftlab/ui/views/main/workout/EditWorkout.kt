@@ -22,7 +22,7 @@ fun EditWorkout(
     workoutLogEntryId: Long,
     paddingValues: PaddingValues,
     screenId: String?,
-    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<String>) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
     val editWorkoutViewModel: EditWorkoutViewModel = koinViewModel {
@@ -39,7 +39,7 @@ fun EditWorkout(
             mutateTopAppBarControlValue(
                 AppBarMutateControlRequest(
                     Screen.TITLE,
-                    "Edit ${workoutState.workout!!.name}".left()
+                    "Edit ${workoutState.workout!!.name}"
                 )
             )
         }

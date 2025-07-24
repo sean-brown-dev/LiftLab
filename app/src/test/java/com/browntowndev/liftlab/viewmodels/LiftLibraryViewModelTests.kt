@@ -2,10 +2,10 @@ package com.browntowndev.liftlab.viewmodels
 
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftMetricChartRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -14,71 +14,60 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.greenrobot.eventbus.EventBus
-import org.junit.After
-import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit4.MockKRule
+import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
-import io.mockk.slot
-import org.junit.Rule
+import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration
 
 @ExperimentalCoroutinesApi
+@ExtendWith(MockKExtension::class)
 class LiftLibraryViewModelTests {
 
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
-    @get:Rule
-    val mockkRule = MockKRule(this)
+    @MockK
+    lateinit var liftsRepository: LiftsRepository
 
     @MockK
-    private lateinit var liftsRepository: LiftsRepository
+    lateinit var workoutLiftsRepositoryImpl: WorkoutLiftsRepositoryImpl
 
     @MockK
-    private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
+    lateinit var liftMetricChartsRepository: LiftMetricChartsRepository
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateHome: () -> Unit
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateToActiveWorkout: () -> Unit
+
+    @MockK(relaxed = true)
+    lateinit var onNavigateToLiftDetails: (liftId: Long?) -> Unit
 
     @MockK
-    private lateinit var liftMetricChartRepository: LiftMetricChartRepository
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateHome: () -> Unit
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateToActiveWorkout: () -> Unit
-
-    @MockK(relaxed = true)
-    private lateinit var onNavigateToLiftDetails: (liftId: Long?) -> Unit
-
-    @MockK
-    private lateinit var transactionScope: TransactionScope
+    lateinit var transactionScope: TransactionScope
 
     private val eventBus = EventBus.getDefault()
-
     private lateinit var viewModel: LiftLibraryViewModel
-
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    @Before
+    @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-
         transactionScope = mockk<TransactionScope>()
         coEvery { transactionScope.execute(any()) } coAnswers {
             val function = args[0] as (suspend () -> Unit)
@@ -86,10 +75,11 @@ class LiftLibraryViewModelTests {
         }
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
     }
+
 
     private fun initializeViewModel(
         workoutId: Long? = null,
@@ -99,8 +89,8 @@ class LiftLibraryViewModelTests {
     ) {
         viewModel = LiftLibraryViewModel(
             liftsRepository,
-            workoutLiftsRepository,
-            liftMetricChartRepository,
+            workoutLiftsRepositoryImpl,
+            liftMetricChartsRepository,
             onNavigateHome,
             onNavigateToWorkoutBuilder,
             onNavigateToActiveWorkout,
@@ -118,9 +108,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should return all lifts when no filters are applied`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -131,9 +121,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -144,9 +134,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -158,14 +148,9 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
 
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
+
 
         initializeViewModel()
 
@@ -180,7 +165,7 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by name correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
                 name = "Barbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -193,7 +178,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
                 name = "Dumbbell Row",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
@@ -206,7 +191,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
                 name = "Barbell Squat",
                 movementPattern = MovementPattern.LEG_PUSH,
@@ -220,14 +205,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -250,9 +228,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by movement pattern correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -263,9 +241,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -276,9 +254,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -290,14 +268,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -315,9 +286,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by multiple movement patterns correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -328,9 +299,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -341,9 +312,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -355,14 +326,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -383,7 +347,7 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should filter by name and movement pattern correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
                 name = "Barbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -396,7 +360,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
                 name = "Dumbbell Row",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
@@ -409,7 +373,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
                 name = "Barbell Squat",
                 movementPattern = MovementPattern.LEG_PUSH,
@@ -423,14 +387,7 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
 
         initializeViewModel()
 
@@ -454,9 +411,9 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should exclude lifts based on liftIdFilters`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
-                name = "Lift 1",
+                name = "LiftEntity 1",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
                 volumeTypesBitmask = 1,
                 secondaryVolumeTypesBitmask = 2,
@@ -467,9 +424,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
-                name = "Lift 2",
+                name = "LiftEntity 2",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
                 volumeTypesBitmask = 2,
                 secondaryVolumeTypesBitmask = 4,
@@ -480,9 +437,9 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
-                name = "Lift 3",
+                name = "LiftEntity 3",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 4,
                 secondaryVolumeTypesBitmask = 8,
@@ -494,15 +451,8 @@ class LiftLibraryViewModelTests {
                 note = null
             )
         )
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
-        coEvery { workoutLiftsRepository.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
+        coEvery { workoutLiftsRepositoryImpl.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
 
         initializeViewModel(workoutId = 1)
 
@@ -518,7 +468,7 @@ class LiftLibraryViewModelTests {
     fun `getFilteredLifts should apply all filters correctly`() = runTest {
         // Arrange
         val lifts = listOf(
-            LiftDto(
+            Lift(
                 id = 1,
                 name = "Barbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -531,7 +481,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 2,
                 name = "Dumbbell Row",
                 movementPattern = MovementPattern.HORIZONTAL_PULL,
@@ -544,7 +494,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 3,
                 name = "Barbell Squat",
                 movementPattern = MovementPattern.LEG_PUSH,
@@ -557,7 +507,7 @@ class LiftLibraryViewModelTests {
                 isBodyweight = false,
                 note = null
             ),
-            LiftDto(
+            Lift(
                 id = 4,
                 name = "Dumbbell Bench Press",
                 movementPattern = MovementPattern.HORIZONTAL_PUSH,
@@ -572,15 +522,8 @@ class LiftLibraryViewModelTests {
             ),
         )
 
-        val mockLiveData = mockk<LiveData<List<LiftDto>>>()
-        val observerSlot = slot<Observer<List<LiftDto>>>()
-
-        every { liftsRepository.getAllAsLiveData() } returns mockLiveData
-        every { mockLiveData.observeForever(capture(observerSlot)) } answers {
-            observerSlot.captured.onChanged(lifts)
-        }
-        every { mockLiveData.removeObserver(any()) } returns Unit
-        coEvery { workoutLiftsRepository.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
+        every { liftsRepository.getAllFlow() } returns flowOf(lifts)
+        coEvery { workoutLiftsRepositoryImpl.getLiftIdsForWorkout(1) } returns listOf(1L, 3L)
 
         initializeViewModel(workoutId = 1)
 

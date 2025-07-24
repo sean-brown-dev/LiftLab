@@ -23,7 +23,7 @@ import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import com.browntowndev.liftlab.core.common.THANK_YOU_DIALOG_BODY
 import com.browntowndev.liftlab.core.common.toFriendlyMessage
-import com.browntowndev.liftlab.core.persistence.TransactionScope
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

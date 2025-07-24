@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.models
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 
@@ -16,6 +17,8 @@ sealed interface ActionMenuItem {
         val dividerBelow: Boolean
         val onClick: () -> List<Pair<String, Boolean>>
         val contentDescriptionResourceId: Int?
+        val placeAtStart: Boolean
+        val color: Color?
 
         data class AlwaysShown  (
             override val controlName: String,
@@ -26,6 +29,8 @@ sealed interface ActionMenuItem {
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
+            override val placeAtStart: Boolean = false,
+            override val color: Color? = null,
         ) : IconMenuItem
 
         data class ShownIfRoom(
@@ -37,6 +42,8 @@ sealed interface ActionMenuItem {
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
+            override val placeAtStart: Boolean = false,
+            override val color: Color? = null,
         ) : IconMenuItem
 
         data class NeverShown(
@@ -48,6 +55,8 @@ sealed interface ActionMenuItem {
             override val icon: Either<ImageVector, Int>,
             override val trailingIconText: String? = null,
             override val dividerBelow: Boolean = false,
+            override val placeAtStart: Boolean = false,
+            override val color: Color? = null,
         ) : IconMenuItem
     }
 

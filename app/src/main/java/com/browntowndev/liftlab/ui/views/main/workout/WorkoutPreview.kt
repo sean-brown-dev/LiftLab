@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.insertSuperscript
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 
@@ -52,7 +52,7 @@ fun WorkoutPreview(
     workoutInProgress: Boolean,
     workoutName: String,
     timeInProgress: String,
-    lifts: List<LoggingWorkoutLiftDto>,
+    lifts: List<LoggingWorkoutLift>,
     combinedVolumeTypes: List<CharSequence>,
     primaryVolumeTypes: List<CharSequence>,
     secondaryVolumeTypes: List<CharSequence>,
@@ -67,7 +67,7 @@ fun WorkoutPreview(
     ) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
-            title = "Workout Volume",
+            title = "WorkoutEntity Volume",
             combinedVolumeChipLabels = combinedVolumeTypes,
             primaryVolumeChipLabels = primaryVolumeTypes,
             secondaryVolumeChipLabels = secondaryVolumeTypes,
@@ -153,7 +153,7 @@ fun WorkoutPreview(
                         lift.liftMovementPattern.displayName()
                     }
                     val liftFirstLetter = remember(lift.liftName) { lift.liftName[0].toString() }
-                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSetDto } }
+                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSet } }
                     val liftNameWithSetCount = remember(key1 = lift.setCount, key2 = lift.liftName) {
                         val setCountAndName = "${lift.setCount} x ${lift.liftName}"
                         if (hasMyoRepSets) setCountAndName.insertSuperscript(

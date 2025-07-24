@@ -1,0 +1,24 @@
+package com.browntowndev.liftlab.core.data.local.entities
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
+
+@GenerateFirestoreMetadataExtensions
+@Entity("programs",
+    indices = [
+        Index("synced"),
+        Index("remoteId", unique = true),
+    ])
+data class ProgramEntity(
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "program_id")
+    val id: Long = 0,
+    val name: String,
+    val deloadWeek: Int = 4,
+    val isActive: Boolean = true,
+    val currentMicrocycle: Int = 0,
+    val currentMicrocyclePosition: Int = 0,
+    val currentMesocycle: Int = 0,
+): BaseEntity()

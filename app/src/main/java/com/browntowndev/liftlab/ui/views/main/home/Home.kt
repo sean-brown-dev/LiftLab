@@ -37,9 +37,11 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.RowMultiSelect
+import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
+import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -53,9 +55,11 @@ fun Home(
     setTopAppBarCollapsed: (Boolean) -> Unit,
     onNavigateToSettingsMenu: () -> Unit,
     onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
+    mutateTopAppBarControlValue: (AppBarMutateControlRequest<Boolean>) -> Unit,
+    onBeginSync: () -> Unit,
 ) {
     val homeViewModel: HomeViewModel = koinViewModel {
-        parametersOf(onNavigateToSettingsMenu, onNavigateToLiftLibrary)
+        parametersOf(onNavigateToSettingsMenu, onNavigateToLiftLibrary, onBeginSync)
     }
     val state by homeViewModel.state.collectAsState()
 
@@ -64,6 +68,13 @@ fun Home(
         screenId = screenId,
         viewModelToUnregister = homeViewModel
     )
+
+    LaunchedEffect(state.loggedIn) {
+        mutateTopAppBarControlValue(
+            AppBarMutateControlRequest(
+                controlName = HomeScreen.SYNC_STATUS,
+                payload = state.loggedIn))
+    }
 
     Box(contentAlignment = Alignment.BottomCenter) {
         LazyColumn(
@@ -203,5 +214,18 @@ fun Home(
                 onCancel = { homeViewModel.toggleLiftChartPicker() }
             )
         }
+
+        FirestoreSyncDialog(
+            loginModalVisible = state.loginModalVisible,
+            firebaseUsername = state.firebaseUsername,
+            loggedIn = state.loggedIn,
+            firebaseError = state.firebaseError,
+            onDismiss = homeViewModel::toggleLoginModal,
+            onCreateAccount = homeViewModel::createAccount,
+            onLogin = homeViewModel::login,
+            onLogout = homeViewModel::logout,
+            onSignedInWithGoogle = homeViewModel::signInWithGoogle,
+            onSyncAll = onBeginSync,
+        )
     }
 }

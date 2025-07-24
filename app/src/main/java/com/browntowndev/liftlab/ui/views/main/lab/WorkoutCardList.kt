@@ -13,26 +13,33 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
+import com.browntowndev.liftlab.core.domain.models.Workout
 
 
 @Composable
 fun WorkoutCardList(
     paddingValues: PaddingValues,
-    workouts: List<WorkoutDto>,
-    showEditWorkoutNameModal: (WorkoutDto) -> Unit,
-    beginDeleteWorkout: (WorkoutDto) -> Unit,
+    workouts: List<Workout>,
+    showEditWorkoutNameModal: (Workout) -> Unit,
+    beginDeleteWorkout: (Workout) -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    var workoutsState = remember { workouts }
-    var workoutCount = remember { workoutsState.count() }
+    val workoutsState = remember(workouts) { workouts }
+    val workoutCount by remember(workouts) { mutableIntStateOf(workouts.size) }
+    var prevWorkoutCount by remember { mutableIntStateOf(workoutCount) }
 
-    LaunchedEffect(key1 = workouts) {
-        workoutsState = workouts
+    LaunchedEffect(key1 = workoutCount) {
+        if (workoutCount > prevWorkoutCount){
+            listState.animateScrollToItem(workoutCount)
+        }
+        prevWorkoutCount = workoutCount
     }
 
     LazyColumn(
@@ -43,7 +50,7 @@ fun WorkoutCardList(
             .padding(paddingValues),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        items(workouts, { it.id }) { workout ->
+        items(workoutsState, { it.id }) { workout ->
             if (workout.position == 0) {
                 Spacer(modifier = Modifier.height(5.dp))
             }
@@ -59,13 +66,5 @@ fun WorkoutCardList(
         item {
             Spacer(modifier = Modifier.height(65.dp))
         }
-    }
-
-    LaunchedEffect(key1 = workouts) {
-        if(workouts.count() > workoutCount) {
-            listState.animateScrollToItem(workoutCount)
-        }
-
-        workoutCount = workoutsState.count()
     }
 }

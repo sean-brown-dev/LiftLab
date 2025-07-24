@@ -77,7 +77,7 @@ fun Lab(
 
     LaunchedEffect(key1 = state.isManagingPrograms) {
         if (state.isManagingPrograms) {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "Program Management"))
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "ProgramEntity Management"))
         } else {
             mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
         }
@@ -108,7 +108,7 @@ fun Lab(
     else if (state.program?.workouts?.isEmpty() == false) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
-            title = "Program Volume",
+            title = "ProgramEntity Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
             primaryVolumeChipLabels = state.primaryVolumeTypes,
             secondaryVolumeChipLabels = state.secondaryVolumeTypes,
@@ -163,7 +163,7 @@ fun Lab(
 
     if (state.isCreatingProgram) {
         val subtext = if(state.program != null && !state.isManagingPrograms) {
-            "Creating a new program will archive the existing one. " +
+            "Creating a new programEntity will archive the existing one. " +
                     "It can be restored or deleted from the Manage Programs menu."
         } else ""
 

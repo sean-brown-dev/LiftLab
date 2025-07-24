@@ -30,7 +30,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".core.notifications.RestTimerNotificationService"
+            android:name=".ui.notifications.RestTimerNotificationService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
             <property
@@ -39,7 +39,7 @@
             />
         </service>
         <service
-            android:name=".core.notifications.ActiveWorkoutNotificationService"
+            android:name=".ui.notifications.ActiveWorkoutNotificationService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
             <property
@@ -47,7 +47,7 @@
                 android:value="active workout notification"
                 />
         </service>
-        <receiver android:name=".core.notifications.RestTimerButtonHandler" android:exported="false" />
+        <receiver android:name=".ui.notifications.RestTimerButtonHandler" android:exported="false" />
         <meta-data android:name="com.google.android.gms.wallet.api.enabled" android:value="true" />
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -57,6 +57,16 @@
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
+        </provider>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
         </provider>
     </application>
 

@@ -82,8 +82,6 @@ fun Settings(
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
     onNavigateBack: () -> Unit,
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
 ) {
     val settingsViewModel: SettingsViewModel = koinViewModel {
         parametersOf(onNavigateBack)
@@ -185,12 +183,12 @@ fun Settings(
                 ) {
                     Column {
                         Text(
-                            text = "Lift Specific Deloads",
+                            text = "LiftEntity Specific Deloads",
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            text = "Set deloads at the lift level. Disables deload microcycles.",
+                            text = "Set deloads at the liftEntity level. Disables deload microcycles.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )
@@ -350,175 +348,6 @@ fun Settings(
                         rangeInMinutes = REST_TIME_RANGE,
                         secondsStepSize = 5,
                     )
-                }
-            }
-            item {
-                SettingDivider()
-                SectionLabel(text = "DATA MANAGEMENT", fontSize = 14.sp)
-                Row(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Restore Database", fontSize = 18.sp)
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = settingsViewModel::toggleImportConfirmationDialog) {
-                        Icon(
-                            modifier = Modifier.size(32.dp),
-                            painter = painterResource(id = R.drawable.upload_icon),
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = stringResource(R.string.import_database),
-                        )
-                    }
-                }
-                if (state.importConfirmationDialogShown) {
-                    ConfirmationDialog(
-                        header = "Warning!",
-                        textAboveContent = "This will replace all of your data with the data in the imported database. There is no way to undo this.",
-                        onConfirm = {
-                            settingsViewModel.toggleImportConfirmationDialog()
-                            onRestore()
-                        },
-                        onCancel = { settingsViewModel.toggleImportConfirmationDialog() }
-                    )
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Backup Database", fontSize = 18.sp)
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = onBackup) {
-                        Icon(
-                            modifier = Modifier.size(32.dp),
-                            painter = painterResource(id = R.drawable.download_icon),
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = stringResource(R.string.export_database),
-                        )
-                    }
-                }
-            }
-            item {
-                Text(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    text = "Backup Directory", fontSize = 18.sp,
-                )
-                Row(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = state.backupDirectory,
-                        color = MaterialTheme.colorScheme.outline,
-                        fontSize = 12.sp,
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    DirectoryPicker(
-                        startingDirectory = state.backupDirectory,
-                        onDirectoryChosen = settingsViewModel::updateBackupDirectory,
-                    )
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val context = LocalContext.current
-                    Row (horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        Text("Daily Backups", fontSize = 18.sp)
-                        TooltipBox(
-                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                            state = rememberTooltipState(isPersistent = true),
-                            tooltip = {
-                                PlainTooltip {
-                                    Text(
-                                        text = "The backup will be scheduled for this time, but Android's battery saving " +
-                                                "features will cause it to vary. Backups will also only run when the app " +
-                                                "is not in use.\n\n" +
-                                                "Use an app, such as Autosync for Google Drive, to back them up to your " +
-                                                "Google Drive in case you switch devices."
-                                    )
-                                }
-                            },
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(14.dp),
-                                imageVector = Icons.Outlined.Info,
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = stringResource(R.string.backup_tooltip)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = state.scheduledBackupsEnabled,
-                        onCheckedChange = {
-                            settingsViewModel.updateAreScheduledBackupsEnabled(
-                                context = context,
-                                enabled = it
-                            )
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedTrackColor = MaterialTheme.colorScheme.secondary,
-                            checkedThumbColor = MaterialTheme.colorScheme.primary,
-                            checkedBorderColor = MaterialTheme.colorScheme.secondary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.surface,
-                            uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-                        )
-                    )
-                }
-            }
-            item {
-                if (state.scheduledBackupsEnabled) {
-                    var isBackupTimeDialogVisible by remember { mutableStateOf(false) }
-                    Row(
-                        modifier = Modifier.padding(start = 10.dp, end = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("Backup Time", fontSize = 18.sp)
-                        Spacer(modifier = Modifier.weight(1f))
-                        TextButton(onClick = { isBackupTimeDialogVisible = true }) {
-                            val backupTime = remember(state.scheduledBackupTime) {
-                                DateTimeFormatter.ofPattern("hh:mm a").format(state.scheduledBackupTime)
-                            }
-                            Text(
-                                text = backupTime,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 20.sp,
-                            )
-                        }
-                    }
-
-                    if (isBackupTimeDialogVisible) {
-                        val context = LocalContext.current
-                        val timePickerState = rememberTimePickerState(
-                            initialHour = state.scheduledBackupTime.hour,
-                            initialMinute = state.scheduledBackupTime.minute,
-                            is24Hour = false
-                        )
-
-                        ConfirmationDialog(
-                            header = "Backup Time",
-                            textAboveContent = "",
-                            textAboveContentPadding = PaddingValues(0.dp),
-                            contentPadding = PaddingValues(start = 10.dp, bottom = 10.dp, end = 10.dp),
-                            onConfirm = {
-                                settingsViewModel.updateScheduledBackupTime(
-                                    context = context,
-                                    hour = timePickerState.hour,
-                                    minute = timePickerState.minute
-                                )
-                                isBackupTimeDialogVisible = false
-                            },
-                            onCancel = { isBackupTimeDialogVisible = false },
-                        ) {
-                            TimePicker(
-                                state = timePickerState
-                            )
-                        }
-                    }
                 }
             }
             item {

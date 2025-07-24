@@ -24,10 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.dtos.DropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.models.DropSet
+import com.browntowndev.liftlab.core.domain.models.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.StandardSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 
 
@@ -78,7 +78,7 @@ fun CustomSettings(
                 ) {
                     val detailsExpanded = detailExpansionStates.contains(set.position)
                     when (set) {
-                        is StandardSetDto -> {
+                        is StandardSet -> {
                             StandardSet(
                                 listState = listState,
                                 detailsExpanded = detailsExpanded,
@@ -103,7 +103,7 @@ fun CustomSettings(
                             )
                             previousSetType = SetType.STANDARD
                         }
-                        is MyoRepSetDto -> {
+                        is MyoRepSet -> {
                             MyoRepSet(
                                 listState = listState,
                                 detailsExpanded = detailsExpanded,
@@ -136,7 +136,7 @@ fun CustomSettings(
                             )
                             previousSetType = SetType.MYOREP
                         }
-                        is DropSetDto -> {
+                        is DropSet -> {
                             DropSet(
                                 position = set.position,
                                 detailsExpanded = detailsExpanded,

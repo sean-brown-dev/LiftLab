@@ -11,12 +11,12 @@ import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toMediumDateString
-import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutLogEntryDto
-import com.browntowndev.liftlab.core.persistence.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.persistence.repositories.LoggingRepository
-import com.browntowndev.liftlab.core.progression.CalculationEngine
+import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
@@ -35,7 +35,7 @@ class LiftDetailsViewModel(
     private val onNavigateBack: () -> Unit,
     private val liftId: Long?,
     private val liftsRepository: LiftsRepository,
-    private val loggingRepository: LoggingRepository,
+    private val workoutLogRepository: WorkoutLogRepository,
     transactionScope: TransactionScope,
     eventBus: EventBus
 ) : LiftLabViewModel(transactionScope, eventBus) {
@@ -45,9 +45,10 @@ class LiftDetailsViewModel(
     init {
         viewModelScope.launch {
             val lift = if (liftId != null) {
-                liftsRepository.get(liftId)
+                // TODO: Handle error
+                liftsRepository.getById(liftId)!!
             } else {
-                LiftDto(
+                Lift(
                     id = 0L,
                     name = "",
                     movementPattern = MovementPattern.AB_ISO,
@@ -56,14 +57,13 @@ class LiftDetailsViewModel(
                     incrementOverride = null,
                     restTime = null,
                     restTimerEnabled = true,
-                    isHidden = false,
                     isBodyweight = false,
                     note = null,
                 )
             }
 
             val workoutLogs = if (liftId != null) {
-                loggingRepository.getWorkoutLogsForLift(liftId)
+                workoutLogRepository.getWorkoutLogsForLift(liftId)
             } else listOf()
 
             val topTenPerformances = getTopTenPerformances(workoutLogs)
@@ -94,7 +94,7 @@ class LiftDetailsViewModel(
         }
     }
 
-    private fun getMaxVolume(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
+    private fun getMaxVolume(workoutLogs: List<WorkoutLogEntry>): Pair<String, String>? {
         val maxVolume = workoutLogs.fastMap { workoutLog ->
             workoutLog.date.toMediumDateString() to
                     workoutLog.setResults.maxOf {
@@ -108,7 +108,7 @@ class LiftDetailsViewModel(
     }
 
 
-    private fun getMaxWeight(workoutLogs: List<WorkoutLogEntryDto>): Pair<String, String>? {
+    private fun getMaxWeight(workoutLogs: List<WorkoutLogEntry>): Pair<String, String>? {
         val maxWeight = workoutLogs.fastMap { workoutLog ->
             workoutLog.date.toMediumDateString() to
                     workoutLog.setResults.maxOf {
@@ -121,7 +121,7 @@ class LiftDetailsViewModel(
         } else null
     }
 
-    private fun getTopTenPerformances(workoutLogs: List<WorkoutLogEntryDto>): List<OneRepMaxEntry> {
+    private fun getTopTenPerformances(workoutLogs: List<WorkoutLogEntry>): List<OneRepMaxEntry> {
         return workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults.map { setLog ->
                 OneRepMaxEntry(
@@ -133,7 +133,7 @@ class LiftDetailsViewModel(
         }.sortedByDescending { it.oneRepMax }.take(10)
     }
 
-    private fun getTotalReps(workoutLogs: List<WorkoutLogEntryDto>): String {
+    private fun getTotalReps(workoutLogs: List<WorkoutLogEntry>): String {
         return workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults.map { setLog ->
                 setLog.reps
@@ -141,7 +141,7 @@ class LiftDetailsViewModel(
         }.sum().toString()
     }
 
-    private fun getTotalVolume(workoutLogs: List<WorkoutLogEntryDto>): String {
+    private fun getTotalVolume(workoutLogs: List<WorkoutLogEntry>): String {
         return formatFloatString(workoutLogs.flatMap { workoutLog ->
             workoutLog.setResults.map { setLog ->
                 setLog.reps * setLog.weight
@@ -149,7 +149,7 @@ class LiftDetailsViewModel(
         }.sum())
     }
 
-    private fun getWorkoutFilterOptions(workoutLogs: List<WorkoutLogEntryDto>): Map<Long, String> {
+    private fun getWorkoutFilterOptions(workoutLogs: List<WorkoutLogEntry>): Map<Long, String> {
         return workoutLogs.associate {
             it.historicalWorkoutNameId to it.workoutName
         }
@@ -325,11 +325,11 @@ class LiftDetailsViewModel(
     private fun createNewLift() {
         viewModelScope.launch {
             val lift = _state.value.lift!!
-            val liftToCreate = if (state.value.lift!!.name.isEmpty()) {
+            val liftEntityToCreate = if (state.value.lift!!.name.isEmpty()) {
                 lift.copy(name = "New Lift")
             } else lift
 
-            liftsRepository.createLift(liftToCreate)
+            liftsRepository.insert(liftEntityToCreate)
             onNavigateBack()
         }
     }

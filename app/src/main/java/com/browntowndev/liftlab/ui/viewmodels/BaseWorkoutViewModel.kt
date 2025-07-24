@@ -8,17 +8,17 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDa
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.persistence.TransactionScope
-import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.SetResult
-import com.browntowndev.liftlab.core.progression.CalculationEngine
-import com.browntowndev.liftlab.core.progression.MyoRepSetGoalValidator
+import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,17 +58,17 @@ abstract class BaseWorkoutViewModel(
                             it.setPosition == set.position
                 } ?: throw Exception("Completed set was not in completedSets")
             val updatedResult = when (currentResult) {
-                is StandardSetResultDto -> currentResult.copy(
+                is StandardSetResult -> currentResult.copy(
                     weight = set.completedWeight!!,
                     reps = set.completedReps!!,
                     rpe = set.completedRpe!!,
                 )
-                is MyoRepSetResultDto -> currentResult.copy(
+                is MyoRepSetResult -> currentResult.copy(
                     weight = set.completedWeight!!,
                     reps = set.completedReps!!,
                     rpe = set.completedRpe!!,
                 )
-                is LinearProgressionSetResultDto -> currentResult.copy(
+                is LinearProgressionSetResult -> currentResult.copy(
                     weight = set.completedWeight!!,
                     reps = set.completedReps!!,
                     rpe = set.completedRpe!!,
@@ -81,7 +81,7 @@ abstract class BaseWorkoutViewModel(
             undoSetCompletion(
                 liftPosition = workoutLift.position,
                 setPosition = set.position,
-                myoRepSetPosition = (set as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+                myoRepSetPosition = (set as? LoggingMyoRepSet)?.myoRepSetPosition,
             )
         }
     }
@@ -94,9 +94,9 @@ abstract class BaseWorkoutViewModel(
             myoRepSetPosition = myoRepSetPosition,
             copySet = { set ->
                 val updatedSet = when (set) {
-                    is LoggingStandardSetDto -> set.copy(completedWeight = newWeight)
-                    is LoggingDropSetDto -> set.copy(completedWeight = newWeight)
-                    is LoggingMyoRepSetDto -> set.copy(completedWeight = newWeight)
+                    is LoggingStandardSet -> set.copy(completedWeight = newWeight)
+                    is LoggingDropSet -> set.copy(completedWeight = newWeight)
+                    is LoggingMyoRepSet -> set.copy(completedWeight = newWeight)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
@@ -113,9 +113,9 @@ abstract class BaseWorkoutViewModel(
             myoRepSetPosition = myoRepSetPosition,
             copySet = { set ->
                 val updatedSet = when (set) {
-                    is LoggingStandardSetDto -> set.copy(completedReps = newReps)
-                    is LoggingDropSetDto -> set.copy(completedReps = newReps)
-                    is LoggingMyoRepSetDto -> set.copy(completedReps = newReps)
+                    is LoggingStandardSet -> set.copy(completedReps = newReps)
+                    is LoggingDropSet -> set.copy(completedReps = newReps)
+                    is LoggingMyoRepSet -> set.copy(completedReps = newReps)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
@@ -132,9 +132,9 @@ abstract class BaseWorkoutViewModel(
             myoRepSetPosition = myoRepSetPosition,
             copySet = { set ->
                 val updatedSet = when (set) {
-                    is LoggingStandardSetDto -> set.copy(completedRpe = newRpe)
-                    is LoggingDropSetDto -> set.copy(completedRpe = newRpe)
-                    is LoggingMyoRepSetDto -> set.copy(completedRpe = newRpe)
+                    is LoggingStandardSet -> set.copy(completedRpe = newRpe)
+                    is LoggingDropSet -> set.copy(completedRpe = newRpe)
+                    is LoggingMyoRepSet -> set.copy(completedRpe = newRpe)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
@@ -152,7 +152,7 @@ abstract class BaseWorkoutViewModel(
                             workoutLift.copy(
                                 sets = workoutLift.sets.fastMap { set ->
                                     if (set.position == setPosition &&
-                                        (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == myoRepSetPosition
+                                        (set as? LoggingMyoRepSet)?.myoRepSetPosition == myoRepSetPosition
                                     ) {
                                         copySet(set)
                                     } else set
@@ -167,12 +167,12 @@ abstract class BaseWorkoutViewModel(
 
     private fun updateLoggingSetsOnMyoRepSetCompletion(
         mutableLoggingSets: MutableList<GenericLoggingSet>,
-        thisMyoRepSet: LoggingMyoRepSetDto,
+        thisMyoRepSet: LoggingMyoRepSet,
         roundingFactor: Float,
     ): List<GenericLoggingSet> {
 
-        val myoRepLoggingSets: List<LoggingMyoRepSetDto> = mutableLoggingSets
-            .filterIsInstance<LoggingMyoRepSetDto>()
+        val myoRepLoggingSets: List<LoggingMyoRepSet> = mutableLoggingSets
+            .filterIsInstance<LoggingMyoRepSet>()
             .filter { it.position == thisMyoRepSet.position }
 
         return MyoRepSetGoalValidator.shouldContinueMyoReps(
@@ -248,10 +248,10 @@ abstract class BaseWorkoutViewModel(
     }
 
     private fun copyDropSetWithUpdatedWeightRecommendation(
-        dropFromSet: LoggingStandardSetDto,
-        dropSet: LoggingDropSetDto,
+        dropFromSet: LoggingStandardSet,
+        dropSet: LoggingDropSet,
         increment: Float,
-    ): LoggingDropSetDto {
+    ): LoggingDropSet {
         val isDropFromSetSuccess =
             (dropFromSet.repRangeBottom >= dropFromSet.completedReps!!) &&
                     (dropFromSet.rpeTarget >= dropFromSet.completedRpe!!)
@@ -282,24 +282,24 @@ abstract class BaseWorkoutViewModel(
         var completedSet: GenericLoggingSet? = null
         val mutableSetCopy = currentSets.fastMap { set ->
             if (setPosition == set.position &&
-                myoRepSetPosition == (set as? LoggingMyoRepSetDto)?.myoRepSetPosition) {
+                myoRepSetPosition == (set as? LoggingMyoRepSet)?.myoRepSetPosition) {
                 completedSet = when (set) {
-                    is LoggingStandardSetDto -> set.copy(complete = true)
-                    is LoggingDropSetDto -> set.copy(complete = true)
-                    is LoggingMyoRepSetDto -> set.copy(complete = true)
+                    is LoggingStandardSet -> set.copy(complete = true)
+                    is LoggingDropSet -> set.copy(complete = true)
+                    is LoggingMyoRepSet -> set.copy(complete = true)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
                 completedSet!!
             } else if (set.position == (setPosition + 1) && !set.hadInitialWeightRecommendation) {
                 when (set) {
-                    is LoggingStandardSetDto -> set.copy(
+                    is LoggingStandardSet -> set.copy(
                         weightRecommendation = completedSet!!.completedWeight
                     )
-                    is LoggingMyoRepSetDto -> set.copy(
+                    is LoggingMyoRepSet -> set.copy(
                         weightRecommendation = completedSet!!.completedWeight
                     )
-                    is LoggingDropSetDto -> copyDropSetWithUpdatedWeightRecommendation(
-                        dropFromSet = currentSets[setPosition] as LoggingStandardSetDto,
+                    is LoggingDropSet -> copyDropSetWithUpdatedWeightRecommendation(
+                        dropFromSet = currentSets[setPosition] as LoggingStandardSet,
                         dropSet = set,
                         increment = increment,
                     )
@@ -308,10 +308,10 @@ abstract class BaseWorkoutViewModel(
             } else set
         }.toMutableList()
 
-        return if (completedSet is LoggingMyoRepSetDto) {
+        return if (completedSet is LoggingMyoRepSet) {
             updateLoggingSetsOnMyoRepSetCompletion(
                 mutableLoggingSets = mutableSetCopy,
-                thisMyoRepSet = completedSet as LoggingMyoRepSetDto,
+                thisMyoRepSet = completedSet as LoggingMyoRepSet,
                 roundingFactor = increment,
             )
         } else mutableSetCopy
@@ -378,7 +378,7 @@ abstract class BaseWorkoutViewModel(
             SetType.STANDARD,
             SetType.DROP_SET -> {
                 if (progressionScheme != ProgressionScheme.LINEAR_PROGRESSION) {
-                    StandardSetResultDto(
+                    StandardSetResult(
                         id = id,
                         workoutId = workoutId,
                         setType = setType,
@@ -394,8 +394,8 @@ abstract class BaseWorkoutViewModel(
                         isDeload = isDeload,
                     )
                 } else {
-                    // LP can only be standard lift, so no myo
-                    LinearProgressionSetResultDto(
+                    // LP can only be standard liftEntity, so no myo
+                    LinearProgressionSetResult(
                         id = id,
                         workoutId = workoutId,
                         liftId = liftId,
@@ -414,7 +414,7 @@ abstract class BaseWorkoutViewModel(
             }
 
             SetType.MYOREP ->
-                MyoRepSetResultDto(
+                MyoRepSetResult(
                     id = id,
                     workoutId = workoutId,
                     liftId = liftId,
@@ -447,14 +447,14 @@ abstract class BaseWorkoutViewModel(
                                 existing.liftId == result.liftId &&
                                         existing.liftPosition == result.liftPosition &&
                                         existing.setPosition == result.setPosition &&
-                                        (existing as? MyoRepSetResultDto)?.myoRepSetPosition == (result as? MyoRepSetResultDto)?.myoRepSetPosition
+                                        (existing as? MyoRepSetResult)?.myoRepSetPosition == (result as? MyoRepSetResult)?.myoRepSetPosition
                             }
 
                             if (existingResult != null) {
                                 val updatedResult = when (result) {
-                                    is StandardSetResultDto -> result.copy(id = existingResult.id)
-                                    is MyoRepSetResultDto -> result.copy(id = existingResult.id)
-                                    is LinearProgressionSetResultDto -> result.copy(id = existingResult.id)
+                                    is StandardSetResult -> result.copy(id = existingResult.id)
+                                    is MyoRepSetResult -> result.copy(id = existingResult.id)
+                                    is LinearProgressionSetResult -> result.copy(id = existingResult.id)
                                     else -> throw Exception("${result::class.simpleName} is not defined.")
                                 }
 
@@ -463,9 +463,9 @@ abstract class BaseWorkoutViewModel(
                             } else {
                                 val id = upsertSetResult(result)
                                 val insertedResult = when (result) {
-                                    is StandardSetResultDto -> result.copy(id = id)
-                                    is MyoRepSetResultDto -> result.copy(id = id)
-                                    is LinearProgressionSetResultDto -> result.copy(id = id)
+                                    is StandardSetResult -> result.copy(id = id)
+                                    is MyoRepSetResult -> result.copy(id = id)
+                                    is LinearProgressionSetResult -> result.copy(id = id)
                                     else -> throw Exception("${result::class.simpleName} is not defined.")
                                 }
                                 add(insertedResult)
@@ -478,7 +478,7 @@ abstract class BaseWorkoutViewModel(
                                 workoutLift.copy(
                                     sets = copySetsOnCompletion(
                                         setPosition = result.setPosition,
-                                        myoRepSetPosition = (result as? MyoRepSetResultDto)?.myoRepSetPosition,
+                                        myoRepSetPosition = (result as? MyoRepSetResult)?.myoRepSetPosition,
                                         currentSets = workoutLift.sets,
                                         increment = workoutLift.incrementOverride
                                             ?: SettingsManager.getSetting(
@@ -500,7 +500,7 @@ abstract class BaseWorkoutViewModel(
             ?.find {
                 it.liftPosition == liftPosition &&
                         it.setPosition == setPosition &&
-                        (it as? MyoRepSetResultDto)?.myoRepSetPosition == myoRepSetPosition
+                        (it as? MyoRepSetResult)?.myoRepSetPosition == myoRepSetPosition
             }
             ?.also { result ->
                 deleteSetResult(id = result.id)
@@ -532,12 +532,12 @@ abstract class BaseWorkoutViewModel(
                                 workoutLift.copy(
                                     sets = workoutLift.sets.fastMap { set ->
                                         if (set.position == setPosition &&
-                                            (set as? LoggingMyoRepSetDto)?.myoRepSetPosition == myoRepSetPosition) {
+                                            (set as? LoggingMyoRepSet)?.myoRepSetPosition == myoRepSetPosition) {
                                             hasWeightRecommendation = set.weightRecommendation != null
                                             when (set) {
-                                                is LoggingStandardSetDto -> set.copy(complete = false)
-                                                is LoggingDropSetDto -> set.copy(complete = false)
-                                                is LoggingMyoRepSetDto -> set.copy(complete = false)
+                                                is LoggingStandardSet -> set.copy(complete = false)
+                                                is LoggingDropSet -> set.copy(complete = false)
+                                                is LoggingMyoRepSet -> set.copy(complete = false)
                                                 else -> throw Exception("${set::class.simpleName} is not defined.")
                                             }
                                         } else if (!hasWeightRecommendation &&
@@ -545,9 +545,9 @@ abstract class BaseWorkoutViewModel(
                                             // undo the set's weight recommendation when its main
                                             // set is set as uncompleted and it had no recommendation
                                             when (set) {
-                                                is LoggingStandardSetDto -> set.copy(weightRecommendation = null)
-                                                is LoggingDropSetDto -> set.copy(weightRecommendation = null)
-                                                is LoggingMyoRepSetDto -> set.copy(weightRecommendation = null)
+                                                is LoggingStandardSet -> set.copy(weightRecommendation = null)
+                                                is LoggingDropSet -> set.copy(weightRecommendation = null)
+                                                is LoggingMyoRepSet -> set.copy(weightRecommendation = null)
                                                 else -> throw Exception("${set::class.simpleName} is not defined.")
                                             }
                                         } else set
@@ -566,7 +566,7 @@ abstract class BaseWorkoutViewModel(
             val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             val liftPosition = workoutLift.position
             val isComplete = workoutLift.sets.find {
-                it is LoggingMyoRepSetDto &&
+                it is LoggingMyoRepSet &&
                         it.position == setPosition &&
                         it.myoRepSetPosition == myoRepSetPosition
             }?.complete
@@ -597,12 +597,12 @@ abstract class BaseWorkoutViewModel(
                                         sets = workoutLift.sets.toMutableList().apply {
                                             val toDelete = find { set ->
                                                 set.position == setPosition &&
-                                                        (set as LoggingMyoRepSetDto).myoRepSetPosition == myoRepSetPosition
+                                                        (set as LoggingMyoRepSet).myoRepSetPosition == myoRepSetPosition
                                             }!!
 
                                             remove(toDelete)
                                         }.mapIndexed { index, set ->
-                                            if (set is LoggingMyoRepSetDto && set.myoRepSetPosition != null) {
+                                            if (set is LoggingMyoRepSet && set.myoRepSetPosition != null) {
                                                 set.copy(myoRepSetPosition = index - 1)
                                             } else set
                                         }
@@ -629,13 +629,13 @@ abstract class BaseWorkoutViewModel(
                     if (result != null &&
                         ((set.completedReps ?: -1) < set.repRangeBottom!! ||
                                 (set.completedRpe ?: -1f) > set.rpeTarget)) {
-                        val lpResults = result as LinearProgressionSetResultDto
+                        val lpResults = result as LinearProgressionSetResult
                         setResultsToUpdate.add(
                             lpResults.copy(
                                 missedLpGoals = lpResults.missedLpGoals + 1
                             )
                         )
-                    } else if (result != null && (result as LinearProgressionSetResultDto).missedLpGoals > 0) {
+                    } else if (result != null && (result as LinearProgressionSetResult).missedLpGoals > 0) {
                         setResultsToUpdate.add(
                             result.copy(
                                 missedLpGoals = 0

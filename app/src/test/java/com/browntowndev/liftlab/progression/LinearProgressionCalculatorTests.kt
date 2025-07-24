@@ -5,26 +5,25 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.persistence.dtos.LinearProgressionSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.StandardSetResultDto
-import com.browntowndev.liftlab.core.persistence.dtos.queryable.WorkoutLiftWithRelationships
-import com.browntowndev.liftlab.core.persistence.entities.CustomLiftSet
-import com.browntowndev.liftlab.core.persistence.entities.Lift
-import com.browntowndev.liftlab.core.persistence.entities.WorkoutLift
-import com.browntowndev.liftlab.core.persistence.mapping.CustomLiftSetMapper
-import com.browntowndev.liftlab.core.persistence.mapping.WorkoutLiftMapper
-import com.browntowndev.liftlab.core.progression.LinearProgressionCalculator
-import io.mockk.every
-import io.mockk.mockk
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Test
+import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
+import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.domain.mapping.CustomLiftSetMapper
+import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMapper
+import com.browntowndev.liftlab.core.domain.progression.LinearProgressionCalculator
+import io.mockk.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 
 class LinearProgressionCalculatorTests {
     private val calculator = LinearProgressionCalculator()
     private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
 
-    @Before
+    @BeforeEach
     fun setup() {
         // Set the main dispatcher to the test dispatcher
         val sharedPrefs = mockk<SharedPreferences>()
@@ -37,8 +36,8 @@ class LinearProgressionCalculatorTests {
 
     @Test
     fun `all sets increment`() {
-        val lift = WorkoutLiftWithRelationships(
-            workoutLift = WorkoutLift(
+        val liftEntity = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
                 liftId = 0,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
@@ -48,28 +47,28 @@ class LinearProgressionCalculatorTests {
                 repRangeTop = 8,
                 rpeTarget = 8f,
             ),
-            lift = Lift(
+            liftEntity = LiftEntity(
                 name = "",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 1
             ),
         )
         val previousSetData = listOf(
-            LinearProgressionSetResultDto(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(80f, it.weightRecommendation)
+            assertEquals(80f, it.weightRecommendation)
         }
     }
 
     @Test
     fun `sets do not increment on first failure`() {
-        val lift = WorkoutLiftWithRelationships(
-            workoutLift = WorkoutLift(
+        val liftEntity = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
                 liftId = 0,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
@@ -79,28 +78,28 @@ class LinearProgressionCalculatorTests {
                 repRangeTop = 8,
                 rpeTarget = 8f,
             ),
-            lift = Lift(
+            liftEntity = LiftEntity(
                 name = "",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 1
             ),
         )
         val previousSetData = listOf(
-            LinearProgressionSetResultDto(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 1, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 1, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(75f, it.weightRecommendation)
+            assertEquals(75f, it.weightRecommendation)
         }
     }
 
     @Test
     fun `weight drops 10% on second failure`() {
-        val lift = WorkoutLiftWithRelationships(
-            workoutLift = WorkoutLift(
+        val liftEntity = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
                 liftId = 0,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
@@ -110,28 +109,28 @@ class LinearProgressionCalculatorTests {
                 repRangeTop = 8,
                 rpeTarget = 8f,
             ),
-            lift = Lift(
+            liftEntity = LiftEntity(
                 name = "",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 1
             ),
         )
         val previousSetData = listOf(
-            LinearProgressionSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 2, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(90f, it.weightRecommendation)
+            assertEquals(90f, it.weightRecommendation)
         }
     }
 
     @Test
     fun `weight is null when an empty list of set results is passed in`() {
-        val lift = WorkoutLiftWithRelationships(
-            workoutLift = WorkoutLift(
+        val liftEntity = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
                 liftId = 0,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
@@ -141,23 +140,23 @@ class LinearProgressionCalculatorTests {
                 repRangeTop = 8,
                 rpeTarget = 8f,
             ),
-            lift = Lift(
+            liftEntity = LiftEntity(
                 name = "",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 1
             ),
         )
-        val previousSetData = listOf<LinearProgressionSetResultDto>()
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+        val previousSetData = listOf<LinearProgressionSetResult>()
+        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(null, it.weightRecommendation)
+            assertEquals(null, it.weightRecommendation)
         }
     }
 
     @Test
     fun `throws exception if invalid set type passed in`() {
-        val lift = WorkoutLiftWithRelationships(
-            workoutLift = WorkoutLift(
+        val liftEntity = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
                 liftId = 0,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
@@ -167,27 +166,27 @@ class LinearProgressionCalculatorTests {
                 repRangeTop = 8,
                 rpeTarget = 8f,
             ),
-            lift = Lift(
+            liftEntity = LiftEntity(
                 name = "",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 1
             ),
         )
         val previousSetData = listOf(
-            StandardSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResultDto(missedLpGoals = 2, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            StandardSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        Assert.assertThrows(Exception::class.java) {
-            calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+        assertThrows(Exception::class.java) {
+            calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
         }
     }
 
     @Test
     fun `weight recommendation should be null for all lifts`() {
-        val lift = WorkoutLiftWithRelationships(
-            workoutLift = WorkoutLift(
+        val liftEntity = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
                 liftId = 0,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
@@ -197,13 +196,13 @@ class LinearProgressionCalculatorTests {
                 repRangeTop = 8,
                 rpeTarget = 8f,
             ),
-            lift = Lift(
+            liftEntity = LiftEntity(
                 name = "",
                 movementPattern = MovementPattern.LEG_PUSH,
                 volumeTypesBitmask = 1
             ),
-            customLiftSets = listOf(
-                CustomLiftSet(
+            customLiftSetEntities = listOf(
+                CustomLiftSetEntity(
                     workoutLiftId = 0,
                     position = 0,
                     rpeTarget = 8f,
@@ -213,10 +212,10 @@ class LinearProgressionCalculatorTests {
                 )
             )
         )
-        val previousSetData = listOf<LinearProgressionSetResultDto>()
-        val result = calculator.calculate(workoutLiftMapper.map(lift), previousSetData, previousSetData, false)
+        val previousSetData = listOf<LinearProgressionSetResult>()
+        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
         result.forEach {
-            Assert.assertEquals(null, it.weightRecommendation)
+            assertEquals(null, it.weightRecommendation)
         }
     }
 }

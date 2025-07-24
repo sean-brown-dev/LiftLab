@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
+import android.util.Log
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -17,21 +18,31 @@ import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
-import com.browntowndev.liftlab.core.persistence.dtos.CustomWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingDropSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingMyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingStandardSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.LoggingWorkoutLiftDto
-import com.browntowndev.liftlab.core.persistence.dtos.MyoRepSetDto
-import com.browntowndev.liftlab.core.persistence.dtos.ProgramDto
-import com.browntowndev.liftlab.core.persistence.dtos.WorkoutDto
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.persistence.dtos.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import java.text.DateFormat.LONG
 import java.text.DateFormat.MEDIUM
@@ -45,11 +56,93 @@ import java.util.Date
 import java.util.Locale.US
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+import kotlin.collections.flatten
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+
+
+fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> {
+    return callbackFlow {
+        // Create an AuthStateListener. This lambda will be called
+        // immediately with the current state and then on any future changes.
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            // Offer the latest user object to the flow.
+            // This can be the user or null if logged out.
+            trySend(auth.currentUser)
+        }
+
+        // Register the listener with Firebase Auth
+        addAuthStateListener(listener)
+
+        // When the flow is cancelled, unregister the listener
+        awaitClose { removeAuthStateListener(listener) }
+    }
+}
+
+suspend fun<T, R>  List<T>.flatMapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> List<R>): List<R> = coroutineScope {
+    if (this@flatMapParallel.isEmpty()) return@coroutineScope emptyList()
+
+    val thisList = this@flatMapParallel
+    val batchSize = thisList.size / maxDegreesOfParallelism +
+            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
+
+    return@coroutineScope thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll().flatten()
+}
+
+suspend fun<T, R>  List<T>.mapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> R): List<R> = coroutineScope {
+    if (this@mapParallel.isEmpty()) return@coroutineScope emptyList()
+
+    val thisList = this@mapParallel
+    val batchSize = thisList.size / maxDegreesOfParallelism +
+            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
+
+    return@coroutineScope thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll()
+}
+
+suspend fun<T>  List<T>.forEachParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> Unit) = coroutineScope {
+    if (this@forEachParallel.isEmpty()) return@coroutineScope emptyList()
+
+    val thisList = this@forEachParallel
+    val batchSize = thisList.size / maxDegreesOfParallelism +
+            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
+
+    thisList.chunked(batchSize).map {
+        async {
+            transform(it)
+        }
+    }.awaitAll()
+}
+
+suspend fun<T>  List<T>.forEachParallel(transform: suspend CoroutineScope.(item: T) -> Unit) = coroutineScope {
+    if (this@forEachParallel.isEmpty()) return@coroutineScope emptyList()
+    map {
+        async {
+            transform(it)
+        }
+    }.awaitAll()
+}
+
+inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend CoroutineScope.() -> Unit): Job {
+    return this.launch {
+        try {
+            block() // this is now a receiver lambda, so 'this' is the CoroutineScope
+        } catch (e: Exception) {
+            Log.e("FireAndForgetSync", "Error during fireAndForgetSync: ${e.message}", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+        }
+    }
+}
 
 fun String.appendSuperscript(
     superscript: String,
@@ -103,7 +196,7 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLif
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Float, Boolean>? = volumeCounts.getOrDefault(displayName, null)
-            val hasMyoReps = (lift as? CustomWorkoutLiftDto)?.customLiftSets?.any { it is MyoRepSetDto } ?: false
+            val hasMyoReps = (lift as? CustomWorkoutLift)?.customLiftSets?.any { it is MyoRepSet } ?: false
             var newTotalVolume: Float = if(secondaryVolumeTypes?.contains(volumeType) == true)
                 lift.setCount / 2f
             else
@@ -120,7 +213,7 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<GenericWorkoutLif
     return volumeCounts
 }
 
-private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
+private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLift>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
     lifts.fastForEach { lift ->
         val volumeTypes = when(impact) {
@@ -132,7 +225,7 @@ private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLif
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
             val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
-            val hasMyoReps = lift.sets.any { it is LoggingMyoRepSetDto }
+            val hasMyoReps = lift.sets.any { it is LoggingMyoRepSet }
             var newTotalVolume: Int = lift.setCount
 
             if (currTotalVolume != null) {
@@ -160,11 +253,11 @@ private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<GenericWorkout
     }
 }
 
-fun WorkoutDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun Workout.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts, impact)
 }
 
-private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftDto>, impact: VolumeTypeImpact): List<CharSequence> {
+private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLift>, impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeMapForLoggingWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
         val plainVolumeString = "$volumeType: ${totalVolume.first}"
         if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
@@ -172,11 +265,11 @@ private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkout
     }
 }
 
-fun LoggingWorkoutDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun LoggingWorkout.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts, impact)
 }
 
-fun ProgramDto.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun Program.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(
         lifts = this.workouts.flatMap { workout ->
             workout.lifts
@@ -416,7 +509,7 @@ fun Int.toFriendlyMessage(): String {
 
 fun GenericLoggingSet.copyGeneric(
     position: Int = this.position,
-    myoRepSetPosition: Int? = (this as? LoggingMyoRepSetDto)?.myoRepSetPosition,
+    myoRepSetPosition: Int? = (this as? LoggingMyoRepSet)?.myoRepSetPosition,
     rpeTarget: Float = this.rpeTarget,
     repRangeBottom: Int? = this.repRangeBottom,
     repRangeTop: Int? = this.repRangeTop,
@@ -430,7 +523,7 @@ fun GenericLoggingSet.copyGeneric(
     completedRpe: Float? = this.completedRpe,
     complete: Boolean = this.complete
 ): GenericLoggingSet = when(this) {
-    is LoggingStandardSetDto -> this.copy(
+    is LoggingStandardSet -> this.copy(
         position = position,
         rpeTarget = rpeTarget,
         repRangeBottom = repRangeBottom!!,
@@ -445,7 +538,7 @@ fun GenericLoggingSet.copyGeneric(
         completedRpe = completedRpe,
         complete = complete
     )
-    is LoggingMyoRepSetDto -> this.copy(
+    is LoggingMyoRepSet -> this.copy(
         position = position,
         myoRepSetPosition = myoRepSetPosition,
         rpeTarget = rpeTarget,
@@ -461,7 +554,7 @@ fun GenericLoggingSet.copyGeneric(
         completedRpe = completedRpe,
         complete = complete
     )
-    is LoggingDropSetDto -> this.copy(
+    is LoggingDropSet -> this.copy(
         position = position,
         rpeTarget = rpeTarget,
         repRangeBottom = repRangeBottom!!,
