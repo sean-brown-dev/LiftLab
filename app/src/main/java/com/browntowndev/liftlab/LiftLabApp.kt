@@ -2,6 +2,7 @@ package com.browntowndev.liftlab
 
 import android.app.Application
 import android.util.Log
+import androidx.work.Configuration
 import com.browntowndev.liftlab.dependencyInjection.eventBusModule
 import com.browntowndev.liftlab.dependencyInjection.syncModule
 import com.browntowndev.liftlab.dependencyInjection.useCaseModule
@@ -19,9 +20,10 @@ import com.mmk.kmpauth.google.GoogleAuthCredentials
 import com.mmk.kmpauth.google.GoogleAuthProvider
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
+import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 
-class LiftLabApp : Application() {
+class LiftLabApp() : Application() {
     override fun onCreate() {
         super.onCreate()
 
@@ -35,6 +37,7 @@ class LiftLabApp : Application() {
         startKoin {
             androidLogger()
             androidContext(this@LiftLabApp)
+            workManagerFactory()
             modules(
                 liftLabScopeModule,
                 useCaseModule,

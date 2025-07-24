@@ -10,9 +10,13 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 
 class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
@@ -188,22 +192,22 @@ class WorkoutInProgressRepositoryImpl(
         }
     }
 
-    override suspend fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
-        return workoutInProgressDao.get().let { inProgressWorkout ->
-            if (inProgressWorkout == null) {
-                return flowOf(null)
-            }
-
-            previousSetResultsDao.getForWorkoutFlow(
-                workoutId = inProgressWorkout.workoutId,
-                mesoCycle = mesoCycle,
-                microCycle = microCycle,
-            ).map { completedSets ->
-                WorkoutInProgress(
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
+        return workoutInProgressDao.getFlow().flatMapLatest { inProgressWorkout ->
+            if (inProgressWorkout == null) flowOf(null)
+            else {
+                previousSetResultsDao.getForWorkoutFlow(
                     workoutId = inProgressWorkout.workoutId,
-                    startTime = inProgressWorkout.startTime,
-                    completedSets = completedSets.fastMap { it.toSetResult() },
-                )
+                    mesoCycle = mesoCycle,
+                    microCycle = microCycle,
+                ).map { completedSets ->
+                    WorkoutInProgress(
+                        workoutId = inProgressWorkout.workoutId,
+                        startTime = inProgressWorkout.startTime,
+                        completedSets = completedSets.fastMap { it.toSetResult() },
+                    )
+                }
             }
         }
     }

@@ -73,11 +73,11 @@ import kotlin.time.Duration
 class WorkoutViewModel(
     private val progressionFactory: ProgressionFactory,
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepositoryImpl: WorkoutsRepository,
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepository,
+    private val workoutsRepository: WorkoutsRepository,
+    private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
-    private val workoutInProgressRepositoryImpl: WorkoutInProgressRepository,
-    private val historicalWorkoutNamesRepositoryImpl: HistoricalWorkoutNamesRepository,
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
     private val workoutLogRepository: WorkoutLogRepository,
     private val setLogEntryRepository: SetLogEntryRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
@@ -98,29 +98,31 @@ class WorkoutViewModel(
         val restTimerFlow = restTimerInProgressRepository.getFlow()
         programsRepository.getActiveProgramMetadataFlow()
             .flatMapLatest { programMetadata ->
-                if (programMetadata == null) return@flatMapLatest flowOf(WorkoutState(initialized = true))
-                val inProgressWorkoutFlow = workoutInProgressRepositoryImpl.getFlow(
-                    programMetadata.currentMesocycle,
-                    programMetadata.currentMicrocycle
-                )
-                val nextWorkoutToPerformFlow = getNextToPerformFlow(programMetadata)
-                combine(
-                    inProgressWorkoutFlow,
-                    nextWorkoutToPerformFlow,
-                ) { inProgressWorkout, nextWorkoutToPerform ->
-                    val personalRecords = getPersonalRecords(
-                        workoutId  = nextWorkoutToPerform?.id ?: 0L,
-                        mesoCycle  = programMetadata.currentMesocycle,
-                        microCycle = programMetadata.currentMicrocycle,
-                        liftIds    = nextWorkoutToPerform?.lifts?.map { it.liftId }.orEmpty()
+                if (programMetadata == null) flowOf(WorkoutState(initialized = true))
+                else {
+                    val inProgressWorkoutFlow = workoutInProgressRepository.getFlow(
+                        programMetadata.currentMesocycle,
+                        programMetadata.currentMicrocycle
                     )
-                    WorkoutState(
-                        inProgressWorkout = inProgressWorkout,
-                        programMetadata = programMetadata,
-                        workout = nextWorkoutToPerform,
-                        personalRecords = personalRecords,
-                        initialized = true,
-                    )
+                    val nextWorkoutToPerformFlow = getNextToPerformFlow(programMetadata)
+                    combine(
+                        inProgressWorkoutFlow,
+                        nextWorkoutToPerformFlow,
+                    ) { inProgressWorkout, nextWorkoutToPerform ->
+                        val personalRecords = getPersonalRecords(
+                            workoutId  = nextWorkoutToPerform?.id ?: 0L,
+                            mesoCycle  = programMetadata.currentMesocycle,
+                            microCycle = programMetadata.currentMicrocycle,
+                            liftIds    = nextWorkoutToPerform?.lifts?.map { it.liftId }.orEmpty()
+                        )
+                        WorkoutState(
+                            inProgressWorkout = inProgressWorkout,
+                            programMetadata = programMetadata,
+                            workout = nextWorkoutToPerform,
+                            personalRecords = personalRecords,
+                            initialized = true,
+                        )
+                    }
                 }
             }.combine(restTimerFlow) { workoutState, restTimerInProgress ->
                 workoutState.copy(
@@ -148,7 +150,6 @@ class WorkoutViewModel(
     fun getNextToPerformFlow(
         programMetadata: ActiveProgramMetadata
     ): Flow<LoggingWorkout?> {
-        // alias your settings flows
         val useAllWorkoutDataFlow = SettingsManager.getSettingFlow(
             USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
             DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
@@ -162,7 +163,7 @@ class WorkoutViewModel(
             DEFAULT_LIFT_SPECIFIC_DELOADING
         )
 
-        return workoutsRepositoryImpl
+        return workoutsRepository
             .getByMicrocyclePosition(
                 programId = programMetadata.programId,
                 microcyclePosition = programMetadata.currentMicrocyclePosition
@@ -171,14 +172,13 @@ class WorkoutViewModel(
                 if (nullableWorkout == null) {
                     flowOf(null)  // no workoutEntity, short‐circuit
                 } else {
-                    // 1) Build the two “result” flows for this workoutEntity
-                    val previousResultsFlow = getSetResults(
-                        workout = nullableWorkout,
-                        programMetadata = programMetadata,
-                        useAllData = /* we'll plug this in below */
-                            /* dummy—will be overridden by combine */
-                            false
-                    )
+                    val previousResultsFlow = useAllWorkoutDataFlow.flatMapLatest { useAllData ->
+                        getSetResultsFlow(
+                            workout = nullableWorkout,
+                            programMetadata = programMetadata,
+                            useAllData = useAllData,
+                        )
+                    }
                     val inProgressResultsFlow = setResultsRepository.getForWorkoutFlow(
                         workoutId = nullableWorkout.id,
                         mesoCycle = programMetadata.currentMesocycle,
@@ -250,7 +250,7 @@ class WorkoutViewModel(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun getSetResults(
+    private fun getSetResultsFlow(
         workout: Workout?,
         programMetadata: ActiveProgramMetadata,
         useAllData: Boolean,
@@ -409,7 +409,7 @@ class WorkoutViewModel(
             )
 
             val workoutId = mutableWorkoutState.value.workout!!.id
-            val updatedLifts = workoutLiftsRepositoryImpl.getForWorkout(workoutId)
+            val updatedLifts = workoutLiftsRepository.getForWorkout(workoutId)
                 .map {
                     when (it) {
                         is StandardWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
@@ -417,7 +417,7 @@ class WorkoutViewModel(
                         else -> throw Exception("${it::class.simpleName} is not defined.")
                     }
                 }
-            workoutLiftsRepositoryImpl.updateMany(updatedLifts)
+            workoutLiftsRepository.updateMany(updatedLifts)
 
             val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
             val updatedInProgressWorkoutCopy = mutableWorkoutState.value.inProgressWorkout!!.let { inProgressWorkout ->
@@ -506,7 +506,7 @@ class WorkoutViewModel(
                 workoutId = mutableWorkoutState.value.workout!!.id,
                 completedSets = listOf(),
             )
-            workoutInProgressRepositoryImpl.insert(inProgressWorkout)
+            workoutInProgressRepository.insert(inProgressWorkout)
             mutableWorkoutState.update {
                 it.copy(
                     inProgressWorkout = inProgressWorkout,
@@ -578,7 +578,7 @@ class WorkoutViewModel(
                         reps = result.reps,
                         rpe = result.rpe
                     )
-                    if (bestSet1RM == null || oneRepMax > bestSet1RM!!) {
+                    if (bestSet1RM == null || oneRepMax > bestSet1RM) {
                         bestSet = result
                         bestSet1RM = oneRepMax
                     }
@@ -639,7 +639,7 @@ class WorkoutViewModel(
             val workout = mutableWorkoutState.value.workout!!
 
             // Remove the workoutEntity from in progress
-            workoutInProgressRepositoryImpl.deleteAll()
+            workoutInProgressRepository.deleteAll()
             restTimerInProgressRepository.deleteAll()
 
             // Increment the mesocycle and microcycle
@@ -658,12 +658,12 @@ class WorkoutViewModel(
 
             // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
             var historicalWorkoutNameId =
-                historicalWorkoutNamesRepositoryImpl.getIdByProgramAndWorkoutId(
+                historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
                     programId = programMetadata.programId,
                     workoutId = workout.id,
                 )
             if (historicalWorkoutNameId == null) {
-                historicalWorkoutNameId = historicalWorkoutNamesRepositoryImpl.insert(
+                historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
                     HistoricalWorkoutName(
                         programId = programMetadata.programId,
                         workoutId = workout.id,
@@ -771,7 +771,7 @@ class WorkoutViewModel(
 
         executeInTransactionScope {
             // Remove the workoutEntity from in progress
-            workoutInProgressRepositoryImpl.deleteAll()
+            workoutInProgressRepository.deleteAll()
 
             // Delete all set results from the workoutEntity
             val programMetadata = mutableWorkoutState.value.programMetadata!!

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.data.remote
 import android.util.Log
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.data.common.SyncType
@@ -129,6 +130,8 @@ class SyncOrchestrator(
     }
 
     private suspend fun processUpsertBatches(syncRepository: RemoteSyncRepository) {
+        Log.d(TAG, "Processing upsert batches for ${syncRepository.collectionName}")
+
         val unsyncedEntities = syncRepository.getAllUnsynced()
         if (unsyncedEntities.isEmpty()) {
             Log.d(TAG, "No unsynced entities for collection ${syncRepository.collectionName}")
@@ -170,15 +173,28 @@ class SyncOrchestrator(
     }
 
     private suspend fun processDeleteBatches(syncRepository: RemoteSyncRepository) {
+        Log.d(TAG, "Processing delete batches for ${syncRepository.collectionName}")
+
         val unsyncedEntities = syncRepository.getAllUnsynced()
         if (unsyncedEntities.isEmpty()) {
             Log.d(TAG, "No unsynced entities for collection ${syncRepository.collectionName}")
             return
         }
 
-        val toDelete = unsyncedEntities.fastFilter { it.deleted && it.remoteId != null }
+        val (toDelete, deletedWithoutFirestoreId) = unsyncedEntities.fastFilter { it.deleted }.partition { it.remoteId != null }
+
+        if (deletedWithoutFirestoreId.isNotEmpty()) {
+            // Doing this so they don't keep re-trying to delete fruitlessly
+            Log.d(TAG, "Marking ${deletedWithoutFirestoreId.size} entities that are deleted without a remoteId as synced for collection ${syncRepository.collectionName}")
+            val toUpsertAsSynced = deletedWithoutFirestoreId.fastMap {
+                it.copyWithBase().apply {
+                    synced = true
+                }
+            }
+            syncRepository.upsertMany(toUpsertAsSynced)
+        }
         if (toDelete.isEmpty()) {
-            Log.d(TAG, "No entities to sync for collection ${syncRepository.collectionName}")
+            Log.d(TAG, "No entities to delete for collection ${syncRepository.collectionName}")
             return
         }
 
@@ -194,7 +210,7 @@ class SyncOrchestrator(
             }
         }
 
-        Log.d(TAG, "Executing batch sync for ${syncRepository.collectionName}: ${syncBatches.size} batches")
+        Log.d(TAG, "Executing batch delete for ${syncRepository.collectionName}: ${syncBatches.size} batches")
         remoteDataClient.executeBatchSync(syncBatches)
 
         Log.d(TAG, "Deleting ${toDelete.size} entities locally for ${syncRepository.collectionName}")

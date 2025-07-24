@@ -144,16 +144,6 @@ inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend Coroutine
     }
 }
 
-
-fun BaseRemoteDto.copyForUpload(firestoreId: String): BaseRemoteDto {
-    val copy = this.copyWithBase()
-    copy.remoteId = firestoreId
-    copy.lastUpdated = null
-    copy.synced = true
-
-    return copy
-}
-
 fun String.appendSuperscript(
     superscript: String,
     superscriptSize: TextUnit = 10.sp,

@@ -6,13 +6,13 @@ import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import kotlinx.coroutines.flow.Flow
 
 interface PreviousSetResultsRepository : Repository<SetResult, Long> {
-    suspend fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(
+    fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(
         workoutId: Long,
         mesoCycle: Int,
         microCycle: Int
     ): Flow<List<SetResult>>
 
-    suspend fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>>
+    fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>>
 
     suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult>
 

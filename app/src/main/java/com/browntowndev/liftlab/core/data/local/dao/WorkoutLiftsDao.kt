@@ -12,6 +12,7 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
     @Query("SELECT * FROM workoutLifts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<WorkoutLiftEntity>
 
+    @Transaction
     @Query("SELECT * FROM workoutLifts WHERE workout_lift_id = :id AND deleted = 0")
     suspend fun get(id: Long): WorkoutLiftWithRelationships?
 

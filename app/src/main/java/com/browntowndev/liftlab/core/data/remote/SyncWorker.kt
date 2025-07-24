@@ -10,7 +10,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 class SyncWorker(
     appContext: Context,
     params: WorkerParameters,
-    private val syncOrchestrator: SyncOrchestrator // Injected
+    private val syncOrchestrator: SyncOrchestrator,
 ) : CoroutineWorker(appContext, params) {
     companion object {
         private const val TAG = "SyncWorker"

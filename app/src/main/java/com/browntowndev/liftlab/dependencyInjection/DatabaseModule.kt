@@ -31,6 +31,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
+import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 
 val repositoryModule = module {
@@ -152,4 +153,6 @@ val repositoryModule = module {
             syncScheduler = get(),
         )
     }
+
+    workerOf(::LiftLabDatabaseWorker)
 }

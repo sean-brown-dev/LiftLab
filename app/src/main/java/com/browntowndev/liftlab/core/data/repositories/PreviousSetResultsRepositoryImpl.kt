@@ -17,7 +17,7 @@ class PreviousSetResultsRepositoryImpl(
     private val previousSetResultDao: PreviousSetResultDao,
     private val syncScheduler: SyncScheduler,
 ): PreviousSetResultsRepository {
-    override suspend fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
+    override fun getByWorkoutIdExcludingGivenMesoAndMicroFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
         return previousSetResultDao.getByWorkoutIdExcludingGivenMesoAndMicroFlow(
             workoutId,
             mesoCycle,
@@ -28,7 +28,7 @@ class PreviousSetResultsRepositoryImpl(
     }
 
 
-    override suspend fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
+    override fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
         return previousSetResultDao.getForWorkoutFlow(workoutId, mesoCycle, microCycle).map { results ->
             results.fastMap { it.toSetResult() }
         }
