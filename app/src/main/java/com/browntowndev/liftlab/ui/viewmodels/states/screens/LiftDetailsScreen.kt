@@ -24,7 +24,7 @@ data class LiftDetailsScreen(
     private val isConfirmCreateLiftVisible: Boolean = false,
 ): BaseScreen() {
     companion object {
-        val navigation = NavItem("LiftEntity Metrics", "", Route.LiftDetails())
+        val navigation = NavItem("Lift Metrics", "", Route.LiftDetails())
         const val CONFIRM_CREATE_LIFT_ICON = "confirmCreateLiftIcon"
     }
 

@@ -51,6 +51,7 @@ import dev.gitlive.firebase.auth.android
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -85,97 +86,69 @@ class HomeViewModel(
             it.copy(liftMetricOptions = getLiftMetricChartOptions())
         }
 
-        // Now, start a coroutine to listen for auth changes and update the state
         viewModelScope.launch {
-            firebaseAuth.authStateFlow()
-                .onEach { firebaseUser ->
-                    // THIS IS THE MOST IMPORTANT LOG
-                    Log.d(
-                        "HomeViewModel_Auth",
-                        "AuthStateListener FIRED. User email: ${firebaseUser?.email}"
-                    )
-                    _state.update {
-                        it.copy(
-                            firebaseUsername = firebaseUser?.email,
-                            emailVerified = firebaseUser?.isEmailVerified ?: false
-                        )
-                    }
-                }
-                .collect()
-        }
+            val activeProgramFlow = programsRepository.getActiveProgramFlow()
+            val liftsFlow = liftsRepository.getAllFlow()
+            val workoutLogsFlow = workoutLogRepository.getAllFlow()
+            val firebaseAuthStateFlow = firebaseAuth.authStateFlow()
+            val liftMetricChartsFlow = liftMetricChartsRepository.getAllFlow()
+            val volumeMetricChartsFlow = volumeMetricChartsRepository.getAllFlow()
 
-
-        viewModelScope.launch {
-            val liftMetricCharts = liftMetricChartsRepository.getAll()
-            val volumeMetricCharts = volumeMetricChartsRepository.getAll()
-                .sortedWith(compareBy<VolumeMetricChart> { it.volumeType.bitMask }
-                    .thenBy { it.volumeTypeImpact.bitmask }
-                )
-
-            _state.update {
-                it.copy(
-                    liftMetricCharts = liftMetricCharts,
-                    volumeMetricCharts = volumeMetricCharts,
-                )
+            val programDataFlow = combine(
+                activeProgramFlow,
+                liftsFlow,
+                workoutLogsFlow,
+            ) { activeProgram, lifts, workoutLogs ->
+                Triple(activeProgram, lifts, workoutLogs)
             }
 
-            reconstructChartsForProgramAndLifts(
-                workoutCompletionRange = workoutCompletionRange,
-                dateRange = dateRange,
-                activeProgram = _state.value.activeProgram,
-                volumeMetricCharts = volumeMetricCharts
-            )
+            val chartsFlow = combine(
+                liftMetricChartsFlow,
+                volumeMetricChartsFlow,
+            ) { liftMetricCharts, volumeMetricCharts ->
+                Pair(liftMetricCharts, volumeMetricCharts)
+            }
 
-            reconstructChartsForWorkoutLogs(
-                workoutLogs = _state.value.workoutLogs,
-                dateRange = dateRange,
-                volumeMetricCharts = volumeMetricCharts,
-                liftMetricCharts = liftMetricCharts,
-                workoutCompletionRange = workoutCompletionRange,
-                activeProgram = _state.value.activeProgram
-            )
-        }
-
-        viewModelScope.launch {
-            programsRepository.getActiveProgramFlow().collect { activeProgram ->
-                _state.update {
-                    it.copy(activeProgram = activeProgram)
-                }
-
-                reconstructChartsForProgramAndLifts(
-                    workoutCompletionRange = workoutCompletionRange,
-                    dateRange = dateRange,
+            combine(
+                firebaseAuthStateFlow,
+                programDataFlow,
+                chartsFlow,
+            ) { firebaseAuth, (activeProgram, lifts, workoutLogs), (liftMetricCharts, volumeMetricCharts) ->
+                _state.value.copy(
+                    firebaseUsername = firebaseAuth?.email,
+                    emailVerified = firebaseAuth?.isEmailVerified ?: false,
                     activeProgram = activeProgram,
-                    volumeMetricCharts = _state.value.volumeMetricCharts
-                )
-            }
-        }
-
-        viewModelScope.launch {
-            liftsRepository.getAllFlow().collect { lifts ->
-                _state.update {
-                    it.copy(lifts = lifts)
-                }
-
-                reconstructChartsForProgramAndLifts(
-                    workoutCompletionRange = workoutCompletionRange,
-                    dateRange = dateRange,
-                    activeProgram = _state.value.activeProgram,
-                    volumeMetricCharts = _state.value.volumeMetricCharts,
-                )
-            }
-        }
-
-        viewModelScope.launch {
-            workoutLogRepository.getAllFlow().collect { workoutLogs ->
-                reconstructChartsForWorkoutLogs(
+                    lifts = lifts,
                     workoutLogs = workoutLogs,
-                    dateRange = dateRange,
-                    volumeMetricCharts = _state.value.volumeMetricCharts,
-                    liftMetricCharts = _state.value.liftMetricCharts,
-                    workoutCompletionRange = workoutCompletionRange,
-                    activeProgram = _state.value.activeProgram,
+                    workoutCompletionChart = workoutLogs.let {
+                        if (it.isEmpty()) null
+                        else getWeeklyCompletionChart(
+                            workoutCompletionRange = workoutCompletionRange,
+                            workoutsInDateRange = getWorkoutsInDateRange(
+                                it,
+                                dateRange
+                            )
+                        )
+                    },
+                    microCycleCompletionChart = activeProgram?.let { program ->
+                        if (workoutLogs.isEmpty()) null
+                        else getMicroCycleCompletionChart(
+                            workoutLogs = workoutLogs,
+                            program = program,
+                        )
+                    },
+                    volumeMetricChartModels = getVolumeMetricCharts( // this method handles empty lists itself
+                        volumeMetricCharts = volumeMetricCharts,
+                        workoutLogs = workoutLogs,
+                        lifts = lifts,
+                    ),
+                    liftMetricChartModels = getLiftMetricCharts( // this method handles empty lists by itself
+                        liftMetricCharts = liftMetricCharts,
+                        workoutLogs = workoutLogs,
+                    ),
                 )
+            }.collect {
+                _state.value = it
             }
         }
     }
@@ -195,7 +168,7 @@ class HomeViewModel(
             completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             options = listOf(
                 LiftMetricOptions(
-                    options = listOf("LiftEntity Metrics"),
+                    options = listOf("Lift Metrics"),
                     child = LiftMetricOptions(
                         options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
                         completionButtonText = "Choose Lift",
@@ -245,71 +218,6 @@ class HomeViewModel(
         )
     }
 
-    private fun reconstructChartsForWorkoutLogs(
-        workoutLogs: List<WorkoutLogEntry>,
-        dateRange: Pair<Date, Date>,
-        volumeMetricCharts: List<VolumeMetricChart>,
-        liftMetricCharts: List<LiftMetricChart>,
-        workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-        activeProgram: Program?
-    ) {
-        val workoutsInDateRange = getWorkoutsInDateRange(workoutLogs, dateRange)
-        _state.update {
-            it.copy(
-                workoutLogs = workoutLogs,
-                volumeMetricChartModels = getVolumeMetricCharts(
-                    volumeMetricCharts = volumeMetricCharts,
-                    workoutLogs = workoutLogs,
-                    lifts = _state.value.lifts,
-                ),
-                liftMetricChartModels = getLiftMetricCharts(
-                    liftMetricCharts = liftMetricCharts,
-                    workoutLogs = workoutLogs,
-                ),
-                workoutCompletionChart = getWeeklyCompletionChart(
-                    workoutCompletionRange = workoutCompletionRange,
-                    workoutsInDateRange = workoutsInDateRange,
-                ),
-                microCycleCompletionChart = activeProgram?.let { program ->
-                    getMicroCycleCompletionChart(
-                        workoutLogs = workoutLogs,
-                        program = activeProgram,
-                    )
-                }
-            )
-        }
-    }
-
-    private fun reconstructChartsForProgramAndLifts(
-        workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-        dateRange: Pair<Date, Date>,
-        activeProgram: Program?,
-        volumeMetricCharts: List<VolumeMetricChart>
-    ) {
-        _state.update {
-            it.copy(
-                workoutCompletionChart = getWeeklyCompletionChart(
-                    workoutCompletionRange = workoutCompletionRange,
-                    workoutsInDateRange = getWorkoutsInDateRange(
-                        _state.value.workoutLogs,
-                        dateRange
-                    ),
-                ),
-                microCycleCompletionChart = activeProgram?.let { program ->
-                    getMicroCycleCompletionChart(
-                        workoutLogs = _state.value.workoutLogs,
-                        program = program,
-                    )
-                },
-                volumeMetricChartModels = getVolumeMetricCharts(
-                    volumeMetricCharts = volumeMetricCharts,
-                    workoutLogs = _state.value.workoutLogs,
-                    lifts = _state.value.lifts,
-                ),
-            )
-        }
-    }
-
     private fun getSevenWeeksDateRange(): Pair<Date, Date> {
         val today = LocalDate.now()
         val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
@@ -339,6 +247,7 @@ class HomeViewModel(
         liftMetricCharts: List<LiftMetricChart>,
         workoutLogs: List<WorkoutLogEntry>,
     ): List<LiftMetricChartModel> {
+        if (liftMetricCharts.isEmpty() || workoutLogs.isEmpty()) return emptyList()
         return liftMetricCharts.groupBy { it.liftId }.flatMap { liftCharts ->
             // Filter the workoutEntity logs to only include results for the current chart's liftEntity
             val resultsForLift = workoutLogs.mapNotNull { workoutLog ->
@@ -380,7 +289,9 @@ class HomeViewModel(
                             )
                         }
                     )
-                }.fastMapNotNull { chartModel -> if (chartModel.chartModel.chartEntryModel != null) chartModel else null }
+                }.fastMapNotNull { chartModel ->
+                    if (chartModel.chartModel.chartEntryModel != null) chartModel else null
+                }.sortedBy { it.liftName }
             } else listOf()
         }
     }
@@ -390,7 +301,7 @@ class HomeViewModel(
         workoutLogs: List<WorkoutLogEntry>,
         lifts: List<Lift>,
     ): List<VolumeMetricChartModel> {
-        if (volumeMetricCharts.isEmpty() || workoutLogs.isEmpty()) return emptyList()
+        if (volumeMetricCharts.isEmpty() || workoutLogs.isEmpty() || lifts.isEmpty()) return emptyList()
         val primaryVolumeTypesById = lifts.associate { it.id to it.volumeTypesBitmask }
         val secondaryVolumeTypesById = lifts.associate { it.id to it.secondaryVolumeTypesBitmask }
 
@@ -429,7 +340,7 @@ class HomeViewModel(
                     )
                 )
             } else null
-        }
+        }.sortedBy { it.volumeType }
     }
 
     fun toggleLoginModal() {

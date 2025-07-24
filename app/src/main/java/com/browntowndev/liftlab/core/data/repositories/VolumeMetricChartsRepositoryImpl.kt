@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class VolumeMetricChartsRepositoryImpl(
     private val volumeMetricChartsDao: VolumeMetricChartsDao,
@@ -113,7 +114,15 @@ class VolumeMetricChartsRepositoryImpl(
     }
 
     override fun getAllFlow(): Flow<List<VolumeMetricChart>> {
-        TODO("Not yet implemented")
+        return volumeMetricChartsDao.getAllFlow().map {
+            it.fastMap { entity ->
+                VolumeMetricChart(
+                    id = entity.id,
+                    volumeType = entity.volumeType,
+                    volumeTypeImpact = entity.volumeTypeImpact,
+                )
+            }
+        }
     }
 
     override suspend fun getById(id: Long): VolumeMetricChart? {

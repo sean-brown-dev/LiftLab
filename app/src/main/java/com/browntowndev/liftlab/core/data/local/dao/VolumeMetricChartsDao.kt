@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface VolumeMetricChartsDao: BaseDao<VolumeMetricChartEntity> {
@@ -23,6 +24,10 @@ interface VolumeMetricChartsDao: BaseDao<VolumeMetricChartEntity> {
     @Transaction
     @Query("SELECT * FROM volumeMetricCharts WHERE deleted = 0")
     suspend fun getAll(): List<VolumeMetricChartEntity>
+
+    @Transaction
+    @Query("SELECT * FROM volumeMetricCharts WHERE deleted = 0")
+    fun getAllFlow(): Flow<List<VolumeMetricChartEntity>>
 
     @Query("UPDATE volumeMetricCharts SET deleted = 1, synced = 0 WHERE lift_volume_chart_id = :id")
     suspend fun softDelete(id: Long): Int
