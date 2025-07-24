@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
@@ -95,11 +96,11 @@ class WorkoutViewModel(
     }
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun initialize() {
-        val restTimerFlow = restTimerInProgressRepository.getFlow()
         programsRepository.getActiveProgramMetadataFlow()
             .flatMapLatest { programMetadata ->
                 if (programMetadata == null) flowOf(WorkoutState(initialized = true))
                 else {
+                    val restTimerFlow = restTimerInProgressRepository.getFlow()
                     val inProgressWorkoutFlow = workoutInProgressRepository.getFlow(
                         programMetadata.currentMesocycle,
                         programMetadata.currentMicrocycle
@@ -108,7 +109,8 @@ class WorkoutViewModel(
                     combine(
                         inProgressWorkoutFlow,
                         nextWorkoutToPerformFlow,
-                    ) { inProgressWorkout, nextWorkoutToPerform ->
+                        restTimerFlow
+                    ) { inProgressWorkout, nextWorkoutToPerform, restTimerInProgress ->
                         val personalRecords = getPersonalRecords(
                             workoutId  = nextWorkoutToPerform?.id ?: 0L,
                             mesoCycle  = programMetadata.currentMesocycle,
@@ -121,16 +123,12 @@ class WorkoutViewModel(
                             workout = nextWorkoutToPerform,
                             personalRecords = personalRecords,
                             initialized = true,
+                            restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
+                            restTime = restTimerInProgress?.restTime ?: 0L,
                         )
                     }
                 }
-            }.combine(restTimerFlow) { workoutState, restTimerInProgress ->
-                workoutState.copy(
-                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
-                    restTime = restTimerInProgress?.restTime ?: 0L,
-                )
-            }
-            .onEach { newState ->
+            }.onEach { newState ->
                 mutableWorkoutState.update { currentState ->
                     currentState.copy(
                         inProgressWorkout = newState.inProgressWorkout,
@@ -328,6 +326,7 @@ class WorkoutViewModel(
 
         var mergedWorkout: LoggingWorkout = workout
         if (partiallyCompletedSets?.isNotEmpty() == true) {
+            Log.d("WorkoutViewModel", "partiallyCompletedSets: $partiallyCompletedSets")
             mergedWorkout = workout.copy(
                 lifts = workout.lifts.fastMap { lift ->
                     lift.copy(
