@@ -24,6 +24,7 @@ data class CustomLiftSetRemoteDto(
         return this.copy().apply {
             remoteId = this@CustomLiftSetRemoteDto.remoteId
             lastUpdated = this@CustomLiftSetRemoteDto.lastUpdated
+            deleted = this@CustomLiftSetRemoteDto.deleted
             synced = this@CustomLiftSetRemoteDto.synced
         }
     }

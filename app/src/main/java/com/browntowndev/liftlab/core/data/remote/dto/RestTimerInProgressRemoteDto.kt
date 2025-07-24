@@ -12,6 +12,7 @@ data class RestTimerInProgressRemoteDto(
         return this.copy().apply {
             remoteId = this@RestTimerInProgressRemoteDto.remoteId
             lastUpdated = this@RestTimerInProgressRemoteDto.lastUpdated
+            deleted = this@RestTimerInProgressRemoteDto.deleted
             synced = this@RestTimerInProgressRemoteDto.synced
         }
     }

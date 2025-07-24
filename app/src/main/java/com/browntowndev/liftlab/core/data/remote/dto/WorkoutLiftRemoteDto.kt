@@ -21,6 +21,7 @@ data class WorkoutLiftRemoteDto(
         return this.copy().apply {
             remoteId = this@WorkoutLiftRemoteDto.remoteId
             lastUpdated = this@WorkoutLiftRemoteDto.lastUpdated
+            deleted = this@WorkoutLiftRemoteDto.deleted
             synced = this@WorkoutLiftRemoteDto.synced
         }
     }

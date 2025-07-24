@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
@@ -174,8 +175,9 @@ class WorkoutInProgressRepositoryImpl(
     }
 
     override suspend fun deleteAll(): Int {
-        val toDelete = workoutInProgressDao.get() ?: return 0
-        val deleteCount = workoutInProgressDao.softDelete(toDelete.id)
+        val toDelete = workoutInProgressDao.getAll()
+        if (toDelete.isEmpty()) return 0
+        val deleteCount = workoutInProgressDao.softDeleteMany(toDelete.fastMap { it.id })
         if (deleteCount > 0) {
             syncScheduler.scheduleSync()
         }

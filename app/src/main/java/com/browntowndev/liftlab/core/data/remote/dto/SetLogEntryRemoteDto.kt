@@ -42,6 +42,7 @@ data class SetLogEntryRemoteDto(
         return this.copy().apply {
             remoteId = this@SetLogEntryRemoteDto.remoteId
             lastUpdated = this@SetLogEntryRemoteDto.lastUpdated
+            deleted = this@SetLogEntryRemoteDto.deleted
             synced = this@SetLogEntryRemoteDto.synced
         }
     }

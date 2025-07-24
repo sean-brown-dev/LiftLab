@@ -35,10 +35,10 @@ object RemoteMappingExtensions {
         id = this.id,
         liftId = this.liftId,
         chartType = this.chartType,
-
-        ).apply {
+    ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun LiftMetricChartEntity.toRemoteDto(): LiftMetricChartRemoteDto = LiftMetricChartRemoteDto(
@@ -48,6 +48,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun PreviousSetResultRemoteDto.toEntity(): PreviousSetResultEntity = PreviousSetResultEntity(
@@ -70,6 +71,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun PreviousSetResultEntity.toRemoteDto(): PreviousSetResultRemoteDto = PreviousSetResultRemoteDto(
@@ -92,6 +94,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun ProgramRemoteDto.toEntity(): ProgramEntity = ProgramEntity(
@@ -105,6 +108,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun ProgramEntity.toRemoteDto(): ProgramRemoteDto = ProgramRemoteDto(
@@ -118,6 +122,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun RestTimerInProgressRemoteDto.toEntity(): RestTimerInProgressEntity =
@@ -162,6 +167,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun SetLogEntryEntity.toRemoteDto(): SetLogEntryRemoteDto = SetLogEntryRemoteDto(
@@ -194,6 +200,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun VolumeMetricChartRemoteDto.toEntity(): VolumeMetricChartEntity = VolumeMetricChartEntity(
@@ -203,6 +210,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun VolumeMetricChartEntity.toRemoteDto(): VolumeMetricChartRemoteDto = VolumeMetricChartRemoteDto(
@@ -212,6 +220,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutRemoteDto.toEntity(): WorkoutEntity = WorkoutEntity(
@@ -222,6 +231,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun WorkoutEntity.toRemoteDto(): WorkoutRemoteDto = WorkoutRemoteDto(
@@ -232,6 +242,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutInProgressRemoteDto.toEntity(): WorkoutInProgressEntity = WorkoutInProgressEntity(
@@ -241,6 +252,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun WorkoutInProgressEntity.toRemoteDto(): WorkoutInProgressRemoteDto = WorkoutInProgressRemoteDto(
@@ -250,6 +262,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutLiftRemoteDto.toEntity(): WorkoutLiftEntity = WorkoutLiftEntity(
@@ -267,6 +280,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun WorkoutLiftEntity.toRemoteDto(): WorkoutLiftRemoteDto = WorkoutLiftRemoteDto(
@@ -284,6 +298,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun WorkoutLogEntryRemoteDto.toEntity(): WorkoutLogEntryEntity = WorkoutLogEntryEntity(
@@ -299,6 +314,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun WorkoutLogEntryEntity.toRemoteDto(): WorkoutLogEntryRemoteDto = WorkoutLogEntryRemoteDto(
@@ -314,6 +330,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun CustomLiftSetRemoteDto.toEntity(): CustomLiftSetEntity = CustomLiftSetEntity(
@@ -332,6 +349,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun CustomLiftSetEntity.toRemoteDto(): CustomLiftSetRemoteDto = CustomLiftSetRemoteDto(
@@ -350,6 +368,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun HistoricalWorkoutNameRemoteDto.toEntity(): HistoricalWorkoutNameEntity = HistoricalWorkoutNameEntity(
@@ -361,6 +380,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun HistoricalWorkoutNameEntity.toRemoteDto(): HistoricalWorkoutNameRemoteDto = HistoricalWorkoutNameRemoteDto(
@@ -372,6 +392,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
     fun LiftRemoteDto.toEntity(): LiftEntity = LiftEntity(
@@ -388,6 +409,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
+        this.deleted = this@toEntity.deleted
         this.synced = true
     }
     fun LiftEntity.toRemoteDto(): LiftRemoteDto = LiftRemoteDto(
@@ -404,6 +426,7 @@ object RemoteMappingExtensions {
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated
+        this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
 }

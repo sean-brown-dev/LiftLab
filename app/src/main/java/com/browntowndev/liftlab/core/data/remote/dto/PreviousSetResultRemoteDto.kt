@@ -26,6 +26,7 @@ data class PreviousSetResultRemoteDto(
         return this.copy().apply {
             remoteId = this@PreviousSetResultRemoteDto.remoteId
             lastUpdated = this@PreviousSetResultRemoteDto.lastUpdated
+            deleted = this@PreviousSetResultRemoteDto.deleted
             synced = this@PreviousSetResultRemoteDto.synced
         }
     }

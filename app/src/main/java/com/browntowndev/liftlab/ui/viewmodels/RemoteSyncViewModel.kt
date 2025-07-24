@@ -37,7 +37,7 @@ class RemoteSyncViewModel(
 
                     Log.d(TAG, "Syncing all")
                     retryWithBackoff {
-                        syncOrchestrator.syncAll()
+                        syncOrchestrator.syncFromThenToRemote()
                     }
                     Log.d(TAG, "Sync complete")
                 } catch (e: Exception) {

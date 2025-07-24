@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
 import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.Date
@@ -29,7 +30,29 @@ class SyncOrchestrator(
         private const val TAG = "SyncOrchestrator"
     }
 
-    suspend fun syncAll() {
+    suspend fun syncToRemote() {
+        Log.d(TAG, "syncToRemote called")
+        if (!remoteDataClient.canSync) {
+            Log.d(TAG, "Cannot sync, remoteDataClient.canSync is false")
+            return
+        }
+
+        try {
+            mutex.withLock {
+                Log.d(TAG, "Starting sync process")
+                transactionScope.execute {
+                    uploadPendingChanges()
+                }
+                Log.d(TAG, "Sync process finished")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to sync", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            throw e
+        }
+    }
+
+    suspend fun syncFromThenToRemote() {
         Log.d(TAG, "syncAll called")
         if (!remoteDataClient.canSync) {
             Log.d(TAG, "Cannot sync, remoteDataClient.canSync is false")
@@ -163,11 +186,12 @@ class SyncOrchestrator(
             remoteDataClient.getMany(
                 collectionName = syncRepository.collectionName,
                 ids = upsertDocumentIds
-            ).collect { upsertedRemoteDTOs ->
+            ).filter { it.isNotEmpty() }
+            .collect { upsertedRemoteDTOs ->
                 if (upsertedRemoteDTOs.isEmpty()) return@collect
 
                 syncRepository.upsertMany(upsertedRemoteDTOs)
-                Log.d(TAG, "Successfully updated local entities for ${syncRepository.collectionName}")
+                Log.d(TAG, "Successfully updated ${upsertedRemoteDTOs.size} local entities for ${syncRepository.collectionName}")
             }
         }
     }

@@ -18,7 +18,7 @@ class SyncWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            syncOrchestrator.syncAll()
+            syncOrchestrator.syncToRemote()
             Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to sync.", e)

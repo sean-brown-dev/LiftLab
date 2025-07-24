@@ -54,7 +54,6 @@ import com.browntowndev.liftlab.core.data.local.views.*
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
         AutoMigration(from = 12, to = 13),
         AutoMigration(from = 13, to = 14),
-        AutoMigration(from = 16, to = 17),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -103,7 +102,11 @@ abstract class LiftLabDatabase : RoomDatabase() {
             val dbName = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DATABASE_NAME" else DATABASE_NAME
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, dbName)
-                .addMigrations(LiftNoteMigration(), WorkoutInProgressMigration(), RemoteSyncMigration())
+                .addMigrations(
+                    LiftNoteMigration(),
+                    WorkoutInProgressMigration(),
+                    RemoteSyncMigration(),
+                    ViewsAutoMigration())
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {
                         it.addCallback(populateInitialData)

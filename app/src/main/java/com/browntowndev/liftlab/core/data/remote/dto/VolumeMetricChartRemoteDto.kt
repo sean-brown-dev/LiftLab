@@ -14,6 +14,7 @@ data class VolumeMetricChartRemoteDto(
         return this.copy().apply {
             remoteId = this@VolumeMetricChartRemoteDto.remoteId
             lastUpdated = this@VolumeMetricChartRemoteDto.lastUpdated
+            deleted = this@VolumeMetricChartRemoteDto.deleted
             synced = this@VolumeMetricChartRemoteDto.synced
         }
     }

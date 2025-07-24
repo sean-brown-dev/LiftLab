@@ -19,6 +19,7 @@ data class ProgramRemoteDto(
         return this.copy().apply {
             remoteId = this@ProgramRemoteDto.remoteId
             lastUpdated = this@ProgramRemoteDto.lastUpdated
+            deleted = this@ProgramRemoteDto.deleted
             synced = this@ProgramRemoteDto.synced
         }
     }

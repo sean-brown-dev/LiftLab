@@ -13,6 +13,7 @@ data class LiftMetricChartRemoteDto(
         return this.copy().apply {
             remoteId = this@LiftMetricChartRemoteDto.remoteId
             lastUpdated = this@LiftMetricChartRemoteDto.lastUpdated
+            deleted = this@LiftMetricChartRemoteDto.deleted
             synced = this@LiftMetricChartRemoteDto.synced
         }
     }
