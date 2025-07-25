@@ -7,7 +7,9 @@ import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
-import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummary
+import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import java.util.Date
 
 @Stable
@@ -15,8 +17,9 @@ data class WorkoutState(
     val initialized: Boolean = false,
     val programMetadata: ActiveProgramMetadata? = null,
     val workout: LoggingWorkout? = null,
-    val personalRecords: Map<Long, PersonalRecord> = mapOf(),
-    val inProgressWorkout: WorkoutInProgress? = null,
+    val personalRecords: Map<Long, PersonalRecord> = emptyMap(),
+    val inProgressWorkout: WorkoutInProgressUiModel? = null,
+    val completedSets: List<SetResult> = emptyList(),
     val workoutLogVisible: Boolean = false,
     val isReordering: Boolean = false,
     val restTimerStartedAt: Date? = null,

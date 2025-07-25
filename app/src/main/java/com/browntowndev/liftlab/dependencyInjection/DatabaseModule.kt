@@ -108,7 +108,6 @@ val repositoryModule = module {
     single<WorkoutInProgressRepository> {
         WorkoutInProgressRepositoryImpl(
             workoutInProgressDao = get(),
-            previousSetResultsDao = get(),
             syncScheduler = get(),
         )
     }

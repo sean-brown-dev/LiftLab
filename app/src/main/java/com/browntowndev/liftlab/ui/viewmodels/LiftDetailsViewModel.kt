@@ -17,7 +17,7 @@ import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
-import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel

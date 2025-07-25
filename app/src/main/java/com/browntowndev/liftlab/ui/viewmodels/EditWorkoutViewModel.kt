@@ -26,6 +26,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,11 +109,10 @@ class EditWorkoutViewModel(
                         currentMicrocycle = workoutLog.microcycle,
                         currentMicrocyclePosition = workoutLog.microcyclePosition,
                     ),
-                    inProgressWorkout = WorkoutInProgress(
-                        workoutId = workoutLogEntryId,
+                    inProgressWorkout = WorkoutInProgressUiModel(
                         startTime = getCurrentDate(),
-                        completedSets = completedSetResults,
-                    )
+                    ),
+                    completedSets = completedSetResults,
                 )
             }
         }

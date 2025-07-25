@@ -288,7 +288,7 @@ fun Workout(
                 )
             },
             cancelWorkout = {
-                if (state.inProgressWorkout?.completedSets?.isNotEmpty() == true)
+                if (state.completedSets.isNotEmpty())
                     workoutViewModel.toggleConfirmCancelWorkoutModal()
                 else
                     workoutViewModel.cancelWorkout()

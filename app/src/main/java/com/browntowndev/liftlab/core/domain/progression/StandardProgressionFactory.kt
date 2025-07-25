@@ -16,13 +16,13 @@ import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import kotlin.math.log
 
 class StandardProgressionFactory: ProgressionFactory {
     override fun calculate(
         workout: Workout,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
-        inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
         useLiftSpecificDeloading: Boolean,
@@ -83,14 +83,10 @@ class StandardProgressionFactory: ProgressionFactory {
             )
         }
 
-        return updateWithInProgressSetResults(
-            loggingWorkout = loggingWorkout,
-            inProgressSetResults = inProgressSetResults,
-            microCycle = microCycle,
-        )
+        return loggingWorkout
     }
 
-    private fun updateWithInProgressSetResults(
+    override fun updateWithInProgressSetResults(
         loggingWorkout: LoggingWorkout,
         inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,

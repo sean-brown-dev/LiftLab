@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
@@ -52,7 +53,7 @@ abstract class BaseWorkoutViewModel(
             set.completedRpe != null
         ) {
             val liftPosition = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!.position
-            val currentResult = mutableWorkoutState.value.inProgressWorkout!!.completedSets
+            val currentResult = mutableWorkoutState.value.completedSets
                 .find {
                     it.liftPosition == liftPosition &&
                             it.setPosition == set.position
@@ -289,7 +290,7 @@ abstract class BaseWorkoutViewModel(
                     is LoggingMyoRepSet -> set.copy(complete = true)
                     else -> throw Exception("${set::class.simpleName} is not defined.")
                 }
-                completedSet!!
+                completedSet
             } else if (set.position == (setPosition + 1) && !set.hadInitialWeightRecommendation) {
                 when (set) {
                     is LoggingStandardSet -> set.copy(
@@ -437,7 +438,29 @@ abstract class BaseWorkoutViewModel(
             if (restTimerEnabled) {
                 insertRestTimerInProgress(restTime)
             }
-            mutableWorkoutState.update { currentState ->
+            mutableWorkoutState.value.completedSets.let { completedSets ->
+                val existingResult = completedSets.find { existing ->
+                    existing.liftId == result.liftId &&
+                            existing.liftPosition == result.liftPosition &&
+                            existing.setPosition == result.setPosition &&
+                            (existing as? MyoRepSetResult)?.myoRepSetPosition == (result as? MyoRepSetResult)?.myoRepSetPosition
+                }
+                if (existingResult != null) {
+                    val updatedResult = when (result) {
+                        is StandardSetResult -> result.copy(id = existingResult.id)
+                        is MyoRepSetResult -> result.copy(id = existingResult.id)
+                        is LinearProgressionSetResult -> result.copy(id = existingResult.id)
+                        else -> throw Exception("${result::class.simpleName} is not defined.")
+                    }
+
+                    upsertSetResult(updatedResult)
+                } else {
+                    upsertSetResult(result)
+                }
+            }
+
+            // TODO: Delete
+            /*mutableWorkoutState.update { currentState ->
                 currentState.copy(
                     restTime = if (restTimerEnabled) restTime else currentState.restTime,
                     restTimerStartedAt = if(restTimerEnabled) getCurrentDate() else currentState.restTimerStartedAt,
@@ -490,14 +513,13 @@ abstract class BaseWorkoutViewModel(
                         }
                     )
                 )
-            }
+            }*/
         }
     }
 
     private suspend fun deleteSetResultAndReturnDeleted(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): SetResult? {
-        return mutableWorkoutState.value.inProgressWorkout
-            ?.completedSets
-            ?.find {
+        return mutableWorkoutState.value.completedSets
+            .find {
                 it.liftPosition == liftPosition &&
                         it.setPosition == setPosition &&
                         (it as? MyoRepSetResult)?.myoRepSetPosition == myoRepSetPosition
@@ -510,7 +532,19 @@ abstract class BaseWorkoutViewModel(
     fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
         executeInTransactionScope {
             stopRestTimer()
-            val deletedResult = deleteSetResultAndReturnDeleted(
+            Log.d("WorkoutViewModel", "undoSetCompletion ${mutableWorkoutState.value.completedSets}")
+            mutableWorkoutState.value.completedSets
+                .find {
+                    it.liftPosition == liftPosition &&
+                            it.setPosition == setPosition &&
+                            (it as? MyoRepSetResult)?.myoRepSetPosition == myoRepSetPosition
+                }?.let { result ->
+                    Log.d("WorkoutViewModel", "deleting $result")
+                    deleteSetResult(id = result.id)
+                }
+
+            // TODO: Delete
+            /*val deletedResult = deleteSetResultAndReturnDeleted(
                 liftPosition = liftPosition,
                 setPosition = setPosition,
                 myoRepSetPosition = myoRepSetPosition,
@@ -557,7 +591,7 @@ abstract class BaseWorkoutViewModel(
                         }
                     )
                 )
-            }
+            }*/
         }
     }
 
@@ -580,15 +614,14 @@ abstract class BaseWorkoutViewModel(
                 )
             }
 
-            mutableWorkoutState.update { currentState ->
+            // TODO: Delete
+            /*mutableWorkoutState.update { currentState ->
                 currentState.copy(
-                    inProgressWorkout = currentState.inProgressWorkout?.copy(
-                        completedSets = currentState.inProgressWorkout.completedSets.fastMapNotNull { setResult ->
-                            if (setResult.id != deletedResult?.id) {
-                                setResult
-                            } else null
-                        }
-                    ),
+                    completedSets = currentState.completedSets.fastMapNotNull { setResult ->
+                        if (setResult.id != deletedResult?.id) {
+                            setResult
+                        } else null
+                    },
                     workout = currentState.workout!!.let { workout ->
                         workout.copy(
                             lifts = workout.lifts.fastMap { workoutLift ->
@@ -612,12 +645,12 @@ abstract class BaseWorkoutViewModel(
                         )
                     }
                 )
-            }
+            }*/
         }
     }
 
     protected open suspend fun updateLinearProgressionFailures() {
-        val resultsByLift = mutableWorkoutState.value.inProgressWorkout!!.completedSets.associateBy {
+        val resultsByLift = mutableWorkoutState.value.completedSets.associateBy {
             "${it.liftId}-${it.setPosition}"
         }
         val setResultsToUpdate = mutableListOf<SetResult>()

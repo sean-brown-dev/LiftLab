@@ -399,7 +399,7 @@ class WorkoutBuilderViewModel(
 
             workoutLiftsRepositoryImpl.updateMany(updatedWorkoutCopy.lifts)
 
-            if (workoutInProgressRepositoryImpl.getWithoutCompletedSets() != null) {
+            if (workoutInProgressRepositoryImpl.getAll().isNotEmpty()) {
                 programsRepository.getActive()?.let { programMetadata ->
                     val workoutLiftIdByLiftId = _state.value.workout!!.lifts.associate { it.liftId to it.id }
                     val updatedInProgressSetResults = setResultsRepository.getForWorkout(

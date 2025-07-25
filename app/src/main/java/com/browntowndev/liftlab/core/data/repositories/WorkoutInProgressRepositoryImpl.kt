@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 
 class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
-    private val previousSetResultsDao: PreviousSetResultDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutInProgressRepository {
     override suspend fun getAll(): List<WorkoutInProgress> {
@@ -29,7 +29,6 @@ class WorkoutInProgressRepositoryImpl(
             WorkoutInProgress(
                 workoutId = it.workoutId,
                 startTime = it.startTime,
-                completedSets = emptyList()
             )
         }
     }
@@ -40,7 +39,6 @@ class WorkoutInProgressRepositoryImpl(
                 WorkoutInProgress(
                     workoutId = entity.workoutId,
                     startTime = entity.startTime,
-                    completedSets = emptyList()
                 )
             }
         }
@@ -51,7 +49,6 @@ class WorkoutInProgressRepositoryImpl(
             WorkoutInProgress(
                 workoutId = it.workoutId,
                 startTime = it.startTime,
-                completedSets = emptyList()
             )
         }
     }
@@ -61,7 +58,6 @@ class WorkoutInProgressRepositoryImpl(
             WorkoutInProgress(
                 workoutId = it.workoutId,
                 startTime = it.startTime,
-                completedSets = emptyList()
             )
         }
     }
@@ -189,27 +185,19 @@ class WorkoutInProgressRepositoryImpl(
             WorkoutInProgress(
                 workoutId = inProgressEntity.workoutId,
                 startTime = inProgressEntity.startTime,
-                completedSets = listOf()
             )
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
-        return workoutInProgressDao.getFlow().flatMapLatest { inProgressWorkout ->
-            if (inProgressWorkout == null) flowOf(null)
+        return workoutInProgressDao.getFlow().mapLatest { inProgressWorkout ->
+            if (inProgressWorkout == null) null
             else {
-                previousSetResultsDao.getForWorkoutFlow(
+                WorkoutInProgress(
                     workoutId = inProgressWorkout.workoutId,
-                    mesoCycle = mesoCycle,
-                    microCycle = microCycle,
-                ).map { completedSets ->
-                    WorkoutInProgress(
-                        workoutId = inProgressWorkout.workoutId,
-                        startTime = inProgressWorkout.startTime,
-                        completedSets = completedSets.fastMap { it.toSetResult() },
-                    )
-                }
+                    startTime = inProgressWorkout.startTime,
+                )
             }
         }
     }

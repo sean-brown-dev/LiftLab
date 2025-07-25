@@ -9,6 +9,9 @@ import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.core.Koin
@@ -31,12 +34,11 @@ class RestTimerButtonHandler: BroadcastReceiver() {
                 RestTimerNotificationService.SKIP_ACTION -> {
                     executeInCoroutineScope {
                         val koin: Koin = get()
-                        val firebaseAuth: FirebaseAuth = koin.get()
-                        val firestore: FirebaseFirestore = koin.get()
                         val restTimerRepository: RestTimerInProgressRepository = koin.get()
                         val programsRepository: ProgramsRepository = koin.get()
-                        val workoutsRepositoryImpl: WorkoutsRepositoryImpl = koin.get()
-                        val workoutInProgressRepositoryImpl: WorkoutInProgressRepositoryImpl = koin.get()
+                        val workoutsRepository: WorkoutsRepository = koin.get()
+                        val workoutInProgressRepository: WorkoutInProgressRepository = koin.get()
+                        val setResultsRepository: PreviousSetResultsRepository = koin.get()
 
                         restTimerRepository.deleteAll()
 
@@ -45,8 +47,9 @@ class RestTimerButtonHandler: BroadcastReceiver() {
 
                         NotificationHelper(
                             programRepository = programsRepository,
-                            workoutsRepository = workoutsRepositoryImpl,
-                            workoutInProgressRepository = workoutInProgressRepositoryImpl,
+                            workoutsRepository = workoutsRepository,
+                            workoutInProgressRepository = workoutInProgressRepository,
+                            setResultsRepository = setResultsRepository,
                             restTimerInProgressRepository = restTimerRepository,
                         ).startActiveWorkoutNotification(context)
                     }

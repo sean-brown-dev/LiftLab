@@ -9,6 +9,7 @@ val notificationModule = module {
             programRepository = get(),
             workoutsRepository = get(),
             workoutInProgressRepository = get(),
+            setResultsRepository = get(),
             restTimerInProgressRepository = get()
         )
     }

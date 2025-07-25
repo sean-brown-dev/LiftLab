@@ -9,10 +9,15 @@ interface ProgressionFactory {
         workout: Workout,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
-        inProgressSetResults: Map<String, SetResult>,
         microCycle: Int,
         programDeloadWeek: Int,
         useLiftSpecificDeloading: Boolean,
         onlyUseResultsForLiftsInSamePosition: Boolean,
+    ): LoggingWorkout
+
+    fun updateWithInProgressSetResults(
+        loggingWorkout: LoggingWorkout,
+        inProgressSetResults: Map<String, SetResult>,
+        microCycle: Int,
     ): LoggingWorkout
 }

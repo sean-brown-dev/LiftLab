@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.data.repositories
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -26,7 +27,6 @@ class PreviousSetResultsRepositoryImpl(
             setResults.fastMap { it.toSetResult() }
         }
     }
-
 
     override fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetResult>> {
         return previousSetResultDao.getForWorkoutFlow(workoutId, mesoCycle, microCycle).map { results ->
@@ -190,6 +190,7 @@ class PreviousSetResultsRepositoryImpl(
     }
 
     override suspend fun deleteById(id: Long): Int {
+        Log.d("PreviousSetResultsRepositoryImpl", "deleteById: $id")
         val count = previousSetResultDao.softDelete(id)
         if (count > 0) {
             syncScheduler.scheduleSync()

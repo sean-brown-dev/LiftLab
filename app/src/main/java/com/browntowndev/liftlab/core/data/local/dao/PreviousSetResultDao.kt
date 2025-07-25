@@ -41,7 +41,8 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
     @Query("SELECT * FROM previousSetResults " +
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
-            "microCycle = :microCycle AND deleted = 0")
+            "microCycle = :microCycle AND " +
+            "deleted = 0")
     fun getForWorkoutFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<PreviousSetResultEntity>>
 
     @Transaction

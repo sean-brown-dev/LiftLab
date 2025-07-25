@@ -4,7 +4,7 @@ import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
-import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 data class LiftDetailsState(

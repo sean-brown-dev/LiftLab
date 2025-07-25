@@ -50,7 +50,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toShortTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
-import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
+import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummary
 import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.CaptureController
 import dev.shreyaspatil.capturable.controller.rememberCaptureController

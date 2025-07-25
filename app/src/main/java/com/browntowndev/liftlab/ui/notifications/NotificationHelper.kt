@@ -13,17 +13,19 @@ import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.ui.models.ActiveWorkoutNotificationMetadata
+import com.browntowndev.liftlab.ui.models.workout.ActiveWorkoutNotificationMetadata
 import kotlinx.coroutines.flow.firstOrNull
 
 class NotificationHelper(
     private val programRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val setResultsRepository: PreviousSetResultsRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository
 ) {
     companion object {
@@ -65,11 +67,16 @@ class NotificationHelper(
 
             if (workoutInProgress != null) {
                 val workout = workoutsRepository.getById(workoutInProgress.workoutId) ?: return null
+                val completedSets = setResultsRepository.getForWorkout(
+                    mesoCycle = activeProgramMetadata.currentMesocycle,
+                    microCycle = activeProgramMetadata.currentMicrocycle,
+                    workoutId = workout.id,
+                )
                 ActiveWorkoutNotificationMetadata(
                     workoutName = workout.name,
                     startTime = workoutInProgress.startTime,
                     nextSet = getNextSetText(
-                        completedSets = workoutInProgress.completedSets,
+                        completedSets = completedSets,
                         lifts = workout.lifts,
                         programDeloadWeek = activeProgramMetadata.deloadWeek,
                         microCycle = activeProgramMetadata.currentMicrocycle,
