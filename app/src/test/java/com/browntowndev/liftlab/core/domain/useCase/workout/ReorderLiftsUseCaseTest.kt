@@ -17,8 +17,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.time.Duration.Companion.seconds
 
 class ReorderLiftsUseCaseTest {
@@ -27,7 +29,7 @@ class ReorderLiftsUseCaseTest {
     private lateinit var setResultsRepository: PreviousSetResultsRepository
     private lateinit var reorderLiftsUseCase: ReorderLiftsUseCase
 
-    @Before
+    @BeforeEach
     fun setUp() {
         workoutLiftsRepository = mockk(relaxed = true)
         setResultsRepository = mockk(relaxed = true)
@@ -116,24 +118,24 @@ class ReorderLiftsUseCaseTest {
         // Then
         coVerify {
             workoutLiftsRepository.updateMany(withArg { updatedLifts ->
-                assert(updatedLifts.size == 2)
+                assertEquals(2, updatedLifts.size)
                 val lift1 = updatedLifts.find { it.id == 101L }
                 val lift2 = updatedLifts.find { it.id == 102L }
-                assert(lift1?.position == 1)
-                assert(lift2?.position == 0)
+                assertEquals(1, lift1?.position)
+                assertEquals(0, lift2?.position)
             })
         }
 
         coVerify {
             setResultsRepository.upsertMany(withArg { updatedSets ->
-                assert(updatedSets.size == 3)
+                assertEquals(3, updatedSets.size)
                 val set1 = updatedSets.find { it.id == 301L }
                 val set2 = updatedSets.find { it.id == 302L }
                 val set3 = updatedSets.find { it.id == 303L }
 
-                assert(set1?.liftPosition == 1)
-                assert(set2?.liftPosition == 0)
-                assert(set3?.liftPosition == 1)
+                assertEquals(1, set1?.liftPosition)
+                assertEquals(0, set2?.liftPosition)
+                assertEquals(1, set3?.liftPosition)
             })
         }
     }
@@ -200,7 +202,7 @@ class ReorderLiftsUseCaseTest {
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }
     }
 
-    @Test(expected = NullPointerException::class)
+    @Test
     fun `invoke with missing newWorkoutLiftIndices entry throws exception`() = runTest {
         // Given
         val workoutLifts = listOf(
@@ -253,7 +255,9 @@ class ReorderLiftsUseCaseTest {
 
         coEvery { workoutLiftsRepository.getForWorkout(workout.id) } returns workoutLifts
 
-        // When
-        reorderLiftsUseCase(workout, emptyList(), newWorkoutLiftIndices)
+        // When / Then
+        assertThrows<NullPointerException> {
+            reorderLiftsUseCase(workout, emptyList(), newWorkoutLiftIndices)
+        }
     }
 }

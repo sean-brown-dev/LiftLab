@@ -30,6 +30,7 @@ class ReorderLiftsUseCase(
                 }
         workoutLiftsRepository.updateMany(updatedLifts)
 
+        if (completedSets.isEmpty()) return
         val workoutLiftIdByLiftId = workout.lifts.associate { it.liftId to it.id }
         val updatedInProgressSetResults = completedSets.map { completedSet ->
                 val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]

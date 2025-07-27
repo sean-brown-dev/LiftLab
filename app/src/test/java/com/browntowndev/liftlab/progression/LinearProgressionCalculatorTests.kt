@@ -95,7 +95,7 @@ class LinearProgressionCalculatorTests {
     }
 
     @Test
-    fun `weight drops 10% on second failure`() {
+    fun `weight drops 10 percent on second failure`() {
         val liftEntity = WorkoutLiftWithRelationships(
             workoutLiftEntity = WorkoutLiftEntity(
                 workoutId = 0,
