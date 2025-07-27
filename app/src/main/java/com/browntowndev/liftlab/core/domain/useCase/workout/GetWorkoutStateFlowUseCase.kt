@@ -125,14 +125,13 @@ class GetWorkoutStateFlowUseCase(
                         Log.d("GetWorkoutStateFlowUseCase", "Updating workout with in progress results.")
 
                         val updatedWorkout =
-                            hydrateLoggingWorkoutWithCompletedSetsUseCase.hydrateWithInProgressSetResults(
+                            hydrateLoggingWorkoutWithCompletedSetsUseCase(
                                 loggingWorkout = accWorkout, // Use accumulated workout as base
                                 inProgressSetResults = inProgressResults,
                                 microCycle = programMetadata.currentMicrocycle,
                             )
 
-                        val finalWorkout = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
-                            .hydrateWithPartiallyCompletedSets(loggingWorkout = updatedWorkout)
+                        val finalWorkout = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(loggingWorkout = updatedWorkout)
 
                         finalWorkout to inProgressResults
                     }.map { (loggingWorkout, inProgressResults) ->

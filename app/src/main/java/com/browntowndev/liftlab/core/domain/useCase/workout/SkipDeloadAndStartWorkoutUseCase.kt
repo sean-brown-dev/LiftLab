@@ -17,6 +17,6 @@ class SkipDeloadAndStartWorkoutUseCase(
             microCycle = 0,
             microCyclePosition = 0,
         )
-        startWorkoutUseCase.start(workoutId = workoutId)
+        startWorkoutUseCase(workoutId = workoutId)
     }
 }
