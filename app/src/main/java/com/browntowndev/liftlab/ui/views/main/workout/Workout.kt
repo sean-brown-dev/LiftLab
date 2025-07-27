@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -81,6 +82,13 @@ fun Workout(
     }
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
+
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        workoutViewModel.toastEvents.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     LaunchedEffect(key1 = showLog) {
         if (showLog) {

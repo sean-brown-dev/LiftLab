@@ -69,6 +69,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.io.File
@@ -112,10 +113,18 @@ class WorkoutViewModel(
                 }
             }
             TopAppBarAction.RestTimerCompleted -> {
-                executeInTransactionScope {
-                    restTimerInProgressRepository.deleteAll()
-                    mutableWorkoutState.update {
-                        it.copy(restTimerStartedAt = null)
+                try {
+                    executeInTransactionScope {
+                        restTimerInProgressRepository.deleteAll()
+                        mutableWorkoutState.update {
+                            it.copy(restTimerStartedAt = null)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("WorkoutViewModel", "Error handling rest timer completion", e)
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    viewModelScope.launch {
+                        showToast("Failed to complete rest timer. Please try again.")
                     }
                 }
             }
@@ -180,9 +189,10 @@ class WorkoutViewModel(
                     )
                 }
             }
-            .catch {
-                Log.e("WorkoutViewModel", "Error in initialize", it)
-                FirebaseCrashlytics.getInstance().recordException(it)
+            .catch { e ->
+                Log.e("WorkoutViewModel", "Error in initialize", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+                showToast("An unexpected error occurred during initialization. Please restart the app.")
             }
             .launchIn(viewModelScope)
     }
@@ -382,32 +392,40 @@ class WorkoutViewModel(
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
         mutableWorkoutState.update { it.copy(isReordering = false) }
 
-        executeInTransactionScope {
-            val newWorkoutLiftIndices = newLiftOrder
-                .mapIndexed { index, item -> item.key to index }
-                .associate { it.first to it.second }
+        try {
+            executeInTransactionScope {
+                val newWorkoutLiftIndices = newLiftOrder
+                    .mapIndexed { index, item -> item.key to index }
+                    .associate { it.first to it.second }
 
-            val updatedLifts = workoutLiftsRepository.getForWorkout(mutableWorkoutState.value.workout!!.id)
-                .map {
-                    when (it) {
-                        is StandardWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
-                        is CustomWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
-                        else -> throw Exception("${it::class.simpleName} is not defined.")
+                val updatedLifts = workoutLiftsRepository.getForWorkout(mutableWorkoutState.value.workout!!.id)
+                    .map {
+                        when (it) {
+                            is StandardWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
+                            is CustomWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
+                            else -> throw Exception("${it::class.simpleName} is not defined.")
+                        }
+                    }
+                workoutLiftsRepository.updateMany(updatedLifts)
+
+                val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
+                val updatedInProgressSetResults = mutableWorkoutState.value.completedSets.map { completedSet ->
+                    val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
+                    when (completedSet) {
+                        is StandardSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                        is MyoRepSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                        is LinearProgressionSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
+                        else -> throw Exception("${completedSet::class.simpleName} is not defined.")
                     }
                 }
-            workoutLiftsRepository.updateMany(updatedLifts)
-
-            val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
-            val updatedInProgressSetResults = mutableWorkoutState.value.completedSets.map { completedSet ->
-                val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
-                when (completedSet) {
-                    is StandardSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                    is MyoRepSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                    is LinearProgressionSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                    else -> throw Exception("${completedSet::class.simpleName} is not defined.")
-                }
+                setResultsRepository.upsertMany(updatedInProgressSetResults)
             }
-            setResultsRepository.upsertMany(updatedInProgressSetResults)
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error reordering lifts", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to reorder lifts. Please try again.")
+            }
         }
     }
 
@@ -430,14 +448,22 @@ class WorkoutViewModel(
         mutableWorkoutState.update {
             it.copy(isDeloadPromptDialogShown = false)
         }
-        return executeInTransactionScope {
-            val programMetadata = mutableWorkoutState.value.programMetadata!!
-            programsRepository.updateMesoAndMicroCycle(
-                id = programMetadata.programId,
-                mesoCycle = programMetadata.currentMesocycle + 1,
-                microCycle = 0,
-                microCyclePosition = 0,
-            )
+        return viewModelScope.launch {
+            try {
+                executeInTransactionScope {
+                    val programMetadata = mutableWorkoutState.value.programMetadata!!
+                    programsRepository.updateMesoAndMicroCycle(
+                        id = programMetadata.programId,
+                        mesoCycle = programMetadata.currentMesocycle + 1,
+                        microCycle = 0,
+                        microCyclePosition = 0,
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("WorkoutViewModel", "Error skipping deload microcycle", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+                showToast("Failed to skip deload microcycle. Please try again.")
+            }
         }
     }
 
@@ -460,11 +486,19 @@ class WorkoutViewModel(
             )
         }
 
-        executeInTransactionScope {
-            val inProgressWorkout = WorkoutInProgressUiModel(
-                startTime = getCurrentDate(),
-            )
-            workoutInProgressRepository.insert(inProgressWorkout.toDomainModel(mutableWorkoutState.value.workout!!.id))
+        try {
+            executeInTransactionScope {
+                val inProgressWorkout = WorkoutInProgressUiModel(
+                    startTime = getCurrentDate(),
+                )
+                workoutInProgressRepository.insert(inProgressWorkout.toDomainModel(mutableWorkoutState.value.workout!!.id))
+            }
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error starting workout", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to start workout. Please try again.")
+            }
         }
     }
 
@@ -479,22 +513,30 @@ class WorkoutViewModel(
     }
 
     fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) {
-        val shareUri: Uri = FileProvider.getUriForFile(
-            context,
-            "com.browntowndev.liftlab.fileprovider",
-            getTempFileFromBitmap(
-                context = context,
-                bitmap = workoutSummaryBitmap,
-                fileName = "workoutSummary.png"
+        try {
+            val shareUri: Uri = FileProvider.getUriForFile(
+                context,
+                "com.browntowndev.liftlab.fileprovider",
+                getTempFileFromBitmap(
+                    context = context,
+                    bitmap = workoutSummaryBitmap,
+                    fileName = "workoutSummary.png"
+                )
             )
-        )
-        val intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "image/png"
-            putExtra(Intent.EXTRA_STREAM, shareUri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                type = "image/png"
+                putExtra(Intent.EXTRA_STREAM, shareUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error sharing workout summary", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to share workout summary. Please try again.")
+            }
         }
-        context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
     }
 
     fun toggleCompletionSummary() {
@@ -502,11 +544,20 @@ class WorkoutViewModel(
             it.copy(
                 isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
                 workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
-                    getWorkoutCompletionSummaryUseCase.get(
-                        loggingWorkout = it.workout!!,
-                        personalRecords = it.personalRecords.values.toList(),
-                        completedSets = it.completedSets,
-                    ).toUiModel()
+                    try {
+                        getWorkoutCompletionSummaryUseCase.get(
+                            loggingWorkout = it.workout!!,
+                            personalRecords = it.personalRecords.values.toList(),
+                            completedSets = it.completedSets,
+                        ).toUiModel()
+                    } catch (e: Exception) {
+                        Log.e("WorkoutViewModel", "Error getting workout completion summary", e)
+                        FirebaseCrashlytics.getInstance().recordException(e)
+                        viewModelScope.launch {
+                            showToast("Failed to generate workout summary. Please try again.")
+                        }
+                        null
+                    }
                 } else null,
                 isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
             )
@@ -516,71 +567,79 @@ class WorkoutViewModel(
     fun finishWorkout() {
         toggleCompletionSummary()
 
-        executeInTransactionScope {
-            // Remove the workoutEntity from in progress
-            workoutInProgressRepository.deleteAll()
-            restTimerInProgressRepository.deleteAll()
+        try {
+            executeInTransactionScope {
+                // Remove the workoutEntity from in progress
+                workoutInProgressRepository.deleteAll()
+                restTimerInProgressRepository.deleteAll()
 
-            val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
-            val durationInMillis = (getCurrentDate().time - startTimeInMillis)
-            val programMetadata = mutableWorkoutState.value.programMetadata!!
-            val workout = mutableWorkoutState.value.workout!!
+                val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
+                val durationInMillis = (getCurrentDate().time - startTimeInMillis)
+                val programMetadata = mutableWorkoutState.value.programMetadata!!
+                val workout = mutableWorkoutState.value.workout!!
 
-            // Increment the mesocycle and microcycle
-            val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
-            val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
-            val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
-            val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
-            val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
-            programsRepository.updateMesoAndMicroCycle(
-                id = programMetadata.programId,
-                mesoCycle = newMesoCycle,
-                microCycle = newMicroCycle,
-                microCyclePosition = newMicroCyclePosition,
-            )
-
-            // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
-            var historicalWorkoutNameId =
-                historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
-                    programId = programMetadata.programId,
-                    workoutId = workout.id,
+                // Increment the mesocycle and microcycle
+                val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
+                val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
+                val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
+                val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
+                val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
+                val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
+                programsRepository.updateMesoAndMicroCycle(
+                    id = programMetadata.programId,
+                    mesoCycle = newMesoCycle,
+                    microCycle = newMicroCycle,
+                    microCyclePosition = newMicroCyclePosition,
                 )
-            if (historicalWorkoutNameId == null) {
-                historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
-                    HistoricalWorkoutName(
+
+                // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
+                var historicalWorkoutNameId =
+                    historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
                         programId = programMetadata.programId,
                         workoutId = workout.id,
-                        programName = programMetadata.name,
-                        workoutName = workout.name,
                     )
+                if (historicalWorkoutNameId == null) {
+                    historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
+                        HistoricalWorkoutName(
+                            programId = programMetadata.programId,
+                            workoutId = workout.id,
+                            programName = programMetadata.name,
+                            workoutName = workout.name,
+                        )
+                    )
+                }
+                val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
+                    historicalWorkoutNameId = historicalWorkoutNameId,
+                    programDeloadWeek = programMetadata.deloadWeek,
+                    programWorkoutCount = programMetadata.workoutCount,
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle,
+                    microcyclePosition = programMetadata.currentMicrocyclePosition,
+                    date = getCurrentDate(),
+                    durationInMillis = durationInMillis,
                 )
+
+                moveSetResultsToLogHistory(
+                    workoutLogEntryId = workoutLogEntryId,
+                    programMetadata = programMetadata,
+                    workout = workout
+                )
+
+                // Update any Linear Progression failures
+                // The reason this is done when the workout is completed is because if it were done on the fly
+                // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
+                // and then you get double increment. Or any variation of them going between success/failure by
+                // modifying results.
+                updateLinearProgressionFailures()
+
+                stopRestTimer()
             }
-            val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
-                historicalWorkoutNameId = historicalWorkoutNameId,
-                programDeloadWeek = programMetadata.deloadWeek,
-                programWorkoutCount = programMetadata.workoutCount,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle,
-                microcyclePosition = programMetadata.currentMicrocyclePosition,
-                date = getCurrentDate(),
-                durationInMillis = durationInMillis,
-            )
-
-            moveSetResultsToLogHistory(
-                workoutLogEntryId = workoutLogEntryId,
-                programMetadata = programMetadata,
-                workout = workout
-            )
-
-            // Update any Linear Progression failures
-            // The reason this is done when the workout is completed is because if it were done on the fly
-            // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
-            // and then you get double increment. Or any variation of them going between success/failure by
-            // modifying results.
-            updateLinearProgressionFailures()
-
-            stopRestTimer()
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error finishing workout", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to finish workout. Please try again.")
+            }
         }
     }
 
@@ -675,61 +734,127 @@ class WorkoutViewModel(
             )
         }
 
-        executeInTransactionScope {
-            // Remove the workoutEntity from in progress
-            workoutInProgressRepository.deleteAll()
+        try {
+            executeInTransactionScope {
+                // Remove the workoutEntity from in progress
+                workoutInProgressRepository.deleteAll()
 
-            // Delete all set results from the workoutEntity
-            val programMetadata = mutableWorkoutState.value.programMetadata!!
-            setResultsRepository.deleteAllForWorkout(
-                workoutId = mutableWorkoutState.value.workout!!.id,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle,
-            )
+                // Delete all set results from the workoutEntity
+                val programMetadata = mutableWorkoutState.value.programMetadata!!
+                setResultsRepository.deleteAllForWorkout(
+                    workoutId = mutableWorkoutState.value.workout!!.id,
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle,
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error canceling workout", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to cancel workout. Please try again.")
+            }
         }
     }
 
     fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) {
-        executeInTransactionScope {
-            mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
-                workoutLift.id == workoutLiftId
-            }?.liftId?.let { liftId ->
-                liftsRepository.updateRestTime(
-                    id = liftId,
-                    enabled = enabled,
-                    newRestTime = newRestTime
-                )
+        try {
+            executeInTransactionScope {
+                mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
+                    workoutLift.id == workoutLiftId
+                }?.liftId?.let { liftId ->
+                    liftsRepository.updateRestTime(
+                        id = liftId,
+                        enabled = enabled,
+                        newRestTime = newRestTime
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error updating rest time", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to update rest time. Please try again.")
             }
         }
     }
 
     fun updateNote(workoutLiftId: Long, note: String) {
-        executeInTransactionScope {
-            liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
+        try {
+            executeInTransactionScope {
+                liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
+            }
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error updating note", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to update note. Please try again.")
+            }
         }
     }
 
     fun saveRestTimerInProgress(restTime: Long) {
-        executeInTransactionScope {
-            insertRestTimerInProgress(restTime)
+        try {
+            executeInTransactionScope {
+                insertRestTimerInProgress(restTime)
+            }
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error saving rest timer in progress", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to save rest timer. Please try again.")
+            }
         }
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
-        return setResultsRepository.upsertMany(updatedResults)
+        return try {
+            setResultsRepository.upsertMany(updatedResults)
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error upserting many set results", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to save set results. Please try again.")
+            }
+            emptyList()
+        }
     }
 
     override suspend fun upsertSetResult(updatedResult: SetResult): Long {
-        Log.d("WorkoutViewModel", "upsertSetResult: $updatedResult")
-        return setResultsRepository.upsert(updatedResult)
+        return try {
+            Log.d("WorkoutViewModel", "upsertSetResult: $updatedResult")
+            setResultsRepository.upsert(updatedResult)
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error upserting set result", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to save set result. Please try again.")
+            }
+            -1L // Indicate failure with a negative ID or throw a custom exception
+        }
     }
 
     override suspend fun deleteSetResult(id: Long) {
-        setResultsRepository.deleteById(id)
+        try {
+            setResultsRepository.deleteById(id)
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error deleting set result", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to delete set result. Please try again.")
+            }
+        }
     }
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {
-        restTimerInProgressRepository.insert(restTime)
+        try {
+            restTimerInProgressRepository.insert(restTime)
+        } catch (e: Exception) {
+            Log.e("WorkoutViewModel", "Error inserting rest timer in progress", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            viewModelScope.launch {
+                showToast("Failed to save rest timer progress. Please try again.")
+            }
+        }
     }
 
     override fun stopRestTimer() {
