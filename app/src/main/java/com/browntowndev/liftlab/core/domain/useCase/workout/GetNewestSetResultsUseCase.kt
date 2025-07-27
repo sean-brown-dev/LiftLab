@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 class GetNewestSetResultsUseCase(
     private val workoutLogRepository: WorkoutLogRepository,
 ) {
-    suspend fun get(
+    suspend operator fun invoke(
         workout: Workout,
         liftIdsToSearchFor: List<Long>,
         existingResultsForOtherLifts: List<SetResult>,

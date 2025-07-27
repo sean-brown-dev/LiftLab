@@ -20,7 +20,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         private const val TAG = "HydrateLoggingWorkoutWithCompletedSetsUseCase"
     }
 
-    fun hydrateWithInProgressSetResults(
+    operator fun invoke(
         loggingWorkout: LoggingWorkout,
         inProgressSetResults: List<SetResult>,
         microCycle: Int,

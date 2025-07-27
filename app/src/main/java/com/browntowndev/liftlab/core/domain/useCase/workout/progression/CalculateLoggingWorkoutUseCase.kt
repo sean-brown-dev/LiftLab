@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 
 class CalculateLoggingWorkoutUseCase {
-    fun calculate(
+    operator fun invoke(
         workout: Workout,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,

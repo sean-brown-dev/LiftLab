@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.dependencyInjection
 
+import com.browntowndev.liftlab.core.domain.useCase.workout.CancelWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.CompleteWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetNewestSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetPersonalRecordsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutCompletionSummaryUseCase
@@ -24,4 +26,6 @@ val useCaseModule = module {
     singleOf(::SkipDeloadAndStartWorkoutUseCase)
     singleOf(::StartWorkoutUseCase)
     singleOf(::GetWorkoutStateFlowUseCase)
+    singleOf(::CompleteWorkoutUseCase)
+    singleOf(::CancelWorkoutUseCase)
 }

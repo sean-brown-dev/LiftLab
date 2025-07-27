@@ -14,7 +14,7 @@ class ReorderLiftsUseCase(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
 ) {
-    suspend fun reorder(
+    suspend operator fun invoke(
         workout: LoggingWorkout,
         completedSets: List<SetResult>,
         newWorkoutLiftIndices: Map<Long, Int>,

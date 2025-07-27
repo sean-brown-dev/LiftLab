@@ -67,7 +67,7 @@ abstract class BaseWorkoutViewModel(
                 )
                 else -> throw Exception("${currentResult::class.simpleName} is not defined.")
             }
-            completeSet(0L, false) { updatedResult }
+            completeSet(0L, false, { updatedResult })
         } else if (setToUpdate.complete) {
             val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             undoSetCompletion(
@@ -287,39 +287,40 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResult): Job {
-        var job: Job? = null
-
+    fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResult, onError: () -> Unit = {}) {
         executeWithErrorHandling("Failed to complete set") {
-            job = executeInTransactionScope {
-                if (restTimerEnabled) {
-                    insertRestTimerInProgress(restTime)
-                }
-                val result = onBuildSetResult()
-                mutableWorkoutState.value.completedSets.let { completedSets ->
-                    val existingResult = completedSets.find { existing ->
-                        existing.liftId == result.liftId &&
-                                existing.liftPosition == result.liftPosition &&
-                                existing.setPosition == result.setPosition &&
-                                (existing as? MyoRepSetResult)?.myoRepSetPosition == (result as? MyoRepSetResult)?.myoRepSetPosition
+            try {
+                executeInTransactionScope {
+                    if (restTimerEnabled) {
+                        insertRestTimerInProgress(restTime)
                     }
-                    if (existingResult != null) {
-                        val updatedResult = when (result) {
-                            is StandardSetResult -> result.copy(id = existingResult.id)
-                            is MyoRepSetResult -> result.copy(id = existingResult.id)
-                            is LinearProgressionSetResult -> result.copy(id = existingResult.id)
-                            else -> throw Exception("${result::class.simpleName} is not defined.")
+                    val result = onBuildSetResult()
+                    mutableWorkoutState.value.completedSets.let { completedSets ->
+                        val existingResult = completedSets.find { existing ->
+                            existing.liftId == result.liftId &&
+                                    existing.liftPosition == result.liftPosition &&
+                                    existing.setPosition == result.setPosition &&
+                                    (existing as? MyoRepSetResult)?.myoRepSetPosition == (result as? MyoRepSetResult)?.myoRepSetPosition
                         }
+                        if (existingResult != null) {
+                            val updatedResult = when (result) {
+                                is StandardSetResult -> result.copy(id = existingResult.id)
+                                is MyoRepSetResult -> result.copy(id = existingResult.id)
+                                is LinearProgressionSetResult -> result.copy(id = existingResult.id)
+                                else -> throw Exception("${result::class.simpleName} is not defined.")
+                            }
 
-                        upsertSetResult(updatedResult)
-                    } else {
-                        upsertSetResult(result)
+                            upsertSetResult(updatedResult)
+                        } else {
+                            upsertSetResult(result)
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                onError()
+                throw e
             }
         }
-
-        return job ?: throw Exception("Failed to run in transaction.")
     }
 
     private suspend fun deleteSetResult(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {

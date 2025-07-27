@@ -9,7 +9,7 @@ class GetPersonalRecordsUseCase(
     private val setResultsRepository: PreviousSetResultsRepository,
     private val setLogEntryRepository: SetLogEntryRepository,
 ) {
-    suspend fun get(
+    suspend operator fun invoke(
         workoutId: Long,
         mesoCycle: Int,
         microCycle: Int,

@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
 
 class HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase {
-    fun hydrateWithPartiallyCompletedSets(
+    operator fun invoke(
         loggingWorkout: LoggingWorkout
     ): LoggingWorkout {
         val partiallyCompletedSets = loggingWorkout.lifts.fastMapNotNull { lift ->

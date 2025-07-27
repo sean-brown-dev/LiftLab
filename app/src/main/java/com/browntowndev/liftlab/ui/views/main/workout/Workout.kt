@@ -1,12 +1,13 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +51,6 @@ import com.browntowndev.liftlab.ui.views.navigation.Route
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -85,10 +85,13 @@ fun Workout(
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
 
-    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
-        workoutViewModel.toastEvents.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        workoutViewModel.userMessages.collect { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Indefinite,
+                withDismissAction = true)
         }
     }
 
@@ -257,10 +260,15 @@ fun Workout(
                     set.position == (setPosition + 1) &&
                             set is LoggingDropSet
                 }
-                val startRestTimer =
-                    !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled
+                val startRestTimer = !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled
 
                 try {
+                    mutateTopAppBarControlValue(
+                        AppBarMutateControlRequest(
+                            REST_TIMER,
+                            Triple(restTime, restTime, true).right()
+                        )
+                    )
                     workoutViewModel.completeSet(
                         restTime = restTime,
                         restTimerEnabled = startRestTimer,
@@ -277,21 +285,19 @@ fun Workout(
                                 rpe = rpe,
                             )
                         }
-                    ).invokeOnCompletion { throwable ->
-                        val success = throwable == null || throwable.cause == null || throwable.cause is CancellationException
-                        if (success && startRestTimer) {
-                            mutateTopAppBarControlValue(
-                                AppBarMutateControlRequest(
-                                    REST_TIMER,
-                                    Triple(restTime, restTime, true).right()
-                                )
+                    ) {
+                        // On error, shut off the rest timer
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                REST_TIMER,
+                                Triple(0L, 0L, false).right()
                             )
-                        }
+                        )
                     }
                 } catch (e: Exception) {
                     Log.e("Workout", "Failed to complete set", e)
                     FirebaseCrashlytics.getInstance().recordException(e)
-                    workoutViewModel.showToast("Failed to complete set")
+                    workoutViewModel.emitUserMessage("Failed to complete set")
                 }
             },
             onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->

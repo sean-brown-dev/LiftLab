@@ -7,7 +7,7 @@ class SkipDeloadAndStartWorkoutUseCase(
     private val programsRepository: ProgramsRepository,
     private val startWorkoutUseCase: StartWorkoutUseCase,
 ) {
-    suspend fun skipAndStart(
+    suspend operator fun invoke(
         programMetadata: ActiveProgramMetadata,
         workoutId: Long,
     ) {

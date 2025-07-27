@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import kotlin.collections.get
 
 class GetWorkoutCompletionSummaryUseCase {
-    fun get(
+    operator fun invoke(
         loggingWorkout: LoggingWorkout,
         personalRecords: List<PersonalRecord>,
         completedSets: List<SetResult>,

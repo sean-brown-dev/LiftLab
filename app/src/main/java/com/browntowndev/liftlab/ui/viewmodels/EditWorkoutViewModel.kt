@@ -397,24 +397,25 @@ class EditWorkoutViewModel(
                 }
 
                 completeSet(
-                    restTime = 0L, restTimerEnabled = false) {
-                    buildSetResult(
-                        setType = when (newSet) {
-                            is LoggingStandardSet -> SetType.STANDARD
-                            is LoggingDropSet -> SetType.DROP_SET
-                            is LoggingMyoRepSet -> SetType.MYOREP
-                            else -> throw Exception("${newSet!!::class.simpleName} is not defined")
-                        },
-                        liftId = workoutLiftWithNewSet.liftId,
-                        progressionScheme = workoutLiftWithNewSet.progressionScheme,
-                        liftPosition = workoutLiftWithNewSet.position,
-                        setPosition = newSet.position,
-                        myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
-                        weight = newSet.completedWeight ?: 0f,
-                        reps = newSet.completedReps ?: 0,
-                        rpe = newSet.completedRpe ?: 8f,
-                    )
-                }
+                    restTime = 0L, restTimerEnabled = false, onBuildSetResult = {
+                        buildSetResult(
+                            setType = when (newSet) {
+                                is LoggingStandardSet -> SetType.STANDARD
+                                is LoggingDropSet -> SetType.DROP_SET
+                                is LoggingMyoRepSet -> SetType.MYOREP
+                                else -> throw Exception("${newSet!!::class.simpleName} is not defined")
+                            },
+                            liftId = workoutLiftWithNewSet.liftId,
+                            progressionScheme = workoutLiftWithNewSet.progressionScheme,
+                            liftPosition = workoutLiftWithNewSet.position,
+                            setPosition = newSet.position,
+                            myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
+                            weight = newSet.completedWeight ?: 0f,
+                            reps = newSet.completedReps ?: 0,
+                            rpe = newSet.completedRpe ?: 8f,
+                        )
+                    }
+                )
             }
         }
     }

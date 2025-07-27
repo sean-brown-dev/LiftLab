@@ -23,13 +23,9 @@ import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
@@ -917,7 +913,7 @@ class WorkoutBuilderViewModel(
                 })
             }
         } catch (e: Exception) {
-            showToast("Failed to update set!")
+            emitUserMessage("Failed to update set!")
             Log.e(TAG, "Error during updateCustomSetProperty: ${e.message}", e)
             FirebaseCrashlytics.getInstance().recordException(e)
             return currentState.workout!!
@@ -1159,7 +1155,7 @@ class WorkoutBuilderViewModel(
         try {
             return copy()
         } catch (e: Exception) {
-            showToast("Failed to update set!")
+            emitUserMessage("Failed to update set!")
             Log.e(TAG, "Failed to update set: ${e.message}", e)
             FirebaseCrashlytics.getInstance().recordException(e)
             return null
@@ -1213,7 +1209,7 @@ class WorkoutBuilderViewModel(
             }
         } catch (e: Exception) {
             _state.update { it.copy(workout = originalWorkout) }
-            showToast("Failed to $actionName!")
+            emitUserMessage("Failed to $actionName!")
             Log.e(TAG, "Failed $actionName: ${e.message}", e)
             FirebaseCrashlytics.getInstance().recordException(e)
         }
@@ -1222,7 +1218,7 @@ class WorkoutBuilderViewModel(
     private fun getCurrentWorkoutAndLogIfNull(): Workout? {
         val workout = _state.value.workout
         if (workout == null) {
-            showToast("WorkoutEntity not initialized!")
+            emitUserMessage("WorkoutEntity not initialized!")
             val exception = Exception("WorkoutEntity not initialized!")
             Log.e(TAG, "WorkoutEntity was not initialized", exception)
             FirebaseCrashlytics.getInstance().recordException(exception)
@@ -1236,7 +1232,7 @@ class WorkoutBuilderViewModel(
             ?.find { it.id == workoutLiftId } as? T
 
         if (workoutLift == null) {
-            showToast("Must be standard workoutEntity liftEntity.")
+            emitUserMessage("Must be standard workoutEntity liftEntity.")
             val exception = Exception("Must be standard workoutEntity liftEntity.")
             Log.e(TAG, "Must be standard workoutEntity liftEntity.", exception)
             FirebaseCrashlytics.getInstance().recordException(exception)
@@ -1250,7 +1246,7 @@ class WorkoutBuilderViewModel(
         return if (programDeloadWeek != null) {
             programDeloadWeek
         } else {
-            showToast("Using default deload week of $DEFAULT_PROGRAM_DELOAD_WEEK")
+            emitUserMessage("Using default deload week of $DEFAULT_PROGRAM_DELOAD_WEEK")
             val exception = Exception("ProgramEntity deload week not initialized!")
             Log.e(TAG, "ProgramEntity deload week was not initialized", exception)
             FirebaseCrashlytics.getInstance().recordException(exception)
@@ -1262,7 +1258,7 @@ class WorkoutBuilderViewModel(
         if (customLiftSets.size > position) {
             return customLiftSets[position]
         } else {
-            showToast("Custom liftEntity set not found!")
+            emitUserMessage("Custom liftEntity set not found!")
             val exception = Exception("Custom liftEntity position out of bounds. set count=${customLiftSets.size}, position=$position")
             Log.e(TAG, "Custom liftEntity position out of bounds. set count=${customLiftSets.size}, position=$position", exception)
             FirebaseCrashlytics.getInstance().recordException(exception)

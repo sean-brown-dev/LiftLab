@@ -16,12 +16,12 @@ abstract class LiftLabViewModel(
     private val transactionScope: TransactionScope,
     private val eventBus: EventBus,
 ): ViewModel() {
-    private val _toastEvents = MutableSharedFlow<String>()
-    val toastEvents = _toastEvents.asSharedFlow()
+    private val _userMessages = MutableSharedFlow<String>()
+    val userMessages = _userMessages.asSharedFlow()
 
-    fun showToast(message: String) {
+    fun emitUserMessage(message: String) {
         viewModelScope.launch {
-            _toastEvents.emit(message)
+            _userMessages.emit(message)
         }
     }
 
@@ -45,7 +45,7 @@ abstract class LiftLabViewModel(
         } catch (e: Exception) {
             Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
             FirebaseCrashlytics.getInstance().recordException(e)
-            showToast(errorMessage)
+            emitUserMessage(errorMessage)
         }
     }
 
@@ -55,7 +55,7 @@ abstract class LiftLabViewModel(
         } catch (e: Exception) {
             Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
             FirebaseCrashlytics.getInstance().recordException(e)
-            showToast(errorMessage)
+            emitUserMessage(errorMessage)
         }
     }
 
@@ -65,7 +65,7 @@ abstract class LiftLabViewModel(
         } catch (e: Exception) {
             Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
             FirebaseCrashlytics.getInstance().recordException(e)
-            showToast(errorMessage)
+            emitUserMessage(errorMessage)
             return default
         }
     }

@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -77,7 +78,6 @@ fun WorkoutBuilder(
     workoutId: Long,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
-    val context = LocalContext.current
     val workoutBuilderViewModel: WorkoutBuilderViewModel = koinViewModel {
         parametersOf(
             workoutId,
@@ -99,9 +99,13 @@ fun WorkoutBuilder(
         }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(Unit) {
-        workoutBuilderViewModel.toastEvents.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        workoutBuilderViewModel.userMessages.collect { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Indefinite,
+                withDismissAction = true)
         }
     }
 

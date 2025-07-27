@@ -70,7 +70,7 @@ class GetWorkoutStateFlowUseCase(
             } else {
                 // Personal records are fetched once, as they typically don't change reactively
                 // based on workout progression, but rather represent historical bests.
-                val personalRecords = getPersonalRecordsUseCase.get(
+                val personalRecords = getPersonalRecordsUseCase(
                     workoutId = nullableWorkout.id,
                     liftIds = nullableWorkout.lifts.map { it.liftId },
                     mesoCycle = programMetadata.currentMesocycle,
@@ -108,7 +108,7 @@ class GetWorkoutStateFlowUseCase(
                     previousResultsFlow
                 ) { onlySamePos, liftDeloadEnabled, previousResults ->
                     Log.d("GetWorkoutStateFlowUseCase", "Calculating workout")
-                    calculateLoggingWorkoutUseCase.calculate(
+                    calculateLoggingWorkoutUseCase(
                         workout = nullableWorkout,
                         previousSetResults = previousResults,
                         previousResultsForDisplay = previousResultsForDisplay,

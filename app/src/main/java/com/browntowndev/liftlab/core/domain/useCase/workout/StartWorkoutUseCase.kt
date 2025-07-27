@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 class StartWorkoutUseCase(
     private val workoutInProgressRepository: WorkoutInProgressRepository
 ) {
-    suspend fun start(workoutId: Long) {
+    suspend operator fun invoke(workoutId: Long) {
         val inProgressWorkout = WorkoutInProgressUiModel(
             startTime = getCurrentDate(),
         )
