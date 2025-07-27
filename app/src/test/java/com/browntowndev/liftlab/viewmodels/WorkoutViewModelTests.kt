@@ -38,7 +38,7 @@ import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepo
 import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
-import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify

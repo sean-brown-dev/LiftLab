@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.progression
+package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift

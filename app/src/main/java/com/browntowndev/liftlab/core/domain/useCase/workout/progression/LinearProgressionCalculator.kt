@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.progression
+package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 
 import androidx.compose.ui.util.fastAny
 import com.browntowndev.liftlab.core.common.SettingsManager

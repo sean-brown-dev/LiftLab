@@ -7,8 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import arrow.core.Either
-import arrow.core.left
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
@@ -88,17 +86,19 @@ fun EditWorkout(
                 editWorkoutViewModel.completeSet(
                     restTime = restTime,
                     restTimerEnabled = restTimerEnabled,
-                    result = editWorkoutViewModel.buildSetResult(
-                        liftId = liftId,
-                        setType = setType,
-                        progressionScheme = progressionScheme,
-                        liftPosition = liftPosition,
-                        setPosition = setPosition,
-                        myoRepSetPosition = myoRepSetPosition,
-                        weight = weight,
-                        reps = reps,
-                        rpe = rpe,
-                    )
+                    onBuildSetResult = {
+                        editWorkoutViewModel.buildSetResult(
+                            liftId = liftId,
+                            setType = setType,
+                            progressionScheme = progressionScheme,
+                            liftPosition = liftPosition,
+                            setPosition = setPosition,
+                            myoRepSetPosition = myoRepSetPosition,
+                            weight = weight,
+                            reps = reps,
+                            rpe = rpe,
+                        )
+                    }
                 )
             },
             onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->

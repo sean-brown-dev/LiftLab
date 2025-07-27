@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase
+package com.browntowndev.liftlab.core.domain.useCase.workout
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap

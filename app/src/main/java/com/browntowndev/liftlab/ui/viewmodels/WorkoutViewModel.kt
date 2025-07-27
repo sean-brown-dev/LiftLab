@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.util.fastFirst
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
@@ -34,7 +33,6 @@ import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -45,18 +43,24 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.domain.useCase.GetWorkoutCompletionSummaryUseCase
-import com.browntowndev.liftlab.core.domain.useCase.HydrateLoggingWorkoutWithCompletedSetsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.GetNewestSetResultsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.GetPersonalRecordsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutCompletionSummaryUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithCompletedSetsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.SkipDeloadAndStartWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.StartWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutStateMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -77,13 +81,12 @@ import java.io.FileOutputStream
 import kotlin.time.Duration
 
 class WorkoutViewModel(
-    private val calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase,
-    private val hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase,
-    private val hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase,
     private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
+    private val reorderLiftsUseCase: ReorderLiftsUseCase,
+    private val startWorkoutUseCase: StartWorkoutUseCase,
+    private val skipDeloadAndStartWorkoutUseCase: SkipDeloadAndStartWorkoutUseCase,
+    private val getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase,
     private val programsRepository: ProgramsRepository,
-    private val workoutsRepository: WorkoutsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
@@ -153,19 +156,17 @@ class WorkoutViewModel(
                         programMetadata.currentMesocycle,
                         programMetadata.currentMicrocycle
                     )
-
-                    val loggingWorkoutStateFlow = getNextToPerformFlow(programMetadata)
-
                     combine(
                         workoutInProgressFlow,
-                        loggingWorkoutStateFlow
-                    ) { inProgressWorkout, loggingWorkoutState ->
+                        getWorkoutStateFlowUseCase(programMetadata),
+                    ) { inProgressWorkout, calculatedWorkoutData ->
+                        val workoutStateFromCalculatedData = calculatedWorkoutData.toUiModel()
                         WorkoutState(
                             programMetadata = programMetadata,
                             inProgressWorkout = inProgressWorkout?.toUiModel(),
-                            completedSets = loggingWorkoutState.completedSets,
-                            workout = loggingWorkoutState.workout,
-                            personalRecords = loggingWorkoutState.personalRecords,
+                            completedSets = workoutStateFromCalculatedData.completedSets,
+                            workout = workoutStateFromCalculatedData.workout,
+                            personalRecords = calculatedWorkoutData.personalRecords,
                         )
                     }
                 }
@@ -197,237 +198,27 @@ class WorkoutViewModel(
             .launchIn(viewModelScope)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    fun getNextToPerformFlow(
-        programMetadata: ActiveProgramMetadata,
-    ): Flow<WorkoutState> {
-        val useAllWorkoutDataFlow = SettingsManager.getSettingFlow(
-            USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
-            DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
-        )
-        val useOnlySamePositionFlow = SettingsManager.getSettingFlow(
-            ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
-            DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
-        )
-        val useLiftSpecificDeloadingFlow = SettingsManager.getSettingFlow(
-            LIFT_SPECIFIC_DELOADING,
-            DEFAULT_LIFT_SPECIFIC_DELOADING
-        )
-
-        return workoutsRepository.getByMicrocyclePosition(
-            programId = programMetadata.programId,
-            microcyclePosition = programMetadata.currentMicrocyclePosition
-        ).flatMapLatest { nullableWorkout ->
-            Log.d("WorkoutViewModel", "Workout: $nullableWorkout")
-            if (nullableWorkout == null) {
-                flowOf(WorkoutState())  // no workoutEntity, short‐circuit
-            } else {
-                val personalRecords = getPersonalRecords(
-                    workoutId = nullableWorkout.id,
-                    liftIds = nullableWorkout.lifts.map { it.liftId },
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle,
-                )
-                val previousResultsFlow = useAllWorkoutDataFlow.flatMapLatest { useAllData ->
-                    getSetResultsFlow(
-                        workout = nullableWorkout,
-                        programMetadata = programMetadata,
-                        useAllData = useAllData,
-                    ).distinctUntilChanged()
-                }
-                val inProgressResultsFlow = setResultsRepository.getForWorkoutFlow(
-                    workoutId = nullableWorkout.id,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle,
-                ).distinctUntilChanged()
-                val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
-                    liftIdsToSearchFor = nullableWorkout.lifts.map { it.liftId },
-                    workout = nullableWorkout,
-                    existingResultsForOtherLifts = emptyList(),
-                    includeDeload = true
-                )
-
-                // Only do expensive calc when necessary
-                combine(
-                    useOnlySamePositionFlow,
-                    useLiftSpecificDeloadingFlow,
-                    previousResultsFlow
-                ) { onlySamePos, liftDeloadEnabled, previousResults ->
-                    Log.d("WorkoutViewModel", "Calculating workout")
-                    calculateLoggingWorkoutUseCase.calculate(
-                        workout = nullableWorkout,
-                        previousSetResults = previousResults,
-                        previousResultsForDisplay = previousResultsForDisplay,
-                        programDeloadWeek = programMetadata.deloadWeek,
-                        useLiftSpecificDeloading = liftDeloadEnabled,
-                        microCycle = programMetadata.currentMicrocycle,
-                        onlyUseResultsForLiftsInSamePosition = onlySamePos
-                    )
-                }.flatMapLatest { calculatedWorkout ->
-                    // When expensiveCalcFlow emits, flatMapLatest creates a new flow,
-                    // starting the accumulation process from the new `calculatedWorkout`.
-                    inProgressResultsFlow.scan(calculatedWorkout to emptyList<SetResult>()) { (accWorkout, _), inProgressResults ->
-                        // `scan` accumulates changes. `accWorkout` is the result from the previous run.
-                        Log.d("WorkoutViewModel", "Updating workout with in progress results.")
-
-                        val updatedWorkout =
-                            hydrateLoggingWorkoutWithCompletedSetsUseCase.hydrateWithInProgressSetResults(
-                                loggingWorkout = accWorkout, // Use accumulated workout as base
-                                inProgressSetResults = inProgressResults,
-                                microCycle = programMetadata.currentMicrocycle,
-                            )
-
-                        val finalWorkout = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
-                            .hydrateWithPartiallyCompletedSets(loggingWorkout = updatedWorkout)
-
-                        finalWorkout to inProgressResults
-                    }.map { (loggingWorkout, inProgressResults) ->
-                        WorkoutState(
-                            completedSets = inProgressResults,
-                            personalRecords = personalRecords,
-                            workout = loggingWorkout,
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun getSetResultsFlow(
-        workout: Workout?,
-        programMetadata: ActiveProgramMetadata,
-        useAllData: Boolean,
-    ): Flow<List<SetResult>> {
-        if (workout == null) return flowOf(emptyList())
-        return setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicroFlow(
-            workoutId = workout.id,
-            mesoCycle = programMetadata.currentMesocycle,
-            microCycle = programMetadata.currentMicrocycle,
-        ).mapLatest { resultsFromLastWorkout ->
-            if (useAllData) {
-                getResultsWithAllWorkoutDataAppended(
-                    workout = workout,
-                    resultsFromLastWorkout = resultsFromLastWorkout
-                )
-            } else resultsFromLastWorkout
-        }
-    }
-
-    private suspend fun getResultsWithAllWorkoutDataAppended(
-        workout: Workout,
-        resultsFromLastWorkout: List<SetResult>,
-    ): List<SetResult> {
-        val liftIdsOfResults = resultsFromLastWorkout.map { it.liftId }.toHashSet()
-        val liftIdsToSearchFor = workout.lifts
-            .filter { !liftIdsOfResults.contains(it.liftId) }
-            .map { workoutLift -> workoutLift.liftId }
-
-        return getNewestResultsFromOtherWorkouts(
-            workout = workout,
-            liftIdsToSearchFor = liftIdsToSearchFor,
-            existingResultsForOtherLifts = resultsFromLastWorkout,
-            includeDeload = false,
-        )
-    }
-
-    private suspend fun getNewestResultsFromOtherWorkouts(
-        workout: Workout,
-        liftIdsToSearchFor: List<Long>,
-        existingResultsForOtherLifts: List<SetResult>,
-        includeDeload: Boolean,
-    ): List<SetResult> {
-        return if (liftIdsToSearchFor.isNotEmpty()) {
-            val linearProgressionLiftIds = workout.lifts
-                .filter {
-                    it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION
-                }.map { it.liftId }
-                .toHashSet()
-
-            existingResultsForOtherLifts.toMutableList().apply {
-                val resultsFromOtherWorkouts =
-                    workoutLogRepository.getMostRecentSetResultsForLiftIds(
-                        liftIds = liftIdsToSearchFor,
-                        linearProgressionLiftIds = linearProgressionLiftIds,
-                        includeDeload = includeDeload,
-                    )
-
-                addAll(resultsFromOtherWorkouts)
-            }
-        } else existingResultsForOtherLifts
-    }
-
-    private suspend fun getPersonalRecords(
-        workoutId: Long,
-        mesoCycle: Int,
-        microCycle: Int,
-        liftIds: List<Long>
-    ): Map<Long, PersonalRecord> {
-        val prevWorkoutPersonalRecords = setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(
-            workoutId = workoutId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
-            liftIds = liftIds,
-        )
-        return setLogEntryRepository.getPersonalRecordsForLifts(liftIds)
-            .associateBy { it.liftId }
-            .toMutableMap()
-            .apply {
-                prevWorkoutPersonalRecords.fastForEach { prevWorkoutPr ->
-                    get(prevWorkoutPr.liftId)?.let { allWorkoutsPr ->
-                        if (allWorkoutsPr.personalRecord < prevWorkoutPr.personalRecord) {
-                            put(prevWorkoutPr.liftId, prevWorkoutPr)
-                        }
-                    } ?: put(prevWorkoutPr.liftId, prevWorkoutPr)
-                }
-            }
-    }
-
     fun toggleReorderLifts() {
         mutableWorkoutState.update {
             it.copy(isReordering = !it.isReordering)
         }
     }
 
-    fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
-        mutableWorkoutState.update { it.copy(isReordering = false) }
-
-        try {
+    fun reorderLifts(newLiftOrder: List<ReorderableListItem>) =
+        executeWithErrorHandling("Failed to reorder lifts") {
             executeInTransactionScope {
                 val newWorkoutLiftIndices = newLiftOrder
                     .mapIndexed { index, item -> item.key to index }
                     .associate { it.first to it.second }
 
-                val updatedLifts = workoutLiftsRepository.getForWorkout(mutableWorkoutState.value.workout!!.id)
-                    .map {
-                        when (it) {
-                            is StandardWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
-                            is CustomWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
-                            else -> throw Exception("${it::class.simpleName} is not defined.")
-                        }
-                    }
-                workoutLiftsRepository.updateMany(updatedLifts)
-
-                val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
-                val updatedInProgressSetResults = mutableWorkoutState.value.completedSets.map { completedSet ->
-                    val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
-                    when (completedSet) {
-                        is StandardSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                        is MyoRepSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                        is LinearProgressionSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                        else -> throw Exception("${completedSet::class.simpleName} is not defined.")
-                    }
-                }
-                setResultsRepository.upsertMany(updatedInProgressSetResults)
-            }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error reordering lifts", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to reorder lifts. Please try again.")
+                reorderLiftsUseCase.reorder(
+                    workout = mutableWorkoutState.value.workout!!,
+                    completedSets = mutableWorkoutState.value.completedSets,
+                    newWorkoutLiftIndices = newWorkoutLiftIndices
+                )
+                mutableWorkoutState.update { it.copy(isReordering = false) }
             }
         }
-    }
 
     fun setWorkoutLogVisibility(visible: Boolean) {
         mutableWorkoutState.update {
@@ -444,76 +235,51 @@ class WorkoutViewModel(
         }
     }
 
-    fun skipDeloadMicrocycle(): Job {
-        mutableWorkoutState.update {
-            it.copy(isDeloadPromptDialogShown = false)
-        }
-        return viewModelScope.launch {
-            try {
-                executeInTransactionScope {
-                    val programMetadata = mutableWorkoutState.value.programMetadata!!
-                    programsRepository.updateMesoAndMicroCycle(
-                        id = programMetadata.programId,
-                        mesoCycle = programMetadata.currentMesocycle + 1,
-                        microCycle = 0,
-                        microCyclePosition = 0,
-                    )
+    fun skipDeloadMicrocycleAndStartWorkout() =
+        executeWithErrorHandling("Failed to skip deload microcycle and start") {
+            executeInTransactionScope {
+                skipDeloadAndStartWorkoutUseCase.skipAndStart(
+                    programMetadata = mutableWorkoutState.value.programMetadata!!,
+                    workoutId = mutableWorkoutState.value.workout!!.id,
+                )
+                mutableWorkoutState.update {
+                    it.copy(isDeloadPromptDialogShown = false)
                 }
-            } catch (e: Exception) {
-                Log.e("WorkoutViewModel", "Error skipping deload microcycle", e)
-                FirebaseCrashlytics.getInstance().recordException(e)
-                showToast("Failed to skip deload microcycle. Please try again.")
+                updateStateForStartedWorkout()
             }
+        }
+
+    fun showDeloadPromptOrStartWorkout() =
+        executeWithErrorHandling("Failed to start workout") {
+            if (mutableWorkoutState.value.isDeloadWeek &&
+                mutableWorkoutState.value.programMetadata!!.currentMicrocyclePosition == 0
+            ) {
+                mutableWorkoutState.update {
+                    it.copy(isDeloadPromptDialogShown = true)
+                }
+            } else {
+                startWorkout()
+            }
+        }
+
+    fun startWorkout() = executeWithErrorHandling("Failed to start workout") {
+        executeInTransactionScope {
+            startWorkoutUseCase.start(mutableWorkoutState.value.workout!!.id)
+            updateStateForStartedWorkout()
         }
     }
 
-    fun showDeloadPromptOrStartWorkout() {
-        if (mutableWorkoutState.value.isDeloadWeek &&
-            mutableWorkoutState.value.programMetadata!!.currentMicrocyclePosition == 0) {
-            mutableWorkoutState.update {
-                it.copy(isDeloadPromptDialogShown = true)
-            }
-        } else {
-            startWorkout()
-        }
-    }
-
-    fun startWorkout() {
+    private fun updateStateForStartedWorkout() {
         mutableWorkoutState.update {
             it.copy(
                 workoutLogVisible = true,
-                isDeloadPromptDialogShown = false,
+                isDeloadPromptDialogShown = false, // If it was shown, hide it now
             )
         }
-
-        try {
-            executeInTransactionScope {
-                val inProgressWorkout = WorkoutInProgressUiModel(
-                    startTime = getCurrentDate(),
-                )
-                workoutInProgressRepository.insert(inProgressWorkout.toDomainModel(mutableWorkoutState.value.workout!!.id))
-            }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error starting workout", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to start workout. Please try again.")
-            }
-        }
     }
 
-    private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
-        val file = File(context.cacheDir, fileName)
-        val fileOutputStream = FileOutputStream(file)
-
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
-        fileOutputStream.close()
-
-        return file
-    }
-
-    fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) {
-        try {
+    fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) =
+        executeWithErrorHandling("Failed to share workout summary") {
             val shareUri: Uri = FileProvider.getUriForFile(
                 context,
                 "com.browntowndev.liftlab.fileprovider",
@@ -530,44 +296,39 @@ class WorkoutViewModel(
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error sharing workout summary", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to share workout summary. Please try again.")
-            }
         }
+
+    private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
+        val file = File(context.cacheDir, fileName)
+        val fileOutputStream = FileOutputStream(file)
+
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+        fileOutputStream.close()
+
+        return file
     }
 
-    fun toggleCompletionSummary() {
-        mutableWorkoutState.update {
-            it.copy(
-                isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
-                workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
-                    try {
+    fun toggleCompletionSummary() =
+        executeWithErrorHandling("Failed to generate workout summary") {
+            mutableWorkoutState.update {
+                it.copy(
+                    isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
+                    workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
                         getWorkoutCompletionSummaryUseCase.get(
                             loggingWorkout = it.workout!!,
                             personalRecords = it.personalRecords.values.toList(),
                             completedSets = it.completedSets,
                         ).toUiModel()
-                    } catch (e: Exception) {
-                        Log.e("WorkoutViewModel", "Error getting workout completion summary", e)
-                        FirebaseCrashlytics.getInstance().recordException(e)
-                        viewModelScope.launch {
-                            showToast("Failed to generate workout summary. Please try again.")
-                        }
-                        null
-                    }
-                } else null,
-                isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
-            )
+                    } else null,
+                    isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
+                )
+            }
         }
-    }
 
-    fun finishWorkout() {
-        toggleCompletionSummary()
+    fun finishWorkout() =
+        executeWithErrorHandling("Failed to complete workout") {
+            toggleCompletionSummary()
 
-        try {
             executeInTransactionScope {
                 // Remove the workoutEntity from in progress
                 workoutInProgressRepository.deleteAll()
@@ -579,12 +340,21 @@ class WorkoutViewModel(
                 val workout = mutableWorkoutState.value.workout!!
 
                 // Increment the mesocycle and microcycle
-                val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-                val liftLevelDeloadsEnabled = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
-                val deloadWeekComplete = !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
-                val newMesoCycle = if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
-                val newMicroCycle = if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
-                val newMicroCyclePosition = if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
+                val microCycleComplete =
+                    (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
+                val liftLevelDeloadsEnabled =
+                    SettingsManager.getSetting(
+                        LIFT_SPECIFIC_DELOADING,
+                        DEFAULT_LIFT_SPECIFIC_DELOADING
+                    )
+                val deloadWeekComplete =
+                    !liftLevelDeloadsEnabled && microCycleComplete && mutableWorkoutState.value.isDeloadWeek
+                val newMesoCycle =
+                    if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
+                val newMicroCycle =
+                    if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
+                val newMicroCyclePosition =
+                    if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
                 programsRepository.updateMesoAndMicroCycle(
                     id = programMetadata.programId,
                     mesoCycle = newMesoCycle,
@@ -634,14 +404,7 @@ class WorkoutViewModel(
 
                 stopRestTimer()
             }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error finishing workout", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to finish workout. Please try again.")
-            }
         }
-    }
 
     private suspend fun moveSetResultsToLogHistory(
         workoutLogEntryId: Long,
@@ -723,41 +486,32 @@ class WorkoutViewModel(
         }
     }
 
-    fun cancelWorkout() {
+    fun cancelWorkout() = executeWithErrorHandling("Failed to cancel workout") {
         if (mutableWorkoutState.value.isConfirmCancelWorkoutDialogShown)
             toggleConfirmCancelWorkoutModal()
 
-        mutableWorkoutState.update {
-            it.copy(
-                workoutLogVisible = false,
-                inProgressWorkout = null, // do optimistically in case updates take enough to notice
+        executeInTransactionScope {
+            // Remove the workoutEntity from in progress
+            workoutInProgressRepository.deleteAll()
+
+            // Delete all set results from the workoutEntity
+            val programMetadata = mutableWorkoutState.value.programMetadata!!
+            setResultsRepository.deleteAllForWorkout(
+                workoutId = mutableWorkoutState.value.workout!!.id,
+                mesoCycle = programMetadata.currentMesocycle,
+                microCycle = programMetadata.currentMicrocycle,
             )
-        }
 
-        try {
-            executeInTransactionScope {
-                // Remove the workoutEntity from in progress
-                workoutInProgressRepository.deleteAll()
-
-                // Delete all set results from the workoutEntity
-                val programMetadata = mutableWorkoutState.value.programMetadata!!
-                setResultsRepository.deleteAllForWorkout(
-                    workoutId = mutableWorkoutState.value.workout!!.id,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle,
+            mutableWorkoutState.update {
+                it.copy(
+                    workoutLogVisible = false,
                 )
-            }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error canceling workout", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to cancel workout. Please try again.")
             }
         }
     }
 
-    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) {
-        try {
+    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) =
+        executeWithErrorHandling("Failed to update rest timer") {
             executeInTransactionScope {
                 mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
                     workoutLift.id == workoutLiftId
@@ -769,92 +523,27 @@ class WorkoutViewModel(
                     )
                 }
             }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error updating rest time", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to update rest time. Please try again.")
-            }
         }
-    }
 
-    fun updateNote(workoutLiftId: Long, note: String) {
-        try {
+    fun updateNote(workoutLiftId: Long, note: String) =
+        executeWithErrorHandling("Failed to update note") {
             executeInTransactionScope {
                 liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
             }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error updating note", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to update note. Please try again.")
-            }
         }
-    }
 
-    fun saveRestTimerInProgress(restTime: Long) {
-        try {
-            executeInTransactionScope {
-                insertRestTimerInProgress(restTime)
-            }
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error saving rest timer in progress", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to save rest timer. Please try again.")
-            }
-        }
-    }
+    override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> =
+        setResultsRepository.upsertMany(updatedResults)
 
-    override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
-        return try {
-            setResultsRepository.upsertMany(updatedResults)
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error upserting many set results", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to save set results. Please try again.")
-            }
-            emptyList()
-        }
-    }
-
-    override suspend fun upsertSetResult(updatedResult: SetResult): Long {
-        return try {
-            Log.d("WorkoutViewModel", "upsertSetResult: $updatedResult")
-            setResultsRepository.upsert(updatedResult)
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error upserting set result", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to save set result. Please try again.")
-            }
-            -1L // Indicate failure with a negative ID or throw a custom exception
-        }
-    }
+    override suspend fun upsertSetResult(updatedResult: SetResult): Long =
+        setResultsRepository.upsert(updatedResult)
 
     override suspend fun deleteSetResult(id: Long) {
-        try {
-            setResultsRepository.deleteById(id)
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error deleting set result", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to delete set result. Please try again.")
-            }
-        }
+        setResultsRepository.deleteById(id)
     }
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {
-        try {
-            restTimerInProgressRepository.insert(restTime)
-        } catch (e: Exception) {
-            Log.e("WorkoutViewModel", "Error inserting rest timer in progress", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            viewModelScope.launch {
-                showToast("Failed to save rest timer progress. Please try again.")
-            }
-        }
+        restTimerInProgressRepository.insert(restTime)
     }
 
     override fun stopRestTimer() {

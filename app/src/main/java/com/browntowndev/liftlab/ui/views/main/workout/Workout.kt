@@ -47,8 +47,10 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.views.navigation.Route
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import kotlin.coroutines.cancellation.CancellationException
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -258,34 +260,38 @@ fun Workout(
                 val startRestTimer =
                     !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled
 
-                workoutViewModel.completeSet(
-                    restTime = restTime,
-                    restTimerEnabled = startRestTimer,
-                    result = workoutViewModel.buildSetResult(
-                        liftId = liftId,
-                        setType = setType,
-                        progressionScheme = progressionScheme,
-                        liftPosition = liftPosition,
-                        setPosition = setPosition,
-                        myoRepSetPosition = myoRepSetPosition,
-                        weight = weight,
-                        reps = reps,
-                        rpe = rpe,
-                    )
-                ).invokeOnCompletion {
-                    if (startRestTimer || state.completedMyoRepSets) {
-                        if (state.completedMyoRepSets) {
-                            workoutViewModel.saveRestTimerInProgress(restTime)
-                            workoutViewModel.resetMyoRepSetsCompleted()
-                        }
-
-                        mutateTopAppBarControlValue(
-                            AppBarMutateControlRequest(
-                                REST_TIMER,
-                                Triple(restTime, restTime, true).right()
+                try {
+                    workoutViewModel.completeSet(
+                        restTime = restTime,
+                        restTimerEnabled = startRestTimer,
+                        onBuildSetResult = {
+                            workoutViewModel.buildSetResult(
+                                liftId = liftId,
+                                setType = setType,
+                                progressionScheme = progressionScheme,
+                                liftPosition = liftPosition,
+                                setPosition = setPosition,
+                                myoRepSetPosition = myoRepSetPosition,
+                                weight = weight,
+                                reps = reps,
+                                rpe = rpe,
                             )
-                        )
+                        }
+                    ).invokeOnCompletion { throwable ->
+                        val success = throwable == null || throwable.cause == null || throwable.cause is CancellationException
+                        if (success && startRestTimer) {
+                            mutateTopAppBarControlValue(
+                                AppBarMutateControlRequest(
+                                    REST_TIMER,
+                                    Triple(restTime, restTime, true).right()
+                                )
+                            )
+                        }
                     }
+                } catch (e: Exception) {
+                    Log.e("Workout", "Failed to complete set", e)
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    workoutViewModel.showToast("Failed to complete set")
                 }
             },
             onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->
@@ -377,11 +383,7 @@ fun Workout(
                 cancelButtonText = "Skip",
                 onConfirm = workoutViewModel::startWorkout,
                 onDismiss = workoutViewModel::toggleDeloadPrompt,
-                onCancel = {
-                    workoutViewModel.skipDeloadMicrocycle().invokeOnCompletion {
-                        workoutViewModel.startWorkout()
-                    }
-                },
+                onCancel = workoutViewModel::skipDeloadMicrocycleAndStartWorkout,
             ) {
                 Column (
                     modifier = Modifier.padding(top = 10.dp),

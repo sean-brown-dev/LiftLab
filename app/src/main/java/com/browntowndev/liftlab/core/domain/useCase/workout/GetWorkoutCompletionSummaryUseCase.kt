@@ -1,11 +1,11 @@
-package com.browntowndev.liftlab.core.domain.useCase
+package com.browntowndev.liftlab.core.domain.useCase.workout
 
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.models.LiftCompletionSummary
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
-import com.browntowndev.liftlab.core.domain.models.WorkoutCompletionSummary
+import com.browntowndev.liftlab.core.domain.models.workout.WorkoutCompletionSummary
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import kotlin.collections.get

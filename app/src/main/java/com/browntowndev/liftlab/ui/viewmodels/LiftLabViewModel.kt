@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -34,6 +36,37 @@ abstract class LiftLabViewModel(
             transactionScope.execute {
                 action()
             }
+        }
+    }
+
+    protected fun executeWithErrorHandling(errorMessage: String, action: () -> Unit) {
+        try {
+            action()
+        } catch (e: Exception) {
+            Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            showToast(errorMessage)
+        }
+    }
+
+    protected suspend fun executeSuspendWithErrorHandling(errorMessage: String, action: suspend () -> Unit) {
+        try {
+            action()
+        } catch (e: Exception) {
+            Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            showToast(errorMessage)
+        }
+    }
+
+    protected suspend fun<T> executeSuspendWithErrorHandling(errorMessage: String, default: T, action: suspend () -> T): T {
+        try {
+            return action()
+        } catch (e: Exception) {
+            Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            showToast(errorMessage)
+            return default
         }
     }
 }

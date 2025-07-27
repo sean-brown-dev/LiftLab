@@ -19,7 +19,6 @@ import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.StandardSetResult
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -380,7 +379,7 @@ class EditWorkoutViewModel(
                                     it + 1
                                 },
                             )
-                            add(newSet!!)
+                            add(newSet)
                         }.toList()
                     )
                 }
@@ -398,7 +397,8 @@ class EditWorkoutViewModel(
                 }
 
                 completeSet(
-                    restTime = 0L, restTimerEnabled = false, result = buildSetResult(
+                    restTime = 0L, restTimerEnabled = false) {
+                    buildSetResult(
                         setType = when (newSet) {
                             is LoggingStandardSet -> SetType.STANDARD
                             is LoggingDropSet -> SetType.DROP_SET
@@ -408,13 +408,13 @@ class EditWorkoutViewModel(
                         liftId = workoutLiftWithNewSet.liftId,
                         progressionScheme = workoutLiftWithNewSet.progressionScheme,
                         liftPosition = workoutLiftWithNewSet.position,
-                        setPosition = newSet!!.position,
+                        setPosition = newSet.position,
                         myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
-                        weight = newSet!!.completedWeight ?: 0f,
-                        reps = newSet!!.completedReps ?: 0,
-                        rpe = newSet!!.completedRpe ?: 8f,
+                        weight = newSet.completedWeight ?: 0f,
+                        reps = newSet.completedReps ?: 0,
+                        rpe = newSet.completedRpe ?: 8f,
                     )
-                )
+                }
             }
         }
     }

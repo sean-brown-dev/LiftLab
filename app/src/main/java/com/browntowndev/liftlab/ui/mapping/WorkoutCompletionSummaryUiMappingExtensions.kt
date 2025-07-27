@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.mapping
 
 import com.browntowndev.liftlab.core.domain.models.LiftCompletionSummary
-import com.browntowndev.liftlab.core.domain.models.WorkoutCompletionSummary
+import com.browntowndev.liftlab.core.domain.models.workout.WorkoutCompletionSummary
 import com.browntowndev.liftlab.ui.models.workout.LiftCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 

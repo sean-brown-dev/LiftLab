@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.progression
+package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT

@@ -130,18 +130,13 @@ class WorkoutBuilderViewModel(
     fun deleteMovementPattern() {
         val liftToDelete = _state.value.workout?.lifts?.find { it.id == _state.value.workoutLiftIdToDelete }
         if (liftToDelete != null) {
+            _state.update { currentState ->
+                currentState.copy(
+                    workoutLiftIdToDelete = null,
+                )
+            }
             executeInTransactionScope {
                 workoutLiftsRepositoryImpl.delete(liftToDelete)
-                _state.update { currentState ->
-                    val mutableLifts = currentState.workout!!.lifts.toMutableList()
-                    mutableLifts.remove(liftToDelete)
-                    currentState.copy(
-                        workout = currentState.workout.copy(
-                            lifts = mutableLifts.toList()
-                        ),
-                        workoutLiftIdToDelete = null,
-                    )
-                }
             }
         }
     }
@@ -150,9 +145,6 @@ class WorkoutBuilderViewModel(
         if (_state.value.workout != null) {
             executeInTransactionScope {
                 workoutsRepositoryImpl.updateName(_state.value.workout!!.id, newName)
-                _state.update {
-                    it.copy(workout = it.workout?.copy(name = newName), isEditingName = false)
-                }
             }
         }
     }

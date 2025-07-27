@@ -66,13 +66,12 @@ val viewModelModule = module {
     }
     factory { params ->
         WorkoutViewModel(
-            calculateLoggingWorkoutUseCase = get(),
-            hydrateLoggingWorkoutWithCompletedSetsUseCase = get(),
-            hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase = get(),
+            getWorkoutStateFlowUseCase = get(),
             getWorkoutCompletionSummaryUseCase = get(),
+            reorderLiftsUseCase = get(),
+            startWorkoutUseCase = get(),
+            skipDeloadAndStartWorkoutUseCase = get(),
             programsRepository = get(),
-            workoutsRepository = get(),
-            workoutLiftsRepository = get(),
             setResultsRepository = get(),
             workoutInProgressRepository = get(),
             historicalWorkoutNamesRepository = get(),
@@ -83,7 +82,7 @@ val viewModelModule = module {
             navigateToWorkoutHistory = params[0],
             cancelRestTimer = params[1],
             transactionScope = get(),
-            eventBus = get()
+            eventBus = get(),
         )
     }
     factory { params ->
