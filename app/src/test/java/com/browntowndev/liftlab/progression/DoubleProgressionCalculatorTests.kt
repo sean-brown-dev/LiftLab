@@ -15,8 +15,7 @@ import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationship
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.domain.mapping.CustomLiftSetMapper
-import com.browntowndev.liftlab.core.domain.mapping.WorkoutLiftMapper
+import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.domain.useCase.workout.progression.DoubleProgressionCalculator
 import io.mockk.*
 import org.junit.jupiter.api.*
@@ -24,7 +23,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 
 class DoubleProgressionCalculatorTests {
     private val calculator = DoubleProgressionCalculator()
-    private val workoutLiftMapper = WorkoutLiftMapper(CustomLiftSetMapper())
 
     @BeforeEach
     fun setup() {
@@ -62,7 +60,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(80f, p.weightRecommendation)
@@ -95,7 +93,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(80f, p.weightRecommendation)
@@ -127,7 +125,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(80f, p.weightRecommendation)
@@ -159,7 +157,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -215,7 +213,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(80f, p.weightRecommendation)
@@ -272,7 +270,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 100f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             if (p is LoggingStandardSet)
@@ -333,7 +331,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 80f, microCycle = 0, mesoCycle= 0, setType = SetType.DROP_SET, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.forEachIndexed { index, p ->
             when (index) {
@@ -394,7 +392,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 100f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             if (p is LoggingStandardSet)
@@ -453,7 +451,7 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -496,7 +494,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(80f, p.weightRecommendation)
@@ -539,7 +537,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(80f, p.weightRecommendation)
@@ -591,7 +589,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 3, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -644,7 +642,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -689,7 +687,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 2, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -741,7 +739,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -768,7 +766,7 @@ class DoubleProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf<StandardSetResult>()
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(null, p.weightRecommendation)
@@ -813,7 +811,7 @@ class DoubleProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf<StandardSetResult>()
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(null, p.weightRecommendation)
@@ -855,7 +853,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
@@ -898,7 +896,7 @@ class DoubleProgressionCalculatorTests {
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 1, rpe = 9f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle= 0, isDeload = false),
         )
 
-        val result = calculator.calculate(workoutLiftMapper.map(liftEntity), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach { p ->
             assertEquals(75f, p.weightRecommendation)
