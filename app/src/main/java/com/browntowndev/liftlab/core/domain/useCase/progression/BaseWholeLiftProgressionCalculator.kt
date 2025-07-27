@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
@@ -168,7 +168,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         hadInitialWeightRecommendation = weightRecommendation != null,
                                     )
                                 }?.toMutableList() ?: mutableListOf()).apply {
-                                    if (size == 0) {
+                                    if (isEmpty()) {
                                         add(
                                             LoggingMyoRepSet(
                                                 position = set.position,

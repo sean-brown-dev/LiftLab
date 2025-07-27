@@ -15,7 +15,7 @@ import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
@@ -127,7 +127,7 @@ class LiftDetailsViewModel(
                 OneRepMaxEntry(
                     setsAndRepsLabel = "${formatFloatString(setLog.weight)}x${setLog.reps} @${setLog.rpe}",
                     date = workoutLog.date.toMediumDateString(),
-                    oneRepMax = CalculationEngine.getOneRepMax(setLog.weight, setLog.reps, setLog.rpe).toString()
+                    oneRepMax = WeightCalculationUtils.getOneRepMax(setLog.weight, setLog.reps, setLog.rpe).toString()
                 )
             }
         }.sortedByDescending { it.oneRepMax }.take(10)

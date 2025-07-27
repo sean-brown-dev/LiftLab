@@ -14,4 +14,11 @@ interface GenericLoggingSet {
     val completedReps: Int?
     val completedRpe: Float?
     val complete: Boolean
+
+    fun copyCompletionData(
+        complete: Boolean,
+        completedWeight: Float?,
+        completedReps: Int?,
+        completedRpe: Float?,
+    ): GenericLoggingSet
 }

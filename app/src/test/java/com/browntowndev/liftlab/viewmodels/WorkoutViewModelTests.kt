@@ -38,7 +38,7 @@ import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepo
 import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
-import com.browntowndev.liftlab.core.domain.progression.StandardProgressionFactory
+import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -198,7 +198,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -339,7 +339,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -504,7 +504,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -691,7 +691,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -856,7 +856,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1021,7 +1021,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1215,7 +1215,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1361,7 +1361,7 @@ class WorkoutViewModelTests {
             coEvery { workoutLogRepository.getPersonalRecordsForLifts(any()) } returns listOf()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1476,7 +1476,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1567,7 +1567,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1658,7 +1658,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -1804,7 +1804,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -2029,7 +2029,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -2229,7 +2229,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -2392,7 +2392,7 @@ class WorkoutViewModelTests {
             coEvery { liftsRepository.updateRestTime(any(), any(), any()) } just runs
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -2529,7 +2529,7 @@ class WorkoutViewModelTests {
             }
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),
@@ -2666,7 +2666,7 @@ class WorkoutViewModelTests {
             val workoutLiftsRepositoryImpl = mockk<WorkoutLiftsRepositoryImpl>()
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = workoutLiftsRepositoryImpl,
@@ -2783,7 +2783,7 @@ class WorkoutViewModelTests {
             coEvery { liftsRepository.updateNote(any(), any()) } just runs
 
             val viewModel = WorkoutViewModel(
-                progressionFactory = StandardProgressionFactory(),
+                calculateLoggingWorkoutUseCase = CalculateLoggingWorkoutUseCase(),
                 programsRepository = programsRepository,
                 workoutsRepository = workoutsRepositoryImpl,
                 workoutLiftsRepository = mockk(),

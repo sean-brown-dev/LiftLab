@@ -5,10 +5,9 @@ import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummary
+import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import java.util.Date
 
@@ -28,7 +27,7 @@ data class WorkoutState(
     val isCompletionSummaryVisible: Boolean = false,
     val isConfirmCancelWorkoutDialogShown: Boolean = false,
     val isDeloadPromptDialogShown: Boolean = false,
-    val workoutCompletionSummary: WorkoutCompletionSummary? = null,
+    val workoutCompletionSummary: WorkoutCompletionSummaryUiModel? = null,
 ) {
     val isDeloadWeek by lazy {
         this.programMetadata != null &&

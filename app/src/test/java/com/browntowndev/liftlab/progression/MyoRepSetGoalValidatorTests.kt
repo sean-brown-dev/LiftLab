@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.progression
 
 import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.progression.MyoRepSetGoalValidator
+import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -63,8 +63,8 @@ class MyoRepSetGoalValidatorTests {
             justCompletedSet,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = previouslyCompletedSets,
         )
 
@@ -128,8 +128,8 @@ class MyoRepSetGoalValidatorTests {
             justCompletedSet,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = previouslyCompletedSets,
         )
 
@@ -157,8 +157,8 @@ class MyoRepSetGoalValidatorTests {
             ),
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = previouslyCompletedSets[0],
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = previouslyCompletedSets[0],
             myoRepSetResults = previouslyCompletedSets,
         )
 
@@ -223,8 +223,8 @@ class MyoRepSetGoalValidatorTests {
             justCompletedSet,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = previouslyCompletedSets,
         )
 
@@ -291,8 +291,8 @@ class MyoRepSetGoalValidatorTests {
             justCompletedSet,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = previouslyCompletedSets,
         )
 
@@ -318,8 +318,8 @@ class MyoRepSetGoalValidatorTests {
             completedWeight = 100f,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = listOf(justCompletedSet),
         )
 
@@ -345,8 +345,8 @@ class MyoRepSetGoalValidatorTests {
             completedWeight = 100f,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = listOf(justCompletedSet),
         )
 
@@ -407,8 +407,8 @@ class MyoRepSetGoalValidatorTests {
             justCompletedSet,
         )
 
-        val result = MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = justCompletedSet,
+        val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
+            lastMyoRepSet = justCompletedSet,
             myoRepSetResults = previouslyCompletedSets,
         )
 

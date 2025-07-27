@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastForEachReversed
@@ -107,6 +107,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         val standardSetResults = setResults
             .filterNot { it is MyoRepSetResult || it.setType == SetType.DROP_SET }
             .associateBy { it.setPosition }
+        val lastStandardSetResult = standardSetResults.values.lastOrNull()
 
         val dropSetResults = buildDropSetWeightRecommendationsMap(
             workoutLift = workoutLift,
@@ -123,7 +124,11 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     is MyoRepSet -> {
                         val allMyoRepSets = myoRepSetResults[set.position]
                         val weightRecommendation =
-                            getWeightRecommendation(workoutLift, set, myoRepSetResults[set.position])
+                            getWeightRecommendation(
+                                lift = workoutLift,
+                                set = set,
+                                setData = myoRepSetResults[set.position],
+                                lastCompletedStandardSetResult = lastStandardSetResult)
 
                         (allMyoRepSets?.fastMap {
                             val displayResult = displayResultsMap["${it.setPosition}-${it.myoRepSetPosition}"]
@@ -148,7 +153,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 },
                             )
                         }?.toMutableList() ?: mutableListOf()).apply {
-                            if (size == 0) {
+                            if (isEmpty()) {
                                 add(
                                     LoggingMyoRepSet(
                                         position = set.position,
@@ -194,6 +199,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 lift = workoutLift,
                                 set = set,
                                 setData = result,
+                                lastCompletedStandardSetResult = lastStandardSetResult,
                             )
                         listOf(
                             LoggingStandardSet(
@@ -246,24 +252,31 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         lift: CustomWorkoutLift,
         set: GenericLiftSet,
         setData: SetResult?,
+        lastCompletedStandardSetResult: SetResult?,
     ): Float? {
         return if (customSetMeetsCriterion(set, setData)) {
             incrementWeight(lift, setData!!)
         } else if (customSetShouldDecreaseWeight(set, setData)) {
             getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, setData!!)
         } else setData?.weight
+            ?: if (lastCompletedStandardSetResult != null)
+                getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, lastCompletedStandardSetResult)
+            else null
     }
 
     private fun getWeightRecommendation(
         lift: CustomWorkoutLift,
         set: MyoRepSet,
         setData: List<MyoRepSetResult>?,
+        lastCompletedStandardSetResult: SetResult?,
     ): Float? {
         val activationSet = setData?.firstOrNull()
         return if (customSetMeetsCriterion(set, setData))
             incrementWeight(lift, activationSet!!)
-        else
-            activationSet?.weight
+        else activationSet?.weight
+            ?: if (lastCompletedStandardSetResult != null)
+                getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, lastCompletedStandardSetResult)
+            else null
     }
 
     private fun buildDropSetWeightRecommendationsMap(
@@ -296,6 +309,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                         lift = workoutLift,
                         set = set,
                         setData = droppedFromSetResult,
+                        lastCompletedStandardSetResult = null,
                     )?.let { topSetWeightRecommendation ->
                         results.fastMap { result ->
                             if (result.setType == SetType.DROP_SET) {

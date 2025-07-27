@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.domain.models
 
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 data class MyoRepSetResult(
     override val id: Long = 0L,
@@ -22,7 +22,7 @@ data class MyoRepSetResult(
     val myoRepSetPosition: Int? = null,
 ): SetResult {
     override val oneRepMax: Int by lazy {
-        persistedOneRepMax ?: CalculationEngine.getOneRepMax(
+        persistedOneRepMax ?: WeightCalculationUtils.getOneRepMax(
             weight = weight,
             reps = reps,
             rpe = rpe,

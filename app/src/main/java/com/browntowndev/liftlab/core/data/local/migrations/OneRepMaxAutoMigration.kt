@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.local.migrations
 import androidx.room.DeleteColumn
 import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 @DeleteColumn.Entries(
     DeleteColumn(
@@ -24,7 +24,7 @@ class OneRepMaxAutoMigration: AutoMigrationSpec {
                 val reps = prevSetResultQuery.getInt(1)
                 val weight = prevSetResultQuery.getFloat(2)
                 val rpe = prevSetResultQuery.getFloat(3)
-                val oneRepMax = CalculationEngine.getOneRepMax(
+                val oneRepMax = WeightCalculationUtils.getOneRepMax(
                     weight = weight,
                     reps = reps,
                     rpe = rpe
@@ -45,7 +45,7 @@ class OneRepMaxAutoMigration: AutoMigrationSpec {
                 val reps = setLogQuery.getInt(1)
                 val weight = setLogQuery.getFloat(2)
                 val rpe = setLogQuery.getFloat(3)
-                val oneRepMax = CalculationEngine.getOneRepMax(
+                val oneRepMax = WeightCalculationUtils.getOneRepMax(
                     weight = weight,
                     reps = reps,
                     rpe = rpe

@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.progression
+package com.browntowndev.liftlab.core.domain.useCase.utils
 
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.common.toFloorAndCeiling
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class CalculationEngine {
+class WeightCalculationUtils {
     companion object {
         private val rep1RMPercentages = mapOf(
             1 to 1.0f,

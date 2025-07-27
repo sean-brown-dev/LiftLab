@@ -16,7 +16,7 @@ import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -231,7 +231,7 @@ class WorkoutHistoryViewModel(
             liftSetResults.value.maxBy {
                 // Set to a non-zero weight so 1RM gets calculated
                 val weight = if (it.weight == 0f) 1f else it.weight
-                CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
+                WeightCalculationUtils.getOneRepMax(weight, it.reps, it.rpe)
             }
         }.toHashSet()
     }
@@ -249,7 +249,7 @@ class WorkoutHistoryViewModel(
             .mapValues { (_, sets) ->
                 val setSize = sets.size
                 val topSet = sets.maxBy {
-                    CalculationEngine.getOneRepMax(it.weight, it.reps, it.rpe)
+                    WeightCalculationUtils.getOneRepMax(it.weight, it.reps, it.rpe)
                 }
                 setSize to topSet
             }

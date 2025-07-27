@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet

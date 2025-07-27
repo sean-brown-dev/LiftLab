@@ -5,10 +5,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastFirst
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapNotNull
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
@@ -29,49 +28,46 @@ import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
-import com.browntowndev.liftlab.core.domain.progression.ProgressionFactory
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.useCase.GetWorkoutCompletionSummaryUseCase
+import com.browntowndev.liftlab.core.domain.useCase.HydrateLoggingWorkoutWithCompletedSetsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.models.workout.LiftCompletionSummary
-import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummary
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -80,7 +76,10 @@ import java.io.FileOutputStream
 import kotlin.time.Duration
 
 class WorkoutViewModel(
-    private val progressionFactory: ProgressionFactory,
+    private val calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase,
+    private val hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase,
+    private val hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase,
+    private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
     private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
@@ -99,9 +98,41 @@ class WorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
+    @Subscribe
+    fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
+        when (actionEvent.action) {
+            TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
+                if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                    it.copy(isCompletionSummaryVisible = false)
+                } else {
+                    it.copy(
+                        workoutLogVisible = false,
+                        isReordering = false,
+                    )
+                }
+            }
+            TopAppBarAction.RestTimerCompleted -> {
+                executeInTransactionScope {
+                    restTimerInProgressRepository.deleteAll()
+                    mutableWorkoutState.update {
+                        it.copy(restTimerStartedAt = null)
+                    }
+                }
+            }
+            TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
+                finishWorkout()
+            } else {
+                toggleCompletionSummary()
+            }
+            TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
+            else -> {}
+        }
+    }
+
     init {
         initialize()
     }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun initialize() {
         val restTimerFlow = restTimerInProgressRepository.getFlow()
@@ -143,9 +174,9 @@ class WorkoutViewModel(
                         programMetadata = newState.programMetadata,
                         workout = newState.workout,
                         personalRecords = newState.personalRecords,
-                        initialized = true,
                         restTimerStartedAt = newState.restTimerStartedAt,
                         restTime = newState.restTime,
+                        initialized = true,
                     )
                 }
             }
@@ -174,110 +205,81 @@ class WorkoutViewModel(
         )
 
         return workoutsRepository.getByMicrocyclePosition(
-                programId = programMetadata.programId,
-                microcyclePosition = programMetadata.currentMicrocyclePosition
-            ).flatMapLatest { nullableWorkout ->
-                Log.d("WorkoutViewModel", "Workout: $nullableWorkout")
-                if (nullableWorkout == null) {
-                    flowOf(WorkoutState())  // no workoutEntity, short‐circuit
-                } else {
-                    val personalRecords = getPersonalRecords(
-                        workoutId = nullableWorkout.id,
-                        liftIds = nullableWorkout.lifts.map { it.liftId },
-                        mesoCycle = programMetadata.currentMesocycle,
-                        microCycle = programMetadata.currentMicrocycle,
-                    )
-                    val previousResultsFlow = useAllWorkoutDataFlow.flatMapLatest { useAllData ->
-                        getSetResultsFlow(
-                            workout = nullableWorkout,
-                            programMetadata = programMetadata,
-                            useAllData = useAllData,
-                        ).distinctUntilChanged()
-                    }
-                    val inProgressResultsFlow = setResultsRepository.getForWorkoutFlow(
-                        workoutId = nullableWorkout.id,
-                        mesoCycle = programMetadata.currentMesocycle,
-                        microCycle = programMetadata.currentMicrocycle,
-                    )
-                    val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
-                        liftIdsToSearchFor = nullableWorkout.lifts.map { it.liftId },
+            programId = programMetadata.programId,
+            microcyclePosition = programMetadata.currentMicrocyclePosition
+        ).flatMapLatest { nullableWorkout ->
+            Log.d("WorkoutViewModel", "Workout: $nullableWorkout")
+            if (nullableWorkout == null) {
+                flowOf(WorkoutState())  // no workoutEntity, short‐circuit
+            } else {
+                val personalRecords = getPersonalRecords(
+                    workoutId = nullableWorkout.id,
+                    liftIds = nullableWorkout.lifts.map { it.liftId },
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle,
+                )
+                val previousResultsFlow = useAllWorkoutDataFlow.flatMapLatest { useAllData ->
+                    getSetResultsFlow(
                         workout = nullableWorkout,
-                        existingResultsForOtherLifts = emptyList(),
-                        includeDeload = true
-                    )
-                    val expensiveCalcFlow = combine(
-                        useOnlySamePositionFlow,
-                        useLiftSpecificDeloadingFlow,
-                        previousResultsFlow
-                    ) { onlySamePos, liftDeloadEnabled, previousResults ->
-                        Log.d("WorkoutViewModel", "Calculating workout")
-                        progressionFactory.calculate(
-                            workout = nullableWorkout,
-                            previousSetResults = previousResults,
-                            previousResultsForDisplay = previousResultsForDisplay,
-                            programDeloadWeek = programMetadata.deloadWeek,
-                            useLiftSpecificDeloading = liftDeloadEnabled,
-                            microCycle = programMetadata.currentMicrocycle,
-                            onlyUseResultsForLiftsInSamePosition = onlySamePos
-                        )
-                    }.stateIn(
-                        viewModelScope,
-                        started = SharingStarted.Eagerly,
-                        initialValue = LoggingWorkout(id = nullableWorkout.id, name = nullableWorkout.name, lifts = emptyList()))
+                        programMetadata = programMetadata,
+                        useAllData = useAllData,
+                    ).distinctUntilChanged()
+                }
+                val inProgressResultsFlow = setResultsRepository.getForWorkoutFlow(
+                    workoutId = nullableWorkout.id,
+                    mesoCycle = programMetadata.currentMesocycle,
+                    microCycle = programMetadata.currentMicrocycle,
+                ).distinctUntilChanged()
+                val previousResultsForDisplay = getNewestResultsFromOtherWorkouts(
+                    liftIdsToSearchFor = nullableWorkout.lifts.map { it.liftId },
+                    workout = nullableWorkout,
+                    existingResultsForOtherLifts = emptyList(),
+                    includeDeload = true
+                )
 
-                    combine(
-                        expensiveCalcFlow,
-                        inProgressResultsFlow
-                    ) { calculatedWorkout, inProgressResults ->
-                        val inProgressResultsMap = inProgressResults.associateBy { r ->
-                            "${r.liftId}-${r.setPosition}-${(r as? MyoRepSetResult)?.myoRepSetPosition}"
-                        }
-                        Log.d("WorkoutViewModel", "Updating workout with in progress results")
-                        val loggingWorkout = calculatedWorkout.let { workout ->
-                            progressionFactory.updateWithInProgressSetResults(
-                                loggingWorkout = workout,
-                                inProgressSetResults = inProgressResultsMap,
+                // Only do expensive calc when necessary
+                combine(
+                    useOnlySamePositionFlow,
+                    useLiftSpecificDeloadingFlow,
+                    previousResultsFlow
+                ) { onlySamePos, liftDeloadEnabled, previousResults ->
+                    Log.d("WorkoutViewModel", "Calculating workout")
+                    calculateLoggingWorkoutUseCase.calculate(
+                        workout = nullableWorkout,
+                        previousSetResults = previousResults,
+                        previousResultsForDisplay = previousResultsForDisplay,
+                        programDeloadWeek = programMetadata.deloadWeek,
+                        useLiftSpecificDeloading = liftDeloadEnabled,
+                        microCycle = programMetadata.currentMicrocycle,
+                        onlyUseResultsForLiftsInSamePosition = onlySamePos
+                    )
+                }.flatMapLatest { calculatedWorkout ->
+                    // When expensiveCalcFlow emits, flatMapLatest creates a new flow,
+                    // starting the accumulation process from the new `calculatedWorkout`.
+                    inProgressResultsFlow.scan(calculatedWorkout to emptyList<SetResult>()) { (accWorkout, _), inProgressResults ->
+                        // `scan` accumulates changes. `accWorkout` is the result from the previous run.
+                        Log.d("WorkoutViewModel", "Updating workout with in progress results.")
+
+                        val updatedWorkout =
+                            hydrateLoggingWorkoutWithCompletedSetsUseCase.hydrateWithInProgressSetResults(
+                                loggingWorkout = accWorkout, // Use accumulated workout as base
+                                inProgressSetResults = inProgressResults,
                                 microCycle = programMetadata.currentMicrocycle,
                             )
-                        }.apply {
-                            getMergedWithPartiallyCompletedSets(this)
-                        }
+
+                        val finalWorkout = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
+                            .hydrateWithPartiallyCompletedSets(loggingWorkout = updatedWorkout)
+
+                        finalWorkout to inProgressResults
+                    }.map { (loggingWorkout, inProgressResults) ->
                         WorkoutState(
                             completedSets = inProgressResults,
                             personalRecords = personalRecords,
                             workout = loggingWorkout,
                         )
                     }
-
                 }
             }
-    }
-
-    @Subscribe
-    fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
-        when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> mutableWorkoutState.update {
-                if (mutableWorkoutState.value.isCompletionSummaryVisible) {
-                    it.copy(isCompletionSummaryVisible = false)
-                } else {
-                    it.copy(workoutLogVisible = false)
-                }
-            }
-            TopAppBarAction.RestTimerCompleted -> {
-                executeInTransactionScope {
-                    restTimerInProgressRepository.deleteAll()
-                    mutableWorkoutState.update {
-                        it.copy(restTimerStartedAt = null)
-                    }
-                }
-            }
-            TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
-                finishWorkout()
-            } else {
-                toggleCompletionSummary()
-            }
-            TopAppBarAction.OpenWorkoutHistory -> navigateToWorkoutHistory()
-            else -> {}
         }
     }
 
@@ -345,58 +347,6 @@ class WorkoutViewModel(
         } else existingResultsForOtherLifts
     }
 
-    private fun getMergedWithPartiallyCompletedSets(workout: LoggingWorkout): LoggingWorkout {
-        val partiallyCompletedSets = mutableWorkoutState.value.workout?.lifts?.fastMapNotNull { lift ->
-            val incompleteSetsForLift = lift.sets.filter { set ->
-                !set.complete &&
-                        (set.completedRpe != null ||
-                                set.completedReps != null ||
-                                set.completedWeight != null)
-            }
-            if (incompleteSetsForLift.isNotEmpty()) {
-                Pair("${lift.id}-${lift.liftId}", incompleteSetsForLift)
-            } else null
-        }?.associate { it.first to it.second }
-
-        var mergedWorkout: LoggingWorkout = workout
-        if (partiallyCompletedSets?.isNotEmpty() == true) {
-            Log.d("WorkoutViewModel", "partiallyCompletedSets: $partiallyCompletedSets")
-            mergedWorkout = workout.copy(
-                lifts = workout.lifts.fastMap { lift ->
-                    lift.copy(
-                        sets = lift.sets.fastMap { set ->
-                            val incompleteSet = partiallyCompletedSets["${lift.id}-${lift.liftId}"]
-                                ?.find { incSet -> incSet.position == set.position }
-
-                            if (incompleteSet != null) {
-                                when (set) {
-                                    is LoggingStandardSet -> set.copy(
-                                        completedRpe = incompleteSet.completedRpe,
-                                        completedReps = incompleteSet.completedReps,
-                                        completedWeight = incompleteSet.completedWeight,
-                                    )
-                                    is LoggingDropSet -> set.copy(
-                                        completedRpe = incompleteSet.completedRpe,
-                                        completedReps = incompleteSet.completedReps,
-                                        completedWeight = incompleteSet.completedWeight,
-                                    )
-                                    is LoggingMyoRepSet -> set.copy(
-                                        completedRpe = incompleteSet.completedRpe,
-                                        completedReps = incompleteSet.completedReps,
-                                        completedWeight = incompleteSet.completedWeight,
-                                    )
-                                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                                }
-                            } else set
-                        }
-                    )
-                }
-            )
-        }
-
-        return mergedWorkout
-    }
-
     private suspend fun getPersonalRecords(
         workoutId: Long,
         mesoCycle: Int,
@@ -430,19 +380,14 @@ class WorkoutViewModel(
     }
 
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) {
+        mutableWorkoutState.update { it.copy(isReordering = false) }
+
         executeInTransactionScope {
             val newWorkoutLiftIndices = newLiftOrder
                 .mapIndexed { index, item -> item.key to index }
                 .associate { it.first to it.second }
 
-            val updatedWorkoutCopy = mutableWorkoutState.value.workout!!.copy(
-                lifts = mutableWorkoutState.value.workout!!.lifts.map { lift ->
-                    lift.copy(position = newWorkoutLiftIndices[lift.id]!!)
-                }
-            )
-
-            val workoutId = mutableWorkoutState.value.workout!!.id
-            val updatedLifts = workoutLiftsRepository.getForWorkout(workoutId)
+            val updatedLifts = workoutLiftsRepository.getForWorkout(mutableWorkoutState.value.workout!!.id)
                 .map {
                     when (it) {
                         is StandardWorkoutLift -> it.copy(position = newWorkoutLiftIndices[it.id]!!)
@@ -453,12 +398,7 @@ class WorkoutViewModel(
             workoutLiftsRepository.updateMany(updatedLifts)
 
             val workoutLiftIdByLiftId = mutableWorkoutState.value.workout!!.lifts.associate { it.liftId to it.id }
-
-            val updatedInProgressSetResults = setResultsRepository.getForWorkout(
-                workoutId = workoutId,
-                mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
-                microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle
-            ).map { completedSet ->
+            val updatedInProgressSetResults = mutableWorkoutState.value.completedSets.map { completedSet ->
                 val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
                 when (completedSet) {
                     is StandardSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
@@ -468,30 +408,14 @@ class WorkoutViewModel(
                 }
             }
             setResultsRepository.upsertMany(updatedInProgressSetResults)
-
-            // TODO: Delete
-            /*mutableWorkoutState.update {
-                it.copy(
-                    workout = updatedWorkoutCopy,
-                    isReordering = false,
-                    completedSets = mutableWorkoutState.value.completedSets.fastMap { completedSet ->
-                        val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
-                        when (completedSet) {
-                            is StandardSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                            is MyoRepSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                            is LinearProgressionSetResult -> completedSet.copy(liftPosition = newWorkoutLiftIndices[workoutLiftIdOfCompletedSet]!!)
-                            else -> throw Exception("${completedSet::class.simpleName} is not defined.")
-                        }
-                    },
-                )
-            }*/
         }
     }
 
     fun setWorkoutLogVisibility(visible: Boolean) {
         mutableWorkoutState.update {
             it.copy(
-                workoutLogVisible = visible
+                workoutLogVisible = visible,
+                isReordering = if (visible) false else it.isReordering,
             )
         }
     }
@@ -529,18 +453,18 @@ class WorkoutViewModel(
     }
 
     fun startWorkout() {
+        mutableWorkoutState.update {
+            it.copy(
+                workoutLogVisible = true,
+                isDeloadPromptDialogShown = false,
+            )
+        }
+
         executeInTransactionScope {
             val inProgressWorkout = WorkoutInProgressUiModel(
                 startTime = getCurrentDate(),
             )
             workoutInProgressRepository.insert(inProgressWorkout.toDomainModel(mutableWorkoutState.value.workout!!.id))
-            mutableWorkoutState.update {
-                it.copy(
-                    inProgressWorkout = inProgressWorkout,
-                    workoutLogVisible = true,
-                    isDeloadPromptDialogShown = false,
-                )
-            }
         }
     }
 
@@ -578,96 +502,29 @@ class WorkoutViewModel(
             it.copy(
                 isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
                 workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
-                    getWorkoutCompletionSummary()
-                } else null
+                    getWorkoutCompletionSummaryUseCase.get(
+                        loggingWorkout = it.workout!!,
+                        personalRecords = it.personalRecords.values.toList(),
+                        completedSets = it.completedSets,
+                    ).toUiModel()
+                } else null,
+                isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
             )
         }
-    }
-
-    private fun getWorkoutCompletionSummary(): WorkoutCompletionSummary {
-        val liftsById = mutableWorkoutState.value.workout!!.lifts.associateBy { it.liftId }
-        val personalRecords = mutableWorkoutState.value.personalRecords
-        val liftEntityCompletionSummaries = mutableWorkoutState.value.completedSets
-            .groupBy { "${it.liftId}-${it.liftPosition}" }
-            .values.map { resultsForLift ->
-                val lift = liftsById[resultsForLift[0].liftId]
-                val setsCompleted = resultsForLift.size
-                val totalSets = (lift?.setCount ?: setsCompleted)
-                    .let { total ->
-                        // Myo can meet this condition
-                        if (setsCompleted > total) setsCompleted else total
-                    }
-                var bestSet1RM: Int? = null
-                var bestSet: SetResult? = null
-                resultsForLift.fastForEach { result ->
-                    val oneRepMax = CalculationEngine.getOneRepMax(
-                        weight = if (result.weight > 0) result.weight else 1f,
-                        reps = result.reps,
-                        rpe = result.rpe
-                    )
-                    if (bestSet1RM == null || oneRepMax > bestSet1RM) {
-                        bestSet = result
-                        bestSet1RM = oneRepMax
-                    }
-                }
-
-                LiftCompletionSummary(
-                    liftName = lift?.liftName ?: "Unknown Lift",
-                    liftId = lift?.liftId ?: -1,
-                    liftPosition = lift?.position ?: -1,
-                    setsCompleted = setsCompleted,
-                    totalSets = totalSets,
-                    bestSetReps = bestSet?.reps ?: 0,
-                    bestSetWeight = bestSet?.weight ?: 0f,
-                    bestSetRpe = bestSet?.rpe ?: 0f,
-                    bestSet1RM = bestSet1RM ?: 0,
-                    isNewPersonalRecord = personalRecords[lift?.liftId]?.let {
-                        it.personalRecord < (bestSet1RM ?: -1)
-                    } ?: false
-                )
-            }.toMutableList().apply {
-                val liftsWithNoCompletedSets = liftsById.values.filter { loggingLift ->
-                    !this.fastAny { summaryLift ->
-                        summaryLift.liftId == loggingLift.liftId && summaryLift.liftPosition == loggingLift.position
-                    }
-                }
-
-                addAll(
-                    liftsWithNoCompletedSets.map { incompleteLift ->
-                        LiftCompletionSummary(
-                            liftName = incompleteLift.liftName,
-                            liftId = incompleteLift.liftId,
-                            liftPosition = incompleteLift.position,
-                            setsCompleted = 0,
-                            totalSets = incompleteLift.setCount,
-                            bestSetReps = 0,
-                            bestSetWeight = 0f,
-                            bestSetRpe = 0f,
-                            bestSet1RM = 0,
-                            isNewPersonalRecord = false,
-                        )
-                    }
-                )
-            }?.sortedBy { it.liftPosition } ?: listOf()
-
-        return WorkoutCompletionSummary(
-            workoutName = mutableWorkoutState.value.workout!!.name,
-            liftCompletionSummaries = liftEntityCompletionSummaries
-        )
     }
 
     fun finishWorkout() {
         toggleCompletionSummary()
 
         executeInTransactionScope {
+            // Remove the workoutEntity from in progress
+            workoutInProgressRepository.deleteAll()
+            restTimerInProgressRepository.deleteAll()
+
             val startTimeInMillis = mutableWorkoutState.value.inProgressWorkout!!.startTime.time
             val durationInMillis = (getCurrentDate().time - startTimeInMillis)
             val programMetadata = mutableWorkoutState.value.programMetadata!!
             val workout = mutableWorkoutState.value.workout!!
-
-            // Remove the workoutEntity from in progress
-            workoutInProgressRepository.deleteAll()
-            restTimerInProgressRepository.deleteAll()
 
             // Increment the mesocycle and microcycle
             val microCycleComplete =  (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
@@ -717,17 +574,13 @@ class WorkoutViewModel(
             )
 
             // Update any Linear Progression failures
-            // The reason this is done when the workoutEntity is completed is because if it were done on the fly
+            // The reason this is done when the workout is completed is because if it were done on the fly
             // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
             // and then you get double increment. Or any variation of them going between success/failure by
             // modifying results.
             updateLinearProgressionFailures()
 
             stopRestTimer()
-
-            mutableWorkoutState.update {
-                it.copy(workoutLogVisible = false)
-            }
         }
     }
 
@@ -741,21 +594,40 @@ class WorkoutViewModel(
         }
 
         // If any lifts were changed and had completed results do not copy them
-        val excludeFromCopy =
-            mutableWorkoutState.value.completedSets.filter { result ->
+        val excludeFromCopy = mutableWorkoutState.value.completedSets.filter { result ->
                 val liftPosition = liftsAndPositions[result.liftId]
                 liftPosition != result.liftPosition
             }.map {
                 it.id
+            }.toHashSet()
+
+        // If someone marked a myorep set incomplete in the middle of a sequence and didn't
+        // finish it, fix the myorep set positions to fill the gap
+        val myoRepSetsToSynchronizePositonsFor = mutableWorkoutState.value.completedSets
+            .filterIsInstance<MyoRepSetResult>()
+            .filter { it.id !in excludeFromCopy }
+            .groupBy { "${it.liftId}-${it.liftPosition}" }
+            .values
+            .flatMap { resultsForLift ->
+                resultsForLift.sortedBy { it.id }.mapIndexedNotNull { index, result ->
+                    val expectedMyoRepSetPosition: Int? = if (index == 0) null else index - 1
+                    if (result.myoRepSetPosition != expectedMyoRepSetPosition) {
+                        result.copy(myoRepSetPosition = expectedMyoRepSetPosition)
+                    } else null
+                }
             }
 
-        // Copy all of the set results from this workoutEntity into the set history table
+        if (myoRepSetsToSynchronizePositonsFor.isNotEmpty()) {
+            setResultsRepository.upsertMany(myoRepSetsToSynchronizePositonsFor)
+        }
+
+        // Copy all of the set results from this workout into the set history table
         setLogEntryRepository.insertFromPreviousSetResults(
             workoutLogEntryId = workoutLogEntryId,
             workoutId = mutableWorkoutState.value.workout!!.id,
             mesocycle = programMetadata.currentMesocycle,
             microcycle = programMetadata.currentMicrocycle,
-            excludeFromCopy = excludeFromCopy,
+            excludeFromCopy = excludeFromCopy.toList(),
         )
 
         // Get all the set results for deloaded lifts
@@ -796,6 +668,13 @@ class WorkoutViewModel(
         if (mutableWorkoutState.value.isConfirmCancelWorkoutDialogShown)
             toggleConfirmCancelWorkoutModal()
 
+        mutableWorkoutState.update {
+            it.copy(
+                workoutLogVisible = false,
+                inProgressWorkout = null, // do optimistically in case updates take enough to notice
+            )
+        }
+
         executeInTransactionScope {
             // Remove the workoutEntity from in progress
             workoutInProgressRepository.deleteAll()
@@ -807,68 +686,18 @@ class WorkoutViewModel(
                 mesoCycle = programMetadata.currentMesocycle,
                 microCycle = programMetadata.currentMicrocycle,
             )
-
-            mutableWorkoutState.update {
-                it.copy(
-                    workoutLogVisible = false,
-                    inProgressWorkout = null,
-                    workout = it.workout?.copy(
-                        lifts = it.workout.lifts.fastMap { workoutLift ->
-                            workoutLift.copy(
-                                sets = workoutLift.sets
-                                    .filter { set ->
-                                        (set as? LoggingMyoRepSet)?.myoRepSetPosition == null
-                                    }.fastMap { set ->
-                                        when (set) {
-                                            is LoggingStandardSet -> set.copy(
-                                                completedWeight = null,
-                                                completedReps = null,
-                                                completedRpe = null,
-                                                complete = false,
-                                            )
-
-                                            is LoggingDropSet -> set.copy(
-                                                completedWeight = null,
-                                                completedReps = null,
-                                                completedRpe = null,
-                                                complete = false,
-                                            )
-
-                                            is LoggingMyoRepSet -> set.copy(
-                                                completedWeight = null,
-                                                completedReps = null,
-                                                completedRpe = null,
-                                                complete = false,
-                                            )
-
-                                            else -> throw Exception("${set::class.simpleName} is not defined.")
-                                        }
-                                    }
-                            )
-                        }
-                    )
-                )
-            }
         }
     }
 
     fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) {
         executeInTransactionScope {
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.fastMap { lift ->
-                            if (lift.id == workoutLiftId) {
-                                val workoutLiftCopy = lift.copy(restTime = newRestTime, restTimerEnabled = enabled)
-                                liftsRepository.updateRestTime(
-                                    id = lift.liftId,
-                                    enabled = enabled,
-                                    newRestTime = newRestTime
-                                )
-                                workoutLiftCopy
-                            } else lift
-                        }
-                    )
+            mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
+                workoutLift.id == workoutLiftId
+            }?.liftId?.let { liftId ->
+                liftsRepository.updateRestTime(
+                    id = liftId,
+                    enabled = enabled,
+                    newRestTime = newRestTime
                 )
             }
         }
@@ -877,34 +706,12 @@ class WorkoutViewModel(
     fun updateNote(workoutLiftId: Long, note: String) {
         executeInTransactionScope {
             liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
-
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
-                            if (workoutLift.id == workoutLiftId) {
-                                workoutLift.copy(
-                                    note = note.ifEmpty { null },
-                                )
-                            } else workoutLift
-                        }
-                    )
-                )
-            }
         }
     }
 
     fun saveRestTimerInProgress(restTime: Long) {
         executeInTransactionScope {
             insertRestTimerInProgress(restTime)
-
-            // TODO: Delete
-            /*mutableWorkoutState.update {
-                it.copy(
-                    restTime = restTime,
-                    restTimerStartedAt = getCurrentDate(),
-                )
-            }*/
         }
     }
 
@@ -913,6 +720,7 @@ class WorkoutViewModel(
     }
 
     override suspend fun upsertSetResult(updatedResult: SetResult): Long {
+        Log.d("WorkoutViewModel", "upsertSetResult: $updatedResult")
         return setResultsRepository.upsert(updatedResult)
     }
 

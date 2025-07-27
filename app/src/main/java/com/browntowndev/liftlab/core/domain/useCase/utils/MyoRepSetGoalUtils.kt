@@ -1,17 +1,22 @@
-package com.browntowndev.liftlab.core.domain.progression
+package com.browntowndev.liftlab.core.domain.useCase.utils
 
 import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
 
-class MyoRepSetGoalValidator {
+class MyoRepSetGoalUtils {
     companion object {
         fun shouldContinueMyoReps(
-            completedSet: LoggingMyoRepSet,
+            lastMyoRepSet: LoggingMyoRepSet,
             myoRepSetResults: List<LoggingMyoRepSet>,
-            activationSetAlwaysSuccess: Boolean = false,
-        ): Boolean {
-            return myoRepSetResults.last() == completedSet &&
-                    allSetsCompleted(myoRepSetResults = myoRepSetResults) &&
-                    shouldContinueMyoReps(myoRepSetResults = myoRepSetResults, activationSetAlwaysSuccess = activationSetAlwaysSuccess)
+        ): MyoRepContinuationResult {
+            val basicChecksPassed = lastMyoRepSet.complete &&
+                    myoRepSetResults.last() == lastMyoRepSet &&
+                    allSetsCompleted(myoRepSetResults = myoRepSetResults)
+
+            return if (basicChecksPassed) getContinuationResultByCheckingSetGoals(completedSet = lastMyoRepSet, myoRepSetResults = myoRepSetResults)
+            else return MyoRepContinuationResult(
+                shouldContinueMyoReps = false,
+                activationSetMissedGoal = false,
+            )
         }
 
         private fun allSetsCompleted(myoRepSetResults: List<LoggingMyoRepSet>): Boolean {
@@ -23,15 +28,14 @@ class MyoRepSetGoalValidator {
             }
         }
 
-        private fun shouldContinueMyoReps(
-            myoRepSetResults: List<LoggingMyoRepSet>,
-            activationSetAlwaysSuccess: Boolean,
-        ): Boolean {
-            val completedSet = myoRepSetResults.last()
+        private fun getContinuationResultByCheckingSetGoals(
+            completedSet: LoggingMyoRepSet,
+            myoRepSetResults: List<LoggingMyoRepSet>
+        ): MyoRepContinuationResult {
             val isActivationSet = myoRepSetResults.size == 1
 
-            return if (isActivationSet) {
-                activationSetAlwaysSuccess || (completedSet.completedReps!! + (10 - completedSet.completedRpe!!)) >=
+            val success = if (isActivationSet) {
+                (completedSet.completedReps!! + (10 - completedSet.completedRpe!!)) >=
                         (completedSet.repRangeBottom!! + (10 - completedSet.rpeTarget))
             } else if (completedSet.setMatching) {
                 val myoRepSetsExcludingActivation = myoRepSetResults.filter { it.myoRepSetPosition != null }
@@ -44,6 +48,11 @@ class MyoRepSetGoalValidator {
                 myoRepSetResults.size < (completedSet.maxSets ?: Int.MAX_VALUE) &&
                         completedSet.completedReps!! > completedSet.repFloor!!
             }
+
+            return MyoRepContinuationResult(
+                shouldContinueMyoReps = isActivationSet || success,
+                activationSetMissedGoal = isActivationSet && !success,
+            )
         }
     }
 }

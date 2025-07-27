@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.domain.models
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 data class SetLogEntry(
     val id: Long,
@@ -35,7 +35,7 @@ data class SetLogEntry(
     val isDeload: Boolean,
 ) {
     val oneRepMax: Int by lazy {
-        persistedOneRepMax ?: CalculationEngine.getOneRepMax(
+        persistedOneRepMax ?: WeightCalculationUtils.getOneRepMax(
             weight = weight,
             reps = reps,
             rpe = rpe,

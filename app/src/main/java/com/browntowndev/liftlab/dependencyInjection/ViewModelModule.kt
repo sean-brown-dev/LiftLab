@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.dependencyInjection
 
-import com.browntowndev.liftlab.core.domain.progression.StandardProgressionFactory
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
@@ -67,7 +66,10 @@ val viewModelModule = module {
     }
     factory { params ->
         WorkoutViewModel(
-            progressionFactory = StandardProgressionFactory(),
+            calculateLoggingWorkoutUseCase = get(),
+            hydrateLoggingWorkoutWithCompletedSetsUseCase = get(),
+            hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase = get(),
+            getWorkoutCompletionSummaryUseCase = get(),
             programsRepository = get(),
             workoutsRepository = get(),
             workoutLiftsRepository = get(),

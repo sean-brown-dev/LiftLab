@@ -1,6 +1,6 @@
-package com.browntowndev.liftlab.ui.models.workout
+package com.browntowndev.liftlab.core.domain.models
 
-class LiftCompletionSummary(
+data class LiftCompletionSummary(
     val liftName: String,
     val liftId: Long,
     val liftPosition: Int,
@@ -11,8 +11,4 @@ class LiftCompletionSummary(
     val bestSetRpe: Float,
     val bestSet1RM: Int,
     val isNewPersonalRecord: Boolean,
-) {
-    val isIncomplete: Boolean by lazy {
-        setsCompleted < totalSets
-    }
-}
+)

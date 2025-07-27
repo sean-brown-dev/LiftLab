@@ -3,9 +3,9 @@ package com.browntowndev.liftlab.ui.models.workout
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import java.util.Date
 
-class WorkoutCompletionSummary(
+class WorkoutCompletionSummaryUiModel(
     val workoutName: String,
-    val liftCompletionSummaries: List<LiftCompletionSummary>,
+    val liftCompletionSummaries: List<LiftCompletionSummaryUiModel>,
     val endTime: Date = getCurrentDate(),
 ) {
     val percentageComplete: Float by lazy {

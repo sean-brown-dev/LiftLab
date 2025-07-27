@@ -32,12 +32,6 @@ class SetLogEntryRepositoryImpl(
             excludeFromCopy = excludeFromCopy,
         )
 
-        setLogEntryDao.getForWorkoutLogEntryMesoAndMicro(
-            workoutLogEntryId = workoutLogEntryId,
-            mesocycle = mesocycle,
-            microcycle = microcycle,
-        )
-
         syncScheduler.scheduleSync()
     }
 

@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -14,6 +14,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected fun getDropSetRecommendation(
@@ -115,7 +116,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         val roundingFactor = (increment
             ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT))
 
-        return CalculationEngine.calculateSuggestedWeight(
+        return WeightCalculationUtils.calculateSuggestedWeight(
             completedWeight = result.weight,
             completedReps = result.reps,
             completedRpe = result.rpe,

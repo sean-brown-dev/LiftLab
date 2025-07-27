@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.domain.models.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
@@ -280,7 +280,7 @@ fun getIntensityChartModel(
         .fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
                     workoutLog.setResults.maxOf {
-                        it.weight / CalculationEngine.getOneRepMax(
+                        it.weight / WeightCalculationUtils.getOneRepMax(
                             if (it.weight > 0) it.weight else 1f,
                             it.reps,
                             it.rpe
@@ -456,5 +456,5 @@ private fun getTotalWeightIfLifting1RmEachTime(
     // if 0 weight was used for all then just use 1 for each one
     // so a 1RM can be calculated
     val weight = if (totalWeight == 0f) 1f else it.weight
-    CalculationEngine.getOneRepMax(weight, it.reps, it.rpe)
+    WeightCalculationUtils.getOneRepMax(weight, it.reps, it.rpe)
 } * liftResults.size

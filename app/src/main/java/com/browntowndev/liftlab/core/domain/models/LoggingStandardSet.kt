@@ -16,4 +16,17 @@ data class LoggingStandardSet(
     override val completedWeight: Float? = null,
     override val completedReps: Int? = null,
     override val completedRpe: Float? = null,
-): GenericLoggingSet
+): GenericLoggingSet {
+    override fun copyCompletionData(
+        complete: Boolean,
+        completedWeight: Float?,
+        completedReps: Int?,
+        completedRpe: Float?,
+    ): GenericLoggingSet =
+        this.copy(
+            complete = complete,
+            completedWeight = completedWeight,
+            completedReps = completedReps,
+            completedRpe = completedRpe,
+        )
+}

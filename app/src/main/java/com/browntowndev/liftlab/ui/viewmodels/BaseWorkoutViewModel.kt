@@ -1,14 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
+import androidx.compose.ui.util.fastFirst
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
@@ -18,8 +14,6 @@ import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.progression.CalculationEngine
-import com.browntowndev.liftlab.core.domain.progression.MyoRepSetGoalValidator
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,276 +40,139 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, set: GenericLoggingSet) {
-        if (set.complete &&
-            set.completedWeight != null &&
-            set.completedReps != null &&
-            set.completedRpe != null
+    /**
+     * Persists the set if it has already been completed
+     */
+    private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, setToUpdate: GenericLoggingSet) {
+        if (setToUpdate.complete &&
+            setToUpdate.completedWeight != null &&
+            setToUpdate.completedReps != null &&
+            setToUpdate.completedRpe != null
         ) {
             val liftPosition = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!.position
             val currentResult = mutableWorkoutState.value.completedSets
                 .find {
                     it.liftPosition == liftPosition &&
-                            it.setPosition == set.position
+                            it.setPosition == setToUpdate.position
                 } ?: throw Exception("Completed set was not in completedSets")
             val updatedResult = when (currentResult) {
                 is StandardSetResult -> currentResult.copy(
-                    weight = set.completedWeight!!,
-                    reps = set.completedReps!!,
-                    rpe = set.completedRpe!!,
+                    weight = setToUpdate.completedWeight!!,
+                    reps = setToUpdate.completedReps!!,
+                    rpe = setToUpdate.completedRpe!!,
                 )
                 is MyoRepSetResult -> currentResult.copy(
-                    weight = set.completedWeight!!,
-                    reps = set.completedReps!!,
-                    rpe = set.completedRpe!!,
+                    weight = setToUpdate.completedWeight!!,
+                    reps = setToUpdate.completedReps!!,
+                    rpe = setToUpdate.completedRpe!!,
                 )
                 is LinearProgressionSetResult -> currentResult.copy(
-                    weight = set.completedWeight!!,
-                    reps = set.completedReps!!,
-                    rpe = set.completedRpe!!,
+                    weight = setToUpdate.completedWeight!!,
+                    reps = setToUpdate.completedReps!!,
+                    rpe = setToUpdate.completedRpe!!,
                 )
                 else -> throw Exception("${currentResult::class.simpleName} is not defined.")
             }
             completeSet(0L, false, updatedResult)
-        } else if (set.complete) {
+        } else if (setToUpdate.complete) {
             val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             undoSetCompletion(
                 liftPosition = workoutLift.position,
-                setPosition = set.position,
-                myoRepSetPosition = (set as? LoggingMyoRepSet)?.myoRepSetPosition,
+                setPosition = setToUpdate.position,
+                myoRepSetPosition = (setToUpdate as? LoggingMyoRepSet)?.myoRepSetPosition,
+            )
+        } else {
+            // Simply update state since we are not persisting any changes
+            updateSetInWorkout(workoutLiftId, setToUpdate)
+        }
+    }
+
+    private fun updateSetInWorkout(workoutLiftId: Long, setToUpdate: GenericLoggingSet) {
+        mutableWorkoutState.update { currentState ->
+            val workout = currentState.workout ?: return@update currentState
+            val lifts = workout.lifts
+
+            val liftIndex = lifts.indexOfFirst { it.id == workoutLiftId }
+            if (liftIndex == -1) return@update currentState // Lift not found, do nothing.
+
+            val currentLift = lifts[liftIndex]
+            val currentSets = currentLift.sets
+
+            val setIndex = currentSets.indexOfFirst { set ->
+                set.position == setToUpdate.position &&
+                        (set as? LoggingMyoRepSet)?.myoRepSetPosition == (setToUpdate as? LoggingMyoRepSet)?.myoRepSetPosition
+            }
+            if (setIndex == -1) return@update currentState
+
+            val newSets = currentSets.toMutableList().apply {
+                this[setIndex] = setToUpdate // Just replace the set at the specific index.
+            }
+
+            val newLifts = lifts.toMutableList().apply {
+                this[liftIndex] = currentLift.copy(sets = newSets)
+            }
+
+            currentState.copy(
+                workout = workout.copy(lifts = newLifts)
             )
         }
     }
 
     fun setWeight(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newWeight: Float?) {
-        // Don't persist this unless already completed. Persistence happens when entire set is completed
-        completeLogEntryItem(
+        val set = findSet(
             workoutLiftId = workoutLiftId,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
-            copySet = { set ->
-                val updatedSet = when (set) {
-                    is LoggingStandardSet -> set.copy(completedWeight = newWeight)
-                    is LoggingDropSet -> set.copy(completedWeight = newWeight)
-                    is LoggingMyoRepSet -> set.copy(completedWeight = newWeight)
-                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                }
-                updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
-                updatedSet
-            }
-        )
+        ) ?: return // TODO: Log that it was not found and alert user
+
+        val updatedSet = when (set) {
+            is LoggingStandardSet -> set.copy(completedWeight = newWeight)
+            is LoggingDropSet -> set.copy(completedWeight = newWeight)
+            is LoggingMyoRepSet -> set.copy(completedWeight = newWeight)
+            else -> throw Exception("${set::class.simpleName} is not defined.")
+        }
+        updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
     }
 
     fun setReps(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newReps: Int?) {
-        // Don't persist this unless already completed. Persistence happens when entire set is completed
-        completeLogEntryItem(
+        val set = findSet(
             workoutLiftId = workoutLiftId,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
-            copySet = { set ->
-                val updatedSet = when (set) {
-                    is LoggingStandardSet -> set.copy(completedReps = newReps)
-                    is LoggingDropSet -> set.copy(completedReps = newReps)
-                    is LoggingMyoRepSet -> set.copy(completedReps = newReps)
-                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                }
-                updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
-                updatedSet
-            }
-        )
+        ) ?: return // TODO: Log that it was not found and alert user
+
+        val updatedSet = when (set) {
+            is LoggingStandardSet -> set.copy(completedReps = newReps)
+            is LoggingDropSet -> set.copy(completedReps = newReps)
+            is LoggingMyoRepSet -> set.copy(completedReps = newReps)
+            else -> throw Exception("${set::class.simpleName} is not defined.")
+        }
+        updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
     }
 
     fun setRpe(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) {
-        // Don't persist this unless already completed. Persistence happens when entire set is completed
-        completeLogEntryItem(
+        val set = findSet(
             workoutLiftId = workoutLiftId,
             setPosition = setPosition,
-            myoRepSetPosition = myoRepSetPosition,
-            copySet = { set ->
-                val updatedSet = when (set) {
-                    is LoggingStandardSet -> set.copy(completedRpe = newRpe)
-                    is LoggingDropSet -> set.copy(completedRpe = newRpe)
-                    is LoggingMyoRepSet -> set.copy(completedRpe = newRpe)
-                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                }
-                updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
-                updatedSet
-            }
-        )
-    }
+            myoRepSetPosition = myoRepSetPosition
+        ) ?: return // TODO: Log that it was not found and alert user
 
-    private fun completeLogEntryItem(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, copySet: (set: GenericLoggingSet) -> GenericLoggingSet) {
-        mutableWorkoutState.update { currentState ->
-            currentState.copy(
-                workout = currentState.workout!!.copy(
-                    lifts = currentState.workout.lifts.fastMap { workoutLift ->
-                        if (workoutLift.id == workoutLiftId) {
-                            workoutLift.copy(
-                                sets = workoutLift.sets.fastMap { set ->
-                                    if (set.position == setPosition &&
-                                        (set as? LoggingMyoRepSet)?.myoRepSetPosition == myoRepSetPosition
-                                    ) {
-                                        copySet(set)
-                                    } else set
-                                }
-                            )
-                        } else workoutLift
-                    }
-                )
-            )
+        val updatedSet = when (set) {
+            is LoggingStandardSet -> set.copy(completedRpe = newRpe)
+            is LoggingDropSet -> set.copy(completedRpe = newRpe)
+            is LoggingMyoRepSet -> set.copy(completedRpe = newRpe)
+            else -> throw Exception("${set::class.simpleName} is not defined.")
         }
+        updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
     }
 
-    private fun updateLoggingSetsOnMyoRepSetCompletion(
-        mutableLoggingSets: MutableList<GenericLoggingSet>,
-        thisMyoRepSet: LoggingMyoRepSet,
-        roundingFactor: Float,
-    ): List<GenericLoggingSet> {
-
-        val myoRepLoggingSets: List<LoggingMyoRepSet> = mutableLoggingSets
-            .filterIsInstance<LoggingMyoRepSet>()
-            .filter { it.position == thisMyoRepSet.position }
-
-        return MyoRepSetGoalValidator.shouldContinueMyoReps(
-            completedSet = thisMyoRepSet,
-            myoRepSetResults = myoRepLoggingSets,
-        ).let { continueMyoReps ->
-            if (continueMyoReps) {
-                mutableLoggingSets.apply {
-                    val insertAtIndex = indexOf(thisMyoRepSet) + 1
-                    add(
-                        index = insertAtIndex,
-                        thisMyoRepSet.copy(
-                            myoRepSetPosition = myoRepLoggingSets.size - 1,
-                            weightRecommendation = thisMyoRepSet.completedWeight,
-                            repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
-                            else "—",
-                            complete = false,
-                            rpeTarget = 10f,
-                            completedWeight = null,
-                            completedReps = null,
-                            completedRpe = null,
-                        )
-                    )
-                }
-            } else if (MyoRepSetGoalValidator.shouldContinueMyoReps(
-                    completedSet = thisMyoRepSet,
-                    myoRepSetResults = myoRepLoggingSets,
-                    activationSetAlwaysSuccess = true
-            )) {
-                mutableLoggingSets.apply {
-                    val insertAtIndex = indexOf(thisMyoRepSet) + 1
-                    add(
-                        index = insertAtIndex,
-                        thisMyoRepSet.copy(
-                            myoRepSetPosition = myoRepLoggingSets.size - 1,
-                            weightRecommendation = CalculationEngine.calculateSuggestedWeight(
-                                completedWeight = thisMyoRepSet.completedWeight!!,
-                                completedReps = thisMyoRepSet.completedReps!!,
-                                completedRpe = thisMyoRepSet.completedRpe!!,
-                                repGoal = thisMyoRepSet.repRangeBottom!!,
-                                rpeGoal = thisMyoRepSet.rpeTarget,
-                                roundingFactor = roundingFactor,
-                            ),
-                            repRangePlaceholder = if (thisMyoRepSet.repFloor != null) ">${thisMyoRepSet.repFloor}"
-                            else "—",
-                            complete = false,
-                            rpeTarget = 10f,
-                            completedWeight = null,
-                            completedReps = null,
-                            completedRpe = null,
-                        )
-                    )
-                }
-            } else if (!MyoRepSetGoalValidator.shouldContinueMyoReps(
-                completedSet = myoRepLoggingSets.last { it.complete },
-                myoRepSetResults = myoRepLoggingSets.filter { it.complete },
-            )) {
-                mutableWorkoutState.update {
-                    it.copy(completedMyoRepSets = true)
-                }
-
-                mutableLoggingSets.apply {
-                    myoRepLoggingSets
-                        .filter {
-                            !it.complete &&
-                                    (it.myoRepSetPosition ?: -1) > (thisMyoRepSet.myoRepSetPosition ?: -1)
-                        }.let { removeAll(it.toSet()) }
-                }
-            } else {
-                mutableLoggingSets
-            }
+    private fun findSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet? {
+        return mutableWorkoutState.value.workout?.lifts?.fastFirst {
+            it.id == workoutLiftId
+        }?.sets?.fastFirst { set ->
+            set.position == setPosition &&
+                    (set as? LoggingMyoRepSet)?.myoRepSetPosition == myoRepSetPosition
         }
-    }
-
-    private fun copyDropSetWithUpdatedWeightRecommendation(
-        dropFromSet: LoggingStandardSet,
-        dropSet: LoggingDropSet,
-        increment: Float,
-    ): LoggingDropSet {
-        val isDropFromSetSuccess =
-            (dropFromSet.repRangeBottom >= dropFromSet.completedReps!!) &&
-                    (dropFromSet.rpeTarget >= dropFromSet.completedRpe!!)
-
-        val percentageOfDroppedSet = (1 - dropSet.dropPercentage)
-        return dropSet.copy(
-            weightRecommendation = if (isDropFromSetSuccess) {
-                (dropFromSet.completedWeight!! * percentageOfDroppedSet).roundToNearestFactor(increment)
-            } else {
-                (CalculationEngine.calculateSuggestedWeight(
-                    completedWeight = dropFromSet.completedWeight!!,
-                    completedReps = dropFromSet.completedReps,
-                    completedRpe = dropFromSet.completedRpe!!,
-                    repGoal = dropFromSet.repRangeTop,
-                    rpeGoal = dropFromSet.rpeTarget,
-                    roundingFactor = increment,
-                ) * percentageOfDroppedSet).roundToNearestFactor(increment)
-            }
-        )
-    }
-
-    private fun copySetsOnCompletion(
-        setPosition: Int,
-        myoRepSetPosition: Int?,
-        currentSets: List<GenericLoggingSet>,
-        increment: Float,
-    ): List<GenericLoggingSet> {
-        var completedSet: GenericLoggingSet? = null
-        val mutableSetCopy = currentSets.fastMap { set ->
-            if (setPosition == set.position &&
-                myoRepSetPosition == (set as? LoggingMyoRepSet)?.myoRepSetPosition) {
-                completedSet = when (set) {
-                    is LoggingStandardSet -> set.copy(complete = true)
-                    is LoggingDropSet -> set.copy(complete = true)
-                    is LoggingMyoRepSet -> set.copy(complete = true)
-                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                }
-                completedSet
-            } else if (set.position == (setPosition + 1) && !set.hadInitialWeightRecommendation) {
-                when (set) {
-                    is LoggingStandardSet -> set.copy(
-                        weightRecommendation = completedSet!!.completedWeight
-                    )
-                    is LoggingMyoRepSet -> set.copy(
-                        weightRecommendation = completedSet!!.completedWeight
-                    )
-                    is LoggingDropSet -> copyDropSetWithUpdatedWeightRecommendation(
-                        dropFromSet = currentSets[setPosition] as LoggingStandardSet,
-                        dropSet = set,
-                        increment = increment,
-                    )
-                    else -> throw Exception("${set::class.simpleName} is not defined.")
-                }
-            } else set
-        }.toMutableList()
-
-        return if (completedSet is LoggingMyoRepSet) {
-            updateLoggingSetsOnMyoRepSetCompletion(
-                mutableLoggingSets = mutableSetCopy,
-                thisMyoRepSet = completedSet as LoggingMyoRepSet,
-                roundingFactor = increment,
-            )
-        } else mutableSetCopy
     }
 
     fun buildSetResult(
@@ -458,67 +315,11 @@ abstract class BaseWorkoutViewModel(
                     upsertSetResult(result)
                 }
             }
-
-            // TODO: Delete
-            /*mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    restTime = if (restTimerEnabled) restTime else currentState.restTime,
-                    restTimerStartedAt = if(restTimerEnabled) getCurrentDate() else currentState.restTimerStartedAt,
-                    inProgressWorkout = currentState.inProgressWorkout?.copy(
-                        completedSets = currentState.inProgressWorkout.completedSets.toMutableList().apply {
-                            val existingResult = find { existing ->
-                                existing.liftId == result.liftId &&
-                                        existing.liftPosition == result.liftPosition &&
-                                        existing.setPosition == result.setPosition &&
-                                        (existing as? MyoRepSetResult)?.myoRepSetPosition == (result as? MyoRepSetResult)?.myoRepSetPosition
-                            }
-
-                            if (existingResult != null) {
-                                val updatedResult = when (result) {
-                                    is StandardSetResult -> result.copy(id = existingResult.id)
-                                    is MyoRepSetResult -> result.copy(id = existingResult.id)
-                                    is LinearProgressionSetResult -> result.copy(id = existingResult.id)
-                                    else -> throw Exception("${result::class.simpleName} is not defined.")
-                                }
-
-                                upsertSetResult(updatedResult)
-                                set(indexOf(existingResult), updatedResult)
-                            } else {
-                                val id = upsertSetResult(result)
-                                val insertedResult = when (result) {
-                                    is StandardSetResult -> result.copy(id = id)
-                                    is MyoRepSetResult -> result.copy(id = id)
-                                    is LinearProgressionSetResult -> result.copy(id = id)
-                                    else -> throw Exception("${result::class.simpleName} is not defined.")
-                                }
-                                add(insertedResult)
-                            }
-                        }
-                    ),
-                    workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.map { workoutLift ->
-                            if (workoutLift.liftId == result.liftId) {
-                                workoutLift.copy(
-                                    sets = copySetsOnCompletion(
-                                        setPosition = result.setPosition,
-                                        myoRepSetPosition = (result as? MyoRepSetResult)?.myoRepSetPosition,
-                                        currentSets = workoutLift.sets,
-                                        increment = workoutLift.incrementOverride
-                                            ?: SettingsManager.getSetting(
-                                                SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
-                                            ))
-                                )
-                            } else workoutLift
-                        }
-                    )
-                )
-            }*/
         }
     }
 
-    private suspend fun deleteSetResultAndReturnDeleted(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): SetResult? {
-        return mutableWorkoutState.value.completedSets
+    private suspend fun deleteSetResult(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
+        mutableWorkoutState.value.completedSets
             .find {
                 it.liftPosition == liftPosition &&
                         it.setPosition == setPosition &&
@@ -542,56 +343,6 @@ abstract class BaseWorkoutViewModel(
                     Log.d("WorkoutViewModel", "deleting $result")
                     deleteSetResult(id = result.id)
                 }
-
-            // TODO: Delete
-            /*val deletedResult = deleteSetResultAndReturnDeleted(
-                liftPosition = liftPosition,
-                setPosition = setPosition,
-                myoRepSetPosition = myoRepSetPosition,
-            )
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    restTimerStartedAt = null,
-                    inProgressWorkout = currentState.inProgressWorkout?.copy(
-                        completedSets = currentState.inProgressWorkout.completedSets.fastMapNotNull { setResult ->
-                            if (setResult.id != deletedResult?.id) {
-                                setResult
-                            } else null
-                        }
-                    ),
-                    workout = currentState.workout!!.copy(
-                        lifts = currentState.workout.lifts.fastMap { workoutLift ->
-                            var hasWeightRecommendation = false
-                            if (workoutLift.position == liftPosition) {
-                                workoutLift.copy(
-                                    sets = workoutLift.sets.fastMap { set ->
-                                        if (set.position == setPosition &&
-                                            (set as? LoggingMyoRepSet)?.myoRepSetPosition == myoRepSetPosition) {
-                                            hasWeightRecommendation = set.weightRecommendation != null
-                                            when (set) {
-                                                is LoggingStandardSet -> set.copy(complete = false)
-                                                is LoggingDropSet -> set.copy(complete = false)
-                                                is LoggingMyoRepSet -> set.copy(complete = false)
-                                                else -> throw Exception("${set::class.simpleName} is not defined.")
-                                            }
-                                        } else if (!hasWeightRecommendation &&
-                                            set.position == (setPosition + 1)) {
-                                            // undo the set's weight recommendation when its main
-                                            // set is set as uncompleted and it had no recommendation
-                                            when (set) {
-                                                is LoggingStandardSet -> set.copy(weightRecommendation = null)
-                                                is LoggingDropSet -> set.copy(weightRecommendation = null)
-                                                is LoggingMyoRepSet -> set.copy(weightRecommendation = null)
-                                                else -> throw Exception("${set::class.simpleName} is not defined.")
-                                            }
-                                        } else set
-                                    }
-                                )
-                            } else workoutLift
-                        }
-                    )
-                )
-            }*/
         }
     }
 
@@ -605,47 +356,13 @@ abstract class BaseWorkoutViewModel(
                         it.myoRepSetPosition == myoRepSetPosition
             }?.complete
 
-            var deletedResult: SetResult? = null
             if (isComplete == true) {
-                deletedResult = deleteSetResultAndReturnDeleted(
+                deleteSetResult(
                     liftPosition = liftPosition,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition,
                 )
             }
-
-            // TODO: Delete
-            /*mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    completedSets = currentState.completedSets.fastMapNotNull { setResult ->
-                        if (setResult.id != deletedResult?.id) {
-                            setResult
-                        } else null
-                    },
-                    workout = currentState.workout!!.let { workout ->
-                        workout.copy(
-                            lifts = workout.lifts.fastMap { workoutLift ->
-                                if (workoutLift.id == workoutLiftId) {
-                                    workoutLift.copy(
-                                        sets = workoutLift.sets.toMutableList().apply {
-                                            val toDelete = find { set ->
-                                                set.position == setPosition &&
-                                                        (set as LoggingMyoRepSet).myoRepSetPosition == myoRepSetPosition
-                                            }!!
-
-                                            remove(toDelete)
-                                        }.mapIndexed { index, set ->
-                                            if (set is LoggingMyoRepSet && set.myoRepSetPosition != null) {
-                                                set.copy(myoRepSetPosition = index - 1)
-                                            } else set
-                                        }
-                                    )
-                                } else workoutLift
-                            }
-                        )
-                    }
-                )
-            }*/
         }
     }
 
