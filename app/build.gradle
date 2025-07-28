@@ -204,6 +204,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-params"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation("app.cash.turbine:turbine:1.2.1")
 
     // --- To run old JUnit 4 tests temporarily, uncomment below: ---
     // testImplementation 'junit:junit:4.13.2'
