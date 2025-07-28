@@ -68,7 +68,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        assertEquals(false, result)
+        assertEquals(false, result.shouldContinueMyoReps)
     }
 
     @Test
@@ -133,11 +133,11 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        assertEquals(true, result)
+        assertEquals(true, result.shouldContinueMyoReps)
     }
 
     @Test
-    fun `returns false when RPE target is missed on activation set`() {
+    fun `returns true to continue and true to activation set missed goal when RPE target is missed on activation set`() {
         val previouslyCompletedSets = listOf(
             LoggingMyoRepSet(
                 position = 0,
@@ -162,7 +162,8 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        assertEquals(false, result)
+        assertEquals(true, result.shouldContinueMyoReps)
+        assertEquals(true, result.activationSetMissedGoal)
     }
 
     @Test
@@ -228,7 +229,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        assertEquals(false, result)
+        assertEquals(false, result.shouldContinueMyoReps)
     }
 
     @Test
@@ -296,7 +297,7 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        assertEquals(true, result)
+        assertEquals(true, result.shouldContinueMyoReps)
     }
 
     @Test
@@ -323,11 +324,12 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = listOf(justCompletedSet),
         )
 
-        assertEquals(true, result)
+        assertEquals(true, result.shouldContinueMyoReps)
+        assertEquals(false, result.activationSetMissedGoal)
     }
 
     @Test
-    fun `returns false when activation set goals are not achieved`() {
+    fun `returns true for activation set failed goal and true for continue when activation set goals are not achieved`() {
         val justCompletedSet = LoggingMyoRepSet(
             position = 0,
             rpeTarget = 8f,
@@ -350,7 +352,8 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = listOf(justCompletedSet),
         )
 
-        assertEquals(false, result)
+        assertEquals(true, result.shouldContinueMyoReps)
+        assertEquals(true, result.activationSetMissedGoal)
     }
 
     @Test
@@ -412,6 +415,6 @@ class MyoRepSetGoalValidatorTests {
             myoRepSetResults = previouslyCompletedSets,
         )
 
-        assertEquals(false, result)
+        assertEquals(false, result.shouldContinueMyoReps)
     }
 }
