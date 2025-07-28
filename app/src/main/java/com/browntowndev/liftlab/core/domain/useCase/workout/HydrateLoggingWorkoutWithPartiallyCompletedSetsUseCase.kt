@@ -5,12 +5,16 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
 
 class HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase {
     operator fun invoke(
-        loggingWorkout: LoggingWorkout
+        loggingWorkout: LoggingWorkout,
+        liftsToUpdateFrom: List<LoggingWorkoutLift>
     ): LoggingWorkout {
-        val partiallyCompletedSets = loggingWorkout.lifts.fastMapNotNull { lift ->
+        if (liftsToUpdateFrom.isEmpty() || loggingWorkout.lifts.isEmpty()) return loggingWorkout
+
+        val partiallyCompletedSets = liftsToUpdateFrom.fastMapNotNull { lift ->
             val incompleteSetsForLift = lift.sets.filter { set ->
                 !set.complete &&
                         (set.completedRpe != null ||

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.time.Duration.Companion.seconds
 
-class ReorderLiftsUseCaseTests {
+class ReorderLiftsUseCaseTest {
 
     private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
     private lateinit var setResultsRepository: PreviousSetResultsRepository

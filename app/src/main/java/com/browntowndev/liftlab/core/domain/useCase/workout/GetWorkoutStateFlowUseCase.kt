@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.scan
 
@@ -102,7 +101,7 @@ class GetWorkoutStateFlowUseCase(
                 )
 
                 // Combine settings and previous results to calculate the base logging workout
-                combine(
+                val calculatedWorkoutDataFlow = combine(
                     useOnlySamePositionFlow,
                     useLiftSpecificDeloadingFlow,
                     previousResultsFlow
@@ -117,32 +116,41 @@ class GetWorkoutStateFlowUseCase(
                         microCycle = programMetadata.currentMicrocycle,
                         onlyUseResultsForLiftsInSamePosition = onlySamePos
                     )
-                }.flatMapLatest { calculatedWorkout ->
-                    // Apply in-progress results to the calculated workout.
-                    // 'scan' accumulates changes, applying each new `inProgressResults` list
-                    // to the latest `calculatedWorkout` (or the accumulated workout).
-                    inProgressResultsFlow.scan(calculatedWorkout to emptyList<SetResult>()) { (accWorkout, _), inProgressResults ->
-                        Log.d("GetWorkoutStateFlowUseCase", "Updating workout with in progress results.")
-
-                        val updatedWorkout =
-                            hydrateLoggingWorkoutWithCompletedSetsUseCase(
-                                loggingWorkout = accWorkout, // Use accumulated workout as base
-                                inProgressSetResults = inProgressResults,
-                                microCycle = programMetadata.currentMicrocycle,
-                            )
-
-                        val finalWorkout = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(loggingWorkout = updatedWorkout)
-
-                        finalWorkout to inProgressResults
-                    }.map { (loggingWorkout, inProgressResults) ->
-                        // Map the final logging workout and in-progress results to the WorkoutState
-                        CalculatedWorkoutData(
-                            completedSetsForSession = inProgressResults,
-                            personalRecords = personalRecords,
-                            calculatedWorkoutPlan = loggingWorkout,
-                        )
-                    }
                 }
+
+                combine(
+                    calculatedWorkoutDataFlow,
+                    inProgressResultsFlow
+                ) { calculatedWorkoutData, inProgressResults ->
+                    // Create a pair of our two main data sources
+                    calculatedWorkoutData to inProgressResults
+                }.scan(CalculatedWorkoutData(personalRecords = personalRecords)) { previousState, (newCalculatedWorkoutData, inProgressResults) ->
+                    // 'scan' is our state reducer.
+                    // previousState: The last CalculatedWorkoutData we emitted.
+                    // newBasePlan: The latest workout plan, fresh from settings.
+                    // inProgressResults: The latest list of completed sets.
+
+                    Log.d("GetWorkoutStateFlowUseCase", "Reducing state. Has new base plan? ${newCalculatedWorkoutData !== previousState.calculatedWorkoutPlan}")
+
+                    val partiallyHydratedPlan = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(
+                        loggingWorkout = newCalculatedWorkoutData, // Hydrate the NEW plan...
+                        liftsToUpdateFrom = previousState.calculatedWorkoutPlan?.lifts ?: emptyList() // ...with the previous plan
+                    )
+
+                    // 4. Now, apply the fully completed sets to this partially hydrated plan.
+                    val finalPlan = hydrateLoggingWorkoutWithCompletedSetsUseCase(
+                        loggingWorkout = partiallyHydratedPlan, // Use the plan that has the UI state
+                        inProgressSetResults = inProgressResults,
+                        microCycle = programMetadata.currentMicrocycle,
+                    )
+
+                    // 5. Emit the new, final state. This becomes 'previousState' in the next run.
+                    CalculatedWorkoutData(
+                        completedSetsForSession = inProgressResults,
+                        personalRecords = personalRecords,
+                        calculatedWorkoutPlan = finalPlan
+                    )
+                }.distinctUntilChanged()
             }
         }
     }

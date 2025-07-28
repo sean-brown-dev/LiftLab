@@ -99,8 +99,8 @@ class GetWorkoutStateFlowUseCaseTest {
         coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns emptyList()
         coEvery { calculateLoggingWorkoutUseCase(any(), any(), any(), any(), any(), any(), any()) } returns calculatedWorkout
         every { previousSetResultsRepository.getForWorkoutFlow(any(), any(), any()) } returns flowOf(emptyList())
-        every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns hydratedWorkout
-        every { hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(any()) } returns finalWorkout
+        every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns finalWorkout
+        every { hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(any(), any()) } returns hydratedWorkout
 
 
         // When
