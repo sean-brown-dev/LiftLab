@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
 import android.util.Log
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
@@ -11,9 +10,9 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.CalculatedWorkoutData
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
@@ -26,9 +25,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 
 /**
@@ -64,7 +61,7 @@ class GetWorkoutStateFlowUseCase(
             DEFAULT_LIFT_SPECIFIC_DELOADING
         )
 
-        return workoutsRepository.getByMicrocyclePositionForCalculation(
+        val baseCalculatedDataFlow = workoutsRepository.getByMicrocyclePositionForCalculation(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
         ).flatMapLatest { nullableWorkout ->
@@ -135,13 +132,17 @@ class GetWorkoutStateFlowUseCase(
                     // previousState: The last CalculatedWorkoutData we emitted.
                     // newBasePlan: The latest workout plan, fresh from settings.
                     // inProgressResults: The latest list of completed sets.
-
-                    Log.d("GetWorkoutStateFlowUseCase", "Reducing state. Has new base plan? ${newCalculatedWorkoutData !== previousState.calculatedWorkoutPlan}")
-
-                    val partiallyHydratedPlan = hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(
-                        loggingWorkout = newCalculatedWorkoutData, // Hydrate the NEW plan...
-                        liftsToUpdateFrom = previousState.calculatedWorkoutPlan?.lifts ?: emptyList() // ...with the previous plan
+                    Log.d(
+                        "GetWorkoutStateFlowUseCase",
+                        "Reducing state. Has new base plan? ${newCalculatedWorkoutData !== previousState.calculatedWorkoutPlan}"
                     )
+
+                    val partiallyHydratedPlan =
+                        hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(
+                            loggingWorkout = newCalculatedWorkoutData, // Hydrate the NEW plan...
+                            liftsToUpdateFrom = previousState.calculatedWorkoutPlan?.lifts
+                                ?: emptyList() // ...with the previous plan
+                        )
 
                     // 4. Now, apply the fully completed sets to this partially hydrated plan.
                     val finalPlan = hydrateLoggingWorkoutWithCompletedSetsUseCase(
@@ -158,33 +159,45 @@ class GetWorkoutStateFlowUseCase(
                     )
                 }.distinctUntilChanged()
             }
-        }.onEach { calculatedWorkoutData ->
-            val liftMetadataFlow = calculatedWorkoutData.calculatedWorkoutPlan?.lifts?.fastMap { it.liftId }
-                ?.let { liftIds ->
-                    liftsRepository.getManyMetadataFlow(liftIds).mapLatest { metadataForLifts ->
-                        metadataForLifts.fastForEach { liftMetadata ->
-                            val liftIndex = calculatedWorkoutData.calculatedWorkoutPlan.lifts.indexOfFirst { it.liftId == liftMetadata.id }
-                            if (liftIndex < 0) return@fastForEach
-                            calculatedWorkoutData.calculatedWorkoutPlan.lifts.toMutableList().apply {
-                                this[liftIndex] = this[liftIndex].copy(
-                                    liftName = liftMetadata.name,
-                                    note = liftMetadata.note,
-                                    liftMovementPattern = liftMetadata.movementPattern,
-                                )
-                            }
-                        }
-                    }.distinctUntilChanged()
-                }
-
-            val workoutMetadataFlow = calculatedWorkoutData.calculatedWorkoutPlan?.id
-                ?.let { workoutId ->
-                    workoutsRepository.getMetadataFlow(workoutId).mapLatest { workoutMetadata ->
-                        calculatedWorkoutData.calculatedWorkoutPlan.copy(
-                            name = workoutMetadata.name,
-                        )
-                    }.distinctUntilChanged()
-                }
         }
+
+        // Apply metadata from lifts and workouts to the calculated workout data flow
+        return baseCalculatedDataFlow.flatMapLatest { calculatedWorkoutData ->
+            val plan = calculatedWorkoutData.calculatedWorkoutPlan
+            if (plan == null) {
+                flowOf(calculatedWorkoutData)
+            } else {
+                val workoutMetadataFlow = workoutsRepository.getMetadataFlow(plan.id)
+                val liftIds = plan.lifts.fastMap { it.liftId }
+                val liftsMetadataFlow = liftsRepository.getManyMetadataFlow(liftIds)
+
+                combine(
+                    workoutMetadataFlow,
+                    liftsMetadataFlow
+                ) { workoutMetadata, liftsMetadata ->
+                    val liftsMetadataMap = liftsMetadata.associateBy { it.id }
+
+                    val updatedLifts = plan.lifts.map { lift ->
+                        liftsMetadataMap[lift.liftId]?.let { metadata ->
+                            lift.copy(
+                                liftName = metadata.name,
+                                note = metadata.note,
+                                liftMovementPattern = metadata.movementPattern
+                            )
+                        } ?: lift
+                    }
+
+                    val updatedPlan = plan.copy(
+                        name = workoutMetadata.name,
+                        lifts = updatedLifts
+                    )
+
+                    calculatedWorkoutData.copy(
+                        calculatedWorkoutPlan = updatedPlan
+                    )
+                }
+            }
+        }.distinctUntilChanged()
     }
 
     /**
