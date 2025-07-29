@@ -7,4 +7,6 @@ data class LiftMetadata(
     val name: String,
     val note: String?,
     val movementPattern: MovementPattern,
+    val volumeTypesBitmask: Int,
+    val secondaryVolumeTypesBitmask: Int?
 )

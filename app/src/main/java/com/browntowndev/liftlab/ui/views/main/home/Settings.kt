@@ -183,7 +183,7 @@ fun Settings(
                 ) {
                     Column {
                         Text(
-                            text = "LiftEntity Specific Deloads",
+                            text = "Lift Specific Deloads",
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground,
                         )

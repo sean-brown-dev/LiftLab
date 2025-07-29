@@ -149,7 +149,6 @@ class GetWorkoutStateFlowUseCase(
                         )
 
                     val liftsToHydrate = getLiftsToHydrate(previousState, inProgressResults, partiallyHydratedPlan)
-                    // 4. Now, apply the fully completed sets to this partially hydrated plan.
                     val hydratedLiftsById = hydrateLoggingWorkoutWithCompletedSetsUseCase(
                         liftsToHydrate = liftsToHydrate, // Use the plan that has the UI state
                         setResults = inProgressResults,
@@ -162,7 +161,6 @@ class GetWorkoutStateFlowUseCase(
                         }
                     )
 
-                    // 5. Emit the new, final state. This becomes 'previousState' in the next run.
                     CalculatedWorkoutData(
                         completedSetsForSession = inProgressResults,
                         personalRecords = personalRecords,
@@ -193,7 +191,9 @@ class GetWorkoutStateFlowUseCase(
                             lift.copy(
                                 liftName = metadata.name,
                                 note = metadata.note,
-                                liftMovementPattern = metadata.movementPattern
+                                liftMovementPattern = metadata.movementPattern,
+                                liftVolumeTypes = metadata.volumeTypesBitmask,
+                                liftSecondaryVolumeTypes = metadata.secondaryVolumeTypesBitmask,
                             )
                         } ?: lift
                     }

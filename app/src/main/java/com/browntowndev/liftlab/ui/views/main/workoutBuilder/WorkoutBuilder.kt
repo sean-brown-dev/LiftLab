@@ -115,7 +115,7 @@ fun WorkoutBuilder(
     if(!state.isReordering) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = false,
-            title = "WorkoutEntity Volume",
+            title = "Workout Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
             primaryVolumeChipLabels = state.primaryVolumeTypes,
             secondaryVolumeChipLabels = state.secondaryVolumeTypes,

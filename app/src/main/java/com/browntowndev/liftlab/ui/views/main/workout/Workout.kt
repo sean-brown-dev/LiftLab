@@ -41,6 +41,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.ShimmerSkeletonList
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -410,5 +411,11 @@ fun Workout(
                 }
             }
         }
+    } else if (state.workoutLogVisible) {
+        ShimmerSkeletonList(
+            modifier = Modifier.padding(paddingValues).padding(top = 20.dp),
+            cardCount = 5,
+            rowCount = 4
+        )
     }
 }

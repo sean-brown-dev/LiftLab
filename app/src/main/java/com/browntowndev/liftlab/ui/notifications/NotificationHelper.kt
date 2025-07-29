@@ -102,7 +102,7 @@ class NotificationHelper(
                 val nextLift = lifts[liftOfSet.position + 1]
                 getNextSetText(workoutLift = nextLift, lastCompletedSetForLift = null, programDeloadWeek = programDeloadWeek, microCycle = microCycle)
             } else {
-                "WorkoutEntity Complete!"
+                "Workout Complete!"
             }
         } ?: getNextSetText(workoutLift = lifts.first(), lastCompletedSetForLift = null, programDeloadWeek = programDeloadWeek, microCycle = microCycle)
     }

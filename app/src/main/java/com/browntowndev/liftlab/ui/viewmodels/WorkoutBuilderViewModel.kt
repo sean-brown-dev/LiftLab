@@ -1218,9 +1218,9 @@ class WorkoutBuilderViewModel(
     private fun getCurrentWorkoutAndLogIfNull(): Workout? {
         val workout = _state.value.workout
         if (workout == null) {
-            emitUserMessage("WorkoutEntity not initialized!")
-            val exception = Exception("WorkoutEntity not initialized!")
-            Log.e(TAG, "WorkoutEntity was not initialized", exception)
+            emitUserMessage("Workout not initialized!")
+            val exception = Exception("Workout not initialized!")
+            Log.e(TAG, "Workout was not initialized", exception)
             FirebaseCrashlytics.getInstance().recordException(exception)
         }
         
@@ -1247,8 +1247,8 @@ class WorkoutBuilderViewModel(
             programDeloadWeek
         } else {
             emitUserMessage("Using default deload week of $DEFAULT_PROGRAM_DELOAD_WEEK")
-            val exception = Exception("ProgramEntity deload week not initialized!")
-            Log.e(TAG, "ProgramEntity deload week was not initialized", exception)
+            val exception = Exception("Program deload week not initialized!")
+            Log.e(TAG, "Program deload week was not initialized", exception)
             FirebaseCrashlytics.getInstance().recordException(exception)
             DEFAULT_PROGRAM_DELOAD_WEEK
         }

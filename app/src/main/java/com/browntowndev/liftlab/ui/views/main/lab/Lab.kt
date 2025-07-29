@@ -77,7 +77,7 @@ fun Lab(
 
     LaunchedEffect(key1 = state.isManagingPrograms) {
         if (state.isManagingPrograms) {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "ProgramEntity Management"))
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "Program Management"))
         } else {
             mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
         }
@@ -108,7 +108,7 @@ fun Lab(
     else if (state.program?.workouts?.isEmpty() == false) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
-            title = "ProgramEntity Volume",
+            title = "Program Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
             primaryVolumeChipLabels = state.primaryVolumeTypes,
             secondaryVolumeChipLabels = state.secondaryVolumeTypes,

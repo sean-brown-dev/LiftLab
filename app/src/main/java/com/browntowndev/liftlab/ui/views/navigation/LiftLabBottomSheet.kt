@@ -41,6 +41,7 @@ import com.browntowndev.liftlab.ui.composables.LabeledChips
 fun LiftLabBottomSheet(
     sheetPeekHeight: Dp,
     bottomSpacerHeight: Dp,
+    topSpacerHeight: Dp = 0.dp,
     label: String,
     combinedVolumeChipLabels: List<CharSequence> = listOf(),
     primaryVolumeChipLabels: List<CharSequence> = listOf(),
@@ -91,6 +92,7 @@ fun LiftLabBottomSheet(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Spacer(modifier = Modifier.height(topSpacerHeight))
                 Text(text = rememberedLabel, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(10.dp))
 

@@ -24,7 +24,7 @@ data class WorkoutHistoryScreen(
     override val title: String = navigation.title,
 ) : BaseScreen() {
     companion object {
-        val navigation = BottomNavItem("WorkoutEntity History", "", R.drawable.home_icon, Route.WorkoutHistory)
+        val navigation = BottomNavItem("Workout History", "", R.drawable.home_icon, Route.WorkoutHistory)
         private const val EDIT_DATE_RANGE_ICON = "editDateRangeIcon"
         private const val FILTER_PROGRAM_AND_WORKOUT_ICON = "filterProgramAndWorkoutIcon"
     }

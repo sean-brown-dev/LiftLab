@@ -87,6 +87,8 @@ class LiftsRepositoryImpl(
                     name = liftEntity.name,
                     note = liftEntity.note,
                     movementPattern = liftEntity.movementPattern,
+                    volumeTypesBitmask = liftEntity.volumeTypesBitmask,
+                    secondaryVolumeTypesBitmask = liftEntity.secondaryVolumeTypesBitmask,
                 )
             }
         }

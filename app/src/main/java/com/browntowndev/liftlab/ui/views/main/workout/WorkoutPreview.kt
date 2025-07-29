@@ -67,7 +67,7 @@ fun WorkoutPreview(
     ) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
-            title = "WorkoutEntity Volume",
+            title = "Workout Volume",
             combinedVolumeChipLabels = combinedVolumeTypes,
             primaryVolumeChipLabels = primaryVolumeTypes,
             secondaryVolumeChipLabels = secondaryVolumeTypes,
