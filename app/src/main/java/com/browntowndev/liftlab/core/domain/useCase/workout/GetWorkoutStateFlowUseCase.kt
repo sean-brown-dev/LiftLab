@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
 import android.util.Log
+import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
@@ -14,10 +15,13 @@ import com.browntowndev.liftlab.core.domain.models.CalculatedWorkoutData
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.useCase.utils.InProgressResultsKey
 import com.browntowndev.liftlab.core.domain.useCase.workout.progression.CalculateLoggingWorkoutUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -64,7 +68,7 @@ class GetWorkoutStateFlowUseCase(
         val baseCalculatedDataFlow = workoutsRepository.getByMicrocyclePositionForCalculation(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
-        ).flatMapLatest { nullableWorkout ->
+        ).distinctUntilChanged().flatMapLatest { nullableWorkout ->
             Log.d("GetWorkoutStateFlowUseCase", "Workout: $nullableWorkout")
             if (nullableWorkout == null) {
                 // If no workout is found for the current position, emit a default empty state
@@ -144,11 +148,18 @@ class GetWorkoutStateFlowUseCase(
                                 ?: emptyList() // ...with the previous plan
                         )
 
+                    val liftsToHydrate = getLiftsToHydrate(previousState, inProgressResults, partiallyHydratedPlan)
                     // 4. Now, apply the fully completed sets to this partially hydrated plan.
-                    val finalPlan = hydrateLoggingWorkoutWithCompletedSetsUseCase(
-                        loggingWorkout = partiallyHydratedPlan, // Use the plan that has the UI state
-                        inProgressSetResults = inProgressResults,
+                    val hydratedLiftsById = hydrateLoggingWorkoutWithCompletedSetsUseCase(
+                        liftsToHydrate = liftsToHydrate, // Use the plan that has the UI state
+                        setResults = inProgressResults,
                         microCycle = programMetadata.currentMicrocycle,
+                    ).associateBy { it.id }
+                    val finalPlan = partiallyHydratedPlan.copy(
+                        lifts = partiallyHydratedPlan.lifts.fastMap { lift ->
+                            val hydratedLift = hydratedLiftsById[lift.id]
+                            hydratedLift ?: lift
+                        }
                     )
 
                     // 5. Emit the new, final state. This becomes 'previousState' in the next run.
@@ -167,9 +178,9 @@ class GetWorkoutStateFlowUseCase(
             if (plan == null) {
                 flowOf(calculatedWorkoutData)
             } else {
-                val workoutMetadataFlow = workoutsRepository.getMetadataFlow(plan.id)
+                val workoutMetadataFlow = workoutsRepository.getMetadataFlow(plan.id).distinctUntilChanged()
                 val liftIds = plan.lifts.fastMap { it.liftId }
-                val liftsMetadataFlow = liftsRepository.getManyMetadataFlow(liftIds)
+                val liftsMetadataFlow = liftsRepository.getManyMetadataFlow(liftIds).distinctUntilChanged()
 
                 combine(
                     workoutMetadataFlow,
@@ -198,6 +209,38 @@ class GetWorkoutStateFlowUseCase(
                 }
             }
         }.distinctUntilChanged()
+    }
+
+    private fun getLiftsToHydrate(
+        previousState: CalculatedWorkoutData,
+        inProgressResults: List<SetResult>,
+        partiallyHydratedPlan: LoggingWorkout
+    ): List<LoggingWorkoutLift> {
+        val previousInProgressResults = previousState.completedSetsForSession
+        val liftsWithChangedResults =
+            inProgressResults.filter { it !in previousInProgressResults }.fastMap {
+                InProgressResultsKey(
+                    liftId = it.liftId,
+                    liftPosition = it.liftPosition
+                )
+            }.toMutableList().apply {
+                addAll(
+                    previousInProgressResults.filter { it !in inProgressResults }.fastMap {
+                        InProgressResultsKey(
+                            liftId = it.liftId,
+                            liftPosition = it.liftPosition
+                        )
+                    }
+                )
+            }.toSet()
+
+        val liftsToHydrate = partiallyHydratedPlan.lifts.fastFilter { lift ->
+            InProgressResultsKey(
+                liftId = lift.liftId,
+                liftPosition = lift.position
+            ) in liftsWithChangedResults
+        }
+        return liftsToHydrate
     }
 
     /**

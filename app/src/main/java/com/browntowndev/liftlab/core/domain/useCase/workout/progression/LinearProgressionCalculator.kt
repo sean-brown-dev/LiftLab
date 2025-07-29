@@ -3,15 +3,16 @@ package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 import androidx.compose.ui.util.fastAny
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
 class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     override fun allSetsMetCriterion(
-        lift: StandardWorkoutLift,
+        lift: CalculationStandardWorkoutLift,
         previousSetResults: List<SetResult>
     ): Boolean {
         val hasInvalidSets = previousSetResults.fastAny { it !is LinearProgressionSetResult }
@@ -27,7 +28,7 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     }
 
     override fun allSetsMetCriterion(
-        lift: CustomWorkoutLift,
+        lift: CalculationCustomWorkoutLift,
         previousSetResults: List<SetResult>
     ): Boolean {
         throw Exception("Linear progression lifts must be of type ${StandardWorkoutLift::class.simpleName}." +
@@ -35,7 +36,7 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     }
 
     override fun getFailureWeight(
-        workoutLift: GenericWorkoutLift,
+        workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         position: Int?,
     ): Float? {

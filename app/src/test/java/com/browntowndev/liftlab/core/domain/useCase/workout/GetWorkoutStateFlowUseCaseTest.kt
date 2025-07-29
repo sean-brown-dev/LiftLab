@@ -7,6 +7,9 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
@@ -29,6 +32,7 @@ class GetWorkoutStateFlowUseCaseTest {
     private lateinit var workoutsRepository: WorkoutsRepository
     private lateinit var workoutLogRepository: WorkoutLogRepository
     private lateinit var previousSetResultsRepository: PreviousSetResultsRepository
+    private lateinit var liftsRepository: LiftsRepository
     private lateinit var calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase
     private lateinit var hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase
     private lateinit var hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
@@ -40,6 +44,7 @@ class GetWorkoutStateFlowUseCaseTest {
         workoutsRepository = mockk(relaxed = true)
         workoutLogRepository = mockk(relaxed = true)
         previousSetResultsRepository = mockk(relaxed = true)
+        liftsRepository = mockk(relaxed = true)
         calculateLoggingWorkoutUseCase = mockk(relaxed = true)
         hydrateLoggingWorkoutWithCompletedSetsUseCase = mockk(relaxed = true)
         hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase = mockk(relaxed = true)
@@ -48,6 +53,7 @@ class GetWorkoutStateFlowUseCaseTest {
             workoutsRepository,
             workoutLogRepository,
             previousSetResultsRepository,
+            liftsRepository,
             calculateLoggingWorkoutUseCase,
             hydrateLoggingWorkoutWithCompletedSetsUseCase,
             hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase,
@@ -88,7 +94,7 @@ class GetWorkoutStateFlowUseCaseTest {
     fun `happy path - emits fully calculated workout state`() = runTest {
         // Given
         val programMetadata = ActiveProgramMetadata(1, "Test", 4, 1, 1, 0, 3)
-        val workout = Workout(1, 1, "Workout A", 0, emptyList())
+        val workout = CalculationWorkout(1, emptyList())
         val calculatedWorkout = LoggingWorkout(1, "Workout A", emptyList())
         val hydratedWorkout = calculatedWorkout.copy(name = "Hydrated Workout")
         val finalWorkout = hydratedWorkout.copy(name = "Final Workout")
@@ -99,19 +105,17 @@ class GetWorkoutStateFlowUseCaseTest {
         coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns emptyList()
         coEvery { calculateLoggingWorkoutUseCase(any(), any(), any(), any(), any(), any(), any()) } returns calculatedWorkout
         every { previousSetResultsRepository.getForWorkoutFlow(any(), any(), any()) } returns flowOf(emptyList())
-        every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns finalWorkout
+        every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns emptyList()
         every { hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(any(), any()) } returns hydratedWorkout
-
+        every { workoutsRepository.getMetadataFlow(any()) } returns flowOf(WorkoutMetadata(id = 1L, name = "Final Workout"))
+        every { liftsRepository.getManyMetadataFlow(any()) } returns flowOf(emptyList())
 
         // When
         val flow = getWorkoutStateFlowUseCase(programMetadata)
 
         // Then
         flow.test {
-            // The flow emits an initial default state, then the final calculated state.
-            // We skip the first item and assert on the second.
-            awaitItem() // Consume initial state
-
+            awaitItem()
             val finalState = awaitItem()
             assertEquals(finalWorkout, finalState.calculatedWorkoutPlan)
             assertEquals(emptyMap<Long, PersonalRecord>(), finalState.personalRecords)

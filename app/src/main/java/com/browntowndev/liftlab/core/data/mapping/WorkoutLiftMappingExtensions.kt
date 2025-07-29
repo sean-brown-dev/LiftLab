@@ -63,6 +63,9 @@ object WorkoutLiftMappingExtensions {
             repRangeTop = this.workoutLiftEntity.repRangeTop!!,
             rpeTarget = this.workoutLiftEntity.rpeTarget!!,
             progressionScheme = this.workoutLiftEntity.progressionScheme,
+            deloadWeek = this.workoutLiftEntity.deloadWeek,
+            incrementOverride = this.liftEntity.incrementOverride,
+            stepSize = this.workoutLiftEntity.stepSize,
         )
     }
 
@@ -72,6 +75,8 @@ object WorkoutLiftMappingExtensions {
             liftId = this.workoutLiftEntity.liftId,
             position = this.workoutLiftEntity.position,
             progressionScheme = this.workoutLiftEntity.progressionScheme,
+            deloadWeek = this.workoutLiftEntity.deloadWeek,
+            incrementOverride = this.liftEntity.incrementOverride,
             customLiftSets = this.customLiftSetEntities
                 .map { it.toCalculationDomainModel() }
                 .sortedBy { it.position }

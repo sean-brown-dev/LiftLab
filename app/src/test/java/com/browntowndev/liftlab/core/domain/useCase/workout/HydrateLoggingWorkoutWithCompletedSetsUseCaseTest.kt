@@ -31,7 +31,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             LoggingStandardSet(position = 0, weightRecommendation = 100f, repRangeBottom = 5, rpeTarget = 8f, complete = false, repRangeTop = 8, repRangePlaceholder = "5-8", hadInitialWeightRecommendation = false, previousSetResultLabel = "")
         )
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, setCount = 1, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null)
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null)
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val inProgressResults = listOf<SetResult>(
@@ -39,10 +39,10 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout, inProgressResults, 1)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, inProgressResults, 1)
 
         // Then
-        val resultLift = result.lifts.first()
+        val resultLift = result.first()
         val resultSet = resultLift.sets.first() as LoggingStandardSet
         assertTrue(resultSet.complete)
         assertEquals(100f, resultSet.completedWeight)
@@ -57,15 +57,15 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             LoggingStandardSet(position = 0, weightRecommendation = 100f, repRangeBottom = 5, rpeTarget = 8f, complete = true, completedWeight = 100f, completedReps = 5, completedRpe = 8f, repRangeTop = 8, repRangePlaceholder = "5-8", hadInitialWeightRecommendation = false, previousSetResultLabel = "")
         )
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, setCount = 1, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null)
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null)
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout, emptyList(), 1)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, emptyList(), 1)
 
         // Then
-        val resultLift = result.lifts.first()
+        val resultLift = result.first()
         val resultSet = resultLift.sets.first()
         assertFalse(resultSet.complete)
     }

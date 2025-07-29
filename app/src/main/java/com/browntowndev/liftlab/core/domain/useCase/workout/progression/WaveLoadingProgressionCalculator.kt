@@ -5,22 +5,22 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
 class WaveLoadingProgressionCalculator(
     private val programDeloadWeek: Int,
     private val microCycle: Int
 ): BaseProgressionCalculator() {
     override fun calculate(
-        workoutLift: GenericWorkoutLift,
+        workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
-        if (workoutLift !is StandardWorkoutLift) throw Exception ("Wave Loading progression cannot have custom sets")
+        if (workoutLift !is CalculationStandardWorkoutLift) throw Exception ("Wave Loading progression cannot have custom sets")
         val groupedSetData = previousSetResults.associateBy { it.setPosition }
         val displaySetResults = previousResultsForDisplay.associateBy { it.setPosition }
         val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
@@ -59,7 +59,7 @@ class WaveLoadingProgressionCalculator(
         }.flattenWeightRecommendationsStandard()
     }
 
-    private fun getWeightRecommendation(workoutLift: StandardWorkoutLift, result: SetResult, deloadWeek: Int): Float? {
+    private fun getWeightRecommendation(workoutLift: CalculationStandardWorkoutLift, result: SetResult, deloadWeek: Int): Float? {
         val reps = getRepsForMicrocycle(
             repRangeBottom = workoutLift.repRangeBottom,
             repRangeTop = workoutLift.repRangeTop,
@@ -139,7 +139,7 @@ class WaveLoadingProgressionCalculator(
     }
 
     private fun decrementForDeload(
-        lift: StandardWorkoutLift,
+        lift: CalculationStandardWorkoutLift,
         setData: SetResult,
         deloadWeek: Int,
     ): Float {
@@ -159,7 +159,7 @@ class WaveLoadingProgressionCalculator(
     }
 
     private fun decrementForNewMicrocycle(
-        lift: GenericWorkoutLift,
+        lift: CalculationStandardWorkoutLift,
         setData: SetResult,
     ): Float {
         val increment =  lift.incrementOverride ?:
@@ -168,7 +168,7 @@ class WaveLoadingProgressionCalculator(
         return setData.weight - increment
     }
 
-    private fun shouldRecalculateWeight(result: SetResult, workoutLift: StandardWorkoutLift, deloadWeek: Int): Boolean {
+    private fun shouldRecalculateWeight(result: SetResult, workoutLift: CalculationStandardWorkoutLift, deloadWeek: Int): Boolean {
         return if (microCycle == 0 && result.reps == workoutLift.repRangeBottom) {
             false
         } else if (microCycle > 0) {

@@ -8,29 +8,29 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.DropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.models.StandardSet
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
 class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
-        workoutLift: GenericWorkoutLift,
+        workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         return when (workoutLift) {
-            is StandardWorkoutLift -> {
+            is CalculationStandardWorkoutLift -> {
                 getStandardSetProgressions(
                     workoutLift,
                     previousSetResults,
@@ -39,7 +39,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 )
             }
 
-            is CustomWorkoutLift -> {
+            is CalculationCustomWorkoutLift -> {
                 getCustomSetProgressions(
                     workoutLift,
                     previousSetResults,
@@ -53,7 +53,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     }
 
     private fun getStandardSetProgressions(
-        workoutLift: StandardWorkoutLift,
+        workoutLift: CalculationStandardWorkoutLift,
         setResults: List<SetResult>,
         displayResults: List<SetResult>,
         isDeloadWeek: Boolean,
@@ -91,14 +91,14 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         }
     }
 
-    private fun setMetCriterion(result: SetResult?, goals: StandardWorkoutLift): Boolean {
+    private fun setMetCriterion(result: SetResult?, goals: CalculationStandardWorkoutLift): Boolean {
         return result != null &&
                 result.reps >= goals.repRangeTop &&
                 result.rpe <= goals.rpeTarget
     }
 
     private fun getCustomSetProgressions(
-        workoutLift: CustomWorkoutLift,
+        workoutLift: CalculationCustomWorkoutLift,
         setResults: List<SetResult>,
         displayResults: List<SetResult>,
         isDeloadWeek: Boolean,
@@ -121,7 +121,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         return if(!isDeloadWeek) {
             workoutLift.customLiftSets.flatMap { set ->
                 when (set) {
-                    is MyoRepSet -> {
+                    is CalculationMyoRepSet -> {
                         val allMyoRepSets = myoRepSetResults[set.position]
                         val weightRecommendation =
                             getWeightRecommendation(
@@ -173,7 +173,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                         }
                     }
 
-                    is DropSet -> {
+                    is CalculationDropSet -> {
                         val displayResult = displayResultsMap["${set.position}-null"]
                         val weightRecommendation = dropSetResults[set.id]
                         listOf(
@@ -191,7 +191,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                         )
                     }
 
-                    is StandardSet -> {
+                    is CalculationStandardSet -> {
                         val result = standardSetResults[set.position]
                         val displayResult = displayResultsMap["${set.position}-null"]
                         val weightRecommendation = dropSetResults[set.id]
@@ -219,27 +219,19 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 }
             }
         } else {
-            val topStandard = workoutLift.customLiftSets.filterIsInstance<StandardSet>().firstOrNull()
+            val topStandard = workoutLift.customLiftSets.filterIsInstance<CalculationStandardSet>().firstOrNull()
             return getStandardSetProgressions(
-                workoutLift = StandardWorkoutLift(
+                workoutLift = CalculationStandardWorkoutLift(
                     id = workoutLift.id,
-                    workoutId = workoutLift.workoutId,
                     liftId = workoutLift.liftId,
-                    liftName = workoutLift.liftName,
-                    liftMovementPattern = workoutLift.liftMovementPattern,
-                    liftVolumeTypes = workoutLift.liftVolumeTypes,
-                    liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
                     position = workoutLift.position,
                     setCount = workoutLift.setCount,
                     progressionScheme = workoutLift.progressionScheme,
                     incrementOverride = workoutLift.incrementOverride,
-                    restTime = workoutLift.restTime,
-                    restTimerEnabled = workoutLift.restTimerEnabled,
                     deloadWeek = workoutLift.deloadWeek,
                     rpeTarget = 6f,
                     repRangeBottom = topStandard?.repRangeBottom ?: 8,
                     repRangeTop = topStandard?.repRangeTop ?: 10,
-                    liftNote = workoutLift.liftNote,
                 ),
                 setResults = setResults,
                 displayResults = displayResults,
@@ -249,8 +241,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     }
 
     private fun getWeightRecommendation(
-        lift: CustomWorkoutLift,
-        set: GenericLiftSet,
+        lift: CalculationCustomWorkoutLift,
+        set: CalculationCustomLiftSet,
         setData: SetResult?,
         lastCompletedStandardSetResult: SetResult?,
     ): Float? {
@@ -265,8 +257,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     }
 
     private fun getWeightRecommendation(
-        lift: CustomWorkoutLift,
-        set: MyoRepSet,
+        lift: CalculationCustomWorkoutLift,
+        set: CalculationMyoRepSet,
         setData: List<MyoRepSetResult>?,
         lastCompletedStandardSetResult: SetResult?,
     ): Float? {
@@ -280,10 +272,10 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     }
 
     private fun buildDropSetWeightRecommendationsMap(
-        workoutLift: CustomWorkoutLift,
+        workoutLift: CalculationCustomWorkoutLift,
         setResults: List<SetResult>,
     ): Map<Long, Float> {
-        if (workoutLift.customLiftSets.filterIsInstance<DropSet>().isEmpty()) {
+        if (workoutLift.customLiftSets.filterIsInstance<CalculationDropSet>().isEmpty()) {
             return mapOf()
         }
 
@@ -297,7 +289,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         val setsByPosition = sets.associateBy { it.position }
 
         // Iterate top sets since dropSetGroups is by top set
-        return sets.filterIsInstance<StandardSet>().flatMap { set ->
+        return sets.filterIsInstance<CalculationStandardSet>().flatMap { set ->
             dropSetGroups[set.position]?.let { results ->
                 val droppedFromSetResult = results.find { it.setType == SetType.STANDARD }
                 val allSetsMetCriterion = results.fastAll { result ->
@@ -313,7 +305,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     )?.let { topSetWeightRecommendation ->
                         results.fastMap { result ->
                             if (result.setType == SetType.DROP_SET) {
-                                val dropSet = setsByPosition[result.setPosition]!! as DropSet
+                                val dropSet = setsByPosition[result.setPosition]!! as CalculationDropSet
                                 dropSet.id to
                                         getDropSetRecommendation(
                                             topSetWeightRecommendation = topSetWeightRecommendation,
@@ -328,7 +320,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     results.fastMap { result ->
                         val setForResult = setsByPosition[result.setPosition]!!
                         setForResult.id to
-                                if (setForResult is DropSet) {
+                                if (setForResult is CalculationDropSet) {
                                     getDropSetFailureWeight(
                                         incrementOverride = workoutLift.incrementOverride,
                                         repRangeBottom = setForResult.repRangeBottom,

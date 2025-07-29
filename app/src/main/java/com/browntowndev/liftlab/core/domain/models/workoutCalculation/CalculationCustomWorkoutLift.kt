@@ -9,7 +9,9 @@ data class CalculationCustomWorkoutLift(
     override val liftId: Long,
     override val position: Int,
     override val progressionScheme: ProgressionScheme,
-    val customLiftSets: List<CalculationCustomLiftSet>
+    override val deloadWeek: Int?,
+    override val incrementOverride: Float?,
+    val customLiftSets: List<CalculationCustomLiftSet>,
 ): CalculationWorkoutLift {
     override val setCount: Int
         get() = customLiftSets.size

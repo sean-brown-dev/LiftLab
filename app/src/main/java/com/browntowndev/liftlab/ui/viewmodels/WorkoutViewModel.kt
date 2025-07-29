@@ -302,6 +302,9 @@ class WorkoutViewModel(
                     isDeloadWeek = mutableWorkoutState.value.isDeloadWeek
                 )
 
+                mutableWorkoutState.update {
+                    it.copy(workoutLogVisible = false)
+                }
                 toggleCompletionSummary()
             }
         }

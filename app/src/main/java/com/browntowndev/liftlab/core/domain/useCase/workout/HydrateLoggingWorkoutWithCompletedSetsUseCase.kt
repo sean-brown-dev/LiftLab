@@ -7,7 +7,6 @@ import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
@@ -21,24 +20,25 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     }
 
     operator fun invoke(
-        loggingWorkout: LoggingWorkout,
-        inProgressSetResults: List<SetResult>,
+        liftsToHydrate: List<LoggingWorkoutLift>,
+        setResults: List<SetResult>,
         microCycle: Int,
-    ): LoggingWorkout {
-        return if (inProgressSetResults.isNotEmpty() || loggingWorkout.lifts.any { it.sets.any { set -> set.complete } }) {
-            val updatedLifts = loggingWorkout.lifts
+    ): List<LoggingWorkoutLift> {
+        return if (setResults.isNotEmpty() || liftsToHydrate.any { it.sets.any { set -> set.complete } }) {
+            liftsToHydrate
                 .fastMap { workoutLift ->
-                    workoutLift.copy(sets =
-                        getSetsWithUpdatedCompletionData(
-                            workoutLift = workoutLift,
-                            inProgressCompletedSets = inProgressSetResults.filter { it.liftPosition == workoutLift.position },
-                            isDeloadWeek = (microCycle + 1) == workoutLift.deloadWeek,
-                        )
+                    val inProgressCompletedSetsForLift =
+                        setResults.filter { it.liftId == workoutLift.liftId && it.liftPosition == workoutLift.position }
+                    workoutLift.copy(
+                        sets =
+                            getSetsWithUpdatedCompletionData(
+                                workoutLift = workoutLift,
+                                inProgressCompletedSets = inProgressCompletedSetsForLift,
+                                isDeloadWeek = (microCycle + 1) == workoutLift.deloadWeek,
+                            )
                     )
                 }
-
-            loggingWorkout.copy(lifts = updatedLifts)
-        } else loggingWorkout
+        } else liftsToHydrate
     }
 
     private fun getSetsWithUpdatedCompletionData(

@@ -8,6 +8,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -28,7 +29,7 @@ class GetWorkoutCompletionSummaryUseCaseTest {
     fun `invoke with completed sets and new PR returns correct summary`() {
         // Given
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, setCount = 3, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList())
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList())
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val personalRecords = listOf(PersonalRecord(liftId = 101L, personalRecord = 110))
@@ -46,7 +47,7 @@ class GetWorkoutCompletionSummaryUseCaseTest {
         val liftSummary = summary.liftCompletionSummaries.first()
         assertEquals("Squat", liftSummary.liftName)
         assertEquals(2, liftSummary.setsCompleted)
-        assertEquals(3, liftSummary.totalSets)
+        assertEquals(2, liftSummary.totalSets)
         assertEquals(105f, liftSummary.bestSetWeight)
         assertEquals(5, liftSummary.bestSetReps)
         assertTrue(liftSummary.isNewPersonalRecord)
@@ -56,7 +57,7 @@ class GetWorkoutCompletionSummaryUseCaseTest {
     fun `invoke with no completed sets returns correct summary`() {
         // Given
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, setCount = 3, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList())
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList())
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
 
@@ -68,7 +69,7 @@ class GetWorkoutCompletionSummaryUseCaseTest {
         val liftSummary = summary.liftCompletionSummaries.first()
         assertEquals("Squat", liftSummary.liftName)
         assertEquals(0, liftSummary.setsCompleted)
-        assertEquals(3, liftSummary.totalSets)
+        assertEquals(0, liftSummary.totalSets)
         assertEquals(0f, liftSummary.bestSetWeight)
         assertFalse(liftSummary.isNewPersonalRecord)
     }
@@ -77,8 +78,8 @@ class GetWorkoutCompletionSummaryUseCaseTest {
     fun `invoke with partial completion returns correct summary`() {
         // Given
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, setCount = 3, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList()),
-            LoggingWorkoutLift(id = 2, liftId = 102, liftName = "Bench", position = 1, setCount = 3, liftMovementPattern = MovementPattern.HORIZONTAL_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList())
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList()),
+            LoggingWorkoutLift(id = 2, liftId = 102, liftName = "Bench", position = 1, liftMovementPattern = MovementPattern.HORIZONTAL_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, sets = emptyList())
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val completedSets = listOf<SetResult>(

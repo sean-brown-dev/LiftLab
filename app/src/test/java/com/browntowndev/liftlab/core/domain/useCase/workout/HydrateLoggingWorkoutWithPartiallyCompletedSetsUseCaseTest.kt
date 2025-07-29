@@ -36,7 +36,6 @@ class HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCaseTest {
             liftSecondaryVolumeTypes = null,
             note = null,
             position = 0,
-            setCount = sets.size,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             deloadWeek = null,
             incrementOverride = null,

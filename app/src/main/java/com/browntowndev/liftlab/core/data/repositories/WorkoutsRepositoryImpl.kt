@@ -30,7 +30,7 @@ class WorkoutsRepositoryImpl(
     private val workoutsDao: WorkoutsDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutsRepository {
-    override suspend fun getMetadataFlow(id: Long): Flow<WorkoutMetadata> =
+    override fun getMetadataFlow(id: Long): Flow<WorkoutMetadata> =
         workoutsDao.getMetadataFlow(id).map { it.toDomainModel() }
 
     override suspend fun updateName(id: Long, newName: String) {

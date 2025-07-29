@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutsDao: BaseDao<WorkoutEntity> {
-    @Query("SELECT workout_id as id, name FROM workouts WHERE deleted = 0")
+    @Query("SELECT workout_id as id, name FROM workouts WHERE workout_id = :id AND deleted = 0")
     fun getMetadataFlow(id: Long): Flow<WorkoutMetadataDto>
 
     @Query("SELECT * FROM workouts WHERE synced = 0")

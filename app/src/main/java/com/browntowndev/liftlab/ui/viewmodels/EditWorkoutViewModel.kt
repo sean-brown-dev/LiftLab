@@ -167,7 +167,6 @@ class EditWorkoutViewModel(
                     liftVolumeTypes = 0,
                     liftSecondaryVolumeTypes = null,
                     position = lift.liftPosition,
-                    setCount = groupedResults.value.size,
                     progressionScheme = lift.progressionScheme,
                     deloadWeek = max(lift.workoutLiftDeloadWeek ?: 0, workoutLog.programDeloadWeek),
                     incrementOverride = null,

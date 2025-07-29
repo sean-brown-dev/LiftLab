@@ -1,9 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
