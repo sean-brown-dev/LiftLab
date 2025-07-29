@@ -58,18 +58,7 @@ fun FirestoreSyncDialog(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.cloud_done),
-                        contentDescription = "Logged In",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    firebaseUsername?.let { Text(text = it) }
-                }
+                firebaseUsername?.let { Text(text = it) }
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     verticalAlignment = Alignment.CenterVertically,

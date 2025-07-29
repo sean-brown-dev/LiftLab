@@ -24,7 +24,6 @@ import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
-import com.browntowndev.liftlab.core.domain.models.Program
 import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
@@ -51,6 +50,8 @@ import dev.gitlive.firebase.auth.android
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -77,6 +78,8 @@ class HomeViewModel(
     private var _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
+    // In HomeViewModel
+
     init {
         val dateRange = getSevenWeeksDateRange()
         val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
@@ -84,71 +87,101 @@ class HomeViewModel(
             it.copy(liftMetricOptions = getLiftMetricChartOptions())
         }
 
-        viewModelScope.launch {
-            val activeProgramFlow = programsRepository.getActiveProgramFlow()
-            val liftsFlow = liftsRepository.getAllFlow()
-            val workoutLogsFlow = workoutLogRepository.getAllFlow()
-            val firebaseAuthStateFlow = firebaseAuth.authStateFlow()
-            val liftMetricChartsFlow = liftMetricChartsRepository.getAllFlow()
-            val volumeMetricChartsFlow = volumeMetricChartsRepository.getAllFlow()
+        // 1. Source Data Flows
+        val activeProgramFlow = programsRepository.getActiveProgramFlow()
+        val liftsFlow = liftsRepository.getAllFlow()
+        val workoutLogsFlow = workoutLogRepository.getAllFlow()
+        val firebaseAuthFlow = firebaseAuth.authStateFlow()
+        val liftMetricChartsFlow = liftMetricChartsRepository.getAllFlow()
+        val volumeMetricChartsFlow = volumeMetricChartsRepository.getAllFlow()
 
-            val programDataFlow = combine(
-                activeProgramFlow,
-                liftsFlow,
-                workoutLogsFlow,
-            ) { activeProgram, lifts, workoutLogs ->
-                Triple(activeProgram, lifts, workoutLogs)
-            }
+        // 2. Derived Chart Model Flows
+        // These only recompute when a dependency changes
+        val workoutCompletionChartFlow = workoutLogsFlow.map { logs ->
+            if (logs.isEmpty()) null
+            else getWeeklyCompletionChart(
+                workoutCompletionRange = workoutCompletionRange,
+                workoutsInDateRange = getWorkoutsInDateRange(logs, dateRange)
+            )
+        }
 
-            val chartsFlow = combine(
-                liftMetricChartsFlow,
-                volumeMetricChartsFlow,
-            ) { liftMetricCharts, volumeMetricCharts ->
-                Pair(liftMetricCharts, volumeMetricCharts)
-            }
-
-            combine(
-                firebaseAuthStateFlow,
-                programDataFlow,
-                chartsFlow,
-            ) { firebaseAuth, (activeProgram, lifts, workoutLogs), (liftMetricCharts, volumeMetricCharts) ->
-                _state.value.copy(
-                    firebaseUsername = firebaseAuth?.email,
-                    emailVerified = firebaseAuth?.isEmailVerified ?: false,
-                    activeProgram = activeProgram,
-                    lifts = lifts,
-                    workoutLogs = workoutLogs,
-                    workoutCompletionChart = workoutLogs.let {
-                        if (it.isEmpty()) null
-                        else getWeeklyCompletionChart(
-                            workoutCompletionRange = workoutCompletionRange,
-                            workoutsInDateRange = getWorkoutsInDateRange(
-                                it,
-                                dateRange
-                            )
-                        )
-                    },
-                    microCycleCompletionChart = activeProgram?.let { program ->
-                        if (workoutLogs.isEmpty()) null
-                        else getMicroCycleCompletionChart(
-                            workoutLogs = workoutLogs,
-                            program = program,
-                        )
-                    },
-                    volumeMetricChartModels = getVolumeMetricCharts( // this method handles empty lists itself
-                        volumeMetricCharts = volumeMetricCharts,
-                        workoutLogs = workoutLogs,
-                        lifts = lifts,
-                    ),
-                    liftMetricChartModels = getLiftMetricCharts( // this method handles empty lists by itself
-                        liftMetricCharts = liftMetricCharts,
-                        workoutLogs = workoutLogs,
-                    ),
-                )
-            }.collect {
-                _state.value = it
+        val microCycleCompletionChartFlow = combine(activeProgramFlow, workoutLogsFlow) { program, logs ->
+            program?.let {
+                if (logs.isEmpty()) null
+                else getMicroCycleCompletionChart(workoutLogs = logs, program = it)
             }
         }
+
+        val volumeMetricChartModelsFlow = combine(volumeMetricChartsFlow, workoutLogsFlow, liftsFlow) { charts, logs, allLifts ->
+            getVolumeMetricCharts(
+                volumeMetricCharts = charts,
+                workoutLogs = logs,
+                lifts = allLifts,
+            )
+        }
+
+        val liftMetricChartModelsFlow = combine(liftMetricChartsFlow, workoutLogsFlow) { charts, logs ->
+            getLiftMetricCharts(
+                liftMetricCharts = charts,
+                workoutLogs = logs,
+            )
+        }
+
+        // 3. Combine all flows to build the final UI State
+        // We nest combines because the standard function only supports up to 5 arguments.
+        // This remains type-safe and efficient.
+        val combinedSourceDataFlow = combine(
+            firebaseAuthFlow,
+            activeProgramFlow,
+            liftsFlow,
+            workoutLogsFlow,
+            liftMetricChartsFlow
+        ) { auth, program, lifts, logs, liftCharts ->
+            object {
+                val auth = auth
+                val program = program
+                val lifts = lifts
+                val logs = logs
+                val liftCharts = liftCharts
+            }
+        }.combine(volumeMetricChartsFlow) { allCombinedFlows, volumeCharts ->
+            object {
+                val allSourceData = allCombinedFlows
+                val volumeCharts = volumeCharts
+            }
+        }
+
+        val combinedDerivedChartsFlow = combine(
+            workoutCompletionChartFlow,
+            microCycleCompletionChartFlow,
+            volumeMetricChartModelsFlow,
+            liftMetricChartModelsFlow
+        ) { wcChart, mcChart, vmModels, lmModels ->
+            object {
+                val workoutCompletionChart = wcChart
+                val microCycleCompletionChart = mcChart
+                val volumeMetricChartModels = vmModels
+                val liftMetricChartModels = lmModels
+            }
+        }
+
+        combine(combinedSourceDataFlow, combinedDerivedChartsFlow) { sourceData, charts ->
+            _state.update {
+                it.copy(
+                    firebaseUsername = sourceData.allSourceData.auth?.email,
+                    emailVerified = sourceData.allSourceData.auth?.isEmailVerified ?: false,
+                    activeProgram = sourceData.allSourceData.program,
+                    lifts = sourceData.allSourceData.lifts,
+                    workoutLogs = sourceData.allSourceData.logs,
+                    liftMetricCharts = sourceData.allSourceData.liftCharts,
+                    volumeMetricCharts = sourceData.volumeCharts,
+                    workoutCompletionChart = charts.workoutCompletionChart,
+                    microCycleCompletionChart = charts.microCycleCompletionChart,
+                    volumeMetricChartModels = charts.volumeMetricChartModels,
+                    liftMetricChartModels = charts.liftMetricChartModels
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 
     @Subscribe
@@ -553,23 +586,12 @@ class HomeViewModel(
     fun deleteLiftMetricChart(id: Long) {
         executeInTransactionScope {
             liftMetricChartsRepository.deleteById(id)
-            _state.update {
-                it.copy(
-                    liftMetricChartModels = it.liftMetricChartModels.filter { chart -> chart.id != id }
-                )
-            }
         }
     }
 
     fun deleteVolumeMetricChart(id: Long) {
         executeInTransactionScope {
             volumeMetricChartsRepository.deleteById(id)
-            _state.update {
-                it.copy(
-                    volumeMetricCharts = it.volumeMetricCharts.filter { chart -> chart.id != id },
-                    volumeMetricChartModels = it.volumeMetricChartModels.filter { chart -> chart.id != id }
-                )
-            }
         }
     }
 }
