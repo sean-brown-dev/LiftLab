@@ -4,14 +4,13 @@ import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.ReorderableListItem
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateFirstCompleteStepSequence
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.extensions.getRecalculatedWorkoutLiftStepSizeOptions
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.DropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
@@ -34,14 +33,23 @@ import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutBuilderViewModel(
     private val workoutId: Long,
     private val onNavigateBack: () -> Unit,
@@ -65,27 +73,42 @@ class WorkoutBuilderViewModel(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            workoutsRepositoryImpl.getFlow(workoutId)
-                .collect { workout ->
-                    Log.d(TAG, "workoutEntity=$workout")
-                    _state.update { currentState ->
-                        val programDeloadWeek = if (workout != null && workout.programId != _state.value.workout?.programId) {
-                            programsRepository.getDeloadWeek(workout.programId)
-                        } else _state.value.programDeloadWeek
+        workoutsRepositoryImpl.getFlow(workoutId)
+            .distinctUntilChanged()
+            .map { workout ->
+                Log.d(TAG, "workoutEntity=$workout")
 
-                        currentState.copy(
-                            workout = workout,
-                            programDeloadWeek = programDeloadWeek,
-                            workoutLiftStepSizeOptions = workout?.let {
-                                getRecalculatedWorkoutLiftStepSizeOptions(
-                                    workout = workout,
-                                    programDeloadWeek = programDeloadWeek!!)
-                            } ?: mapOf(),
-                        )
-                    }
+                WorkoutBuilderState(
+                    workout = workout,
+                )
+            }.scan(WorkoutBuilderState()) { oldState, newState ->
+                val programDeloadWeek =
+                    if (newState.workout != null && newState.workout.programId != oldState.workout?.programId) {
+                        programsRepository.getDeloadWeek(newState.workout.programId)
+                    } else oldState.programDeloadWeek
+
+                WorkoutBuilderState(
+                    workout = newState.workout,
+                    programDeloadWeek = programDeloadWeek,
+                    workoutLiftStepSizeOptions = newState.workout?.getRecalculatedWorkoutLiftStepSizeOptions(
+                        programDeloadWeek = programDeloadWeek!!,
+                        liftLevelDeloadsEnabled = liftLevelDeloadsEnabled,
+                    ) ?: mapOf()
+                )
+            }.onEach { state ->
+                _state.update { currentState ->
+                    currentState.copy(
+                        workout = state.workout,
+                        programDeloadWeek = state.programDeloadWeek,
+                        workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions
+                    )
                 }
-        }
+            }
+            .catch {
+                Log.e(TAG, "Error getting workout", it)
+                FirebaseCrashlytics.getInstance().recordException(it)
+                emitUserMessage("Failed to load workout builder")
+            }.launchIn(viewModelScope)
     }
 
     @Subscribe
@@ -96,25 +119,6 @@ class WorkoutBuilderViewModel(
             TopAppBarAction.ReorderLifts -> toggleReorderLifts()
             else -> {}
         }
-    }
-
-    private fun getRecalculatedWorkoutLiftStepSizeOptions(workout: Workout, programDeloadWeek: Int): Map<Long, Map<Int, List<Int>>> {
-        return workout.lifts
-            .filterIsInstance<StandardWorkoutLift>()
-            .filter { it.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
-            .associate { workoutLift ->
-                workoutLift.id to getPossibleStepSizes(
-                    repRangeTop = workoutLift.repRangeTop,
-                    repRangeBottom = workoutLift.repRangeBottom,
-                    stepCount = (if (liftLevelDeloadsEnabled) workoutLift.deloadWeek else programDeloadWeek)?.let { it - 2 }
-                ).associateWith { option ->
-                    generateFirstCompleteStepSequence(
-                        repRangeTop = workoutLift.repRangeTop,
-                        repRangeBottom = workoutLift.repRangeBottom,
-                        stepSize = option
-                    )
-                }
-            }
     }
 
     fun toggleMovementPatternDeletionModal(workoutLiftId: Long? = null) {
@@ -451,7 +455,10 @@ class WorkoutBuilderViewModel(
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
-                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                        workoutLiftStepSizeOptions = updatedWorkout
+                            .getRecalculatedWorkoutLiftStepSizeOptions(
+                                programDeloadWeek = it.programDeloadWeek!!,
+                                liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
                     )
                 }
             }
@@ -525,7 +532,9 @@ class WorkoutBuilderViewModel(
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
-                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                        workoutLiftStepSizeOptions = updatedWorkout.getRecalculatedWorkoutLiftStepSizeOptions(
+                            programDeloadWeek = it.programDeloadWeek!!,
+                            liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
                     )
                 }
             }
@@ -548,7 +557,9 @@ class WorkoutBuilderViewModel(
                 _state.update {
                     it.copy(
                         workout = updatedWorkout,
-                        workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(updatedWorkout, it.programDeloadWeek!!),
+                        workoutLiftStepSizeOptions = updatedWorkout.getRecalculatedWorkoutLiftStepSizeOptions(
+                            programDeloadWeek = it.programDeloadWeek!!,
+                            liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
                     )
                 }
             }
@@ -944,10 +955,9 @@ class WorkoutBuilderViewModel(
             _state.update {
                 it.copy(
                     workout = updatedWorkout,
-                    workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(
-                        updatedWorkout,
-                        it.programDeloadWeek!!
-                    ),
+                    workoutLiftStepSizeOptions = updatedWorkout.getRecalculatedWorkoutLiftStepSizeOptions(
+                        programDeloadWeek = it.programDeloadWeek!!,
+                        liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
                 )
             }
         }
@@ -977,10 +987,9 @@ class WorkoutBuilderViewModel(
             _state.update {
                 it.copy(
                     workout = updatedWorkout,
-                    workoutLiftStepSizeOptions = getRecalculatedWorkoutLiftStepSizeOptions(
-                        updatedWorkout,
-                        it.programDeloadWeek!!
-                    ),
+                    workoutLiftStepSizeOptions = updatedWorkout.getRecalculatedWorkoutLiftStepSizeOptions(
+                        programDeloadWeek = it.programDeloadWeek!!,
+                        liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
                 )
             }
         }
