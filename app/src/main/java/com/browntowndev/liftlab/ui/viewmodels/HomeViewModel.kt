@@ -537,20 +537,6 @@ class HomeViewModel(
                 )
             }
             volumeMetricChartsRepository.upsertMany(charts)
-
-            val chartsWithNewAdded = _state.value.volumeMetricCharts.toMutableList().apply {
-                addAll(charts)
-            }
-            _state.update {
-                it.copy(
-                    volumeMetricCharts = chartsWithNewAdded,
-                    volumeMetricChartModels = getVolumeMetricCharts(
-                        volumeMetricCharts = chartsWithNewAdded,
-                        workoutLogs = _state.value.workoutLogs,
-                        lifts = _state.value.lifts,
-                    )
-                )
-            }
             toggleLiftChartPicker()
         }
     }
