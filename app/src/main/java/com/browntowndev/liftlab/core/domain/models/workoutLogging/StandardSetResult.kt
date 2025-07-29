@@ -1,10 +1,10 @@
-package com.browntowndev.liftlab.core.domain.models
+package com.browntowndev.liftlab.core.domain.models.workoutLogging
 
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
-data class LinearProgressionSetResult(
+data class StandardSetResult(
     override val id: Long = 0L,
     override val workoutId: Long,
     override val liftId: Long,
@@ -14,12 +14,12 @@ data class LinearProgressionSetResult(
     override val weight: Float,
     override val reps: Int,
     override val rpe: Float,
-    private val persistedOneRepMax: Int? = null,
     override val mesoCycle: Int,
     override val microCycle: Int,
-    override val setType: SetType = SetType.STANDARD,
+    override val setType: SetType,
     override val isDeload: Boolean,
-    val missedLpGoals: Int,
+    val missedLpGoals: Int? = null,
+    private val persistedOneRepMax: Int? = null,
 ): SetResult {
     override val oneRepMax: Int by lazy {
         persistedOneRepMax ?: WeightCalculationUtils.getOneRepMax(

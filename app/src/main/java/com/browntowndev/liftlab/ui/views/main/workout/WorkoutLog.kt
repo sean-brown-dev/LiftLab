@@ -47,8 +47,8 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType

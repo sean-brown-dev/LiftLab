@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.utils
 
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 
 class MyoRepSetGoalUtils {
     companion object {

@@ -9,6 +9,7 @@ import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetad
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.metadata.LiftMetadata
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration
@@ -75,6 +76,20 @@ class LiftsRepositoryImpl(
             synced = false,
         )
         updateWithoutRefetch(toUpdate)
+    }
+
+    override fun getManyMetadataFlow(ids: List<Long>): Flow<List<LiftMetadata>> {
+        val liftEntities = liftsDao.getManyFlow(ids)
+        return liftEntities.map {
+            it.fastMap { liftEntity ->
+                LiftMetadata(
+                    id = liftEntity.id,
+                    name = liftEntity.name,
+                    note = liftEntity.note,
+                    movementPattern = liftEntity.movementPattern,
+                )
+            }
+        }
     }
 
     private suspend fun updateWithoutRefetch(liftEntity: LiftEntity) {

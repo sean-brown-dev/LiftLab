@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Program

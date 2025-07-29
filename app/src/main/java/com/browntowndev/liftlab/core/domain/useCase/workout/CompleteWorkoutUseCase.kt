@@ -7,11 +7,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
-import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository

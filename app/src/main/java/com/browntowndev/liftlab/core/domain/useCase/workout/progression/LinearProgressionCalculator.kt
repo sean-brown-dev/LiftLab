@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastAny
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult

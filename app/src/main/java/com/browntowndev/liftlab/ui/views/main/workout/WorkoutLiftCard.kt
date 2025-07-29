@@ -45,10 +45,10 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.composables.LiftLabOutlinedTextField
 import kotlin.time.Duration

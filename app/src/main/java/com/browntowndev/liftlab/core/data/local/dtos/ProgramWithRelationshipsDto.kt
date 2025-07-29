@@ -7,10 +7,10 @@ import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.data.local.views.LiveCustomLiftSetView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveCustomLiftSetView
 import com.browntowndev.liftlab.core.data.local.views.LiveLiftView
-import com.browntowndev.liftlab.core.data.local.views.LiveWorkoutLiftView
-import com.browntowndev.liftlab.core.data.local.views.LiveWorkoutView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutLiftView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
 
 typealias WorkoutLiftWithRelationships = ProgramWithRelationshipsDto.WorkoutWithRelationshipsDto.WorkoutLiftWithRelationshipsDto
 typealias WorkoutWithRelationships = ProgramWithRelationshipsDto.WorkoutWithRelationshipsDto

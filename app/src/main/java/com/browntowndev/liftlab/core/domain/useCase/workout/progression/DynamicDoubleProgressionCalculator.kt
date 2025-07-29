@@ -10,11 +10,11 @@ import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.DropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardSet
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet

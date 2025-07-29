@@ -23,6 +23,10 @@ interface LiftsDao: BaseDao<LiftEntity> {
     suspend fun getMany(ids: List<Long>): List<LiftEntity>
 
     @Transaction
+    @Query("SELECT * FROM lifts WHERE lift_id IN (:ids) AND deleted = 0")
+    fun getManyFlow(ids: List<Long>): Flow<List<LiftEntity>>
+
+    @Transaction
     @Query("SELECT * FROM lifts WHERE deleted = 0")
     fun getAllAsFlow(): Flow<List<LiftEntity>>
 

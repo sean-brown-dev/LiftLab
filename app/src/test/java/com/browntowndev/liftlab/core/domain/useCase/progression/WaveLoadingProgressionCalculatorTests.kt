@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
@@ -7,11 +7,11 @@ import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossible
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
 import com.browntowndev.liftlab.core.domain.useCase.workout.progression.WaveLoadingProgressionCalculator
 import io.mockk.*
 import org.junit.jupiter.api.*
@@ -57,7 +57,7 @@ class WaveLoadingProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         result.forEach {
             assertEquals(80f, it.weightRecommendation)
         }
@@ -90,7 +90,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(4, 1)
-            .calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+            .calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach {
             assertEquals(70f, it.weightRecommendation)
@@ -123,7 +123,7 @@ class WaveLoadingProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
         )
 
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, true)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, true)
         result.forEach {
             assertEquals(65f, it.weightRecommendation)
         }
@@ -156,7 +156,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(4, 0)
-            .calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+            .calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
 
         result.forEach {
             assertEquals(80f, it.weightRecommendation)
@@ -189,7 +189,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(6, 3)
-            .calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+            .calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
 
         result.forEach {
             assertEquals("8", it.repRangePlaceholder)
@@ -223,7 +223,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(4, 2)
-            .calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+            .calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
 
         result.forEach {
             assertEquals("6", it.repRangePlaceholder)
@@ -258,7 +258,7 @@ class WaveLoadingProgressionCalculatorTests {
         )
 
         val result = WaveLoadingProgressionCalculator(7, 3)
-            .calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+            .calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
 
         result.forEach {
             assertEquals("10", it.repRangePlaceholder)

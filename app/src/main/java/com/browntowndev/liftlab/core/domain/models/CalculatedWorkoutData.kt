@@ -1,8 +1,7 @@
-package com.browntowndev.liftlab.core.domain.models.workout
+package com.browntowndev.liftlab.core.domain.models
 
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 
 /**
  * Represents the core, calculated data for the active workout session,

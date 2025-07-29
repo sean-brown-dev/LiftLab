@@ -3,21 +3,28 @@ package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.DropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardSet
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
 abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
-        workoutLift: GenericWorkoutLift,
+        workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
@@ -34,7 +41,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
 
         // TODO: Unit tests
         return when (workoutLift) {
-            is StandardWorkoutLift -> {
+            is CalculationStandardWorkoutLift -> {
                 val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
                 List(setCount) {
                     val result = nonMyoRepSetResults[it]
@@ -63,7 +70,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                 }
             }
 
-            is CustomWorkoutLift -> {
+            is CalculationCustomWorkoutLift -> {
                 if (!isDeloadWeek) {
                     var lastWeightRecommendation: Float? = null
                     workoutLift.customLiftSets.flatMap { set ->
@@ -71,7 +78,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         val displayResult = displayResults["${set.position}-null"]
                         val currSetMyoRepResults = myoRepSetResults[set.position]
                         when (set) {
-                            is StandardSet -> {
+                            is CalculationStandardSet -> {
                                 val weightRecommendation =
                                     if (criterionMet) {
                                         lastWeightRecommendation = incrementWeight(
@@ -102,7 +109,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                 )
                             }
 
-                            is DropSet -> {
+                            is CalculationDropSet -> {
                                 val weightRecommendation = if (criterionMet) {
                                     lastWeightRecommendation = getDropSetRecommendation(
                                         workoutLift,
@@ -136,7 +143,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                 )
                             }
 
-                            is MyoRepSet -> {
+                            is CalculationMyoRepSet -> {
                                 (currSetMyoRepResults?.fastMap {
                                     val myoRepDisplayResult = displayResults["${it.setPosition}-${it.myoRepSetPosition}"]
                                     val weightRecommendation = if (criterionMet) {
@@ -194,27 +201,19 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         }
                     }
                 } else {
-                    val topStandard = workoutLift.customLiftSets.filterIsInstance<StandardSet>().firstOrNull()
+                    val topStandard = workoutLift.customLiftSets.filterIsInstance<CalculationStandardSet>().firstOrNull()
                     return calculate(
-                        workoutLift = StandardWorkoutLift(
+                        workoutLift = CalculationStandardWorkoutLift(
                             id = workoutLift.id,
-                            workoutId = workoutLift.workoutId,
                             liftId = workoutLift.liftId,
-                            liftName = workoutLift.liftName,
-                            liftMovementPattern = workoutLift.liftMovementPattern,
-                            liftVolumeTypes = workoutLift.liftVolumeTypes,
-                            liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
                             position = workoutLift.position,
                             setCount = workoutLift.setCount,
                             progressionScheme = workoutLift.progressionScheme,
                             incrementOverride = workoutLift.incrementOverride,
-                            restTime = workoutLift.restTime,
-                            restTimerEnabled = workoutLift.restTimerEnabled,
                             deloadWeek = workoutLift.deloadWeek,
                             rpeTarget = 6f,
                             repRangeBottom = topStandard?.repRangeBottom ?: 8,
                             repRangeTop = topStandard?.repRangeTop ?: 10,
-                            liftNote = workoutLift.liftNote,
                         ),
                         previousSetResults = previousSetResults,
                         previousResultsForDisplay = previousResultsForDisplay,
@@ -228,7 +227,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     }
 
     protected open fun getFailureWeight(
-        workoutLift: GenericWorkoutLift,
+        workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         position: Int? = null,
     ): Float? {
@@ -237,11 +236,11 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
             previousSetResults.firstOrNull()?.weight
         } else {
             when (workoutLift) {
-                is StandardWorkoutLift -> getStandardWorkoutLiftFailureWeight(
+                is CalculationStandardWorkoutLift -> getStandardWorkoutLiftFailureWeight(
                     workoutLift = workoutLift,
                     result = result,
                 )
-                is CustomWorkoutLift -> getCustomWorkoutLiftFailureWeight(
+                is CalculationCustomWorkoutLift -> getCustomWorkoutLiftFailureWeight(
                     incrementOverride = workoutLift.incrementOverride,
                     set = workoutLift.customLiftSets[position!!],
                     result = result,
@@ -252,7 +251,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     }
 
     private fun getStandardWorkoutLiftFailureWeight(
-        workoutLift: StandardWorkoutLift,
+        workoutLift: CalculationStandardWorkoutLift,
         result: SetResult,
     ): Float {
         return if (missedBottomRepRange(result, workoutLift)) {
@@ -269,7 +268,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
 
     private fun getCustomWorkoutLiftFailureWeight(
         incrementOverride: Float?,
-        set: GenericLiftSet,
+        set: CalculationCustomLiftSet,
         result: SetResult,
     ): Float {
         return if (
@@ -292,23 +291,23 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     }
 
     protected abstract fun allSetsMetCriterion(
-        lift: StandardWorkoutLift,
+        lift: CalculationStandardWorkoutLift,
         previousSetResults: List<SetResult>,
     ): Boolean
 
     protected abstract fun allSetsMetCriterion(
-        lift: CustomWorkoutLift,
+        lift: CalculationCustomWorkoutLift,
         previousSetResults: List<SetResult>,
     ): Boolean
 
     private fun allSetsMetCriterion(
-        lift: GenericWorkoutLift,
+        lift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
     ): Boolean {
         return previousSetResults.isNotEmpty() &&
                 when (lift) {
-                    is StandardWorkoutLift -> allSetsMetCriterion(lift, previousSetResults)
-                    is CustomWorkoutLift -> allSetsMetCriterion(lift, previousSetResults)
+                    is CalculationStandardWorkoutLift -> allSetsMetCriterion(lift, previousSetResults)
+                    is CalculationCustomWorkoutLift -> allSetsMetCriterion(lift, previousSetResults)
                     else -> throw Exception("${lift::class.simpleName} is not defined.")
                 }
     }

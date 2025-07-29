@@ -1,17 +1,17 @@
-package com.browntowndev.liftlab.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import android.content.SharedPreferences
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
 import com.browntowndev.liftlab.core.domain.useCase.workout.progression.LinearProgressionCalculator
 import io.mockk.*
 import org.junit.jupiter.api.*
@@ -57,7 +57,7 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         result.forEach {
             assertEquals(80f, it.weightRecommendation)
         }
@@ -88,7 +88,7 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResult(missedLpGoals = 1, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         result.forEach {
             assertEquals(75f, it.weightRecommendation)
         }
@@ -119,7 +119,7 @@ class LinearProgressionCalculatorTests {
             LinearProgressionSetResult(missedLpGoals = 2, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
         )
 
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         result.forEach {
             assertEquals(90f, it.weightRecommendation)
         }
@@ -145,7 +145,7 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf<LinearProgressionSetResult>()
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         result.forEach {
             assertEquals(null, it.weightRecommendation)
         }
@@ -177,7 +177,7 @@ class LinearProgressionCalculatorTests {
         )
 
         assertThrows(Exception::class.java) {
-            calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+            calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         }
     }
 
@@ -211,7 +211,7 @@ class LinearProgressionCalculatorTests {
             )
         )
         val previousSetData = listOf<LinearProgressionSetResult>()
-        val result = calculator.calculate(liftEntity.toDomainModel(), previousSetData, previousSetData, false)
+        val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
         result.forEach {
             assertEquals(null, it.weightRecommendation)
         }

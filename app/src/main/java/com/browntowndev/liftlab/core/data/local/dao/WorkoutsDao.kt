@@ -3,12 +3,16 @@ package com.browntowndev.liftlab.core.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
+import com.browntowndev.liftlab.core.data.local.dtos.WorkoutMetadataDto
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutsDao: BaseDao<WorkoutEntity> {
+    @Query("SELECT workout_id as id, name FROM workouts WHERE deleted = 0")
+    fun getMetadataFlow(id: Long): Flow<WorkoutMetadataDto>
+
     @Query("SELECT * FROM workouts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<WorkoutEntity>
 

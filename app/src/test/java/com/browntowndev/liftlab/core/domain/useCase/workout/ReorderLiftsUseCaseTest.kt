@@ -4,11 +4,11 @@ import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository

@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.insertSuperscript
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 

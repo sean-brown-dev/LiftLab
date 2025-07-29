@@ -1,10 +1,8 @@
-package com.browntowndev.liftlab.core.domain.models
+package com.browntowndev.liftlab.core.domain.models.workoutLogging
 
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 
-data class LoggingDropSet(
+data class LoggingStandardSet(
     override val position: Int,
     override val rpeTarget: Float,
     override val repRangeBottom: Int,
@@ -13,12 +11,11 @@ data class LoggingDropSet(
     override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
     override val repRangePlaceholder: String,
-    override val setNumberLabel: String = SetType.DROP_SET.displayNameShort(),
+    override val setNumberLabel: String = (position + 1).toString(),
     override val complete: Boolean = false,
     override val completedWeight: Float? = null,
     override val completedReps: Int? = null,
     override val completedRpe: Float? = null,
-    val dropPercentage: Float,
 ): GenericLoggingSet {
     override fun copyCompletionData(
         complete: Boolean,

@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.local.views
+package com.browntowndev.liftlab.core.data.local.views.program
 
 import androidx.room.ColumnInfo
 import androidx.room.DatabaseView

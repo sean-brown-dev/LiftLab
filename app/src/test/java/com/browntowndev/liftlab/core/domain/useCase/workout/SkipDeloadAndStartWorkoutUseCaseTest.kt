@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import io.mockk.coVerify
 import io.mockk.mockk

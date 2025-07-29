@@ -7,10 +7,29 @@ import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toCalculationDomainModel
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
 object WorkoutLiftMappingExtensions {
+    fun WorkoutLiftWithRelationships.toCalculationDomainModel(): CalculationWorkoutLift {
+        return if (this.workoutLiftEntity.repRangeTop != null &&
+            this.workoutLiftEntity.repRangeBottom != null &&
+            this.workoutLiftEntity.rpeTarget != null
+        ) {
+            toCalculationStandardWorkoutLift()
+        }
+        else {
+            toCalculationCustomWorkoutLift()
+        }
+    }
+
     fun WorkoutLiftWithRelationships.toDomainModel(): GenericWorkoutLift {
-        return if (customLiftSetEntities.isEmpty()) {
+        return if (this.workoutLiftEntity.repRangeTop != null &&
+            this.workoutLiftEntity.repRangeBottom != null &&
+            this.workoutLiftEntity.rpeTarget != null
+        ) {
             toStandardWorkoutLift()
         }
         else {
@@ -32,6 +51,31 @@ object WorkoutLiftMappingExtensions {
             is CustomWorkoutLift -> toEntity()
             else -> throw ClassNotFoundException("${this::class.simpleName} is not implemented in ${WorkoutLiftMappingExtensions::class.simpleName}")
         }
+    }
+
+    private fun WorkoutLiftWithRelationships.toCalculationStandardWorkoutLift(): CalculationStandardWorkoutLift {
+        return CalculationStandardWorkoutLift(
+            id = this.workoutLiftEntity.id,
+            liftId = this.workoutLiftEntity.liftId,
+            position = this.workoutLiftEntity.position,
+            setCount = this.workoutLiftEntity.setCount,
+            repRangeBottom = this.workoutLiftEntity.repRangeBottom!!,
+            repRangeTop = this.workoutLiftEntity.repRangeTop!!,
+            rpeTarget = this.workoutLiftEntity.rpeTarget!!,
+            progressionScheme = this.workoutLiftEntity.progressionScheme,
+        )
+    }
+
+    private fun WorkoutLiftWithRelationships.toCalculationCustomWorkoutLift(): CalculationCustomWorkoutLift {
+        return CalculationCustomWorkoutLift(
+            id = this.workoutLiftEntity.id,
+            liftId = this.workoutLiftEntity.liftId,
+            position = this.workoutLiftEntity.position,
+            progressionScheme = this.workoutLiftEntity.progressionScheme,
+            customLiftSets = this.customLiftSetEntities
+                .map { it.toCalculationDomainModel() }
+                .sortedBy { it.position }
+        )
     }
 
     private fun WorkoutLiftWithRelationships.toStandardWorkoutLift(): StandardWorkoutLift {

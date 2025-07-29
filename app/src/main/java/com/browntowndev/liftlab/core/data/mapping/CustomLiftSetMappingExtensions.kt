@@ -6,8 +6,19 @@ import com.browntowndev.liftlab.core.domain.models.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.StandardSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardSet
 
 object CustomLiftSetMappingExtensions {
+    fun CustomLiftSetEntity.toCalculationDomainModel(): CalculationCustomLiftSet =
+        when (type) {
+            SetType.STANDARD -> toCalculationStandardSetDto()
+            SetType.MYOREP -> toCalculationMyoRepSetDto()
+            SetType.DROP_SET -> toCalculationDropSetDto()
+        }
+
     /**
      * Maps a [CustomLiftSetEntity] from the persistence layer to a [GenericLiftSet]
      * domain model based on its [SetType].
@@ -34,8 +45,6 @@ object CustomLiftSetMappingExtensions {
             )
         }
     }
-
-// Private helper extension functions to keep the main functions clean
 
     private fun CustomLiftSetEntity.toStandardSetDto(): StandardSet {
         return StandardSet(
@@ -69,6 +78,41 @@ object CustomLiftSetMappingExtensions {
             workoutLiftId = workoutLiftId,
             position = position,
             dropPercentage = dropPercentage!!, // Retain the non-null assertion if it's a required field in the model
+            rpeTarget = rpeTarget,
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+        )
+    }
+
+    private fun CustomLiftSetEntity.toCalculationStandardSetDto(): CalculationStandardSet {
+        return CalculationStandardSet(
+            id = id,
+            position = position,
+            rpeTarget = rpeTarget,
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+        )
+    }
+
+    private fun CustomLiftSetEntity.toCalculationMyoRepSetDto(): CalculationMyoRepSet {
+        return CalculationMyoRepSet(
+            id = id,
+            position = position,
+            rpeTarget = rpeTarget,
+            repFloor = repFloor,
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+            maxSets = maxSets,
+            setMatching = setMatching,
+            setGoal = setGoal!!
+        )
+    }
+
+    private fun CustomLiftSetEntity.toCalculationDropSetDto(): CalculationDropSet {
+        return CalculationDropSet(
+            id = id,
+            position = position,
+            dropPercentage = dropPercentage!!,
             rpeTarget = rpeTarget,
             repRangeBottom = repRangeBottom,
             repRangeTop = repRangeTop,

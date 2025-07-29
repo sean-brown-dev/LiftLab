@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.models
+package com.browntowndev.liftlab.core.domain.models.metadata
 
 data class ActiveProgramMetadata(
     val programId: Long,

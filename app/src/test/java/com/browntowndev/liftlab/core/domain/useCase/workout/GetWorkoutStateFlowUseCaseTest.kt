@@ -2,8 +2,8 @@ package com.browntowndev.liftlab.core.domain.useCase.workout
 
 import app.cash.turbine.test
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -69,7 +69,7 @@ class GetWorkoutStateFlowUseCaseTest {
     fun `when no workout found, emits default data`() = runTest {
         // Given
         val programMetadata = ActiveProgramMetadata(1, "Test", 4, 1, 1, 0, 3)
-        every { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(null)
+        every { workoutsRepository.getByMicrocyclePositionForCalculation(any(), any()) } returns flowOf(null)
 
         // When
         val flow = getWorkoutStateFlowUseCase(programMetadata)
@@ -93,7 +93,7 @@ class GetWorkoutStateFlowUseCaseTest {
         val hydratedWorkout = calculatedWorkout.copy(name = "Hydrated Workout")
         val finalWorkout = hydratedWorkout.copy(name = "Final Workout")
 
-        every { workoutsRepository.getByMicrocyclePosition(any(), any()) } returns flowOf(workout)
+        every { workoutsRepository.getByMicrocyclePositionForCalculation(any(), any()) } returns flowOf(workout)
         coEvery { getPersonalRecordsUseCase(any(), any(), any(), any()) } returns emptyMap<Long, PersonalRecord>()
         every { previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicroFlow(any(), any(), any()) } returns flowOf(emptyList())
         coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns emptyList()

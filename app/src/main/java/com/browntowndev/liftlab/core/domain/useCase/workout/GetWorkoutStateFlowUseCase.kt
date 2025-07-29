@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
 import android.util.Log
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
@@ -9,10 +11,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.models.workout.CalculatedWorkoutData
+import com.browntowndev.liftlab.core.domain.models.CalculatedWorkoutData
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
@@ -23,7 +26,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 
 /**
@@ -35,6 +40,7 @@ class GetWorkoutStateFlowUseCase(
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLogRepository: WorkoutLogRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
+    private val liftsRepository: LiftsRepository,
     private val calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase,
     private val hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase,
     private val hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase,
@@ -58,7 +64,7 @@ class GetWorkoutStateFlowUseCase(
             DEFAULT_LIFT_SPECIFIC_DELOADING
         )
 
-        return workoutsRepository.getByMicrocyclePosition(
+        return workoutsRepository.getByMicrocyclePositionForCalculation(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
         ).flatMapLatest { nullableWorkout ->
@@ -152,6 +158,32 @@ class GetWorkoutStateFlowUseCase(
                     )
                 }.distinctUntilChanged()
             }
+        }.onEach { calculatedWorkoutData ->
+            val liftMetadataFlow = calculatedWorkoutData.calculatedWorkoutPlan?.lifts?.fastMap { it.liftId }
+                ?.let { liftIds ->
+                    liftsRepository.getManyMetadataFlow(liftIds).mapLatest { metadataForLifts ->
+                        metadataForLifts.fastForEach { liftMetadata ->
+                            val liftIndex = calculatedWorkoutData.calculatedWorkoutPlan.lifts.indexOfFirst { it.liftId == liftMetadata.id }
+                            if (liftIndex < 0) return@fastForEach
+                            calculatedWorkoutData.calculatedWorkoutPlan.lifts.toMutableList().apply {
+                                this[liftIndex] = this[liftIndex].copy(
+                                    liftName = liftMetadata.name,
+                                    note = liftMetadata.note,
+                                    liftMovementPattern = liftMetadata.movementPattern,
+                                )
+                            }
+                        }
+                    }.distinctUntilChanged()
+                }
+
+            val workoutMetadataFlow = calculatedWorkoutData.calculatedWorkoutPlan?.id
+                ?.let { workoutId ->
+                    workoutsRepository.getMetadataFlow(workoutId).mapLatest { workoutMetadata ->
+                        calculatedWorkoutData.calculatedWorkoutPlan.copy(
+                            name = workoutMetadata.name,
+                        )
+                    }.distinctUntilChanged()
+                }
         }
     }
 
@@ -161,7 +193,7 @@ class GetWorkoutStateFlowUseCase(
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun getSetResultsFlowInternal(
-        workout: Workout?,
+        workout: CalculationWorkout?,
         programMetadata: ActiveProgramMetadata,
         useAllData: Boolean,
     ): Flow<List<SetResult>> {
@@ -186,7 +218,7 @@ class GetWorkoutStateFlowUseCase(
      * Moved from ViewModel.
      */
     private suspend fun getResultsWithAllWorkoutDataAppendedInternal(
-        workout: Workout,
+        workout: CalculationWorkout,
         resultsFromLastWorkout: List<SetResult>,
     ): List<SetResult> {
         val liftIdsOfResults = resultsFromLastWorkout.map { it.liftId }.toHashSet()
@@ -206,7 +238,7 @@ class GetWorkoutStateFlowUseCase(
      * Internal helper function to get results from all previous workouts.
      */
     private suspend fun getResultsFromAllPreviousWorkouts(
-        workout: Workout,
+        workout: CalculationWorkout,
         liftIdsToSearchFor: List<Long>,
         existingResultsForOtherLifts: List<SetResult>,
         includeDeload: Boolean,

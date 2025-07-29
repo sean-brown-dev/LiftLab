@@ -13,6 +13,10 @@ import com.browntowndev.liftlab.core.data.local.dao.*
 import com.browntowndev.liftlab.core.data.local.entities.*
 import com.browntowndev.liftlab.core.data.local.migrations.*
 import com.browntowndev.liftlab.core.data.local.views.*
+import com.browntowndev.liftlab.core.data.local.views.program.LiveCustomLiftSetView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveProgramView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutLiftView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
 
 @TypeConverters(Converters::class)
 @Database(

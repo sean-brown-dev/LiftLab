@@ -3,10 +3,10 @@ package com.browntowndev.liftlab.core.domain.useCase.workout
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.StandardSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

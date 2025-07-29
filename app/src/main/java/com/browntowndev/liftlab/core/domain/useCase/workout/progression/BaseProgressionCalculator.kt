@@ -6,20 +6,25 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.domain.models.DropSet
-import com.browntowndev.liftlab.core.domain.models.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected fun getDropSetRecommendation(
-        lift: GenericWorkoutLift,
-        set: DropSet,
+        lift: CalculationWorkoutLift,
+        set: CalculationDropSet,
         previousSetWeight: Float?,
     ): Float? {
         return if (previousSetWeight != null) {
@@ -69,7 +74,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         }
     }
 
-    protected fun missedBottomRepRange(result: SetResult?, goals: StandardWorkoutLift): Boolean {
+    protected fun missedBottomRepRange(result: SetResult?, goals: CalculationStandardWorkoutLift): Boolean {
         return if (result != null) {
             missedBottomRepRange(
                 repRangeBottom = goals.repRangeBottom,
@@ -102,7 +107,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         return repsConsideringRpe < minRepsRequiredConsideringRpe
     }
 
-    protected fun incrementWeight(lift: GenericWorkoutLift, prevSet: SetResult): Float {
+    protected fun incrementWeight(lift: CalculationWorkoutLift, prevSet: SetResult): Float {
         return prevSet.weight + (lift.incrementOverride
             ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
     }
@@ -153,7 +158,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             }
     }
 
-    protected fun customSetMeetsCriterion(set: GenericLiftSet, previousSet: SetResult?): Boolean {
+    protected fun customSetMeetsCriterion(set: CalculationCustomLiftSet, previousSet: SetResult?): Boolean {
         return previousSet != null && set.rpeTarget >= previousSet.rpe && set.repRangeTop <= previousSet.reps
     }
 
@@ -169,7 +174,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     }
 
     protected fun customSetMeetsCriterion(
-        set: MyoRepSet,
+        set: CalculationMyoRepSet,
         setData: List<MyoRepSetResult>?,
     ) : Boolean {
         if (setData.isNullOrEmpty()) return false

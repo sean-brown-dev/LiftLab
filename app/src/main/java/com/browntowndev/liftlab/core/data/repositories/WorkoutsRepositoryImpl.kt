@@ -15,7 +15,10 @@ import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toCalculationDomainModel
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -27,6 +30,9 @@ class WorkoutsRepositoryImpl(
     private val workoutsDao: WorkoutsDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutsRepository {
+    override suspend fun getMetadataFlow(id: Long): Flow<WorkoutMetadata> =
+        workoutsDao.getMetadataFlow(id).map { it.toDomainModel() }
+
     override suspend fun updateName(id: Long, newName: String) {
         val current = workoutsDao.getWithoutRelationships(id) ?: return
         val toUpdate = current.copy(name = newName).applyRemoteStorageMetadata(
@@ -221,15 +227,15 @@ class WorkoutsRepositoryImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getByMicrocyclePosition(
+    override fun getByMicrocyclePositionForCalculation(
         programId: Long,
         microcyclePosition: Int,
-    ): Flow<Workout?> {
+    ): Flow<CalculationWorkout?> {
         return workoutsDao.getByMicrocyclePosition(
             programId = programId,
             microcyclePosition = microcyclePosition,
         ).map { workoutEntity ->
-            workoutEntity?.toDomainModel()
+            workoutEntity?.toCalculationDomainModel()
         }
     }
 }

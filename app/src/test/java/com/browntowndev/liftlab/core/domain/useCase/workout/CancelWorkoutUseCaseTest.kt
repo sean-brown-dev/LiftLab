@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import io.mockk.coVerify

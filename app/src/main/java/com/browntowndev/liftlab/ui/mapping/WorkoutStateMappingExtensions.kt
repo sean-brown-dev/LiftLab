@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.mapping
 
-import com.browntowndev.liftlab.core.domain.models.workout.CalculatedWorkoutData
+import com.browntowndev.liftlab.core.domain.models.CalculatedWorkoutData
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 
 object WorkoutStateMappingExtensions {

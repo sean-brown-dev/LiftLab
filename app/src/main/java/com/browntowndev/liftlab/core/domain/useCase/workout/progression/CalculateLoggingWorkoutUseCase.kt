@@ -2,14 +2,14 @@ package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 
 class CalculateLoggingWorkoutUseCase {
     operator fun invoke(
-        workout: Workout,
+        workout: CalculationWorkout,
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         microCycle: Int,
@@ -19,7 +19,6 @@ class CalculateLoggingWorkoutUseCase {
     ): LoggingWorkout {
         var loggingWorkout = LoggingWorkout(
             id = workout.id,
-            name = workout.name,
             lifts = listOf()
         )
 
@@ -53,18 +52,10 @@ class CalculateLoggingWorkoutUseCase {
                         LoggingWorkoutLift(
                             id = workoutLift.id,
                             liftId = workoutLift.liftId,
-                            liftName = workoutLift.liftName,
-                            liftMovementPattern = workoutLift.liftMovementPattern,
-                            liftVolumeTypes = workoutLift.liftVolumeTypes,
-                            liftSecondaryVolumeTypes = workoutLift.liftSecondaryVolumeTypes,
                             deloadWeek = deloadWeek,
                             incrementOverride = workoutLift.incrementOverride,
                             position = workoutLift.position,
                             progressionScheme = workoutLift.progressionScheme,
-                            restTime = workoutLift.restTime,
-                            restTimerEnabled = workoutLift.restTimerEnabled,
-                            setCount = sets.size,
-                            note = workoutLift.liftNote,
                             sets = sets,
                         )
                     )

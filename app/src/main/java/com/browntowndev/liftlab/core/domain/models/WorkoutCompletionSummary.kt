@@ -1,7 +1,6 @@
-package com.browntowndev.liftlab.core.domain.models.workout
+package com.browntowndev.liftlab.core.domain.models
 
 import com.browntowndev.liftlab.core.common.Utils
-import com.browntowndev.liftlab.core.domain.models.LiftCompletionSummary
 import java.util.Date
 
 data class WorkoutCompletionSummary(

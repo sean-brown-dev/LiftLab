@@ -2,13 +2,16 @@ package com.browntowndev.liftlab.core.domain.useCase.workout.progression
 
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
 class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     override fun allSetsMetCriterion(
-        lift: StandardWorkoutLift,
+        lift: CalculationStandardWorkoutLift,
         previousSetResults: List<SetResult>,
     ): Boolean {
         val allSetGoalsMet = previousSetResults.all {
@@ -19,7 +22,7 @@ class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     }
 
     override fun allSetsMetCriterion(
-        lift: CustomWorkoutLift,
+        lift: CalculationCustomWorkoutLift,
         previousSetResults: List<SetResult>,
     ): Boolean {
         val groupedSetData = previousSetResults.groupBy { it.setPosition }
@@ -27,7 +30,7 @@ class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
             groupedSetData.size == lift.setCount &&
                     lift.customLiftSets.all { set ->
                         when (set) {
-                            is MyoRepSet -> {
+                            is CalculationMyoRepSet -> {
                                 customSetMeetsCriterion(
                                     set = set,
                                     setData = groupedSetData[set.position]?.filterIsInstance<MyoRepSetResult>()

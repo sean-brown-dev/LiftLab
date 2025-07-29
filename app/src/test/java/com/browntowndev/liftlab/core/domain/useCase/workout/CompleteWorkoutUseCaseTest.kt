@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.domain.models.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
@@ -17,7 +17,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
