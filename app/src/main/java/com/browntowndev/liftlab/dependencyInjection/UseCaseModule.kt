@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.dependencyInjection
 
+import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.CompleteWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetNewestSetResultsUseCase
@@ -28,4 +30,7 @@ val useCaseModule = module {
     singleOf(::GetWorkoutStateFlowUseCase)
     singleOf(::CompleteWorkoutUseCase)
     singleOf(::CancelWorkoutUseCase)
+
+    singleOf(::GetGroupedLiftMetricChartDataUseCase)
+    singleOf(::GetGroupedVolumeMetricChartDataUseCase)
 }

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getSevenWeeksDateRange
 import com.browntowndev.liftlab.core.common.authStateFlow
 import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
@@ -18,10 +19,12 @@ import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.toVolumeType
 import com.browntowndev.liftlab.core.common.enums.toVolumeTypeImpact
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.extensions.filterByDateRange
 import com.browntowndev.liftlab.core.domain.models.Lift
 import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
@@ -31,6 +34,12 @@ import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
+import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
+import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
+import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
+import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toVolumeMetricChartModels
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
@@ -46,9 +55,11 @@ import dev.gitlive.firebase.auth.FirebaseUser
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.AuthResult
 import com.google.android.gms.tasks.Task
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dev.gitlive.firebase.auth.android
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -63,11 +74,13 @@ import java.util.Date
 
 
 class HomeViewModel(
-    private val programsRepository: ProgramsRepository,
-    private val workoutLogRepository: WorkoutLogRepository,
+    programsRepository: ProgramsRepository,
+    workoutLogRepository: WorkoutLogRepository,
+    liftsRepository: LiftsRepository,
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val volumeMetricChartsRepository: VolumeMetricChartsRepository,
-    private val liftsRepository: LiftsRepository,
+    private val getGroupedLiftMetricChartDataUseCase: GetGroupedLiftMetricChartDataUseCase,
+    private val getGroupedVolumeMetricChartDataUseCase: GetGroupedVolumeMetricChartDataUseCase,
     private val onNavigateToSettingsMenu: () -> Unit,
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
     private val onUserLoggedIn: () -> Unit,
@@ -75,16 +88,30 @@ class HomeViewModel(
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
+    companion object {
+        private const val TAG = "HomeViewModel"
+    }
+
     private var _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
-    // In HomeViewModel
-
     init {
         val dateRange = getSevenWeeksDateRange()
-        val workoutCompletionRange = getLastSevenWeeksRange(dateRange)
+        val workoutCompletionRange = dateRange.getLastSevenWeeksInRange()
+
+        val chartPickerActions = LiftMetricChartOptionActions(
+            onSelectLiftForMetricCharts = ::selectLiftForMetricCharts,
+            onUpdateLiftChartTypeSelections = ::updateLiftChartTypeSelections,
+            onAddVolumeMetricChart = ::addVolumeMetricChart,
+            onUpdateVolumeTypeImpactSelection = ::updateVolumeTypeImpactSelection,
+            onUpdateVolumeTypeSelections = ::updateVolumeTypeSelections
+        )
         _state.update {
-            it.copy(liftMetricOptions = getLiftMetricChartOptions())
+            it.copy(liftMetricOptions =
+                createLiftMetricChartOptions(
+                    actions = chartPickerActions
+                )
+            )
         }
 
         // 1. Source Data Flows
@@ -101,7 +128,7 @@ class HomeViewModel(
             if (logs.isEmpty()) null
             else getWeeklyCompletionChart(
                 workoutCompletionRange = workoutCompletionRange,
-                workoutsInDateRange = getWorkoutsInDateRange(logs, dateRange)
+                workoutsInDateRange = logs.filterByDateRange(dateRange)
             )
         }
 
@@ -113,17 +140,21 @@ class HomeViewModel(
         }
 
         val volumeMetricChartModelsFlow = combine(volumeMetricChartsFlow, workoutLogsFlow, liftsFlow) { charts, logs, allLifts ->
-            getVolumeMetricCharts(
-                volumeMetricCharts = charts,
-                workoutLogs = logs,
-                lifts = allLifts,
+            allLifts.toVolumeMetricChartModels(
+                groupedData = getGroupedVolumeMetricChartDataUseCase(
+                    volumeMetricCharts = charts,
+                    workoutLogs = logs,
+                    lifts = allLifts,
+                )
             )
         }
 
         val liftMetricChartModelsFlow = combine(liftMetricChartsFlow, workoutLogsFlow) { charts, logs ->
-            getLiftMetricCharts(
-                liftMetricCharts = charts,
-                workoutLogs = logs,
+            charts.toChartModels(
+                groupedLogs = getGroupedLiftMetricChartDataUseCase(
+                    liftMetricCharts = charts,
+                    workoutLogs = logs,
+                )
             )
         }
 
@@ -170,6 +201,7 @@ class HomeViewModel(
                 it.copy(
                     firebaseUsername = sourceData.allSourceData.auth?.email,
                     emailVerified = sourceData.allSourceData.auth?.isEmailVerified ?: false,
+                    firebaseError = null,
                     activeProgram = sourceData.allSourceData.program,
                     lifts = sourceData.allSourceData.lifts,
                     workoutLogs = sourceData.allSourceData.logs,
@@ -181,6 +213,10 @@ class HomeViewModel(
                     liftMetricChartModels = charts.liftMetricChartModels
                 )
             }
+        }.catch { exception ->
+            Log.e(TAG, "Error combining flows: $exception", exception)
+            FirebaseCrashlytics.getInstance().recordException(exception)
+            emitUserMessage("Failed to load Home")
         }.launchIn(viewModelScope)
     }
 
@@ -193,187 +229,6 @@ class HomeViewModel(
         }
     }
 
-    private fun getLiftMetricChartOptions(): LiftMetricOptionTree {
-        return LiftMetricOptionTree(
-            completionButtonText = "Next",
-            completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            options = listOf(
-                LiftMetricOptions(
-                    options = listOf("Lift Metrics"),
-                    child = LiftMetricOptions(
-                        options = LiftMetricChartType.entries.map { chartType -> chartType.displayName() },
-                        completionButtonText = "Choose Lift",
-                        completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        onCompletion = { selectLiftForMetricCharts() },
-                        onSelectionChanged = { type, selected ->
-                            updateLiftChartTypeSelections(
-                                type,
-                                selected
-                            )
-                        }
-                    ),
-                    completionButtonText = "Next",
-                    completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                ),
-                LiftMetricOptions(
-                    options = listOf("Volume Metrics"),
-                    child = LiftMetricOptions(
-                        options = VolumeType.entries.map { volumeType ->
-                            volumeType.displayName()
-                        },
-                        child = LiftMetricOptions(
-                            options = VolumeTypeImpact.entries.map { volumeTypeImpact -> volumeTypeImpact.displayName() },
-                            completionButtonText = "Confirm",
-                            completionButtonIcon = Icons.Filled.Check,
-                            onCompletion = { addVolumeMetricChart() },
-                            onSelectionChanged = { type, selected ->
-                                updateVolumeTypeImpactSelection(
-                                    type,
-                                    selected
-                                )
-                            },
-                        ),
-                        completionButtonText = "Next",
-                        completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        onSelectionChanged = { type, selected ->
-                            updateVolumeTypeSelections(
-                                type,
-                                selected
-                            )
-                        },
-                    ),
-                    completionButtonText = "Next",
-                    completionButtonIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                ),
-            )
-        )
-    }
-
-    private fun getSevenWeeksDateRange(): Pair<Date, Date> {
-        val today = LocalDate.now()
-        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
-    }
-
-    private fun getWorkoutsInDateRange(
-        workoutLogs: List<WorkoutLogEntry>,
-        dateRange: Pair<Date, Date>
-    ): List<WorkoutLogEntry> {
-        return workoutLogs
-            .filter { workoutLog ->
-                dateRange.first <= workoutLog.date &&
-                        workoutLog.date <= dateRange.second
-            }
-    }
-
-    private fun getLastSevenWeeksRange(dateRange: Pair<Date, Date>): List<Pair<LocalDate, LocalDate>> {
-        return (0..7).map { i ->
-            val monday = dateRange.first.toLocalDate().plusDays(i * 7L)
-            val sunday = monday.plusDays(6L)
-            monday to sunday
-        }
-    }
-
-    private fun getLiftMetricCharts(
-        liftMetricCharts: List<LiftMetricChart>,
-        workoutLogs: List<WorkoutLogEntry>,
-    ): List<LiftMetricChartModel> {
-        if (liftMetricCharts.isEmpty() || workoutLogs.isEmpty()) return emptyList()
-        return liftMetricCharts.groupBy { it.liftId }.flatMap { liftCharts ->
-            // Filter the workoutEntity logs to only include results for the current chart's liftEntity
-            val resultsForLift = workoutLogs.mapNotNull { workoutLog ->
-                workoutLog.setResults
-                    .filter { it.liftId == liftCharts.key }
-                    .let { filteredResults ->
-                        if (filteredResults.isNotEmpty()) {
-                            workoutLog.copy(
-                                setResults = filteredResults
-                            )
-                        } else {
-                            null
-                        }
-                    }
-            }.sortedBy { it.date }
-
-            // Build all the selected charts for the liftEntity
-            val liftName = resultsForLift.lastOrNull()?.setResults?.get(0)?.liftName
-            if (liftName != null) {
-                liftCharts.value.fastMap { chart ->
-                    LiftMetricChartModel(
-                        id = chart.id,
-                        liftName = liftName,
-                        type = chart.chartType,
-                        chartModel = when (chart.chartType) {
-                            LiftMetricChartType.ESTIMATED_ONE_REP_MAX -> getOneRepMaxChartModel(
-                                resultsForLift,
-                                setOf()
-                            )
-
-                            LiftMetricChartType.VOLUME -> getPerWorkoutVolumeChartModel(
-                                resultsForLift,
-                                setOf()
-                            )
-
-                            LiftMetricChartType.RELATIVE_INTENSITY -> getIntensityChartModel(
-                                resultsForLift,
-                                setOf()
-                            )
-                        }
-                    )
-                }.fastMapNotNull { chartModel ->
-                    if (chartModel.chartModel.chartEntryModel != null) chartModel else null
-                }.sortedBy { it.liftName }
-            } else listOf()
-        }
-    }
-
-    private fun getVolumeMetricCharts(
-        volumeMetricCharts: List<VolumeMetricChart>,
-        workoutLogs: List<WorkoutLogEntry>,
-        lifts: List<Lift>,
-    ): List<VolumeMetricChartModel> {
-        if (volumeMetricCharts.isEmpty() || workoutLogs.isEmpty() || lifts.isEmpty()) return emptyList()
-        val primaryVolumeTypesById = lifts.associate { it.id to it.volumeTypesBitmask }
-        val secondaryVolumeTypesById = lifts.associate { it.id to it.secondaryVolumeTypesBitmask }
-
-        return volumeMetricCharts.mapNotNull { volumeChart ->
-            val workoutLogsForChart = workoutLogs.mapNotNull { workoutLog ->
-                workoutLog.setResults.filter { setLog ->
-                    val primaryVolumeTypes = primaryVolumeTypesById[setLog.liftId]?.getVolumeTypes()?.toHashSet()
-                    val secondaryVolumeTypes = secondaryVolumeTypesById[setLog.liftId]?.getVolumeTypes()?.toHashSet()
-
-                    when (volumeChart.volumeTypeImpact) {
-                        VolumeTypeImpact.COMBINED -> {
-                            primaryVolumeTypes?.contains(volumeChart.volumeType) == true ||
-                                    secondaryVolumeTypes?.contains(volumeChart.volumeType) == true
-                        }
-                        VolumeTypeImpact.PRIMARY -> primaryVolumeTypes?.contains(volumeChart.volumeType) == true
-                        VolumeTypeImpact.SECONDARY -> secondaryVolumeTypes?.contains(volumeChart.volumeType) == true
-                    }
-                }.let { filteredSetLogs ->
-                    if (filteredSetLogs.any()) {
-                        workoutLog.copy(setResults = filteredSetLogs)
-                    } else {
-                        null
-                    }
-                }
-            }
-
-            if (workoutLogsForChart.isNotEmpty()) {
-                VolumeMetricChartModel(
-                    id = volumeChart.id,
-                    volumeType = volumeChart.volumeType.displayName(),
-                    volumeTypeImpact = volumeChart.volumeTypeImpact.displayName(),
-                    chartModel = getPerMicrocycleVolumeChartModel(
-                        workoutLogs = workoutLogsForChart,
-                        secondaryVolumeTypesByLiftId = if (volumeChart.volumeTypeImpact != VolumeTypeImpact.PRIMARY)
-                            secondaryVolumeTypesById else null,
-                    )
-                )
-            } else null
-        }.sortedBy { it.volumeType }
-    }
-
     fun toggleLoginModal() {
         _state.update {
             it.copy(
@@ -382,7 +237,7 @@ class HomeViewModel(
         }
     }
 
-    fun createAccount(email: String, password: String) {
+    fun createAccount(email: String, password: String) = executeWithErrorHandling("Failed to create account.") {
         viewModelScope.launch {
             try {
                 firebaseAuth.createUserWithEmailAndPassword(email, password)
@@ -410,13 +265,6 @@ class HomeViewModel(
             val firebaseUser = task.result?.user
 
             if (firebaseUser != null) {
-                _state.update {
-                    it.copy(
-                        firebaseUsername = firebaseUser.email,
-                        emailVerified = firebaseUser.isEmailVerified,
-                        firebaseError = null,
-                    )
-                }
                 onUserLoggedIn()
                 Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
             } else {
@@ -432,7 +280,7 @@ class HomeViewModel(
     }
 
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String) = executeWithErrorHandling("Failed to log in user.") {
         viewModelScope.launch {
             try {
                 firebaseAuth.signInWithEmailAndPassword(email, password)
@@ -445,29 +293,16 @@ class HomeViewModel(
         }
     }
 
-    fun logout() {
+    fun logout() = executeWithErrorHandling("Failed to log out user.") {
         Log.d("Firebase", "Logging out user ${firebaseAuth.currentUser?.uid}.")
         firebaseAuth.signOut()
-        _state.update {
-            it.copy(
-                firebaseUsername = null,
-                emailVerified = false,
-            )
-        }
     }
 
-    fun signInWithGoogle(signInResult: Result<FirebaseUser?> ) {
+    fun signInWithGoogle(signInResult: Result<FirebaseUser?> ) = executeWithErrorHandling("Failed to authenticate user.") {
         if (signInResult.isSuccess) {
             val firebaseUser: FirebaseUser? = signInResult.getOrNull()
             if (firebaseUser != null) {
-                firebaseAuth.updateCurrentUser(firebaseUser.android)
                 Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
-                _state.update {
-                    it.copy(
-                        firebaseUsername = firebaseUser.displayName ?: firebaseUser.email,
-                        emailVerified = firebaseUser.isEmailVerified,
-                    )
-                }
                 onUserLoggedIn()
             } else {
                 // Should be impossible. The library returns failure if user was null
@@ -528,7 +363,7 @@ class HomeViewModel(
         }
     }
 
-    private fun addVolumeMetricChart() {
+    private fun addVolumeMetricChart() = executeWithErrorHandling("Failed to add volume metric chart") {
         executeInTransactionScope {
             val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
                 VolumeMetricChart(
@@ -555,7 +390,7 @@ class HomeViewModel(
         }
     }
 
-    private fun selectLiftForMetricCharts() {
+    private fun selectLiftForMetricCharts() = executeWithErrorHandling("Failed to select lift for metric charts") {
         viewModelScope.launch {
             val charts = _state.value.liftChartTypeSelections.fastMap {
                 LiftMetricChart(
@@ -569,13 +404,13 @@ class HomeViewModel(
         }
     }
 
-    fun deleteLiftMetricChart(id: Long) {
+    fun deleteLiftMetricChart(id: Long) = executeWithErrorHandling("Failed to delete lift metric chart") {
         executeInTransactionScope {
             liftMetricChartsRepository.deleteById(id)
         }
     }
 
-    fun deleteVolumeMetricChart(id: Long) {
+    fun deleteVolumeMetricChart(id: Long) = executeWithErrorHandling("Failed to delete volume metric chart") {
         executeInTransactionScope {
             volumeMetricChartsRepository.deleteById(id)
         }

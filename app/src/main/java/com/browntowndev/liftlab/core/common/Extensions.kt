@@ -63,6 +63,14 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration
 
 
+fun Pair<Date, Date>.getLastSevenWeeksInRange(): List<Pair<LocalDate, LocalDate>>  {
+    return (0..7).map { i ->
+        val monday = first.toLocalDate().plusDays(i * 7L)
+        val sunday = monday.plusDays(6L)
+        monday to sunday
+    }
+}
+
 fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> {
     return callbackFlow {
         // Create an AuthStateListener. This lambda will be called
