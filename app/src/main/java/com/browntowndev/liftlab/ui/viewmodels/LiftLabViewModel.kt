@@ -31,42 +31,21 @@ abstract class LiftLabViewModel(
         }
     }
 
-    protected fun executeInTransactionScope(action: suspend CoroutineScope.() -> Unit): Job {
-        return viewModelScope.launch {
-            transactionScope.execute {
+    protected suspend fun executeInTransactionScope(toExecute: suspend () -> Unit) {
+        transactionScope.execute {
+            toExecute()
+        }
+    }
+
+    protected fun executeWithErrorHandling(errorMessage: String, action: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
                 action()
+            } catch (e: Exception) {
+                Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+                emitUserMessage(errorMessage)
             }
-        }
-    }
-
-    protected fun executeWithErrorHandling(errorMessage: String, action: () -> Unit) {
-        try {
-            action()
-        } catch (e: Exception) {
-            Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            emitUserMessage(errorMessage)
-        }
-    }
-
-    protected suspend fun executeSuspendWithErrorHandling(errorMessage: String, action: suspend () -> Unit) {
-        try {
-            action()
-        } catch (e: Exception) {
-            Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            emitUserMessage(errorMessage)
-        }
-    }
-
-    protected suspend fun<T> executeSuspendWithErrorHandling(errorMessage: String, default: T, action: suspend () -> T): T {
-        try {
-            return action()
-        } catch (e: Exception) {
-            Log.e("LiftLabViewModel", "Error in executeWithErrorHandling", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            emitUserMessage(errorMessage)
-            return default
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
 import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
@@ -144,7 +143,6 @@ val viewModelModule = module {
     viewModelOf(::LabViewModel)
     viewModelOf(::TopAppBarViewModel)
     viewModelOf(::BottomNavBarViewModel)
-    viewModelOf(::BottomSheetViewModel)
     viewModelOf(::TimerViewModel)
     viewModelOf(::PickerViewModel)
     viewModelOf(::RemoteSyncViewModel)

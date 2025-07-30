@@ -80,7 +80,7 @@ class WorkoutViewModel(
                     )
                 }
             }
-            TopAppBarAction.RestTimerCompleted -> {
+            TopAppBarAction.RestTimerCompleted -> viewModelScope.launch {
                 try {
                     executeInTransactionScope {
                         restTimerInProgressRepository.deleteAll()

@@ -79,7 +79,7 @@ class LabViewModel(
         }
     }
 
-    fun updateDeloadWeek(deloadWeek: Int) {
+    fun updateDeloadWeek(deloadWeek: Int) = executeWithErrorHandling("Error updating deload week") {
         executeInTransactionScope {
             programsRepository.updateDeloadWeek(_state.value.program!!.id, deloadWeek)
             val liftsWithNewStepSizes: Map<Long, StandardWorkoutLift> = if (_state.value.program != null) {
@@ -119,7 +119,7 @@ class LabViewModel(
         }
     }
 
-    fun createProgram(name: String) {
+    fun createProgram(name: String) = executeWithErrorHandling("Error creating program") {
         executeInTransactionScope {
             var newProgram = Program(name = name, isActive = !_state.value.isManagingPrograms)
             if (_state.value.program != null && !_state.value.isManagingPrograms) {
@@ -140,7 +140,7 @@ class LabViewModel(
         }
     }
 
-    private fun createNewWorkout() {
+    private fun createNewWorkout() = executeWithErrorHandling("Error creating workout") {
         executeInTransactionScope {
             val newWorkoutEntity = Workout(
                 programId = _state.value.program!!.id,
@@ -193,7 +193,7 @@ class LabViewModel(
         }
     }
 
-    fun updateWorkoutName(workoutId: Long, newName: String) {
+    fun updateWorkoutName(workoutId: Long, newName: String) = executeWithErrorHandling("Error updating workout name") {
         if (_state.value.originalWorkoutName != newName) {
             executeInTransactionScope {
                 workoutsRepository.updateName(
@@ -216,7 +216,7 @@ class LabViewModel(
         } else collapseEditWorkoutNameModal()
     }
 
-    fun updateProgramName(newName: String) {
+    fun updateProgramName(newName: String) = executeWithErrorHandling("Error updating program name") {
         val program = _state.value.program
         if (program != null && _state.value.originalProgramName != newName) {
             executeInTransactionScope {
@@ -279,7 +279,7 @@ class LabViewModel(
         }
     }
 
-    fun deleteProgram(programId: Long) {
+    fun deleteProgram(programId: Long) = executeWithErrorHandling("Error deleting program") {
         executeInTransactionScope {
             if (_state.value.isManagingPrograms) {
                 val programToDelete = _state.value.allPrograms.find { it.id == programId }!!
@@ -307,7 +307,7 @@ class LabViewModel(
         }
     }
 
-    fun saveReorder(newOrder: List<ReorderableListItem>) {
+    fun saveReorder(newOrder: List<ReorderableListItem>) = executeWithErrorHandling("Error saving reorder") {
         executeInTransactionScope {
             val reorderedWorkouts = newOrder.mapIndexed { index, reorderableListItem ->
                 val workout = _state.value.program!!.workouts.find { workout -> workout.id == reorderableListItem.key }
@@ -348,9 +348,9 @@ class LabViewModel(
         }
     }
 
-    fun setProgramAsActive(programId: Long) {
+    fun setProgramAsActive(programId: Long) = executeWithErrorHandling("Error setting program as active") {
         // ProgramEntity is already active
-        if (_state.value.program?.id == programId) return
+        if (_state.value.program?.id == programId) return@executeWithErrorHandling
 
         executeInTransactionScope {
             val programsToUpdate = mutableListOf<Program>()

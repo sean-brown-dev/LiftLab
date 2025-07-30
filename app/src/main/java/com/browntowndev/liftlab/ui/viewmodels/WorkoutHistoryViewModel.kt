@@ -265,7 +265,7 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun delete(id: Long) {
+    fun delete(id: Long) = executeWithErrorHandling("Failed to delete workout log") {
         executeInTransactionScope {
             workoutLogRepository.deleteWorkoutLogEntry(workoutLogEntryId = id)
         }

@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.copyGeneric
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
@@ -30,6 +31,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.lang.Integer.max
@@ -69,50 +71,52 @@ class EditWorkoutViewModel(
     }
 
     init {
-        executeInTransactionScope {
-            val workoutLog = workoutLogRepository.get(workoutLogEntryId = workoutLogEntryId)
-            val previousResults = workoutLogRepository.getMostRecentSetResultsForLiftIdsPriorToDate(
-                liftIds = workoutLog!!.setResults.map { it.liftId },
-                linearProgressionLiftIds = workoutLog.setResults
-                    .filter { it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
-                    .map { it.liftId }
-                    .toSet(),
-                date = workoutLog.date,
-            )
-            val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousResults = previousResults)
-            mutableWorkoutState.update {
-                it.copy(workout = workout)
-            }
-            val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
-            setResultsRepository.getForWorkoutFlow(
-                workoutId = workoutLog.workoutId,
-                mesoCycle = workoutLog.mesocycle,
-                microCycle = workoutLog.microcycle
-            ).collect { setResults ->
-                _editWorkoutState.update {
-                    it.copy(
-                        duration = workoutLog.durationInMillis.toTimeString(),
-                        setResults = setResults
+        viewModelScope.launch {
+            executeInTransactionScope {
+                val workoutLog = workoutLogRepository.get(workoutLogEntryId = workoutLogEntryId)
+                val previousResults = workoutLogRepository.getMostRecentSetResultsForLiftIdsPriorToDate(
+                    liftIds = workoutLog!!.setResults.map { it.liftId },
+                    linearProgressionLiftIds = workoutLog.setResults
+                        .filter { it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
+                        .map { it.liftId }
+                        .toSet(),
+                    date = workoutLog.date,
+                )
+                val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousResults = previousResults)
+                mutableWorkoutState.update {
+                    it.copy(workout = workout)
+                }
+                val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
+                setResultsRepository.getForWorkoutFlow(
+                    workoutId = workoutLog.workoutId,
+                    mesoCycle = workoutLog.mesocycle,
+                    microCycle = workoutLog.microcycle
+                ).collect { setResults ->
+                    _editWorkoutState.update {
+                        it.copy(
+                            duration = workoutLog.durationInMillis.toTimeString(),
+                            setResults = setResults
+                        )
+                    }
+                }
+
+                mutableWorkoutState.update { currentState ->
+                    currentState.copy(
+                        programMetadata = ActiveProgramMetadata(
+                            programId = 0L,
+                            name = "",
+                            deloadWeek = workoutLog.programDeloadWeek,
+                            workoutCount = workoutLog.programWorkoutCount,
+                            currentMesocycle = workoutLog.mesocycle,
+                            currentMicrocycle = workoutLog.microcycle,
+                            currentMicrocyclePosition = workoutLog.microcyclePosition,
+                        ),
+                        inProgressWorkout = WorkoutInProgressUiModel(
+                            startTime = getCurrentDate(),
+                        ),
+                        completedSets = completedSetResults,
                     )
                 }
-            }
-
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    programMetadata = ActiveProgramMetadata(
-                        programId = 0L,
-                        name = "",
-                        deloadWeek = workoutLog.programDeloadWeek,
-                        workoutCount = workoutLog.programWorkoutCount,
-                        currentMesocycle = workoutLog.mesocycle,
-                        currentMicrocycle = workoutLog.microcycle,
-                        currentMicrocyclePosition = workoutLog.microcyclePosition,
-                    ),
-                    inProgressWorkout = WorkoutInProgressUiModel(
-                        startTime = getCurrentDate(),
-                    ),
-                    completedSets = completedSetResults,
-                )
             }
         }
     }
@@ -120,7 +124,7 @@ class EditWorkoutViewModel(
     @Subscribe
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
-            TopAppBarAction.NavigatedBack -> {
+            TopAppBarAction.NavigatedBack -> viewModelScope.launch {
                 executeInTransactionScope {
                     updateLinearProgressionFailures()
                 }
@@ -363,7 +367,7 @@ class EditWorkoutViewModel(
         super.updateLinearProgressionFailures()
     }
 
-    fun addSet(workoutLiftId: Long) {
+    fun addSet(workoutLiftId: Long) = executeWithErrorHandling("Failed to add set.") {
         executeInTransactionScope {
             var newSet: GenericLoggingSet? = null
             val workoutLiftWithNewSet = mutableWorkoutState.value.workout?.lifts

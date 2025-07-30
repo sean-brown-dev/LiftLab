@@ -172,7 +172,7 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun updateName(newName: String) {
+    fun updateName(newName: String) = executeWithErrorHandling("Error updating lift name") {
         executeInTransactionScope {
             val updatedLift = _state.value.lift!!.copy(name = newName)
             liftsRepository.update(updatedLift)
@@ -251,7 +251,7 @@ class LiftDetailsViewModel(
         updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
     }
 
-    private fun updateVolumeType(newVolumeTypeBitmask: Int, newDisplayNames: List<String>) {
+    private fun updateVolumeType(newVolumeTypeBitmask: Int, newDisplayNames: List<String>) = executeWithErrorHandling("Error updating lift volume types") {
         executeInTransactionScope {
             val updatedLift = _state.value.lift!!.copy(volumeTypesBitmask = newVolumeTypeBitmask)
             liftsRepository.update(updatedLift)
@@ -287,7 +287,7 @@ class LiftDetailsViewModel(
         updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
     }
 
-    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?, newDisplayNames: List<String>) {
+    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?, newDisplayNames: List<String>) = executeWithErrorHandling("Error updating lift secondary volume types") {
         executeInTransactionScope {
             val updatedLift = _state.value.lift!!.copy(secondaryVolumeTypesBitmask = newSecondaryVolumeTypeBitmask)
             liftsRepository.update(updatedLift)
@@ -301,7 +301,7 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun updateMovementPattern(newMovementPattern: MovementPattern) {
+    fun updateMovementPattern(newMovementPattern: MovementPattern) = executeWithErrorHandling("Error updating lift movement pattern") {
         executeInTransactionScope {
             val volumeTypes = VolumeTypeUtils.getDefaultVolumeTypes(newMovementPattern)
             val secondaryVolumeTypes = VolumeTypeUtils.getDefaultSecondaryVolumeTypes(newMovementPattern)

@@ -113,7 +113,7 @@ class SettingsViewModel(
         }
     }
 
-    fun handleLiftSpecificDeloadChange(useLiftLevel: Boolean) {
+    fun handleLiftSpecificDeloadChange(useLiftLevel: Boolean) = executeWithErrorHandling("Failed to update lift specific deload") {
         executeInTransactionScope {
             if (!_state.value.queriedForProgram) {
                 _state.update {
