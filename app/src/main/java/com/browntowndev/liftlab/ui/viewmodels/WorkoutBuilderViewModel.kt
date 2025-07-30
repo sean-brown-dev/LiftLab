@@ -19,6 +19,7 @@ import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.interfaces.transformToType
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
@@ -369,107 +370,11 @@ class WorkoutBuilderViewModel(
     }
 
     fun changeCustomSetType(workoutLiftId: Long, position: Int, newSetType: SetType) = executeWithErrorHandling("Failed to change set type") {
-        val setToTransform = getCustomLiftSetAndLogIfNull<GenericLiftSet>(workoutLiftId, position)
+        val transformedSet = getCustomLiftSetAndLogIfNull<GenericLiftSet>(workoutLiftId, position)?.transformToType(newSetType)
             ?: return@executeWithErrorHandling
 
-        val updatedSet = when (setToTransform) {
-            is StandardSet -> if (newSetType != SetType.STANDARD) {
-                transformCustomLiftSet(
-                    setToTransform,
-                    newSetType
-                )
-            } else setToTransform
-
-            is DropSet -> if (newSetType != SetType.DROP_SET) {
-                transformCustomLiftSet(
-                    setToTransform,
-                    newSetType
-                )
-            } else setToTransform
-
-            is MyoRepSet -> if (newSetType != SetType.MYOREP) {
-                transformCustomLiftSet(
-                    setToTransform,
-                    newSetType
-                )
-            } else setToTransform
-
-            else -> throw Exception("${setToTransform::class.simpleName} cannot have a drop percentage.")
-        }
-
         executeInTransactionScope {
-            customLiftSetsRepository.update(updatedSet)
-        }
-    }
-    private fun transformCustomLiftSet(set: GenericLiftSet, newSetType: SetType): GenericLiftSet {
-        return when (set) {
-            is StandardSet ->
-                when (newSetType) {
-                    SetType.DROP_SET -> DropSet(
-                        id = set.id,
-                        workoutLiftId = set.workoutLiftId,
-                        position = set.position,
-                        dropPercentage = .1f, // TODO: Add a "drop percentage" setting and use it here
-                        rpeTarget = set.rpeTarget,
-                        repRangeBottom = set.repRangeBottom,
-                        repRangeTop = set.repRangeTop,
-                    )
-                    SetType.MYOREP -> MyoRepSet(
-                        id = set.id,
-                        workoutLiftId = set.workoutLiftId,
-                        position = set.position,
-                        repFloor = 5, // TODO: Add a "myo-rep floor" setting and use it here
-                        repRangeTop = set.repRangeTop,
-                        repRangeBottom = set.repRangeBottom,
-                        rpeTarget = set.rpeTarget,
-                        setGoal = 3,
-                    )
-                    SetType.STANDARD -> set
-                }
-            is MyoRepSet ->
-                when (newSetType) {
-                    SetType.DROP_SET -> DropSet(
-                        id = set.id,
-                        workoutLiftId = set.workoutLiftId,
-                        position = set.position,
-                        dropPercentage = .1f, // TODO: Add a "drop percentage" setting and use it here
-                        rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
-                        repRangeBottom = set.repRangeBottom,
-                        repRangeTop = set.repRangeTop,
-                    )
-                    SetType.MYOREP -> set
-                    SetType.STANDARD -> StandardSet(
-                        id = set.id,
-                        workoutLiftId = set.workoutLiftId,
-                        position = set.position,
-                        rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
-                        repRangeBottom = set.repRangeBottom,
-                        repRangeTop = set.repRangeTop,
-                    )
-                }
-            is DropSet ->
-                when (newSetType) {
-                    SetType.DROP_SET -> set
-                    SetType.MYOREP -> MyoRepSet(
-                        id = set.id,
-                        workoutLiftId = set.workoutLiftId,
-                        position = set.position,
-                        repFloor = 5, // TODO: Add a "myo-rep floor" setting and use it here
-                        repRangeBottom = set.repRangeBottom,
-                        repRangeTop = set.repRangeTop,
-                        rpeTarget = set.rpeTarget,
-                        setGoal = 3,
-                    )
-                    SetType.STANDARD -> StandardSet(
-                        id = set.id,
-                        workoutLiftId = set.workoutLiftId,
-                        position = set.position,
-                        rpeTarget = 8f, // TODO: Add a "rpe target" setting and use it here
-                        repRangeBottom = set.repRangeBottom,
-                        repRangeTop = set.repRangeTop,
-                    )
-                }
-            else -> throw Exception("${set::class.simpleName} is not recognized as a custom set type.")
+            customLiftSetsRepository.update(transformedSet)
         }
     }
 
