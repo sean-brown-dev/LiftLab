@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
@@ -8,11 +9,12 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 class CancelWorkoutUseCase(
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
+    private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(
         programMetadata: ActiveProgramMetadata,
         workout: LoggingWorkout,
-    ) {
+    ) = transactionScope.execute {
         // Remove the workoutEntity from in progress
         workoutInProgressRepository.deleteAll()
 

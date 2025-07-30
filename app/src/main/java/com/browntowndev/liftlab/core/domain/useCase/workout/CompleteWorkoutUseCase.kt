@@ -7,6 +7,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
@@ -30,15 +31,15 @@ class CompleteWorkoutUseCase(
     private val workoutLogRepository: WorkoutLogRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
     private val setLogEntryRepository: SetLogEntryRepository,
+    private val transactionScope: TransactionScope,
 ) {
-    // Operator function allows calling it like a function: completeWorkoutUseCase(...)
     suspend operator fun invoke(
-        inProgressWorkout: WorkoutInProgressUiModel, // Pass in the necessary data from the ViewModel's state
+        inProgressWorkout: WorkoutInProgressUiModel,
         programMetadata: ActiveProgramMetadata,
         workout: LoggingWorkout,
         completedSets: List<SetResult>,
         isDeloadWeek: Boolean,
-    ) {
+    ) = transactionScope.execute {
             // Remove the workoutEntity from in progress
             workoutInProgressRepository.deleteAll()
             restTimerInProgressRepository.deleteAll()

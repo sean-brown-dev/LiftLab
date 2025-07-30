@@ -152,6 +152,10 @@ class WorkoutViewModel(
                         restTimerStartedAt = newState.restTimerStartedAt,
                         restTime = newState.restTime,
                         initialized = true,
+                        workoutLogVisible = if (newState.inProgressWorkout == null) false else currentState.workoutLogVisible,
+                        isCompletionSummaryVisible = false,
+                        isDeloadPromptDialogShown = false,
+                        isReordering = false,
                     )
                 }
             }
@@ -171,18 +175,15 @@ class WorkoutViewModel(
 
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) =
         executeWithErrorHandling("Failed to reorder lifts") {
-            executeInTransactionScope {
-                val newWorkoutLiftIndices = newLiftOrder
-                    .mapIndexed { index, item -> item.key to index }
-                    .associate { it.first to it.second }
+            val newWorkoutLiftIndices = newLiftOrder
+                .mapIndexed { index, item -> item.key to index }
+                .associate { it.first to it.second }
 
-                reorderWorkoutLiftsUseCase(
-                    workout = mutableWorkoutState.value.workout!!,
-                    completedSets = mutableWorkoutState.value.completedSets,
-                    newWorkoutLiftIndices = newWorkoutLiftIndices
-                )
-                mutableWorkoutState.update { it.copy(isReordering = false) }
-            }
+            reorderWorkoutLiftsUseCase(
+                workout = mutableWorkoutState.value.workout!!,
+                completedSets = mutableWorkoutState.value.completedSets,
+                newWorkoutLiftIndices = newWorkoutLiftIndices
+            )
         }
 
     fun setWorkoutLogVisibility(visible: Boolean) {
@@ -200,19 +201,13 @@ class WorkoutViewModel(
         }
     }
 
-    fun skipDeloadMicrocycleAndStartWorkout() =
-        executeWithErrorHandling("Failed to skip deload microcycle and start") {
-            executeInTransactionScope {
-                skipDeloadAndStartWorkoutUseCase(
-                    programMetadata = mutableWorkoutState.value.programMetadata!!,
-                    workoutId = mutableWorkoutState.value.workout!!.id,
-                )
-                mutableWorkoutState.update {
-                    it.copy(isDeloadPromptDialogShown = false)
-                }
-                updateStateForStartedWorkout()
-            }
-        }
+    fun skipDeloadMicrocycleAndStartWorkout() = executeWithErrorHandling("Failed to skip deload microcycle and start") {
+        skipDeloadAndStartWorkoutUseCase(
+            programMetadata = mutableWorkoutState.value.programMetadata!!,
+            workoutId = mutableWorkoutState.value.workout!!.id,
+        )
+        updateStateForStartedWorkout()
+    }
 
     fun showDeloadPromptOrStartWorkout() =
         executeWithErrorHandling("Failed to start workout") {
@@ -228,10 +223,8 @@ class WorkoutViewModel(
         }
 
     fun startWorkout() = executeWithErrorHandling("Failed to start workout") {
-        executeInTransactionScope {
-            startWorkoutUseCase(mutableWorkoutState.value.workout!!.id)
-            updateStateForStartedWorkout()
-        }
+        startWorkoutUseCase(mutableWorkoutState.value.workout!!.id)
+        updateStateForStartedWorkout()
     }
 
     private fun updateStateForStartedWorkout() {
@@ -243,25 +236,24 @@ class WorkoutViewModel(
         }
     }
 
-    fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) =
-        executeWithErrorHandling("Failed to share workout summary") {
-            val shareUri: Uri = FileProvider.getUriForFile(
-                context,
-                "com.browntowndev.liftlab.fileprovider",
-                getTempFileFromBitmap(
-                    context = context,
-                    bitmap = workoutSummaryBitmap,
-                    fileName = "workoutSummary.png"
-                )
+    fun shareWorkoutSummary(context: Context, workoutSummaryBitmap: Bitmap) = executeWithErrorHandling("Failed to share workout summary") {
+        val shareUri: Uri = FileProvider.getUriForFile(
+            context,
+            "com.browntowndev.liftlab.fileprovider",
+            getTempFileFromBitmap(
+                context = context,
+                bitmap = workoutSummaryBitmap,
+                fileName = "workoutSummary.png"
             )
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "image/png"
-                putExtra(Intent.EXTRA_STREAM, shareUri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
+        )
+        val intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, shareUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+        context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
+    }
 
     private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
         val file = File(context.cacheDir, fileName)
@@ -273,41 +265,32 @@ class WorkoutViewModel(
         return file
     }
 
-    fun toggleCompletionSummary() =
-        executeWithErrorHandling("Failed to generate workout summary") {
-            mutableWorkoutState.update {
-                it.copy(
-                    isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
-                    workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
-                        getWorkoutCompletionSummaryUseCase(
-                            loggingWorkout = it.workout!!,
-                            personalRecords = it.personalRecords.values.toList(),
-                            completedSets = it.completedSets,
-                        ).toUiModel()
-                    } else null,
-                    isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
-                )
-            }
+    fun toggleCompletionSummary() = executeWithErrorHandling("Failed to generate workout summary") {
+        mutableWorkoutState.update {
+            it.copy(
+                isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
+                workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
+                    getWorkoutCompletionSummaryUseCase(
+                        loggingWorkout = it.workout!!,
+                        personalRecords = it.personalRecords.values.toList(),
+                        completedSets = it.completedSets,
+                    ).toUiModel()
+                } else null,
+                isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
+            )
         }
+    }
 
-    fun finishWorkout() =
-        executeWithErrorHandling("Failed to complete workout") {
-            stopRestTimer()
-            executeInTransactionScope {
-                completeWorkoutUseCase(
-                    inProgressWorkout = mutableWorkoutState.value.inProgressWorkout!!,
-                    programMetadata = mutableWorkoutState.value.programMetadata!!,
-                    workout = mutableWorkoutState.value.workout!!,
-                    completedSets = mutableWorkoutState.value.completedSets,
-                    isDeloadWeek = mutableWorkoutState.value.isDeloadWeek
-                )
-
-                mutableWorkoutState.update {
-                    it.copy(workoutLogVisible = false)
-                }
-                toggleCompletionSummary()
-            }
-        }
+    fun finishWorkout() = executeWithErrorHandling("Failed to complete workout") {
+        stopRestTimer()
+        completeWorkoutUseCase(
+            inProgressWorkout = mutableWorkoutState.value.inProgressWorkout!!,
+            programMetadata = mutableWorkoutState.value.programMetadata!!,
+            workout = mutableWorkoutState.value.workout!!,
+            completedSets = mutableWorkoutState.value.completedSets,
+            isDeloadWeek = mutableWorkoutState.value.isDeloadWeek
+        )
+    }
 
     fun toggleConfirmCancelWorkoutModal() {
         mutableWorkoutState.update {
@@ -321,40 +304,29 @@ class WorkoutViewModel(
         if (mutableWorkoutState.value.isConfirmCancelWorkoutDialogShown)
             toggleConfirmCancelWorkoutModal()
 
+        cancelWorkoutUseCase(
+            programMetadata = mutableWorkoutState.value.programMetadata!!,
+            workout = mutableWorkoutState.value.workout!!
+        )
+    }
+
+    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) = executeWithErrorHandling("Failed to update rest timer") {
         executeInTransactionScope {
-            cancelWorkoutUseCase(
-                programMetadata = mutableWorkoutState.value.programMetadata!!,
-                workout = mutableWorkoutState.value.workout!!
-            )
-            mutableWorkoutState.update {
-                it.copy(
-                    workoutLogVisible = false,
+            mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
+                workoutLift.id == workoutLiftId
+            }?.liftId?.let { liftId ->
+                liftsRepository.updateRestTime(
+                    id = liftId,
+                    enabled = enabled,
+                    newRestTime = newRestTime
                 )
             }
         }
     }
 
-    fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) =
-        executeWithErrorHandling("Failed to update rest timer") {
-            executeInTransactionScope {
-                mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
-                    workoutLift.id == workoutLiftId
-                }?.liftId?.let { liftId ->
-                    liftsRepository.updateRestTime(
-                        id = liftId,
-                        enabled = enabled,
-                        newRestTime = newRestTime
-                    )
-                }
-            }
-        }
-
-    fun updateNote(workoutLiftId: Long, note: String) =
-        executeWithErrorHandling("Failed to update note") {
-            executeInTransactionScope {
-                liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
-            }
-        }
+    fun updateNote(workoutLiftId: Long, note: String) = executeWithErrorHandling("Failed to update note") {
+        liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
+    }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> =
         setResultsRepository.upsertMany(updatedResults)

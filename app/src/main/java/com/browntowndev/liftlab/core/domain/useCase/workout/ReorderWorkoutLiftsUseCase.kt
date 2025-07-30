@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workout
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
@@ -13,12 +14,13 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 class ReorderWorkoutLiftsUseCase(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
+    private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(
         workout: LoggingWorkout,
         completedSets: List<SetResult>,
         newWorkoutLiftIndices: Map<Long, Int>,
-    ) {
+    ) = transactionScope.execute {
         val updatedLifts =
             workoutLiftsRepository.getForWorkout(workout.id)
                 .map {
@@ -30,7 +32,7 @@ class ReorderWorkoutLiftsUseCase(
                 }
         workoutLiftsRepository.updateMany(updatedLifts)
 
-        if (completedSets.isEmpty()) return
+        if (completedSets.isEmpty()) return@execute
         val workoutLiftIdByLiftId = workout.lifts.associate { it.liftId to it.id }
         val updatedInProgressSetResults = completedSets.map { completedSet ->
                 val workoutLiftIdOfCompletedSet = workoutLiftIdByLiftId[completedSet.liftId]
