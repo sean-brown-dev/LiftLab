@@ -243,7 +243,7 @@ class WorkoutBuilderViewModel(
         if (indexOfWorkoutLift == -1) throw Exception("Workout lift not found")
         return workout.copy(
             lifts = workout.lifts.toMutableList().apply {
-                add(indexOfWorkoutLift, copyLift(workoutLift))
+                set(indexOfWorkoutLift, copyLift(workoutLift))
             }
         )
     }
