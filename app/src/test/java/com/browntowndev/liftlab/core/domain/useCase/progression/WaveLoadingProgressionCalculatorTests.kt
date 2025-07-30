@@ -12,7 +12,7 @@ import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationship
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
-import com.browntowndev.liftlab.core.domain.useCase.workout.progression.WaveLoadingProgressionCalculator
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.WaveLoadingProgressionCalculator
 import io.mockk.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals

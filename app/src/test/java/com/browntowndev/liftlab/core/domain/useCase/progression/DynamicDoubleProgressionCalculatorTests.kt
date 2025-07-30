@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
-import com.browntowndev.liftlab.core.domain.useCase.workout.progression.DynamicDoubleProgressionCalculator
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.DynamicDoubleProgressionCalculator
 import io.mockk.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
