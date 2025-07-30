@@ -9,7 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.DELOAD_WEEK_OPTIONS
-import com.browntowndev.liftlab.core.common.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING

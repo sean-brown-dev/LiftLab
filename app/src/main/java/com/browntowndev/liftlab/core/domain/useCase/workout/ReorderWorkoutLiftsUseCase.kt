@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 
-class ReorderLiftsUseCase(
+class ReorderWorkoutLiftsUseCase(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
 ) {

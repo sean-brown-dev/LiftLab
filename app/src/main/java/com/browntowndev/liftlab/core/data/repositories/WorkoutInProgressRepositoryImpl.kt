@@ -24,6 +24,9 @@ class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutInProgressRepository {
+    override suspend fun isWorkoutInProgress(workoutId: Long): Boolean =
+        workoutInProgressDao.getByWorkoutId(workoutId) != null
+
     override suspend fun getAll(): List<WorkoutInProgress> {
         return workoutInProgressDao.getAll().map {
             WorkoutInProgress(

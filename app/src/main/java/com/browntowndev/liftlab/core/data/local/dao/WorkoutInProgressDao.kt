@@ -16,6 +16,9 @@ interface WorkoutInProgressDao: BaseDao<WorkoutInProgressEntity> {
     @Query("SELECT * FROM workoutsInProgress WHERE deleted = 0")
     suspend fun get(): WorkoutInProgressEntity?
 
+    @Query("SELECT * FROM workoutsInProgress WHERE workoutId = :workoutId AND deleted = 0")
+    suspend fun getByWorkoutId(workoutId: Long): WorkoutInProgressEntity?
+
     @Query("SELECT * FROM workoutsInProgress WHERE deleted = 0")
     fun getFlow(): Flow<WorkoutInProgressEntity?>
 

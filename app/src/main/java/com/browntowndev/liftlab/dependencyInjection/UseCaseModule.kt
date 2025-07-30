@@ -10,27 +10,37 @@ import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutCompletion
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithCompletedSetsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.StartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutBuilder.AddSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutBuilder.ConvertWorkoutLiftTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutBuilder.ReorderWorkoutBuilderLiftsUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val useCaseModule = module {
+    // Workout
     singleOf(::CalculateLoggingWorkoutUseCase)
     singleOf(::HydrateLoggingWorkoutWithCompletedSetsUseCase)
     singleOf(::HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase)
     singleOf(::GetWorkoutCompletionSummaryUseCase)
     singleOf(::GetNewestSetResultsUseCase)
     singleOf(::GetPersonalRecordsUseCase)
-    singleOf(::ReorderLiftsUseCase)
+    singleOf(::ReorderWorkoutLiftsUseCase)
     singleOf(::SkipDeloadAndStartWorkoutUseCase)
     singleOf(::StartWorkoutUseCase)
     singleOf(::GetWorkoutStateFlowUseCase)
     singleOf(::CompleteWorkoutUseCase)
     singleOf(::CancelWorkoutUseCase)
 
+    // Home
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
     singleOf(::GetGroupedVolumeMetricChartDataUseCase)
+
+    // Workout Builder
+    singleOf(::ConvertWorkoutLiftTypeUseCase)
+    singleOf(::ReorderWorkoutBuilderLiftsUseCase)
+    singleOf(::AddSetUseCase)
 }

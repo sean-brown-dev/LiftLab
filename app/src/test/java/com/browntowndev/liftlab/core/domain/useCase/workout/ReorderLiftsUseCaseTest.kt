@@ -27,13 +27,13 @@ class ReorderLiftsUseCaseTest {
 
     private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
     private lateinit var setResultsRepository: PreviousSetResultsRepository
-    private lateinit var reorderLiftsUseCase: ReorderLiftsUseCase
+    private lateinit var reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase
 
     @BeforeEach
     fun setUp() {
         workoutLiftsRepository = mockk(relaxed = true)
         setResultsRepository = mockk(relaxed = true)
-        reorderLiftsUseCase = ReorderLiftsUseCase(workoutLiftsRepository, setResultsRepository)
+        reorderWorkoutLiftsUseCase = ReorderWorkoutLiftsUseCase(workoutLiftsRepository, setResultsRepository)
     }
 
     @Test
@@ -112,7 +112,7 @@ class ReorderLiftsUseCaseTest {
         coEvery { workoutLiftsRepository.getForWorkout(workout.id) } returns workoutLifts
 
         // When
-        reorderLiftsUseCase(workout, completedSets, newWorkoutLiftIndices)
+        reorderWorkoutLiftsUseCase(workout, completedSets, newWorkoutLiftIndices)
 
         // Then
         coVerify {
@@ -193,7 +193,7 @@ class ReorderLiftsUseCaseTest {
         coEvery { workoutLiftsRepository.getForWorkout(workout.id) } returns workoutLifts
 
         // When
-        reorderLiftsUseCase(workout, completedSets, newWorkoutLiftIndices)
+        reorderWorkoutLiftsUseCase(workout, completedSets, newWorkoutLiftIndices)
 
         // Then
         coVerify { workoutLiftsRepository.updateMany(any()) }
@@ -254,7 +254,7 @@ class ReorderLiftsUseCaseTest {
 
         // When / Then
         assertThrows<NullPointerException> {
-            reorderLiftsUseCase(workout, emptyList(), newWorkoutLiftIndices)
+            reorderWorkoutLiftsUseCase(workout, emptyList(), newWorkoutLiftIndices)
         }
     }
 }

@@ -13,7 +13,6 @@ data class WorkoutBuilderState (
     val isEditingName: Boolean = false,
     val isReordering: Boolean = false,
     val workoutLiftIdToDelete: Long? = null,
-    val changedSetTypeState: ChangedSetTypeState? = null,
     val pickerState: PickerState? = null,
     val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),
     val workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>> = mapOf(),

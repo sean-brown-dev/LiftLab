@@ -8,7 +8,7 @@ import android.util.Log
 import androidx.compose.ui.util.fastFirst
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.ReorderableListItem
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
@@ -23,7 +23,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workout.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.CompleteWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutStateFlowUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.StartWorkoutUseCase
 import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
@@ -48,7 +48,7 @@ import kotlin.time.Duration
 
 class WorkoutViewModel(
     private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
-    private val reorderLiftsUseCase: ReorderLiftsUseCase,
+    private val reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase,
     private val startWorkoutUseCase: StartWorkoutUseCase,
     private val skipDeloadAndStartWorkoutUseCase: SkipDeloadAndStartWorkoutUseCase,
     private val getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase,
@@ -176,7 +176,7 @@ class WorkoutViewModel(
                     .mapIndexed { index, item -> item.key to index }
                     .associate { it.first to it.second }
 
-                reorderLiftsUseCase(
+                reorderWorkoutLiftsUseCase(
                     workout = mutableWorkoutState.value.workout!!,
                     completedSets = mutableWorkoutState.value.completedSets,
                     newWorkoutLiftIndices = newWorkoutLiftIndices
