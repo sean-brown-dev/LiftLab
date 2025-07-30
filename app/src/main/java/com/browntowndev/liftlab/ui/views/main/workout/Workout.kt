@@ -336,8 +336,8 @@ fun Workout(
                     myoRepSetPosition = myoRepSetPosition,
                 )
             },
-            onNoteChanged = { workoutLiftId, note ->
-              workoutViewModel.updateNote(workoutLiftId = workoutLiftId, note = note)
+            onNoteChanged = { liftId, note ->
+              workoutViewModel.updateNote(liftId = liftId, note = note)
             },
             onReorderLiftsClicked = {
                 workoutViewModel.toggleReorderLifts()
