@@ -11,6 +11,7 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.extensions.getRecalculatedWorkoutLiftStepSizeOptions
+import com.browntowndev.liftlab.core.domain.extensions.transformToType
 import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.DropSet
 import com.browntowndev.liftlab.core.domain.models.MyoRepSet
@@ -19,7 +20,6 @@ import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.interfaces.transformToType
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
