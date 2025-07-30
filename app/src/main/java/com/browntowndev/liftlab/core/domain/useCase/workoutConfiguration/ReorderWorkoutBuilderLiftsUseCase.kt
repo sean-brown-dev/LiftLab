@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -17,12 +18,13 @@ class ReorderWorkoutBuilderLiftsUseCase(
     private val programsRepository: ProgramsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
+    private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(
         workoutId: Long,
         workoutLifts: List<GenericWorkoutLift>,
         newWorkoutLiftIndices: Map<Long, Int>,
-    ) {
+    ) = transactionScope.execute {
         val updatedWorkoutLifts = workoutLifts.fastMap { lift ->
             when(lift) {
                 is StandardWorkoutLift -> lift.copy(position = newWorkoutLiftIndices[lift.id]!!)

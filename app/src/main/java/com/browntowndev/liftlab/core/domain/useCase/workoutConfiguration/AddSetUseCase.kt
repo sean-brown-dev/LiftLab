@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -9,11 +10,12 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 class AddSetUseCase(
     private val customLiftSetsRepository: CustomLiftSetsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(
         workoutLifts: List<GenericWorkoutLift>,
         workoutLiftId: Long,
-    ) {
+    ) = transactionScope.execute {
         val workoutLift = workoutLifts
             .filterIsInstance<CustomWorkoutLift>()
             .find { it.id == workoutLiftId }!!

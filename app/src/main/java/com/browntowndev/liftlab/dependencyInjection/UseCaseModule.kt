@@ -24,8 +24,14 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResu
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -55,11 +61,17 @@ val useCaseModule = module {
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
     singleOf(::GetGroupedVolumeMetricChartDataUseCase)
 
-    // Workout Builder
-    singleOf(::GetWorkoutConfigurationStateFlowUseCase)
-    singleOf(::ConvertWorkoutLiftTypeUseCase)
-    singleOf(::ReorderWorkoutBuilderLiftsUseCase)
+    // Workout Configuration
     singleOf(::AddSetUseCase)
+    singleOf(::ConvertWorkoutLiftTypeUseCase)
+    singleOf(::DeleteCustomLiftSetByPositionUseCase)
+    singleOf(::DeleteWorkoutLiftUseCase)
+    singleOf(::GetWorkoutConfigurationStateFlowUseCase)
+    singleOf(::ReorderWorkoutBuilderLiftsUseCase)
+    singleOf(::UpdateCustomLiftSetUseCase)
+    singleOf(::UpdateLiftIncrementOverrideUseCase)
+    singleOf(::UpdateWorkoutLiftUseCase)
+    singleOf(::UpdateWorkoutNameUseCase)
 
     // Shared
     singleOf(::UpdateRestTimeUseCase)

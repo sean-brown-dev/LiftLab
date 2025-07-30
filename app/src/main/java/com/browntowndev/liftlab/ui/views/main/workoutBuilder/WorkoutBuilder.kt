@@ -310,7 +310,7 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     onToggleRpePicker = {
-                                        workoutBuilderViewModel.togglePicker(
+                                        workoutBuilderViewModel.toggleRpePicker(
                                             workoutLiftId = workoutLift.id,
                                             visible = it,
                                             currentRpe = rpeTarget,
@@ -411,7 +411,7 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     toggleRpePicker = { position, visible, currentRpe ->
-                                        workoutBuilderViewModel.togglePicker(
+                                        workoutBuilderViewModel.toggleRpePicker(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             visible = visible,
@@ -424,7 +424,7 @@ fun WorkoutBuilder(
                                         }
                                     },
                                     togglePercentagePicker = { position, visible, currentPercentage ->
-                                        workoutBuilderViewModel.togglePicker(
+                                        workoutBuilderViewModel.toggleRpePicker(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             visible = visible,
