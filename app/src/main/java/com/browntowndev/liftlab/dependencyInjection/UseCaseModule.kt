@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResu
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -55,6 +56,7 @@ val useCaseModule = module {
     singleOf(::GetGroupedVolumeMetricChartDataUseCase)
 
     // Workout Builder
+    singleOf(::GetWorkoutConfigurationStateFlowUseCase)
     singleOf(::ConvertWorkoutLiftTypeUseCase)
     singleOf(::ReorderWorkoutBuilderLiftsUseCase)
     singleOf(::AddSetUseCase)
