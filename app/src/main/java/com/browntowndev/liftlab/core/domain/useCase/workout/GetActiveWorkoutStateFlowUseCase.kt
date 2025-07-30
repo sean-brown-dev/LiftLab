@@ -1,0 +1,53 @@
+package com.browntowndev.liftlab.core.domain.useCase.workout
+
+import com.browntowndev.liftlab.core.common.toDate
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.ActiveWorkoutState
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.ui.mapping.WorkoutStateMappingExtensions.toUiModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+
+class GetActiveWorkoutStateFlowUseCase(
+    private val programsRepository: ProgramsRepository,
+    private val workoutInProgressRepository: WorkoutInProgressRepository,
+    private val restTimerInProgressRepository: RestTimerInProgressRepository,
+    private val getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase
+) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    operator fun invoke(): Flow<ActiveWorkoutState> {
+        val restTimerFlow = restTimerInProgressRepository.getFlow()
+        return programsRepository.getActiveProgramMetadataFlow()
+            .flatMapLatest { programMetadata ->
+                if (programMetadata == null) flowOf(ActiveWorkoutState())
+                else {
+                    val workoutInProgressFlow = workoutInProgressRepository.getFlow(
+                        programMetadata.currentMesocycle,
+                        programMetadata.currentMicrocycle
+                    )
+                    combine(
+                        workoutInProgressFlow,
+                        getWorkoutStateFlowUseCase(programMetadata),
+                    ) { inProgressWorkout, calculatedWorkoutData ->
+                        val workoutStateFromCalculatedData = calculatedWorkoutData.toUiModel()
+                        ActiveWorkoutState(
+                            programMetadata = programMetadata,
+                            inProgressWorkout = inProgressWorkout,
+                            workout = workoutStateFromCalculatedData.workout,
+                            completedSets = workoutStateFromCalculatedData.completedSets,
+                            personalRecords = calculatedWorkoutData.personalRecords,
+                        )
+                    }
+                }
+            }.combine(restTimerFlow) { newState, restTimerInProgress ->
+                newState.copy(
+                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
+                    restTime = restTimerInProgress?.restTime ?: 0L,
+                )
+            }
+    }
+}

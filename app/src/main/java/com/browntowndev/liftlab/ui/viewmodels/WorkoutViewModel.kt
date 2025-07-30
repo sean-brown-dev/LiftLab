@@ -14,18 +14,26 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import com.browntowndev.liftlab.core.domain.useCase.shared.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.CompleteWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.DeleteSetResultByIdUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.GetActiveWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.InsertRestTimerInProgressUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderWorkoutLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.RestTimerCompletedUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.StartWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.UpdateLiftNoteUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.UpsertManySetResultsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.UpsertSetResultUseCase
 import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutStateMappingExtensions.toUiModel
@@ -37,6 +45,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -51,14 +60,16 @@ class WorkoutViewModel(
     private val reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase,
     private val startWorkoutUseCase: StartWorkoutUseCase,
     private val skipDeloadAndStartWorkoutUseCase: SkipDeloadAndStartWorkoutUseCase,
-    private val getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase,
+    private val getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
     private val completeWorkoutUseCase: CompleteWorkoutUseCase,
     private val cancelWorkoutUseCase: CancelWorkoutUseCase,
-    private val programsRepository: ProgramsRepository,
-    private val setResultsRepository: PreviousSetResultsRepository,
-    private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val restTimerInProgressRepository: RestTimerInProgressRepository,
-    private val liftsRepository: LiftsRepository,
+    private val upsertManySetResultsUseCase: UpsertManySetResultsUseCase,
+    private val upsertSetResultUseCase: UpsertSetResultUseCase,
+    private val deleteSetResultByIdUseCase: DeleteSetResultByIdUseCase,
+    private val insertRestTimerInProgressUseCase: InsertRestTimerInProgressUseCase,
+    private val updateRestTimeUseCase: UpdateRestTimeUseCase,
+    private val restTimerCompletedUseCase: RestTimerCompletedUseCase,
+    private val updateLiftNoteUseCase: UpdateLiftNoteUseCase,
     private val navigateToWorkoutHistory: () -> Unit,
     private val cancelRestTimer: () -> Unit,
     transactionScope: TransactionScope,
@@ -67,6 +78,10 @@ class WorkoutViewModel(
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
+    companion object {
+        private const val TAG = "WorkoutViewModel"
+    }
+
     @Subscribe
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
@@ -82,12 +97,7 @@ class WorkoutViewModel(
             }
             TopAppBarAction.RestTimerCompleted -> viewModelScope.launch {
                 try {
-                    executeInTransactionScope {
-                        restTimerInProgressRepository.deleteAll()
-                        mutableWorkoutState.update {
-                            it.copy(restTimerStartedAt = null)
-                        }
-                    }
+                    restTimerCompletedUseCase()
                 } catch (e: Exception) {
                     Log.e("WorkoutViewModel", "Error handling rest timer completion", e)
                     FirebaseCrashlytics.getInstance().recordException(e)
@@ -112,59 +122,39 @@ class WorkoutViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun initialize() {
-        val restTimerFlow = restTimerInProgressRepository.getFlow()
-        programsRepository.getActiveProgramMetadataFlow()
-            .flatMapLatest { programMetadata ->
-                if (programMetadata == null) flowOf(WorkoutState())
-                else {
-                    val workoutInProgressFlow = workoutInProgressRepository.getFlow(
-                        programMetadata.currentMesocycle,
-                        programMetadata.currentMicrocycle
-                    )
-                    combine(
-                        workoutInProgressFlow,
-                        getWorkoutStateFlowUseCase(programMetadata),
-                    ) { inProgressWorkout, calculatedWorkoutData ->
-                        val workoutStateFromCalculatedData = calculatedWorkoutData.toUiModel()
-                        WorkoutState(
-                            programMetadata = programMetadata,
-                            inProgressWorkout = inProgressWorkout?.toUiModel(),
-                            completedSets = workoutStateFromCalculatedData.completedSets,
-                            workout = workoutStateFromCalculatedData.workout,
-                            personalRecords = calculatedWorkoutData.personalRecords,
-                        )
-                    }
-                }
-            }.combine(restTimerFlow) { newState, restTimerInProgress ->
-                newState.copy(
-                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
-                    restTime = restTimerInProgress?.restTime ?: 0L,
+        getActiveWorkoutStateFlowUseCase().map { activeWorkoutState ->
+            WorkoutState(
+                inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
+                completedSets = activeWorkoutState.completedSets,
+                programMetadata = activeWorkoutState.programMetadata,
+                workout = activeWorkoutState.workout,
+                personalRecords = activeWorkoutState.personalRecords,
+                restTimerStartedAt = activeWorkoutState.restTimerStartedAt,
+                restTime = activeWorkoutState.restTime,
+                initialized = true,
+            )
+        }.onEach { newUiState ->
+            mutableWorkoutState.update { currentState ->
+                currentState.copy(
+                    inProgressWorkout = newUiState.inProgressWorkout,
+                    completedSets = newUiState.completedSets,
+                    programMetadata = newUiState.programMetadata,
+                    workout = newUiState.workout,
+                    personalRecords = newUiState.personalRecords,
+                    restTimerStartedAt = newUiState.restTimerStartedAt,
+                    restTime = newUiState.restTime,
+                    initialized = true,
+                    workoutLogVisible = if (newUiState.inProgressWorkout == null) false else currentState.workoutLogVisible,
+                    isCompletionSummaryVisible = false,
+                    isDeloadPromptDialogShown = false,
+                    isReordering = false,
                 )
             }
-            .onEach { newState ->
-                mutableWorkoutState.update { currentState ->
-                    currentState.copy(
-                        inProgressWorkout = newState.inProgressWorkout,
-                        completedSets = newState.completedSets,
-                        programMetadata = newState.programMetadata,
-                        workout = newState.workout,
-                        personalRecords = newState.personalRecords,
-                        restTimerStartedAt = newState.restTimerStartedAt,
-                        restTime = newState.restTime,
-                        initialized = true,
-                        workoutLogVisible = if (newState.inProgressWorkout == null) false else currentState.workoutLogVisible,
-                        isCompletionSummaryVisible = false,
-                        isDeloadPromptDialogShown = false,
-                        isReordering = false,
-                    )
-                }
-            }
-            .catch { e ->
-                Log.e("WorkoutViewModel", "Error in initialize", e)
-                FirebaseCrashlytics.getInstance().recordException(e)
-                emitUserMessage("An unexpected error occurred during initialization. Please restart the app.")
-            }
-            .launchIn(viewModelScope)
+        }.catch { e ->
+            Log.e("WorkoutViewModel", "Error in initialize", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            emitUserMessage("An unexpected error occurred during initialization. Please restart the app.")
+        }.launchIn(viewModelScope)
     }
 
     fun toggleReorderLifts() {
@@ -311,38 +301,46 @@ class WorkoutViewModel(
     }
 
     fun updateRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) = executeWithErrorHandling("Failed to update rest timer") {
-        executeInTransactionScope {
-            mutableWorkoutState.value.workout?.lifts?.fastFirst { workoutLift ->
-                workoutLift.id == workoutLiftId
-            }?.liftId?.let { liftId ->
-                liftsRepository.updateRestTime(
-                    id = liftId,
-                    enabled = enabled,
-                    newRestTime = newRestTime
-                )
-            }
-        }
+        val workoutLift = getWorkoutLiftAndLogIfNull(workoutLiftId) ?: return@executeWithErrorHandling
+        updateRestTimeUseCase(
+            liftId = workoutLift.liftId,
+            enabled = enabled,
+            restTime = newRestTime
+        )
     }
 
-    fun updateNote(workoutLiftId: Long, note: String) = executeWithErrorHandling("Failed to update note") {
-        liftsRepository.updateNote(workoutLiftId, note.ifEmpty { null })
+    fun updateNote(liftId: Long, note: String) = executeWithErrorHandling("Failed to update note") {
+        updateLiftNoteUseCase(liftId, note)
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> =
-        setResultsRepository.upsertMany(updatedResults)
+        upsertManySetResultsUseCase(updatedResults)
 
     override suspend fun upsertSetResult(updatedResult: SetResult): Long =
-        setResultsRepository.upsert(updatedResult)
+        upsertSetResultUseCase(updatedResult)
 
-    override suspend fun deleteSetResult(id: Long) {
-        setResultsRepository.deleteById(id)
-    }
+    override suspend fun deleteSetResult(id: Long) =
+        deleteSetResultByIdUseCase(id)
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {
-        restTimerInProgressRepository.insert(restTime)
+        insertRestTimerInProgressUseCase(restTime)
     }
 
     override fun stopRestTimer() {
         cancelRestTimer()
+    }
+
+    private fun getWorkoutLiftAndLogIfNull(workoutLiftId: Long): LoggingWorkoutLift? {
+        val workoutLift = mutableWorkoutState.value.workout?.lifts
+            ?.find { it.id == workoutLiftId }
+
+        if (workoutLift == null) {
+            emitUserMessage("Must be standard workoutEntity liftEntity.")
+            val exception = Exception("Must be standard workoutEntity liftEntity.")
+            Log.e(TAG, "Must be standard workoutEntity liftEntity.", exception)
+            FirebaseCrashlytics.getInstance().recordException(exception)
+        }
+
+        return workoutLift
     }
 }
