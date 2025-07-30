@@ -27,6 +27,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
@@ -50,13 +51,13 @@ import kotlin.time.Duration
 class WorkoutBuilderViewModel(
     private val workoutId: Long,
     private val onNavigateBack: () -> Unit,
-    private val programsRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val customLiftSetsRepository: CustomLiftSetsRepository,
     private val liftsRepository: LiftsRepository,
     private val convertWorkoutLiftTypeUseCase: ConvertWorkoutLiftTypeUseCase,
     private val reorderWorkoutBuilderLiftsUseCase: ReorderWorkoutBuilderLiftsUseCase,
+    getWorkoutConfigurationStateFlowUseCase: GetWorkoutConfigurationStateFlowUseCase,
     private val addSetUseCase: AddSetUseCase,
     private val liftLevelDeloadsEnabled: Boolean,
     transactionScope: TransactionScope,
@@ -71,45 +72,31 @@ class WorkoutBuilderViewModel(
     val state = _state.asStateFlow()
 
     init {
-        workoutsRepository.getFlow(workoutId)
-            .distinctUntilChanged()
-            .map { workout ->
-                Log.d(TAG, "workoutEntity=$workout")
-
-                WorkoutBuilderState(
-                    workout = workout,
+        getWorkoutConfigurationStateFlowUseCase(
+            workoutId = workoutId,
+            liftLevelDeloadsEnabled = liftLevelDeloadsEnabled
+        ).map { workoutConfigurationState ->
+            WorkoutBuilderState(
+                workout = workoutConfigurationState.workout,
+                programDeloadWeek = workoutConfigurationState.programDeloadWeek ?: DEFAULT_PROGRAM_DELOAD_WEEK,
+                workoutLiftStepSizeOptions = workoutConfigurationState.workoutLiftStepSizeOptions,
+            )
+        }.onEach { state ->
+            _state.update { currentState ->
+                currentState.copy(
+                    workout = state.workout,
+                    programDeloadWeek = state.programDeloadWeek,
+                    workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
+                    workoutLiftIdToDelete = null,
+                    isReordering = false,
+                    isEditingName = false,
                 )
-            }.scan(WorkoutBuilderState()) { oldState, newState ->
-                val programDeloadWeek =
-                    if (newState.workout != null && newState.workout.programId != oldState.workout?.programId) {
-                        programsRepository.getDeloadWeek(newState.workout.programId)
-                    } else oldState.programDeloadWeek
-
-                WorkoutBuilderState(
-                    workout = newState.workout,
-                    programDeloadWeek = programDeloadWeek,
-                    workoutLiftStepSizeOptions = newState.workout?.getRecalculatedWorkoutLiftStepSizeOptions(
-                        programDeloadWeek = programDeloadWeek!!,
-                        liftLevelDeloadsEnabled = liftLevelDeloadsEnabled,
-                    ) ?: mapOf()
-                )
-            }.onEach { state ->
-                _state.update { currentState ->
-                    currentState.copy(
-                        workout = state.workout,
-                        programDeloadWeek = state.programDeloadWeek,
-                        workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
-                        workoutLiftIdToDelete = null,
-                        isReordering = false,
-                        isEditingName = false,
-                    )
-                }
             }
-            .catch {
-                Log.e(TAG, "Error getting workout", it)
-                FirebaseCrashlytics.getInstance().recordException(it)
-                emitUserMessage("Failed to load workout builder")
-            }.launchIn(viewModelScope)
+        }.catch {
+            Log.e(TAG, "Error getting workout", it)
+            FirebaseCrashlytics.getInstance().recordException(it)
+            emitUserMessage("Failed to load workout builder")
+        }.launchIn(viewModelScope)
     }
 
     @Subscribe

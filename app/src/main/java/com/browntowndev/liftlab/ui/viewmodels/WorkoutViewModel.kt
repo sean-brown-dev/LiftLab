@@ -44,12 +44,13 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.time.Duration
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutViewModel(
     private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
     private val reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase,
     private val startWorkoutUseCase: StartWorkoutUseCase,
     private val skipDeloadAndStartWorkoutUseCase: SkipDeloadAndStartWorkoutUseCase,
-    private val getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
+    getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
     private val completeWorkoutUseCase: CompleteWorkoutUseCase,
     private val cancelWorkoutUseCase: CancelWorkoutUseCase,
     private val upsertManySetResultsUseCase: UpsertManySetResultsUseCase,
@@ -106,11 +107,6 @@ class WorkoutViewModel(
     }
 
     init {
-        initialize()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun initialize() {
         getActiveWorkoutStateFlowUseCase().map { activeWorkoutState ->
             WorkoutState(
                 inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
