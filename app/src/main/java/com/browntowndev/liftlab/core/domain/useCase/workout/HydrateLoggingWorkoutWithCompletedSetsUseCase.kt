@@ -11,13 +11,24 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
 import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
+/**
+ * Hydrates the lifts in a logging workout with the latest set results.
+ */
 class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     companion object {
         private const val TAG = "HydrateLoggingWorkoutWithCompletedSetsUseCase"
     }
+
+    private data class SetResultKey(
+        val liftId: Long,
+        val liftPosition: Int,
+        val setPosition: Int,
+        val myoRepSetPosition: Int?,
+    )
 
     operator fun invoke(
         liftsToHydrate: List<LoggingWorkoutLift>,
@@ -25,70 +36,100 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         microCycle: Int,
     ): List<LoggingWorkoutLift> {
         return if (setResults.isNotEmpty() || liftsToHydrate.any { it.sets.any { set -> set.complete } }) {
-            liftsToHydrate
-                .fastMap { workoutLift ->
-                    val inProgressCompletedSetsForLift =
-                        setResults.filter { it.liftId == workoutLift.liftId && it.liftPosition == workoutLift.position }
-                    workoutLift.copy(
-                        sets =
-                            getSetsWithUpdatedCompletionData(
-                                workoutLift = workoutLift,
-                                inProgressCompletedSets = inProgressCompletedSetsForLift,
-                                isDeloadWeek = (microCycle + 1) == workoutLift.deloadWeek,
-                            )
-                    )
-                }
+            liftsToHydrate.fastMap { workoutLift ->
+                workoutLift.copy(
+                    sets =
+                        getSetsWithUpdatedCompletionData(
+                            workoutLift = workoutLift,
+                            allSetResults = setResults,
+                            isDeloadWeek = (microCycle + 1) == workoutLift.deloadWeek,
+                        )
+                )
+            }
         } else liftsToHydrate
     }
 
     private fun getSetsWithUpdatedCompletionData(
         workoutLift: LoggingWorkoutLift,
-        inProgressCompletedSets: List<SetResult>,
+        allSetResults: List<SetResult>,
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
-        val setResultsByKey = inProgressCompletedSets.associateBy { setResult ->
+        val setResultsByKey = allSetResults.associateBy { setResult ->
             val myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
-            "${workoutLift.liftId}-${setResult.setPosition}-$myoRepSetPosition"
+            SetResultKey(
+                liftId = setResult.liftId,
+                liftPosition = setResult.liftPosition,
+                setPosition = setResult.setPosition,
+                myoRepSetPosition = myoRepSetPosition,
+            )
         }
+
         var lastCompletedStandardSet: GenericLoggingSet? = null
-        return workoutLift.sets.map { set ->
-            val currSetKey = "${workoutLift.liftId}-${set.position}-${(set as? LoggingMyoRepSet)?.myoRepSetPosition}"
+
+        // Using .map is still the right, functional approach.
+        val updatedSets = workoutLift.sets.map { set ->
+            val currSetKey = SetResultKey(
+                liftId = workoutLift.liftId,
+                liftPosition = workoutLift.position,
+                setPosition = set.position,
+                myoRepSetPosition = (set as? LoggingMyoRepSet)?.myoRepSetPosition,
+            )
             val completedSetResult = setResultsByKey[currSetKey]
 
-            val updatedSet = (if (completedSetResult != null) {
-                set.copyCompletionData(
-                    complete = true,
-                    completedWeight = completedSetResult.weight,
-                    completedReps = completedSetResult.reps,
-                    completedRpe = completedSetResult.rpe,
-                )
-            } else if (
-                set !is LoggingMyoRepSet &&
-                set.weightRecommendation == null &&
-                lastCompletedStandardSet != null
-            ) {
-                getWithWeightRecommendation(
-                    workoutLift = workoutLift,
-                    set = set,
-                    lastCompletedStandardSet = lastCompletedStandardSet)
-            } else set).let { setToCheckForIncompletion ->
-                Log.d(TAG, "setToCheckForIncompletion: $setToCheckForIncompletion")
-                if (completedSetResult == null && setToCheckForIncompletion.complete) {
-                    setToCheckForIncompletion.copyCompletionData(
+            val updatedSet = when {
+                // Case 1: A result exists for this set.
+                completedSetResult != null -> {
+                    // Only copy if data is actually different.
+                    if (set.isCompleteWithSameDataAs(completedSetResult)) {
+                        set // Return the original object
+                    } else {
+                        // Data is new or different, so we must copy.
+                        set.copyCompletionData(
+                            complete = true,
+                            completedWeight = completedSetResult.weight,
+                            completedReps = completedSetResult.reps,
+                            completedRpe = completedSetResult.rpe,
+                        )
+                    }
+                }
+
+                // Case 2: No set result, but it's currently marked as complete.
+                // This means it needs to be "un-completed".
+                set.complete -> {
+                    set.copyCompletionData(
                         complete = false,
-                        completedWeight = null,
-                        completedReps = null,
-                        completedRpe = null,
+                        completedWeight = set.completedWeight, // Keep old data, more convenient
+                        completedReps = set.completedReps,
+                        completedRpe = set.completedRpe,
                     )
-                } else setToCheckForIncompletion
+                }
+
+                // Case 3: No result, not complete, and previous is complete, update weight recommendation
+                set !is LoggingMyoRepSet && lastCompletedStandardSet?.position == set.position - 1 -> {
+                    getWithWeightRecommendation(
+                        workoutLift = workoutLift,
+                        set = set,
+                        lastCompletedStandardSet = lastCompletedStandardSet
+                    )
+                }
+
+                // Case 4: None of the above apply, return the set as-is.
+                else -> set
             }
 
-            lastCompletedStandardSet = if (updatedSet.complete && updatedSet is LoggingStandardSet ||
-                updatedSet is LoggingMyoRepSet && updatedSet.myoRepSetPosition == null) updatedSet
-            else lastCompletedStandardSet
-            Log.d(TAG, "updatedSet: $updatedSet")
+            // Update the last completed set for the next iteration.
+            lastCompletedStandardSet = if (updatedSet.complete && (updatedSet is LoggingStandardSet ||
+                        (updatedSet is LoggingMyoRepSet && updatedSet.myoRepSetPosition == null))) {
+                updatedSet
+            } else {
+                lastCompletedStandardSet
+            }
+
             updatedSet
-        }.toMutableList().apply {
+        }
+
+        // Add new myo reps if needed
+        return updatedSets.toMutableList().apply {
             addNextMyoRepsToComplete(isDeloadWeek, workoutLift)
         }
     }
@@ -111,11 +152,13 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         }
 
         is LoggingStandardSet -> {
-            val weightRecommendation = if (
-                lastCompletedStandardSet.completedReps!! < lastCompletedStandardSet.repRangeBottom!! &&
-                lastCompletedStandardSet.completedRpe!! > lastCompletedStandardSet.rpeTarget
-            ) {
-                WeightCalculationUtils.Companion.calculateSuggestedWeight(
+            val lastMissedGoal = lastCompletedStandardSet.completedReps!! < lastCompletedStandardSet.repRangeBottom!! ||
+                    lastCompletedStandardSet.completedRpe!! > lastCompletedStandardSet.rpeTarget
+            val lastGoalDiffered = lastCompletedStandardSet.repRangeBottom != set.repRangeBottom ||
+                    lastCompletedStandardSet.rpeTarget != set.rpeTarget
+
+            val weightRecommendation = if (lastMissedGoal || lastGoalDiffered) {
+                WeightCalculationUtils.calculateSuggestedWeight(
                     completedWeight = lastCompletedStandardSet.completedWeight!!,
                     completedReps = lastCompletedStandardSet.completedReps!!,
                     completedRpe = lastCompletedStandardSet.completedRpe!!,
@@ -127,7 +170,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     ),
                 )
             }
-            else lastCompletedStandardSet.weightRecommendation
+            else set.weightRecommendation ?: lastCompletedStandardSet.completedWeight
             set.copy(weightRecommendation = weightRecommendation)
         }
         else -> throw Exception("${set::class.simpleName} is not defined.")

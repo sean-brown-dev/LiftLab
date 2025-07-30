@@ -14,11 +14,11 @@ import kotlin.time.Duration.Companion.seconds
 
 class HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCaseTest {
 
-    private lateinit var useCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
+    private lateinit var useCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase
 
     @BeforeEach
     fun setUp() {
-        useCase = HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase()
+        useCase = HydrateLoggingWorkoutWithExistingLiftDataUseCase()
     }
 
     private fun createLoggingWorkoutLift(

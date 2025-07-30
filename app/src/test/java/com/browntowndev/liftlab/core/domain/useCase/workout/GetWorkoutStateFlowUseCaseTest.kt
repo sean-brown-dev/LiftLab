@@ -5,7 +5,6 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.PersonalRecord
-import com.browntowndev.liftlab.core.domain.models.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
@@ -35,7 +34,7 @@ class GetWorkoutStateFlowUseCaseTest {
     private lateinit var liftsRepository: LiftsRepository
     private lateinit var calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase
     private lateinit var hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase
-    private lateinit var hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
+    private lateinit var hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase
     private lateinit var getPersonalRecordsUseCase: GetPersonalRecordsUseCase
     private lateinit var getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase
 
@@ -47,7 +46,7 @@ class GetWorkoutStateFlowUseCaseTest {
         liftsRepository = mockk(relaxed = true)
         calculateLoggingWorkoutUseCase = mockk(relaxed = true)
         hydrateLoggingWorkoutWithCompletedSetsUseCase = mockk(relaxed = true)
-        hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase = mockk(relaxed = true)
+        hydrateLoggingWorkoutWithExistingLiftDataUseCase = mockk(relaxed = true)
         getPersonalRecordsUseCase = mockk(relaxed = true)
         getWorkoutStateFlowUseCase = GetWorkoutStateFlowUseCase(
             workoutsRepository,
@@ -56,7 +55,7 @@ class GetWorkoutStateFlowUseCaseTest {
             liftsRepository,
             calculateLoggingWorkoutUseCase,
             hydrateLoggingWorkoutWithCompletedSetsUseCase,
-            hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase,
+            hydrateLoggingWorkoutWithExistingLiftDataUseCase,
             getPersonalRecordsUseCase
         )
 
@@ -106,7 +105,7 @@ class GetWorkoutStateFlowUseCaseTest {
         coEvery { calculateLoggingWorkoutUseCase(any(), any(), any(), any(), any(), any(), any()) } returns calculatedWorkout
         every { previousSetResultsRepository.getForWorkoutFlow(any(), any(), any()) } returns flowOf(emptyList())
         every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns emptyList()
-        every { hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(any(), any()) } returns hydratedWorkout
+        every { hydrateLoggingWorkoutWithExistingLiftDataUseCase(any(), any()) } returns hydratedWorkout
         every { workoutsRepository.getMetadataFlow(any()) } returns flowOf(WorkoutMetadata(id = 1L, name = "Final Workout"))
         every { liftsRepository.getManyMetadataFlow(any()) } returns flowOf(emptyList())
 

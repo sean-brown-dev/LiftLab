@@ -59,6 +59,7 @@ import kotlin.collections.flatten
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 
@@ -311,6 +312,9 @@ fun Double.roundToNearestFactor(factor: Float): Float {
 fun Float.roundToNearestFactor(factor: Float): Float {
     return if (factor != 0f) abs((this / factor).roundToInt()) * factor else this
 }
+
+fun Float.roundDownToNearestFactor(factor: Float): Float =
+    if (factor != 0f) abs(floor(this / factor)) * factor else this
 
 fun Float.toWholeNumberOrOneDecimalString() =
     if (this % 1 == 0f) {

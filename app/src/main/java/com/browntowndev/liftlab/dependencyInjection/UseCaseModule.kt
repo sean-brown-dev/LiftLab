@@ -9,7 +9,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workout.GetPersonalRecordsUs
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.GetWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithCompletedSetsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workout.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workout.StartWorkoutUseCase
@@ -24,7 +24,7 @@ val useCaseModule = module {
     // Workout
     singleOf(::CalculateLoggingWorkoutUseCase)
     singleOf(::HydrateLoggingWorkoutWithCompletedSetsUseCase)
-    singleOf(::HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase)
+    singleOf(::HydrateLoggingWorkoutWithExistingLiftDataUseCase)
     singleOf(::GetWorkoutCompletionSummaryUseCase)
     singleOf(::GetNewestSetResultsUseCase)
     singleOf(::GetPersonalRecordsUseCase)

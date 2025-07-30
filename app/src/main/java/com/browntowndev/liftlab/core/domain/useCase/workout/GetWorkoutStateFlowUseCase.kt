@@ -44,7 +44,7 @@ class GetWorkoutStateFlowUseCase(
     private val liftsRepository: LiftsRepository,
     private val calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase,
     private val hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase,
-    private val hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase: HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase,
+    private val hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase,
     private val getPersonalRecordsUseCase: GetPersonalRecordsUseCase,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -142,7 +142,7 @@ class GetWorkoutStateFlowUseCase(
                     )
 
                     val partiallyHydratedPlan =
-                        hydrateLoggingWorkoutWithPartiallyCompletedSetsUseCase(
+                        hydrateLoggingWorkoutWithExistingLiftDataUseCase(
                             loggingWorkout = newCalculatedWorkoutData, // Hydrate the NEW plan...
                             liftsToUpdateFrom = previousState.calculatedWorkoutPlan?.lifts
                                 ?: emptyList() // ...with the previous plan
@@ -150,14 +150,13 @@ class GetWorkoutStateFlowUseCase(
 
                     val liftsToHydrate = getLiftsToHydrate(previousState, inProgressResults, partiallyHydratedPlan)
                     val hydratedLiftsById = hydrateLoggingWorkoutWithCompletedSetsUseCase(
-                        liftsToHydrate = liftsToHydrate, // Use the plan that has the UI state
+                        liftsToHydrate = liftsToHydrate,
                         setResults = inProgressResults,
                         microCycle = programMetadata.currentMicrocycle,
                     ).associateBy { it.id }
                     val finalPlan = partiallyHydratedPlan.copy(
                         lifts = partiallyHydratedPlan.lifts.fastMap { lift ->
-                            val hydratedLift = hydratedLiftsById[lift.id]
-                            hydratedLift ?: lift
+                            hydratedLiftsById[lift.id] ?: lift
                         }
                     )
 
@@ -213,19 +212,21 @@ class GetWorkoutStateFlowUseCase(
 
     private fun getLiftsToHydrate(
         previousState: CalculatedWorkoutData,
-        inProgressResults: List<SetResult>,
+        currentSetResults: List<SetResult>,
         partiallyHydratedPlan: LoggingWorkout
     ): List<LoggingWorkoutLift> {
-        val previousInProgressResults = previousState.completedSetsForSession
+        val previousSetResults = previousState.completedSetsForSession
         val liftsWithChangedResults =
-            inProgressResults.filter { it !in previousInProgressResults }.fastMap {
+            currentSetResults.filter { it !in previousSetResults }.fastMap {
+                // New Results
                 InProgressResultsKey(
                     liftId = it.liftId,
                     liftPosition = it.liftPosition
                 )
             }.toMutableList().apply {
+                // Removed results
                 addAll(
-                    previousInProgressResults.filter { it !in inProgressResults }.fastMap {
+                    previousSetResults.filter { it !in currentSetResults }.fastMap {
                         InProgressResultsKey(
                             liftId = it.liftId,
                             liftPosition = it.liftPosition

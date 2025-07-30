@@ -22,3 +22,11 @@ interface GenericLoggingSet {
         completedRpe: Float?,
     ): GenericLoggingSet
 }
+
+fun GenericLoggingSet.isCompleteWithSameDataAs(result: SetResult): Boolean {
+    // Only return true if the set is already complete AND all values match.
+    return this.complete &&
+            this.completedWeight == result.weight &&
+            this.completedReps == result.reps &&
+            this.completedRpe == result.rpe
+}
