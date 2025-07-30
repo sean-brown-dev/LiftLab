@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.charts
 
-import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 
 class GetGroupedLiftMetricChartDataUseCase {
     operator fun invoke(

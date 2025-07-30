@@ -7,8 +7,8 @@ import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
-import com.browntowndev.liftlab.core.domain.models.PersonalRecord
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import kotlinx.coroutines.flow.Flow
 

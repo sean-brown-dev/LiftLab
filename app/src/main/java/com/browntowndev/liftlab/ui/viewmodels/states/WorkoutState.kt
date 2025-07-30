@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.PersonalRecord
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel

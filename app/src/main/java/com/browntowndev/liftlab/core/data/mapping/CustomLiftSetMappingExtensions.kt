@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.core.data.mapping
 
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.DropSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.StandardSet
+import com.browntowndev.liftlab.core.domain.models.workout.DropSet
+import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet

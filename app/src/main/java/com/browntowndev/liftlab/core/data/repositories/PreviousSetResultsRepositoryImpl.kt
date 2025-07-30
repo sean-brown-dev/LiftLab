@@ -4,12 +4,11 @@ import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
-import com.browntowndev.liftlab.core.domain.models.PersonalRecord
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

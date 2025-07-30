@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import kotlinx.coroutines.flow.Flow
 import java.util.Date

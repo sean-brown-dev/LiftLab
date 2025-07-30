@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.VolumeMetricChartsDao
-import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata

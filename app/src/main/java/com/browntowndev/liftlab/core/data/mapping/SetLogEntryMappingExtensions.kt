@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.data.mapping
 
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.data.local.entities.SetLogEntryEntity
 
 object SetLogEntryMappingExtensions {

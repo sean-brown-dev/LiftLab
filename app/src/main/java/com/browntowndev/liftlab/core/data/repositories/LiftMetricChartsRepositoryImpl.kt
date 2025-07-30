@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao

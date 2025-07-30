@@ -27,7 +27,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt

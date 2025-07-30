@@ -1,34 +1,21 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapNotNull
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getSevenWeeksDateRange
 import com.browntowndev.liftlab.core.common.authStateFlow
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.common.enums.toVolumeType
 import com.browntowndev.liftlab.core.common.enums.toVolumeTypeImpact
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
-import com.browntowndev.liftlab.core.common.toEndOfDate
-import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.core.common.toStartOfDate
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.extensions.filterByDateRange
-import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
-import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -40,15 +27,7 @@ import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
 import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toVolumeMetricChartModels
-import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
-import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
-import com.browntowndev.liftlab.ui.models.LiftMetricOptions
-import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
-import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getMicroCycleCompletionChart
-import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
-import com.browntowndev.liftlab.ui.models.getPerMicrocycleVolumeChartModel
-import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.models.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import dev.gitlive.firebase.auth.FirebaseUser
@@ -56,7 +35,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.AuthResult
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import dev.gitlive.firebase.auth.android
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -67,10 +45,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.temporal.TemporalAdjusters
-import java.util.Date
 
 
 class HomeViewModel(

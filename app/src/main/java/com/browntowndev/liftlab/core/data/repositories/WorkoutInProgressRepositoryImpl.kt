@@ -1,24 +1,16 @@
 package com.browntowndev.liftlab.core.data.repositories
 
 
-import android.util.Log
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
-import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 
 class WorkoutInProgressRepositoryImpl(
     private val workoutInProgressDao: WorkoutInProgressDao,

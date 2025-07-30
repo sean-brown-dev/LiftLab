@@ -9,7 +9,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
-import com.browntowndev.liftlab.core.domain.models.Program
+import com.browntowndev.liftlab.core.domain.models.workout.Program
 import kotlin.time.Duration
 
 data class SettingsState(

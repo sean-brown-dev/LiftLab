@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.RestTimerInProgress
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.RestTimerInProgress
 import kotlinx.coroutines.flow.Flow
 
 interface RestTimerInProgressRepository : Repository<RestTimerInProgress, Long> {

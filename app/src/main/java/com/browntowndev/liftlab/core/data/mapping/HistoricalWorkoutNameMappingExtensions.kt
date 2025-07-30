@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.data.mapping
 
-import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.data.local.entities.HistoricalWorkoutNameEntity
 
 object HistoricalWorkoutNameMappingExtensions {

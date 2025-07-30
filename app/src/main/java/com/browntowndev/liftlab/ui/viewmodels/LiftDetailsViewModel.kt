@@ -12,8 +12,8 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository

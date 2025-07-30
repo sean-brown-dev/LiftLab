@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.repositories
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLogEntryMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto

@@ -1,10 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.domain.models.LiftMetricChart
-import com.browntowndev.liftlab.core.domain.models.Program
-import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree

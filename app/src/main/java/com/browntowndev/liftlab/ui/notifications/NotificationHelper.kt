@@ -9,8 +9,8 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository

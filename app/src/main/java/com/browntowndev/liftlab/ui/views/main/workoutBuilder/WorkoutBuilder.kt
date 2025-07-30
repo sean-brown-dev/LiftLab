@@ -43,8 +43,8 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker

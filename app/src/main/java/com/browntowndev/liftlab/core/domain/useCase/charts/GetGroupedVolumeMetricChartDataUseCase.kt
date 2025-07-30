@@ -3,9 +3,9 @@ package com.browntowndev.liftlab.core.domain.useCase.charts
 import com.browntowndev.liftlab.core.common.enums.VolumeType
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
-import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.domain.models.VolumeMetricChart
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 
 class GetGroupedVolumeMetricChartDataUseCase {
     /**

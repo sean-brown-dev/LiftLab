@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.domain.models.Lift
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry

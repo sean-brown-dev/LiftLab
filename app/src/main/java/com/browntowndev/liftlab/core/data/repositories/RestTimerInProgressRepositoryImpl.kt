@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDa
 import com.browntowndev.liftlab.core.data.mapping.RestTimerInProgressMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.RestTimerInProgressMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
-import com.browntowndev.liftlab.core.domain.models.RestTimerInProgress
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.RestTimerInProgress
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.data.local.entities.RestTimerInProgressEntity
 import kotlinx.coroutines.flow.Flow

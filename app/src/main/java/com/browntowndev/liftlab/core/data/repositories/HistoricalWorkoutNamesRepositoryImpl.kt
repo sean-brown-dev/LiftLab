@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.repositories
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.mapping.HistoricalWorkoutNameMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.HistoricalWorkoutNameMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.domain.models.HistoricalWorkoutName
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.data.local.dao.HistoricalWorkoutNamesDao
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler

@@ -3,14 +3,14 @@ package com.browntowndev.liftlab.core.domain.extensions
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.StandardSet
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.DropSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workout.DropSet
+import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
 
 /**
  * Calculates all possible step size options for wave-loading lifts within a workout.

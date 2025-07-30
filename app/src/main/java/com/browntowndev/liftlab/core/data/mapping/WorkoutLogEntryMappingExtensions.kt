@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.core.data.mapping
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 

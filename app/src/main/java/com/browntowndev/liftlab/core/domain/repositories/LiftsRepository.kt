@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.metadata.LiftMetadata
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration

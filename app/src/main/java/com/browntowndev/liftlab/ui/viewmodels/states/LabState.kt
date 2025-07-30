@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.domain.models.Program
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 
 @Stable
 data class LabState(

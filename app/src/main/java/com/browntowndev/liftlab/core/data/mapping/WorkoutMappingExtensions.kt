@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.data.mapping
 
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutMetadataDto
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel

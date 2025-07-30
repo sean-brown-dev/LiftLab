@@ -5,8 +5,8 @@ import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 
 data class WorkoutHistoryState(
     val filterChips: List<FilterChipOption> = listOf(),

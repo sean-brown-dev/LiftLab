@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
 
 @Stable
 data class LiftLibraryState (

@@ -1,13 +1,13 @@
 package com.browntowndev.liftlab.core.common
 
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.DropSet
-import com.browntowndev.liftlab.core.domain.models.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.Program
-import com.browntowndev.liftlab.core.domain.models.StandardSet
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.DropSet
+import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository

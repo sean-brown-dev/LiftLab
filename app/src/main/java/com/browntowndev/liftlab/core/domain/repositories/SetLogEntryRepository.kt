@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.PersonalRecord
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 
 interface SetLogEntryRepository: Repository<SetLogEntry, Long> {
     suspend fun insertFromPreviousSetResults(

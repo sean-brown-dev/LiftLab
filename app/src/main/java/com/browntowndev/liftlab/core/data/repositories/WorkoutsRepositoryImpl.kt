@@ -5,8 +5,8 @@ import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository

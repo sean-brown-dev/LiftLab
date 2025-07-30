@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.mapping
 
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutInProgress
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 
 object WorkoutInProgressUiMappingExtensions {

@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.extensions
 
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import java.util.Date
 
 

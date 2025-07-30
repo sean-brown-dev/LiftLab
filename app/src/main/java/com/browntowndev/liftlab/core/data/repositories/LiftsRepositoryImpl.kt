@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.repositories
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.mapping.LiftMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.LiftMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity

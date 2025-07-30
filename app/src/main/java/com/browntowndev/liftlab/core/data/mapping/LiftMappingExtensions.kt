@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.data.mapping
 
-import com.browntowndev.liftlab.core.domain.models.Lift
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 
 object LiftMappingExtensions {

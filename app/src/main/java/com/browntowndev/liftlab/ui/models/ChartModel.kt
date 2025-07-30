@@ -2,9 +2,9 @@ package com.browntowndev.liftlab.ui.models
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.core.domain.models.Program
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
-import com.browntowndev.liftlab.core.domain.models.WorkoutLogEntry
+import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModel

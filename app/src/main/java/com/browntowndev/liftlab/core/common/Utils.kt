@@ -2,8 +2,8 @@ package com.browntowndev.liftlab.core.common
 
 import androidx.compose.ui.util.fastFlatMap
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.Workout
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime

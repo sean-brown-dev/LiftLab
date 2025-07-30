@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutInProgress
 import kotlinx.coroutines.flow.Flow
 
 interface WorkoutInProgressRepository : Repository<WorkoutInProgress, Long> {
