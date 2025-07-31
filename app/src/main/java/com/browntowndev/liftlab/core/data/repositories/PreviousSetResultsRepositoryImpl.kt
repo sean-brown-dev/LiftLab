@@ -34,7 +34,7 @@ class PreviousSetResultsRepositoryImpl(
     }
 
     override suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<SetResult> {
-        return previousSetResultDao.getForWorkout(workoutId, mesoCycle, microCycle)
+        return previousSetResultDao.getForWorkoutMesoAndMicro(workoutId, mesoCycle, microCycle)
             .fastMap { it.toSetResult() }
     }
 
@@ -179,7 +179,7 @@ class PreviousSetResultsRepositoryImpl(
     }
 
     override suspend fun deleteAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int) {
-        val toDelete = previousSetResultDao.getAllForWorkout(workoutId, mesoCycle, microCycle)
+        val toDelete = previousSetResultDao.getForWorkoutMesoAndMicro(workoutId, mesoCycle, microCycle)
         if (toDelete.isEmpty()) return
 
         val count = previousSetResultDao.softDeleteMany(toDelete.map { it.id })

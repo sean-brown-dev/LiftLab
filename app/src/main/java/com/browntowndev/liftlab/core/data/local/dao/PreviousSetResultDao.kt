@@ -47,13 +47,6 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
 
     @Transaction
     @Query("SELECT * FROM previousSetResults " +
-            "WHERE workoutId = :workoutId AND " +
-            "mesoCycle = :mesoCycle AND " +
-            "microCycle = :microCycle AND deleted = 0")
-    suspend fun getForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResultEntity>
-
-    @Transaction
-    @Query("SELECT * FROM previousSetResults " +
             "WHERE liftId = :liftId AND deleted = 0")
     suspend fun getForLift(liftId: Long): List<PreviousSetResultEntity>
 
@@ -107,7 +100,10 @@ interface PreviousSetResultDao: BaseDao<PreviousSetResultEntity> {
             "WHERE workoutId = :workoutId AND " +
             "mesoCycle = :mesoCycle AND " +
             "microCycle = :microCycle AND deleted = 0")
-    suspend fun getAllForWorkout(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResultEntity>
+    suspend fun getForWorkoutMesoAndMicro(workoutId: Long, mesoCycle: Int, microCycle: Int): List<PreviousSetResultEntity>
+
+    @Query("SELECT * FROM previousSetResults WHERE workoutId = :workoutId AND deleted = 0")
+    suspend fun getAllForWorkout(workoutId: Long): List<PreviousSetResultEntity>
 
     @Query("UPDATE previousSetResults SET deleted = 1, synced = 0 WHERE previously_completed_set_id = :id")
     suspend fun softDelete(id: Long): Int

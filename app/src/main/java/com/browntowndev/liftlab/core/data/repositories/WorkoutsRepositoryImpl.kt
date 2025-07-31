@@ -4,6 +4,7 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
@@ -28,6 +29,7 @@ class WorkoutsRepositoryImpl(
     private val customSetsDao: CustomSetsDao,
     private val programsRepository: ProgramsRepository,
     private val workoutsDao: WorkoutsDao,
+    private val previousSetResultsDao: PreviousSetResultDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutsRepository {
     override fun getMetadataFlow(id: Long): Flow<WorkoutMetadata> =
@@ -63,6 +65,10 @@ class WorkoutsRepositoryImpl(
     override suspend fun delete(model: Workout): Int {
         val deleteCount = workoutsDao.softDelete(model.id)
         if (deleteCount > 0) {
+            // Delete all the previous set results for this workout
+            val allResultsForWorkout = previousSetResultsDao.getAllForWorkout(model.id)
+            previousSetResultsDao.softDeleteMany(allResultsForWorkout.fastMap { it.id })
+
             // Update workoutEntity positions
             val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(model.programId)
                 .sortedBy { it.position }

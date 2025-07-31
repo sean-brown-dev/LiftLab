@@ -178,7 +178,7 @@ class CompleteWorkoutUseCase(
                     .fastMap { it.id }
             }
 
-        // Delete all set results from the previous workoutEntity OR ones that were deloaded. Deloaded
+        // Delete all set results from the previous workout OR ones that were deloaded. Deloaded
         // ones are deleted so next progressions are calculated using most recent non-deload results
         setResultsRepository.deleteAllForPreviousWorkout(
             workoutId = workout.id,
