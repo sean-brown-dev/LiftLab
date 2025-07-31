@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import kotlinx.coroutines.flow.Flow
 
 interface ProgramsRepository: Repository<Program, Long> {

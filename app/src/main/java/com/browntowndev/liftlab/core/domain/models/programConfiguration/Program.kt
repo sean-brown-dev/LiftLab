@@ -1,4 +1,6 @@
-package com.browntowndev.liftlab.core.domain.models.workout
+package com.browntowndev.liftlab.core.domain.models.programConfiguration
+
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 
 data class Program(
     val id: Long = 0,

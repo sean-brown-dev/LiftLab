@@ -5,7 +5,7 @@ import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toDomainModel

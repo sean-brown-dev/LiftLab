@@ -20,7 +20,7 @@ import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
-import com.browntowndev.liftlab.core.domain.useCase.shared.UpdateRestTimeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
@@ -29,6 +29,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
@@ -62,6 +63,7 @@ class WorkoutBuilderViewModel(
     private val deleteCustomLiftSetByPositionUseCase: DeleteCustomLiftSetByPositionUseCase,
     private val updateCustomLiftSetUseCase: UpdateCustomLiftSetUseCase,
     private val addSetUseCase: AddSetUseCase,
+    private val updateWorkoutLiftDeloadWeekUseCase: UpdateWorkoutLiftDeloadWeekUseCase,
     getWorkoutConfigurationStateFlowUseCase: GetWorkoutConfigurationStateFlowUseCase,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -227,13 +229,7 @@ class WorkoutBuilderViewModel(
 
     fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int?) = executeWithErrorHandling("Failed to update deload week") {
         val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
-        val updatedWorkoutLift = when (workoutLift) {
-            is StandardWorkoutLift -> workoutLift.copy(deloadWeek = newDeloadWeek)
-            is CustomWorkoutLift -> workoutLift.copy(deloadWeek = newDeloadWeek)
-            else -> throw Exception("${workoutLift::class.simpleName} not recognized.")
-        }
-
-        updateWorkoutLiftUseCase(updatedWorkoutLift)
+        updateWorkoutLiftDeloadWeekUseCase(workoutLift, newDeloadWeek, getProgramDeloadWeekAndLogIfNull())
     }
 
     fun setLiftSetCount(workoutLiftId: Long, newSetCount: Int) = executeWithErrorHandling("Failed to update set count") {

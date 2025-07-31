@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.mapping
 
 import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.data.local.dtos.ProgramWithRelationshipsDto
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
 

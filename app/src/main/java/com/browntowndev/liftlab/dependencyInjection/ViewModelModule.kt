@@ -45,6 +45,7 @@ val viewModelModule = module {
             deleteCustomLiftSetByPositionUseCase = get(),
             updateCustomLiftSetUseCase = get(),
             addSetUseCase = get(),
+            updateWorkoutLiftDeloadWeekUseCase = get(),
             liftLevelDeloadsEnabled = params.get(),
             transactionScope = get(),
             eventBus = get()

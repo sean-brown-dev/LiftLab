@@ -25,7 +25,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandar
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift

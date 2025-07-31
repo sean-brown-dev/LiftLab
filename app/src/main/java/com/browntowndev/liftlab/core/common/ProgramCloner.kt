@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.DropSet
 import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout

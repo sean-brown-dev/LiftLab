@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.domain.models.workout.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 
 @Stable
@@ -19,7 +19,6 @@ data class LabState(
     val workoutToDelete: Workout? = null,
     val isReordering: Boolean = false,
     val isManagingPrograms: Boolean = false,
-    val workoutCreated: Boolean = false,
     val isEditingDeloadWeek: Boolean = false,
 ) {
     val originalProgramName: String = program?.name ?: ""

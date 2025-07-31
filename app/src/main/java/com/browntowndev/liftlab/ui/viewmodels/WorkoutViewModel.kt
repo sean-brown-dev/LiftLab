@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
-import com.browntowndev.liftlab.core.domain.useCase.shared.UpdateRestTimeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetResultByIdUseCase

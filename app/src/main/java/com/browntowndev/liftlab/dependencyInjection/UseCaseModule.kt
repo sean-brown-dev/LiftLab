@@ -2,7 +2,16 @@ package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
-import com.browntowndev.liftlab.core.domain.useCase.shared.UpdateRestTimeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetProgramConfigurationStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.ReorderWorkoutsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SetProgramAsActiveUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramDeloadWeekUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramNameUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetResultByIdUseCase
@@ -30,13 +39,14 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val useCaseModule = module {
-    // Workout
+    // Workout Logging
     singleOf(::CalculateLoggingWorkoutUseCase)
     singleOf(::HydrateLoggingWorkoutWithCompletedSetsUseCase)
     singleOf(::HydrateLoggingWorkoutWithExistingLiftDataUseCase)
@@ -72,7 +82,17 @@ val useCaseModule = module {
     singleOf(::UpdateLiftIncrementOverrideUseCase)
     singleOf(::UpdateWorkoutLiftUseCase)
     singleOf(::UpdateWorkoutNameUseCase)
-
-    // Shared
+    singleOf(::UpdateWorkoutLiftDeloadWeekUseCase)
     singleOf(::UpdateRestTimeUseCase)
+
+    // Program Configuration
+    singleOf(::CreateProgramUseCase)
+    singleOf(::CreateWorkoutUseCase)
+    singleOf(::DeleteProgramUseCase)
+    singleOf(::DeleteWorkoutUseCase)
+    singleOf(::GetProgramConfigurationStateFlowUseCase)
+    singleOf(::ReorderWorkoutsUseCase)
+    singleOf(::SetProgramAsActiveUseCase)
+    singleOf(::UpdateProgramDeloadWeekUseCase)
+    singleOf(::UpdateProgramNameUseCase)
 }

@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.shared
+package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import kotlin.time.Duration
