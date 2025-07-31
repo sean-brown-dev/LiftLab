@@ -14,10 +14,14 @@ import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -31,6 +35,7 @@ class LiftLibraryViewModel(
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     private val onNavigateToActiveWorkout: () -> Unit,
     private val onNavigateToLiftDetails: (liftId: Long?) -> Unit,
+    getLiftConfigurationStateFlowUseCase: GetLiftConfigurationStateFlowUseCase,
     workoutId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
@@ -43,36 +48,39 @@ class LiftLibraryViewModel(
 
     init {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    workoutId = workoutId,
-                    addAtPosition = addAtPosition,
-                    newLiftMetricChartIds = newLiftMetricChartIds,
-                    liftIdFilters = getLiftIdFilters(workoutId),
-                    movementPatternFilters = if (initialMovementPatternFilter.isNotEmpty()) {
-                        listOf(
-                            FilterChipOption(
-                                type = MOVEMENT_PATTERN,
-                                value = initialMovementPatternFilter
-                            )
-                        )
-                    } else {
-                        it.movementPatternFilters
-                    }
-                )
-            }
-        }
-
-        viewModelScope.launch {
-            liftsRepository.getAllFlow().collect { lifts ->
-                val sortedLifts = lifts.sortedBy { it.name }
-                _state.update { currentState ->
-                    currentState.copy(
+            getLiftConfigurationStateFlowUseCase(workoutId)
+                .map { liftConfigurationState ->
+                    val sortedLifts = liftConfigurationState.lifts.sortedBy { it.name }
+                    LiftLibraryState(
                         allLifts = sortedLifts,
-                        filteredLifts = getFilteredLifts(sortedLifts)
+                        liftIdFilters = liftConfigurationState.liftIdsForWorkout,
                     )
-                }
-            }
+                }.onEach { state ->
+                    _state.update {
+                        it.copy(
+                            allLifts = state.allLifts,
+                            filteredLifts = getFilteredLifts(
+                                liftsToFilter = state.allLifts,
+                                nameFilter = _state.value.nameFilter,
+                                movementPatternFilters = _state.value.movementPatternFilters,
+                                liftIdFilters = state.liftIdFilters),
+                            liftIdFilters = state.liftIdFilters,
+                            workoutId = workoutId,
+                            addAtPosition = addAtPosition,
+                            newLiftMetricChartIds = newLiftMetricChartIds,
+                            movementPatternFilters = if (initialMovementPatternFilter.isNotEmpty()) {
+                                listOf(
+                                    FilterChipOption(
+                                        type = MOVEMENT_PATTERN,
+                                        value = initialMovementPatternFilter
+                                    )
+                                )
+                            } else {
+                                it.movementPatternFilters
+                            }
+                        )
+                    }
+                }.launchIn(this)
         }
     }
 
@@ -93,14 +101,6 @@ class LiftLibraryViewModel(
             TopAppBarAction.SearchTextChanged -> setNameFilter(payloadEvent.payload)
             else -> {}
         }
-    }
-
-    private suspend fun getLiftIdFilters(
-        workoutId: Long?,
-    ): HashSet<Long> {
-        return if (workoutId != null) {
-            workoutLiftsRepositoryImpl.getLiftIdsForWorkout(workoutId).toHashSet()
-        } else hashSetOf()
     }
 
     fun addSelectedLift(id: Long) {
@@ -243,11 +243,12 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun getFilteredLifts(liftsToFilter: List<Lift>): List<Lift> {
-        val nameFilter = _state.value.nameFilter
-        val movementPatternFilters = _state.value.movementPatternFilters
-        val liftIdFilters = _state.value.liftIdFilters
-
+    private fun getFilteredLifts(
+        liftsToFilter: List<Lift>,
+        nameFilter: String?,
+        movementPatternFilters: List<FilterChipOption>,
+        liftIdFilters: Set<Long>,
+    ): List<Lift> {
         return liftsToFilter.let { lifts ->
             val hasNameFilter = nameFilter?.isNotEmpty() == true
             val hasMovementPatternFilters = movementPatternFilters.isNotEmpty()
@@ -265,7 +266,12 @@ class LiftLibraryViewModel(
     }
 
     fun applyFilters() {
-        val filteredLifts = getFilteredLifts(_state.value.allLifts)
+        val filteredLifts = getFilteredLifts(
+            liftsToFilter = _state.value.allLifts,
+            nameFilter = _state.value.nameFilter,
+            movementPatternFilters = _state.value.movementPatternFilters,
+            liftIdFilters = _state.value.liftIdFilters)
+
         _state.update {
             it.copy(
                 showFilterSelection = false,
