@@ -83,6 +83,7 @@ val repositoryModule = module {
             customSetsDao = get(),
             programsRepository = get(),
             workoutsDao = get(),
+            previousSetResultsDao = get(),
             syncScheduler = get(),
         )
     }
