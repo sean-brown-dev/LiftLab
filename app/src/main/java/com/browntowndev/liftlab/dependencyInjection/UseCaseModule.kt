@@ -42,6 +42,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateL
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -66,6 +68,8 @@ val useCaseModule = module {
     singleOf(::UpdateLiftNoteUseCase)
     singleOf(::UpsertManySetResultsUseCase)
     singleOf(::UpsertSetResultUseCase)
+    singleOf(::CompleteSetUseCase)
+    singleOf(::UndoSetCompletionUseCase)
 
     // Home
     singleOf(::GetGroupedLiftMetricChartDataUseCase)

@@ -21,7 +21,6 @@ import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.domain.useCase.utils.InProgressResultsKey
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -47,6 +46,11 @@ class GetWorkoutStateFlowUseCase(
     private val hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase,
     private val getPersonalRecordsUseCase: GetPersonalRecordsUseCase,
 ) {
+    private data class WorkoutLiftKey(
+        val liftId: Long,
+        val liftPosition: Int,
+    )
+
     @OptIn(ExperimentalCoroutinesApi::class)
     // The 'invoke' operator allows calling the use case like a function: getWorkoutStateFlowUseCase(programMetadata)
     operator fun invoke(programMetadata: ActiveProgramMetadata): Flow<CalculatedWorkoutData> {
@@ -221,7 +225,7 @@ class GetWorkoutStateFlowUseCase(
         val liftsWithChangedResults =
             currentSetResults.filter { it !in previousSetResults }.fastMap {
                 // New Results
-                InProgressResultsKey(
+                WorkoutLiftKey(
                     liftId = it.liftId,
                     liftPosition = it.liftPosition
                 )
@@ -229,7 +233,7 @@ class GetWorkoutStateFlowUseCase(
                 // Removed results
                 addAll(
                     previousSetResults.filter { it !in currentSetResults }.fastMap {
-                        InProgressResultsKey(
+                        WorkoutLiftKey(
                             liftId = it.liftId,
                             liftPosition = it.liftPosition
                         )
@@ -238,7 +242,7 @@ class GetWorkoutStateFlowUseCase(
             }.toSet()
 
         val liftsToHydrate = partiallyHydratedPlan.lifts.fastFilter { lift ->
-            InProgressResultsKey(
+            WorkoutLiftKey(
                 liftId = lift.liftId,
                 liftPosition = lift.position
             ) in liftsWithChangedResults

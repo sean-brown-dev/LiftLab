@@ -26,6 +26,8 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,9 +44,13 @@ class EditWorkoutViewModel(
     private val setResultsRepository: PreviousSetResultsRepository,
     private val setLogEntryRepository: SetLogEntryRepository,
     private val onNavigateBack: () -> Unit,
+    undoSetCompletionUseCase: UndoSetCompletionUseCase,
+    completeSetUseCase: CompleteSetUseCase,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
+    completeSetUseCase = completeSetUseCase,
+    undoSetCompletionUseCase = undoSetCompletionUseCase,
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {

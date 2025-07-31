@@ -84,6 +84,8 @@ val viewModelModule = module {
             updateRestTimeUseCase = get(),
             restTimerCompletedUseCase = get(),
             updateLiftNoteUseCase = get(),
+            completeSetUseCase = get(),
+            undoSetCompletionUseCase = get(),
             navigateToWorkoutHistory = params[0],
             cancelRestTimer = params[1],
             transactionScope = get(),
@@ -97,6 +99,8 @@ val viewModelModule = module {
             setResultsRepository = get(),
             setLogEntryRepository = get(),
             onNavigateBack = params.get(),
+            completeSetUseCase = get(),
+            undoSetCompletionUseCase = get(),
             transactionScope = get(),
             eventBus = get()
         )

@@ -73,7 +73,6 @@ fun WorkoutLog(
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
-    onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
     onNoteChanged: (liftId: Long, note: String) -> Unit,
     onReorderLiftsClicked: () -> Unit,
     onAddSet: (workoutLiftId: Long) -> Unit,
@@ -156,7 +155,6 @@ fun WorkoutLog(
                         onReplaceLift = onReplaceLift,
                         onNoteChanged = onNoteChanged,
                         onSetCompleted = onSetCompleted,
-                        onDeleteMyoRepSet = onDeleteMyoRepSet,
                         onHideRpePicker = {
                             pickerViewModel.hideRpePicker()
                             pickerSpacer = 0.dp

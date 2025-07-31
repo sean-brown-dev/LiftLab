@@ -333,13 +333,6 @@ fun Workout(
                     movementPattern = movementPattern.displayName(),
                 ))
             },
-            onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
-                workoutViewModel.deleteMyoRepSet(
-                    workoutLiftId = workoutLiftId,
-                    setPosition = setPosition,
-                    myoRepSetPosition = myoRepSetPosition,
-                )
-            },
             onNoteChanged = { liftId, note ->
               workoutViewModel.updateNote(liftId = liftId, note = note)
             },

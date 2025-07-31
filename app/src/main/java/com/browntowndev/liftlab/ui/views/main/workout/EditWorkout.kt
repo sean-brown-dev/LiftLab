@@ -108,13 +108,6 @@ fun EditWorkout(
                     myoRepSetPosition = myoRepSetPosition
                 )
             },
-            onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
-                editWorkoutViewModel.deleteMyoRepSet(
-                    workoutLiftId = workoutLiftId,
-                    setPosition = setPosition,
-                    myoRepSetPosition = myoRepSetPosition,
-                )
-            },
             onAddSet = { workoutLiftId ->
                 editWorkoutViewModel.addSet(workoutLiftId)
             },

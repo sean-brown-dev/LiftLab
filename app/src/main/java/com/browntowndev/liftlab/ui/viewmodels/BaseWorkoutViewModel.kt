@@ -14,6 +14,8 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResul
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +23,8 @@ import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 
 abstract class BaseWorkoutViewModel(
+    private val completeSetUseCase: CompleteSetUseCase,
+    private val undoSetCompletionUseCase: UndoSetCompletionUseCase,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): LiftLabViewModel(transactionScope, eventBus) {
@@ -286,95 +290,47 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResult, onError: () -> Unit = {}) {
+    fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResult, onError: () -> Unit = {}) =
         executeWithErrorHandling("Failed to complete set") {
             try {
-                executeInTransactionScope {
-                    if (restTimerEnabled) {
-                        insertRestTimerInProgress(restTime)
-                    }
-                    val result = onBuildSetResult()
-                    mutableWorkoutState.value.completedSets.let { completedSets ->
-                        val existingResult = completedSets.find { existing ->
-                            existing.liftId == result.liftId &&
-                                    existing.liftPosition == result.liftPosition &&
-                                    existing.setPosition == result.setPosition &&
-                                    (existing as? MyoRepSetResult)?.myoRepSetPosition == (result as? MyoRepSetResult)?.myoRepSetPosition
-                        }
-                        if (existingResult != null) {
-                            val updatedResult = when (result) {
-                                is StandardSetResult -> result.copy(id = existingResult.id)
-                                is MyoRepSetResult -> result.copy(id = existingResult.id)
-                                is LinearProgressionSetResult -> result.copy(id = existingResult.id)
-                                else -> throw Exception("${result::class.simpleName} is not defined.")
-                            }
-
-                            upsertSetResult(updatedResult)
-                        } else {
-                            upsertSetResult(result)
-                        }
-                    }
-                }
+                completeSetUseCase(
+                    restTime = restTime,
+                    restTimerEnabled = restTimerEnabled,
+                    result = onBuildSetResult(),
+                    existingSetResults = mutableWorkoutState.value.completedSets,
+                    onUpsertSetResult = { upsertSetResult(it) }
+                )
             } catch (e: Exception) {
                 onError()
                 throw e
             }
         }
-    }
 
     private suspend fun deleteSetResult(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) {
-        mutableWorkoutState.value.completedSets
-            .find {
-                it.liftPosition == liftPosition &&
-                        it.setPosition == setPosition &&
-                        (it as? MyoRepSetResult)?.myoRepSetPosition == myoRepSetPosition
-            }
-            ?.also { result ->
-                deleteSetResult(id = result.id)
-            }
+        undoSetCompletionUseCase(
+            liftPosition = liftPosition,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+            setResults = mutableWorkoutState.value.completedSets,
+            onDeleteSetResult = { deleteSetResult(it) }
+        )
     }
 
     fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) =
         executeWithErrorHandling("Failed to undo completion") {
-            executeInTransactionScope {
-                stopRestTimer()
-                Log.d(
-                    "WorkoutViewModel",
-                    "undoSetCompletion ${mutableWorkoutState.value.completedSets}"
-                )
+            stopRestTimer()
+            Log.d(
+                "WorkoutViewModel",
+                "undoSetCompletion ${mutableWorkoutState.value.completedSets}"
+            )
 
-                mutableWorkoutState.value.completedSets
-                    .find {
-                        it.liftPosition == liftPosition &&
-                                it.setPosition == setPosition &&
-                                (it as? MyoRepSetResult)?.myoRepSetPosition == myoRepSetPosition
-                    }?.let { result ->
-                        Log.d("WorkoutViewModel", "deleting $result")
-                        deleteSetResult(id = result.id)
-                    }
-            }
-        }
-
-    fun deleteMyoRepSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) =
-        executeWithErrorHandling("Failed to delete set") {
-            executeInTransactionScope {
-                val workoutLift =
-                    mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
-                val liftPosition = workoutLift.position
-                val isComplete = workoutLift.sets.find {
-                    it is LoggingMyoRepSet &&
-                            it.position == setPosition &&
-                            it.myoRepSetPosition == myoRepSetPosition
-                }?.complete
-
-                if (isComplete == true) {
-                    deleteSetResult(
-                        liftPosition = liftPosition,
-                        setPosition = setPosition,
-                        myoRepSetPosition = myoRepSetPosition,
-                    )
-                }
-            }
+            undoSetCompletionUseCase(
+                liftPosition = liftPosition,
+                setPosition = setPosition,
+                myoRepSetPosition = myoRepSetPosition,
+                setResults = mutableWorkoutState.value.completedSets,
+                onDeleteSetResult = { deleteSetResult(it) }
+            )
         }
 
     protected open suspend fun updateLinearProgressionFailures() {

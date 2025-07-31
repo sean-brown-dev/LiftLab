@@ -28,4 +28,37 @@ data class LinearProgressionSetResult(
             rpe = rpe,
         )
     }
+
+    override fun copyBase(
+        id: Long,
+        workoutId: Long,
+        liftId: Long,
+        liftPosition: Int,
+        setPosition: Int,
+        weightRecommendation: Float?,
+        weight: Float,
+        reps: Int,
+        rpe: Float,
+        mesoCycle: Int,
+        microCycle: Int,
+        setType: SetType,
+        isDeload: Boolean
+    ): SetResult {
+        return copy(
+            id = id,
+            workoutId = workoutId,
+            liftId = liftId,
+            liftPosition = liftPosition,
+            setPosition = setPosition,
+            weightRecommendation = weightRecommendation,
+            weight = weight,
+            reps = reps,
+            rpe = rpe,
+            mesoCycle = mesoCycle,
+            microCycle = microCycle,
+            setType = setType,
+            isDeload = isDeload,
+            persistedOneRepMax = null,
+        )
+    }
 }

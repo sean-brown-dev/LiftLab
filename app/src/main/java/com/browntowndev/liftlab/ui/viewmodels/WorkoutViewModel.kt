@@ -15,6 +15,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetResultByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWorkoutStateFlowUseCase
@@ -24,6 +25,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.ReorderWorkou
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.RestTimerCompletedUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
@@ -46,11 +48,11 @@ import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutViewModel(
+    getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
     private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
     private val reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase,
     private val startWorkoutUseCase: StartWorkoutUseCase,
     private val skipDeloadAndStartWorkoutUseCase: SkipDeloadAndStartWorkoutUseCase,
-    getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
     private val completeWorkoutUseCase: CompleteWorkoutUseCase,
     private val cancelWorkoutUseCase: CancelWorkoutUseCase,
     private val upsertManySetResultsUseCase: UpsertManySetResultsUseCase,
@@ -62,9 +64,13 @@ class WorkoutViewModel(
     private val updateLiftNoteUseCase: UpdateLiftNoteUseCase,
     private val navigateToWorkoutHistory: () -> Unit,
     private val cancelRestTimer: () -> Unit,
+    completeSetUseCase: CompleteSetUseCase,
+    undoSetCompletionUseCase: UndoSetCompletionUseCase,
     transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
+    completeSetUseCase = completeSetUseCase,
+    undoSetCompletionUseCase = undoSetCompletionUseCase,
     transactionScope = transactionScope,
     eventBus = eventBus,
 ) {

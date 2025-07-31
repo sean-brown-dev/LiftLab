@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
 import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
+import com.browntowndev.liftlab.core.domain.useCase.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 /**
@@ -22,13 +23,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     companion object {
         private const val TAG = "HydrateLoggingWorkoutWithCompletedSetsUseCase"
     }
-
-    private data class SetResultKey(
-        val liftId: Long,
-        val liftPosition: Int,
-        val setPosition: Int,
-        val myoRepSetPosition: Int?,
-    )
 
     operator fun invoke(
         liftsToHydrate: List<LoggingWorkoutLift>,
@@ -65,9 +59,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         }
 
         var lastCompletedStandardSet: GenericLoggingSet? = null
-
-        // Using .map is still the right, functional approach.
-        val updatedSets = workoutLift.sets.map { set ->
+        val updatedSets = workoutLift.sets.fastMap { set ->
             val currSetKey = SetResultKey(
                 liftId = workoutLift.liftId,
                 liftPosition = workoutLift.position,
@@ -93,7 +85,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     }
                 }
 
-                // Case 2: No set result, but it's currently marked as complete.
+                // Case 2: No set result for non-activation-myo-rep set, but it's currently marked as complete.
                 // This means it needs to be "un-completed".
                 set.complete -> {
                     set.copyCompletionData(
