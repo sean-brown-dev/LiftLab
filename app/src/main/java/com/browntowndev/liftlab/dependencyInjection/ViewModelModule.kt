@@ -95,9 +95,10 @@ val viewModelModule = module {
     factory { params ->
         EditWorkoutViewModel(
             workoutLogEntryId = params.get(),
-            workoutLogRepository = get(),
-            setResultsRepository = get(),
-            setLogEntryRepository = get(),
+            upsertSetResultUseCase = get(),
+            upsertManySetLogEntriesUseCase = get(),
+            upsertSetLogEntryUseCase = get(),
+            deleteSetLogEntryByIdUseCase = get(),
             onNavigateBack = params.get(),
             completeSetUseCase = get(),
             undoSetCompletionUseCase = get(),
