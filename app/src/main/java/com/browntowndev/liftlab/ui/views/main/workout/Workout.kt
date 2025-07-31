@@ -264,12 +264,14 @@ fun Workout(
                 val startRestTimer = !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled
 
                 try {
-                    mutateTopAppBarControlValue(
-                        AppBarMutateControlRequest(
-                            REST_TIMER,
-                            Triple(restTime, restTime, true).right()
+                    if (startRestTimer) {
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                REST_TIMER,
+                                Triple(restTime, restTime, true).right()
+                            )
                         )
-                    )
+                    }
                     workoutViewModel.completeSet(
                         restTime = restTime,
                         restTimerEnabled = startRestTimer,
@@ -287,13 +289,15 @@ fun Workout(
                             )
                         }
                     ) {
-                        // On error, shut off the rest timer
-                        mutateTopAppBarControlValue(
-                            AppBarMutateControlRequest(
-                                REST_TIMER,
-                                Triple(0L, 0L, false).right()
+                        if (startRestTimer) {
+                            // On error, shut off the rest timer
+                            mutateTopAppBarControlValue(
+                                AppBarMutateControlRequest(
+                                    REST_TIMER,
+                                    Triple(0L, 0L, false).right()
+                                )
                             )
-                        )
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e("Workout", "Failed to complete set", e)

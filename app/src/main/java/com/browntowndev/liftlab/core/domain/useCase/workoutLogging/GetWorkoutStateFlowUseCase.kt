@@ -193,6 +193,8 @@ class GetWorkoutStateFlowUseCase(
                                 liftMovementPattern = metadata.movementPattern,
                                 liftVolumeTypes = metadata.volumeTypesBitmask,
                                 liftSecondaryVolumeTypes = metadata.secondaryVolumeTypesBitmask,
+                                restTime = metadata.restTime,
+                                restTimerEnabled = metadata.restTimerEnabled,
                             )
                         } ?: lift
                     }

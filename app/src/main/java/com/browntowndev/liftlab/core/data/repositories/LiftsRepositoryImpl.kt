@@ -89,6 +89,8 @@ class LiftsRepositoryImpl(
                     movementPattern = liftEntity.movementPattern,
                     volumeTypesBitmask = liftEntity.volumeTypesBitmask,
                     secondaryVolumeTypesBitmask = liftEntity.secondaryVolumeTypesBitmask,
+                    restTime = liftEntity.restTime,
+                    restTimerEnabled = liftEntity.restTimerEnabled,
                 )
             }
         }
