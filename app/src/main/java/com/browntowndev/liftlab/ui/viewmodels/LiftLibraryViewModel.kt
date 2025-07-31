@@ -1,20 +1,18 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.FilterChipOption
 import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
-import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftConfigurationStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import com.browntowndev.liftlab.ui.views.navigation.Route
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,9 +26,10 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 
 class LiftLibraryViewModel(
-    private val liftsRepository: LiftsRepository,
-    private val workoutLiftsRepositoryImpl: WorkoutLiftsRepository,
-    private val liftMetricChartsRepository: LiftMetricChartsRepository,
+    private val deleteLiftUseCase: DeleteLiftUseCase,
+    private val replaceWorkoutLIftUseCase: ReplaceWorkoutLiftUseCase,
+    private val createLiftMetricChartsUseCase: CreateLiftMetricChartsUseCase,
+    private val createWorkoutLiftsFromLiftsUseCase: CreateWorkoutLiftsFromLiftsUseCase,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     private val onNavigateToActiveWorkout: () -> Unit,
@@ -53,7 +52,7 @@ class LiftLibraryViewModel(
                     val sortedLifts = liftConfigurationState.lifts.sortedBy { it.name }
                     LiftLibraryState(
                         allLifts = sortedLifts,
-                        liftIdFilters = liftConfigurationState.liftIdsForWorkout,
+                        liftsToFilterOut = liftConfigurationState.liftIdsForWorkout,
                     )
                 }.onEach { state ->
                     _state.update {
@@ -63,8 +62,8 @@ class LiftLibraryViewModel(
                                 liftsToFilter = state.allLifts,
                                 nameFilter = _state.value.nameFilter,
                                 movementPatternFilters = _state.value.movementPatternFilters,
-                                liftIdFilters = state.liftIdFilters),
-                            liftIdFilters = state.liftIdFilters,
+                                liftIdFilters = state.liftsToFilterOut),
+                            liftsToFilterOut = state.liftsToFilterOut,
                             workoutId = workoutId,
                             addAtPosition = addAtPosition,
                             newLiftMetricChartIds = newLiftMetricChartIds,
@@ -103,7 +102,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun addSelectedLift(id: Long) {
+    fun addSelectedLift(id: Long) = executeWithErrorHandling("Failed to select lift") {
         _state.update {
             it.copy(selectedNewLifts = it.selectedNewLifts.toMutableList().apply {
                 add(id)
@@ -111,7 +110,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun removeSelectedLift(id: Long) {
+    fun removeSelectedLift(id: Long) = executeWithErrorHandling("Failed to deselect lift") {
         _state.update {
             it.copy(selectedNewLifts = it.selectedNewLifts.toMutableList().apply {
                 remove(id)
@@ -119,91 +118,52 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun updateLiftMetricChartsWithSelectedLiftIds() {
+    private fun updateLiftMetricChartsWithSelectedLiftIds() = executeWithErrorHandling("Failed to create lift metric chart(s)") {
         viewModelScope.launch {
             val newLiftIds = _state.value.selectedNewLiftsHashSet
-            var liftMetricCharts = liftMetricChartsRepository.getMany(_state.value.newLiftMetricChartIds)
-
-            liftMetricCharts = newLiftIds.flatMap { currLiftId ->
-                liftMetricCharts.fastMap { chart ->
-                    updateChart(chart, currLiftId, newLiftIds.first())
-                }
-            }
-
-            liftMetricChartsRepository.upsertMany(liftMetricCharts)
+            createLiftMetricChartsUseCase(liftIds = newLiftIds.toList())
             onNavigateHome()
         }
     }
 
-    private fun updateChart(chart: LiftMetricChart, liftId: Long, firstLiftId: Long): LiftMetricChart {
-        return chart.copy(
-            id = if (liftId == firstLiftId) chart.id else 0L,
-            liftId = liftId
+    private fun addWorkoutLifts() = executeWithErrorHandling("Failed to add lift(s)") {
+        val newLiftHashSet = _state.value.selectedNewLiftsHashSet
+        val newLifts = _state.value.filteredLifts.filter { it.id in newLiftHashSet }
+        createWorkoutLiftsFromLiftsUseCase(
+            workoutId = _state.value.workoutId!!,
+            firstPosition = _state.value.addAtPosition!!,
+            lifts = newLifts
         )
-    }
-
-
-    private fun addWorkoutLifts() {
-        viewModelScope.launch {
-            val newLiftHashSet = _state.value.selectedNewLiftsHashSet
-            val workoutId = _state.value.workoutId!!
-            var position = _state.value.addAtPosition!! - 1
-            val newLifts = _state.value.filteredLifts
-                .filter { newLiftHashSet.contains(it.id) }
-                .fastMap { newLift ->
-                    position++
-                    StandardWorkoutLift(
-                        liftId = newLift.id,
-                        workoutId = workoutId,
-                        liftName = newLift.name,
-                        liftMovementPattern = newLift.movementPattern,
-                        liftVolumeTypes = newLift.volumeTypesBitmask,
-                        liftSecondaryVolumeTypes = newLift.secondaryVolumeTypesBitmask,
-                        position = position,
-                        deloadWeek = null,
-                        liftNote = null,
-                        setCount = 3,
-                        incrementOverride = newLift.incrementOverride,
-                        restTime = newLift.restTime,
-                        restTimerEnabled = newLift.restTimerEnabled,
-                        rpeTarget = 8f,
-                        repRangeBottom = 8,
-                        repRangeTop = 10,
-                        progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
-                    )
-                }
-
-            workoutLiftsRepositoryImpl.insertMany(newLifts)
-            navigateBackToWorkoutBuilder()
-        }
+        navigateBackToWorkoutBuilder()
     }
 
     fun replaceWorkoutLift(
         workoutLiftId: Long,
         replacementLiftId: Long,
         callerRouteId: Long,
-    ) {
+    ) = executeWithErrorHandling("Failed to replace lift") {
         _state.update { it.copy(replacingLift = true) }
 
-        viewModelScope.launch {
-            workoutLiftsRepositoryImpl.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
-            if (callerRouteId == Route.WorkoutBuilder.id) {
-                navigateBackToWorkoutBuilder()
-            } else {
-                navigateBackToActiveWorkout()
-            }
+        replaceWorkoutLIftUseCase(
+            workoutLiftId = workoutLiftId,
+            replacementLiftId = replacementLiftId
+        )
+        if (callerRouteId == Route.WorkoutBuilder.id) {
+            navigateBackToWorkoutBuilder()
+        } else {
+            navigateBackToActiveWorkout()
         }
     }
 
-    private fun navigateBackToWorkoutBuilder() {
+    private fun navigateBackToWorkoutBuilder() = executeWithErrorHandling("Failed to navigate back to workout builder") {
         onNavigateToWorkoutBuilder(_state.value.workoutId!!)
     }
 
-    private fun navigateBackToActiveWorkout() {
+    private fun navigateBackToActiveWorkout() = executeWithErrorHandling("Failed to navigate back to active workout") {
         onNavigateToActiveWorkout()
     }
 
-    private fun toggleFilterSelection() {
+    private fun toggleFilterSelection() = executeWithErrorHandling("Failed to toggle filter selection") {
         _state.update {
             it.copy(
                 showFilterSelection = !_state.value.showFilterSelection
@@ -211,7 +171,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    private fun setNameFilter(filter: String) {
+    private fun setNameFilter(filter: String) = executeWithErrorHandling("Failed to set name filter") {
         _state.update {
             it.copy(nameFilter = filter)
         }
@@ -219,7 +179,7 @@ class LiftLibraryViewModel(
         applyFilters()
     }
 
-    fun addMovementPatternFilter(movementPattern: FilterChipOption) {
+    fun addMovementPatternFilter(movementPattern: FilterChipOption) = executeWithErrorHandling("Failed to add filter") {
         _state.update {
             it.copy(
                 movementPatternFilters = it.movementPatternFilters
@@ -229,7 +189,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun removeMovementPatternFilter(movementPattern: FilterChipOption, apply: Boolean) {
+    fun removeMovementPatternFilter(movementPattern: FilterChipOption, apply: Boolean) = executeWithErrorHandling("Failed to remove filter") {
         _state.update {
             it.copy(
                 movementPatternFilters = _state.value.movementPatternFilters
@@ -265,12 +225,12 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun applyFilters() {
+    fun applyFilters() = executeWithErrorHandling("Failed to apply filters") {
         val filteredLifts = getFilteredLifts(
             liftsToFilter = _state.value.allLifts,
             nameFilter = _state.value.nameFilter,
             movementPatternFilters = _state.value.movementPatternFilters,
-            liftIdFilters = _state.value.liftIdFilters)
+            liftIdFilters = _state.value.liftsToFilterOut)
 
         _state.update {
             it.copy(
@@ -280,10 +240,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun deleteLift(lift: Lift) {
-        viewModelScope.launch {
-            // No need to update state. The lifts are retrieved via Flow
-            liftsRepository.delete(lift)
-        }
+    fun deleteLift(lift: Lift) = executeWithErrorHandling("Failed to delete lift") {
+        deleteLiftUseCase(lift)
     }
 }

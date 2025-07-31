@@ -13,7 +13,7 @@ data class LiftLibraryState (
     val workoutId: Long? = null,
     val nameFilter: String? = null,
     val newLiftMetricChartIds: List<Long> = listOf(),
-    val liftIdFilters: HashSet<Long> = hashSetOf(),
+    val liftsToFilterOut: HashSet<Long> = hashSetOf(),
     val movementPatternFilters: List<FilterChipOption> = listOf(),
     val showFilterSelection: Boolean = false,
     val replacingLift: Boolean = false,

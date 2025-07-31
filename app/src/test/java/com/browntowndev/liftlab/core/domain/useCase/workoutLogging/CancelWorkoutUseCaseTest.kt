@@ -1,9 +1,11 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -15,12 +17,17 @@ class CancelWorkoutUseCaseTest {
     private lateinit var workoutInProgressRepository: WorkoutInProgressRepository
     private lateinit var setResultsRepository: PreviousSetResultsRepository
     private lateinit var cancelWorkoutUseCase: CancelWorkoutUseCase
+    private lateinit var transactionScope: TransactionScope
 
     @BeforeEach
     fun setUp() {
         workoutInProgressRepository = mockk(relaxed = true)
         setResultsRepository = mockk(relaxed = true)
-        cancelWorkoutUseCase = CancelWorkoutUseCase(workoutInProgressRepository, setResultsRepository)
+        transactionScope = mockk(relaxed = true)
+        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+            firstArg<suspend () -> Unit>().invoke()
+        }
+        cancelWorkoutUseCase = CancelWorkoutUseCase(workoutInProgressRepository, setResultsRepository, transactionScope)
     }
 
     @Test

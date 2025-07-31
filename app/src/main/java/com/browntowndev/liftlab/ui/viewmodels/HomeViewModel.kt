@@ -373,7 +373,7 @@ class HomeViewModel(
             }
             // Clear out table of charts with no lifts in case any get stranded somehow
             liftMetricChartsRepository.deleteAllWithNoLifts()
-            val chartIds = liftMetricChartsRepository.upsertMany(charts)
+            val chartIds = liftMetricChartsRepository.insertMany(charts)
             onNavigateToLiftLibrary(chartIds)
         }
     }

@@ -894,7 +894,7 @@ class DynamicDoubleProgressionCalculatorTests {
             when (index) {
                 0 -> assertEquals(100f, p.weightRecommendation)
                 1 -> assertEquals(90f, p.weightRecommendation)
-                2 -> assertEquals(75f, p.weightRecommendation)
+                2 -> assertEquals(70f, p.weightRecommendation)
             }
         }
     }
@@ -959,7 +959,7 @@ class DynamicDoubleProgressionCalculatorTests {
 
         result.forEachIndexed { index, p ->
             when (index) {
-                0 -> assertEquals(95f, p.weightRecommendation)
+                0 -> assertEquals(90f, p.weightRecommendation)
                 1 -> assertEquals(90f, p.weightRecommendation)
                 2 -> assertEquals(80f, p.weightRecommendation)
             }

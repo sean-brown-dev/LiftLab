@@ -53,9 +53,10 @@ val viewModelModule = module {
     }
     factory { params ->
         LiftLibraryViewModel(
-            liftsRepository = get(),
-            workoutLiftsRepositoryImpl = get(),
-            liftMetricChartsRepository = get(),
+            deleteLiftUseCase = get(),
+            replaceWorkoutLIftUseCase = get(),
+            createLiftMetricChartsUseCase = get(),
+            createWorkoutLiftsFromLiftsUseCase = get(),
             getLiftConfigurationStateFlowUseCase = get(),
             onNavigateHome = params[0],
             onNavigateToWorkoutBuilder = params[1],

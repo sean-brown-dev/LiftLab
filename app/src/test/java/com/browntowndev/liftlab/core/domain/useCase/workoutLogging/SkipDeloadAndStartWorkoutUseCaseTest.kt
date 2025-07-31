@@ -1,7 +1,9 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -13,14 +15,20 @@ class SkipDeloadAndStartWorkoutUseCaseTest {
     private lateinit var programsRepository: ProgramsRepository
     private lateinit var startWorkoutUseCase: StartWorkoutUseCase
     private lateinit var skipDeloadAndStartWorkoutUseCase: SkipDeloadAndStartWorkoutUseCase
+    private lateinit var transactionScope: TransactionScope
 
     @BeforeEach
     fun setUp() {
         programsRepository = mockk(relaxed = true)
         startWorkoutUseCase = mockk(relaxed = true)
+        transactionScope = mockk(relaxed = true)
+        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+            firstArg<suspend () -> Unit>().invoke()
+        }
         skipDeloadAndStartWorkoutUseCase = SkipDeloadAndStartWorkoutUseCase(
             programsRepository,
-            startWorkoutUseCase
+            startWorkoutUseCase,
+            transactionScope,
         )
     }
 

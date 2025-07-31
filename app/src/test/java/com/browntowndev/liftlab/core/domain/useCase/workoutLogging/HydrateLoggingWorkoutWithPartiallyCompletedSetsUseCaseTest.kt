@@ -135,7 +135,11 @@ class HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCaseTest {
         val result = useCase(loggingWorkout, hydratingLifts)
 
         // THEN: Assert that the returned LoggingWorkout object is a new, hydrated object
-        assertEquals(loggingWorkout, result)
+        val resultSet = result.lifts.first().sets.first() as LoggingStandardSet
+        assert(resultSet.complete)
+        assertEquals(resultSet.completedReps, hydratingLifts[0].sets[0].completedReps)
+        assertEquals(resultSet.completedWeight, hydratingLifts[0].sets[0].completedWeight)
+        assertEquals(resultSet.completedRpe, hydratingLifts[0].sets[0].completedRpe)
     }
 
     @Test

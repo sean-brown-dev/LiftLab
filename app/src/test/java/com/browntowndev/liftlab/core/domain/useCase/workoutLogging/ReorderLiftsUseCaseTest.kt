@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 import com.browntowndev.liftlab.core.common.enums.MovementPattern
 import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
@@ -28,12 +29,17 @@ class ReorderLiftsUseCaseTest {
     private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
     private lateinit var setResultsRepository: PreviousSetResultsRepository
     private lateinit var reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase
+    private lateinit var transactionScope: TransactionScope
 
     @BeforeEach
     fun setUp() {
         workoutLiftsRepository = mockk(relaxed = true)
         setResultsRepository = mockk(relaxed = true)
-        reorderWorkoutLiftsUseCase = ReorderWorkoutLiftsUseCase(workoutLiftsRepository, setResultsRepository)
+        transactionScope = mockk(relaxed = true)
+        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+            firstArg<suspend () -> Unit>().invoke()
+        }
+        reorderWorkoutLiftsUseCase = ReorderWorkoutLiftsUseCase(workoutLiftsRepository, setResultsRepository, transactionScope)
     }
 
     @Test

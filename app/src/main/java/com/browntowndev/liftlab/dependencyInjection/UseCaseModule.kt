@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.dependencyInjection
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResultUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
@@ -35,10 +36,12 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResu
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
@@ -99,6 +102,8 @@ val useCaseModule = module {
     singleOf(::UpdateWorkoutNameUseCase)
     singleOf(::UpdateWorkoutLiftDeloadWeekUseCase)
     singleOf(::UpdateRestTimeUseCase)
+    singleOf(::CreateWorkoutLiftsFromLiftsUseCase)
+    singleOf(::ReplaceWorkoutLiftUseCase)
 
     // Program Configuration
     singleOf(::CreateProgramUseCase)
@@ -113,4 +118,5 @@ val useCaseModule = module {
 
     // Lift Configuration
     singleOf(::GetLiftConfigurationStateFlowUseCase)
+    singleOf(::DeleteLiftUseCase)
 }

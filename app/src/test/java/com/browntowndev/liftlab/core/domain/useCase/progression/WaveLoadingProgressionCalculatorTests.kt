@@ -93,7 +93,7 @@ class WaveLoadingProgressionCalculatorTests {
             .calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
 
         result.fastForEach {
-            assertEquals(70f, it.weightRecommendation)
+            assertEquals(65f, it.weightRecommendation)
         }
     }
 

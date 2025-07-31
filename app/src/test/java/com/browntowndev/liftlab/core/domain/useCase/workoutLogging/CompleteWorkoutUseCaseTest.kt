@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -33,6 +34,7 @@ class CompleteWorkoutUseCaseTest {
     private lateinit var setResultsRepository: PreviousSetResultsRepository
     private lateinit var setLogEntryRepository: SetLogEntryRepository
     private lateinit var completeWorkoutUseCase: CompleteWorkoutUseCase
+    private lateinit var transactionScope: TransactionScope
 
     @BeforeEach
     fun setUp() {
@@ -43,6 +45,10 @@ class CompleteWorkoutUseCaseTest {
         workoutLogRepository = mockk(relaxed = true)
         setResultsRepository = mockk(relaxed = true)
         setLogEntryRepository = mockk(relaxed = true)
+        transactionScope = mockk(relaxed = true)
+        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+            firstArg<suspend () -> Unit>().invoke()
+        }
         completeWorkoutUseCase = CompleteWorkoutUseCase(
             workoutInProgressRepository,
             restTimerInProgressRepository,
@@ -50,7 +56,8 @@ class CompleteWorkoutUseCaseTest {
             historicalWorkoutNamesRepository,
             workoutLogRepository,
             setResultsRepository,
-            setLogEntryRepository
+            setLogEntryRepository,
+            transactionScope
         )
 
         mockkObject(SettingsManager)
