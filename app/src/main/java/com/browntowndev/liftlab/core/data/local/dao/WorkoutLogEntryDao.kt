@@ -115,7 +115,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
             "INNER JOIN lifts liftEntity ON setResult.liftId = liftEntity.lift_id " +
             "WHERE log.workout_log_entry_id = :workoutLogEntryId AND log.deleted = 0")
-    suspend fun getFlattened(workoutLogEntryId: Long): List<FlattenedWorkoutLogEntryDto>
+    fun getFlattenedFlow(workoutLogEntryId: Long): Flow<List<FlattenedWorkoutLogEntryDto>>
 
     @Query("SELECT * FROM workoutLogEntries WHERE workout_log_entry_id = :workoutLogEntryId AND deleted = 0")
     suspend fun get(workoutLogEntryId: Long): WorkoutLogEntryEntity?

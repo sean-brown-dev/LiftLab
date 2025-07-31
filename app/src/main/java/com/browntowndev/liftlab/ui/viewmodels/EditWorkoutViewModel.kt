@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
@@ -27,11 +28,19 @@ import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepos
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -43,6 +52,7 @@ class EditWorkoutViewModel(
     private val workoutLogRepository: WorkoutLogRepository,
     private val setResultsRepository: PreviousSetResultsRepository,
     private val setLogEntryRepository: SetLogEntryRepository,
+    private val getCompletedWorkoutStateFlowUseCase: GetCompletedWorkoutStateFlowUseCase,
     private val onNavigateBack: () -> Unit,
     undoSetCompletionUseCase: UndoSetCompletionUseCase,
     completeSetUseCase: CompleteSetUseCase,
@@ -77,54 +87,34 @@ class EditWorkoutViewModel(
     }
 
     init {
-        viewModelScope.launch {
-            executeInTransactionScope {
-                val workoutLog = workoutLogRepository.get(workoutLogEntryId = workoutLogEntryId)
-                val previousResults = workoutLogRepository.getMostRecentSetResultsForLiftIdsPriorToDate(
-                    liftIds = workoutLog!!.setResults.map { it.liftId },
-                    linearProgressionLiftIds = workoutLog.setResults
-                        .filter { it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION }
-                        .map { it.liftId }
-                        .toSet(),
-                    date = workoutLog.date,
+        getCompletedWorkoutStateFlowUseCase(workoutLogEntryId = workoutLogEntryId)
+            .map { completedWorkoutState ->
+                EditWorkoutState(
+                    duration = completedWorkoutState.duration ?: "00:00:00",
+                    setResults = completedWorkoutState.inProgressSetResults ?: emptyList(),
+                ) to
+                WorkoutState(
+                    workout = completedWorkoutState.workout,
+                    programMetadata = completedWorkoutState.programMetadata,
+                    completedSets = completedWorkoutState.completedSetsFromLog,
                 )
-                val workout = buildLoggingWorkoutFromWorkoutLogs(workoutLog = workoutLog, previousResults = previousResults)
-                mutableWorkoutState.update {
-                    it.copy(workout = workout)
-                }
-                val completedSetResults = buildCompletedSetResultsFromLog(workoutLog = workoutLog)
-                setResultsRepository.getForWorkoutFlow(
-                    workoutId = workoutLog.workoutId,
-                    mesoCycle = workoutLog.mesocycle,
-                    microCycle = workoutLog.microcycle
-                ).collect { setResults ->
-                    _editWorkoutState.update {
-                        it.copy(
-                            duration = workoutLog.durationInMillis.toTimeString(),
-                            setResults = setResults
-                        )
-                    }
-                }
-
+            }.onEach { (editWorkoutState, workoutState) ->
+                _editWorkoutState.update { editWorkoutState }
                 mutableWorkoutState.update { currentState ->
                     currentState.copy(
-                        programMetadata = ActiveProgramMetadata(
-                            programId = 0L,
-                            name = "",
-                            deloadWeek = workoutLog.programDeloadWeek,
-                            workoutCount = workoutLog.programWorkoutCount,
-                            currentMesocycle = workoutLog.mesocycle,
-                            currentMicrocycle = workoutLog.microcycle,
-                            currentMicrocyclePosition = workoutLog.microcyclePosition,
-                        ),
+                        workout = workoutState.workout,
+                        programMetadata = workoutState.programMetadata,
+                        completedSets = workoutState.completedSets,
                         inProgressWorkout = WorkoutInProgressUiModel(
                             startTime = getCurrentDate(),
                         ),
-                        completedSets = completedSetResults,
                     )
                 }
-            }
-        }
+            }.catch {
+                FirebaseCrashlytics.getInstance().recordException(it)
+                Log.e("EditWorkoutViewModel", "Error getting completed workout state flow", it)
+                emitUserMessage("Failed to load workout")
+            }.launchIn(viewModelScope)
     }
 
     @Subscribe
@@ -137,161 +127,6 @@ class EditWorkoutViewModel(
                 onNavigateBack()
             }
             else -> {}
-        }
-    }
-
-    private fun getPreviousSetResultLabel(
-        previousSetResults: Map<Long, Map<String, SetResult>>,
-        liftId: Long,
-        setPosition: Int,
-        myoRepSetPosition: Int?,
-    ): String {
-        val result = previousSetResults[liftId]?.get("$setPosition-$myoRepSetPosition")
-        return if (result != null) {
-            "${result.weight.toString().removeSuffix(".0")}x${result.reps} @${result.rpe}"
-        } else {
-            "—"
-        }
-    }
-
-    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntry, previousResults: List<SetResult>): LoggingWorkout {
-        val previousSetResults = previousResults
-            .groupBy { it.liftId }
-            .entries
-            .associate {  lift ->
-                lift.key to
-                        lift.value.associateBy { "${it.setPosition}-${(it as? MyoRepSetResult)?.myoRepSetPosition}" }
-            }
-        var fauxWorkoutLiftId = 0L
-        return LoggingWorkout(
-            id = workoutLog.workoutId,
-            name = workoutLog.workoutName,
-            lifts = workoutLog.setResults.groupBy { it.liftPosition }.map { groupedResults ->
-                fauxWorkoutLiftId++
-                val lift = groupedResults.value[0]
-                LoggingWorkoutLift(
-                    id = fauxWorkoutLiftId,
-                    liftId = lift.liftId,
-                    liftName = lift.liftName,
-                    liftMovementPattern = lift.liftMovementPattern,
-                    liftVolumeTypes = 0,
-                    liftSecondaryVolumeTypes = null,
-                    position = lift.liftPosition,
-                    progressionScheme = lift.progressionScheme,
-                    deloadWeek = max(lift.workoutLiftDeloadWeek ?: 0, workoutLog.programDeloadWeek),
-                    incrementOverride = null,
-                    restTime = null,
-                    restTimerEnabled = false,
-                    note = null,
-                    sets = groupedResults.value
-                        .sortedWith(
-                            compareBy<SetLogEntry> { it.setPosition }
-                                .thenBy { it.myoRepSetPosition ?: -1 }
-                        ).fastMap { setLogEntry ->
-                        when (setLogEntry.setType) {
-                            SetType.STANDARD ->
-                                LoggingStandardSet(
-                                    position = setLogEntry.setPosition,
-                                    repRangeTop = setLogEntry.repRangeTop!!,
-                                    repRangeBottom = setLogEntry.repRangeBottom!!,
-                                    rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = setLogEntry.weightRecommendation,
-                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
-                                    previousSetResultLabel = getPreviousSetResultLabel(
-                                        previousSetResults = previousSetResults,
-                                        liftId = lift.liftId,
-                                        setPosition = setLogEntry.setPosition,
-                                        myoRepSetPosition = setLogEntry.myoRepSetPosition,
-                                    ),
-                                    repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
-                                    complete = true,
-                                    completedWeight = setLogEntry.weight,
-                                    completedReps = setLogEntry.reps,
-                                    completedRpe = setLogEntry.rpe,
-                                )
-                            SetType.MYOREP ->
-                                LoggingMyoRepSet(
-                                    position = setLogEntry.setPosition,
-                                    myoRepSetPosition = setLogEntry.myoRepSetPosition,
-                                    repRangeTop = setLogEntry.repRangeTop,
-                                    repRangeBottom = setLogEntry.repRangeBottom,
-                                    rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = setLogEntry.weightRecommendation,
-                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
-                                    previousSetResultLabel = getPreviousSetResultLabel(
-                                        previousSetResults = previousSetResults,
-                                        liftId = lift.liftId,
-                                        setPosition = setLogEntry.setPosition,
-                                        myoRepSetPosition = setLogEntry.myoRepSetPosition,
-                                    ),
-                                    repRangePlaceholder = if (setLogEntry.repRangeBottom != null && setLogEntry.repRangeTop != null) {
-                                        "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}"
-                                    } else "",
-                                    setMatching = setLogEntry.setMatching!!,
-                                    maxSets = setLogEntry.maxSets,
-                                    repFloor = setLogEntry.repFloor,
-                                    complete = true,
-                                    completedWeight = setLogEntry.weight,
-                                    completedReps = setLogEntry.reps,
-                                    completedRpe = setLogEntry.rpe,
-                                )
-                            SetType.DROP_SET ->
-                                LoggingDropSet(
-                                    position = setLogEntry.setPosition,
-                                    repRangeTop = setLogEntry.repRangeTop!!,
-                                    repRangeBottom = setLogEntry.repRangeBottom!!,
-                                    rpeTarget = setLogEntry.rpeTarget,
-                                    weightRecommendation = setLogEntry.weightRecommendation,
-                                    hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
-                                    previousSetResultLabel = getPreviousSetResultLabel(
-                                        previousSetResults = previousSetResults,
-                                        liftId = lift.liftId,
-                                        setPosition = setLogEntry.setPosition,
-                                        myoRepSetPosition = setLogEntry.myoRepSetPosition,
-                                    ),
-                                    repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
-                                    dropPercentage = setLogEntry.dropPercentage!!,
-                                    complete = true,
-                                    completedWeight = setLogEntry.weight,
-                                    completedReps = setLogEntry.reps,
-                                    completedRpe = setLogEntry.rpe,
-                                )
-                        }
-                    }
-                )
-            }
-        ).let { unsortedWorkout ->
-            // Sort lifts & sets by position
-            unsortedWorkout.copy(
-                lifts = unsortedWorkout.lifts
-                    .sortedBy { unsortedLift -> unsortedLift.position }
-                    .map { sortedLift ->
-                        sortedLift.copy(
-                            sets = sortedLift.sets.sortedBy { unsortedSet -> unsortedSet.position }
-                        )
-                    }
-            )
-        }
-    }
-
-    private fun buildCompletedSetResultsFromLog(workoutLog: WorkoutLogEntry): List<SetResult> {
-        return workoutLog.setResults.fastMap { setLogEntry ->
-            super.buildSetResult(
-                id = setLogEntry.id,
-                workoutId = workoutLog.workoutId,
-                currentMesocycle = workoutLog.mesocycle,
-                currentMicrocycle = workoutLog.microcycle,
-                weightRecommendation = setLogEntry.weightRecommendation,
-                liftId = setLogEntry.liftId,
-                setType = setLogEntry.setType,
-                progressionScheme = setLogEntry.progressionScheme,
-                liftPosition = setLogEntry.liftPosition,
-                setPosition = setLogEntry.setPosition,
-                myoRepSetPosition = setLogEntry.myoRepSetPosition,
-                weight = setLogEntry.weight,
-                reps = setLogEntry.reps,
-                rpe = setLogEntry.rpe,
-            )
         }
     }
 
@@ -349,24 +184,7 @@ class EditWorkoutViewModel(
                 }
             } ?: updatedResult
 
-        val id = setResultsRepository.upsert(resultToUpsert)
-
-        // If it was a new result
-        if (updatedResult.id != id) {
-            val resultWithId = when (updatedResult) {
-                is MyoRepSetResult -> updatedResult.copy(id = id)
-                is StandardSetResult -> updatedResult.copy(id = id)
-                is LinearProgressionSetResult -> updatedResult.copy(id = id)
-                else -> throw Exception("${updatedResult::class.simpleName} is not defined.")
-            }
-            _editWorkoutState.update {
-                it.copy(
-                    setResults = it.setResults.toMutableList().apply {
-                        add(resultWithId)
-                    }
-                )
-            }
-        }
+        setResultsRepository.upsert(resultToUpsert)
     }
 
     public override suspend fun updateLinearProgressionFailures() {
@@ -374,59 +192,35 @@ class EditWorkoutViewModel(
     }
 
     fun addSet(workoutLiftId: Long) = executeWithErrorHandling("Failed to add set.") {
-        executeInTransactionScope {
-            var newSet: GenericLoggingSet? = null
-            val workoutLiftWithNewSet = mutableWorkoutState.value.workout?.lifts
-                ?.find { it.id == workoutLiftId }
-                ?.let { workoutLift ->
-                    workoutLift.copy(
-                        sets = workoutLift.sets.toMutableList().apply {
-                            val lastSet = last()
-                            newSet = lastSet.copyGeneric(
-                                position = lastSet.position + 1,
-                                myoRepSetPosition = (lastSet as? LoggingMyoRepSet)?.myoRepSetPosition?.let {
-                                    it + 1
-                                },
-                            )
-                            add(newSet)
-                        }.toList()
-                    )
-                }
+        val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
+        val lastSet = workoutLift.sets.last()
+        val newSet = lastSet.copyGeneric(
+            position = lastSet.position + 1,
+            myoRepSetPosition = (lastSet as? LoggingMyoRepSet)?.myoRepSetPosition?.let {
+                it + 1
+            },
+        )
 
-            if (newSet != null && workoutLiftWithNewSet != null) {
-                mutableWorkoutState.update {
-                    it.copy(
-                        workout = it.workout?.copy(
-                            lifts = it.workout.lifts.fastMap { workoutLift ->
-                                if (workoutLift.id == workoutLiftId)
-                                    workoutLiftWithNewSet
-                                else workoutLift
-                            }
-                        ))
-                }
-
-                completeSet(
-                    restTime = 0L, restTimerEnabled = false, onBuildSetResult = {
-                        buildSetResult(
-                            setType = when (newSet) {
-                                is LoggingStandardSet -> SetType.STANDARD
-                                is LoggingDropSet -> SetType.DROP_SET
-                                is LoggingMyoRepSet -> SetType.MYOREP
-                                else -> throw Exception("${newSet!!::class.simpleName} is not defined")
-                            },
-                            liftId = workoutLiftWithNewSet.liftId,
-                            progressionScheme = workoutLiftWithNewSet.progressionScheme,
-                            liftPosition = workoutLiftWithNewSet.position,
-                            setPosition = newSet.position,
-                            myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
-                            weight = newSet.completedWeight ?: 0f,
-                            reps = newSet.completedReps ?: 0,
-                            rpe = newSet.completedRpe ?: 8f,
-                        )
-                    }
+        completeSet(
+            restTime = 0L, restTimerEnabled = false, onBuildSetResult = {
+                buildSetResult(
+                    setType = when (newSet) {
+                        is LoggingStandardSet -> SetType.STANDARD
+                        is LoggingDropSet -> SetType.DROP_SET
+                        is LoggingMyoRepSet -> SetType.MYOREP
+                        else -> throw Exception("${newSet::class.simpleName} is not defined")
+                    },
+                    liftId = workoutLift.liftId,
+                    progressionScheme = workoutLift.progressionScheme,
+                    liftPosition = workoutLift.position,
+                    setPosition = newSet.position,
+                    myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
+                    weight = newSet.completedWeight ?: 0f,
+                    reps = newSet.completedReps ?: 0,
+                    rpe = newSet.completedRpe ?: 8f,
                 )
             }
-        }
+        )
     }
 
     private fun getSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {

@@ -16,6 +16,7 @@ import com.browntowndev.liftlab.core.data.mapping.WorkoutLogEntryMappingExtensio
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import java.util.Date
 
 class WorkoutLogRepositoryImpl(
@@ -93,10 +94,11 @@ class WorkoutLogRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override suspend fun get(workoutLogEntryId: Long): WorkoutLogEntry? {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> =
-            workoutLogEntryDao.getFlattened(workoutLogEntryId = workoutLogEntryId)
-        return flattenedLogEntries.toDomainModel().firstOrNull()
+    override fun getFlow(workoutLogEntryId: Long): Flow<WorkoutLogEntry> {
+        return workoutLogEntryDao.getFlattenedFlow(workoutLogEntryId = workoutLogEntryId)
+            .mapNotNull { flattenedLogEntries ->
+                flattenedLogEntries.toDomainModel().firstOrNull()
+            }
     }
 
     override suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntry> {
@@ -153,6 +155,7 @@ class WorkoutLogRepositoryImpl(
                     )
                 }
             }
+
     }
 
     override suspend fun insertWorkoutLogEntry(

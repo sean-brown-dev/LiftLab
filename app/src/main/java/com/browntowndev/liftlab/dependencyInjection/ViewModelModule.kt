@@ -101,6 +101,7 @@ val viewModelModule = module {
             onNavigateBack = params.get(),
             completeSetUseCase = get(),
             undoSetCompletionUseCase = get(),
+            getCompletedWorkoutStateFlowUseCase = get(),
             transactionScope = get(),
             eventBus = get()
         )

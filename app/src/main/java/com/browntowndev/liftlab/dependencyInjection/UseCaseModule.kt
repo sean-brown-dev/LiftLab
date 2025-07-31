@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.dependencyInjection
 
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResultUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
@@ -43,6 +44,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateW
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -70,6 +72,8 @@ val useCaseModule = module {
     singleOf(::UpsertSetResultUseCase)
     singleOf(::CompleteSetUseCase)
     singleOf(::UndoSetCompletionUseCase)
+    singleOf(::BuildSetResultUseCase)
+    singleOf(::GetCompletedWorkoutStateFlowUseCase)
 
     // Home
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
