@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResultUseCase
+import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
@@ -85,10 +86,6 @@ val useCaseModule = module {
     singleOf(::UpsertSetLogEntryUseCase)
     singleOf(::DeleteSetLogEntryByIdUseCase)
 
-    // Home
-    singleOf(::GetGroupedLiftMetricChartDataUseCase)
-    singleOf(::GetGroupedVolumeMetricChartDataUseCase)
-
     // Workout Configuration
     singleOf(::AddSetUseCase)
     singleOf(::ConvertWorkoutLiftTypeUseCase)
@@ -119,4 +116,9 @@ val useCaseModule = module {
     // Lift Configuration
     singleOf(::GetLiftConfigurationStateFlowUseCase)
     singleOf(::DeleteLiftUseCase)
+
+    // Charts
+    singleOf(::GetGroupedLiftMetricChartDataUseCase)
+    singleOf(::GetGroupedVolumeMetricChartDataUseCase)
+    singleOf(::CreateLiftMetricChartsUseCase)
 }

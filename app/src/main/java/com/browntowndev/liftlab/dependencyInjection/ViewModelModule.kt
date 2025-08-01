@@ -23,7 +23,7 @@ val viewModelModule = module {
     factory { params ->
         LiftDetailsViewModel(
             onNavigateBack = params.get(),
-            liftId = params.get(),
+            liftId = params.getOrNull(),
             liftsRepository = get(),
             workoutLogRepository = get(),
             transactionScope = get(),
