@@ -1,22 +1,22 @@
 package com.browntowndev.liftlab.core.domain.useCase.liftConfiguration
 
-import com.browntowndev.liftlab.core.domain.models.workout.LiftConfigurationState
+import com.browntowndev.liftlab.core.domain.models.workout.FilterableLiftsState
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class GetLiftConfigurationStateFlowUseCase(
+class GetFilterableLiftsStateFlowUseCase(
     private val liftsRepository: LiftsRepository,
     private val workoutLiftsRepository: WorkoutLiftsRepository,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend operator fun invoke(workoutId: Long?): Flow<LiftConfigurationState> {
+    suspend operator fun invoke(workoutId: Long?): Flow<FilterableLiftsState> {
         val liftIdsForWorkout = getLiftIdFilters(workoutId)
         return liftsRepository.getAllFlow()
             .map { lifts ->
-                LiftConfigurationState(
+                FilterableLiftsState(
                     lifts = lifts,
                     liftIdsForWorkout = liftIdsForWorkout,
                 )

@@ -19,6 +19,10 @@ interface LiftsDao: BaseDao<LiftEntity> {
     suspend fun get(id: Long): LiftEntity?
 
     @Transaction
+    @Query("SELECT * FROM lifts WHERE lift_id = :id AND deleted = 0")
+    fun getByIdFlow(id: Long): Flow<LiftEntity?>
+
+    @Transaction
     @Query("SELECT * FROM lifts WHERE lift_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<LiftEntity>
 

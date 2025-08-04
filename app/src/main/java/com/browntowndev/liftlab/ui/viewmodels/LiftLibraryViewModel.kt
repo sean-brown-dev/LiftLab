@@ -7,10 +7,9 @@ import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
-import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftConfigurationStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
@@ -34,7 +33,7 @@ class LiftLibraryViewModel(
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     private val onNavigateToActiveWorkout: () -> Unit,
     private val onNavigateToLiftDetails: (liftId: Long?) -> Unit,
-    getLiftConfigurationStateFlowUseCase: GetLiftConfigurationStateFlowUseCase,
+    getFilterableLiftsStateFlowUseCase: GetFilterableLiftsStateFlowUseCase,
     workoutId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
@@ -47,7 +46,7 @@ class LiftLibraryViewModel(
 
     init {
         viewModelScope.launch {
-            getLiftConfigurationStateFlowUseCase(workoutId)
+            getFilterableLiftsStateFlowUseCase(workoutId)
                 .map { liftConfigurationState ->
                     val sortedLifts = liftConfigurationState.lifts.sortedBy { it.name }
                     LiftLibraryState(

@@ -47,6 +47,10 @@ class LiftsRepositoryImpl(
         }
     }
 
+    override fun getByIdFlow(liftId: Long): Flow<Lift?> {
+        return liftsDao.getByIdFlow(liftId).map { it?.toDomainModel() }
+    }
+
     override suspend fun updateRestTime(id: Long, enabled: Boolean, newRestTime: Duration?) {
         val current = liftsDao.get(id) ?: return
         val toUpdate = current.copy(restTimerEnabled = enabled, restTime = newRestTime)

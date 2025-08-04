@@ -9,7 +9,6 @@ interface WorkoutLogRepository: Repository<WorkoutLogEntry, Long> {
     override suspend fun getAll(): List<WorkoutLogEntry>
     override fun getAllFlow(): Flow<List<WorkoutLogEntry>>
     fun getFlow(workoutLogEntryId: Long): Flow<WorkoutLogEntry>
-    suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntry>
     suspend fun getMostRecentSetResultsForLiftIds(
         liftIds: List<Long>,
         linearProgressionLiftIds: Set<Long>,
@@ -34,4 +33,5 @@ interface WorkoutLogRepository: Repository<WorkoutLogEntry, Long> {
     ): Long
 
     suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long)
+    fun getWorkoutLogsForLiftFlow(liftId: Long): Flow<List<WorkoutLogEntry>>
 }

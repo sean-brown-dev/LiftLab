@@ -11,12 +11,14 @@ import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toMediumDateString
+import com.browntowndev.liftlab.core.common.toShortTimeString
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
@@ -24,6 +26,9 @@ import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
@@ -33,9 +38,9 @@ import kotlin.math.roundToInt
 
 class LiftDetailsViewModel(
     private val onNavigateBack: () -> Unit,
-    private val liftId: Long?,
+    liftId: Long?,
     private val liftsRepository: LiftsRepository,
-    private val workoutLogRepository: WorkoutLogRepository,
+    getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase,
     transactionScope: TransactionScope,
     eventBus: EventBus
 ) : LiftLabViewModel(transactionScope, eventBus) {
@@ -43,55 +48,41 @@ class LiftDetailsViewModel(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            val lift = if (liftId != null) {
-                // TODO: Handle error
-                liftsRepository.getById(liftId)!!
-            } else {
-                Lift(
-                    id = 0L,
-                    name = "",
-                    movementPattern = MovementPattern.AB_ISO,
-                    volumeTypesBitmask = VolumeType.AB.bitMask,
-                    secondaryVolumeTypesBitmask = null,
-                    incrementOverride = null,
-                    restTime = null,
-                    restTimerEnabled = true,
-                    isBodyweight = false,
-                    note = null,
-                )
-            }
-
-            val workoutLogs = if (liftId != null) {
-                workoutLogRepository.getWorkoutLogsForLift(liftId)
-            } else listOf()
-
-            val topTenPerformances = getTopTenPerformances(workoutLogs)
-            _state.update {
-                it.copy(
-                    lift = lift,
-                    workoutLogs = workoutLogs,
-                    oneRepMax = topTenPerformances.firstOrNull()?.let { pr -> pr.date to pr.oneRepMax },
-                    maxVolume = getMaxVolume(workoutLogs),
-                    maxWeight = getMaxWeight(workoutLogs),
-                    topTenPerformances = topTenPerformances,
-                    totalReps = getTotalReps(workoutLogs),
-                    totalVolume = getTotalVolume(workoutLogs),
-                    workoutFilterOptions = getWorkoutFilterOptions(workoutLogs),
-                    oneRepMaxChartModel = getOneRepMaxChartModel(workoutLogs, setOf()),
-                    volumeChartModel = getPerWorkoutVolumeChartModel(workoutLogs, setOf()),
-                    intensityChartModel = getIntensityChartModel(workoutLogs, setOf()),
-                    volumeTypeDisplayNames = lift.volumeTypesBitmask.getVolumeTypes()
-                        .fastMap { volumeType ->
+        getLiftWithHistoryStateFlowUseCase(liftId)
+            .map { liftWithHistoryState ->
+                LiftDetailsState(
+                    lift = liftWithHistoryState.lift,
+                    workoutLogs = liftWithHistoryState.workoutLogEntries,
+                    oneRepMax = liftWithHistoryState.topTenPerformances.firstOrNull()?.let { pr -> pr.first.toMediumDateString() to pr.second.oneRepMax.toString() },
+                    maxVolume = liftWithHistoryState.maxVolume?.let { it.first.toMediumDateString() to formatFloatString(it.second) },
+                    maxWeight = liftWithHistoryState.maxWeight?.let { it.first.toMediumDateString() to formatFloatString(it.second) },
+                    topTenPerformances = liftWithHistoryState.topTenPerformances.map {
+                        OneRepMaxEntry(
+                            setsAndRepsLabel = "${formatFloatString(it.second.weight)}x${it.second.reps} @${it.second.rpe}",
+                            date = it.first.toMediumDateString(),
+                            oneRepMax = it.second.oneRepMax.toString()
+                        )
+                    },
+                    totalReps = liftWithHistoryState.totalReps.toString(),
+                    totalVolume = formatFloatString(liftWithHistoryState.totalVolume),
+                    workoutFilterOptions = getWorkoutFilterOptions(liftWithHistoryState.workoutLogEntries),
+                    oneRepMaxChartModel = getOneRepMaxChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                    volumeChartModel = getPerWorkoutVolumeChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                    intensityChartModel = getIntensityChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                    volumeTypeDisplayNames = liftWithHistoryState.lift?.volumeTypesBitmask?.getVolumeTypes()
+                        ?.fastMap { volumeType ->
                             volumeType.displayName()
-                        }.sorted(),
-                    secondaryVolumeTypeDisplayNames = lift.secondaryVolumeTypesBitmask?.getVolumeTypes()
+                        }?.sorted() ?: listOf(),
+                    secondaryVolumeTypeDisplayNames = liftWithHistoryState.lift?.secondaryVolumeTypesBitmask?.getVolumeTypes()
                         ?.fastMap { volumeType ->
                             volumeType.displayName()
                         }?.sorted() ?: listOf(),
                 )
-            }
-        }
+            }.onEach { state ->
+                _state.update {
+                    state
+                }
+            }.launchIn(viewModelScope)
     }
 
     private fun getMaxVolume(workoutLogs: List<WorkoutLogEntry>): Pair<String, String>? {

@@ -10,4 +10,5 @@ interface LiftsRepository : Repository<Lift, Long> {
     suspend fun updateIncrementOverride(id: Long, newIncrement: Float?)
     suspend fun updateNote(id: Long, note: String?)
     fun getManyMetadataFlow(ids: List<Long>): Flow<List<LiftMetadata>>
+    fun getByIdFlow(liftId: Long): Flow<Lift?>
 }

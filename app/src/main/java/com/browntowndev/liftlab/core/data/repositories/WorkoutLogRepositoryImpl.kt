@@ -101,10 +101,11 @@ class WorkoutLogRepositoryImpl(
             }
     }
 
-    override suspend fun getWorkoutLogsForLift(liftId: Long): List<WorkoutLogEntry> {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> =
-            workoutLogEntryDao.getLogsByLiftId(liftId)
-        return flattenedLogEntries.toDomainModel()
+    override fun getWorkoutLogsForLiftFlow(liftId: Long): Flow<List<WorkoutLogEntry>> {
+        return workoutLogEntryDao.getLogsByLiftIdFlow(liftId)
+            .mapNotNull { flattenedLogEntries ->
+                flattenedLogEntries.toDomainModel()
+            }
     }
 
     private suspend fun getMostRecentLogsForLiftIds(
