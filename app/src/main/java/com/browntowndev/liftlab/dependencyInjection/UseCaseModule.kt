@@ -7,6 +7,7 @@ import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetri
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
@@ -119,6 +120,7 @@ val useCaseModule = module {
 
     // Lift Configuration
     singleOf(::GetFilterableLiftsStateFlowUseCase)
+    singleOf(::GetLiftWithHistoryStateFlowUseCase)
     singleOf(::DeleteLiftUseCase)
     singleOf(::CreateLiftUseCase)
     singleOf(::UpdateLiftNameUseCase)

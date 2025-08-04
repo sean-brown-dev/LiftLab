@@ -1,18 +1,18 @@
-package com.browntowndev.liftlab.core.common
+package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.DropSet
 import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
 
 class ProgramCloner {
     companion object {
