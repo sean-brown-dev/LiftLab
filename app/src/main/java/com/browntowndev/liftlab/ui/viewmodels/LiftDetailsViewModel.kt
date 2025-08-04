@@ -29,6 +29,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
@@ -53,6 +54,7 @@ class LiftDetailsViewModel(
 
     init {
         getLiftWithHistoryStateFlowUseCase(liftId)
+            .distinctUntilChanged()
             .scan(LiftDetailsState()) { currentLiftDetailsState, liftWithHistoryState ->
                 // Lift values can change, so always recalculate these on state change
                 val newLiftDetailsState = currentLiftDetailsState.copy(
@@ -70,6 +72,7 @@ class LiftDetailsViewModel(
                 // Only recalculate when workout logs change (will only happen once, they can't change within this viewmodel)
                 if (currentLiftDetailsState.workoutLogs != liftWithHistoryState.workoutLogEntries) {
                     newLiftDetailsState.copy(
+                        workoutLogs = liftWithHistoryState.workoutLogEntries,
                         oneRepMax = liftWithHistoryState.topTenPerformances.firstOrNull()?.let { pr -> pr.first.toMediumDateString() to pr.second.oneRepMax.toString() },
                         maxVolume = liftWithHistoryState.maxVolume?.let { it.first.toMediumDateString() to it.second.toTwoDecimalString() },
                         maxWeight = liftWithHistoryState.maxWeight?.let { it.first.toMediumDateString() to it.second.toTwoDecimalString() },
@@ -193,6 +196,8 @@ class LiftDetailsViewModel(
     }
 
     fun filterOneRepMaxChart(selectedOneRepMaxWorkoutFilters: Set<Long>) = executeWithErrorHandling("Failed to filter one rep max chart") {
+        Log.d("LiftDetailsViewModel", "filterOneRepMaxChart: $selectedOneRepMaxWorkoutFilters")
+        Log.d("LiftDetailsViewModel", "filterOneRepMaxChart: ${_state.value.workoutLogs.fastMap { it.historicalWorkoutNameId }.distinct()}")
         viewModelScope.launch {
             _state.update {
                 it.copy(

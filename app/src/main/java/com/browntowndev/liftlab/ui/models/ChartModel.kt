@@ -67,7 +67,7 @@ fun getOneRepMaxChartModel(
     val oneRepMaxesByLocalDate = workoutLogs
         .filter { workoutLog ->
             workoutFilters.isEmpty() ||
-                    workoutFilters.contains(workoutLog.historicalWorkoutNameId)
+                    workoutLog.historicalWorkoutNameId in workoutFilters
         }
         .fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
@@ -118,7 +118,7 @@ fun getPerWorkoutVolumeChartModel(
     val volumesByLocalDate = workoutLogs
         .filter { workoutLog ->
             workoutFilters.isEmpty() ||
-                    workoutFilters.contains(workoutLog.historicalWorkoutNameId)
+                    workoutLog.historicalWorkoutNameId in workoutFilters
         }
         .fastMap { workoutLog ->
             val repVolume = workoutLog.setResults.sumOf { it.reps }
@@ -275,7 +275,7 @@ fun getIntensityChartModel(
     val relativeIntensitiesByLocalDate = workoutLogs
         .filter { workoutLog ->
             workoutFilters.isEmpty() ||
-                    workoutFilters.contains(workoutLog.historicalWorkoutNameId)
+                    workoutLog.historicalWorkoutNameId in workoutFilters
         }
         .fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
