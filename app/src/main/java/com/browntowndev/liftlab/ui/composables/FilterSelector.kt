@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
+import com.browntowndev.liftlab.ui.models.FilterChipOption
+import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable

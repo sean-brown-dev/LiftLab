@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.displayNameShort
 import com.browntowndev.liftlab.ui.composables.TextDropdown
 import com.browntowndev.liftlab.ui.composables.TextDropdownTextAnchor
 

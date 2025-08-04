@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.common.FlowRowFilterChipSection
+import com.browntowndev.liftlab.ui.models.FilterChipOption
+import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate

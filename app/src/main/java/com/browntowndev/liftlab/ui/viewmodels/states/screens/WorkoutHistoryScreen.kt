@@ -9,8 +9,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.BottomNavItem
 import com.browntowndev.liftlab.ui.views.navigation.Route

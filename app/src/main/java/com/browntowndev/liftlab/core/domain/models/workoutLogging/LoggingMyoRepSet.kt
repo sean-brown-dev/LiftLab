@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.models.workoutLogging
 
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.displayNameShort
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 
 data class LoggingMyoRepSet(

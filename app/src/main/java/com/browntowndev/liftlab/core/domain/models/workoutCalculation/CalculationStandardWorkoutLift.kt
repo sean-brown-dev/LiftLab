@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.models.workoutCalculation
 
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 
 data class CalculationStandardWorkoutLift(

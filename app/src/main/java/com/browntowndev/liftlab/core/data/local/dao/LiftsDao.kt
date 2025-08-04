@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import kotlinx.coroutines.flow.Flow
 

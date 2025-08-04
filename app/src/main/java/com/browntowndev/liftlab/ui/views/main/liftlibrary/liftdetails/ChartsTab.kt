@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
-import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel

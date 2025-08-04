@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.extensions
 
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
@@ -15,6 +15,14 @@ import java.util.Date
 fun List<WorkoutLogEntry>.filterByDateRange(dateRange: Pair<Date, Date>): List<WorkoutLogEntry> {
     return this.filter { workoutLog ->
         dateRange.first <= workoutLog.date && workoutLog.date <= dateRange.second
+    }
+}
+
+
+
+fun List<WorkoutLogEntry>.toFilterOptions(): Map<Long, String> {
+    return this.associate {
+        it.historicalWorkoutNameId to it.workoutName
     }
 }
 

@@ -2,9 +2,9 @@ package com.browntowndev.liftlab.ui.mapping
 
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
-import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart

@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.models.workoutLogging
 
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 
 class BuildSetResultUseCase {

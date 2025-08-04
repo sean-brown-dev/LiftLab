@@ -26,8 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.common.enums.MovementPatternFilterSection
+import com.browntowndev.liftlab.ui.models.FilterChipOption
+import com.browntowndev.liftlab.core.domain.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.CircularIcon
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft

@@ -1,6 +1,6 @@
-package com.browntowndev.liftlab.core.common.eventbus
+package com.browntowndev.liftlab.ui.models
 
-import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 
 sealed interface TopAppBarEvent {
     val action: TopAppBarAction

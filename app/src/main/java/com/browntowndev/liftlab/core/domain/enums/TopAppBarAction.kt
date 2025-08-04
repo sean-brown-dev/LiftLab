@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.common.enums
+package com.browntowndev.liftlab.core.domain.enums
 
 enum class TopAppBarAction {
     ReorderWorkouts,

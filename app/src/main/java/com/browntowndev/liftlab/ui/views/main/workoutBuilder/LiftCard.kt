@@ -19,8 +19,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.LiftDropdown
 import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Duration

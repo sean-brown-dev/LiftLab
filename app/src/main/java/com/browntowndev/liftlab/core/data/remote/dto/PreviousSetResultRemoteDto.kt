@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.remote.dto
 
 import androidx.annotation.Keep
-import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.SetType
 
 @Keep
 data class PreviousSetResultRemoteDto(

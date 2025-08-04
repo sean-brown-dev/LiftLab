@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.models.metadata
 
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import kotlin.time.Duration
 
 data class LiftMetadata(

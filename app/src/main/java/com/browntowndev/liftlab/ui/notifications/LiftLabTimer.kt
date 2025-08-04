@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.common
+package com.browntowndev.liftlab.ui.notifications
 
 import android.os.CountDownTimer
 

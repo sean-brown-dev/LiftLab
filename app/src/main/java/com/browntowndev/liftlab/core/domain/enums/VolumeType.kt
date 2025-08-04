@@ -1,4 +1,10 @@
-package com.browntowndev.liftlab.core.common.enums
+package com.browntowndev.liftlab.core.domain.enums
+
+
+enum class VolumeTypeCategory {
+    PRIMARY,
+    SECONDARY,
+}
 
 enum class VolumeTypeImpact(val bitmask: Int) {
     PRIMARY(1),

@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.models.workout
 
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import kotlin.time.Duration
 
 data class Lift(

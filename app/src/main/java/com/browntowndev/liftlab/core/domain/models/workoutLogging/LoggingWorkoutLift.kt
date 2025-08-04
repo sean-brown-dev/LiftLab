@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.models.workoutLogging
 
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import kotlin.time.Duration
 

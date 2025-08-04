@@ -3,10 +3,10 @@ package com.browntowndev.liftlab.ui.factory
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
-import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.common.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.LiftMetricOptions
 

@@ -1,6 +1,9 @@
 package com.browntowndev.liftlab.core.domain.useCase.liftConfiguration
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workout.LiftWithHistoryState
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
@@ -17,7 +20,22 @@ class GetLiftWithHistoryStateFlowUseCase(
 ) {
     operator fun invoke(liftId: Long?): Flow<LiftWithHistoryState> {
         // Null when creating new lift
-        if (liftId == null) return flowOf(LiftWithHistoryState())
+        if (liftId == null) return flowOf(
+            LiftWithHistoryState(
+                lift = Lift(
+                    id = 0L,
+                    name = "",
+                    movementPattern = MovementPattern.AB_ISO,
+                    volumeTypesBitmask = VolumeType.AB.bitMask,
+                    secondaryVolumeTypesBitmask = null,
+                    incrementOverride = null,
+                    restTime = null,
+                    restTimerEnabled = true,
+                    isBodyweight = false,
+                    note = null,
+                )
+            )
+        )
 
         val liftFlow = liftsRepository.getByIdFlow(liftId)
         val workoutLogFlow = workoutLogRepository.getWorkoutLogsForLiftFlow(liftId)

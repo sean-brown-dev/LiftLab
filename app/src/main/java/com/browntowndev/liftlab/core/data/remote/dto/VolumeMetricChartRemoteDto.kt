@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.core.data.remote.dto
 
 import androidx.annotation.Keep
-import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
 
 @Keep
 data class VolumeMetricChartRemoteDto(

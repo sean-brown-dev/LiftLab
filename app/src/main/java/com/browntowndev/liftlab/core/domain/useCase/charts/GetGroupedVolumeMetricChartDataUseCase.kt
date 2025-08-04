@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.core.domain.useCase.charts
 
-import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry

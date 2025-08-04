@@ -14,10 +14,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.core.common.enums.toDropPercentageString
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.displayNameShort
+import com.browntowndev.liftlab.core.domain.enums.toDropPercentageString
 import com.browntowndev.liftlab.ui.composables.FloatTextField
 import com.browntowndev.liftlab.ui.composables.IntegerTextField
 import com.browntowndev.liftlab.ui.composables.ScrollableTextField

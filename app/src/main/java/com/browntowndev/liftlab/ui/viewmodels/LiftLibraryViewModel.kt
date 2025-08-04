@@ -1,10 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.FilterChipOption
-import com.browntowndev.liftlab.core.common.FilterChipOption.Companion.MOVEMENT_PATTERN
-import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.FilterChipOption
+import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.MOVEMENT_PATTERN
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase

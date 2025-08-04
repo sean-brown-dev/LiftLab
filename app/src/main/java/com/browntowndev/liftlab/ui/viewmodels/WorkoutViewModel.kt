@@ -8,8 +8,8 @@ import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.ui.models.ReorderableListItem
-import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift

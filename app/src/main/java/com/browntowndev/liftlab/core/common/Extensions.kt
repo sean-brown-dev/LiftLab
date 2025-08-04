@@ -15,9 +15,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.android.billingclient.api.BillingClient.BillingResponseCode
-import com.browntowndev.liftlab.core.common.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
@@ -49,6 +49,7 @@ import java.text.DateFormat.SHORT
 import java.text.DateFormat.getDateInstance
 import java.text.DateFormat.getDateTimeInstance
 import java.text.DateFormat.getTimeInstance
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -63,6 +64,13 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 
+fun Float.toTwoDecimalString(): String {
+    val numberFormat = NumberFormat.getNumberInstance()
+    numberFormat.maximumFractionDigits = 2
+
+    return if (this.isWholeNumber()) numberFormat.format(this.roundToInt())
+    else numberFormat.format(this)
+}
 
 fun Pair<Date, Date>.getLastSevenWeeksInRange(): List<Pair<LocalDate, LocalDate>>  {
     return (0..7).map { i ->

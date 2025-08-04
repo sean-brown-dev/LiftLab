@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntr
 import java.util.Date
 
 data class LiftWithHistoryState(
-    val lift: Lift? = null,
+    val lift: Lift,
     val workoutLogEntries: List<WorkoutLogEntry> = emptyList(),
     val maxVolume: Pair<Date, Float>? = null,
     val maxWeight: Pair<Date, Float>? = null,

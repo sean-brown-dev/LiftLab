@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
+import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 
 @GenerateFirestoreMetadataExtensions
 @Entity(

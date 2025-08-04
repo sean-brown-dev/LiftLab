@@ -12,7 +12,7 @@
 # Gson support for generics
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
--keep class com.browntowndev.liftlab.core.common.enums.MovementPattern { *; }
+-keep class com.browntowndev.liftlab.core.domain.enums.MovementPattern { *; }
 
 # Ktor plugin reflection support
 -keep class io.ktor.client.plugins.** { *; }

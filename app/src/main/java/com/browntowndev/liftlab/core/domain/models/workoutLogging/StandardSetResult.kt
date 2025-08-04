@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.models.workoutLogging
 
-import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 

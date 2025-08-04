@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.models.interfaces
 
-import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.SetType
 
 interface SetResult {
     val id: Long

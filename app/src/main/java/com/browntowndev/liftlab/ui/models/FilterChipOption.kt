@@ -1,5 +1,4 @@
-package com.browntowndev.liftlab.core.common
-
+package com.browntowndev.liftlab.ui.models
 
 data class FilterChipOption (val type: String, val value: String, val key: Long? = null) {
     override fun hashCode(): Int {

@@ -2,23 +2,22 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.core.common.enums.VolumeTypeUtils
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.getVolumeTypes
-import com.browntowndev.liftlab.core.common.eventbus.TopAppBarEvent
-import com.browntowndev.liftlab.core.common.isWholeNumber
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeUtils
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
+import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toMediumDateString
-import com.browntowndev.liftlab.core.common.toShortTimeString
+import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
+import com.browntowndev.liftlab.core.domain.extensions.toFilterOptions
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
@@ -27,19 +26,19 @@ import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
-import java.text.NumberFormat
-import kotlin.math.roundToInt
 
 class LiftDetailsViewModel(
     private val onNavigateBack: () -> Unit,
     liftId: Long?,
-    private val liftsRepository: LiftsRepository,
+    private val updateLiftNameUseCase: UpdateLiftNameUseCase,
+    private val updateMovementPatternUseCase: UpdateMovementPatternUseCase,
+    private val updateVolumeTypeUseCase: UpdateVolumeTypeUseCase,
     getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase,
     transactionScope: TransactionScope,
     eventBus: EventBus
@@ -49,109 +48,46 @@ class LiftDetailsViewModel(
 
     init {
         getLiftWithHistoryStateFlowUseCase(liftId)
-            .map { liftWithHistoryState ->
-                LiftDetailsState(
+            .scan(LiftDetailsState()) { currentLiftDetailsState, liftWithHistoryState ->
+                // Lift values can change, so always recalculate these on state change
+                val newLiftDetailsState = currentLiftDetailsState.copy(
                     lift = liftWithHistoryState.lift,
-                    workoutLogs = liftWithHistoryState.workoutLogEntries,
-                    oneRepMax = liftWithHistoryState.topTenPerformances.firstOrNull()?.let { pr -> pr.first.toMediumDateString() to pr.second.oneRepMax.toString() },
-                    maxVolume = liftWithHistoryState.maxVolume?.let { it.first.toMediumDateString() to formatFloatString(it.second) },
-                    maxWeight = liftWithHistoryState.maxWeight?.let { it.first.toMediumDateString() to formatFloatString(it.second) },
-                    topTenPerformances = liftWithHistoryState.topTenPerformances.map {
-                        OneRepMaxEntry(
-                            setsAndRepsLabel = "${formatFloatString(it.second.weight)}x${it.second.reps} @${it.second.rpe}",
-                            date = it.first.toMediumDateString(),
-                            oneRepMax = it.second.oneRepMax.toString()
-                        )
-                    },
-                    totalReps = liftWithHistoryState.totalReps.toString(),
-                    totalVolume = formatFloatString(liftWithHistoryState.totalVolume),
-                    workoutFilterOptions = getWorkoutFilterOptions(liftWithHistoryState.workoutLogEntries),
-                    oneRepMaxChartModel = getOneRepMaxChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
-                    volumeChartModel = getPerWorkoutVolumeChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
-                    intensityChartModel = getIntensityChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
-                    volumeTypeDisplayNames = liftWithHistoryState.lift?.volumeTypesBitmask?.getVolumeTypes()
-                        ?.fastMap { volumeType ->
+                    volumeTypeDisplayNames = liftWithHistoryState.lift.volumeTypesBitmask.getVolumeTypes()
+                        .fastMap { volumeType ->
                             volumeType.displayName()
-                        }?.sorted() ?: listOf(),
-                    secondaryVolumeTypeDisplayNames = liftWithHistoryState.lift?.secondaryVolumeTypesBitmask?.getVolumeTypes()
+                        }.sorted(),
+                    secondaryVolumeTypeDisplayNames = liftWithHistoryState.lift.secondaryVolumeTypesBitmask?.getVolumeTypes()
                         ?.fastMap { volumeType ->
                             volumeType.displayName()
                         }?.sorted() ?: listOf(),
                 )
+
+                // Only recalculate when workout logs change (will only happen once, they can't change within this viewmodel)
+                if (currentLiftDetailsState.workoutLogs != liftWithHistoryState.workoutLogEntries) {
+                    newLiftDetailsState.copy(
+                        oneRepMax = liftWithHistoryState.topTenPerformances.firstOrNull()?.let { pr -> pr.first.toMediumDateString() to pr.second.oneRepMax.toString() },
+                        maxVolume = liftWithHistoryState.maxVolume?.let { it.first.toMediumDateString() to it.second.toTwoDecimalString() },
+                        maxWeight = liftWithHistoryState.maxWeight?.let { it.first.toMediumDateString() to it.second.toTwoDecimalString() },
+                        topTenPerformances = liftWithHistoryState.topTenPerformances.map {
+                            OneRepMaxEntry(
+                                setsAndRepsLabel = "${it.second.weight.toTwoDecimalString()}x${it.second.reps} @${it.second.rpe}",
+                                date = it.first.toMediumDateString(),
+                                oneRepMax = it.second.oneRepMax.toString()
+                            )
+                        },
+                        totalReps = liftWithHistoryState.totalReps.toString(),
+                        totalVolume = liftWithHistoryState.totalVolume.toTwoDecimalString(),
+                        workoutFilterOptions = liftWithHistoryState.workoutLogEntries.toFilterOptions(),
+                        oneRepMaxChartModel = getOneRepMaxChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                        volumeChartModel = getPerWorkoutVolumeChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                        intensityChartModel = getIntensityChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                    )
+                } else newLiftDetailsState
             }.onEach { state ->
                 _state.update {
                     state
                 }
             }.launchIn(viewModelScope)
-    }
-
-    private fun getMaxVolume(workoutLogs: List<WorkoutLogEntry>): Pair<String, String>? {
-        val maxVolume = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toMediumDateString() to
-                    workoutLog.setResults.maxOf {
-                        it.reps * it.weight
-                    }
-        }.maxByOrNull { it.second }
-
-        return if (maxVolume != null) {
-            Pair(maxVolume.first, formatFloatString(maxVolume.second))
-        } else null
-    }
-
-
-    private fun getMaxWeight(workoutLogs: List<WorkoutLogEntry>): Pair<String, String>? {
-        val maxWeight = workoutLogs.fastMap { workoutLog ->
-            workoutLog.date.toMediumDateString() to
-                    workoutLog.setResults.maxOf {
-                        it.weight
-                    }
-        }.maxByOrNull { it.second }
-
-        return if (maxWeight != null) {
-            Pair(maxWeight.first, formatFloatString(maxWeight.second))
-        } else null
-    }
-
-    private fun getTopTenPerformances(workoutLogs: List<WorkoutLogEntry>): List<OneRepMaxEntry> {
-        return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults.map { setLog ->
-                OneRepMaxEntry(
-                    setsAndRepsLabel = "${formatFloatString(setLog.weight)}x${setLog.reps} @${setLog.rpe}",
-                    date = workoutLog.date.toMediumDateString(),
-                    oneRepMax = WeightCalculationUtils.getOneRepMax(setLog.weight, setLog.reps, setLog.rpe).toString()
-                )
-            }
-        }.sortedByDescending { it.oneRepMax }.take(10)
-    }
-
-    private fun getTotalReps(workoutLogs: List<WorkoutLogEntry>): String {
-        return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults.map { setLog ->
-                setLog.reps
-            }
-        }.sum().toString()
-    }
-
-    private fun getTotalVolume(workoutLogs: List<WorkoutLogEntry>): String {
-        return formatFloatString(workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults.map { setLog ->
-                setLog.reps * setLog.weight
-            }
-        }.sum())
-    }
-
-    private fun getWorkoutFilterOptions(workoutLogs: List<WorkoutLogEntry>): Map<Long, String> {
-        return workoutLogs.associate {
-            it.historicalWorkoutNameId to it.workoutName
-        }
-    }
-
-    private fun formatFloatString(float: Float): String {
-        val numberFormat = NumberFormat.getNumberInstance()
-        numberFormat.maximumFractionDigits = 2
-
-        return if (float.isWholeNumber()) numberFormat.format(float.roundToInt())
-        else numberFormat.format(float)
     }
 
     @Subscribe
@@ -164,71 +100,31 @@ class LiftDetailsViewModel(
     }
 
     fun updateName(newName: String) = executeWithErrorHandling("Error updating lift name") {
-        executeInTransactionScope {
-            val updatedLift = _state.value.lift!!.copy(name = newName)
-            liftsRepository.update(updatedLift)
-
-            _state.update {
-                it.copy(
-                    lift = updatedLift
-                )
-            }
-        }
+        updateLiftNameUseCase(_state.value.lift!!, newName)
     }
 
     fun addVolumeType(newVolumeType: VolumeType) {
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask + newVolumeType.bitMask
-        val newDisplayNames = _state.value.volumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                add(newVolumeType.displayName())
-            }
-
-        updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
+        updateVolumeType(newVolumeTypeBitmask)
     }
 
     fun addSecondaryVolumeType(newVolumeType: VolumeType) {
         val newVolumeTypeBitmask = (_state.value.lift!!.secondaryVolumeTypesBitmask ?: 0) + newVolumeType.bitMask
-        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                add(newVolumeType.displayName())
-            }
-
-        updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
+        updateSecondaryVolumeType(newVolumeTypeBitmask)
     }
 
     fun removeVolumeType(toRemove: VolumeType) {
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask - toRemove.bitMask
-        val newDisplayNames = _state.value.volumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                remove(toRemove.displayName())
-            }
-
-        updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
+        updateVolumeType(newVolumeTypeBitmask)
     }
 
     fun removeSecondaryVolumeType(toRemove: VolumeType) {
         val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!! - toRemove.bitMask
-        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                remove(toRemove.displayName())
-            }
-
-        updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
+        updateSecondaryVolumeType(newVolumeTypeBitmask)
     }
 
     fun updateVolumeType(index: Int, newVolumeType: VolumeType) {
-        val oldVolumeTypeDisplayName: String
-        val newDisplayNames = _state.value.volumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                oldVolumeTypeDisplayName = this[index]
-                this[index] = newVolumeType.displayName()
-            }
-
+        val oldVolumeTypeDisplayName = _state.value.volumeTypeDisplayNames[index]
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask
             .getVolumeTypes()
             .toMutableList()
@@ -239,32 +135,19 @@ class LiftDetailsViewModel(
                 it.bitMask
             }
 
-        updateVolumeType(newVolumeTypeBitmask, newDisplayNames)
+        updateVolumeType(newVolumeTypeBitmask)
     }
 
-    private fun updateVolumeType(newVolumeTypeBitmask: Int, newDisplayNames: List<String>) = executeWithErrorHandling("Error updating lift volume types") {
-        executeInTransactionScope {
-            val updatedLift = _state.value.lift!!.copy(volumeTypesBitmask = newVolumeTypeBitmask)
-            liftsRepository.update(updatedLift)
-
-            _state.update {
-                it.copy(
-                    lift = updatedLift,
-                    volumeTypeDisplayNames = newDisplayNames,
-                )
-            }
-        }
+    private fun updateVolumeType(newVolumeTypeBitmask: Int) = executeWithErrorHandling("Error updating lift volume types") {
+        updateVolumeTypeUseCase(
+            lift = _state.value.lift!!,
+            newVolumeTypeBitmask = newVolumeTypeBitmask,
+            volumeTypeCategory = VolumeTypeCategory.PRIMARY
+        )
     }
 
     fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) {
-        val oldVolumeTypeDisplayName: String
-        val newDisplayNames = _state.value.secondaryVolumeTypeDisplayNames
-            .toMutableList()
-            .apply {
-                oldVolumeTypeDisplayName = this[index]
-                this[index] = newVolumeType.displayName()
-            }
-
+        val oldVolumeTypeDisplayName = _state.value.secondaryVolumeTypeDisplayNames[index]
         val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!!
             .getVolumeTypes()
             .toMutableList()
@@ -275,42 +158,19 @@ class LiftDetailsViewModel(
                 it.bitMask
             }
 
-        updateSecondaryVolumeType(newVolumeTypeBitmask, newDisplayNames)
+        updateSecondaryVolumeType(newVolumeTypeBitmask)
     }
 
-    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?, newDisplayNames: List<String>) = executeWithErrorHandling("Error updating lift secondary volume types") {
-        executeInTransactionScope {
-            val updatedLift = _state.value.lift!!.copy(secondaryVolumeTypesBitmask = newSecondaryVolumeTypeBitmask)
-            liftsRepository.update(updatedLift)
-
-            _state.update {
-                it.copy(
-                    lift = updatedLift,
-                    secondaryVolumeTypeDisplayNames = newDisplayNames,
-                )
-            }
-        }
+    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?) = executeWithErrorHandling("Error updating lift secondary volume types") {
+        updateVolumeTypeUseCase(
+            lift = _state.value.lift!!,
+            newVolumeTypeBitmask = newSecondaryVolumeTypeBitmask,
+            volumeTypeCategory = VolumeTypeCategory.SECONDARY
+        )
     }
 
     fun updateMovementPattern(newMovementPattern: MovementPattern) = executeWithErrorHandling("Error updating lift movement pattern") {
-        executeInTransactionScope {
-            val volumeTypes = VolumeTypeUtils.getDefaultVolumeTypes(newMovementPattern)
-            val secondaryVolumeTypes = VolumeTypeUtils.getDefaultSecondaryVolumeTypes(newMovementPattern)
-            val updatedLift = _state.value.lift!!.copy(
-                movementPattern = newMovementPattern,
-                volumeTypesBitmask = volumeTypes.sumOf { it.bitMask },
-                secondaryVolumeTypesBitmask = secondaryVolumeTypes?.sumOf { it.bitMask }
-            )
-            liftsRepository.update(updatedLift)
-
-            _state.update {
-                it.copy(
-                    lift = updatedLift,
-                    volumeTypeDisplayNames = volumeTypes.map { vt -> vt.displayName() },
-                    secondaryVolumeTypeDisplayNames = secondaryVolumeTypes?.map { vt -> vt.displayName() } ?: listOf(),
-                )
-            }
-        }
+        updateMovementPatternUseCase(_state.value.lift!!, newMovementPattern)
     }
 
     private fun createNewLift() {

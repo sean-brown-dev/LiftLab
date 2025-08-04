@@ -26,8 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.core.common.enums.DropPercentageOptions
-import com.browntowndev.liftlab.core.common.enums.toDropPercentageString
+import com.browntowndev.liftlab.core.domain.enums.DropPercentageOptions
+import com.browntowndev.liftlab.core.domain.enums.toDropPercentageString
 
 @Composable
 fun PercentagePicker(

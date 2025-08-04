@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.data.local.views.program
 
 import androidx.room.ColumnInfo
 import androidx.room.DatabaseView
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 
 @DatabaseView("SELECT * FROM workoutLifts WHERE deleted = 0")
 data class LiveWorkoutLiftView(
