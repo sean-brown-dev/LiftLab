@@ -181,18 +181,17 @@ class HomeViewModel(
     }
 
     fun createAccount(email: String, password: String) = executeWithErrorHandling("Failed to create account.") {
-        viewModelScope.launch {
-            try {
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if(task.isSuccessful) {
-                            task.result?.user?.sendEmailVerification() ?: throw Exception("User is null after successful account creation.")
-                        }
-                        handleFirebaseTaskCompletion(task)
+        try {
+            firebaseAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        task.result?.user?.sendEmailVerification()
+                            ?: throw Exception("User is null after successful account creation.")
                     }
-            } catch (ex: Exception) {
-                handleFirebaseError(ex)
-            }
+                    handleFirebaseTaskCompletion(task)
+                }
+        } catch (ex: Exception) {
+            handleFirebaseError(ex)
         }
     }
 
@@ -307,16 +306,14 @@ class HomeViewModel(
     }
 
     private fun addVolumeMetricChart() = executeWithErrorHandling("Failed to add volume metric chart") {
-        executeInTransactionScope {
-            val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
-                VolumeMetricChart(
-                    volumeType = volumeTypeStr.toVolumeType(),
-                    volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
-                )
-            }
-            upsertManyVolumeMetricChartsUseCase(charts)
-            toggleLiftChartPicker()
+        val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
+            VolumeMetricChart(
+                volumeType = volumeTypeStr.toVolumeType(),
+                volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
+            )
         }
+        upsertManyVolumeMetricChartsUseCase(charts)
+        toggleLiftChartPicker()
     }
 
     private fun updateLiftChartTypeSelections(type: String, selected: Boolean) {
@@ -344,14 +341,10 @@ class HomeViewModel(
     }
 
     fun deleteLiftMetricChart(id: Long) = executeWithErrorHandling("Failed to delete lift metric chart") {
-        executeInTransactionScope {
-            deleteLiftMetricChartByIdUseCase(id)
-        }
+        deleteLiftMetricChartByIdUseCase(id)
     }
 
     fun deleteVolumeMetricChart(id: Long) = executeWithErrorHandling("Failed to delete volume metric chart") {
-        executeInTransactionScope {
-            deleteVolumeMetricChartByIdUseCase(id)
-        }
+        deleteVolumeMetricChartByIdUseCase(id)
     }
 }
