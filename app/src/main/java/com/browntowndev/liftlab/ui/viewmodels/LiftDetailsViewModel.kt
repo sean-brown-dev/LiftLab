@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
@@ -14,6 +15,7 @@ import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
 import com.browntowndev.liftlab.core.domain.extensions.toFilterOptions
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
@@ -23,8 +25,10 @@ import com.browntowndev.liftlab.ui.models.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
@@ -34,12 +38,13 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 
 class LiftDetailsViewModel(
-    private val onNavigateBack: () -> Unit,
     liftId: Long?,
     private val updateLiftNameUseCase: UpdateLiftNameUseCase,
     private val updateMovementPatternUseCase: UpdateMovementPatternUseCase,
     private val updateVolumeTypeUseCase: UpdateVolumeTypeUseCase,
+    private val createLiftUseCase: CreateLiftUseCase,
     getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase,
+    private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus
 ) : LiftLabViewModel(transactionScope, eventBus) {
@@ -87,6 +92,10 @@ class LiftDetailsViewModel(
                 _state.update {
                     state
                 }
+            }.catch {
+                Log.e("LiftDetailsViewModel", "Error while loading lift details", it)
+                FirebaseCrashlytics.getInstance().recordException(it)
+                emitUserMessage("Failed to load lift details")
             }.launchIn(viewModelScope)
     }
 
@@ -99,31 +108,31 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun updateName(newName: String) = executeWithErrorHandling("Error updating lift name") {
+    fun updateName(newName: String) = executeWithErrorHandling("Failed to update lift name") {
         updateLiftNameUseCase(_state.value.lift!!, newName)
     }
 
-    fun addVolumeType(newVolumeType: VolumeType) {
+    fun addVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift volume type") {
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask + newVolumeType.bitMask
         updateVolumeType(newVolumeTypeBitmask)
     }
 
-    fun addSecondaryVolumeType(newVolumeType: VolumeType) {
+    fun addSecondaryVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift secondary volume type") {
         val newVolumeTypeBitmask = (_state.value.lift!!.secondaryVolumeTypesBitmask ?: 0) + newVolumeType.bitMask
         updateSecondaryVolumeType(newVolumeTypeBitmask)
     }
 
-    fun removeVolumeType(toRemove: VolumeType) {
+    fun removeVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift volume type") {
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask - toRemove.bitMask
         updateVolumeType(newVolumeTypeBitmask)
     }
 
-    fun removeSecondaryVolumeType(toRemove: VolumeType) {
+    fun removeSecondaryVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
         val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!! - toRemove.bitMask
         updateSecondaryVolumeType(newVolumeTypeBitmask)
     }
 
-    fun updateVolumeType(index: Int, newVolumeType: VolumeType) {
+    fun updateVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift volume types") {
         val oldVolumeTypeDisplayName = _state.value.volumeTypeDisplayNames[index]
         val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask
             .getVolumeTypes()
@@ -138,7 +147,7 @@ class LiftDetailsViewModel(
         updateVolumeType(newVolumeTypeBitmask)
     }
 
-    private fun updateVolumeType(newVolumeTypeBitmask: Int) = executeWithErrorHandling("Error updating lift volume types") {
+    private fun updateVolumeType(newVolumeTypeBitmask: Int) = executeWithErrorHandling("Failed to update lift volume types") {
         updateVolumeTypeUseCase(
             lift = _state.value.lift!!,
             newVolumeTypeBitmask = newVolumeTypeBitmask,
@@ -146,7 +155,7 @@ class LiftDetailsViewModel(
         )
     }
 
-    fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) {
+    fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift secondary volume types") {
         val oldVolumeTypeDisplayName = _state.value.secondaryVolumeTypeDisplayNames[index]
         val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!!
             .getVolumeTypes()
@@ -161,7 +170,7 @@ class LiftDetailsViewModel(
         updateSecondaryVolumeType(newVolumeTypeBitmask)
     }
 
-    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?) = executeWithErrorHandling("Error updating lift secondary volume types") {
+    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?) = executeWithErrorHandling("Failed to update lift secondary volume types") {
         updateVolumeTypeUseCase(
             lift = _state.value.lift!!,
             newVolumeTypeBitmask = newSecondaryVolumeTypeBitmask,
@@ -169,23 +178,21 @@ class LiftDetailsViewModel(
         )
     }
 
-    fun updateMovementPattern(newMovementPattern: MovementPattern) = executeWithErrorHandling("Error updating lift movement pattern") {
+    fun updateMovementPattern(newMovementPattern: MovementPattern) = executeWithErrorHandling("Failed to update lift movement pattern") {
         updateMovementPatternUseCase(_state.value.lift!!, newMovementPattern)
     }
 
-    private fun createNewLift() {
-        viewModelScope.launch {
-            val lift = _state.value.lift!!
-            val liftEntityToCreate = if (state.value.lift!!.name.isEmpty()) {
-                lift.copy(name = "New Lift")
-            } else lift
+    private fun createNewLift() = executeWithErrorHandling("Failed to create new lift") {
+        val lift = _state.value.lift!!
+        val liftEntityToCreate = if (state.value.lift!!.name.isEmpty()) {
+            lift.copy(name = "New Lift")
+        } else lift
 
-            liftsRepository.insert(liftEntityToCreate)
-            onNavigateBack()
-        }
+        createLiftUseCase(liftEntityToCreate)
+        onNavigateBack()
     }
 
-    fun filterOneRepMaxChart(selectedOneRepMaxWorkoutFilters: Set<Long>) {
+    fun filterOneRepMaxChart(selectedOneRepMaxWorkoutFilters: Set<Long>) = executeWithErrorHandling("Failed to filter one rep max chart") {
         viewModelScope.launch {
             _state.update {
                 it.copy(
@@ -196,7 +203,7 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun filterVolumeChart(selectedVolumeChartWorkoutFilters: Set<Long>) {
+    fun filterVolumeChart(selectedVolumeChartWorkoutFilters: Set<Long>) = executeWithErrorHandling("Failed to filter volume chart") {
         viewModelScope.launch {
             _state.update {
                 it.copy(
@@ -207,7 +214,7 @@ class LiftDetailsViewModel(
         }
     }
 
-    fun filterIntensityChart(selectedIntensityChartWorkoutFilters: Set<Long>) {
+    fun filterIntensityChart(selectedIntensityChartWorkoutFilters: Set<Long>) = executeWithErrorHandling("Failed to filter intensity chart") {
         viewModelScope.launch {
             _state.update {
                 it.copy(

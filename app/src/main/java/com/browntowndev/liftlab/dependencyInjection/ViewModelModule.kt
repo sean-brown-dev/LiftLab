@@ -22,10 +22,13 @@ import org.koin.dsl.module
 val viewModelModule = module {
     factory { params ->
         LiftDetailsViewModel(
-            onNavigateBack = params.get(),
             liftId = params.getOrNull(),
-            liftsRepository = get(),
-            workoutLogRepository = get(),
+            onNavigateBack = params.get(),
+            getLiftWithHistoryStateFlowUseCase = get(),
+            updateLiftNameUseCase = get(),
+            updateMovementPatternUseCase = get(),
+            updateVolumeTypeUseCase = get(),
+            createLiftUseCase = get(),
             transactionScope = get(),
             eventBus = get()
         )

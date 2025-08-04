@@ -4,8 +4,12 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResult
 import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
@@ -116,6 +120,10 @@ val useCaseModule = module {
     // Lift Configuration
     singleOf(::GetFilterableLiftsStateFlowUseCase)
     singleOf(::DeleteLiftUseCase)
+    singleOf(::CreateLiftUseCase)
+    singleOf(::UpdateLiftNameUseCase)
+    singleOf(::UpdateMovementPatternUseCase)
+    singleOf(::UpdateVolumeTypeUseCase)
 
     // Charts
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
