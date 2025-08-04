@@ -11,6 +11,7 @@ import com.browntowndev.liftlab.core.data.repositories.WorkoutLogRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.PreviousSetResultsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.ProgramsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.RestTimerInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.SettingsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.SyncMetadataRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.VolumeMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
@@ -25,6 +26,7 @@ import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepos
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
+import com.browntowndev.liftlab.core.domain.repositories.SettingsRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
@@ -34,7 +36,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 
-val repositoryModule = module {
+val localPersistenceModule = module {
     single {
         LiftLabDatabase.getInstance(
             context = get(),
@@ -153,6 +155,8 @@ val repositoryModule = module {
             syncScheduler = get(),
         )
     }
+
+    single<SettingsRepository> { SettingsRepositoryImpl() }
 
     workerOf(::LiftLabDatabaseWorker)
 }

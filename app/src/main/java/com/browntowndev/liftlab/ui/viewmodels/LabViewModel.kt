@@ -1,6 +1,9 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.ui.models.ReorderableListItem
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
@@ -91,7 +94,10 @@ class LabViewModel(
     }
 
     fun updateDeloadWeek(deloadWeek: Int) = executeWithErrorHandling("Error updating deload week") {
-        updateProgramDeloadWeekUseCase(_state.value.program!!, deloadWeek)
+        updateProgramDeloadWeekUseCase(
+            program = _state.value.program!!,
+            deloadWeek = deloadWeek,
+            useLiftSpecificDeload = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING))
     }
 
     fun toggleCreateProgramModal() {

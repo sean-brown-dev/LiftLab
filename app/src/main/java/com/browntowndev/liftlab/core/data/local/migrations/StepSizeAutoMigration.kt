@@ -4,7 +4,7 @@ import androidx.core.database.getIntOrNull
 import androidx.room.DeleteColumn
 import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
+import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
 
 @DeleteColumn.Entries(
     DeleteColumn(

@@ -7,7 +7,6 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
@@ -18,6 +17,7 @@ import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.core.domain.utils.generateCompleteStepSequence
 import com.browntowndev.liftlab.ui.models.workout.ActiveWorkoutNotificationMetadata
 import kotlinx.coroutines.flow.firstOrNull
 

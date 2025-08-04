@@ -20,6 +20,9 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.Reorder
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SetProgramAsActiveUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramNameUseCase
+import com.browntowndev.liftlab.core.domain.useCase.settings.GetSettingConfigurationStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateLiftSpecificDeloadSettingUseCase
+import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateSettingUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteWorkoutUseCase
@@ -131,4 +134,10 @@ val useCaseModule = module {
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
     singleOf(::GetGroupedVolumeMetricChartDataUseCase)
     singleOf(::CreateLiftMetricChartsUseCase)
+
+    // Settings
+    singleOf(::GetSettingConfigurationStateFlowUseCase)
+    singleOf(::UpdateLiftSpecificDeloadSettingUseCase)
+    singleOf(::UpdateSettingUseCase)
+
 }

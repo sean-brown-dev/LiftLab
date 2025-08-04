@@ -1,30 +1,34 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
-import androidx.compose.ui.util.fastMap
+import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.SettingKey
+import com.browntowndev.liftlab.core.domain.useCase.settings.GetSettingConfigurationStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateLiftSpecificDeloadSettingUseCase
+import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateSettingUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.SettingsState
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 class SettingsViewModel(
-    private val programsRepository: ProgramsRepository,
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    getSettingConfigurationStateFlowUseCase: GetSettingConfigurationStateFlowUseCase,
+    private val updateLiftSpecificDeloadSettingUseCase: UpdateLiftSpecificDeloadSettingUseCase,
+    private val updateSettingUseCase: UpdateSettingUseCase,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -33,15 +37,34 @@ class SettingsViewModel(
     val state = _state.asStateFlow()
 
     init {
-        _state.update {
-            it.copy(
-                defaultIncrement = SettingsManager
-                    .getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT),
-                defaultRestTime = SettingsManager
-                    .getSetting(REST_TIME, DEFAULT_REST_TIME)
-                    .toDuration(DurationUnit.MILLISECONDS)
-            )
-        }
+        getSettingConfigurationStateFlowUseCase()
+            .map { configurationState ->
+                SettingsState(
+                    defaultRestTime = configurationState.defaultRestTime,
+                    defaultIncrement = configurationState.defaultIncrement,
+                    activeProgram = configurationState.activeProgram,
+                    liftSpecificDeloading = configurationState.liftSpecificDeloading,
+                    promptOnDeloadStart = configurationState.promptOnDeloadStart,
+                    useAllLiftDataForRecommendations = configurationState.useAllLiftDataForRecommendations,
+                    useOnlyResultsFromLiftInSamePosition = configurationState.useOnlyResultsFromLiftInSamePosition,
+                )
+            }.onEach { state ->
+                _state.update {
+                    it.copy(
+                        activeProgram = state.activeProgram ?: it.activeProgram,
+                        defaultRestTime = state.defaultRestTime ?: it.defaultRestTime,
+                        defaultIncrement = state.defaultIncrement ?: it.defaultIncrement,
+                        liftSpecificDeloading = state.liftSpecificDeloading,
+                        promptOnDeloadStart = state.promptOnDeloadStart,
+                        useAllLiftDataForRecommendations = state.useAllLiftDataForRecommendations,
+                        useOnlyResultsFromLiftInSamePosition = state.useOnlyResultsFromLiftInSamePosition,
+                    )
+                }
+            }.catch {
+                Log.e("SettingsViewModel", "Error getting settings state", it)
+                FirebaseCrashlytics.getInstance().recordException(it)
+                emitUserMessage("Failed to load Settings")
+            }.launchIn(viewModelScope)
     }
 
     @Subscribe
@@ -62,108 +85,42 @@ class SettingsViewModel(
         }
     }
 
-    fun toggleDonationScreen() {
+    fun toggleDonationScreen() = executeWithErrorHandling("Failed to toggle donation screen") {
         _state.update {
             it.copy(isDonateScreenVisible = !it.isDonateScreenVisible)
         }
     }
 
-    fun updateDefaultRestTime(restTime: Duration) {
-        SettingsManager.setSetting(REST_TIME, restTime.inWholeMilliseconds)
-        _state.update {
-            it.copy(defaultRestTime = restTime)
-        }
+    fun updateDefaultRestTime(restTime: Duration) = executeWithErrorHandling("Failed to update rest time") {
+        updateSettingUseCase(SettingKey.RestTime, restTime.inWholeMilliseconds)
     }
 
-    fun updateIncrement(increment: Float) {
-        SettingsManager.setSetting(INCREMENT_AMOUNT, increment)
-        _state.update {
-            it.copy(defaultIncrement = increment)
-        }
+    fun updateIncrement(increment: Float) = executeWithErrorHandling("Failed to update increment") {
+        updateSettingUseCase(SettingKey.Increment, increment)
     }
 
-    fun handleUseAllDataForRecommendationsChange(useOnlyFromPreviousWorkout: Boolean) {
-        SettingsManager.setSetting(
-            SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS,
+    fun handleUseAllDataForRecommendationsChange(useOnlyFromPreviousWorkout: Boolean) = executeWithErrorHandling("Failed to update use all data for recommendations") {
+        updateSettingUseCase(
+            SettingKey.UseAllLiftDataForRecommendations,
             !useOnlyFromPreviousWorkout
         )
-        _state.update {
-            it.copy(useAllLiftDataForRecommendations = !useOnlyFromPreviousWorkout)
-        }
     }
 
-    fun handleUseOnlyLiftsFromSamePositionChange(useOnlyLiftsFromSamePosition: Boolean) {
-        SettingsManager.setSetting(
-            SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION,
+    fun handleUseOnlyLiftsFromSamePositionChange(useOnlyLiftsFromSamePosition: Boolean) = executeWithErrorHandling("Failed to update use only lifts from same position") {
+        updateSettingUseCase(
+            SettingKey.UseOnlyResultsFromLiftInSamePosition,
             useOnlyLiftsFromSamePosition
         )
-        _state.update {
-            it.copy(useOnlyResultsFromLiftInSamePosition = useOnlyLiftsFromSamePosition)
-        }
     }
 
-    fun handlePromptForDeloadWeekChange(promptOnDeloadStart: Boolean) {
-        SettingsManager.setSetting(
-            SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK,
+    fun handlePromptForDeloadWeekChange(promptOnDeloadStart: Boolean) = executeWithErrorHandling("Failed to update prompt for deload week") {
+        updateSettingUseCase(
+            SettingKey.PromptForDeloadWeek,
             promptOnDeloadStart
         )
-        _state.update {
-            it.copy(promptOnDeloadStart = promptOnDeloadStart)
-        }
     }
 
-    fun handleLiftSpecificDeloadChange(useLiftLevel: Boolean) = executeWithErrorHandling("Failed to update lift specific deload") {
-        executeInTransactionScope {
-            if (!_state.value.queriedForProgram) {
-                _state.update {
-                    it.copy(
-                        activeProgram = programsRepository.getActive(),
-                        queriedForProgram = true,
-                    )
-                }
-            }
-
-            val liftsWithNewStepSizes = _state.value.activeProgram
-                ?.let { program ->
-                    getAllLiftsWithRecalculatedStepSize(
-                        workouts = program.workouts,
-                        deloadToUseInsteadOfLiftLevel = if (useLiftLevel) null else program.deloadWeek,
-                    )
-                } ?: mapOf()
-
-            if (liftsWithNewStepSizes.isNotEmpty()) {
-                workoutLiftsRepository.updateMany(liftsWithNewStepSizes.values.toList())
-                SettingsManager.setSetting(
-                    SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING,
-                    useLiftLevel
-                )
-                _state.update {
-                    it.copy(
-                        liftSpecificDeloading = useLiftLevel,
-                        activeProgram = it.activeProgram!!.let { program ->
-                            program.copy(
-                                workouts = program.workouts.fastMap { workout ->
-                                    workout.copy(
-                                        lifts = workout.lifts.fastMap { lift ->
-                                            if(liftsWithNewStepSizes.containsKey(lift.id)) {
-                                                liftsWithNewStepSizes[lift.id]!!
-                                            } else lift
-                                        }
-                                    )
-                                }
-                            )
-                        }
-                    )
-                }
-            } else {
-                SettingsManager.setSetting(
-                    SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING,
-                    useLiftLevel
-                )
-                _state.update {
-                    it.copy(liftSpecificDeloading = useLiftLevel)
-                }
-            }
-        }
+    fun handleLiftSpecificDeloadChange(useLiftSpecificDeload: Boolean) = executeWithErrorHandling("Failed to update lift specific deload") {
+        updateLiftSpecificDeloadSettingUseCase(_state.value.activeProgram!!, useLiftSpecificDeload)
     }
 }

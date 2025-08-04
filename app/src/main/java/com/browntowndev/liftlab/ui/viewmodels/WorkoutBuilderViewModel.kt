@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.ui.models.ReorderableListItem
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.extensions.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.core.domain.extensions.getRecalculatedWorkoutLiftStepSizeOptions
 import com.browntowndev.liftlab.core.domain.extensions.transformToType
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
@@ -351,12 +351,8 @@ class WorkoutBuilderViewModel(
             when (lift) {
                 is StandardWorkoutLift -> lift.copy(
                     repRangeBottom = newRepRangeBottom,
-                    stepSize = getRecalculatedStepSizeForLift(
-                        currStepSize = lift.stepSize,
-                        repRangeTop = lift.repRangeTop,
-                        repRangeBottom = newRepRangeBottom,
-                        deloadWeek = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
-                        progressionScheme = lift.progressionScheme,
+                    stepSize = lift.getRecalculatedStepSizeForLift(
+                        deloadToUseInsteadOfLiftLevel = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
                     )
                 )
 
@@ -379,12 +375,8 @@ class WorkoutBuilderViewModel(
             when (lift) {
                 is StandardWorkoutLift -> lift.copy(
                     repRangeTop = newRepRangeTop,
-                    stepSize = getRecalculatedStepSizeForLift(
-                        currStepSize = lift.stepSize,
-                        repRangeTop = newRepRangeTop,
-                        repRangeBottom = lift.repRangeBottom,
-                        deloadWeek = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
-                        progressionScheme = lift.progressionScheme,
+                    stepSize = lift.getRecalculatedStepSizeForLift(
+                        deloadToUseInsteadOfLiftLevel = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
                     )
                 )
 
@@ -412,12 +404,8 @@ class WorkoutBuilderViewModel(
 
         val workoutLift = originalWorkoutLift.copy(
             repRangeBottom = validatedRepRangeBottom,
-            stepSize = getRecalculatedStepSizeForLift(
-                repRangeTop = originalWorkoutLift.repRangeTop,
-                repRangeBottom = validatedRepRangeBottom,
-                currStepSize = originalWorkoutLift.stepSize,
-                progressionScheme = originalWorkoutLift.progressionScheme,
-                deloadWeek = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
+            stepSize = originalWorkoutLift.getRecalculatedStepSizeForLift(
+                deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
             )
         )
 
@@ -434,12 +422,8 @@ class WorkoutBuilderViewModel(
 
         val workoutLift = originalWorkoutLift.copy(
             repRangeTop = validatedRepRangeTop,
-            stepSize = getRecalculatedStepSizeForLift(
-                repRangeTop = validatedRepRangeTop,
-                repRangeBottom = originalWorkoutLift.repRangeBottom,
-                currStepSize = originalWorkoutLift.stepSize,
-                progressionScheme = originalWorkoutLift.progressionScheme,
-                deloadWeek = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
+            stepSize = originalWorkoutLift.getRecalculatedStepSizeForLift(
+                deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
             )
         )
 

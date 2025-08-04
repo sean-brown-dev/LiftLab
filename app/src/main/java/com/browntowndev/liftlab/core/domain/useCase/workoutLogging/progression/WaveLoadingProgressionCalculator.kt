@@ -3,12 +3,12 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.generateCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.utils.generateCompleteStepSequence
 
 class WaveLoadingProgressionCalculator(
     private val programDeloadWeek: Int,

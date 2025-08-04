@@ -164,7 +164,7 @@ fun Settings(
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
                         enabled = !state.liftSpecificDeloading,
-                        checked = state.promptOnDeloadStart && !state.liftSpecificDeloading,
+                        checked = state.promptOnDeloadStart,
                         onCheckedChange = settingsViewModel::handlePromptForDeloadWeekChange,
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = MaterialTheme.colorScheme.secondary,

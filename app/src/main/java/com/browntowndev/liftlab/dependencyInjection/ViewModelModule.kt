@@ -134,8 +134,9 @@ val viewModelModule = module {
     }
     factory { params ->
         SettingsViewModel(
-            programsRepository = get(),
-            workoutLiftsRepository = get(),
+            getSettingConfigurationStateFlowUseCase = get(),
+            updateLiftSpecificDeloadSettingUseCase = get(),
+            updateSettingUseCase = get(),
             onNavigateBack = params.get(),
             transactionScope = get(),
             eventBus = get()
