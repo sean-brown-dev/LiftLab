@@ -36,6 +36,7 @@ import org.koin.core.parameter.parametersOf
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
     val remoteSyncViewModel: RemoteSyncViewModel by inject()
+    val donationViewModel: DonationViewModel by inject()
 
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,9 +52,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         setContent {
             val syncState by remoteSyncViewModel.syncState.collectAsState()
-            val donationViewModel: DonationViewModel = remember {
-                getViewModel(parameters = { parametersOf(BillingClient.newBuilder(this)) })
-            }
             val donationState by donationViewModel.state.collectAsState()
             LiftLab(
                 initializing = syncState.syncing,

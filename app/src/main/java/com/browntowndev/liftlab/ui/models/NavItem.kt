@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.models
 
-import com.browntowndev.liftlab.ui.views.navigation.Route
+import com.browntowndev.liftlab.ui.models.Route
 
 open class NavItem(open val title: String, open val subtitle: String = "", open val route: Route)
 class BottomNavItem(

@@ -43,6 +43,7 @@ class DonationViewModel(
         }.onEach { donationState ->
             _state.update {
                 it.copy(
+                    initialized = true,
                     oneTimeDonationProducts = donationState.oneTimeDonationProducts,
                     subscriptionProducts = donationState.subscriptionProducts,
                     activeSubscription = donationState.activeSubscription,

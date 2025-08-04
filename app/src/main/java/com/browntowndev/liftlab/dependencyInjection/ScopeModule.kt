@@ -10,4 +10,7 @@ val liftLabScopeModule = module {
     single(named("FirestoreSyncScope")) {
         CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
+    single(named("BillingScope")) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob())
+    }
 }

@@ -48,7 +48,7 @@ import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
-import com.browntowndev.liftlab.ui.views.navigation.Route
+import com.browntowndev.liftlab.ui.models.Route
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf

@@ -38,7 +38,7 @@ import com.browntowndev.liftlab.ui.composables.verticalScrollbar
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.views.navigation.Route
+import com.browntowndev.liftlab.ui.models.Route
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

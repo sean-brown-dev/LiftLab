@@ -36,12 +36,6 @@ interface BillingRepository {
     val billingMessage: Flow<String?>
 
     /**
-     * Initializes the connection to the billing client and fetches products.
-     * This should be called early in the application's lifecycle.
-     */
-    fun initialize()
-
-    /**
      * Launches the Google Play purchase flow for a given product.
      * The result of this operation is handled internally and exposed via the public Flows.
      *

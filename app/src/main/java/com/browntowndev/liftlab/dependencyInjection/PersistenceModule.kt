@@ -1,5 +1,8 @@
 package com.browntowndev.liftlab.dependencyInjection
 
+import com.android.billingclient.api.BillingClient
+import com.browntowndev.liftlab.core.data.billing.BillingRepository
+import com.browntowndev.liftlab.core.data.billing.BillingRepositoryImpl
 import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
@@ -34,9 +37,10 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import org.koin.androidx.workmanager.dsl.workerOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-val localPersistenceModule = module {
+val persistenceModule = module {
     single {
         LiftLabDatabase.getInstance(
             context = get(),
@@ -157,6 +161,14 @@ val localPersistenceModule = module {
     }
 
     single<SettingsRepository> { SettingsRepositoryImpl() }
+
+    single { BillingClient.newBuilder(get()) }
+    single<BillingRepository> {
+        BillingRepositoryImpl(
+            billingClientBuilder = get(),
+            externalScope = get(named("BillingScope")),
+        )
+    }
 
     workerOf(::LiftLabDatabaseWorker)
 }

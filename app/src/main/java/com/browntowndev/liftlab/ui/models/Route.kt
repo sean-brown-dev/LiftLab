@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.views.navigation
+package com.browntowndev.liftlab.ui.models
 
 import kotlinx.serialization.Serializable
 

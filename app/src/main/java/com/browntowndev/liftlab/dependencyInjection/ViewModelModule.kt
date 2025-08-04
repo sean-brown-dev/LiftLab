@@ -152,7 +152,7 @@ val viewModelModule = module {
     }
     factory { params ->
         DonationViewModel(
-            billingClientBuilder = params.get(),
+            billingRepository = get(),
             transactionScope = get(),
             eventBus = get()
         )

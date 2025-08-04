@@ -5,7 +5,7 @@ import android.util.Log
 import com.browntowndev.liftlab.dependencyInjection.eventBusModule
 import com.browntowndev.liftlab.dependencyInjection.syncModule
 import com.browntowndev.liftlab.dependencyInjection.useCaseModule
-import com.browntowndev.liftlab.dependencyInjection.localPersistenceModule
+import com.browntowndev.liftlab.dependencyInjection.persistenceModule
 import com.browntowndev.liftlab.dependencyInjection.liftLabScopeModule
 import com.browntowndev.liftlab.dependencyInjection.notificationModule
 import com.browntowndev.liftlab.dependencyInjection.viewModelModule
@@ -40,7 +40,7 @@ class LiftLabApp() : Application() {
             modules(
                 liftLabScopeModule,
                 useCaseModule,
-                localPersistenceModule,
+                persistenceModule,
                 syncModule,
                 viewModelModule,
                 eventBusModule,

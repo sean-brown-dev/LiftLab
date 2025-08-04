@@ -1,12 +1,14 @@
 package com.browntowndev.liftlab.core.data.billing
 
 import android.app.Activity
+import android.util.Log
 import com.android.billingclient.api.*
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.ProductType
 import com.android.billingclient.api.Purchase.PurchaseState
 import com.browntowndev.liftlab.core.common.THANK_YOU_DIALOG_BODY
 import com.browntowndev.liftlab.core.common.toFriendlyMessage
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,13 +16,28 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class BillingRepositoryImpl(
-    private val billingClientBuilder: BillingClient.Builder,
+    billingClientBuilder: BillingClient.Builder,
     private val externalScope: CoroutineScope
 ) : BillingRepository, PurchasesUpdatedListener, BillingClientStateListener {
-    private val oneTimeDonationProductIds = hashSetOf("donation_1", "donation_5", "donation_10")
-    private val monthlyDonationProductIds = hashSetOf("donation_monthly_1", "donation_monthly_5", "donation_monthly_10")
+    val oneTimeDonationProductIds =
+        setOf(
+            "liftlab_donate_5",
+            "liftlab_donate_10",
+            "liftlab_donate_20",
+            "liftlab_donate_30",
+            "liftlab_donate_50",
+            "liftlab_donate_100",
+        )
 
-    private lateinit var billingClient: BillingClient
+    val monthlyDonationProductIds =
+        setOf(
+            "liftlab_donate_monthly_5",
+            "liftlab_donate_monthly_10",
+            "liftlab_donate_monthly_20",
+            "liftlab_donate_monthly_30",
+            "liftlab_donate_monthly_50",
+            "liftlab_donate_monthly_100",
+        )
 
     private val _oneTimeDonationProducts = MutableStateFlow<List<ProductDetails>>(emptyList())
     override val oneTimeDonationProducts = _oneTimeDonationProducts.asStateFlow()
@@ -37,26 +54,45 @@ class BillingRepositoryImpl(
     private val _billingMessage = MutableStateFlow<String?>(null)
     override val billingMessage = _billingMessage.asStateFlow()
 
+    private lateinit var billingClient: BillingClient
 
-    override fun initialize() {
-        billingClient = billingClientBuilder
-            .setListener(this)
-            .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
-            .build()
+    init {
+        try {
+            Log.d("BillingRepositoryImpl", "Initializing billing client")
+            billingClient = billingClientBuilder
+                .setListener(this)
+                .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+                .build()
 
-        if (!billingClient.isReady) {
-            billingClient.startConnection(this)
+            if (!billingClient.isReady) {
+                billingClient.startConnection(this)
+            }
+        } catch(e: Exception) {
+            Log.e("BillingRepositoryImpl", "Error initializing billing client", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            _billingMessage.update { "Failed to initialize billing client" }
         }
     }
 
     override fun onBillingSetupFinished(billingResult: BillingResult) {
-        if (billingResult.responseCode == BillingResponseCode.OK) {
-            externalScope.launch {
-                queryProducts()
-                acknowledgeUnacknowledgedPurchases(ProductType.SUBS)
-                acknowledgeUnacknowledgedPurchases(ProductType.INAPP)
-                queryActiveSubscription()
+        try {
+            Log.d("BillingRepositoryImpl", "Billing setup finished with result: ${billingResult.responseCode}")
+            if (billingResult.responseCode == BillingResponseCode.OK) {
+                externalScope.launch {
+                    queryProducts()
+                    acknowledgeUnacknowledgedPurchases(ProductType.SUBS)
+                    acknowledgeUnacknowledgedPurchases(ProductType.INAPP)
+                    queryActiveSubscription()
+                }
+            } else {
+                Log.e("BillingRepositoryImpl", "Billing setup failed with result: ${billingResult.responseCode}")
+                FirebaseCrashlytics.getInstance().log("Billing setup failed with result: ${billingResult.responseCode}")
+                _billingMessage.update { "Failed to initialize billing client" }
             }
+        } catch (e: Exception) {
+            Log.e("BillingRepositoryImpl", "Error in onBillingSetupFinished", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            _billingMessage.update { "Failed to initialize billing client" }
         }
     }
 
@@ -112,6 +148,7 @@ class BillingRepositoryImpl(
         val oneTimeProducts = getProducts(ProductType.INAPP, oneTimeDonationProductIds)
             .sortedBy { it.oneTimePurchaseOfferDetails?.priceAmountMicros }
         _oneTimeDonationProducts.update { oneTimeProducts }
+        Log.d("BillingRepositoryImpl", "One-time donation products: $oneTimeProducts")
 
         val subs = getProducts(ProductType.SUBS, monthlyDonationProductIds)
             .sortedBy {
@@ -123,6 +160,7 @@ class BillingRepositoryImpl(
                     ?.priceAmountMicros
             }
         _subscriptionProducts.update { subs }
+        Log.d("BillingRepositoryImpl", "Subscription products: $subs")
     }
 
     private suspend fun queryActiveSubscription() {

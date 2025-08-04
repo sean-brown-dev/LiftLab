@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.BottomNavItem
-import com.browntowndev.liftlab.ui.views.navigation.Route
+import com.browntowndev.liftlab.ui.models.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 

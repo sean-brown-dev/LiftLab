@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import com.browntowndev.liftlab.ui.models.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.views.navigation.Route
+import com.browntowndev.liftlab.ui.models.Route
 import org.koin.core.component.KoinComponent
 
 sealed interface Screen: KoinComponent {
