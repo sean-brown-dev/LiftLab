@@ -116,9 +116,7 @@ class EditWorkoutViewModel(
     fun handleActionBarEvents(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
             TopAppBarAction.NavigatedBack -> viewModelScope.launch {
-                executeInTransactionScope {
-                    updateLinearProgressionFailures()
-                }
+                updateLinearProgressionFailures()
                 onNavigateBack()
             }
             else -> {}
@@ -182,7 +180,7 @@ class EditWorkoutViewModel(
         upsertSetResultUseCase(resultToUpsert)
     }
 
-    public override suspend fun updateLinearProgressionFailures() {
+    public override suspend fun updateLinearProgressionFailures() = executeWithErrorHandling("Failed to update linear progression failures.") {
         super.updateLinearProgressionFailures()
     }
 

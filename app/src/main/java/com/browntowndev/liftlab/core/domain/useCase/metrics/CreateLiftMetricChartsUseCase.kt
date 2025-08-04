@@ -1,5 +1,6 @@
-package com.browntowndev.liftlab.core.domain.useCase.charts
+package com.browntowndev.liftlab.core.domain.useCase.metrics
 
+import android.util.Log
 import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.common.TransactionScope
@@ -10,8 +11,8 @@ class CreateLiftMetricChartsUseCase(
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(liftIds: List<Long>) = transactionScope.execute {
-        var liftMetricCharts = liftMetricChartsRepository.getMany(liftIds)
+    suspend operator fun invoke(chartIds: List<Long>, liftIds: List<Long>) = transactionScope.execute {
+        var liftMetricCharts = liftMetricChartsRepository.getMany(chartIds)
         val firstLiftId = liftIds.first()
 
         // One chart template exists with only the chart type assigned,

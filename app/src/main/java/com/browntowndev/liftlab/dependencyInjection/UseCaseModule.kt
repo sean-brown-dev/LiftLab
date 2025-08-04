@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResultUseCase
-import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedLiftMetricChartDataUseCase
-import com.browntowndev.liftlab.core.domain.useCase.charts.GetGroupedVolumeMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedLiftMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedVolumeMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
@@ -11,6 +11,11 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWit
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteLiftMetricChartByIdUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteVolumeMetricChartByIdUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetConfiguredMetricsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.InsertManyLiftMetricChartsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.UpsertManyVolumeMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
@@ -134,6 +139,11 @@ val useCaseModule = module {
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
     singleOf(::GetGroupedVolumeMetricChartDataUseCase)
     singleOf(::CreateLiftMetricChartsUseCase)
+    singleOf(::GetConfiguredMetricsStateFlowUseCase)
+    singleOf(::UpsertManyVolumeMetricChartsUseCase)
+    singleOf(::InsertManyLiftMetricChartsUseCase)
+    singleOf(::DeleteVolumeMetricChartByIdUseCase)
+    singleOf(::DeleteLiftMetricChartByIdUseCase)
 
     // Settings
     singleOf(::GetSettingConfigurationStateFlowUseCase)

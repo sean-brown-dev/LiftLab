@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.charts
+package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact

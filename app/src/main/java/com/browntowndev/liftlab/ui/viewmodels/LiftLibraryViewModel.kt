@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.useCase.charts.CreateLiftMetricChartsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
@@ -120,7 +120,9 @@ class LiftLibraryViewModel(
     private fun updateLiftMetricChartsWithSelectedLiftIds() = executeWithErrorHandling("Failed to create lift metric chart(s)") {
         viewModelScope.launch {
             val newLiftIds = _state.value.selectedNewLiftsHashSet
-            createLiftMetricChartsUseCase(liftIds = newLiftIds.toList())
+            createLiftMetricChartsUseCase(
+                chartIds = _state.value.newLiftMetricChartIds,
+                liftIds = newLiftIds.toList())
             onNavigateHome()
         }
     }

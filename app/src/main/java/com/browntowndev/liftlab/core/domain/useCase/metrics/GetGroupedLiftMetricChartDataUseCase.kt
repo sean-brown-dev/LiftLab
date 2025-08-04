@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.charts
+package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry

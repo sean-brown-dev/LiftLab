@@ -9,4 +9,10 @@ class TransactionScope(private val database: LiftLabDatabase) {
             action()
         }
     }
+
+    suspend fun<T> executeWithResult(action: suspend () -> T): T {
+        return database.withTransaction {
+            action()
+        }
+    }
 }

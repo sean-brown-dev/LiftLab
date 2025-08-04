@@ -117,13 +117,11 @@ val viewModelModule = module {
     }
     factory { params ->
         HomeViewModel(
-            programsRepository = get(),
-            workoutLogRepository = get(),
-            liftMetricChartsRepository = get(),
-            volumeMetricChartsRepository = get(),
-            liftsRepository = get(),
-            getGroupedLiftMetricChartDataUseCase = get(),
-            getGroupedVolumeMetricChartDataUseCase = get(),
+            getConfiguredMetricsStateFlowUseCase = get(),
+            upsertManyVolumeMetricChartsUseCase = get(),
+            insertManyLiftMetricChartsUseCase = get(),
+            deleteVolumeMetricChartByIdUseCase = get(),
+            deleteLiftMetricChartByIdUseCase = get(),
             onNavigateToSettingsMenu = params[0],
             onNavigateToLiftLibrary = params[1],
             onUserLoggedIn = params[2],
