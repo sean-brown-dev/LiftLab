@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
@@ -27,6 +29,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
+import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftId
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
@@ -41,7 +44,6 @@ fun WorkoutHistoryCard(
     workoutDuration: Long,
     mesoCycle: Int,
     microCycle: Int,
-    setResults: List<SetLogEntry>,
     topSets: AllWorkoutTopSets.WorkoutTopSets?,
     onEditWorkout: () -> Unit,
     onDeleteWorkout: () -> Unit,
@@ -136,38 +138,33 @@ fun WorkoutHistoryCard(
                 fontWeight = FontWeight.Bold,
             )
         }
-        val liftIds = remember(setResults) { setResults.distinctBy { it.liftId }.map { it.liftId } }
-        liftIds.fastForEach { liftId ->
-            val topSet = remember(topSets) { topSets?.get(LiftId(liftId)) }
-            if (topSet != null) {
-                val weight = remember(topSet) {
-                    if (topSet.weight.isWholeNumber()) {
-                        topSet.weight.roundToInt().toString()
+        topSets?.topSets?.fastForEach { topSet ->
+            // TODO: Move this into a UI model
+            val weight = remember(topSet) {
+                topSet.weight.toTwoDecimalString()
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "${topSet.setCount} x ${topSet.liftName}",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(start = 15.dp),
+                    softWrap = true,
+                    overflow = TextOverflow.Visible,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "$weight x ${topSet.reps} @${topSet.rpe}",
+                    color = if (topSet.isPersonalRecord) {
+                        MaterialTheme.colorScheme.tertiary
                     } else {
-                        String.format(Locale.US, "%.2f", topSet.weight)
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${topSet.setCount} x ${topSet.liftName}",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 15.dp)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = "$weight x ${topSet.reps} @${topSet.rpe}",
-                        color = if (topSet.isPersonalRecord) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.onBackground
-                        },
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(end = 15.dp)
-                    )
-                }
+                        MaterialTheme.colorScheme.onBackground
+                    },
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(end = 15.dp)
+                )
             }
         }
         Spacer(modifier = Modifier.height(15.dp))

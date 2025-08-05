@@ -120,7 +120,6 @@ fun WorkoutHistory(
                     workoutDuration = workoutLog.durationInMillis,
                     mesoCycle = workoutLog.mesocycle,
                     microCycle = workoutLog.microcycle,
-                    setResults = workoutLog.setResults,
                     topSets = state.topSets[WorkoutLogId(workoutLog.id)],
                     onEditWorkout = {
                         onNavigateToEditWorkoutScreen(workoutLog.id)

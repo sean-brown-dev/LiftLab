@@ -47,6 +47,8 @@ data class AllWorkoutTopSets(
     ) {
         val liftIds: Set<LiftId> get() = recordsByExercise.keys
 
+        val topSets: List<TopSet> get() = recordsByExercise.values.toList()
+
         val size get() = recordsByExercise.size
 
         /**
