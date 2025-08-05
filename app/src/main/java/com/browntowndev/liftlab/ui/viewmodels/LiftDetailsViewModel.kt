@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeUtils
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
@@ -46,9 +45,8 @@ class LiftDetailsViewModel(
     private val createLiftUseCase: CreateLiftUseCase,
     getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase,
     private val onNavigateBack: () -> Unit,
-    transactionScope: TransactionScope,
     eventBus: EventBus
-) : LiftLabViewModel(transactionScope, eventBus) {
+) : BaseViewModel(eventBus) {
     private var _state = MutableStateFlow(LiftDetailsState())
     val state = _state.asStateFlow()
 

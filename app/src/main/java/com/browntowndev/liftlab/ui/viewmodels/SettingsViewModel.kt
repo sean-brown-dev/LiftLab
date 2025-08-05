@@ -2,9 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.data.common.TransactionScope
@@ -30,9 +27,8 @@ class SettingsViewModel(
     private val updateLiftSpecificDeloadSettingUseCase: UpdateLiftSpecificDeloadSettingUseCase,
     private val updateSettingUseCase: UpdateSettingUseCase,
     private val onNavigateBack: () -> Unit,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 

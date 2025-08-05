@@ -19,9 +19,8 @@ import org.greenrobot.eventbus.EventBus
 
 class DonationViewModel(
     private val billingRepository: BillingRepository,
-    transactionScope: TransactionScope,
     eventBus: EventBus
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     private var _state = MutableStateFlow(DonationState())
     val state = _state.asStateFlow()
 

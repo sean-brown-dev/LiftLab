@@ -25,9 +25,8 @@ import org.greenrobot.eventbus.EventBus
 abstract class BaseWorkoutViewModel(
     private val completeSetUseCase: CompleteSetUseCase,
     private val undoSetCompletionUseCase: UndoSetCompletionUseCase,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     protected var mutableWorkoutState = MutableStateFlow(WorkoutState())
     val workoutState = mutableWorkoutState.asStateFlow()
 

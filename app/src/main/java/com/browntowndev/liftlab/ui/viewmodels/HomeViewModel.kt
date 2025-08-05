@@ -59,9 +59,8 @@ class HomeViewModel(
     private val onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
     private val onUserLoggedIn: () -> Unit,
     private val firebaseAuth: FirebaseAuth,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     companion object {
         private const val TAG = "HomeViewModel"
     }

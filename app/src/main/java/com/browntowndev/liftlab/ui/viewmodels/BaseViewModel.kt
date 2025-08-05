@@ -5,15 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 
-abstract class LiftLabViewModel(
-    private val transactionScope: TransactionScope,
+abstract class BaseViewModel(
     private val eventBus: EventBus,
 ): ViewModel() {
     private val _userMessages = MutableSharedFlow<String>()
@@ -28,12 +25,6 @@ abstract class LiftLabViewModel(
     fun registerEventBus() {
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this)
-        }
-    }
-
-    protected suspend fun executeInTransactionScope(toExecute: suspend () -> Unit) {
-        transactionScope.execute {
-            toExecute()
         }
     }
 
