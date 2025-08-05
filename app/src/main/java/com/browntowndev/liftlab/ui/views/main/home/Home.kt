@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,6 +45,7 @@ import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import androidx.compose.material3.Text
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import kotlinx.coroutines.launch
@@ -55,6 +57,7 @@ import org.koin.core.parameter.parametersOf
 fun Home(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     onNavigateToSettingsMenu: () -> Unit,
     onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
@@ -71,6 +74,7 @@ fun Home(
         screenId = screenId,
         viewModelToUnregister = homeViewModel
     )
+    SnackbarProvider(snackbarHostState, homeViewModel.userMessages)
 
     LaunchedEffect(state.loggedIn) {
         mutateTopAppBarControlValue(

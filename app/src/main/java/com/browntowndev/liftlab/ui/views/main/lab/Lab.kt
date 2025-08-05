@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -18,6 +19,7 @@ import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -31,6 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 fun Lab(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
@@ -87,6 +90,7 @@ fun Lab(
 
     labViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = labViewModel)
+    SnackbarProvider(snackbarHostState, labViewModel.userMessages)
 
     if (state.isReordering) {
         ReorderableLazyColumn(

@@ -50,6 +50,7 @@ import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.PercentagePicker
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
@@ -72,6 +73,7 @@ fun WorkoutBuilder(
     paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNavigateToLiftLibrary: (route: Route.LiftLibrary) -> Unit,
     workoutId: Long,
@@ -98,18 +100,9 @@ fun WorkoutBuilder(
         }
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(Unit) {
-        workoutBuilderViewModel.userMessages.collect { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Indefinite,
-                withDismissAction = true)
-        }
-    }
-
     workoutBuilderViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutBuilderViewModel)
+    SnackbarProvider(snackbarHostState, workoutBuilderViewModel.userMessages)
 
     if(!state.isReordering) {
         VolumeChipBottomSheet(

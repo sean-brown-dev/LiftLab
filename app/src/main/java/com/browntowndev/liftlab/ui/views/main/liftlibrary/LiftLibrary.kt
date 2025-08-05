@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +35,7 @@ import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.FilterSelector
 import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.verticalScrollbar
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
@@ -47,6 +49,7 @@ import org.koin.core.parameter.parametersOf
 fun LiftLibrary(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     callerRouteId: Long?,
     onNavigateHome: () -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
@@ -81,6 +84,7 @@ fun LiftLibrary(
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = liftLibraryViewModel)
+    SnackbarProvider(snackbarHostState, liftLibraryViewModel.userMessages)
 
     LaunchedEffect(state.showFilterSelection) {
         onChangeTopAppBarTitle(if(state.showFilterSelection) "Filter Options" else LiftLibraryScreen.navigation.title)

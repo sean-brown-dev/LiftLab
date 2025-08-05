@@ -1,31 +1,22 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
-import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.copyGeneric
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
-import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.extensions.toSetLogEntry
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetLogEntryByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetLogEntriesUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntryUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistingSetResultUseCase
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
@@ -43,9 +34,8 @@ import org.greenrobot.eventbus.Subscribe
 
 class EditWorkoutViewModel(
     private val workoutLogEntryId: Long,
-    private val upsertSetResultUseCase: UpsertSetResultUseCase,
-    private val upsertManySetLogEntriesUseCase: UpsertManySetLogEntriesUseCase,
-    private val upsertSetLogEntryUseCase: UpsertSetLogEntryUseCase,
+    private val upsertSetLogEntriesFromSetResultsUseCase: UpsertSetLogEntriesFromSetResultsUseCase,
+    private val upsertExistingSetResultUseCase: UpsertExistingSetResultUseCase,
     private val deleteSetLogEntryByIdUseCase: DeleteSetLogEntryByIdUseCase,
     private val onNavigateBack: () -> Unit,
     getCompletedWorkoutStateFlowUseCase: GetCompletedWorkoutStateFlowUseCase,
@@ -59,25 +49,6 @@ class EditWorkoutViewModel(
 ) {
     private val _editWorkoutState = MutableStateFlow(EditWorkoutState())
     val editWorkoutState = _editWorkoutState.asStateFlow()
-
-    private val _liftsById by lazy {
-        mutableWorkoutState.value.workout!!.lifts.associateBy { it.liftId }
-    }
-
-    private val _setsByPosition by lazy {
-        mutableWorkoutState.value.workout!!.lifts
-            .associate { lift ->
-                lift.position to
-                        lift.sets.associateBy { set -> "${set.position}-${(set as? LoggingMyoRepSet)?.myoRepSetPosition}" }
-            }
-    }
-
-    private val _setResultsByPosition by lazy {
-        _editWorkoutState.value.setResults
-            .associateBy { setResult ->
-                "${setResult.liftPosition}-${setResult.setPosition}"
-            }
-    }
 
     init {
         getCompletedWorkoutStateFlowUseCase(workoutLogEntryId = workoutLogEntryId)
@@ -122,60 +93,29 @@ class EditWorkoutViewModel(
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
-        if (_editWorkoutState.value.setResults.isNotEmpty()) {
-            updatedResults.fastMap { setResult ->
-                updateSetResult(updatedResult = setResult)
-            }
-        }
-
-        return upsertManySetLogEntriesUseCase(
-            updatedResults.fastMap { setResult ->
-                getSetLogEntryFromSetResult(setResult = setResult)
-            }
+        return upsertSetLogEntriesFromSetResultsUseCase(
+            workoutLogEntryId = workoutLogEntryId,
+            mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
+            microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
+            loggingWorkoutLifts = mutableWorkoutState.value.workout!!.lifts,
+            allSetResults = _editWorkoutState.value.setResults,
+            setResults = updatedResults,
         )
     }
 
     override suspend fun upsertSetResult(updatedResult: SetResult): Long {
-        if (_editWorkoutState.value.setResults.isNotEmpty()) {
-            updateSetResult(updatedResult = updatedResult)
-        }
-        return upsertSetLogEntryUseCase(
-            getSetLogEntryFromSetResult(setResult = updatedResult),
+        return upsertExistingSetResultUseCase(
+            workoutLogEntryId = workoutLogEntryId,
+            mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
+            microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
+            setResult = updatedResult,
+            loggingWorkoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == updatedResult.liftId }!!,
+            allSetResults = _editWorkoutState.value.setResults,
         )
     }
 
     override suspend fun deleteSetResult(id: Long) {
         deleteSetLogEntryByIdUseCase(id)
-    }
-
-    private suspend fun updateSetResult(updatedResult: SetResult) {
-        // The id on updatedResult is for setLogEntry so you can't just call upsert
-        val resultToUpsert = _setResultsByPosition["${updatedResult.liftPosition}-${updatedResult.setPosition}"]
-            ?.let { prevSetResult ->
-                when (prevSetResult) {
-                    is StandardSetResult -> prevSetResult.copy(
-                        reps = updatedResult.reps,
-                        weight = updatedResult.weight,
-                        rpe = updatedResult.rpe,
-                    )
-
-                    is MyoRepSetResult -> prevSetResult.copy(
-                        reps = updatedResult.reps,
-                        weight = updatedResult.weight,
-                        rpe = updatedResult.rpe,
-                    )
-
-                    is LinearProgressionSetResult -> prevSetResult.copy(
-                        reps = updatedResult.reps,
-                        weight = updatedResult.weight,
-                        rpe = updatedResult.rpe,
-                    )
-
-                    else -> throw Exception("${prevSetResult::class.simpleName} is not defined.")
-                }
-            } ?: updatedResult
-
-        upsertSetResultUseCase(resultToUpsert)
     }
 
     public override suspend fun updateLinearProgressionFailures() = executeWithErrorHandling("Failed to update linear progression failures.") {
@@ -211,33 +151,6 @@ class EditWorkoutViewModel(
                     rpe = newSet.completedRpe ?: 8f,
                 )
             }
-        )
-    }
-
-    private fun getSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {
-        val setsForLift = _setsByPosition[liftPosition]!!
-        return setsForLift["$setPosition-$myoRepSetPosition"]!!
-    }
-
-    private fun getSetLogEntryFromSetResult(setResult: SetResult): SetLogEntry {
-        val lift = _liftsById[setResult.liftId]!!
-        val set = getSet(
-            liftPosition = setResult.liftPosition,
-            setPosition = setResult.setPosition,
-            myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
-        )
-
-        return setResult.toSetLogEntry(
-            liftName = lift.liftName,
-            liftMovementPattern = lift.liftMovementPattern,
-            progressionScheme = lift.progressionScheme,
-            workoutLogEntryId = workoutLogEntryId,
-            repRangeTop = set.repRangeTop,
-            repRangeBottom = set.repRangeBottom,
-            rpeTarget = set.rpeTarget,
-            weightRecommendation = set.weightRecommendation,
-            mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
-            microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
         )
     }
 }

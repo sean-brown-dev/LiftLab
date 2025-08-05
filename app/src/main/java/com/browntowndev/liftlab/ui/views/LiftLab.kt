@@ -8,12 +8,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -22,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.ui.composables.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.LiftLabSnackbar
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
@@ -71,7 +75,7 @@ fun LiftLab(
             val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
             val topAppBarState = rememberTopAppBarState()
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
-
+            val snackbarHostState = remember { SnackbarHostState() }
             Scaffold(
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 bottomBar = {
@@ -85,12 +89,16 @@ fun LiftLab(
                         state = liftLabTopAppBarState,
                         scrollBehavior = scrollBehavior,
                     )
+                },
+                snackbarHost = {
+                    LiftLabSnackbar(snackbarHostState)
                 }
             ) { scaffoldPaddingValues ->
                 NavigationGraph(
                     navHostController = navController,
                     paddingValues = scaffoldPaddingValues,
                     donationState = donationState,
+                    snackbarHostState = snackbarHostState,
                     onClearBillingError = onClearBillingError,
                     onUpdateDonationProduct = onUpdateDonationProduct,
                     onProcessDonation = onProcessDonation,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
@@ -35,6 +37,7 @@ fun LiftDetails(
     id: Long?,
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
@@ -44,6 +47,7 @@ fun LiftDetails(
 
     liftDetailsViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = liftDetailsViewModel)
+    SnackbarProvider(snackbarHostState, liftDetailsViewModel.userMessages)
 
     LaunchedEffect(key1 = id) {
         if (id == null) {

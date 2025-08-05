@@ -104,6 +104,7 @@ class PreviousSetResultsRepositoryImpl(
     }
 
     override suspend fun upsertMany(models: List<SetResult>): List<Long> {
+        if (models.isEmpty()) return emptyList()
         val currentEntities = previousSetResultDao.getMany(models.map { it.id }).associateBy { it.id }
         val toUpsert =
             models.fastMap { setResult ->

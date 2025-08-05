@@ -12,6 +12,7 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import com.browntowndev.liftlab.core.domain.models.metrics.WorkoutLogId
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.FilterSelector
 import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -35,6 +37,7 @@ import org.koin.core.parameter.parametersOf
 fun WorkoutHistory(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNavigateToEditWorkoutScreen: (workoutLogEntryId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
@@ -45,6 +48,7 @@ fun WorkoutHistory(
     val state by workoutHistoryViewModel.state.collectAsState()
     workoutHistoryViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutHistoryViewModel)
+    SnackbarProvider(snackbarHostState, workoutHistoryViewModel.userMessages)
 
     BackHandler(state.isDatePickerVisible) {
         workoutHistoryViewModel.toggleDateRangePicker()

@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ fun NavigationGraph(
     navHostController: NavHostController,
     paddingValues: PaddingValues,
     donationState: DonationState,
+    snackbarHostState: SnackbarHostState,
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
@@ -70,6 +72,7 @@ fun NavigationGraph(
                 Home(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateToSettingsMenu = { navHostController.navigate(Route.Settings) },
                     onNavigateToLiftLibrary = { chartIds ->
@@ -101,6 +104,7 @@ fun NavigationGraph(
                 Settings(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     initialized = donationState.initialized,
                     isProcessingDonation = donationState.isProcessingDonation,
                     activeSubscription = donationState.activeSubscription,
@@ -138,6 +142,7 @@ fun NavigationGraph(
                 LiftLibrary(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     callerRouteId = liftLibraryParams.callerRouteId,
                     workoutId = liftLibraryParams.workoutId,
                     workoutLiftId = liftLibraryParams.workoutLiftId,
@@ -212,6 +217,7 @@ fun NavigationGraph(
                 LiftDetails(
                     id = backstackEntry.toRoute<Route.LiftDetails>().liftId,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     paddingValues = paddingValues,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onNavigateBack = { navHostController.popBackStack() },
@@ -253,6 +259,7 @@ fun NavigationGraph(
                 Workout(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     showLog = showLog,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
@@ -284,6 +291,7 @@ fun NavigationGraph(
                 WorkoutHistory(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateBack = {
                         navHostController.popBackStack()
@@ -309,6 +317,7 @@ fun NavigationGraph(
                     workoutLogEntryId = backstackEntry.toRoute<Route.EditWorkout>().workoutLogEntryId,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -334,6 +343,7 @@ fun NavigationGraph(
                 Lab(
                     paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = {
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -365,6 +375,7 @@ fun NavigationGraph(
                     workoutId = backstackEntry.toRoute<Route.WorkoutBuilder>().workoutId,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(

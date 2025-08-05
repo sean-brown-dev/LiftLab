@@ -19,16 +19,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTimePickerState
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -37,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -50,19 +44,17 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
-import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
-import com.browntowndev.liftlab.ui.composables.DirectoryPicker
 import com.browntowndev.liftlab.ui.composables.Donate
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.HyperlinkTextField
 import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
 import com.browntowndev.liftlab.ui.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TimeSelectionSpinner
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-import java.time.format.DateTimeFormatter
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -71,6 +63,7 @@ import kotlin.time.toDuration
 fun Settings(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     initialized: Boolean,
     isProcessingDonation: Boolean,
     activeSubscription: ProductDetails?,
@@ -90,6 +83,7 @@ fun Settings(
 
     settingsViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = settingsViewModel)
+    SnackbarProvider(snackbarHostState = snackbarHostState, messages = settingsViewModel.userMessages)
 
     if (state.isDonateScreenVisible) {
         Donate(

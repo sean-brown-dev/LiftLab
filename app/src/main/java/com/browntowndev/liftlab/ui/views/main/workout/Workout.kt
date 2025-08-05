@@ -42,6 +42,7 @@ import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.ShimmerSkeletonList
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
@@ -59,6 +60,7 @@ fun Workout(
     paddingValues: PaddingValues,
     screenId: String?,
     showLog: Boolean,
+    snackbarHostState: SnackbarHostState,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
@@ -86,16 +88,6 @@ fun Workout(
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by timerViewModel.state.collectAsState()
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(Unit) {
-        workoutViewModel.userMessages.collect { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Indefinite,
-                withDismissAction = true)
-        }
-    }
-
     LaunchedEffect(key1 = showLog) {
         if (showLog) {
             workoutViewModel.setWorkoutLogVisibility(true)
@@ -119,6 +111,7 @@ fun Workout(
 
     workoutViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutViewModel)
+    SnackbarProvider(snackbarHostState, workoutViewModel.userMessages)
 
     LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible, key3 = state.initialized) {
         if (state.workout != null) {

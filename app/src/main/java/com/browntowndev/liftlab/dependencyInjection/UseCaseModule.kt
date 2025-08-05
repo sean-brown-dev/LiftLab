@@ -67,8 +67,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetLogE
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetLogEntriesUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntryUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistingSetResultUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -97,8 +97,8 @@ val useCaseModule = module {
     singleOf(::UndoSetCompletionUseCase)
     singleOf(::BuildSetResultUseCase)
     singleOf(::GetCompletedWorkoutStateFlowUseCase)
-    singleOf(::UpsertManySetLogEntriesUseCase)
-    singleOf(::UpsertSetLogEntryUseCase)
+    singleOf(::UpsertSetLogEntriesFromSetResultsUseCase)
+    singleOf(::UpsertExistingSetResultUseCase)
     singleOf(::DeleteSetLogEntryByIdUseCase)
     singleOf(::DeleteWorkoutLogEntryUseCase)
 

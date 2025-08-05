@@ -1,10 +1,16 @@
 package com.browntowndev.liftlab.core.domain.extensions
 
+import androidx.compose.ui.util.fastFirst
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import java.util.Date
 
@@ -59,3 +65,24 @@ fun SetResult.toSetLogEntry(
         microCycle = microCycle,
         isDeload = this.isDeload,
     )
+
+fun SetResult.copyCompletionDataFrom(other: SetResult): SetResult =
+    this.copyBase(
+        reps = other.reps,
+        weight = other.weight,
+        rpe = other.rpe,
+    )
+
+fun List<LoggingWorkoutLift>.findSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {
+    if (liftPosition >= this.size) throw Exception("Lift position is out of bounds")
+    val lift = this[liftPosition]
+    return lift.findSet(setPosition = setPosition, myoRepSetPosition = myoRepSetPosition)
+}
+
+fun LoggingWorkoutLift.findSet(setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet {
+    val set = sets.fastFirst { set ->
+        set.position == setPosition && (set as? LoggingMyoRepSet)?.myoRepSetPosition == myoRepSetPosition
+    }
+
+    return set
+}

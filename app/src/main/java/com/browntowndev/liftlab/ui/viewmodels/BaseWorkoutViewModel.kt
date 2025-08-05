@@ -289,8 +289,7 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResult, onError: () -> Unit = {}) =
-        executeWithErrorHandling("Failed to complete set") {
+    fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResult, onError: () -> Unit = {}) = executeWithErrorHandling("Failed to complete set") {
             try {
                 completeSetUseCase(
                     restTime = restTime,
