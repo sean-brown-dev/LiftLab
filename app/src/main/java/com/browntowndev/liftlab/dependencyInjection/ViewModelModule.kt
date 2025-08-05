@@ -29,7 +29,6 @@ val viewModelModule = module {
             updateMovementPatternUseCase = get(),
             updateVolumeTypeUseCase = get(),
             createLiftUseCase = get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
@@ -50,7 +49,6 @@ val viewModelModule = module {
             addSetUseCase = get(),
             updateWorkoutLiftDeloadWeekUseCase = get(),
             liftLevelDeloadsEnabled = params.get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
@@ -69,7 +67,6 @@ val viewModelModule = module {
             addAtPosition = params[5],
             initialMovementPatternFilter = params.get(),
             newLiftMetricChartIds = params.get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
@@ -93,7 +90,6 @@ val viewModelModule = module {
             undoSetCompletionUseCase = get(),
             navigateToWorkoutHistory = params[0],
             cancelRestTimer = params[1],
-            transactionScope = get(),
             eventBus = get(),
         )
     }
@@ -108,7 +104,6 @@ val viewModelModule = module {
             completeSetUseCase = get(),
             undoSetCompletionUseCase = get(),
             getCompletedWorkoutStateFlowUseCase = get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
@@ -126,7 +121,6 @@ val viewModelModule = module {
             onNavigateToLiftLibrary = params[1],
             onUserLoggedIn = params[2],
             firebaseAuth = get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
@@ -136,7 +130,6 @@ val viewModelModule = module {
             updateLiftSpecificDeloadSettingUseCase = get(),
             updateSettingUseCase = get(),
             onNavigateBack = params.get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
@@ -145,18 +138,11 @@ val viewModelModule = module {
             getSummarizedWorkoutMetricsStateFlowUseCase = get(),
             deleteWorkoutLogEntryUseCase = get(),
             onNavigateBack = params.get(),
-            transactionScope = get(),
-            eventBus = get()
-        )
-    }
-    factory { params ->
-        DonationViewModel(
-            billingManager = get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
 
+    viewModelOf(::DonationViewModel)
     viewModelOf(::LabViewModel)
     viewModelOf(::TopAppBarViewModel)
     viewModelOf(::BottomNavBarViewModel)
