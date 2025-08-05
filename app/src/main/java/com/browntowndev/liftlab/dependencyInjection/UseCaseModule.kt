@@ -14,6 +14,7 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolu
 import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteLiftMetricChartByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteVolumeMetricChartByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetConfiguredMetricsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.InsertManyLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.UpsertManyVolumeMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
@@ -63,6 +64,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateW
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetLogEntryByIdUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetLogEntriesUseCase
@@ -98,6 +100,7 @@ val useCaseModule = module {
     singleOf(::UpsertManySetLogEntriesUseCase)
     singleOf(::UpsertSetLogEntryUseCase)
     singleOf(::DeleteSetLogEntryByIdUseCase)
+    singleOf(::DeleteWorkoutLogEntryUseCase)
 
     // Workout Configuration
     singleOf(::AddSetUseCase)
@@ -135,7 +138,7 @@ val useCaseModule = module {
     singleOf(::UpdateMovementPatternUseCase)
     singleOf(::UpdateVolumeTypeUseCase)
 
-    // Charts
+    // Metrics
     singleOf(::GetGroupedLiftMetricChartDataUseCase)
     singleOf(::GetGroupedVolumeMetricChartDataUseCase)
     singleOf(::CreateLiftMetricChartsUseCase)
@@ -144,10 +147,10 @@ val useCaseModule = module {
     singleOf(::InsertManyLiftMetricChartsUseCase)
     singleOf(::DeleteVolumeMetricChartByIdUseCase)
     singleOf(::DeleteLiftMetricChartByIdUseCase)
+    singleOf(::GetSummarizedWorkoutMetricsStateFlowUseCase)
 
     // Settings
     singleOf(::GetSettingConfigurationStateFlowUseCase)
     singleOf(::UpdateLiftSpecificDeloadSettingUseCase)
     singleOf(::UpdateSettingUseCase)
-
 }

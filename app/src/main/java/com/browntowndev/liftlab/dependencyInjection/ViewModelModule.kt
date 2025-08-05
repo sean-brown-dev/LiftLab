@@ -142,7 +142,8 @@ val viewModelModule = module {
     }
     factory { params ->
         WorkoutHistoryViewModel(
-            workoutLogRepository = get(),
+            getSummarizedWorkoutMetricsStateFlowUseCase = get(),
+            deleteWorkoutLogEntryUseCase = get(),
             onNavigateBack = params.get(),
             transactionScope = get(),
             eventBus = get()

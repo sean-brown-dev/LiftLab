@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
@@ -18,17 +19,28 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
+import com.browntowndev.liftlab.ui.factory.createProgramAndWorkoutFilterChipOptions
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
+import kotlin.collections.map
 
 class WorkoutHistoryViewModel(
-    private val workoutLogRepository: WorkoutLogRepository,
+    getSummarizedWorkoutMetricsStateFlowUseCase: GetSummarizedWorkoutMetricsStateFlowUseCase,
+    private val deleteWorkoutLogEntryUseCase: DeleteWorkoutLogEntryUseCase,
     private val onNavigateBack: () -> Unit,
     transactionScope: TransactionScope,
     eventBus: EventBus,
@@ -37,10 +49,11 @@ class WorkoutHistoryViewModel(
     val state = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            workoutLogRepository.getAllFlow().collect { workoutLogs ->
-                val dateOrderedWorkoutLogs = sortAndSetPersonalRecords(workoutLogs)
-                val topSets = getTopSets(dateOrderedWorkoutLogs)
+        getSummarizedWorkoutMetricsStateFlowUseCase()
+            .distinctUntilChanged()
+            .map { summarizedWorkoutMetricsState ->
+                val dateOrderedWorkoutLogs = summarizedWorkoutMetricsState.dateOrderedWorkoutLogsWithPersonalRecords
+                val topSets = summarizedWorkoutMetricsState.topSets
                 val workoutNamesById = dateOrderedWorkoutLogs
                     .distinctBy { workoutLog -> workoutLog.workoutId }
                     .sortedBy { it.workoutName }
@@ -53,47 +66,32 @@ class WorkoutHistoryViewModel(
                     .associate { workoutLog ->
                         workoutLog.programId to workoutLog.programName
                     }
+                WorkoutHistoryState(
+                    dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
+                    filteredWorkoutLogs = dateOrderedWorkoutLogs,
+                    topSets = topSets,
+                    workoutNamesById = workoutNamesById,
+                    programNamesById = programNamesById
+                )
+            }.onEach { newState ->
                 _state.update {
                     it.copy(
-                        dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
-                        filteredWorkoutLogs = dateOrderedWorkoutLogs,
-                        topSets = topSets,
-                        workoutNamesById = workoutNamesById,
-                        programNamesById = programNamesById,
-                        programAndWorkoutFilterSections = listOf(
-                            object : FlowRowFilterChipSection {
-                                override val sectionName: String
-                                    get() = "Programs"
-                                override val filterChipOptions: Lazy<List<FilterChipOption>>
-                                    get() = lazy {
-                                        programNamesById.map { program ->
-                                            FilterChipOption(
-                                                type = PROGRAM,
-                                                value = program.value,
-                                                key = program.key
-                                            )
-                                        }
-                                    }
-                            },
-                            object : FlowRowFilterChipSection {
-                                override val sectionName: String
-                                    get() = "Workouts"
-                                override val filterChipOptions: Lazy<List<FilterChipOption>>
-                                    get() = lazy {
-                                        workoutNamesById.map { workout ->
-                                            FilterChipOption(
-                                                type = WORKOUT,
-                                                value = workout.value,
-                                                key = workout.key
-                                            )
-                                        }
-                                    }
-                            },
+                        dateOrderedWorkoutLogs = newState.dateOrderedWorkoutLogs,
+                        filteredWorkoutLogs = newState.dateOrderedWorkoutLogs,
+                        topSets = newState.topSets,
+                        workoutNamesById = newState.workoutNamesById,
+                        programNamesById = newState.programNamesById,
+                        programAndWorkoutFilterSections = createProgramAndWorkoutFilterChipOptions(
+                            programNamesById = newState.programNamesById,
+                            workoutNamesById = newState.workoutNamesById
                         )
                     )
                 }
-            }
-        }
+            }.catch {
+                Log.e("WorkoutHistoryViewModel", "Error getting workout logs", it)
+                FirebaseCrashlytics.getInstance().recordException(it)
+                emitUserMessage("Failed to load workout history.")
+            }.launchIn(viewModelScope)
     }
 
     @Subscribe
@@ -106,7 +104,7 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun setDateRangeFilter(start: Long?, end: Long?) {
+    fun setDateRangeFilter(start: Long?, end: Long?) = executeWithErrorHandling("Failed to set date range filter") {
         _state.update {
             it.copy(
                 startDateInMillis = start,
@@ -115,7 +113,7 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun toggleDateRangePicker() {
+    fun toggleDateRangePicker() = executeWithErrorHandling("Failed to toggle date range picker") {
         _state.update {
             it.copy(isDatePickerVisible = !it.isDatePickerVisible)
         }
@@ -125,7 +123,7 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun addWorkoutOrProgramFilter(filterChip: FilterChipOption) {
+    fun addWorkoutOrProgramFilter(filterChip: FilterChipOption) = executeWithErrorHandling("Failed to add filter chip") {
         _state.update {
             it.copy(
                 programAndWorkoutFilters = it.programAndWorkoutFilters.toMutableList().apply {
@@ -135,7 +133,7 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun removeWorkoutOrProgramFilter(toRemove: FilterChipOption) {
+    fun removeWorkoutOrProgramFilter(toRemove: FilterChipOption) = executeWithErrorHandling("Failed to remove filter chip") {
         _state.update {
             it.copy(
                 programAndWorkoutFilters = it.programAndWorkoutFilters.toMutableList().apply {
@@ -145,7 +143,7 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    fun removeFilterChip(toRemove: FilterChipOption) {
+    fun removeFilterChip(toRemove: FilterChipOption) = executeWithErrorHandling("Failed to remove filter chip") {
         val isDateRangeChip = toRemove.type == DATE_RANGE
         _state.update {
             it.copy(
@@ -170,7 +168,7 @@ class WorkoutHistoryViewModel(
                 state.programAndWorkoutFilters.fastAny { it.key == workoutLog.workoutId }
     }
 
-    fun applyFilters() {
+    fun applyFilters() = executeWithErrorHandling("Failed to apply filters") {
         _state.update { currentState ->
             currentState.copy(
                 isProgramAndWorkoutFilterVisible = false,
@@ -197,64 +195,6 @@ class WorkoutHistoryViewModel(
         }
     }
 
-    private fun sortAndSetPersonalRecords(workoutLogs: List<WorkoutLogEntry>): List<WorkoutLogEntry> {
-        val personalRecords = getPersonalRecords(workoutLogs)
-        val updatedLogs = workoutLogs
-            .sortedByDescending { it.date }
-            .fastMap { workoutLog ->
-                workoutLog.copy(
-                    setResults = workoutLog.setResults
-                        .sortedWith(
-                            compareBy<SetLogEntry> { it.liftPosition }
-                                .thenBy { it.setPosition }
-                                .thenBy { it.myoRepSetPosition ?: -1 }
-                        )
-                        .fastMap { setLog ->
-                            if (personalRecords.contains(setLog)) {
-                                setLog.copy(
-                                    isPersonalRecord = true
-                                )
-                            } else setLog
-                        }
-                )
-            }
-
-        return updatedLogs
-    }
-
-    private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntry>): HashSet<SetLogEntry> {
-        return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults
-        }.groupBy { result ->
-            result.liftId
-        }.map { liftSetResults ->
-            liftSetResults.value.maxBy {
-                // Set to a non-zero weight so 1RM gets calculated
-                val weight = if (it.weight == 0f) 1f else it.weight
-                WeightCalculationUtils.getOneRepMax(weight, it.reps, it.rpe)
-            }
-        }.toHashSet()
-    }
-
-    private fun getTopSets(workoutLogs: List<WorkoutLogEntry>): Map<Long, Map<Long, Pair<Int, SetLogEntry>>> {
-        return workoutLogs.associate { workoutLog ->
-            workoutLog.id to getTopSetsForWorkout(workoutLog)
-        }
-    }
-
-    private fun getTopSetsForWorkout(workoutLog: WorkoutLogEntry): Map<Long, Pair<Int, SetLogEntry>> {
-        return workoutLog.setResults
-            .groupBy { it.liftId }
-            .filterValues { set -> set.isNotEmpty() }
-            .mapValues { (_, sets) ->
-                val setSize = sets.size
-                val topSet = sets.maxBy {
-                    WeightCalculationUtils.getOneRepMax(it.weight, it.reps, it.rpe)
-                }
-                setSize to topSet
-            }
-    }
-
     private fun onBackNavigationIconPressed() {
         if (_state.value.isDatePickerVisible) {
             toggleDateRangePicker()
@@ -266,8 +206,6 @@ class WorkoutHistoryViewModel(
     }
 
     fun delete(id: Long) = executeWithErrorHandling("Failed to delete workout log") {
-        executeInTransactionScope {
-            workoutLogRepository.deleteWorkoutLogEntry(workoutLogEntryId = id)
-        }
+        deleteWorkoutLogEntryUseCase(id)
     }
 }

@@ -31,7 +31,5 @@ interface WorkoutLogRepository: Repository<WorkoutLogEntry, Long> {
         date: Date,
         durationInMillis: Long,
     ): Long
-
-    suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long)
     fun getWorkoutLogsForLiftFlow(liftId: Long): Flow<List<WorkoutLogEntry>>
 }

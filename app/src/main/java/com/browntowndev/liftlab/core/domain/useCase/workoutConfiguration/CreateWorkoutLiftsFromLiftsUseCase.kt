@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
@@ -8,8 +9,9 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 
 class CreateWorkoutLiftsFromLiftsUseCase(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(workoutId: Long, firstPosition: Int, lifts: List<Lift>) {
+    suspend operator fun invoke(workoutId: Long, firstPosition: Int, lifts: List<Lift>) = transactionScope.execute {
         var position = firstPosition
         val newLifts = lifts.fastMap { lift ->
             val newWorkoutLift = StandardWorkoutLift(

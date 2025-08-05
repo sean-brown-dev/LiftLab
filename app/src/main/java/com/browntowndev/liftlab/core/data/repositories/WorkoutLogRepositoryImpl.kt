@@ -91,7 +91,17 @@ class WorkoutLogRepositoryImpl(
     }
 
     override suspend fun deleteById(id: Long): Int {
-        TODO("Not yet implemented")
+        val setLogEntriesToDelete = setLogEntryDao.getForWorkoutLogEntry(id)
+        var deletedCount = 0
+        if (setLogEntriesToDelete.isNotEmpty()) {
+            deletedCount += setLogEntryDao.softDeleteMany(setLogEntriesToDelete.map { it.id })
+        }
+        deletedCount += workoutLogEntryDao.softDelete(id)
+        if (deletedCount > 0) {
+            syncScheduler.scheduleSync()
+        }
+
+        return deletedCount
     }
 
     override fun getFlow(workoutLogEntryId: Long): Flow<WorkoutLogEntry> {
@@ -184,17 +194,5 @@ class WorkoutLogRepositoryImpl(
         syncScheduler.scheduleSync()
 
         return id
-    }
-
-    override suspend fun deleteWorkoutLogEntry(workoutLogEntryId: Long) {
-        val setLogEntriesToDelete = setLogEntryDao.getForWorkoutLogEntry(workoutLogEntryId)
-        var deletedCount = 0
-        if (setLogEntriesToDelete.isNotEmpty()) {
-            deletedCount += setLogEntryDao.softDeleteMany(setLogEntriesToDelete.map { it.id })
-        }
-        deletedCount += workoutLogEntryDao.softDelete(workoutLogEntryId)
-        if (deletedCount > 0) {
-            syncScheduler.scheduleSync()
-        }
     }
 }

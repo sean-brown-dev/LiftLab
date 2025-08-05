@@ -1,11 +1,13 @@
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 
 class UpdateProgramNameUseCase(
-    private val programsRepository: ProgramsRepository
+    private val programsRepository: ProgramsRepository,
+    private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(programId: Long, newName: String) {
+    suspend operator fun invoke(programId: Long, newName: String) = transactionScope.execute {
         programsRepository.updateName(programId, newName)
     }
 }
