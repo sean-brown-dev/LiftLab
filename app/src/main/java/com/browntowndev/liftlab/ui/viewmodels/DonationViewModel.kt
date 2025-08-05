@@ -4,8 +4,7 @@ import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.android.billingclient.api.ProductDetails
-import com.browntowndev.liftlab.core.data.billing.BillingRepository
-import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.data.billing.BillingManager
 import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 
 class DonationViewModel(
-    private val billingRepository: BillingRepository,
+    private val billingManager: BillingManager,
     eventBus: EventBus
 ): BaseViewModel(eventBus) {
     private var _state = MutableStateFlow(DonationState())
@@ -26,11 +25,11 @@ class DonationViewModel(
 
     init {
         combine(
-            billingRepository.oneTimeDonationProducts,
-            billingRepository.subscriptionProducts,
-            billingRepository.activeSubscription,
-            billingRepository.isProcessingPurchase,
-            billingRepository.billingMessage
+            billingManager.oneTimeDonationProducts,
+            billingManager.subscriptionProducts,
+            billingManager.activeSubscription,
+            billingManager.isProcessingPurchase,
+            billingManager.billingMessage
         ) { oneTime, subs, activeSub, isProcessing, message ->
             DonationState(
                 oneTimeDonationProducts = oneTime,
@@ -63,11 +62,11 @@ class DonationViewModel(
 
     fun processDonation(activity: Activity) {
         _state.value.newDonationSelection?.let { productDetails ->
-            billingRepository.launchPurchaseFlow(activity, productDetails)
+            billingManager.launchPurchaseFlow(activity, productDetails)
         }
     }
 
     fun clearBillingError() {
-        billingRepository.clearBillingMessage()
+        billingManager.clearBillingMessage()
     }
 }

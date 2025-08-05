@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
  * Interface for a repository that handles all interactions with the Google Play Billing Library.
  * This abstracts the billing logic away from ViewModels.
  */
-interface BillingRepository {
+interface BillingManager {
     /**
      * Flow emitting the list of available one-time donation products.
      */

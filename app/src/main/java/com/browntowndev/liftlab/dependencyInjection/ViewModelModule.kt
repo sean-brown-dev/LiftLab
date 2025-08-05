@@ -151,7 +151,7 @@ val viewModelModule = module {
     }
     factory { params ->
         DonationViewModel(
-            billingRepository = get(),
+            billingManager = get(),
             transactionScope = get(),
             eventBus = get()
         )

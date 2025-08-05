@@ -15,10 +15,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class BillingRepositoryImpl(
+class BillingManagerImpl(
     billingClientBuilder: BillingClient.Builder,
     private val externalScope: CoroutineScope
-) : BillingRepository, PurchasesUpdatedListener, BillingClientStateListener {
+) : BillingManager, PurchasesUpdatedListener, BillingClientStateListener {
     val oneTimeDonationProductIds =
         setOf(
             "liftlab_donate_5",

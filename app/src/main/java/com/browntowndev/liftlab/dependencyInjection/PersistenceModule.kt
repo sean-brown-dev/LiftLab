@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.dependencyInjection
 
 import com.android.billingclient.api.BillingClient
-import com.browntowndev.liftlab.core.data.billing.BillingRepository
-import com.browntowndev.liftlab.core.data.billing.BillingRepositoryImpl
+import com.browntowndev.liftlab.core.data.billing.BillingManager
+import com.browntowndev.liftlab.core.data.billing.BillingManagerImpl
 import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
@@ -163,8 +163,8 @@ val persistenceModule = module {
     single<SettingsRepository> { SettingsRepositoryImpl() }
 
     single { BillingClient.newBuilder(get()) }
-    single<BillingRepository> {
-        BillingRepositoryImpl(
+    single<BillingManager> {
+        BillingManagerImpl(
             billingClientBuilder = get(),
             externalScope = get(named("BillingScope")),
         )
