@@ -27,6 +27,8 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
+import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftId
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import java.util.Date
 import java.util.Locale
@@ -40,7 +42,7 @@ fun WorkoutHistoryCard(
     mesoCycle: Int,
     microCycle: Int,
     setResults: List<SetLogEntry>,
-    topSets: Map<Long, Pair<Int, SetLogEntry>>?,
+    topSets: AllWorkoutTopSets.WorkoutTopSets?,
     onEditWorkout: () -> Unit,
     onDeleteWorkout: () -> Unit,
 ) {
@@ -52,7 +54,7 @@ fun WorkoutHistoryCard(
         ),
         onClick = onEditWorkout,
     ) {
-        val totalPersonalRecords = remember(topSets) { topSets?.values?.count { it.second.isPersonalRecord } ?: 0 }
+        val totalPersonalRecords = remember(topSets) { topSets?.personalRecordCount ?: 0 }
         Text(
             text = workoutName,
             fontWeight = FontWeight.Bold,
@@ -136,18 +138,18 @@ fun WorkoutHistoryCard(
         }
         val liftIds = remember(setResults) { setResults.distinctBy { it.liftId }.map { it.liftId } }
         liftIds.fastForEach { liftId ->
-            val topSet = remember(topSets) { topSets?.get(liftId) }
+            val topSet = remember(topSets) { topSets?.get(LiftId(liftId)) }
             if (topSet != null) {
                 val weight = remember(topSet) {
-                    if (topSet.second.weight.isWholeNumber()) {
-                        topSet.second.weight.roundToInt().toString()
+                    if (topSet.weight.isWholeNumber()) {
+                        topSet.weight.roundToInt().toString()
                     } else {
-                        String.format(Locale.US, "%.2f", topSet.second.weight)
+                        String.format(Locale.US, "%.2f", topSet.weight)
                     }
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "${topSet.first} x ${topSet.second.liftName}",
+                        text = "${topSet.setCount} x ${topSet.liftName}",
                         color = MaterialTheme.colorScheme.onBackground,
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp,
@@ -155,8 +157,8 @@ fun WorkoutHistoryCard(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = "$weight x ${topSet.second.reps} @${topSet.second.rpe}",
-                        color = if (topSet.second.isPersonalRecord) {
+                        text = "$weight x ${topSet.reps} @${topSet.rpe}",
+                        color = if (topSet.isPersonalRecord) {
                             MaterialTheme.colorScheme.tertiary
                         } else {
                             MaterialTheme.colorScheme.onBackground

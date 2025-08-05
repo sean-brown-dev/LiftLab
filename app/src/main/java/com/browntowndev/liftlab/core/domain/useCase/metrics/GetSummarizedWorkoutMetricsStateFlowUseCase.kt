@@ -2,6 +2,9 @@ package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.models.SummarizedWorkoutMetricsState
+import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftId
+import com.browntowndev.liftlab.core.domain.models.metrics.WorkoutLogId
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
@@ -63,22 +66,29 @@ class GetSummarizedWorkoutMetricsStateFlowUseCase(
         }.toHashSet()
     }
 
-    private fun getTopSets(workoutLogs: List<WorkoutLogEntry>): Map<Long, Map<Long, Pair<Int, SetLogEntry>>> {
+    private fun getTopSets(workoutLogs: List<WorkoutLogEntry>): AllWorkoutTopSets {
         return workoutLogs.associate { workoutLog ->
-            workoutLog.id to getTopSetsForWorkout(workoutLog)
+            WorkoutLogId(workoutLog.id) to getTopSetsForWorkout(workoutLog)
+        }.let { topSets ->
+            AllWorkoutTopSets(topSets)
         }
     }
 
-    private fun getTopSetsForWorkout(workoutLog: WorkoutLogEntry): Map<Long, Pair<Int, SetLogEntry>> {
+    private fun getTopSetsForWorkout(workoutLog: WorkoutLogEntry): AllWorkoutTopSets.WorkoutTopSets {
         return workoutLog.setResults
-            .groupBy { it.liftId }
+            .groupBy { LiftId(it.liftId) }
             .filterValues { set -> set.isNotEmpty() }
             .mapValues { (_, sets) ->
                 val setSize = sets.size
                 val topSet = sets.maxBy {
                     WeightCalculationUtils.getOneRepMax(it.weight, it.reps, it.rpe)
                 }
-                setSize to topSet
+                AllWorkoutTopSets.WorkoutTopSets.TopSet(
+                    setCount = setSize,
+                    setLog = topSet
+                )
+            }.let { topSets ->
+                AllWorkoutTopSets.WorkoutTopSets(topSets)
             }
     }
 }

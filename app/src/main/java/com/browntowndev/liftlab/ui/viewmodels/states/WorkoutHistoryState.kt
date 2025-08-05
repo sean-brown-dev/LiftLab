@@ -5,6 +5,7 @@ import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
+import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 
@@ -12,7 +13,7 @@ data class WorkoutHistoryState(
     val filterChips: List<FilterChipOption> = listOf(),
     val dateOrderedWorkoutLogs: List<WorkoutLogEntry> = listOf(),
     val filteredWorkoutLogs: List<WorkoutLogEntry> = listOf(),
-    val topSets: Map<Long, Map<Long, Pair<Int, SetLogEntry>>> = mapOf(),
+    val topSets: AllWorkoutTopSets = AllWorkoutTopSets(mapOf()),
     val isDatePickerVisible: Boolean = false,
     val isProgramAndWorkoutFilterVisible: Boolean = false,
     val startDateInMillis: Long? = null,

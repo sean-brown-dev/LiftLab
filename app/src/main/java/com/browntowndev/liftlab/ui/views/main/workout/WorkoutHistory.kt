@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.toLocalDate
+import com.browntowndev.liftlab.core.domain.models.metrics.WorkoutLogId
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.FilterSelector
 import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
@@ -120,7 +121,7 @@ fun WorkoutHistory(
                     mesoCycle = workoutLog.mesocycle,
                     microCycle = workoutLog.microcycle,
                     setResults = workoutLog.setResults,
-                    topSets = state.topSets[workoutLog.id],
+                    topSets = state.topSets[WorkoutLogId(workoutLog.id)],
                     onEditWorkout = {
                         onNavigateToEditWorkoutScreen(workoutLog.id)
                     },
