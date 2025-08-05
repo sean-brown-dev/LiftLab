@@ -88,7 +88,9 @@ class HomeViewModel(
                         microCycleCompletionChart = if (newHomeState.workoutLogs.isEmpty()) null
                             else getMicroCycleCompletionChart(workoutLogs = newHomeState.workoutLogs, program = newHomeState.activeProgram)
                     )
-                } else newHomeState
+                } else newHomeState.copy(
+                    microCycleCompletionChart = currentStates.second.microCycleCompletionChart
+                )
 
                 newHomeState = if (currentStates.second.workoutLogs != configurationState.workoutLogs) {
                     newHomeState.copy(
@@ -98,25 +100,33 @@ class HomeViewModel(
                                 workoutsInDateRange = newHomeState.workoutLogs.filterByDateRange(dateRange)
                             )
                     )
-                } else newHomeState
+                } else newHomeState.copy(
+                    workoutCompletionChart = currentStates.second.workoutCompletionChart
+                )
 
-                newHomeState = if (currentStates.first.volumeMetricChartData != configurationState.volumeMetricChartData) {
+                newHomeState = if (currentStates.first.volumeMetricChartData != configurationState.volumeMetricChartData ||
+                    currentStates.first.volumeMetricCharts != configurationState.volumeMetricCharts) {
                     newHomeState.copy(
                         volumeMetricChartModels =
                             newHomeState.lifts.toVolumeMetricChartModels(
                                 groupedData = configurationState.volumeMetricChartData
                             )
                     )
-                } else newHomeState
+                } else newHomeState.copy(
+                    volumeMetricChartModels = currentStates.second.volumeMetricChartModels
+                )
 
-                newHomeState = if (currentStates.first.liftMetricChartData != configurationState.liftMetricChartData) {
+                newHomeState = if (currentStates.first.liftMetricChartData != configurationState.liftMetricChartData ||
+                    currentStates.first.liftMetricCharts != configurationState.liftMetricCharts) {
                     newHomeState.copy(
                         liftMetricChartModels =
                             configurationState.liftMetricCharts.toChartModels(
                                 groupedLogs = configurationState.liftMetricChartData
                             )
                     )
-                } else newHomeState
+                } else newHomeState.copy(
+                    liftMetricChartModels = currentStates.second.liftMetricChartModels
+                )
 
                 configurationState to newHomeState
             }.combine(firebaseAuthFlow) { (configurationState, homeState), firebaseUser ->

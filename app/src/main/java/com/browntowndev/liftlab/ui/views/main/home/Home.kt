@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,18 +28,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.ui.composables.EmptyChartPlaceholder
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.RowMultiSelect
 import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.ChartModel
 import com.browntowndev.liftlab.ui.models.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
+import androidx.compose.material3.Text
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import kotlinx.coroutines.launch
@@ -99,7 +102,7 @@ fun Home(
                                 label = "Workouts Completed",
                                 chartModel = state.workoutCompletionChart!!
                             )
-                        }
+                        } else EmptyChartPlaceholder("Once a workout is completed, workout completions by week will be here.")
 
                         1 -> if (state.microCycleCompletionChart != null) {
                             HomeColumnChart(
@@ -110,7 +113,7 @@ fun Home(
                                 subHeaderLabel = state.activeProgramName,
                                 chartModel = state.microCycleCompletionChart!!,
                             )
-                        }
+                        } else EmptyChartPlaceholder("Once a workout is completed, current microcycle completion percentages for the mesocycle will be here.")
                     }
                 }
                 Row(
@@ -154,11 +157,10 @@ fun Home(
                         .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    IconButton(onClick = { homeViewModel.toggleLiftChartPicker() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = stringResource(R.string.add_lift_chart),
+                    TextButton(onClick = { homeViewModel.toggleLiftChartPicker() }) {
+                        Text(
+                            text = "Add Metric Charts",
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }

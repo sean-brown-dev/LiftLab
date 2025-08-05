@@ -147,13 +147,12 @@ fun WorkoutHistoryCard(
                 Text(
                     text = "${topSet.setCount} x ${topSet.liftName}",
                     color = MaterialTheme.colorScheme.onBackground,
-                    textAlign = TextAlign.Center,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(start = 15.dp),
+                    modifier = Modifier
+                        .padding(start = 15.dp)
+                        .weight(1f),
                     softWrap = true,
-                    overflow = TextOverflow.Visible,
                 )
-                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "$weight x ${topSet.reps} @${topSet.rpe}",
                     color = if (topSet.isPersonalRecord) {
@@ -161,9 +160,9 @@ fun WorkoutHistoryCard(
                     } else {
                         MaterialTheme.colorScheme.onBackground
                     },
-                    textAlign = TextAlign.Center,
                     fontSize = 14.sp,
-                    modifier = Modifier.padding(end = 15.dp)
+                    modifier = Modifier.padding(horizontal = 15.dp),
+                    softWrap = false,
                 )
             }
         }

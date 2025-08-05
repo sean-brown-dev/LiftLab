@@ -47,10 +47,10 @@ fun ChartCard(
         colors = CardDefaults.cardColors(containerColor = color),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column {
+            Column (modifier = Modifier.weight(1f)) {
                 if (subHeaderLabel.isNotEmpty()) {
                     Text(
-                        modifier = Modifier.fillMaxWidth(.9f).padding(top = 4.dp, start = 10.dp),
+                        modifier = Modifier.padding(top = 4.dp, start = 10.dp),
                         text = subHeaderLabel,
                         color = MaterialTheme.colorScheme.tertiary,
                         style = MaterialTheme.typography.bodyLarge,
@@ -60,8 +60,7 @@ fun ChartCard(
                     )
                 }
                 SectionLabel(
-                    modifier = Modifier.fillMaxWidth(.9f).then(
-                        if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp)),
+                    modifier = if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp),
                     text = label,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontSize = labelFontSize,
@@ -69,8 +68,6 @@ fun ChartCard(
             }
 
             if (onDelete != null) {
-                Spacer(modifier = Modifier.weight(1f))
-
                 var isExpanded by remember { mutableStateOf(false) }
                 IconDropdown(
                     isExpanded = isExpanded,
