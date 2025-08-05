@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.core.domain.useCase.progression
 import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils.StepSize.Companion.getPossibleStepSizes
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
@@ -13,6 +12,7 @@ import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.WaveLoadingProgressionCalculator
+import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
 import io.mockk.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals

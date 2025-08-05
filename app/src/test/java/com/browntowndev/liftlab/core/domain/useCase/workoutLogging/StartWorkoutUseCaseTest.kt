@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -14,11 +16,16 @@ class StartWorkoutUseCaseTest {
 
     private lateinit var workoutInProgressRepository: WorkoutInProgressRepository
     private lateinit var startWorkoutUseCase: StartWorkoutUseCase
+    private lateinit var transactionScope: TransactionScope
 
     @BeforeEach
     fun setUp() {
         workoutInProgressRepository = mockk(relaxed = true)
-        startWorkoutUseCase = StartWorkoutUseCase(workoutInProgressRepository)
+        transactionScope = mockk(relaxed = true)
+        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+            firstArg<suspend () -> Unit>().invoke()
+        }
+        startWorkoutUseCase = StartWorkoutUseCase(workoutInProgressRepository, transactionScope)
     }
 
     @Test

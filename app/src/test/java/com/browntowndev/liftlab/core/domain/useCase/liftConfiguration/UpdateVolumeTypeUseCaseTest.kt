@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.liftConfiguration
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
@@ -20,6 +21,7 @@ class UpdateVolumeTypeUseCaseTest {
 
     private lateinit var liftsRepository: LiftsRepository
     private lateinit var updateVolumeTypeUseCase: UpdateVolumeTypeUseCase
+    private lateinit var transactionScope: TransactionScope
 
     // --- Helper Method ---
     private fun createTestLift(
@@ -44,7 +46,11 @@ class UpdateVolumeTypeUseCaseTest {
     @BeforeEach
     fun setUp() {
         liftsRepository = mockk()
-        updateVolumeTypeUseCase = UpdateVolumeTypeUseCase(liftsRepository)
+        transactionScope = mockk(relaxed = true)
+        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+            firstArg<suspend () -> Unit>().invoke()
+        }
+        updateVolumeTypeUseCase = UpdateVolumeTypeUseCase(liftsRepository, transactionScope)
     }
 
     @Test

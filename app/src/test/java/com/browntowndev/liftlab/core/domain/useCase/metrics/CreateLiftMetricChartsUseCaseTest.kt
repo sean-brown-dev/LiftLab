@@ -4,10 +4,8 @@ import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
-import io.mockk.Awaits
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
@@ -33,7 +31,7 @@ class CreateLiftMetricChartsUseCaseTest {
         val initialCharts = listOf(LiftMetricChart(id = 1L, liftId = 0, chartType = LiftMetricChartType.ESTIMATED_ONE_REP_MAX))
 
         coEvery { liftMetricChartsRepository.getMany(chartIds) } returns initialCharts
-        coEvery { liftMetricChartsRepository.upsertMany(any()) } just Awaits
+        coEvery { liftMetricChartsRepository.upsertMany(any()) } coAnswers { emptyList() }
         coEvery { transactionScope.execute(any()) } coAnswers {
             (it.invocation.args[0] as suspend () -> Unit).invoke()
         }

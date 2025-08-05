@@ -62,8 +62,8 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCaseTest {
         val updatedSet = updatedLift.sets.first()
         assertNotNull(updatedSet)
         assertEquals(10, updatedSet.completedReps)
-        assertEquals(100.0, updatedSet.completedWeight)
-        assertEquals(8.5, updatedSet.completedRpe)
+        assertEquals(100.0f, updatedSet.completedWeight)
+        assertEquals(8.5f, updatedSet.completedRpe)
         assertTrue(updatedSet.complete)
     }
 
@@ -96,8 +96,8 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCaseTest {
         val updatedSet = updatedLift.sets.first() as LoggingMyoRepSet
         assertNotNull(updatedSet)
         assertEquals(10, updatedSet.completedReps)
-        assertEquals(100.0, updatedSet.completedWeight)
-        assertEquals(8.5, updatedSet.completedRpe)
+        assertEquals(100.0f, updatedSet.completedWeight)
+        assertEquals(8.5f, updatedSet.completedRpe)
         assertTrue(updatedSet.complete)
     }
 

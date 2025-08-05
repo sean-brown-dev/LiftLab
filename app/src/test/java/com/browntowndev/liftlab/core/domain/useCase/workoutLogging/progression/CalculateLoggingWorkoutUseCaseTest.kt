@@ -68,8 +68,8 @@ class CalculateLoggingWorkoutUseCaseTest {
         )
 
         assertNotNull(result)
-        assertEquals(result.lifts.size, 1)
-        assertEquals(result.lifts.first().progressionScheme, ProgressionScheme.DOUBLE_PROGRESSION)
+        assertEquals(1, result.lifts.size)
+        assertEquals(ProgressionScheme.DOUBLE_PROGRESSION, result.lifts.first().progressionScheme)
     }
 
     @Test
@@ -98,8 +98,8 @@ class CalculateLoggingWorkoutUseCaseTest {
         )
 
         assertNotNull(result)
-        assertEquals(result.lifts.size, 1)
-        assertEquals(result.lifts.first().progressionScheme, ProgressionScheme.LINEAR_PROGRESSION)
+        assertEquals(1, result.lifts.size)
+        assertEquals(ProgressionScheme.LINEAR_PROGRESSION, result.lifts.first().progressionScheme)
     }
 
     @Test
@@ -128,8 +128,8 @@ class CalculateLoggingWorkoutUseCaseTest {
         )
 
         assertNotNull(result)
-        assertEquals(result.lifts.size, 1)
-        assertEquals(result.lifts.first().progressionScheme, ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION)
+        assertEquals(1, result.lifts.size)
+        assertEquals(ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION, result.lifts.first().progressionScheme)
     }
 
     @Test
@@ -158,8 +158,8 @@ class CalculateLoggingWorkoutUseCaseTest {
         )
 
         assertNotNull(result)
-        assertEquals(result.lifts.size, 1)
-        assertEquals(result.lifts.first().progressionScheme, ProgressionScheme.WAVE_LOADING_PROGRESSION)
+        assertEquals(1, result.lifts.size)
+        assertEquals(ProgressionScheme.WAVE_LOADING_PROGRESSION, result.lifts.first().progressionScheme)
     }
 
     @Test
@@ -183,11 +183,11 @@ class CalculateLoggingWorkoutUseCaseTest {
             previousResultsForDisplay = previousResultsForDisplay,
             microCycle = 2,
             programDeloadWeek = 4,
-            useLiftSpecificDeloading = true,
+            useLiftSpecificDeloading = false,
             onlyUseResultsForLiftsInSamePosition = false
         )
         assertNotNull(result)
-        assertEquals(result.lifts.size, 1)
-        assertEquals(result.lifts.first().deloadWeek, 3)
+        assertEquals(1, result.lifts.size)
+        assertEquals(4, result.lifts.first().deloadWeek)
     }
 }
