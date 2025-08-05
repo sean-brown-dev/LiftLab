@@ -51,12 +51,10 @@ class EditWorkoutViewModel(
     getCompletedWorkoutStateFlowUseCase: GetCompletedWorkoutStateFlowUseCase,
     undoSetCompletionUseCase: UndoSetCompletionUseCase,
     completeSetUseCase: CompleteSetUseCase,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
     completeSetUseCase = completeSetUseCase,
     undoSetCompletionUseCase = undoSetCompletionUseCase,
-    transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
     private val _editWorkoutState = MutableStateFlow(EditWorkoutState())

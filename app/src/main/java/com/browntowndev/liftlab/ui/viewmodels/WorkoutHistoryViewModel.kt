@@ -3,22 +3,17 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.ui.models.FilterChipOption
 import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.PROGRAM
 import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.WORKOUT
-import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
 import com.browntowndev.liftlab.ui.factory.createProgramAndWorkoutFilterChipOptions
@@ -32,19 +27,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.time.ZoneId
-import kotlin.collections.map
 
 class WorkoutHistoryViewModel(
     getSummarizedWorkoutMetricsStateFlowUseCase: GetSummarizedWorkoutMetricsStateFlowUseCase,
     private val deleteWorkoutLogEntryUseCase: DeleteWorkoutLogEntryUseCase,
     private val onNavigateBack: () -> Unit,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     private val _state = MutableStateFlow(WorkoutHistoryState())
     val state = _state.asStateFlow()
 

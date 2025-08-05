@@ -66,12 +66,10 @@ class WorkoutViewModel(
     private val cancelRestTimer: () -> Unit,
     completeSetUseCase: CompleteSetUseCase,
     undoSetCompletionUseCase: UndoSetCompletionUseCase,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
 ): BaseWorkoutViewModel(
     completeSetUseCase = completeSetUseCase,
     undoSetCompletionUseCase = undoSetCompletionUseCase,
-    transactionScope = transactionScope,
     eventBus = eventBus,
 ) {
     companion object {

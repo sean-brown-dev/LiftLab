@@ -65,9 +65,8 @@ class WorkoutBuilderViewModel(
     private val addSetUseCase: AddSetUseCase,
     private val updateWorkoutLiftDeloadWeekUseCase: UpdateWorkoutLiftDeloadWeekUseCase,
     getWorkoutConfigurationStateFlowUseCase: GetWorkoutConfigurationStateFlowUseCase,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     companion object {
         private const val TAG = "WorkoutBuilderViewModel"
         private const val DEFAULT_PROGRAM_DELOAD_WEEK = 4

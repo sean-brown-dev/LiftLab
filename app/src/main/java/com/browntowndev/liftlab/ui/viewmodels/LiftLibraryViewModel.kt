@@ -38,9 +38,8 @@ class LiftLibraryViewModel(
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
     newLiftMetricChartIds: List<Long>,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     private val _state = MutableStateFlow(LiftLibraryState())
     val state = _state.asStateFlow()
 

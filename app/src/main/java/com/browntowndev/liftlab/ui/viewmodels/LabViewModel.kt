@@ -40,9 +40,8 @@ class LabViewModel(
     private val reorderWorkoutsUseCase: ReorderWorkoutsUseCase,
     private val setProgramAsActiveUseCase: SetProgramAsActiveUseCase,
     getProgramConfigurationStateFlowUseCase: GetProgramConfigurationStateFlowUseCase,
-    transactionScope: TransactionScope,
     eventBus: EventBus,
-): LiftLabViewModel(transactionScope, eventBus) {
+): BaseViewModel(eventBus) {
     private var _state = MutableStateFlow(LabState())
     val state = _state.asStateFlow()
 
