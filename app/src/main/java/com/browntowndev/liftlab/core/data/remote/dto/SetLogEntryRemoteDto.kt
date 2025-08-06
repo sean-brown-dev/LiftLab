@@ -27,8 +27,6 @@ data class SetLogEntryRemoteDto(
     var reps: Int = 0,
     var rpe: Float = 0f,
     var oneRepMax: Int = 0,
-    var mesoCycle: Int = 0,
-    var microCycle: Int = 0,
     var setMatching: Boolean? = null,
     var maxSets: Int? = null,
     var repFloor: Int? = null,

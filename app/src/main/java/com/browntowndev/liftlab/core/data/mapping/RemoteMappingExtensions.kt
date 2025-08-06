@@ -17,7 +17,7 @@ import com.browntowndev.liftlab.core.data.remote.dto.CustomLiftSetRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.HistoricalWorkoutNameRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.LiftMetricChartRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.LiftRemoteDto
-import com.browntowndev.liftlab.core.data.remote.dto.PreviousSetResultRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.LiveWorkoutCompletedSetDto
 import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.RestTimerInProgressRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.SetLogEntryRemoteDto
@@ -51,7 +51,7 @@ object RemoteMappingExtensions {
         this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
-    fun PreviousSetResultRemoteDto.toEntity(): LiveWorkoutCompletedSetEntity = LiveWorkoutCompletedSetEntity(
+    fun LiveWorkoutCompletedSetDto.toEntity(): LiveWorkoutCompletedSetEntity = LiveWorkoutCompletedSetEntity(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -71,7 +71,7 @@ object RemoteMappingExtensions {
         this.deleted = this@toEntity.deleted
         this.synced = true
     }
-    fun LiveWorkoutCompletedSetEntity.toRemoteDto(): PreviousSetResultRemoteDto = PreviousSetResultRemoteDto(
+    fun LiveWorkoutCompletedSetEntity.toRemoteDto(): LiveWorkoutCompletedSetDto = LiveWorkoutCompletedSetDto(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,

@@ -4,7 +4,7 @@ import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.domain.enums.SetType
 
 @Keep
-data class PreviousSetResultRemoteDto(
+data class LiveWorkoutCompletedSetDto(
     var id: Long = 0L,
     var workoutId: Long = 0L,
     var liftId: Long = 0L,
@@ -12,22 +12,19 @@ data class PreviousSetResultRemoteDto(
     var liftPosition: Int = 0,
     var setPosition: Int = 0,
     var myoRepSetPosition: Int? = null,
-    var weightRecommendation: Float? = null,
     var weight: Float = 0f,
     var reps: Int = 0,
     var rpe: Float = 0f,
     var oneRepMax: Int = 0,
-    var mesoCycle: Int = 0,
-    var microCycle: Int = 0,
     var missedLpGoals: Int? = null,
     var isDeload: Boolean = false
 ): BaseRemoteDto() {
     override fun copyWithBase(): BaseRemoteDto {
         return this.copy().apply {
-            remoteId = this@PreviousSetResultRemoteDto.remoteId
-            lastUpdated = this@PreviousSetResultRemoteDto.lastUpdated
-            deleted = this@PreviousSetResultRemoteDto.deleted
-            synced = this@PreviousSetResultRemoteDto.synced
+            remoteId = this@LiveWorkoutCompletedSetDto.remoteId
+            lastUpdated = this@LiveWorkoutCompletedSetDto.lastUpdated
+            deleted = this@LiveWorkoutCompletedSetDto.deleted
+            synced = this@LiveWorkoutCompletedSetDto.synced
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.remote.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.remote.dto.PreviousSetResultRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.LiveWorkoutCompletedSetDto
 import com.browntowndev.liftlab.core.data.common.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
 import com.browntowndev.liftlab.core.data.mapping.RemoteMappingExtensions.toEntity
@@ -11,17 +11,17 @@ import kotlin.reflect.KClass
 
 class LiveWorkoutCompletedSetsSyncRepository(
     private val previousSetResultsDao: LiveWorkoutCompletedSetsDao
-) : BaseRemoteSyncRepository<PreviousSetResultRemoteDto>() {
+) : BaseRemoteSyncRepository<LiveWorkoutCompletedSetDto>() {
     override val collectionName: String = RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION
-    override val remoteDtoClass: KClass<PreviousSetResultRemoteDto> = PreviousSetResultRemoteDto::class
+    override val remoteDtoClass: KClass<LiveWorkoutCompletedSetDto> = LiveWorkoutCompletedSetDto::class
 
-    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<PreviousSetResultRemoteDto> =
+    override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<LiveWorkoutCompletedSetDto> =
         previousSetResultsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
-    override suspend fun getAllUnsyncedTyped(): List<PreviousSetResultRemoteDto> =
+    override suspend fun getAllUnsyncedTyped(): List<LiveWorkoutCompletedSetDto> =
         previousSetResultsDao.getAllUnsynced().map { it.toRemoteDto() }
 
-    override suspend fun upsertManyTyped(entities: List<PreviousSetResultRemoteDto>): List<Long> =
+    override suspend fun upsertManyTyped(entities: List<LiveWorkoutCompletedSetDto>): List<Long> =
         previousSetResultsDao.upsertMany(entities.fastMap { it.toEntity() })
             .let { upsertIds ->
                 entities.zip(upsertIds).fastMap { (entity, id) ->
