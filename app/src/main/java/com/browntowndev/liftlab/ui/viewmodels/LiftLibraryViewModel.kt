@@ -1,11 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.ui.models.FilterChipOption
-import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.MOVEMENT_PATTERN
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
-import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
@@ -13,7 +12,7 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFiltera
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
-import com.browntowndev.liftlab.ui.models.Route
+import com.browntowndev.liftlab.ui.models.controls.Route
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn

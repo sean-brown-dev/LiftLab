@@ -7,8 +7,8 @@ import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
-import com.browntowndev.liftlab.ui.models.LiftMetricOptions
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptions
 
 /**
  * Groups all the user actions from the lift metric chart picker.

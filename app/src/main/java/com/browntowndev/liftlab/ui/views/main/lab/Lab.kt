@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.DELOAD_WEEK_OPTIONS
-import com.browntowndev.liftlab.ui.models.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
@@ -22,7 +22,7 @@ import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen

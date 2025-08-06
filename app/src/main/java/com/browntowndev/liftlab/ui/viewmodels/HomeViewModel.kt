@@ -10,9 +10,8 @@ import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.domain.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.domain.enums.toVolumeType
 import com.browntowndev.liftlab.core.domain.enums.toVolumeTypeImpact
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
-import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.extensions.filterByDateRange
 import com.browntowndev.liftlab.core.domain.models.metrics.ConfiguredMetricsState
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
@@ -26,9 +25,9 @@ import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
 import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toVolumeMetricChartModels
-import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
-import com.browntowndev.liftlab.ui.models.getMicroCycleCompletionChart
-import com.browntowndev.liftlab.ui.models.getWeeklyCompletionChart
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.metrics.getMicroCycleCompletionChart
+import com.browntowndev.liftlab.ui.models.metrics.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import dev.gitlive.firebase.auth.FirebaseUser
 import com.google.firebase.auth.FirebaseAuth

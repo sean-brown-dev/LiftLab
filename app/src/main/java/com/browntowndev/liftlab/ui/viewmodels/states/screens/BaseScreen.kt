@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 
 abstract class BaseScreen(override val subtitle: String = ""): Screen {
     abstract fun copySetOverflowIconVisibility(isVisible: Boolean): Screen

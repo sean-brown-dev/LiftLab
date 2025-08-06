@@ -1,14 +1,12 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
-import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
-import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.models.LiftMetricChartModel
-import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
-import com.browntowndev.liftlab.ui.models.VolumeMetricChartModel
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricChartModel
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.metrics.VolumeMetricChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 data class HomeState(

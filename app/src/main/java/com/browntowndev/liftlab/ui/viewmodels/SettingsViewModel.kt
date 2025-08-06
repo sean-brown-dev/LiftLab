@@ -3,8 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
-import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.domain.repositories.SettingKey
 import com.browntowndev.liftlab.core.domain.useCase.settings.GetSettingConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateLiftSpecificDeloadSettingUseCase

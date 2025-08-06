@@ -1,12 +1,11 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.ui.models.FilterChipOption
-import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FlowRowFilterChipSection
 import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.common.toEndOfDate
 import com.browntowndev.liftlab.core.common.toLocalDate
 import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 
 data class WorkoutHistoryState(

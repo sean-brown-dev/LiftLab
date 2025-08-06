@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
-import com.browntowndev.liftlab.ui.models.ActionMenuItem
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen

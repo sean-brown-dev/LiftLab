@@ -18,8 +18,8 @@ import arrow.core.left
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.core.common.SHOW_WORKOUT_LOG
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.models.Route
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen

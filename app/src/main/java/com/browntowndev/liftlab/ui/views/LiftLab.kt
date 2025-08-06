@@ -8,7 +8,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -26,7 +25,7 @@ import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.LiftLabSnackbar
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
 import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel

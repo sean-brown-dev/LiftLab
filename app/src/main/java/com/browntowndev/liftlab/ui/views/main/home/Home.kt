@@ -16,10 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,9 +37,9 @@ import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.composables.EmptyChartPlaceholder
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.RowMultiSelect
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.models.ComposedChartModel
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
+import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
 import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
 import androidx.compose.material3.Text
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider

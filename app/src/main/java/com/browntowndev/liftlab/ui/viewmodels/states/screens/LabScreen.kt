@@ -20,11 +20,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
-import com.browntowndev.liftlab.ui.models.ActionMenuItem
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.models.BottomNavItem
-import com.browntowndev.liftlab.ui.models.Route
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.BottomNavItem
+import com.browntowndev.liftlab.ui.models.controls.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 

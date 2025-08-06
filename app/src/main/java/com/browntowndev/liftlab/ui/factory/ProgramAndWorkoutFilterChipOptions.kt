@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.ui.factory
 
-import com.browntowndev.liftlab.ui.models.FilterChipOption
-import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.PROGRAM
-import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.WORKOUT
-import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.PROGRAM
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.WORKOUT
+import com.browntowndev.liftlab.ui.models.controls.FlowRowFilterChipSection
 
 fun createProgramAndWorkoutFilterChipOptions(
     programNamesById: Map<Long, String>,

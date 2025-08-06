@@ -9,10 +9,10 @@ import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
-import com.browntowndev.liftlab.ui.models.ActionMenuItem
-import com.browntowndev.liftlab.ui.models.NavItem
-import com.browntowndev.liftlab.ui.models.Route
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.controls.NavItem
+import com.browntowndev.liftlab.ui.models.controls.Route
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 

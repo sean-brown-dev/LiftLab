@@ -41,8 +41,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
-import com.browntowndev.liftlab.ui.models.LiftMetricOptionTree
-import com.browntowndev.liftlab.ui.models.LiftMetricOptions
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
+import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptions
 
 @Composable
 fun RowMultiSelect(

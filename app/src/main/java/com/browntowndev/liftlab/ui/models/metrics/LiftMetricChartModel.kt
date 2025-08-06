@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.models
+package com.browntowndev.liftlab.ui.models.metrics
 
 import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel

@@ -8,10 +8,9 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.common.toTwoDecimalString
-import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
 import com.browntowndev.liftlab.core.domain.extensions.toFilterOptions
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
@@ -20,9 +19,9 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLift
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
-import com.browntowndev.liftlab.ui.models.getIntensityChartModel
-import com.browntowndev.liftlab.ui.models.getOneRepMaxChartModel
-import com.browntowndev.liftlab.ui.models.getPerWorkoutVolumeChartModel
+import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
+import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel
+import com.browntowndev.liftlab.ui.models.metrics.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow

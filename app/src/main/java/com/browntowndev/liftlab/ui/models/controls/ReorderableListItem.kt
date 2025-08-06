@@ -1,3 +1,3 @@
-package com.browntowndev.liftlab.ui.models
+package com.browntowndev.liftlab.ui.models.controls
 
 class ReorderableListItem(val label: String, val key: Long)

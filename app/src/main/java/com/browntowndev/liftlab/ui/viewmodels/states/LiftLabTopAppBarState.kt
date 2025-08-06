@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.browntowndev.liftlab.ui.models.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 
 @Stable

@@ -2,8 +2,8 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
-import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.models.ComposedChartModel
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
+import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 

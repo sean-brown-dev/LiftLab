@@ -3,22 +3,22 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
-import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.ui.models.metrics.PersonalRecordUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.ActiveProgramMetadataUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.SetResultUiModel
 import java.util.Date
 
 @Stable
 data class WorkoutState(
     val initialized: Boolean = false,
-    val programMetadata: ActiveProgramMetadata? = null,
-    val workout: LoggingWorkout? = null,
-    val personalRecords: Map<Long, PersonalRecord> = emptyMap(),
+    val programMetadata: ActiveProgramMetadataUiModel? = null,
+    val workout: LoggingWorkoutUiModel? = null,
+    val personalRecords: Map<Long, PersonalRecordUiModel> = emptyMap(),
     val inProgressWorkout: WorkoutInProgressUiModel? = null,
-    val completedSets: List<SetResult> = emptyList(),
+    val completedSets: List<SetResultUiModel> = emptyList(),
     val workoutLogVisible: Boolean = false,
     val isReordering: Boolean = false,
     val restTimerStartedAt: Date? = null,

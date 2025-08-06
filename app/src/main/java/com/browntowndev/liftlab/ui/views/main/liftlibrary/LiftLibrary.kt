@@ -27,7 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.ui.models.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.core.domain.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.CircularIcon
@@ -40,7 +40,7 @@ import com.browntowndev.liftlab.ui.composables.verticalScrollbar
 import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.models.Route
+import com.browntowndev.liftlab.ui.models.controls.Route
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

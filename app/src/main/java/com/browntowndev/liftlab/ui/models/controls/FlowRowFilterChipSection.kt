@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.models
+package com.browntowndev.liftlab.ui.models.controls
 
 interface FlowRowFilterChipSection {
     val sectionName: String

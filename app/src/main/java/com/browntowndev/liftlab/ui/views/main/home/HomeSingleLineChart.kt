@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.composables.SingleLineChart
-import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 @Composable

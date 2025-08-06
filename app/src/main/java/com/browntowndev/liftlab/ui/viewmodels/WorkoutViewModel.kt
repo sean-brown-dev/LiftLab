@@ -5,12 +5,12 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.util.fastMap
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.ui.models.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
-import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
@@ -29,8 +29,11 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetComple
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
+import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -114,10 +117,12 @@ class WorkoutViewModel(
         getActiveWorkoutStateFlowUseCase().map { activeWorkoutState ->
             WorkoutState(
                 inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
-                completedSets = activeWorkoutState.completedSets,
-                programMetadata = activeWorkoutState.programMetadata,
-                workout = activeWorkoutState.workout,
-                personalRecords = activeWorkoutState.personalRecords,
+                completedSets = activeWorkoutState.completedSets.fastMap { it.toUiModel() },
+                programMetadata = activeWorkoutState.programMetadata?.toUiModel(),
+                workout = activeWorkoutState.workout?.toUiModel(),
+                personalRecords = activeWorkoutState.personalRecords
+                    .map { it.key to it.value.toUiModel() }
+                    .toMap(),
                 restTimerStartedAt = activeWorkoutState.restTimerStartedAt,
                 restTime = activeWorkoutState.restTime,
                 initialized = true,

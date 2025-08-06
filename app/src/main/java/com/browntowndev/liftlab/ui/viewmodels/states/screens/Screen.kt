@@ -2,9 +2,9 @@ package com.browntowndev.liftlab.ui.viewmodels.states.screens
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
-import com.browntowndev.liftlab.ui.models.ActionMenuItem
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.models.Route
+import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.Route
 import org.koin.core.component.KoinComponent
 
 sealed interface Screen: KoinComponent {

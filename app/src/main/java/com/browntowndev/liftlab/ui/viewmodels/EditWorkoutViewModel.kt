@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDa
 import com.browntowndev.liftlab.core.common.copyGeneric
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet

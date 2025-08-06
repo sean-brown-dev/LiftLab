@@ -1,8 +1,8 @@
 package com.browntowndev.liftlab.core.domain.enums
 
-import com.browntowndev.liftlab.ui.models.FilterChipOption
-import com.browntowndev.liftlab.ui.models.FilterChipOption.Companion.MOVEMENT_PATTERN
-import com.browntowndev.liftlab.ui.models.FlowRowFilterChipSection
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.MOVEMENT_PATTERN
+import com.browntowndev.liftlab.ui.models.controls.FlowRowFilterChipSection
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement

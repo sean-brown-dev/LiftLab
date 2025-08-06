@@ -39,9 +39,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.models.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyColumnState
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @ExperimentalFoundationApi

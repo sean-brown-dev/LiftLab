@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import com.browntowndev.liftlab.ui.models.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 
 @Stable
