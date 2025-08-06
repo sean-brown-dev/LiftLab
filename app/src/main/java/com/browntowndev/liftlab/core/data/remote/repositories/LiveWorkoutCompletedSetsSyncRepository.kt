@@ -9,10 +9,10 @@ import com.browntowndev.liftlab.core.data.mapping.RemoteMappingExtensions.toRemo
 import kotlin.collections.map
 import kotlin.reflect.KClass
 
-class PreviousSetResultsSyncRepository(
+class LiveWorkoutCompletedSetsSyncRepository(
     private val previousSetResultsDao: LiveWorkoutCompletedSetsDao
 ) : BaseRemoteSyncRepository<PreviousSetResultRemoteDto>() {
-    override val collectionName: String = RemoteCollectionNames.PREVIOUS_SET_RESULTS_COLLECTION
+    override val collectionName: String = RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION
     override val remoteDtoClass: KClass<PreviousSetResultRemoteDto> = PreviousSetResultRemoteDto::class
 
     override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<PreviousSetResultRemoteDto> =

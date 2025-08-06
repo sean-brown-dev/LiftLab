@@ -17,7 +17,7 @@ import com.browntowndev.liftlab.core.data.remote.repositories.CustomSetsSyncRepo
 import com.browntowndev.liftlab.core.data.remote.repositories.HistoricalWorkoutNamesSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.LiftMetricChartsSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.LiftsSyncRepository
-import com.browntowndev.liftlab.core.data.remote.repositories.PreviousSetResultsSyncRepository
+import com.browntowndev.liftlab.core.data.remote.repositories.LiveWorkoutCompletedSetsSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.ProgramSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.SetLogEntriesSyncRepository
@@ -59,8 +59,8 @@ val syncModule = module {
             get()
         )
     }
-    single<RemoteSyncRepository>(named(RemoteCollectionNames.PREVIOUS_SET_RESULTS_COLLECTION)) {
-        PreviousSetResultsSyncRepository(
+    single<RemoteSyncRepository>(named(RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION)) {
+        LiveWorkoutCompletedSetsSyncRepository(
             get()
         )
     }
@@ -106,7 +106,7 @@ val syncModule = module {
             get<RemoteSyncRepository>(named(RemoteCollectionNames.HISTORICAL_WORKOUT_NAMES_COLLECTION)),
             get<RemoteSyncRepository>(named(RemoteCollectionNames.LIFT_METRIC_CHARTS_COLLECTION)),
             get<RemoteSyncRepository>(named(RemoteCollectionNames.LIFTS_COLLECTION)),
-            get<RemoteSyncRepository>(named(RemoteCollectionNames.PREVIOUS_SET_RESULTS_COLLECTION)),
+            get<RemoteSyncRepository>(named(RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION)),
             get<RemoteSyncRepository>(named(RemoteCollectionNames.PROGRAMS_COLLECTION)),
             get<RemoteSyncRepository>(named(RemoteCollectionNames.SET_LOG_ENTRIES_COLLECTION)),
             get<RemoteSyncRepository>(named(RemoteCollectionNames.VOLUME_METRIC_CHARTS_COLLECTION)),
@@ -149,7 +149,7 @@ val syncModule = module {
                 hashSetOf(
                     RemoteCollectionNames.WORKOUT_LIFTS_COLLECTION,
                     RemoteCollectionNames.WORKOUT_LOG_ENTRIES_COLLECTION,
-                    RemoteCollectionNames.PREVIOUS_SET_RESULTS_COLLECTION,
+                    RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION,
                 ),
                 // Level 3: Depends on Level 2
                 hashSetOf(

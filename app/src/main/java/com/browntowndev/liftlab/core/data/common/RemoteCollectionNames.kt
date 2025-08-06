@@ -6,7 +6,7 @@ object RemoteCollectionNames {
     const val HISTORICAL_WORKOUT_NAMES_COLLECTION = "historicalWorkoutNames"
     const val LIFT_METRIC_CHARTS_COLLECTION = "liftMetricCharts"
     const val LIFTS_COLLECTION = "lifts"
-    const val PREVIOUS_SET_RESULTS_COLLECTION = "previousSetResults"
+    const val LIVE_WORKOUT_COMPLETED_SETS_COLLECTION = "liveWorkoutCompletedSets"
     const val PROGRAMS_COLLECTION = "programs"
     const val SET_LOG_ENTRIES_COLLECTION = "setLogEntries"
     const val VOLUME_METRIC_CHARTS_COLLECTION = "volumeMetricCharts"
