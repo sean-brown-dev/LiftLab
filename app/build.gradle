@@ -117,7 +117,7 @@ dependencies {
     implementation 'androidx.security:security-crypto-ktx:1.1.0'
 
     // ---- Firebase Auth helpers ----
-    def firebase_auth_helper_version = '2.4.0-alpha02'
+    def firebase_auth_helper_version = '2.4.0-alpha03'
     implementation("io.github.mirzemehdi:kmpauth-google:$firebase_auth_helper_version")
     implementation("io.github.mirzemehdi:kmpauth-firebase:$firebase_auth_helper_version")
     implementation("io.github.mirzemehdi:kmpauth-uihelper:$firebase_auth_helper_version")
