@@ -4,7 +4,7 @@ import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.HistoricalWorkoutNameEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
-import com.browntowndev.liftlab.core.data.local.entities.PreviousSetResultEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiveWorkoutCompletedSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
 import com.browntowndev.liftlab.core.data.local.entities.RestTimerInProgressEntity
 import com.browntowndev.liftlab.core.data.local.entities.SetLogEntryEntity
@@ -51,7 +51,7 @@ object RemoteMappingExtensions {
         this.deleted = this@toRemoteDto.deleted
         this.synced = this@toRemoteDto.synced
     }
-    fun PreviousSetResultRemoteDto.toEntity(): PreviousSetResultEntity = PreviousSetResultEntity(
+    fun PreviousSetResultRemoteDto.toEntity(): LiveWorkoutCompletedSetEntity = LiveWorkoutCompletedSetEntity(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -59,13 +59,10 @@ object RemoteMappingExtensions {
         liftPosition = this.liftPosition,
         setPosition = this.setPosition,
         myoRepSetPosition = this.myoRepSetPosition,
-        weightRecommendation = this.weightRecommendation,
         weight = this.weight,
         reps = this.reps,
         rpe = this.rpe,
         oneRepMax = this.oneRepMax,
-        mesoCycle = this.mesoCycle,
-        microCycle = this.microCycle,
         missedLpGoals = this.missedLpGoals,
         isDeload = this.isDeload
     ).apply {
@@ -74,7 +71,7 @@ object RemoteMappingExtensions {
         this.deleted = this@toEntity.deleted
         this.synced = true
     }
-    fun PreviousSetResultEntity.toRemoteDto(): PreviousSetResultRemoteDto = PreviousSetResultRemoteDto(
+    fun LiveWorkoutCompletedSetEntity.toRemoteDto(): PreviousSetResultRemoteDto = PreviousSetResultRemoteDto(
         id = this.id,
         workoutId = this.workoutId,
         liftId = this.liftId,
@@ -82,13 +79,10 @@ object RemoteMappingExtensions {
         liftPosition = this.liftPosition,
         setPosition = this.setPosition,
         myoRepSetPosition = this.myoRepSetPosition,
-        weightRecommendation = this.weightRecommendation,
         weight = this.weight,
         reps = this.reps,
         rpe = this.rpe,
         oneRepMax = this.oneRepMax,
-        mesoCycle = this.mesoCycle,
-        microCycle = this.microCycle,
         missedLpGoals = this.missedLpGoals,
         isDeload = this.isDeload
     ).apply {
@@ -157,8 +151,6 @@ object RemoteMappingExtensions {
         reps = this.reps,
         rpe = this.rpe,
         oneRepMax = this.oneRepMax,
-        mesoCycle = this.mesoCycle,
-        microCycle = this.microCycle,
         setMatching = this.setMatching,
         maxSets = this.maxSets,
         repFloor = this.repFloor,
@@ -190,8 +182,6 @@ object RemoteMappingExtensions {
         reps = this.reps,
         rpe = this.rpe,
         oneRepMax = this.oneRepMax,
-        mesoCycle = this.mesoCycle,
-        microCycle = this.microCycle,
         setMatching = this.setMatching,
         maxSets = this.maxSets,
         repFloor = this.repFloor,
@@ -306,8 +296,8 @@ object RemoteMappingExtensions {
         historicalWorkoutNameId = this.historicalWorkoutNameId,
         programWorkoutCount = this.programWorkoutCount,
         programDeloadWeek = this.programDeloadWeek,
-        mesocycle = this.mesocycle,
-        microcycle = this.microcycle,
+        mesoCycle = this.mesocycle,
+        microCycle = this.microcycle,
         microcyclePosition = this.microcyclePosition,
         date = this.date,
         durationInMillis = this.durationInMillis
@@ -322,8 +312,8 @@ object RemoteMappingExtensions {
         historicalWorkoutNameId = this.historicalWorkoutNameId,
         programWorkoutCount = this.programWorkoutCount,
         programDeloadWeek = this.programDeloadWeek,
-        mesocycle = this.mesocycle,
-        microcycle = this.microcycle,
+        mesocycle = this.mesoCycle,
+        microcycle = this.microCycle,
         microcyclePosition = this.microcyclePosition,
         date = this.date,
         durationInMillis = this.durationInMillis

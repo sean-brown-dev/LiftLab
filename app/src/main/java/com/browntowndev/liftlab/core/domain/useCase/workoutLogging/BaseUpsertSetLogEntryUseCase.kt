@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
-import com.browntowndev.liftlab.core.domain.extensions.copyCompletionDataFrom
+import com.browntowndev.liftlab.core.domain.extensions.copyCompletionDataFromSetLogEntry
 import com.browntowndev.liftlab.core.domain.extensions.findSet
 import com.browntowndev.liftlab.core.domain.extensions.toSetLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -20,7 +20,11 @@ abstract class BaseUpsertSetLogEntryUseCase {
         val set = loggingWorkoutLift.findSet(
             setPosition = setResult.setPosition,
             myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
-        )
+        ) ?: loggingWorkoutLift.findSet(
+            setPosition = setResult.setPosition - 1, // Newly added results have incremented position
+            myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
+        ) ?: throw Exception("Set not found")
+
         val setLogEntry = setResult.toSetLogEntry(
             liftName = loggingWorkoutLift.liftName,
             liftMovementPattern = loggingWorkoutLift.liftMovementPattern,
@@ -35,32 +39,5 @@ abstract class BaseUpsertSetLogEntryUseCase {
         )
 
         return setLogEntry
-    }
-
-    protected fun getUpdatedSetResultIfExistsOrNull(
-        allSetResults: List<SetResult>,
-        setResult: SetResult
-    ): SetResult? {
-        // Have to look up by key because SetResult's id here is SetLogEntry table
-        val setResultsByResultKey = allSetResults.associateBy {
-            SetResultKey(
-                liftId = it.liftId,
-                liftPosition = it.liftPosition,
-                setPosition = it.setPosition,
-                myoRepSetPosition = (it as? MyoRepSetResult)?.myoRepSetPosition
-            )
-        }
-        val setResultKey = SetResultKey(
-            liftId = setResult.liftId,
-            liftPosition = setResult.liftPosition,
-            setPosition = setResult.setPosition,
-            myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
-        )
-        val updatedResult = if (setResultKey in setResultsByResultKey) {
-            val existingSetResult = setResultsByResultKey[setResultKey]!!
-            setResult.copyCompletionDataFrom(existingSetResult)
-        } else null
-
-        return updatedResult
     }
 }

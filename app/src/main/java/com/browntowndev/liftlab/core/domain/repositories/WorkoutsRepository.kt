@@ -13,4 +13,8 @@ interface WorkoutsRepository : Repository<Workout, Long> {
         programId: Long,
         microcyclePosition: Int,
     ): Flow<CalculationWorkout?>
+
+    fun deleteByProgramId(programId: Long)
+
+    suspend fun getAllForProgramWithoutLiftsPopulated(programId: Long): List<Workout>
 }

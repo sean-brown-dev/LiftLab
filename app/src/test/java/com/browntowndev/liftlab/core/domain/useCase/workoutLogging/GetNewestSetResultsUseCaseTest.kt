@@ -33,7 +33,9 @@ class GetNewestSetResultsUseCaseTest {
         // Given
         val workout = Workout(id = 1, programId = 1, name = "Test Workout", position = 0, lifts = emptyList())
         val existingResults = listOf(
-            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, reps = 5, rpe = 8f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false)
+            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 5, rpe = 8f,
+                setType = SetType.STANDARD, isDeload = false)
         )
         val liftIdsToSearchFor = emptyList<Long>()
 
@@ -50,10 +52,14 @@ class GetNewestSetResultsUseCaseTest {
         // Given
         val workout = Workout(id = 1, programId = 1, name = "Test Workout", position = 0, lifts = emptyList())
         val existingResults = listOf(
-            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, reps = 5, rpe = 8f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false)
+            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 5, rpe = 8f,
+                setType = SetType.STANDARD, isDeload = false)
         )
         val newResults = listOf(
-            StandardSetResult(id = 2, workoutId = 1, liftId = 102, liftPosition = 1, setPosition = 0, weightRecommendation = null, weight = 200f, reps = 5, rpe = 8f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false)
+            StandardSetResult(id = 2, workoutId = 1, liftId = 102, liftPosition = 1, setPosition = 0,
+                weight = 200f, reps = 5, rpe = 8f,
+                setType = SetType.STANDARD, isDeload = false)
         )
         val liftIdsToSearchFor = listOf(102L)
 
@@ -87,7 +93,7 @@ class GetNewestSetResultsUseCaseTest {
             workoutLogRepository.getMostRecentSetResultsForLiftIds(
                 liftIds = liftIdsToSearchFor,
                 linearProgressionLiftIds = hashSetOf(101L),
-                includeDeload = false
+                includeDeloads = false
             )
         }
     }

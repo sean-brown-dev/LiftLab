@@ -29,6 +29,15 @@ object WorkoutMappingExtensions {
                 .sortedBy { it.position }
         )
 
+    fun WorkoutEntity.toDomainModel(): Workout =
+        Workout(
+            id = this.id,
+            programId = this.programId,
+            name = this.name,
+            position = this.position,
+            lifts = emptyList(),
+        )
+
     fun Workout.toEntity(): WorkoutEntity =
         WorkoutEntity(
             id = this.id,

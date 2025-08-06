@@ -59,7 +59,7 @@ class GetLiftWithHistoryStateFlowUseCase(
     private fun getMaxVolume(workoutLogs: List<WorkoutLogEntry>): Pair<Date, Float>? {
         return workoutLogs.fastMap { workoutLog ->
             workoutLog.date to
-                    workoutLog.setResults.maxOf {
+                    workoutLog.setLogEntries.maxOf {
                         it.reps * it.weight
                     }
         }.maxByOrNull { it.second }
@@ -69,7 +69,7 @@ class GetLiftWithHistoryStateFlowUseCase(
     private fun getMaxWeight(workoutLogs: List<WorkoutLogEntry>): Pair<Date, Float>? {
         return workoutLogs.fastMap { workoutLog ->
             workoutLog.date to
-                    workoutLog.setResults.maxOf {
+                    workoutLog.setLogEntries.maxOf {
                         it.weight
                     }
         }.maxByOrNull { it.second }
@@ -77,7 +77,7 @@ class GetLiftWithHistoryStateFlowUseCase(
 
     private fun getTopTenPerformances(workoutLogs: List<WorkoutLogEntry>): List<Pair<Date, SetLogEntry>> {
         return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults.map { setLog ->
+            workoutLog.setLogEntries.map { setLog ->
                 workoutLog.date to setLog
             }
         }.sortedByDescending { it.second.oneRepMax }.take(10)
@@ -85,7 +85,7 @@ class GetLiftWithHistoryStateFlowUseCase(
 
     private fun getTotalReps(workoutLogs: List<WorkoutLogEntry>): Int {
         return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults.map { setLog ->
+            workoutLog.setLogEntries.map { setLog ->
                 setLog.reps
             }
         }.sum()
@@ -93,7 +93,7 @@ class GetLiftWithHistoryStateFlowUseCase(
 
     private fun getTotalVolume(workoutLogs: List<WorkoutLogEntry>): Float {
         return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults.map { setLog ->
+            workoutLog.setLogEntries.map { setLog ->
                 setLog.reps * setLog.weight
             }
         }.sum()

@@ -13,8 +13,8 @@ object WorkoutLogEntryMappingExtensions {
             historicalWorkoutNameId = historicalWorkoutNameId,
             programDeloadWeek = programDeloadWeek,
             programWorkoutCount = programWorkoutCount,
-            microcycle = microcycle,
-            mesocycle = mesocycle,
+            microCycle = microcycle,
+            mesoCycle = mesocycle,
             microcyclePosition = microcyclePosition,
             date = date,
             durationInMillis = durationInMillis
@@ -31,12 +31,12 @@ object WorkoutLogEntryMappingExtensions {
             programName = "NOT LOADED",
             programDeloadWeek = programDeloadWeek,
             programWorkoutCount = programWorkoutCount,
-            microcycle = microcycle,
-            mesocycle = mesocycle,
+            microcycle = microCycle,
+            mesocycle = mesoCycle,
             microcyclePosition = microcyclePosition,
             date = date,
             durationInMillis = durationInMillis,
-            setResults = emptyList()
+            setLogEntries = emptyList()
         )
     }
 
@@ -60,7 +60,7 @@ object WorkoutLogEntryMappingExtensions {
                         microcyclePosition = firstEntry.microcyclePosition,
                         date = firstEntry.date,
                         durationInMillis = firstEntry.durationInMillis,
-                        setResults = workoutLog.value.fastMap {
+                        setLogEntries = workoutLog.value.fastMap {
                             SetLogEntry(
                                 id = it.setLogEntryId,
                                 workoutLogEntryId = it.id,
@@ -82,8 +82,6 @@ object WorkoutLogEntryMappingExtensions {
                                 weight = it.weight,
                                 reps = it.reps,
                                 rpe = it.rpe,
-                                mesoCycle = it.mesoCycle,
-                                microCycle = it.microCycle,
                                 isDeload = it.isDeload,
                             )
                         }

@@ -9,7 +9,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
@@ -30,7 +30,7 @@ class GetWorkoutStateFlowUseCaseTest {
 
     private lateinit var workoutsRepository: WorkoutsRepository
     private lateinit var workoutLogRepository: WorkoutLogRepository
-    private lateinit var previousSetResultsRepository: PreviousSetResultsRepository
+    private lateinit var liveWorkoutCompletedSetsRepository: LiveWorkoutCompletedSetsRepository
     private lateinit var liftsRepository: LiftsRepository
     private lateinit var calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase
     private lateinit var hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase
@@ -42,7 +42,7 @@ class GetWorkoutStateFlowUseCaseTest {
     fun setUp() {
         workoutsRepository = mockk(relaxed = true)
         workoutLogRepository = mockk(relaxed = true)
-        previousSetResultsRepository = mockk(relaxed = true)
+        liveWorkoutCompletedSetsRepository = mockk(relaxed = true)
         liftsRepository = mockk(relaxed = true)
         calculateLoggingWorkoutUseCase = mockk(relaxed = true)
         hydrateLoggingWorkoutWithCompletedSetsUseCase = mockk(relaxed = true)
@@ -51,7 +51,7 @@ class GetWorkoutStateFlowUseCaseTest {
         getWorkoutStateFlowUseCase = GetWorkoutStateFlowUseCase(
             workoutsRepository,
             workoutLogRepository,
-            previousSetResultsRepository,
+            liveWorkoutCompletedSetsRepository,
             liftsRepository,
             calculateLoggingWorkoutUseCase,
             hydrateLoggingWorkoutWithCompletedSetsUseCase,
@@ -100,10 +100,10 @@ class GetWorkoutStateFlowUseCaseTest {
 
         every { workoutsRepository.getByMicrocyclePositionForCalculation(any(), any()) } returns flowOf(workout)
         coEvery { getPersonalRecordsUseCase(any(), any(), any(), any()) } returns emptyMap<Long, PersonalRecord>()
-        every { previousSetResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicroFlow(any(), any(), any()) } returns flowOf(emptyList())
+        every { liveWorkoutCompletedSetsRepository.getByWorkoutIdExcludingGivenMesoAndMicroFlow(any(), any(), any()) } returns flowOf(emptyList())
         coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns emptyList()
         coEvery { calculateLoggingWorkoutUseCase(any(), any(), any(), any(), any(), any(), any()) } returns calculatedWorkout
-        every { previousSetResultsRepository.getForWorkoutFlow(any(), any(), any()) } returns flowOf(emptyList())
+        every { liveWorkoutCompletedSetsRepository.getForWorkoutFlow(any(), any(), any()) } returns flowOf(emptyList())
         every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns emptyList()
         every { hydrateLoggingWorkoutWithExistingLiftDataUseCase(any(), any()) } returns hydratedWorkout
         every { workoutsRepository.getMetadataFlow(any()) } returns flowOf(WorkoutMetadata(id = 1L, name = "Final Workout"))

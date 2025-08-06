@@ -16,5 +16,5 @@ data class WorkoutLogEntry(
     val microcyclePosition: Int,
     val date: Date,
     val durationInMillis: Long,
-    val setResults: List<SetLogEntry>,
+    val setLogEntries: List<SetLogEntry>,
 )

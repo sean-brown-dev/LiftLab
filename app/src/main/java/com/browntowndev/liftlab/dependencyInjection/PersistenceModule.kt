@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.data.repositories.HistoricalWorkoutNamesRep
 import com.browntowndev.liftlab.core.data.repositories.LiftMetricChartsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.LiftsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.WorkoutLogRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.PreviousSetResultsRepositoryImpl
+import com.browntowndev.liftlab.core.data.repositories.LiveWorkoutCompletedSetsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.ProgramsRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.RestTimerInProgressRepositoryImpl
 import com.browntowndev.liftlab.core.data.repositories.SettingsRepositoryImpl
@@ -25,7 +25,7 @@ import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepositor
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
@@ -57,7 +57,7 @@ val persistenceModule = module {
     single { get<LiftLabDatabase>().programsDao() }
     single { get<LiftLabDatabase>().workoutLiftsDao() }
     single { get<LiftLabDatabase>().workoutsDao() }
-    single { get<LiftLabDatabase>().previousSetResultsDao() }
+    single { get<LiftLabDatabase>().liveWorkoutCompletedSetsDao() }
     single { get<LiftLabDatabase>().liftsDao() }
     single { get<LiftLabDatabase>().customSetsDao() }
     single { get<LiftLabDatabase>().workoutInProgressDao() }
@@ -89,13 +89,12 @@ val persistenceModule = module {
             customSetsDao = get(),
             programsRepository = get(),
             workoutsDao = get(),
-            previousSetResultsDao = get(),
             syncScheduler = get(),
         )
     }
-    single<PreviousSetResultsRepository> {
-        PreviousSetResultsRepositoryImpl(
-            previousSetResultDao = get(),
+    single<LiveWorkoutCompletedSetsRepository> {
+        LiveWorkoutCompletedSetsRepositoryImpl(
+            liveWorkoutCompletedSetsDao = get(),
             syncScheduler = get(),
         )
     }

@@ -11,28 +11,15 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class SetLogEntryRepositoryImpl(
     private val setLogEntryDao: SetLogEntryDao,
     private val syncScheduler: SyncScheduler,
 ): SetLogEntryRepository {
 
-    override suspend fun insertFromPreviousSetResults(
-        workoutLogEntryId: Long,
-        workoutId: Long,
-        mesocycle: Int,
-        microcycle: Int,
-        excludeFromCopy: List<Long>
-    ) {
-        setLogEntryDao.insertFromPreviousSetResults(
-            workoutLogEntryId = workoutLogEntryId,
-            workoutId = workoutId,
-            mesocycle = mesocycle,
-            microcycle = microcycle,
-            excludeFromCopy = excludeFromCopy,
-        )
-
-        syncScheduler.scheduleSync()
+    override suspend fun getAllCompletionDataForWorkout(workoutId: Long): List<SetLogEntry> {
+        return setLogEntryDao.getForAllWorkoutCompletions(workoutId).fastMap { it.toDomainModel() }
     }
 
     override suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecord> {
@@ -44,11 +31,27 @@ class SetLogEntryRepositoryImpl(
         }
     }
 
+    override fun getLatestForWorkout(workoutId: Long, includeDeload: Boolean): Flow<List<SetLogEntry>> {
+        return setLogEntryDao.getLatestForWorkout(workoutId, includeDeload)
+            .map { setLogEntryEntities ->
+                setLogEntryEntities.fastMap { it.toDomainModel() }
+            }
+    }
+
+    override fun getForSpecificWorkoutCompletionFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetLogEntry>> {
+        return setLogEntryDao.getForSpecificWorkoutCompletionFlow(workoutId, mesoCycle, microCycle)
+            .map { results ->
+                results.fastMap { it.toDomainModel() }
+            }
+    }
+
     override suspend fun getAll(): List<SetLogEntry> =
         setLogEntryDao.getAll().fastMap { it.toDomainModel() }
 
     override fun getAllFlow(): Flow<List<SetLogEntry>> {
-        TODO("Not yet implemented")
+        return setLogEntryDao.getAllFlow().map { setLogEntries ->
+            setLogEntries.fastMap { it.toDomainModel() }
+        }
     }
 
     override suspend fun getById(id: Long): SetLogEntry? =
@@ -58,11 +61,13 @@ class SetLogEntryRepositoryImpl(
         setLogEntryDao.getMany(ids).fastMap { it.toDomainModel() }
 
     override suspend fun update(model: SetLogEntry) {
-        TODO("Not yet implemented")
+        setLogEntryDao.update(model.toEntity())
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<SetLogEntry>) {
-        TODO("Not yet implemented")
+        setLogEntryDao.updateMany(models.fastMap { it.toEntity() })
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: SetLogEntry): Long {
@@ -84,7 +89,6 @@ class SetLogEntryRepositoryImpl(
     }
 
     override suspend fun upsertMany(models: List<SetLogEntry>): List<Long> {
-
         val currentEntries = setLogEntryDao.getMany(models.fastMap { it.id })
             .associateBy { it.id }
         val toUpsert = models.fastMap { setLogEntry ->
@@ -106,12 +110,32 @@ class SetLogEntryRepositoryImpl(
         return entityIds
     }
 
+    override suspend fun insertFromLiveWorkoutCompletedSets(
+        workoutLogEntryId: Long,
+        workoutId: Long,
+        excludeFromCopy: List<Long>
+    ) {
+        setLogEntryDao.insertFromLiveWorkoutCompletedSets(
+            workoutLogEntryId = workoutLogEntryId,
+            workoutId = workoutId,
+            excludeFromCopy = excludeFromCopy,
+        )
+
+        syncScheduler.scheduleSync()
+    }
+
     override suspend fun insert(model: SetLogEntry): Long {
-        TODO("Not yet implemented")
+        val insertId = setLogEntryDao.insert(model.toEntity())
+        syncScheduler.scheduleSync()
+
+        return insertId
     }
 
     override suspend fun insertMany(models: List<SetLogEntry>): List<Long> {
-        TODO("Not yet implemented")
+        val insertIds = setLogEntryDao.insertMany(models.fastMap { it.toEntity() })
+        syncScheduler.scheduleSync()
+
+        return insertIds
     }
 
     override suspend fun delete(model: SetLogEntry): Int =
@@ -129,6 +153,14 @@ class SetLogEntryRepositoryImpl(
 
     override suspend fun deleteById(id: Long): Int {
         val deleteCount = setLogEntryDao.softDelete(id)
+        if (deleteCount > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return deleteCount
+    }
+
+    override suspend fun deleteByWorkoutLogEntryId(workoutLogEntryId: Long): Int {
+        val deleteCount = setLogEntryDao.softDeleteByWorkoutLogEntryId(workoutLogEntryId)
         if (deleteCount > 0) {
             syncScheduler.scheduleSync()
         }

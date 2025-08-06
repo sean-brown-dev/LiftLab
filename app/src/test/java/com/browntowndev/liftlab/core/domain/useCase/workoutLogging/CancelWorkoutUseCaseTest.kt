@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 class CancelWorkoutUseCaseTest {
 
     private lateinit var workoutInProgressRepository: WorkoutInProgressRepository
-    private lateinit var setResultsRepository: PreviousSetResultsRepository
+    private lateinit var setResultsRepository: LiveWorkoutCompletedSetsRepository
     private lateinit var cancelWorkoutUseCase: CancelWorkoutUseCase
     private lateinit var transactionScope: TransactionScope
 

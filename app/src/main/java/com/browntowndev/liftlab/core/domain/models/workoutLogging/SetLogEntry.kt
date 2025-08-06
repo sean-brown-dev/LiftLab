@@ -25,8 +25,6 @@ data class SetLogEntry(
     val reps: Int,
     val rpe: Float,
     private val persistedOneRepMax: Int? = null,
-    val mesoCycle: Int,
-    val microCycle: Int,
     val isPersonalRecord: Boolean = false,
     val setMatching: Boolean? = null,
     val maxSets: Int? = null,

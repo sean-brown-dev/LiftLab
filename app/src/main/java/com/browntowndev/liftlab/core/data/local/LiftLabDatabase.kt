@@ -24,7 +24,7 @@ import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
         LiftEntity::class,
         CustomLiftSetEntity::class,
         HistoricalWorkoutNameEntity::class,
-        PreviousSetResultEntity::class,
+        LiveWorkoutCompletedSetEntity::class,
         ProgramEntity::class,
         WorkoutLogEntryEntity::class,
         SetLogEntryEntity::class,
@@ -43,7 +43,7 @@ import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
         LiveCustomLiftSetView::class,
         LiveLiftView::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -65,7 +65,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun workoutsDao(): WorkoutsDao
     abstract fun workoutLiftsDao(): WorkoutLiftsDao
     abstract fun customSetsDao(): CustomSetsDao
-    abstract fun previousSetResultsDao(): PreviousSetResultDao
+    abstract fun liveWorkoutCompletedSetsDao(): LiveWorkoutCompletedSetsDao
     abstract fun workoutInProgressDao(): WorkoutInProgressDao
     abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
     abstract fun workoutLogEntryDao(): WorkoutLogEntryDao
@@ -110,7 +110,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
                     LiftNoteMigration(),
                     WorkoutInProgressMigration(),
                     RemoteSyncMigration(),
-                    ViewsAutoMigration())
+                    ViewsAutoMigration(),
+                    SetResultsMigration())
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {
                         it.addCallback(populateInitialData)

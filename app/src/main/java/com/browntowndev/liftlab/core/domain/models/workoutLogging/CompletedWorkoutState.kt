@@ -6,7 +6,6 @@ import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadat
 data class CompletedWorkoutState(
     val workout: LoggingWorkout? = null,
     val duration: String? = null,
-    val inProgressSetResults: List<SetResult>? = null,
     val completedSetsFromLog: List<SetResult> = emptyList(),
     val programMetadata: ActiveProgramMetadata? = null,
 )

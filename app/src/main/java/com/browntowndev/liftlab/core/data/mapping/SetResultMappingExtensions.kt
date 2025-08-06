@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResul
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.data.local.entities.PreviousSetResultEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiveWorkoutCompletedSetEntity
 
 object SetResultMappingExtensions {
 
@@ -25,7 +25,7 @@ object SetResultMappingExtensions {
         }
     }
 
-    fun PreviousSetResultEntity.toSetResult(): SetResult {
+    fun LiveWorkoutCompletedSetEntity.toSetResult(): SetResult {
         return when (setType) {
             SetType.STANDARD,
             SetType.DROP_SET -> {
@@ -40,7 +40,7 @@ object SetResultMappingExtensions {
         }
     }
 
-    fun SetResult.toEntity(): PreviousSetResultEntity {
+    fun SetResult.toEntity(): LiveWorkoutCompletedSetEntity {
         return when (this) {
             is StandardSetResult -> toEntity()
             is MyoRepSetResult -> toEntity()
@@ -49,16 +49,13 @@ object SetResultMappingExtensions {
         }
     }
 
-    private fun PreviousSetResultEntity.toLpSetResult(): LinearProgressionSetResult {
+    private fun LiveWorkoutCompletedSetEntity.toLpSetResult(): LinearProgressionSetResult {
         return LinearProgressionSetResult(
             id = id,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -68,17 +65,14 @@ object SetResultMappingExtensions {
         )
     }
 
-    private fun PreviousSetResultEntity.toMyoRepSetResult(): MyoRepSetResult {
+    private fun LiveWorkoutCompletedSetEntity.toMyoRepSetResult(): MyoRepSetResult {
         return MyoRepSetResult(
             id = id,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -87,17 +81,14 @@ object SetResultMappingExtensions {
         )
     }
 
-    private fun PreviousSetResultEntity.toStandardSetResult(): StandardSetResult {
+    private fun LiveWorkoutCompletedSetEntity.toStandardSetResult(): StandardSetResult {
         return StandardSetResult(
             id = id,
             setType = setType,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -111,11 +102,8 @@ object SetResultMappingExtensions {
             id = id,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -130,12 +118,9 @@ object SetResultMappingExtensions {
             id = id,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -150,11 +135,8 @@ object SetResultMappingExtensions {
             setType = setType,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -163,17 +145,14 @@ object SetResultMappingExtensions {
         )
     }
 
-    private fun StandardSetResult.toEntity(): PreviousSetResultEntity {
-        return PreviousSetResultEntity(
+    private fun StandardSetResult.toEntity(): LiveWorkoutCompletedSetEntity {
+        return LiveWorkoutCompletedSetEntity(
             id = id,
             setType = setType,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -182,18 +161,15 @@ object SetResultMappingExtensions {
         )
     }
 
-    private fun MyoRepSetResult.toEntity(): PreviousSetResultEntity {
-        return PreviousSetResultEntity(
+    private fun MyoRepSetResult.toEntity(): LiveWorkoutCompletedSetEntity {
+        return LiveWorkoutCompletedSetEntity(
             id = id,
             setType = SetType.MYOREP,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
             myoRepSetPosition = myoRepSetPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,
@@ -202,17 +178,14 @@ object SetResultMappingExtensions {
         )
     }
 
-    private fun LinearProgressionSetResult.toEntity(): PreviousSetResultEntity {
-        return PreviousSetResultEntity(
+    private fun LinearProgressionSetResult.toEntity(): LiveWorkoutCompletedSetEntity {
+        return LiveWorkoutCompletedSetEntity(
             id = id,
             setType = SetType.STANDARD,
             workoutId = workoutId,
             liftId = liftId,
-            mesoCycle = mesoCycle,
-            microCycle = microCycle,
             liftPosition = liftPosition,
             setPosition = setPosition,
-            weightRecommendation = weightRecommendation,
             weight = weight,
             rpe = rpe,
             reps = reps,

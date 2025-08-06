@@ -10,6 +10,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
+import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculatedWorkoutData
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -18,7 +19,8 @@ import com.browntowndev.liftlab.core.domain.models.workoutCalculation.Calculatio
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
+import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
@@ -39,7 +41,8 @@ import kotlinx.coroutines.flow.scan
 class GetWorkoutStateFlowUseCase(
     private val workoutsRepository: WorkoutsRepository,
     private val workoutLogRepository: WorkoutLogRepository,
-    private val setResultsRepository: PreviousSetResultsRepository,
+    private val liveWorkoutCompletedSetsRepository: LiveWorkoutCompletedSetsRepository,
+    private val setLogEntryRepository: SetLogEntryRepository,
     private val liftsRepository: LiftsRepository,
     private val calculateLoggingWorkoutUseCase: CalculateLoggingWorkoutUseCase,
     private val hydrateLoggingWorkoutWithCompletedSetsUseCase: HydrateLoggingWorkoutWithCompletedSetsUseCase,
@@ -87,25 +90,20 @@ class GetWorkoutStateFlowUseCase(
                     microCycle = programMetadata.currentMicrocycle,
                 )
 
-                // Flow for previous set results, potentially including all workout data
+                // Flow for previous set results, potentially including all past workout data
                 val previousResultsFlow = useAllWorkoutDataFlow.flatMapLatest { useAllData ->
                     getSetResultsFlowInternal( // Call internal helper function
                         workout = nullableWorkout,
-                        programMetadata = programMetadata,
                         useAllData = useAllData,
                     ).distinctUntilChanged()
                 }
 
                 // Flow for in-progress set results for the current workout
-                val inProgressResultsFlow = setResultsRepository.getForWorkoutFlow(
-                    workoutId = nullableWorkout.id,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle,
-                ).distinctUntilChanged()
+                val inProgressResultsFlow = liveWorkoutCompletedSetsRepository.getAllFlow().distinctUntilChanged()
 
                 // Previous results needed for display (e.g., in UI hints)
                 val previousResultsForDisplay = getResultsFromAllPreviousWorkouts(
-                    liftIdsToSearchFor = nullableWorkout.lifts.map { it.liftId },
+                    liftIdsToSearchFor = nullableWorkout.lifts.fastMap { it.liftId },
                     workout = nullableWorkout,
                     existingResultsForOtherLifts = emptyList(),
                     includeDeload = true // Include deloaded results for display purposes
@@ -252,27 +250,31 @@ class GetWorkoutStateFlowUseCase(
 
     /**
      * Internal helper function to get the flow of previous set results based on settings.
-     * Moved from ViewModel.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun getSetResultsFlowInternal(
         workout: CalculationWorkout?,
-        programMetadata: ActiveProgramMetadata,
         useAllData: Boolean,
     ): Flow<List<SetResult>> {
         if (workout == null) return flowOf(emptyList())
-        return setResultsRepository.getByWorkoutIdExcludingGivenMesoAndMicroFlow(
+        return setLogEntryRepository.getLatestForWorkout(
             workoutId = workout.id,
-            mesoCycle = programMetadata.currentMesocycle,
-            microCycle = programMetadata.currentMicrocycle,
-        ).mapLatest { resultsFromLastWorkout ->
+            includeDeload = false,
+        ).mapLatest { latestNonDeloadLogEntries ->
+            val setResults = latestNonDeloadLogEntries.fastMap {
+                it.toSetResult(
+                    workoutId = workout.id,
+                    isLinearProgression = it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION
+                )
+            }
+
             if (useAllData) {
                 // Append results from all workouts if the setting is enabled
                 getResultsWithAllWorkoutDataAppendedInternal(
                     workout = workout,
-                    resultsFromLastWorkout = resultsFromLastWorkout
+                    resultsFromLastWorkout = setResults
                 )
-            } else resultsFromLastWorkout
+            } else setResults
         }
     }
 
@@ -284,10 +286,10 @@ class GetWorkoutStateFlowUseCase(
         workout: CalculationWorkout,
         resultsFromLastWorkout: List<SetResult>,
     ): List<SetResult> {
-        val liftIdsOfResults = resultsFromLastWorkout.map { it.liftId }.toHashSet()
+        val liftIdsOfResults = resultsFromLastWorkout.fastMap { it.liftId }.toHashSet()
         val liftIdsToSearchFor = workout.lifts
-            .filter { !liftIdsOfResults.contains(it.liftId) }
-            .map { workoutLift -> workoutLift.liftId }
+            .filter { it.liftId !in liftIdsOfResults }
+            .fastMap { workoutLift -> workoutLift.liftId }
 
         return getResultsFromAllPreviousWorkouts(
             workout = workout,
@@ -307,19 +309,17 @@ class GetWorkoutStateFlowUseCase(
         includeDeload: Boolean,
     ): List<SetResult> {
         return if (liftIdsToSearchFor.isNotEmpty()) {
-            val linearProgressionLiftIds = workout.lifts
-                .filter {
-                    it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION
-                }.map { it.liftId }
-                .toHashSet()
-
             existingResultsForOtherLifts.toMutableList().apply {
                 val resultsFromOtherWorkouts =
                     workoutLogRepository.getMostRecentSetResultsForLiftIds(
                         liftIds = liftIdsToSearchFor,
-                        linearProgressionLiftIds = linearProgressionLiftIds,
-                        includeDeload = includeDeload,
-                    )
+                        includeDeloads = includeDeload,
+                    ).fastMap {
+                        it.toSetResult(
+                            workoutId = workout.id,
+                            isLinearProgression = it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION
+                        )
+                    }
 
                 addAll(resultsFromOtherWorkouts)
             }

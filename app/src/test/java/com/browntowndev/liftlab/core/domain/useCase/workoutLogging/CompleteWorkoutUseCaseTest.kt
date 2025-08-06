@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadat
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
@@ -31,7 +31,7 @@ class CompleteWorkoutUseCaseTest {
     private lateinit var programsRepository: ProgramsRepository
     private lateinit var historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository
     private lateinit var workoutLogRepository: WorkoutLogRepository
-    private lateinit var setResultsRepository: PreviousSetResultsRepository
+    private lateinit var setResultsRepository: LiveWorkoutCompletedSetsRepository
     private lateinit var setLogEntryRepository: SetLogEntryRepository
     private lateinit var completeWorkoutUseCase: CompleteWorkoutUseCase
     private lateinit var transactionScope: TransactionScope
@@ -100,7 +100,7 @@ class CompleteWorkoutUseCaseTest {
         coVerify { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(programMetadata.programId, workout.id) }
         coVerify(exactly = 0) { historicalWorkoutNamesRepository.insert(any()) }
         coVerify { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) }
-        coVerify { setLogEntryRepository.insertFromPreviousSetResults(any(), any(), any(), any(), any()) }
+        coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any(), any(), any(), any()) }
         coVerify { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any(), any()) }
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }
     }

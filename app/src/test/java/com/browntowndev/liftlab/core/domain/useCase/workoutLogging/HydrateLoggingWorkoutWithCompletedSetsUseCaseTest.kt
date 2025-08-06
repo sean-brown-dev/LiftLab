@@ -35,7 +35,9 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val inProgressResults = listOf<SetResult>(
-            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0, weight = 100f, reps = 5, rpe = 8f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false, weightRecommendation = 100f)
+            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0, weight = 100f, reps = 5, rpe = 8f,
+                setType = SetType.STANDARD, isDeload = false
+            )
         )
 
         // When

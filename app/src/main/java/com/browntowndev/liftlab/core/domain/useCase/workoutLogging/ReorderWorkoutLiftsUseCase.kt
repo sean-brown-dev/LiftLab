@@ -8,12 +8,12 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResul
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 
 class ReorderWorkoutLiftsUseCase(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
-    private val setResultsRepository: PreviousSetResultsRepository,
+    private val setResultsRepository: LiveWorkoutCompletedSetsRepository,
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(

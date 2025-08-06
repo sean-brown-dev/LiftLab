@@ -12,7 +12,7 @@ import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
@@ -25,7 +25,7 @@ class NotificationHelper(
     private val programRepository: ProgramsRepository,
     private val workoutsRepository: WorkoutsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val setResultsRepository: PreviousSetResultsRepository,
+    private val setResultsRepository: LiveWorkoutCompletedSetsRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository
 ) {
     companion object {
@@ -67,11 +67,7 @@ class NotificationHelper(
 
             if (workoutInProgress != null) {
                 val workout = workoutsRepository.getById(workoutInProgress.workoutId) ?: return null
-                val completedSets = setResultsRepository.getForWorkout(
-                    mesoCycle = activeProgramMetadata.currentMesocycle,
-                    microCycle = activeProgramMetadata.currentMicrocycle,
-                    workoutId = workout.id,
-                )
+                val completedSets = setResultsRepository.getAll()
                 ActiveWorkoutNotificationMetadata(
                     workoutName = workout.name,
                     startTime = workoutInProgress.startTime,

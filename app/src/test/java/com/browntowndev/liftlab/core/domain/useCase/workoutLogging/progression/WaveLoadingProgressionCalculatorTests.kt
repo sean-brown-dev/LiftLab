@@ -52,9 +52,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
@@ -84,9 +90,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = WaveLoadingProgressionCalculator(4, 1)
@@ -118,9 +130,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 75f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, true)
@@ -150,9 +168,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = WaveLoadingProgressionCalculator(4, 0)
@@ -183,9 +207,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = WaveLoadingProgressionCalculator(6, 3)
@@ -217,9 +247,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 85f, microCycle = 1, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 85f, microCycle = 1, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 85f, microCycle = 1, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = WaveLoadingProgressionCalculator(4, 2)
@@ -252,9 +288,15 @@ class WaveLoadingProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 85f, microCycle = 2, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, reps = 6, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 85f,
+                setType = SetType.STANDARD, isDeload = false),
         )
 
         val result = WaveLoadingProgressionCalculator(7, 3)

@@ -12,7 +12,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResul
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 class ReorderLiftsUseCaseTest {
 
     private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
-    private lateinit var setResultsRepository: PreviousSetResultsRepository
+    private lateinit var setResultsRepository: LiveWorkoutCompletedSetsRepository
     private lateinit var reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase
     private lateinit var transactionScope: TransactionScope
 
@@ -109,9 +109,15 @@ class ReorderLiftsUseCaseTest {
             lifts = loggingWorkoutLifts
         )
         val completedSets = listOf(
-            StandardSetResult(id = 301, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100.0f, reps = 5, rpe = 8.0f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false),
-            MyoRepSetResult(id = 302, workoutId = 1, liftId = 202, liftPosition = 1, setPosition = 0, weightRecommendation = null, weight = 50.0f, reps = 10, rpe = 8.0f, mesoCycle = 1, microCycle = 1, setType = SetType.MYOREP, isDeload = false),
-            LinearProgressionSetResult(id = 303, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 100.0f, reps = 6, rpe = 8.0f, mesoCycle = 1, microCycle = 1, isDeload = false, missedLpGoals = 0)
+            StandardSetResult(id = 301, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 0,
+                weight = 100.0f, reps = 5, rpe = 8.0f,
+                setType = SetType.STANDARD, isDeload = false),
+            MyoRepSetResult(id = 302, workoutId = 1, liftId = 202, liftPosition = 1, setPosition = 0,
+                weight = 50.0f, reps = 10, rpe = 8.0f,
+                setType = SetType.MYOREP, isDeload = false),
+            LinearProgressionSetResult(id = 303, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 1,
+                weight = 100.0f, reps = 6, rpe = 8.0f,
+                isDeload = false, missedLpGoals = 0)
         )
         val newWorkoutLiftIndices = mapOf(101L to 1, 102L to 0)
 

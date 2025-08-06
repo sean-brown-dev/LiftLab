@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 
 class GetPersonalRecordsUseCaseTest {
 
-    private lateinit var setResultsRepository: PreviousSetResultsRepository
+    private lateinit var setResultsRepository: LiveWorkoutCompletedSetsRepository
     private lateinit var setLogEntryRepository: SetLogEntryRepository
     private lateinit var getPersonalRecordsUseCase: GetPersonalRecordsUseCase
 

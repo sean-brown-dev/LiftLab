@@ -52,9 +52,18 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
         )
 
         val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
@@ -83,9 +92,18 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            LinearProgressionSetResult(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 1, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 75f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 75f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 1, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 75f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 1, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 75f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
         )
 
         val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
@@ -114,9 +132,18 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 2, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 100f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 1,
+                weight = 100f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 5, rpe = 8f, liftPosition = 0, setPosition = 2,
+                weight = 100f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
         )
 
         val result = calculator.calculate(liftEntity.toCalculationDomainModel(), previousSetData, previousSetData, false)
@@ -171,9 +198,18 @@ class LinearProgressionCalculatorTests {
             ),
         )
         val previousSetData = listOf(
-            StandardSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, setType = SetType.STANDARD, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
-            LinearProgressionSetResult(missedLpGoals = 2, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, microCycle = 0, workoutId = 0, liftId = 0, mesoCycle = 0, isDeload = false),
+            StandardSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 100f,
+                workoutId = 0, liftId = 0,
+                setType = SetType.STANDARD, isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 100f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
+            LinearProgressionSetResult(missedLpGoals = 2, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 0,
+                weight = 100f,
+                workoutId = 0, liftId = 0,
+                isDeload = false),
         )
 
         assertThrows(Exception::class.java) {

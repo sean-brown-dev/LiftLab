@@ -71,7 +71,7 @@ fun getOneRepMaxChartModel(
         }
         .fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
-                    workoutLog.setResults.maxOf { it.oneRepMax }
+                    workoutLog.setLogEntries.maxOf { it.oneRepMax }
         }
         .associate { (date, oneRepMax) ->
             date to oneRepMax
@@ -121,12 +121,12 @@ fun getPerWorkoutVolumeChartModel(
                     workoutLog.historicalWorkoutNameId in workoutFilters
         }
         .fastMap { workoutLog ->
-            val repVolume = workoutLog.setResults.sumOf { it.reps }
-            val totalWeight = workoutLog.setResults.map { it.weight }.sum()
-            val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(workoutLog.setResults, totalWeight)
+            val repVolume = workoutLog.setLogEntries.sumOf { it.reps }
+            val totalWeight = workoutLog.setLogEntries.map { it.weight }.sum()
+            val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(workoutLog.setLogEntries, totalWeight)
             VolumeTypesForDate(
                 date = workoutLog.date.toLocalDate(),
-                workingSetVolume = workoutLog.setResults.filter { it.rpe >= 7f }.size,
+                workingSetVolume = workoutLog.setLogEntries.filter { it.rpe >= 7f }.size,
                 relativeVolume = repVolume * (totalWeight / totalWeightIfLifting1RmEachTime),
             )
         }.associateBy { volumes ->
@@ -193,7 +193,7 @@ fun getPerMicrocycleVolumeChartModel(
         .asSequence()
         .associate { logsForMesoAndMicro ->
             val volumeForMicro = logsForMesoAndMicro.value.map { workoutLog ->
-                workoutLog.setResults
+                workoutLog.setLogEntries
                     .groupBy { it.liftId }
                     .map { liftResults ->
                         val repVolume = liftResults.value.sumOf { it.reps }
@@ -279,7 +279,7 @@ fun getIntensityChartModel(
         }
         .fastMap { workoutLog ->
             workoutLog.date.toLocalDate() to
-                    workoutLog.setResults.maxOf {
+                    workoutLog.setLogEntries.maxOf {
                         it.weight / WeightCalculationUtils.getOneRepMax(
                             if (it.weight > 0) it.weight else 1f,
                             it.reps,
@@ -401,7 +401,7 @@ fun getMicroCycleCompletionChart(
             }
 
             logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
-                workoutLog.setResults.filter { it.myoRepSetPosition == null }.size
+                workoutLog.setLogEntries.filter { it.myoRepSetPosition == null }.size
             }.toFloat().div(setCount).times(100)
         }.ifEmpty { mapOf(1 to 0f) }
 

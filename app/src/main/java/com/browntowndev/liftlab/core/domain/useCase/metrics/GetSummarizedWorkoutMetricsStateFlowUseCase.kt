@@ -33,7 +33,7 @@ class GetSummarizedWorkoutMetricsStateFlowUseCase(
             .sortedByDescending { it.date }
             .fastMap { workoutLog ->
                 workoutLog.copy(
-                    setResults = workoutLog.setResults
+                    setLogEntries = workoutLog.setLogEntries
                         .sortedWith(
                             compareBy<SetLogEntry> { it.liftPosition }
                                 .thenBy { it.setPosition }
@@ -54,7 +54,7 @@ class GetSummarizedWorkoutMetricsStateFlowUseCase(
 
     private fun getPersonalRecords(workoutLogs: List<WorkoutLogEntry>): HashSet<SetLogEntry> {
         return workoutLogs.flatMap { workoutLog ->
-            workoutLog.setResults
+            workoutLog.setLogEntries
         }.groupBy { result ->
             result.liftId
         }.map { liftSetResults ->
@@ -75,7 +75,7 @@ class GetSummarizedWorkoutMetricsStateFlowUseCase(
     }
 
     private fun getTopSetsForWorkout(workoutLog: WorkoutLogEntry): AllWorkoutTopSets.WorkoutTopSets {
-        return workoutLog.setResults
+        return workoutLog.setLogEntries
             .groupBy { LiftId(it.liftId) }
             .filterValues { set -> set.isNotEmpty() }
             .mapValues { (_, sets) ->

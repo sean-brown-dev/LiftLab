@@ -44,9 +44,9 @@ class GetGroupedVolumeMetricChartDataUseCase {
 
             // Filter workout logs, creating new copies with only relevant sets
             workoutLogs.mapNotNull { log ->
-                val relevantSets = log.setResults.filter { it.liftId in relevantLiftIds }
+                val relevantSets = log.setLogEntries.filter { it.liftId in relevantLiftIds }
                 if (relevantSets.isNotEmpty()) {
-                    log.copy(setResults = relevantSets)
+                    log.copy(setLogEntries = relevantSets)
                 } else {
                     null
                 }

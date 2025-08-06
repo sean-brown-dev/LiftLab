@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
@@ -17,7 +17,7 @@ class ReorderWorkoutBuilderLiftsUseCase(
     private val workoutLiftsRepository: WorkoutLiftsRepository,
     private val programsRepository: ProgramsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val setResultsRepository: PreviousSetResultsRepository,
+    private val liveWorkoutCompletedSetsRepository: LiveWorkoutCompletedSetsRepository,
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(
@@ -37,21 +37,18 @@ class ReorderWorkoutBuilderLiftsUseCase(
         if (workoutInProgressRepository.isWorkoutInProgress(workoutId)) {
             programsRepository.getActive()?.let { programMetadata ->
                 val workoutLiftsByLiftId = updatedWorkoutLifts.associateBy { it.liftId }
-                val updatedInProgressSetResults = setResultsRepository.getForWorkout(
-                    workoutId = workoutId,
-                    mesoCycle = programMetadata.currentMesocycle,
-                    microCycle = programMetadata.currentMicrocycle,
-                ).map { completedSet ->
-                    val workoutLiftOfCompletedSet = workoutLiftsByLiftId[completedSet.liftId]!!
-                    when (completedSet) {
-                        is StandardSetResult -> completedSet.copy(liftPosition = workoutLiftOfCompletedSet.position)
-                        is MyoRepSetResult -> completedSet.copy(liftPosition = workoutLiftOfCompletedSet.position)
-                        is LinearProgressionSetResult -> completedSet.copy(liftPosition = workoutLiftOfCompletedSet.position)
-                        else -> throw Exception("${completedSet::class.simpleName} is not defined.")
+                val updatedInProgressSetResults = liveWorkoutCompletedSetsRepository.getAll()
+                    .map { completedSet ->
+                        val workoutLiftOfCompletedSet = workoutLiftsByLiftId[completedSet.liftId]!!
+                        when (completedSet) {
+                            is StandardSetResult -> completedSet.copy(liftPosition = workoutLiftOfCompletedSet.position)
+                            is MyoRepSetResult -> completedSet.copy(liftPosition = workoutLiftOfCompletedSet.position)
+                            is LinearProgressionSetResult -> completedSet.copy(liftPosition = workoutLiftOfCompletedSet.position)
+                            else -> throw Exception("${completedSet::class.simpleName} is not defined.")
+                        }
                     }
-                }
 
-                setResultsRepository.upsertMany(updatedInProgressSetResults)
+                liveWorkoutCompletedSetsRepository.upsertMany(updatedInProgressSetResults)
             }
         }
     }

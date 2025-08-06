@@ -4,5 +4,4 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 
 data class EditWorkoutState(
     val duration: String = "00:00:00",
-    val setResults: List<SetResult> = listOf(),
 )

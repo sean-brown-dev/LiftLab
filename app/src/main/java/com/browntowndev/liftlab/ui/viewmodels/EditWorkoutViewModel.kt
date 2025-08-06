@@ -24,6 +24,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -52,10 +53,10 @@ class EditWorkoutViewModel(
 
     init {
         getCompletedWorkoutStateFlowUseCase(workoutLogEntryId = workoutLogEntryId)
+            .distinctUntilChanged()
             .map { completedWorkoutState ->
                 EditWorkoutState(
                     duration = completedWorkoutState.duration ?: "00:00:00",
-                    setResults = completedWorkoutState.inProgressSetResults ?: emptyList(),
                 ) to
                 WorkoutState(
                     workout = completedWorkoutState.workout,
@@ -93,24 +94,30 @@ class EditWorkoutViewModel(
     }
 
     override suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long> {
+        if (mutableWorkoutState.value.programMetadata == null) throw Exception("Program metadata is null")
+        if (mutableWorkoutState.value.workout == null) throw Exception("Workout is null")
+
         return upsertSetLogEntriesFromSetResultsUseCase(
             workoutLogEntryId = workoutLogEntryId,
             mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
             microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
             loggingWorkoutLifts = mutableWorkoutState.value.workout!!.lifts,
-            allSetResults = _editWorkoutState.value.setResults,
             setResults = updatedResults,
         )
     }
 
     override suspend fun upsertSetResult(updatedResult: SetResult): Long {
+        if (mutableWorkoutState.value.programMetadata == null) throw Exception("Program metadata is null")
+        if (mutableWorkoutState.value.workout == null) throw Exception("Workout is null")
+        if (updatedResult.liftPosition >= mutableWorkoutState.value.workout!!.lifts.size) throw Exception("Lift position is out of bounds")
+        val loggingWorkoutLift = mutableWorkoutState.value.workout!!.lifts[updatedResult.liftPosition]
+
         return upsertExistingSetResultUseCase(
             workoutLogEntryId = workoutLogEntryId,
             mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
             microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
             setResult = updatedResult,
-            loggingWorkoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == updatedResult.liftId }!!,
-            allSetResults = _editWorkoutState.value.setResults,
+            loggingWorkoutLift = loggingWorkoutLift,
         )
     }
 

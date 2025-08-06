@@ -7,13 +7,9 @@ import android.util.Log
 import com.browntowndev.liftlab.core.common.executeInCoroutineScope
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.core.Koin
 import org.koin.core.context.GlobalContext.get
 
@@ -38,7 +34,7 @@ class RestTimerButtonHandler: BroadcastReceiver() {
                         val programsRepository: ProgramsRepository = koin.get()
                         val workoutsRepository: WorkoutsRepository = koin.get()
                         val workoutInProgressRepository: WorkoutInProgressRepository = koin.get()
-                        val setResultsRepository: PreviousSetResultsRepository = koin.get()
+                        val setResultsRepository: LiveWorkoutCompletedSetsRepository = koin.get()
 
                         restTimerRepository.deleteAll()
 

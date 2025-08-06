@@ -6,7 +6,6 @@ import com.browntowndev.liftlab.core.data.mapping.WorkoutLogEntryMappingExtensio
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
-import com.browntowndev.liftlab.core.data.local.dtos.FlattenedWorkoutLogEntryDto
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLogEntryDao
@@ -14,6 +13,7 @@ import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetad
 import com.browntowndev.liftlab.core.data.mapping.SetLogEntryMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLogEntryMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -51,7 +51,7 @@ class WorkoutLogRepositoryImpl(
 
         val currentSetLogs = setLogEntryDao.getForWorkoutLogEntry(model.id)
             .associateBy { it.id }
-        val toUpdateSetLogs = model.setResults.map {
+        val toUpdateSetLogs = model.setLogEntries.map {
             it.toEntity().applyRemoteStorageMetadata(
                 remoteId = currentSetLogs[it.id]?.remoteId,
                 remoteLastUpdated = currentSetLogs[it.id]?.remoteLastUpdated,
@@ -91,17 +91,12 @@ class WorkoutLogRepositoryImpl(
     }
 
     override suspend fun deleteById(id: Long): Int {
-        val setLogEntriesToDelete = setLogEntryDao.getForWorkoutLogEntry(id)
-        var deletedCount = 0
-        if (setLogEntriesToDelete.isNotEmpty()) {
-            deletedCount += setLogEntryDao.softDeleteMany(setLogEntriesToDelete.map { it.id })
-        }
-        deletedCount += workoutLogEntryDao.softDelete(id)
-        if (deletedCount > 0) {
+        val deleteCount =  workoutLogEntryDao.softDelete(id)
+        if (deleteCount > 0) {
             syncScheduler.scheduleSync()
         }
 
-        return deletedCount
+        return deleteCount
     }
 
     override fun getFlow(workoutLogEntryId: Long): Flow<WorkoutLogEntry> {
@@ -120,32 +115,18 @@ class WorkoutLogRepositoryImpl(
 
     private suspend fun getMostRecentLogsForLiftIds(
         liftIds: List<Long>,
-        includeDeload: Boolean
-    ): List<WorkoutLogEntry> {
-        val flattenedLogEntries: List<FlattenedWorkoutLogEntryDto> = if (includeDeload) {
-            workoutLogEntryDao.getMostRecentLogsForLiftIds(liftIds)
-        } else {
-            workoutLogEntryDao.getMostRecentLogsForLiftIdsExcludingDeloads(liftIds)
-        }
-
-        return flattenedLogEntries.toDomainModel()
-    }
+        includeDeloads: Boolean
+    ): List<WorkoutLogEntry> =
+        workoutLogEntryDao.getMostRecentLogsForLiftIds(liftIds, includeDeloads)
+            .toDomainModel()
 
     override suspend fun getMostRecentSetResultsForLiftIds(
         liftIds: List<Long>,
-        linearProgressionLiftIds: Set<Long>,
-        includeDeload: Boolean,
-    ): List<SetResult> {
-        return getMostRecentLogsForLiftIds(liftIds, includeDeload)
+        includeDeloads: Boolean,
+    ): List<SetLogEntry> {
+        return getMostRecentLogsForLiftIds(liftIds, includeDeloads)
             .flatMap { workoutLog ->
-                workoutLog.setResults.fastMap { setLogEntry ->
-                    setLogEntry.toSetResult(
-                        workoutId = workoutLog.workoutId,
-                        isLinearProgression = linearProgressionLiftIds.contains(
-                            setLogEntry.liftId
-                        )
-                    )
-                }
+                workoutLog.setLogEntries
             }
     }
 
@@ -153,18 +134,11 @@ class WorkoutLogRepositoryImpl(
         liftIds: List<Long>,
         linearProgressionLiftIds: Set<Long>,
         date: Date,
-    ): List<SetResult> {
+    ): List<SetLogEntry> {
         return workoutLogEntryDao.getMostRecentLogsForLiftIdsPriorToDate(liftIds, date)
             .toDomainModel()
             .flatMap { workoutLog ->
-                workoutLog.setResults.fastMap { setLogEntry ->
-                    setLogEntry.toSetResult(
-                        workoutId = workoutLog.workoutId,
-                        isLinearProgression = linearProgressionLiftIds.contains(
-                            setLogEntry.liftId
-                        )
-                    )
-                }
+                workoutLog.setLogEntries
             }
 
     }
@@ -184,8 +158,8 @@ class WorkoutLogRepositoryImpl(
                 historicalWorkoutNameId = historicalWorkoutNameId,
                 programDeloadWeek = programDeloadWeek,
                 programWorkoutCount = programWorkoutCount,
-                mesocycle = mesoCycle,
-                microcycle = microCycle,
+                mesoCycle = mesoCycle,
+                microCycle = microCycle,
                 microcyclePosition = microcyclePosition,
                 date = date,
                 durationInMillis = durationInMillis,

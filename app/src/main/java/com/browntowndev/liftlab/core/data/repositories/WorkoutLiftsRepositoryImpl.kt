@@ -156,4 +156,8 @@ class WorkoutLiftsRepositoryImpl (
             liftEntity.toDomainModel()
         }
     }
+
+    override fun deleteByProgramId(programId: Long) {
+        workoutLiftsDao.softDeleteByProgramId(programId)
+    }
 }

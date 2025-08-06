@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
-import com.browntowndev.liftlab.core.data.local.dao.PreviousSetResultDao
+import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toEnt
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
@@ -23,13 +24,13 @@ import com.browntowndev.liftlab.core.domain.models.workoutCalculation.Calculatio
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Date
 
 class WorkoutsRepositoryImpl(
     private val workoutLiftsDao: WorkoutLiftsDao,
     private val customSetsDao: CustomSetsDao,
     private val programsRepository: ProgramsRepository,
     private val workoutsDao: WorkoutsDao,
-    private val previousSetResultsDao: PreviousSetResultDao,
     private val syncScheduler: SyncScheduler,
 ): WorkoutsRepository {
     override fun getMetadataFlow(id: Long): Flow<WorkoutMetadata> =
@@ -65,32 +66,6 @@ class WorkoutsRepositoryImpl(
     override suspend fun delete(model: Workout): Int {
         val deleteCount = workoutsDao.softDelete(model.id)
         if (deleteCount > 0) {
-            // Delete all the previous set results for this workout
-            val allResultsForWorkout = previousSetResultsDao.getAllForWorkout(model.id)
-            previousSetResultsDao.softDeleteMany(allResultsForWorkout.fastMap { it.id })
-
-            // Update workoutEntity positions
-            val workoutsWithNewPositions = workoutsDao.getAllForProgramWithoutRelationships(model.programId)
-                .sortedBy { it.position }
-                .fastMapIndexed { index, workoutEntity ->
-                    workoutEntity.copy(position = index)
-                }
-            workoutsDao.updateMany(workoutsWithNewPositions)
-
-
-            // If current microcycle position is now greater than the number of workouts
-            // set it to the last workoutEntity index
-            programsRepository.getActive()?.let { program ->
-                if (program.currentMicrocyclePosition > workoutsWithNewPositions.lastIndex) {
-                    programsRepository.updateMesoAndMicroCycle(
-                        id = program.id,
-                        mesoCycle = program.currentMesocycle,
-                        microCycle = program.currentMicrocycle,
-                        microCyclePosition = workoutsWithNewPositions.lastIndex
-                    )
-                }
-            }
-
             syncScheduler.scheduleSync()
         }
 
@@ -243,5 +218,13 @@ class WorkoutsRepositoryImpl(
         ).map { workoutEntity ->
             workoutEntity?.toCalculationDomainModel()
         }
+    }
+
+    override fun deleteByProgramId(programId: Long) {
+        workoutsDao.softDeleteByProgramId(programId)
+    }
+
+    override suspend fun getAllForProgramWithoutLiftsPopulated(programId: Long): List<Workout> {
+        return workoutsDao.getAllForProgramWithoutRelationships(programId).map { it.toDomainModel() }
     }
 }

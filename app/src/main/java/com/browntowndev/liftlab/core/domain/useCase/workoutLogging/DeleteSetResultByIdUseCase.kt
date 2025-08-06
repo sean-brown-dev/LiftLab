@@ -1,13 +1,13 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 
 class DeleteSetResultByIdUseCase(
-    private val setResultsRepository: PreviousSetResultsRepository,
+    private val liveWorkoutCompletedSetsRepository: LiveWorkoutCompletedSetsRepository,
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(id: Long)  = transactionScope.execute {
-        setResultsRepository.deleteById(id)
+        liveWorkoutCompletedSetsRepository.deleteById(id)
     }
 }

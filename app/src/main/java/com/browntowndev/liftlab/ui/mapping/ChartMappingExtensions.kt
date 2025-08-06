@@ -28,7 +28,7 @@ object ChartMappingExtensions {
             val resultsForLift = groupedLogs[liftId] ?: emptyList()
 
             // Build all the selected charts for the liftEntity
-            val liftName = resultsForLift.lastOrNull()?.setResults?.firstOrNull()?.liftName
+            val liftName = resultsForLift.lastOrNull()?.setLogEntries?.firstOrNull()?.liftName
             if (liftName != null && resultsForLift.isNotEmpty()) {
                 chartsForLift.fastMap { chart ->
                     LiftMetricChartModel(

@@ -128,7 +128,7 @@ class GetLiftWithHistoryStateFlowUseCaseTest {
             microcyclePosition = 1,
             date = date,
             durationInMillis = 3600_000, // 1 hour
-            setResults = setResults
+            setLogEntries = setResults
         )
     }
 

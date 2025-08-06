@@ -136,6 +136,10 @@ class CustomLiftSetsRepositoryImpl(
         }
     }
 
+    override fun deleteByProgramId(programId: Long) {
+        customSetsDao.softDeleteByProgramId(programId)
+    }
+
     override suspend fun delete(model: GenericLiftSet): Int {
         return deleteWithoutRefetch(model.id)
     }

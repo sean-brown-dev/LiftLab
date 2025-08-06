@@ -5,7 +5,6 @@ import androidx.compose.ui.util.fastFirst
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
@@ -240,11 +239,8 @@ abstract class BaseWorkoutViewModel(
                         workoutId = workoutId,
                         setType = setType,
                         liftId = liftId,
-                        mesoCycle = currentMesocycle,
-                        microCycle = currentMicrocycle,
                         liftPosition = liftPosition,
                         setPosition = setPosition,
-                        weightRecommendation = weightRecommendation,
                         weight = weight,
                         reps = reps,
                         rpe = rpe,
@@ -256,11 +252,8 @@ abstract class BaseWorkoutViewModel(
                         id = id,
                         workoutId = workoutId,
                         liftId = liftId,
-                        mesoCycle = currentMesocycle,
-                        microCycle = currentMicrocycle,
                         liftPosition = liftPosition,
                         setPosition = setPosition,
-                        weightRecommendation = weightRecommendation,
                         weight = weight,
                         reps = reps,
                         rpe = rpe,
@@ -275,11 +268,8 @@ abstract class BaseWorkoutViewModel(
                     id = id,
                     workoutId = workoutId,
                     liftId = liftId,
-                    mesoCycle = currentMesocycle,
-                    microCycle = currentMicrocycle,
                     liftPosition = liftPosition,
                     setPosition = setPosition,
-                    weightRecommendation = weightRecommendation,
                     weight = weight,
                     reps = reps,
                     rpe = rpe,

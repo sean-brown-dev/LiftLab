@@ -51,14 +51,10 @@ data class SetLogEntryEntity(
     val weight: Float,
     val reps: Int,
     val rpe: Float,
-    @ColumnInfo(defaultValue = 0.toString())
     val oneRepMax: Int,
-    val mesoCycle: Int,
-    val microCycle: Int,
     val setMatching: Boolean? = null,
     val maxSets: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
-    @ColumnInfo(defaultValue = false.toString())
     val isDeload: Boolean = false,
 ): BaseEntity()

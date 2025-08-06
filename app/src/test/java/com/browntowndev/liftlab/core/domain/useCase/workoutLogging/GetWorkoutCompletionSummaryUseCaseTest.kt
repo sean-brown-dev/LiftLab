@@ -33,8 +33,12 @@ class GetWorkoutCompletionSummaryUseCaseTest {
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val personalRecords = listOf(PersonalRecord(liftId = 101L, personalRecord = 110))
         val completedSets = listOf<SetResult>(
-            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, reps = 5, rpe = 8f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(id = 2, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 1, weightRecommendation = null, weight = 105f, reps = 5, rpe = 9f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false) // New PR
+            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 5, rpe = 8f,
+                setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(id = 2, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 1,
+                weight = 105f, reps = 5, rpe = 9f,
+                setType = SetType.STANDARD, isDeload = false) // New PR
         )
 
         // When
@@ -82,7 +86,9 @@ class GetWorkoutCompletionSummaryUseCaseTest {
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val completedSets = listOf<SetResult>(
-            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0, weightRecommendation = null, weight = 100f, reps = 5, rpe = 8f, mesoCycle = 1, microCycle = 1, setType = SetType.STANDARD, isDeload = false)
+            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 5, rpe = 8f,
+                setType = SetType.STANDARD, isDeload = false)
         )
 
         // When

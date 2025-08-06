@@ -13,9 +13,9 @@ class GetGroupedLiftMetricChartDataUseCase {
         val liftIdsWithCharts = liftMetricCharts.mapNotNull { it.liftId }
         return liftIdsWithCharts.associateWith { liftId ->
             workoutLogs.mapNotNull { workoutLog ->
-                val setsForLift = workoutLog.setResults.filter { it.liftId == liftId }
+                val setsForLift = workoutLog.setLogEntries.filter { it.liftId == liftId }
                 if (setsForLift.isNotEmpty()) {
-                    workoutLog.copy(setResults = setsForLift)
+                    workoutLog.copy(setLogEntries = setsForLift)
                 } else {
                     null
                 }

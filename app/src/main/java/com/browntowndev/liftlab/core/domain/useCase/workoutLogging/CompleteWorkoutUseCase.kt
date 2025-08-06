@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
@@ -15,7 +14,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
-import com.browntowndev.liftlab.core.domain.repositories.PreviousSetResultsRepository
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
@@ -29,7 +28,7 @@ class CompleteWorkoutUseCase(
     private val programsRepository: ProgramsRepository,
     private val historicalWorkoutNamesRepository: HistoricalWorkoutNamesRepository,
     private val workoutLogRepository: WorkoutLogRepository,
-    private val setResultsRepository: PreviousSetResultsRepository,
+    private val liveWorkoutCompletedSetsRepository: LiveWorkoutCompletedSetsRepository,
     private val setLogEntryRepository: SetLogEntryRepository,
     private val transactionScope: TransactionScope,
 ) {
@@ -99,7 +98,6 @@ class CompleteWorkoutUseCase(
 
             moveSetResultsToLogHistory(
                 workoutLogEntryId = workoutLogEntryId,
-                programMetadata = programMetadata,
                 workout = workout,
                 completedSets = completedSets,
             )
@@ -117,7 +115,6 @@ class CompleteWorkoutUseCase(
 
     private suspend fun moveSetResultsToLogHistory(
         workoutLogEntryId: Long,
-        programMetadata: ActiveProgramMetadata,
         workout: LoggingWorkout,
         completedSets: List<SetResult>,
     ) {
@@ -150,42 +147,18 @@ class CompleteWorkoutUseCase(
             }
 
         if (myoRepSetsToSynchronizePositonsFor.isNotEmpty()) {
-            setResultsRepository.upsertMany(myoRepSetsToSynchronizePositonsFor)
+            liveWorkoutCompletedSetsRepository.upsertMany(myoRepSetsToSynchronizePositonsFor)
         }
 
         // Copy all of the set results from this workout into the set history table
-        setLogEntryRepository.insertFromPreviousSetResults(
+        setLogEntryRepository.insertFromLiveWorkoutCompletedSets(
             workoutLogEntryId = workoutLogEntryId,
             workoutId = workout.id,
-            mesocycle = programMetadata.currentMesocycle,
-            microcycle = programMetadata.currentMicrocycle,
             excludeFromCopy = excludeFromCopy.toList(),
         )
 
-        // Get all the set results for deloaded lifts
-        val deloadSetResults = workout.lifts
-            .filter { workoutLift ->
-                // workoutEntity lifts whose deload week it is
-                val deloadWeek = (workoutLift.deloadWeek ?: programMetadata.deloadWeek) - 1
-                deloadWeek == programMetadata.currentMicrocycle
-            }.fastMap {
-                // key that can be used to match set results
-                "${it.liftId}-${it.position}"
-            }.toHashSet().let { deloadedWorkoutLiftIds ->
-                // set results for deloaded workoutEntity lifts
-                completedSets
-                    .filter { deloadedWorkoutLiftIds.contains("${it.liftId}-${it.liftPosition}") }
-                    .fastMap { it.id }
-            }
-
-        // Delete all set results from the previous workout OR ones that were deloaded. Deloaded
-        // ones are deleted so next progressions are calculated using most recent non-deload results
-        setResultsRepository.deleteAllForPreviousWorkout(
-            workoutId = workout.id,
-            currentMesocycle = programMetadata.currentMesocycle,
-            currentMicrocycle = programMetadata.currentMicrocycle,
-            currentResultsToDeleteInstead = deloadSetResults,
-        )
+        // Delete all live set results now that they were copied over
+        liveWorkoutCompletedSetsRepository.deleteAll()
     }
 
     suspend fun updateLinearProgressionFailures(
@@ -221,7 +194,7 @@ class CompleteWorkoutUseCase(
             }
 
         if (setResultsToUpdate.isNotEmpty()) {
-            setResultsRepository.upsertMany(setResultsToUpdate)
+            liveWorkoutCompletedSetsRepository.upsertMany(setResultsToUpdate)
         }
     }
 }

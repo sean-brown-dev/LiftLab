@@ -69,8 +69,8 @@ class GetSummarizedWorkoutMetricsStateFlowUseCaseTest {
         assertEquals(2, result.topSets.size)
 
         // Verify Personal Records
-        val prLift1 = result.dateOrderedWorkoutLogsWithPersonalRecords.flatMap { it.setResults }.find { it.id == 1L }
-        val prLift2 = result.dateOrderedWorkoutLogsWithPersonalRecords.flatMap { it.setResults }.find { it.id ==2L }
+        val prLift1 = result.dateOrderedWorkoutLogsWithPersonalRecords.flatMap { it.setLogEntries }.find { it.id == 1L }
+        val prLift2 = result.dateOrderedWorkoutLogsWithPersonalRecords.flatMap { it.setLogEntries }.find { it.id ==2L }
         assertTrue(prLift1?.isPersonalRecord == true)
         assertTrue(prLift2?.isPersonalRecord == true)
 

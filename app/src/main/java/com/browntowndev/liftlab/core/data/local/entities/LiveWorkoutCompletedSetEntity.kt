@@ -9,12 +9,10 @@ import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
 import com.browntowndev.liftlab.core.domain.enums.SetType
 
 @GenerateFirestoreMetadataExtensions
-@Entity("previousSetResults",
+@Entity("liveWorkoutCompletedSets",
     indices = [
-        Index("workoutId"),
         Index("liftId"),
-        Index("workoutId", "liftId", "setPosition"),
-        Index("workoutId", "liftId", "setPosition", "myoRepSetPosition"),
+        Index("workoutId"),
         Index("synced"),
         Index("remoteId", unique = true),
     ],
@@ -27,8 +25,9 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
             parentColumns = arrayOf("lift_id"),
             childColumns = arrayOf("liftId"),
             onDelete = ForeignKey.CASCADE)])
-data class PreviousSetResultEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("previously_completed_set_id")
+data class LiveWorkoutCompletedSetEntity(
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo("live_workout_completed_set_id")
     val id: Long = 0,
     val workoutId: Long,
     val liftId: Long,
@@ -36,15 +35,10 @@ data class PreviousSetResultEntity(
     val liftPosition: Int,
     val setPosition: Int,
     val myoRepSetPosition: Int? = null,
-    val weightRecommendation: Float?,
     val weight: Float,
     val reps: Int,
     val rpe: Float,
-    @ColumnInfo(defaultValue = 0.toString())
     val oneRepMax: Int,
-    val mesoCycle: Int,
-    val microCycle: Int,
     val missedLpGoals: Int? = null,
-    @ColumnInfo(defaultValue = false.toString())
     val isDeload: Boolean = false,
 ): BaseEntity()

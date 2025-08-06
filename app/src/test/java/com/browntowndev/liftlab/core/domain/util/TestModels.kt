@@ -90,7 +90,7 @@ fun createWorkoutLogEntry(
     microcycle = microcycle,
     microcyclePosition = microcyclePosition,
     durationInMillis = durationInMillis,
-    setResults = setResults
+    setLogEntries = setResults
 )
 
 fun createSetLogEntry(

@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.domain.repositories
 
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
@@ -11,15 +12,14 @@ interface WorkoutLogRepository: Repository<WorkoutLogEntry, Long> {
     fun getFlow(workoutLogEntryId: Long): Flow<WorkoutLogEntry>
     suspend fun getMostRecentSetResultsForLiftIds(
         liftIds: List<Long>,
-        linearProgressionLiftIds: Set<Long>,
-        includeDeload: Boolean,
-    ): List<SetResult>
+        includeDeloads: Boolean,
+    ): List<SetLogEntry>
 
     suspend fun getMostRecentSetResultsForLiftIdsPriorToDate(
         liftIds: List<Long>,
         linearProgressionLiftIds: Set<Long>,
         date: Date,
-    ): List<SetResult>
+    ): List<SetLogEntry>
 
     suspend fun insertWorkoutLogEntry(
         historicalWorkoutNameId: Long,

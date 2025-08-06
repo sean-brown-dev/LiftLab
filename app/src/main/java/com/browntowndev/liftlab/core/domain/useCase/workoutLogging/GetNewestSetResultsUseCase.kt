@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -15,19 +17,17 @@ class GetNewestSetResultsUseCase(
         includeDeload: Boolean,
     ): List<SetResult> {
         return if (liftIdsToSearchFor.isNotEmpty()) {
-            val linearProgressionLiftIds = workout.lifts
-                .filter {
-                    it.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION
-                }.map { it.liftId }
-                .toHashSet()
-
             existingResultsForOtherLifts.toMutableList().apply {
                 val resultsFromOtherWorkouts =
                     workoutLogRepository.getMostRecentSetResultsForLiftIds(
                         liftIds = liftIdsToSearchFor,
-                        linearProgressionLiftIds = linearProgressionLiftIds,
-                        includeDeload = includeDeload,
-                    )
+                        includeDeloads = includeDeload,
+                    ).fastMap { setLogEntry ->
+                        setLogEntry.toSetResult(
+                            workoutId = workout.id,
+                            isLinearProgression = setLogEntry.progressionScheme == ProgressionScheme.LINEAR_PROGRESSION,
+                        )
+                    }
 
                 addAll(resultsFromOtherWorkouts)
             }
