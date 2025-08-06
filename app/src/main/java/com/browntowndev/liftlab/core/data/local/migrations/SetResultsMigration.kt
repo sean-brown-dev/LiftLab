@@ -117,7 +117,7 @@ class SetResultsMigration: Migration(17, 18) {
             )
         """.trimIndent())
 
-        // 2. Copy data (only the columns you want to keep, in the same order as above)
+        // 2. Copy data from old table only for active workouts
         db.execSQL("""
             INSERT INTO setLogEntries_tmp (
                 set_log_entry_id,
@@ -174,11 +174,12 @@ class SetResultsMigration: Migration(17, 18) {
                 repFloor,
                 dropPercentage,
                 isDeload,
-                synced,
-                deleted,
-                remoteId,
-                remoteLastUpdated
-            FROM setLogEntries
+                setLog.synced,
+                setLog.deleted,
+                setLog.remoteId,
+                setLog.remoteLastUpdated
+            FROM setLogEntries setLog
+            INNER JOIN workoutInProgress wip ON setLog.workoutId = wip.workoutId
         """.trimIndent())
 
         // 3. Drop old table
