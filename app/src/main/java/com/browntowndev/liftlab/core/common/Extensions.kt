@@ -6,36 +6,18 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import android.util.Log
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import com.android.billingclient.api.BillingClient.BillingResponseCode
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
-import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
-import com.browntowndev.liftlab.core.domain.models.workout.Workout
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
@@ -56,7 +38,6 @@ import java.util.Date
 import java.util.Locale.US
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
-import kotlin.collections.flatten
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
@@ -98,34 +79,6 @@ fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> {
     }
 }
 
-suspend fun<T, R>  List<T>.flatMapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> List<R>): List<R> = coroutineScope {
-    if (this@flatMapParallel.isEmpty()) return@coroutineScope emptyList()
-
-    val thisList = this@flatMapParallel
-    val batchSize = thisList.size / maxDegreesOfParallelism +
-            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
-
-    return@coroutineScope thisList.chunked(batchSize).map {
-        async {
-            transform(it)
-        }
-    }.awaitAll().flatten()
-}
-
-suspend fun<T, R>  List<T>.mapParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> R): List<R> = coroutineScope {
-    if (this@mapParallel.isEmpty()) return@coroutineScope emptyList()
-
-    val thisList = this@mapParallel
-    val batchSize = thisList.size / maxDegreesOfParallelism +
-            if (thisList.size % maxDegreesOfParallelism == 0) 0 else 1
-
-    return@coroutineScope thisList.chunked(batchSize).map {
-        async {
-            transform(it)
-        }
-    }.awaitAll()
-}
-
 suspend fun<T>  List<T>.forEachParallel(maxDegreesOfParallelism: Int, transform: suspend CoroutineScope.(chunk: List<T>) -> Unit) = coroutineScope {
     if (this@forEachParallel.isEmpty()) return@coroutineScope emptyList()
 
@@ -147,17 +100,6 @@ suspend fun<T>  List<T>.forEachParallel(transform: suspend CoroutineScope.(item:
             transform(it)
         }
     }.awaitAll()
-}
-
-inline fun CoroutineScope.fireAndForgetSync(crossinline block: suspend CoroutineScope.() -> Unit): Job {
-    return this.launch {
-        try {
-            block() // this is now a receiver lambda, so 'this' is the CoroutineScope
-        } catch (e: Exception) {
-            Log.e("FireAndForgetSync", "Error during fireAndForgetSync: ${e.message}", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-        }
-    }
 }
 
 fun String.appendSuperscript(
@@ -205,17 +147,6 @@ fun Double.isWholeNumber(): Boolean {
 
 fun Float.isWholeNumber(): Boolean {
     return this % 1.0 == 0.0
-}
-
-fun Float.toFloorAndCeiling(): Iterable<Int> {
-    return if (this.isWholeNumber()) {
-        listOf(this.roundToInt())
-    } else {
-        val roundedDown = this.toInt()
-        val roundedUp = roundedDown + 1
-
-        roundedDown..roundedUp
-    }
 }
 
 fun Double.roundToNearestFactor(factor: Float): Float {
@@ -386,22 +317,6 @@ fun Int.copyColor(
             (red shl RED_BIT_SHIFT) or
             (green shl GREEN_BIT_SHIFT) or
             (blue shl BLUE_BIT_SHIFT)
-
-fun Int.copyColor(
-    alpha: Float = this.extractColorChannel(ALPHA_BIT_SHIFT) / MAX_HEX_VALUE,
-    red: Float = this.extractColorChannel(RED_BIT_SHIFT) / MAX_HEX_VALUE,
-    green: Float = this.extractColorChannel(GREEN_BIT_SHIFT) / MAX_HEX_VALUE,
-    blue: Float = this.extractColorChannel(BLUE_BIT_SHIFT) / MAX_HEX_VALUE,
-): Int =
-    copyColor(
-        alpha = (alpha * MAX_HEX_VALUE).toInt(),
-        red = (red * MAX_HEX_VALUE).toInt(),
-        green = (green * MAX_HEX_VALUE).toInt(),
-        blue = (blue * MAX_HEX_VALUE).toInt(),
-    )
-
-internal val Int.alpha: Int
-    get() = extractColorChannel(ALPHA_BIT_SHIFT)
 
 private fun Int.extractColorChannel(bitShift: Int): Int = this shr bitShift and COLOR_MASK
 

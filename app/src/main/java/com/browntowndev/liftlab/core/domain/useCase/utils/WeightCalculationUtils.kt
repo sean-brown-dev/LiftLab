@@ -3,9 +3,6 @@ package com.browntowndev.liftlab.core.domain.useCase.utils
 import android.util.Log
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.roundDownToNearestFactor
-import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.common.toFloorAndCeiling
-import kotlin.math.pow
 import kotlin.math.roundToInt
 
 class WeightCalculationUtils {

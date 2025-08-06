@@ -51,10 +51,4 @@ data class WorkoutState(
         inProgressWorkout?.startTime
     }
 
-    val setsByPositions by lazy {
-        this.workout?.lifts?.associate { lift ->
-            lift.position to
-                    lift.sets.associateBy { it.position }
-        }
-    }
 }

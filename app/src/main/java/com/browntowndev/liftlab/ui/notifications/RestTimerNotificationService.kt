@@ -15,7 +15,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import com.browntowndev.liftlab.MainActivity
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.notifications.LiftLabTimer
 import com.browntowndev.liftlab.core.common.toTimeString
 import kotlin.math.round
 

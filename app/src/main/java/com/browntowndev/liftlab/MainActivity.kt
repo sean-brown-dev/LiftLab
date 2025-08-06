@@ -12,26 +12,21 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
-import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.parameter.parametersOf
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {

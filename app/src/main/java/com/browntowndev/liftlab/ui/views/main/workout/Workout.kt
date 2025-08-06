@@ -49,6 +49,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -251,7 +252,7 @@ fun Workout(
             onSetCompleted = { setType, progressionScheme, liftPosition, setPosition, myoRepSetPosition, liftId, weight, reps, rpe, restTime, restTimerEnabled ->
                 val hasDropSetAfter = state.workout!!.lifts[liftPosition].sets.fastAny { set ->
                     set.position == (setPosition + 1) &&
-                            set is LoggingDropSet
+                            set is LoggingDropSetUiModel
                 }
                 val startRestTimer = !hasDropSetAfter && setType != SetType.MYOREP && restTimerEnabled
 

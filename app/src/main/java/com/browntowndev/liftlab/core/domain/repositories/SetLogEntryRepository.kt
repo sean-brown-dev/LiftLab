@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import kotlinx.coroutines.flow.Flow

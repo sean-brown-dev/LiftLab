@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,21 +20,15 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
-import com.browntowndev.liftlab.core.domain.models.metrics.LiftId
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import java.util.Date
-import java.util.Locale
-import kotlin.math.roundToInt
 
 @Composable
 fun WorkoutHistoryCard(

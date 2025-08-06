@@ -37,7 +37,6 @@ fun VolumeTypeDropdown(
     onUpdateVolumeType: (newVolumeType: VolumeType) -> Unit,
 ) {
     var isExpanded by remember(volumeTypeDisplay) { mutableStateOf(false) }
-    var selectedOption by remember(volumeTypeDisplay) { mutableStateOf(volumeTypeDisplay) }
 
     Row(
         modifier = Modifier
@@ -67,9 +66,7 @@ fun VolumeTypeDropdown(
                         )
                     },
                     onClick = {
-                        selectedOption = volumeTypeOption
                         isExpanded = false
-
                         onUpdateVolumeType(option)
                     })
             }

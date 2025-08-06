@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.core.domain.useCase.metrics
 
-import android.util.Log
 import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.common.TransactionScope

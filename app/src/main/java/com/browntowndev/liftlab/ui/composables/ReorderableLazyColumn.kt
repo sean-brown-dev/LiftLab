@@ -1,7 +1,9 @@
 package com.browntowndev.liftlab.ui.composables
 
+import android.os.Build
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -43,6 +45,7 @@ import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @ExperimentalFoundationApi
 @Composable
 fun ReorderableLazyColumn(

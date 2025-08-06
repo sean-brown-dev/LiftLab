@@ -58,7 +58,7 @@ fun InputChipFlowRow(
                 selected = false,
                 onClick = { },
                 label = { Text(
-                    text = filter.value.toString(),
+                    text = filter.value,
                     style = MaterialTheme.typography.bodyLarge,
                     fontSize = 16.sp,
                 ) },

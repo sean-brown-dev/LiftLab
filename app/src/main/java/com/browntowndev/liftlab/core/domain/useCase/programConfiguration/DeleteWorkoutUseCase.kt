@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workout.Workout

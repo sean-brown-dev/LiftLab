@@ -5,7 +5,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
 
 @Dao
 interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {

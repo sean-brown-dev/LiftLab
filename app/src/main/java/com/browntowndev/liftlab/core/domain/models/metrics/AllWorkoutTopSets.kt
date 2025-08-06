@@ -31,13 +31,6 @@ data class AllWorkoutTopSets(
     operator fun get(workoutLogId: WorkoutLogId): WorkoutTopSets? = topSetsByWorkout[workoutLogId]
 
     /**
-     * Retrieves the top set for a specific lift.
-     */
-    fun findTopSet(workoutId: WorkoutLogId, liftId: LiftId): WorkoutTopSets.TopSet? {
-        return topSetsByWorkout[workoutId]?.get(liftId)
-    }
-
-    /**
      * Contains a summary of the top sets for all exercises
      * performed within one specific workout session.
      */

@@ -10,7 +10,6 @@ enum class TopAppBarAction {
     RenameWorkout,
     DeleteProgram,
     NavigatedBack,
-    SearchStarted,
     SearchTextChanged,
     FilterStarted,
     EditDeloadWeek,

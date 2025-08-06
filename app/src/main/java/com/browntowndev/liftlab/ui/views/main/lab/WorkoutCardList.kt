@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 
 

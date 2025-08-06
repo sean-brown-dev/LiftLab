@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.core.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
-import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
 import com.browntowndev.liftlab.core.data.local.entities.LiveWorkoutCompletedSetEntity
 import kotlinx.coroutines.flow.Flow
 

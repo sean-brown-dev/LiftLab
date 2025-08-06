@@ -58,6 +58,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -307,11 +309,8 @@ private suspend fun shareWorkoutSummary(
                     .copy(Bitmap.Config.ARGB_8888, true)
 
                 // Create a new bitmap with the same dimensions as the original
-                val cardWithQrCodeBitmap = Bitmap.createBitmap(
-                    liftSummaryCardBitmap.width,
-                    liftSummaryCardBitmap.height,
-                    Bitmap.Config.ARGB_8888,
-                )
+                val cardWithQrCodeBitmap =
+                    createBitmap(liftSummaryCardBitmap.width, liftSummaryCardBitmap.height)
 
                 // Switch to the Main dispatcher to perform UI operations
                 withContext(Dispatchers.Main) {
@@ -328,14 +327,9 @@ private suspend fun shareWorkoutSummary(
                         val scaleFactor = scaledHeight / qrCodeBitmap.height
                         val scaledWidth = qrCodeBitmap.width * scaleFactor
 
-                        val scaledBitmap = Bitmap.createScaledBitmap(
-                            qrCodeBitmap,
-                            scaledWidth.toInt(),
-                            scaledHeight.toInt(),
-                            true
-                        )
-                        canvas.drawBitmap(
-                            scaledBitmap,
+                        val scaledBitmap = qrCodeBitmap.scale(scaledWidth.toInt(), scaledHeight.toInt())
+                            canvas.drawBitmap(
+                                scaledBitmap,
                             liftSummaryCardBitmap.width - (scaledWidth + 20),
                             20f,
                             null

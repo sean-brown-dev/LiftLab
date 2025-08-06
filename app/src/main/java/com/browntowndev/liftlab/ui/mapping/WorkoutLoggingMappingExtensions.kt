@@ -10,7 +10,6 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
-import com.browntowndev.liftlab.dependencyInjection.persistenceModule
 import com.browntowndev.liftlab.ui.models.workoutLogging.LinearProgressionSetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel

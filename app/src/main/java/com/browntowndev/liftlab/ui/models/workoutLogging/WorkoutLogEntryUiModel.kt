@@ -1,6 +1,5 @@
 package com.browntowndev.liftlab.ui.models.workoutLogging
 
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import java.util.Date
 
 data class WorkoutLogEntryUiModel(

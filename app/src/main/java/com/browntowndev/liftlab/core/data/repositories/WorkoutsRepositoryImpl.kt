@@ -4,27 +4,24 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapIndexed
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
-import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
-import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.workout.Workout
-import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
-import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toCalculationDomainModel
+import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.Date
 
 class WorkoutsRepositoryImpl(
     private val workoutLiftsDao: WorkoutLiftsDao,

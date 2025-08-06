@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.common
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
@@ -17,8 +18,6 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.time.LocalTime
-import androidx.core.content.edit
 
 object SettingsManager {
     object SettingNames {

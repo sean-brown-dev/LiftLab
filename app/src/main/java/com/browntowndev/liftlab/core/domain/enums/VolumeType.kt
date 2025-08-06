@@ -64,10 +64,6 @@ fun Int.getVolumeTypes(): List<VolumeType> {
     return VolumeType.entries.filter { (this and it.bitMask) != 0 }
 }
 
-fun Int.getVolumeTypeImpacts(): List<VolumeTypeImpact> {
-    return VolumeTypeImpact.entries.filter { (this and it.bitmask) != 0 }
-}
-
 fun VolumeType.displayName(): String {
     return when (this) {
         VolumeType.CHEST -> "Chest"

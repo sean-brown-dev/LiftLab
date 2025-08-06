@@ -29,6 +29,10 @@ import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.MyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
 
 
 @Composable
@@ -36,7 +40,7 @@ fun CustomSettings(
     isVisible: Boolean,
     listState: LazyListState,
     detailExpansionStates: HashSet<Int>,
-    customSets: List<GenericLiftSet>,
+    customSets: List<CustomLiftSetUiModel>,
     onAddSet: () -> Unit,
     onDeleteSet: (position: Int) -> Unit,
     onSetMatchingChanged: (position: Int, enabled: Boolean) -> Unit,
@@ -78,7 +82,7 @@ fun CustomSettings(
                 ) {
                     val detailsExpanded = detailExpansionStates.contains(set.position)
                     when (set) {
-                        is StandardSet -> {
+                        is StandardSetUiModel -> {
                             StandardSet(
                                 listState = listState,
                                 detailsExpanded = detailsExpanded,
@@ -103,7 +107,7 @@ fun CustomSettings(
                             )
                             previousSetType = SetType.STANDARD
                         }
-                        is MyoRepSet -> {
+                        is MyoRepSetUiModel -> {
                             MyoRepSet(
                                 listState = listState,
                                 detailsExpanded = detailsExpanded,
@@ -136,7 +140,7 @@ fun CustomSettings(
                             )
                             previousSetType = SetType.MYOREP
                         }
-                        is DropSet -> {
+                        is DropSetUiModel -> {
                             DropSet(
                                 position = set.position,
                                 detailsExpanded = detailsExpanded,

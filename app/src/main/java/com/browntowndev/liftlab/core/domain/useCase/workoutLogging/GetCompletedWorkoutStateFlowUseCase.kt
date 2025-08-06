@@ -1,10 +1,10 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResultUseCase
@@ -17,7 +17,6 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

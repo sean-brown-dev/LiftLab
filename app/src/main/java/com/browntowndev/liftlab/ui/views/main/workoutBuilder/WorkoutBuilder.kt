@@ -60,6 +60,8 @@ import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSet
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
 import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -123,8 +125,8 @@ fun WorkoutBuilder(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     items(state.workout?.lifts ?: listOf(), { it.id }) { workoutLift ->
-                        val standardLift = workoutLift as? StandardWorkoutLift
-                        val customLift = workoutLift as? CustomWorkoutLift
+                        val standardLift = workoutLift as? StandardWorkoutLiftUiModel
+                        val customLift = workoutLift as? CustomWorkoutLiftUiModel
                         val incrementOverride = remember(
                             key1 = workoutLift.incrementOverride,
                         ) {
@@ -217,7 +219,7 @@ fun WorkoutBuilder(
                             )
                             WavePatternDropdown(
                                 workoutLiftId = workoutLift.id,
-                                stepSize = (workoutLift as? StandardWorkoutLift)?.stepSize,
+                                stepSize = (workoutLift as? StandardWorkoutLiftUiModel)?.stepSize,
                                 progressionScheme = workoutLift.progressionScheme,
                                 workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
                                 onUpdateStepSize = { workoutLiftId, newStepSize ->

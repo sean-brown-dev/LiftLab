@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 import com.browntowndev.liftlab.ui.models.workout.getVolumeTypeLabels
