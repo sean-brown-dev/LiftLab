@@ -15,23 +15,24 @@ class SetResultsMigration: Migration(17, 18) {
                 liftPosition INTEGER NOT NULL,
                 setPosition INTEGER NOT NULL,
                 myoRepSetPosition INTEGER,
-                weightRecommendation REAL,
                 weight REAL NOT NULL,
                 reps INTEGER NOT NULL,
                 rpe REAL NOT NULL,
                 oneRepMax INTEGER NOT NULL,
                 missedLpGoals INTEGER,
-                isDeload INTEGER NOT NULL DEFAULT false,
+                isDeload INTEGER NOT NULL,
                 synced INTEGER NOT NULL DEFAULT false,
-                remoteId TEXT,
+                deleted INTEGER NOT NULL DEFAULT false,
+                remoteLastUpdated INTEGER DEFAULT NULL,
+                remoteId TEXT DEFAULT NULL,
                 FOREIGN KEY(workoutId) REFERENCES workouts(workout_id) ON DELETE CASCADE,
                 FOREIGN KEY(liftId) REFERENCES lifts(lift_id) ON DELETE CASCADE
             )
         """.trimIndent())
 
         // 2. Indices (order matters for unique index)
-        db.execSQL("""CREATE INDEX IF NOT EXISTS index_liveWorkoutCompletedSets_workoutId ON workouts(workout_id)""")
-        db.execSQL("""CREATE INDEX IF NOT EXISTS index_liveWorkoutCompletedSets_liftId ON lifts(lift_id)""")
+        db.execSQL("""CREATE INDEX IF NOT EXISTS index_liveWorkoutCompletedSets_workoutId ON liveWorkoutCompletedSets(workoutId)""")
+        db.execSQL("""CREATE INDEX IF NOT EXISTS index_liveWorkoutCompletedSets_liftId ON liveWorkoutCompletedSets(liftId)""")
         db.execSQL("""CREATE INDEX IF NOT EXISTS index_liveWorkoutCompletedSets_synced ON liveWorkoutCompletedSets(synced)""")
         db.execSQL("""CREATE UNIQUE INDEX IF NOT EXISTS index_liveWorkoutCompletedSets_remoteId ON liveWorkoutCompletedSets(remoteId)""")
 
@@ -52,10 +53,12 @@ class SetResultsMigration: Migration(17, 18) {
                 missedLpGoals,
                 isDeload,
                 synced,
-                remoteId
+                deleted,
+                remoteId,
+                remoteLastUpdated
             )
             SELECT
-                previous_set_result_id,
+                previously_completed_set_id,
                 workoutId,
                 liftId,
                 setType,
@@ -69,7 +72,9 @@ class SetResultsMigration: Migration(17, 18) {
                 missedLpGoals,
                 isDeload,
                 synced,
-                remoteId
+                deleted,
+                remoteId,
+                remoteLastUpdated
             FROM previousSetResults
         """.trimIndent())
 
@@ -103,8 +108,10 @@ class SetResultsMigration: Migration(17, 18) {
                 repFloor INTEGER,
                 dropPercentage REAL,
                 isDeload INTEGER NOT NULL DEFAULT 0,
-                synced INTEGER NOT NULL DEFAULT 0,
-                remoteId TEXT,
+                synced INTEGER NOT NULL DEFAULT false,
+                deleted INTEGER NOT NULL DEFAULT false,
+                remoteLastUpdated INTEGER DEFAULT NULL,
+                remoteId TEXT DEFAULT NULL,
                 FOREIGN KEY(workoutLogEntryId) REFERENCES workoutLogEntries(workout_log_entry_id) ON DELETE RESTRICT,
                 FOREIGN KEY(liftId) REFERENCES lifts(lift_id) ON DELETE RESTRICT
             )
@@ -138,7 +145,9 @@ class SetResultsMigration: Migration(17, 18) {
                 dropPercentage,
                 isDeload,
                 synced,
-                remoteId
+                deleted,
+                remoteId,
+                remoteLastUpdated
             )
             SELECT
                 set_log_entry_id,
@@ -166,7 +175,9 @@ class SetResultsMigration: Migration(17, 18) {
                 dropPercentage,
                 isDeload,
                 synced,
-                remoteId
+                deleted,
+                remoteId,
+                remoteLastUpdated
             FROM setLogEntries
         """.trimIndent())
 
@@ -194,8 +205,10 @@ class SetResultsMigration: Migration(17, 18) {
                 microcyclePosition INTEGER NOT NULL,
                 date INTEGER NOT NULL,
                 durationInMillis INTEGER NOT NULL,
-                synced INTEGER NOT NULL DEFAULT 0,
-                remoteId TEXT,
+                synced INTEGER NOT NULL DEFAULT false,
+                deleted INTEGER NOT NULL DEFAULT false,
+                remoteLastUpdated INTEGER DEFAULT NULL,
+                remoteId TEXT DEFAULT NULL,
                 FOREIGN KEY(historicalWorkoutNameId) REFERENCES historicalWorkoutNames(historical_workout_name_id) ON DELETE RESTRICT
             )
         """.trimIndent())
@@ -213,7 +226,9 @@ class SetResultsMigration: Migration(17, 18) {
                 date,
                 durationInMillis,
                 synced,
-                remoteId
+                deleted,
+                remoteId,
+                remoteLastUpdated
             )
             SELECT
                 workout_log_entry_id,
@@ -226,7 +241,9 @@ class SetResultsMigration: Migration(17, 18) {
                 date,
                 durationInMillis,
                 synced,
-                remoteId
+                deleted,
+                remoteId,
+                remoteLastUpdated
             FROM workoutLogEntries
         """.trimIndent())
 
