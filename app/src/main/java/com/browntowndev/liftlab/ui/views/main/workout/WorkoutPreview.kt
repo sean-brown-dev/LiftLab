@@ -43,6 +43,8 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepS
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 
 
 @Composable
@@ -52,7 +54,7 @@ fun WorkoutPreview(
     workoutInProgress: Boolean,
     workoutName: String,
     timeInProgress: String,
-    lifts: List<LoggingWorkoutLift>,
+    lifts: List<LoggingWorkoutLiftUiModel>,
     combinedVolumeTypes: List<CharSequence>,
     primaryVolumeTypes: List<CharSequence>,
     secondaryVolumeTypes: List<CharSequence>,
@@ -153,7 +155,7 @@ fun WorkoutPreview(
                         lift.liftMovementPattern.displayName()
                     }
                     val liftFirstLetter = remember(lift.liftName) { lift.liftName[0].toString() }
-                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSet } }
+                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSetUiModel } }
                     val liftNameWithSetCount = remember(key1 = lift.setCount, key2 = lift.liftName) {
                         val setCountAndName = "${lift.setCount} x ${lift.liftName}"
                         if (hasMyoRepSets) setCountAndName.insertSuperscript(

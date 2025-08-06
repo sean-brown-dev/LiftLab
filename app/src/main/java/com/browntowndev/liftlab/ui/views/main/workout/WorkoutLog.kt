@@ -50,6 +50,8 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import org.koin.androidx.compose.koinViewModel
@@ -61,7 +63,7 @@ fun WorkoutLog(
     paddingValues: PaddingValues,
     visible: Boolean,
     isEdit: Boolean = false,
-    lifts: List<LoggingWorkoutLift>,
+    lifts: List<LoggingWorkoutLiftUiModel>,
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
@@ -83,7 +85,7 @@ fun WorkoutLog(
         mutableStateOf(
             lifts.flatMap { workoutLift ->
                 workoutLift.sets
-                    .filterIsInstance<LoggingMyoRepSet>()
+                    .filterIsInstance<LoggingMyoRepSetUiModel>()
                     .fastMap { set ->
                         "${workoutLift.id}-${set.myoRepSetPosition}"
                     }
@@ -212,9 +214,9 @@ fun WorkoutLog(
     LaunchedEffect(lifts) {
         indicesOfExistingMyoRepSets = lifts.flatMap { workoutLift ->
             workoutLift.sets
-                .filterIsInstance<LoggingMyoRepSet>()
+                .filterIsInstance<LoggingMyoRepSetUiModel>()
                 .fastMap { set ->
-                    "${workoutLift.id}-${(set as? LoggingMyoRepSet)?.myoRepSetPosition}"
+                    "${workoutLift.id}-${set.myoRepSetPosition}"
                 }
         }.toSet()
     }

@@ -34,11 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
+import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
 
 @Composable
 fun ProgramManager(
     paddingValues: PaddingValues,
-    programs: List<Program>,
+    programs: List<ProgramUiModel>,
     onCreateProgram: () -> Unit,
     onSetProgramAsActive: (programId: Long) -> Unit,
     onDeleteProgram: (programId: Long) -> Unit,

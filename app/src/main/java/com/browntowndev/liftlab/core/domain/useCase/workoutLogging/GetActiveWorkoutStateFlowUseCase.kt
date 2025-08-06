@@ -5,7 +5,6 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.ActiveWorkoutS
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
-import com.browntowndev.liftlab.ui.mapping.WorkoutStateMappingExtensions.toUiModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -33,12 +32,12 @@ class GetActiveWorkoutStateFlowUseCase(
                         workoutInProgressFlow,
                         getWorkoutStateFlowUseCase(programMetadata),
                     ) { inProgressWorkout, calculatedWorkoutData ->
-                        val workoutStateFromCalculatedData = calculatedWorkoutData.toUiModel()
+                        val workoutStateFromCalculatedData = calculatedWorkoutData
                         ActiveWorkoutState(
                             programMetadata = programMetadata,
                             inProgressWorkout = inProgressWorkout,
-                            workout = workoutStateFromCalculatedData.workout,
-                            completedSets = workoutStateFromCalculatedData.completedSets,
+                            workout = workoutStateFromCalculatedData.calculatedWorkoutPlan,
+                            completedSets = workoutStateFromCalculatedData.completedSetsForSession,
                             personalRecords = calculatedWorkoutData.personalRecords,
                         )
                     }

@@ -12,12 +12,10 @@ class UpsertExistingSetResultUseCase(
 ): BaseUpsertSetLogEntryUseCase() {
     suspend operator fun invoke(
         workoutLogEntryId: Long,
-        mesoCycle: Int,
-        microCycle: Int,
         setResult: SetResult,
         loggingWorkoutLift: LoggingWorkoutLift,
     ): Long = transactionScope.executeWithResult {
-        val setLogEntry = getSetLogEntryFromSetResult(loggingWorkoutLift, setResult, workoutLogEntryId, mesoCycle, microCycle)
+        val setLogEntry = getSetLogEntryFromSetResult(loggingWorkoutLift, setResult, workoutLogEntryId)
         setLogEntryRepository.upsert(setLogEntry)
     }
 }

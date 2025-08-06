@@ -12,7 +12,6 @@ import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
@@ -29,11 +28,15 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetComple
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
+import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -164,8 +167,8 @@ class WorkoutViewModel(
                 .associate { it.first to it.second }
 
             reorderWorkoutLiftsUseCase(
-                workout = mutableWorkoutState.value.workout!!,
-                completedSets = mutableWorkoutState.value.completedSets,
+                workout = mutableWorkoutState.value.workout!!.toDomainModel(),
+                completedSets = mutableWorkoutState.value.completedSets.fastMap { it.toDomainModel() },
                 newWorkoutLiftIndices = newWorkoutLiftIndices
             )
         }
@@ -187,7 +190,7 @@ class WorkoutViewModel(
 
     fun skipDeloadMicrocycleAndStartWorkout() = executeWithErrorHandling("Failed to skip deload microcycle and start") {
         skipDeloadAndStartWorkoutUseCase(
-            programMetadata = mutableWorkoutState.value.programMetadata!!,
+            programMetadata = mutableWorkoutState.value.programMetadata!!.toDomainModel(),
             workoutId = mutableWorkoutState.value.workout!!.id,
         )
         updateStateForStartedWorkout()
@@ -255,9 +258,9 @@ class WorkoutViewModel(
                 isCompletionSummaryVisible = !it.isCompletionSummaryVisible,
                 workoutCompletionSummary = if (!it.isCompletionSummaryVisible) {
                     getWorkoutCompletionSummaryUseCase(
-                        loggingWorkout = it.workout!!,
-                        personalRecords = it.personalRecords.values.toList(),
-                        completedSets = it.completedSets,
+                        loggingWorkout = it.workout!!.toDomainModel(),
+                        personalRecords = it.personalRecords.values.map { pr -> pr.toDomainModel() },
+                        completedSets = it.completedSets.fastMap { result -> result.toDomainModel() },
                     ).toUiModel()
                 } else null,
                 isReordering = if (it.isCompletionSummaryVisible) false else it.isReordering
@@ -269,9 +272,9 @@ class WorkoutViewModel(
         stopRestTimer()
         completeWorkoutUseCase(
             inProgressWorkout = mutableWorkoutState.value.inProgressWorkout!!,
-            programMetadata = mutableWorkoutState.value.programMetadata!!,
-            workout = mutableWorkoutState.value.workout!!,
-            completedSets = mutableWorkoutState.value.completedSets,
+            programMetadata = mutableWorkoutState.value.programMetadata!!.toDomainModel(),
+            workout = mutableWorkoutState.value.workout!!.toDomainModel(),
+            completedSets = mutableWorkoutState.value.completedSets.fastMap { it.toDomainModel() },
             isDeloadWeek = mutableWorkoutState.value.isDeloadWeek
         )
     }
@@ -289,8 +292,8 @@ class WorkoutViewModel(
             toggleConfirmCancelWorkoutModal()
 
         cancelWorkoutUseCase(
-            programMetadata = mutableWorkoutState.value.programMetadata!!,
-            workout = mutableWorkoutState.value.workout!!
+            programMetadata = mutableWorkoutState.value.programMetadata!!.toDomainModel(),
+            workout = mutableWorkoutState.value.workout!!.toDomainModel()
         )
     }
 
@@ -324,7 +327,7 @@ class WorkoutViewModel(
         cancelRestTimer()
     }
 
-    private fun getWorkoutLiftAndLogIfNull(workoutLiftId: Long): LoggingWorkoutLift? {
+    private fun getWorkoutLiftAndLogIfNull(workoutLiftId: Long): LoggingWorkoutLiftUiModel? {
         val workoutLift = mutableWorkoutState.value.workout?.lifts
             ?.find { it.id == workoutLiftId }
 

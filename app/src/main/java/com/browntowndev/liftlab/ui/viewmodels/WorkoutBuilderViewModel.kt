@@ -31,6 +31,19 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateL
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.MyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.WorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
+import com.browntowndev.liftlab.ui.models.workout.getRecalculatedStepSizeForLift
+import com.browntowndev.liftlab.ui.models.workout.getRecalculatedWorkoutLiftStepSizeOptions
+import com.browntowndev.liftlab.ui.models.workout.transformToType
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerState
 import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
@@ -80,7 +93,7 @@ class WorkoutBuilderViewModel(
             liftLevelDeloadsEnabled = liftLevelDeloadsEnabled
         ).map { workoutConfigurationState ->
             WorkoutBuilderState(
-                workout = workoutConfigurationState.workout,
+                workout = workoutConfigurationState.workout?.toUiModel(),
                 programDeloadWeek = workoutConfigurationState.programDeloadWeek ?: DEFAULT_PROGRAM_DELOAD_WEEK,
                 workoutLiftStepSizeOptions = workoutConfigurationState.workoutLiftStepSizeOptions,
             )
@@ -120,8 +133,8 @@ class WorkoutBuilderViewModel(
 
     fun deleteMovementPattern() = executeWithErrorHandling("Failed to delete movement pattern") {
         val workoutLiftId = _state.value.workoutLiftIdToDelete ?: -1
-        val workoutLiftToDelete = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
-        deleteWorkoutLiftUseCase(workoutLiftToDelete)
+        val workoutLiftToDelete = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
+        deleteWorkoutLiftUseCase(workoutLiftToDelete.toDomainModel())
     }
 
     fun updateWorkoutName(newName: String) = executeWithErrorHandling("Failed to update workout name") {
@@ -176,13 +189,13 @@ class WorkoutBuilderViewModel(
     }
 
     fun toggleHasCustomLiftSets(workoutLiftId: Long, enableCustomSets: Boolean) = executeWithErrorHandling("Failed to toggle custom lift sets") {
-        val workoutLiftToConvert = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId)
+        val workoutLiftToConvert = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId)
             ?: return@executeWithErrorHandling
-        convertWorkoutLiftTypeUseCase(workoutLiftToConvert, enableCustomSets)
+        convertWorkoutLiftTypeUseCase(workoutLiftToConvert.toDomainModel(), enableCustomSets)
     }
 
     fun setRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) = executeWithErrorHandling("Failed to update rest time") {
-        val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId)
+        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId)
             ?: return@executeWithErrorHandling
         updateRestTimeUseCase(
             liftId = workoutLift.liftId,
@@ -192,7 +205,7 @@ class WorkoutBuilderViewModel(
     }
 
     fun setIncrementOverride(workoutLiftId: Long, newIncrement: Float) = executeWithErrorHandling("Failed to update increment override") {
-        val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId)
+        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId)
             ?: return@executeWithErrorHandling
         updateLiftIncrementOverrideUseCase(
             liftId = workoutLift.liftId,
@@ -206,16 +219,16 @@ class WorkoutBuilderViewModel(
             .associate { it.first to it.second }
         reorderWorkoutBuilderLiftsUseCase(
             workoutId = workoutId,
-            workoutLifts = _state.value.workout!!.lifts,
+            workoutLifts = _state.value.workout!!.lifts.fastMap { it.toDomainModel() },
             newWorkoutLiftIndices = newWorkoutLiftIndices)
     }
 
     private fun updateLiftProperty(
         workoutLiftId: Long, 
-        copyLift: (GenericWorkoutLift) -> GenericWorkoutLift
-    ): Workout {
+        copyLift: (WorkoutLiftUiModel) -> WorkoutLiftUiModel
+    ): WorkoutUiModel {
         val workout = getCurrentWorkoutAndLogIfNull() ?: throw Exception("Workout not found")
-        val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId) ?: return workout
+        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return workout
         val indexOfWorkoutLift = workout.lifts.indexOf(workoutLift)
         if (indexOfWorkoutLift == -1) throw Exception("Workout lift not found")
         return workout.copy(
@@ -226,45 +239,45 @@ class WorkoutBuilderViewModel(
     }
 
     fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int?) = executeWithErrorHandling("Failed to update deload week") {
-        val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
-        updateWorkoutLiftDeloadWeekUseCase(workoutLift, newDeloadWeek, getProgramDeloadWeekAndLogIfNull())
+        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
+        updateWorkoutLiftDeloadWeekUseCase(workoutLift.toDomainModel(), newDeloadWeek, getProgramDeloadWeekAndLogIfNull())
     }
 
     fun setLiftSetCount(workoutLiftId: Long, newSetCount: Int) = executeWithErrorHandling("Failed to update set count") {
-        val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
+        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val updatedWorkoutLift = when (workoutLift) {
-            is StandardWorkoutLift -> workoutLift.copy(setCount = newSetCount)
-            is CustomWorkoutLift -> workoutLift.copy(setCount = newSetCount)
+            is StandardWorkoutLiftUiModel -> workoutLift.copy(setCount = newSetCount)
+            is CustomWorkoutLiftUiModel -> workoutLift.copy(setCount = newSetCount)
             else -> throw Exception("${workoutLift::class.simpleName} not recognized.")
         }
-        updateWorkoutLiftUseCase(updatedWorkoutLift)
+        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
     }
 
     fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Float) = executeWithErrorHandling("Failed to update RPE target") {
-        val workoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
+        val workoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val updatedWorkoutLift = workoutLift.copy(rpeTarget = newRpeTarget)
-        updateWorkoutLiftUseCase(updatedWorkoutLift)
+        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
     }
 
     fun setLiftProgressionScheme(workoutLiftId: Long, newProgressionScheme: ProgressionScheme) = executeWithErrorHandling("Failed to update progression scheme") {
-        val workoutLift = getWorkoutLiftAndLogIfNull<GenericWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
+        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val updatedWorkoutLift = when (workoutLift) {
-            is StandardWorkoutLift -> workoutLift.copy(progressionScheme = newProgressionScheme)
-            is CustomWorkoutLift -> workoutLift.copy(progressionScheme = newProgressionScheme)
+            is StandardWorkoutLiftUiModel -> workoutLift.copy(progressionScheme = newProgressionScheme)
+            is CustomWorkoutLiftUiModel -> workoutLift.copy(progressionScheme = newProgressionScheme)
             else -> throw Exception("${workoutLift::class.simpleName} not recognized.")
         }
-        updateWorkoutLiftUseCase(updatedWorkoutLift)
+        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
     }
 
     fun updateStepSize(workoutLiftId: Long, newStepSize: Int) = executeWithErrorHandling("Failed to update step size") {
-        val updatedWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLift>(workoutLiftId)?.copy(stepSize = newStepSize)
+        val updatedWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId)?.copy(stepSize = newStepSize)
             ?: return@executeWithErrorHandling
-        updateWorkoutLiftUseCase(updatedWorkoutLift)
+        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
     }
 
     fun addSet(workoutLiftId: Long) = executeWithErrorHandling("Failed to add set") {
         addSetUseCase(
-            workoutLifts = _state.value.workout!!.lifts,
+            workoutLifts = _state.value.workout!!.lifts.fastMap { it.toDomainModel() },
             workoutLiftId = workoutLiftId,
         )
     }
@@ -274,60 +287,60 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetRpeTarget(workoutLiftId: Long, position: Int, newRpeTarget: Float) = executeWithErrorHandling("Failed to update RPE target") {
-        val currentSet = getCustomLiftSetAndLogIfNull<GenericLiftSet>(workoutLiftId, position) ?: return@executeWithErrorHandling
+        val currentSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position) ?: return@executeWithErrorHandling
         val updatedSet = when (currentSet) {
-            is StandardSet -> currentSet.copy(rpeTarget = newRpeTarget)
-            is DropSet -> currentSet.copy(rpeTarget = newRpeTarget)
+            is StandardSetUiModel -> currentSet.copy(rpeTarget = newRpeTarget)
+            is DropSetUiModel -> currentSet.copy(rpeTarget = newRpeTarget)
             else -> throw Exception("${currentSet::class.simpleName} cannot have an rpe target.")
         }
 
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun setCustomSetRepFloor(workoutLiftId: Long, position: Int, newRepFloor: Int) = executeWithErrorHandling("Failed to update rep floor") {
-        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSet>(workoutLiftId, position)?.copy(repFloor = newRepFloor)
+        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(repFloor = newRepFloor)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun setCustomSetUseSetMatching(workoutLiftId: Long, position: Int, setMatching: Boolean) = executeWithErrorHandling("Failed to toggle set matching") {
-        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSet>(workoutLiftId, position)?.copy(setMatching = setMatching)
+        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(setMatching = setMatching)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun setCustomSetMatchSetGoal(workoutLiftId: Long, position: Int, newMatchSetGoal: Int) = executeWithErrorHandling("Failed to update set match goal") {
-        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSet>(workoutLiftId, position)?.copy(setGoal = newMatchSetGoal)
+        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(setGoal = newMatchSetGoal)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun setCustomSetMaxSets(workoutLiftId: Long, position: Int, newMaxSets: Int?) = executeWithErrorHandling("Failed to update max sets") {
-        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSet>(workoutLiftId, position)?.copy(maxSets = newMaxSets)
+        val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(maxSets = newMaxSets)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun setCustomSetDropPercentage(workoutLiftId: Long, position: Int, newDropPercentage: Float) = executeWithErrorHandling("Failed to update drop percentage") {
-        val updatedSet = getCustomLiftSetAndLogIfNull<DropSet>(workoutLiftId, position)?.copy(dropPercentage = newDropPercentage)
+        val updatedSet = getCustomLiftSetAndLogIfNull<DropSetUiModel>(workoutLiftId, position)?.copy(dropPercentage = newDropPercentage)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun changeCustomSetType(workoutLiftId: Long, position: Int, newSetType: SetType) = executeWithErrorHandling("Failed to change set type") {
-        val transformedSet = getCustomLiftSetAndLogIfNull<GenericLiftSet>(workoutLiftId, position)?.transformToType(newSetType)
+        val transformedSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position)?.transformToType(newSetType)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(transformedSet)
+        updateCustomLiftSetUseCase(transformedSet.toDomainModel())
     }
 
     private fun updateCustomSetProperty(
         workoutLiftId: Long,
         setPosition: Int,
         copyAll: Boolean = false,
-        copySet: (GenericLiftSet) -> GenericLiftSet
-    ): Workout {
+        copySet: (CustomLiftSetUiModel) -> CustomLiftSetUiModel
+    ): WorkoutUiModel {
         val currentWorkout = getCurrentWorkoutAndLogIfNull() ?: throw Exception("Workout not found")
-        val currentWorkoutLift = getWorkoutLiftAndLogIfNull<CustomWorkoutLift>(workoutLiftId) ?: throw Exception("Workout lift not found")
+        val currentWorkoutLift = getWorkoutLiftAndLogIfNull<CustomWorkoutLiftUiModel>(workoutLiftId) ?: throw Exception("Workout lift not found")
         val updatedWorkoutLift = currentWorkoutLift.copy(
             customLiftSets = currentWorkoutLift.customLiftSets.fastMap { set ->
                 if (copyAll || set.position == setPosition) copySet(set) else set
@@ -347,7 +360,7 @@ class WorkoutBuilderViewModel(
     fun setLiftRepRangeBottom(workoutLiftId: Long, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
         val updatedWorkout = updateLiftProperty(workoutLiftId) { lift ->
             when (lift) {
-                is StandardWorkoutLift -> lift.copy(
+                is StandardWorkoutLiftUiModel -> lift.copy(
                     repRangeBottom = newRepRangeBottom,
                     stepSize = lift.getRecalculatedStepSizeForLift(
                         deloadToUseInsteadOfLiftLevel = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
@@ -371,7 +384,7 @@ class WorkoutBuilderViewModel(
     fun setLiftRepRangeTop(workoutLiftId: Long, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
         val updatedWorkout = updateLiftProperty(workoutLiftId) { lift ->
             when (lift) {
-                is StandardWorkoutLift -> lift.copy(
+                is StandardWorkoutLiftUiModel -> lift.copy(
                     repRangeTop = newRepRangeTop,
                     stepSize = lift.getRecalculatedStepSizeForLift(
                         deloadToUseInsteadOfLiftLevel = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
@@ -393,7 +406,7 @@ class WorkoutBuilderViewModel(
     }
 
     fun confirmStandardSetRepRangeBottom(workoutLiftId: Long) = executeWithErrorHandling("Failed to update rep range bottom") {
-        val originalWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
+        val originalWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val validatedRepRangeBottom = getValidatedRepRangeBottom(
             newRepRangeBottom = originalWorkoutLift.repRangeBottom, 
             repRangeTop = originalWorkoutLift.repRangeTop)
@@ -407,11 +420,11 @@ class WorkoutBuilderViewModel(
             )
         )
 
-        updateWorkoutLiftUseCase(workoutLift)
+        updateWorkoutLiftUseCase(workoutLift.toDomainModel())
     }
 
     fun confirmStandardSetRepRangeTop(workoutLiftId: Long) = executeWithErrorHandling("Failed to update rep range top") {
-        val originalWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLift>(workoutLiftId) ?: return@executeWithErrorHandling
+        val originalWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val validatedRepRangeTop = getValidatedRepRangeTop(
             newRepRangeTop = originalWorkoutLift.repRangeTop, 
             repRangeBottom = originalWorkoutLift.repRangeBottom)
@@ -425,7 +438,7 @@ class WorkoutBuilderViewModel(
             )
         )
 
-        updateWorkoutLiftUseCase(workoutLift)
+        updateWorkoutLiftUseCase(workoutLift.toDomainModel())
     }
 
     fun setCustomSetRepRangeBottom(workoutLiftId: Long, position: Int, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
@@ -433,9 +446,9 @@ class WorkoutBuilderViewModel(
             currentState.copy(
                 workout = updateCustomSetProperty(workoutLiftId, position) { set ->
                     when (set) {
-                        is StandardSet -> set.copy(repRangeBottom = newRepRangeBottom)
-                        is DropSet -> set.copy(repRangeBottom = newRepRangeBottom)
-                        is MyoRepSet -> set.copy(repRangeBottom = newRepRangeBottom)
+                        is StandardSetUiModel -> set.copy(repRangeBottom = newRepRangeBottom)
+                        is DropSetUiModel -> set.copy(repRangeBottom = newRepRangeBottom)
+                        is MyoRepSetUiModel -> set.copy(repRangeBottom = newRepRangeBottom)
                         else -> throw Exception("${set::class.simpleName} cannot have a bottom rep range.")
                     }
                 }
@@ -448,9 +461,9 @@ class WorkoutBuilderViewModel(
             currentState.copy(
                 workout = updateCustomSetProperty(workoutLiftId, position) { set ->
                     when (set) {
-                        is StandardSet -> set.copy(repRangeTop = newRepRangeTop)
-                        is DropSet -> set.copy(repRangeTop = newRepRangeTop)
-                        is MyoRepSet -> set.copy(repRangeTop = newRepRangeTop)
+                        is StandardSetUiModel -> set.copy(repRangeTop = newRepRangeTop)
+                        is DropSetUiModel -> set.copy(repRangeTop = newRepRangeTop)
+                        is MyoRepSetUiModel -> set.copy(repRangeTop = newRepRangeTop)
                         else -> throw Exception("${set::class.simpleName} cannot have a top rep range.")
                     }
                 }
@@ -459,33 +472,33 @@ class WorkoutBuilderViewModel(
     }
 
     fun confirmCustomSetRepRangeBottom(workoutLiftId: Long, position: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
-        val customSet = getCustomLiftSetAndLogIfNull<GenericLiftSet>(workoutLiftId, position) ?: return@executeWithErrorHandling
+        val customSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position) ?: return@executeWithErrorHandling
         val validatedRepRangeBottom = getValidatedRepRangeBottom(
             newRepRangeBottom = customSet.repRangeBottom,
             repRangeTop = customSet.repRangeTop)
 
         val updatedSet = when (customSet) {
-            is StandardSet -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
-            is MyoRepSet -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
-            is DropSet -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
+            is StandardSetUiModel -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
+            is MyoRepSetUiModel -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
+            is DropSetUiModel -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
             else -> throw Exception("${customSet::class.simpleName} is not defined")
         }
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     fun confirmCustomSetRepRangeTop(workoutLiftId: Long, position: Int) = executeWithErrorHandling("Failed to update rep range top") {
-        val customSet = getCustomLiftSetAndLogIfNull<GenericLiftSet>(workoutLiftId, position) ?: return@executeWithErrorHandling
+        val customSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position) ?: return@executeWithErrorHandling
         val validatedRepRangeTop = getValidatedRepRangeTop(
             newRepRangeTop = customSet.repRangeTop,
             repRangeBottom = customSet.repRangeBottom)
 
         val updatedSet = when (customSet) {
-            is StandardSet -> customSet.copy(repRangeTop = validatedRepRangeTop)
-            is MyoRepSet -> customSet.copy(repRangeTop = validatedRepRangeTop)
-            is DropSet -> customSet.copy(repRangeTop = validatedRepRangeTop)
+            is StandardSetUiModel -> customSet.copy(repRangeTop = validatedRepRangeTop)
+            is MyoRepSetUiModel -> customSet.copy(repRangeTop = validatedRepRangeTop)
+            is DropSetUiModel -> customSet.copy(repRangeTop = validatedRepRangeTop)
             else -> throw Exception("${customSet::class.simpleName} is not defined")
         }
-        updateCustomLiftSetUseCase(updatedSet)
+        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
     }
 
     private fun getValidatedRepRangeBottom(newRepRangeBottom: Int, repRangeTop: Int): Int {
@@ -504,7 +517,7 @@ class WorkoutBuilderViewModel(
         }
     }
     
-    private fun getCurrentWorkoutAndLogIfNull(): Workout? {
+    private fun getCurrentWorkoutAndLogIfNull(): WorkoutUiModel? {
         val workout = _state.value.workout
         if (workout == null) {
             emitUserMessage("Workout not initialized!")
@@ -516,7 +529,7 @@ class WorkoutBuilderViewModel(
         return workout
     }
     
-    private inline fun<reified T: GenericWorkoutLift> getWorkoutLiftAndLogIfNull(workoutLiftId: Long): T? {
+    private inline fun<reified T: WorkoutLiftUiModel> getWorkoutLiftAndLogIfNull(workoutLiftId: Long): T? {
         val workoutLift = _state.value.workout?.lifts
             ?.find { it.id == workoutLiftId } as? T
 
@@ -530,13 +543,13 @@ class WorkoutBuilderViewModel(
         return workoutLift
     }
 
-    private inline fun<reified T: GenericLiftSet> getCustomLiftSetAndLogIfNull(workoutLiftId: Long, position: Int): T? {
-        val workoutLift = getWorkoutLiftAndLogIfNull<CustomWorkoutLift>(workoutLiftId) ?: return null
+    private inline fun<reified T: CustomLiftSetUiModel> getCustomLiftSetAndLogIfNull(workoutLiftId: Long, position: Int): T? {
+        val workoutLift = getWorkoutLiftAndLogIfNull<CustomWorkoutLiftUiModel>(workoutLiftId) ?: return null
         val customSet = safeGetCustomSetAtPositionAndLogIfNull<T>(workoutLift.customLiftSets, position) ?: return null
         return customSet
     }
 
-    private inline fun<reified T: GenericLiftSet> safeGetCustomSetAtPositionAndLogIfNull(customLiftSets: List<GenericLiftSet>, position: Int): T? {
+    private inline fun<reified T: CustomLiftSetUiModel> safeGetCustomSetAtPositionAndLogIfNull(customLiftSets: List<CustomLiftSetUiModel>, position: Int): T? {
         if (customLiftSets.size > position) {
             return customLiftSets[position] as? T
         } else {

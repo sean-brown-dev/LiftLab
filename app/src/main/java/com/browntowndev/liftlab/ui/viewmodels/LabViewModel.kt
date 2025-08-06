@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
@@ -18,6 +19,10 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetProg
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
+import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LabState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,8 +53,8 @@ class LabViewModel(
         getProgramConfigurationStateFlowUseCase()
             .map { programConfigurationState ->
                 LabState(
-                    allPrograms = programConfigurationState.allPrograms,
-                    program = programConfigurationState.program,
+                    allPrograms = programConfigurationState.allPrograms.fastMap { it.toUiModel() },
+                    program = programConfigurationState.program?.toUiModel(),
                 )
             }.onEach { state ->
                 _state.update {
@@ -93,7 +98,7 @@ class LabViewModel(
 
     fun updateDeloadWeek(deloadWeek: Int) = executeWithErrorHandling("Error updating deload week") {
         updateProgramDeloadWeekUseCase(
-            program = _state.value.program!!,
+            program = _state.value.program!!.toDomainModel(),
             deloadWeek = deloadWeek,
             useLiftSpecificDeload = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING))
     }
@@ -108,13 +113,13 @@ class LabViewModel(
         createProgramUseCase(
             name = name,
             isActive = !_state.value.isManagingPrograms,
-            currentActiveProgram = _state.value.program,
+            currentActiveProgram = _state.value.program?.toDomainModel(),
         )
     }
 
     private fun createNewWorkout() = executeWithErrorHandling("Error creating workout") {
         createWorkoutUseCase(
-            program = _state.value.program!!,
+            program = _state.value.program!!.toDomainModel(),
             name = "New Workout")
     }
     
@@ -157,11 +162,11 @@ class LabViewModel(
         }
     }
 
-    fun deleteWorkout(workout: Workout) = executeWithErrorHandling("Error deleting workout") {
-        deleteWorkoutUseCase(workout)
+    fun deleteWorkout(workout: WorkoutUiModel) = executeWithErrorHandling("Error deleting workout") {
+        deleteWorkoutUseCase(workout.toDomainModel())
     }
 
-    fun beginDeleteWorkout(workout: Workout) {
+    fun beginDeleteWorkout(workout: WorkoutUiModel) {
         _state.update {
             it.copy(workoutToDelete = workout)
         }
@@ -201,7 +206,7 @@ class LabViewModel(
         val newWorkoutPositions = newOrder.mapIndexed { index, reorderableListItem ->
             reorderableListItem.key to index
         }.toMap()
-        reorderWorkoutsUseCase(_state.value.program!!.workouts, newWorkoutPositions.toMap())
+        reorderWorkoutsUseCase(_state.value.program!!.workouts.fastMap { it.toDomainModel() }, newWorkoutPositions.toMap())
     }
 
     private fun toggleOffReorderingAndProgramManagement() {
@@ -230,6 +235,6 @@ class LabViewModel(
     fun setProgramAsActive(programId: Long) = executeWithErrorHandling("Error setting program as active") {
         // ProgramEntity is already active
         if (_state.value.program?.id == programId) return@executeWithErrorHandling
-        setProgramAsActiveUseCase(programId, _state.value.allPrograms)
+        setProgramAsActiveUseCase(programId, _state.value.allPrograms.fastMap { it.toDomainModel() })
     }
 }

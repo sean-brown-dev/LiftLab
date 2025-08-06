@@ -10,9 +10,7 @@ import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricChartModel
-import com.browntowndev.liftlab.ui.models.LiftMetricChartUiModel
 import com.browntowndev.liftlab.ui.models.metrics.VolumeMetricChartModel
-import com.browntowndev.liftlab.ui.models.VolumeMetricChartUiModel
 import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getPerMicrocycleVolumeChartModel
@@ -85,21 +83,5 @@ object ChartMappingExtensions {
                 null
             }
         }.sortedBy { it.volumeType }
-    }
-
-    fun LiftMetricChart.toUiModel(): LiftMetricChartUiModel {
-        return LiftMetricChartUiModel(
-            id = id,
-            liftId = liftId,
-            chartType = chartType
-        )
-    }
-
-    fun VolumeMetricChart.toUiModel(): VolumeMetricChartUiModel {
-        return VolumeMetricChartUiModel(
-            id = id,
-            volumeType = volumeType,
-            volumeTypeImpact = volumeTypeImpact
-        )
     }
 }

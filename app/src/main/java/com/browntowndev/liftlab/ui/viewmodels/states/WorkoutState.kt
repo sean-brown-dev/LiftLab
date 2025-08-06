@@ -2,10 +2,10 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.common.getVolumeTypeLabels
 import com.browntowndev.liftlab.ui.models.metrics.PersonalRecordUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
+import com.browntowndev.liftlab.ui.models.workout.getVolumeTypeLabels
 import com.browntowndev.liftlab.ui.models.workoutLogging.ActiveProgramMetadataUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.SetResultUiModel

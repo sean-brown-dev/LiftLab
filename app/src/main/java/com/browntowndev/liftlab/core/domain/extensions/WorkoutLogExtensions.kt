@@ -39,8 +39,6 @@ fun SetResult.toSetLogEntry(
     repRangeBottom: Int?,
     rpeTarget: Float,
     weightRecommendation: Float?,
-    mesoCycle: Int,
-    microCycle: Int,
 ): SetLogEntry = SetLogEntry(
         id = this.id,
         workoutLogEntryId = workoutLogEntryId,
@@ -61,19 +59,6 @@ fun SetResult.toSetLogEntry(
         rpe = this.rpe,
         isDeload = this.isDeload,
     )
-
-fun SetResult.copyCompletionDataFromSetLogEntry(other: SetLogEntry): SetResult =
-    this.copyBase(
-        reps = other.reps,
-        weight = other.weight,
-        rpe = other.rpe,
-    )
-
-fun List<LoggingWorkoutLift>.findSet(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet? {
-    if (liftPosition >= this.size) throw Exception("Lift position is out of bounds")
-    val lift = this[liftPosition]
-    return lift.findSet(setPosition = setPosition, myoRepSetPosition = myoRepSetPosition)
-}
 
 fun LoggingWorkoutLift.findSet(setPosition: Int, myoRepSetPosition: Int?): GenericLoggingSet? {
     // Will be null for newly added set results from the edit workout screen

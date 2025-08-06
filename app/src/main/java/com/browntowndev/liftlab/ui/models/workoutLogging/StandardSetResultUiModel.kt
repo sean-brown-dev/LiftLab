@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.models.workoutLogging
 
 import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 data class StandardSetResultUiModel(
     override val id: Long = 0L,
@@ -13,6 +14,14 @@ data class StandardSetResultUiModel(
     override  val rpe: Float,
     override val setType: SetType,
     override val isDeload: Boolean,
-    override val oneRepMax: Int,
+    override val persistedOneRepMax: Int?,
     val missedLpGoals: Int? = null,
-): SetResultUiModel
+): SetResultUiModel {
+    override val oneRepMax: Int by lazy {
+        persistedOneRepMax ?: WeightCalculationUtils.getOneRepMax(
+            weight = weight,
+            reps = reps,
+            rpe = rpe,
+        )
+    }
+}

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.ui.models.workout.WorkoutLiftUiModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +30,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 fun WorkoutCard(
     workoutId: Long,
     workoutName: String,
-    lifts: List<GenericWorkoutLift>,
+    lifts: List<WorkoutLiftUiModel>,
     showEditWorkoutNameModal: () -> Unit,
     beginDeleteWorkout: () -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,

@@ -19,5 +19,9 @@ data class StandardWorkoutLiftUiModel(
     override val deloadWeek: Int?,
     override val incrementOverride: Float?,
     override val restTime: Duration?,
-    override val restTimerEnabled: Boolean
+    override val restTimerEnabled: Boolean,
+    val rpeTarget: Float,
+    val repRangeBottom: Int,
+    val repRangeTop: Int,
+    val stepSize: Int? = null, // Only used for Wave Loading (and block in future)
 ): WorkoutLiftUiModel

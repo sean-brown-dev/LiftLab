@@ -45,18 +45,18 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.ui.composables.LiftLabOutlinedTextField
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 @Composable
 fun WorkoutLiftCard(
-    workoutLift: LoggingWorkoutLift,
+    workoutLift: LoggingWorkoutLiftUiModel,
     isEdit: Boolean,
     indicesOfExistingMyoRepSets: Set<String>,
     lazyListState: LazyListState,
@@ -195,7 +195,7 @@ fun WorkoutLiftCard(
 
             workoutLift.sets.fastForEach { set ->
                 val animateVisibility = remember(workoutLift.sets.size) {
-                    set is LoggingMyoRepSet &&
+                    set is LoggingMyoRepSetUiModel &&
                             !indicesOfExistingMyoRepSets.contains("${workoutLift.id}-${set.myoRepSetPosition}")
                 }
                 LoggableSet(
@@ -216,7 +216,7 @@ fun WorkoutLiftCard(
                         onWeightChanged(
                             workoutLift.id,
                             set.position,
-                            (set as? LoggingMyoRepSet)?.myoRepSetPosition,
+                            (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                             it
                         )
                     },
@@ -224,22 +224,22 @@ fun WorkoutLiftCard(
                         onRepsChanged(
                             workoutLift.id,
                             set.position,
-                            (set as? LoggingMyoRepSet)?.myoRepSetPosition,
+                            (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                             it
                         )
                     },
                     toggleRpePicker = {
                         if (it) {
-                            onShowRpePicker(workoutLift.id, set.position, (set as? LoggingMyoRepSet)?.myoRepSetPosition, set.completedRpe)
+                            onShowRpePicker(workoutLift.id, set.position, (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition, set.completedRpe)
                         } else {
                             onHideRpePicker()
                         }
                     },
                     onCompleted = { weight, reps, rpe ->
                         val setType = when (set) {
-                            is LoggingStandardSet -> SetType.STANDARD
-                            is LoggingDropSet -> SetType.DROP_SET
-                            is LoggingMyoRepSet -> SetType.MYOREP
+                            is LoggingStandardSetUiModel -> SetType.STANDARD
+                            is LoggingDropSetUiModel -> SetType.DROP_SET
+                            is LoggingMyoRepSetUiModel -> SetType.MYOREP
                             else -> throw Exception("${set::class.simpleName} is not defined.")
                         }
                         onSetCompleted(
@@ -247,7 +247,7 @@ fun WorkoutLiftCard(
                             workoutLift.progressionScheme,
                             workoutLift.position,
                             set.position,
-                            (set as? LoggingMyoRepSet)?.myoRepSetPosition,
+                            (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                             workoutLift.liftId,
                             weight,
                             reps,
@@ -261,7 +261,7 @@ fun WorkoutLiftCard(
                         onUndoSetCompletion(
                             workoutLift.position,
                             set.position,
-                            (set as? LoggingMyoRepSet)?.myoRepSetPosition,
+                            (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                         )
                     },
                     onAddSpacer = {

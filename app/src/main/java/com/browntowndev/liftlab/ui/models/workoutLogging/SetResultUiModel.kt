@@ -11,6 +11,7 @@ interface SetResultUiModel {
     val weight: Float
     val reps: Int
     val rpe: Float
+    val persistedOneRepMax: Int?
     val oneRepMax: Int
     val setType: SetType
     val isDeload: Boolean

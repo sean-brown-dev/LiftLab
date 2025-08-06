@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
-import com.browntowndev.liftlab.core.common.copyGeneric
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
@@ -17,7 +17,14 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedW
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistingSetResultUseCase
+import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
+import com.browntowndev.liftlab.ui.models.workout.copyGeneric
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -59,9 +66,9 @@ class EditWorkoutViewModel(
                     duration = completedWorkoutState.duration ?: "00:00:00",
                 ) to
                 WorkoutState(
-                    workout = completedWorkoutState.workout,
-                    programMetadata = completedWorkoutState.programMetadata,
-                    completedSets = completedWorkoutState.completedSetsFromLog,
+                    workout = completedWorkoutState.workout?.toUiModel(),
+                    programMetadata = completedWorkoutState.programMetadata?.toUiModel(),
+                    completedSets = completedWorkoutState.completedSetsFromLog.fastMap { it.toUiModel() },
                 )
             }.onEach { (editWorkoutState, workoutState) ->
                 _editWorkoutState.update { editWorkoutState }
@@ -99,9 +106,7 @@ class EditWorkoutViewModel(
 
         return upsertSetLogEntriesFromSetResultsUseCase(
             workoutLogEntryId = workoutLogEntryId,
-            mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
-            microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
-            loggingWorkoutLifts = mutableWorkoutState.value.workout!!.lifts,
+            loggingWorkoutLifts = mutableWorkoutState.value.workout!!.lifts.fastMap { it.toDomainModel() },
             setResults = updatedResults,
         )
     }
@@ -114,10 +119,8 @@ class EditWorkoutViewModel(
 
         return upsertExistingSetResultUseCase(
             workoutLogEntryId = workoutLogEntryId,
-            mesoCycle = mutableWorkoutState.value.programMetadata!!.currentMesocycle,
-            microCycle = mutableWorkoutState.value.programMetadata!!.currentMicrocycle,
             setResult = updatedResult,
-            loggingWorkoutLift = loggingWorkoutLift,
+            loggingWorkoutLift = loggingWorkoutLift.toDomainModel(),
         )
     }
 
@@ -134,7 +137,7 @@ class EditWorkoutViewModel(
         val lastSet = workoutLift.sets.last()
         val newSet = lastSet.copyGeneric(
             position = lastSet.position + 1,
-            myoRepSetPosition = (lastSet as? LoggingMyoRepSet)?.myoRepSetPosition?.let {
+            myoRepSetPosition = (lastSet as? LoggingMyoRepSetUiModel)?.myoRepSetPosition?.let {
                 it + 1
             },
         )
@@ -143,16 +146,16 @@ class EditWorkoutViewModel(
             restTime = 0L, restTimerEnabled = false, onBuildSetResult = {
                 buildSetResult(
                     setType = when (newSet) {
-                        is LoggingStandardSet -> SetType.STANDARD
-                        is LoggingDropSet -> SetType.DROP_SET
-                        is LoggingMyoRepSet -> SetType.MYOREP
+                        is LoggingStandardSetUiModel -> SetType.STANDARD
+                        is LoggingDropSetUiModel -> SetType.DROP_SET
+                        is LoggingMyoRepSetUiModel -> SetType.MYOREP
                         else -> throw Exception("${newSet::class.simpleName} is not defined")
                     },
                     liftId = workoutLift.liftId,
                     progressionScheme = workoutLift.progressionScheme,
                     liftPosition = workoutLift.position,
                     setPosition = newSet.position,
-                    myoRepSetPosition = (newSet as? LoggingMyoRepSet)?.myoRepSetPosition,
+                    myoRepSetPosition = (newSet as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                     weight = newSet.completedWeight ?: 0f,
                     reps = newSet.completedReps ?: 0,
                     rpe = newSet.completedRpe ?: 8f,

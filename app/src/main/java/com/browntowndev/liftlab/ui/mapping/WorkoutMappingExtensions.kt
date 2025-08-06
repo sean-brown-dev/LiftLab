@@ -31,11 +31,29 @@ object WorkoutMappingExtensions {
         )
     }
 
+    fun WorkoutUiModel.toDomainModel(): Workout {
+        return Workout(
+            id = id,
+            programId = programId,
+            name = name,
+            position = position,
+            lifts = lifts.map { it.toDomainModel() }
+        )
+    }
+
     fun GenericWorkoutLift.toUiModel(): WorkoutLiftUiModel {
         return when (this) {
             is StandardWorkoutLift -> toUiModel()
             is CustomWorkoutLift -> toUiModel()
             else -> throw IllegalArgumentException("Unknown GenericWorkoutLift type")
+        }
+    }
+
+    fun WorkoutLiftUiModel.toDomainModel(): GenericWorkoutLift {
+        return when (this) {
+            is StandardWorkoutLiftUiModel -> toDomainModel()
+            is CustomWorkoutLiftUiModel -> toDomainModel()
+            else -> throw IllegalArgumentException("Unknown WorkoutLiftUiModel type")
         }
     }
 
@@ -55,7 +73,34 @@ object WorkoutMappingExtensions {
             deloadWeek = deloadWeek,
             incrementOverride = incrementOverride,
             restTime = restTime,
-            restTimerEnabled = restTimerEnabled
+            restTimerEnabled = restTimerEnabled,
+            rpeTarget = rpeTarget,
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+            stepSize = stepSize,
+        )
+
+    fun StandardWorkoutLiftUiModel.toDomainModel(): StandardWorkoutLift =
+        StandardWorkoutLift(
+            id = id,
+            workoutId = workoutId,
+            liftId = liftId,
+            liftName = liftName,
+            liftMovementPattern = liftMovementPattern,
+            liftVolumeTypes = liftVolumeTypes,
+            liftSecondaryVolumeTypes = liftSecondaryVolumeTypes,
+            liftNote = liftNote,
+            position = position,
+            setCount = setCount,
+            progressionScheme = progressionScheme,
+            deloadWeek = deloadWeek,
+            incrementOverride = incrementOverride,
+            restTime = restTime,
+            restTimerEnabled = restTimerEnabled,
+            rpeTarget = rpeTarget,
+            repRangeBottom = repRangeBottom,
+            repRangeTop = repRangeTop,
+            stepSize = stepSize,
         )
 
     fun CustomWorkoutLift.toUiModel(): CustomWorkoutLiftUiModel =
@@ -76,6 +121,26 @@ object WorkoutMappingExtensions {
             restTime = restTime,
             restTimerEnabled = restTimerEnabled,
             customLiftSets = customLiftSets.fastMap { it.toUiModel() }
+        )
+
+    fun CustomWorkoutLiftUiModel.toDomainModel(): CustomWorkoutLift =
+        CustomWorkoutLift(
+            id = id,
+            workoutId = workoutId,
+            liftId = liftId,
+            liftName = liftName,
+            liftMovementPattern = liftMovementPattern,
+            liftVolumeTypes = liftVolumeTypes,
+            liftSecondaryVolumeTypes = liftSecondaryVolumeTypes,
+            liftNote = liftNote,
+            position = position,
+            setCount = setCount,
+            progressionScheme = progressionScheme,
+            deloadWeek = deloadWeek,
+            incrementOverride = incrementOverride,
+            restTime = restTime,
+            restTimerEnabled = restTimerEnabled,
+            customLiftSets = customLiftSets.fastMap { it.toDomainModel() }
         )
 
     fun GenericLiftSet.toUiModel(): CustomLiftSetUiModel =
@@ -112,8 +177,58 @@ object WorkoutMappingExtensions {
             else -> throw IllegalArgumentException("Unknown GenericLiftSet type")
         }
 
+    fun CustomLiftSetUiModel.toDomainModel(): GenericLiftSet =
+        when (this) {
+            is StandardSetUiModel -> StandardSet(
+                id = id,
+                workoutLiftId = workoutLiftId,
+                position = position,
+                rpeTarget = rpeTarget,
+                repRangeBottom = repRangeBottom,
+                repRangeTop = repRangeTop
+            )
+            is MyoRepSetUiModel -> MyoRepSet(
+                id = id,
+                workoutLiftId = workoutLiftId,
+                position = position,
+                rpeTarget = rpeTarget,
+                repRangeBottom = repRangeBottom,
+                repRangeTop = repRangeTop,
+                repFloor = repFloor,
+                maxSets = maxSets,
+                setMatching = setMatching,
+                setGoal = setGoal
+            )
+            is DropSetUiModel -> DropSet(
+                id = id,
+                workoutLiftId = workoutLiftId,
+                position = position,
+                rpeTarget = rpeTarget,
+                repRangeBottom = repRangeBottom,
+                repRangeTop = repRangeTop,
+                dropPercentage = dropPercentage
+            )
+            else -> throw IllegalArgumentException("Unknown CustomLiftSetUiModel type")
+        }
+
     fun Lift.toUiModel(): LiftUiModel {
         return LiftUiModel(
+            id = this.id,
+            name = this.name,
+            movementPattern = this.movementPattern,
+            volumeTypesBitmask = this.volumeTypesBitmask,
+            secondaryVolumeTypesBitmask = this.secondaryVolumeTypesBitmask,
+            incrementOverride = this.incrementOverride,
+
+            restTime = this.restTime,
+            restTimerEnabled = this.restTimerEnabled,
+            isBodyweight = this.isBodyweight,
+            note = this.note
+        )
+    }
+
+    fun LiftUiModel.toDomainModel(): Lift {
+        return Lift(
             id = this.id,
             name = this.name,
             movementPattern = this.movementPattern,

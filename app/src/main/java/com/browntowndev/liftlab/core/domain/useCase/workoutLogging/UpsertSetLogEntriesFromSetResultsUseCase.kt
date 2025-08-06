@@ -13,15 +13,13 @@ class UpsertSetLogEntriesFromSetResultsUseCase(
 ): BaseUpsertSetLogEntryUseCase() {
     suspend operator fun invoke(
         workoutLogEntryId: Long,
-        mesoCycle: Int,
-        microCycle: Int,
         loggingWorkoutLifts: List<LoggingWorkoutLift>,
         setResults: List<SetResult>,
     ): List<Long>  = transactionScope.executeWithResult {
         setResults.fastMap { setResult ->
             if (setResult.liftPosition >= loggingWorkoutLifts.size) throw Exception("Lift position is out of bounds")
             val loggingWorkoutLift = loggingWorkoutLifts[setResult.liftPosition]
-            getSetLogEntryFromSetResult(loggingWorkoutLift, setResult, workoutLogEntryId, mesoCycle, microCycle)
+            getSetLogEntryFromSetResult(loggingWorkoutLift, setResult, workoutLogEntryId)
         }.let { setLogEntries ->
             setLogEntryRepository.upsertMany(setLogEntries)
         }
