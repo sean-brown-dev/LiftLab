@@ -100,8 +100,8 @@ class CompleteWorkoutUseCaseTest {
         coVerify { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(programMetadata.programId, workout.id) }
         coVerify(exactly = 0) { historicalWorkoutNamesRepository.insert(any()) }
         coVerify { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) }
-        coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any(), any(), any(), any()) }
-        coVerify { setResultsRepository.deleteAllForPreviousWorkout(any(), any(), any(), any()) }
+        coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any(), any()) }
+        coVerify { setResultsRepository.deleteAll() }
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }
     }
 }

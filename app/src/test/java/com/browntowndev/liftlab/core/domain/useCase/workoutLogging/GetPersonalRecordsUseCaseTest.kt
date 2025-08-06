@@ -20,31 +20,23 @@ class GetPersonalRecordsUseCaseTest {
     fun setUp() {
         setResultsRepository = mockk()
         setLogEntryRepository = mockk()
-        getPersonalRecordsUseCase = GetPersonalRecordsUseCase(setResultsRepository, setLogEntryRepository)
+        getPersonalRecordsUseCase = GetPersonalRecordsUseCase(setLogEntryRepository)
     }
 
     @Test
-    fun `invoke returns merged personal records`() = runTest {
+    fun `invoke returns personal records`() = runTest {
         // Given
         val workoutId = 1L
         val mesoCycle = 1
         val microCycle = 1
         val liftIds = listOf(101L, 102L, 103L, 104L)
 
-        val prevWorkoutPrs = listOf(
-            PersonalRecord(liftId = 101L, personalRecord = 100), // Higher than log
-            PersonalRecord(liftId = 102L, personalRecord = 200)  // Same as log
-        )
         val logPrs = listOf(
             PersonalRecord(liftId = 101L, personalRecord = 95),
             PersonalRecord(liftId = 102L, personalRecord = 200),
             PersonalRecord(liftId = 103L, personalRecord = 300) // Only in log
         )
         // 104L is in neither
-
-        coEvery {
-            setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(workoutId, mesoCycle, microCycle, liftIds)
-        } returns prevWorkoutPrs
 
         coEvery {
             setLogEntryRepository.getPersonalRecordsForLifts(liftIds)
@@ -55,7 +47,7 @@ class GetPersonalRecordsUseCaseTest {
 
         // Then
         assertEquals(3, result.size)
-        assertEquals(100, result[101L]?.personalRecord)
+        assertEquals(95, result[101L]?.personalRecord)
         assertEquals(200, result[102L]?.personalRecord)
         assertEquals(300, result[103L]?.personalRecord)
     }
@@ -70,9 +62,6 @@ class GetPersonalRecordsUseCaseTest {
         val logPrs = listOf(PersonalRecord(liftId = 101L, personalRecord = 100))
 
         coEvery {
-            setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any())
-        } returns emptyList()
-        coEvery {
             setLogEntryRepository.getPersonalRecordsForLifts(any())
         } returns logPrs
 
@@ -85,17 +74,12 @@ class GetPersonalRecordsUseCaseTest {
     }
 
     @Test
-    fun `invoke with empty log results returns only previous records`() = runTest {
+    fun `invoke with empty log results returns none`() = runTest {
         // Given
         val workoutId = 1L
         val mesoCycle = 1
         val microCycle = 1
         val liftIds = listOf(101L)
-        val prevWorkoutPrs = listOf(PersonalRecord(liftId = 101L, personalRecord = 100))
-
-        coEvery {
-            setResultsRepository.getPersonalRecordsForLiftsExcludingWorkout(any(), any(), any(), any())
-        } returns prevWorkoutPrs
         coEvery {
             setLogEntryRepository.getPersonalRecordsForLifts(any())
         } returns emptyList()
@@ -104,7 +88,6 @@ class GetPersonalRecordsUseCaseTest {
         val result = getPersonalRecordsUseCase(workoutId, mesoCycle, microCycle, liftIds)
 
         // Then
-        assertEquals(1, result.size)
-        assertEquals(100, result[101L]?.personalRecord)
+        assertEquals(0, result.size)
     }
 }

@@ -54,11 +54,7 @@ class CancelWorkoutUseCaseTest {
         // Then
         coVerify { workoutInProgressRepository.deleteAll() }
         coVerify {
-            setResultsRepository.deleteAllForWorkout(
-                workoutId = workout.id,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle
-            )
+            setResultsRepository.deleteAll()
         }
     }
 }

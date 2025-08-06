@@ -142,8 +142,6 @@ fun createSetLogEntry(
     rpeTarget = rpeTarget,
     weightRecommendation = weightRecommendation,
     persistedOneRepMax = persistedOneRepMax,
-    mesoCycle = mesoCycle,
-    microCycle = microCycle,
     setMatching = setMatching,
     maxSets = maxSets,
     repFloor = repFloor,

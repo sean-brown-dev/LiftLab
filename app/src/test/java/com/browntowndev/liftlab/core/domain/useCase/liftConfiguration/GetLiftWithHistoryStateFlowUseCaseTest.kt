@@ -94,8 +94,6 @@ class GetLiftWithHistoryStateFlowUseCaseTest {
             reps = reps,
             rpe = rpe,
             persistedOneRepMax = null,
-            mesoCycle = 1,
-            microCycle = 1,
             isPersonalRecord = false,
             setMatching = null,
             maxSets = null,

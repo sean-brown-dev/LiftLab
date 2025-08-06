@@ -1,11 +1,14 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -44,26 +47,23 @@ class GetNewestSetResultsUseCaseTest {
 
         // Then
         assertEquals(existingResults, result)
-        coVerify(exactly = 0) { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) }
+        coVerify(exactly = 0) { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any()) }
     }
 
     @Test
     fun `invoke returns merged results`() = runTest {
         // Given
         val workout = Workout(id = 1, programId = 1, name = "Test Workout", position = 0, lifts = emptyList())
-        val existingResults = listOf(
-            StandardSetResult(id = 1, workoutId = 1, liftId = 101, liftPosition = 0, setPosition = 0,
-                weight = 100f, reps = 5, rpe = 8f,
-                setType = SetType.STANDARD, isDeload = false)
-        )
-        val newResults = listOf(
-            StandardSetResult(id = 2, workoutId = 1, liftId = 102, liftPosition = 1, setPosition = 0,
-                weight = 200f, reps = 5, rpe = 8f,
-                setType = SetType.STANDARD, isDeload = false)
-        )
+        val existingResults = listOf(createSetLogEntry(id = 1, liftId = 101, liftPosition = 0)).fastMap {
+            it.toSetResult(
+                workoutId = workout.id,
+                isLinearProgression = false
+            )
+        }
+        val newResults = listOf(createSetLogEntry(id = 2, liftId = 102, liftPosition = 1, weight = 200f))
         val liftIdsToSearchFor = listOf(102L)
 
-        coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns newResults
+        coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any()) } returns newResults
 
         // When
         val result = getNewestSetResultsUseCase(workout, liftIdsToSearchFor, existingResults, false)
@@ -71,7 +71,7 @@ class GetNewestSetResultsUseCaseTest {
         // Then
         assertEquals(2, result.size)
         assertTrue(result.containsAll(existingResults))
-        assertTrue(result.containsAll(newResults))
+        assertTrue(result.containsAll(newResults.fastMap { it.toSetResult(workoutId = workout.id, isLinearProgression = false) }))
     }
 
     @Test
@@ -83,7 +83,7 @@ class GetNewestSetResultsUseCaseTest {
         val workout = Workout(id = 1, programId = 1, name = "Test Workout", position = 0, lifts = listOf(lpLift, dpLift))
         val liftIdsToSearchFor = listOf(101L, 102L)
 
-        coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any(), any()) } returns emptyList()
+        coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any()) } returns emptyList()
 
         // When
         getNewestSetResultsUseCase(workout, liftIdsToSearchFor, emptyList(), false)
@@ -92,9 +92,46 @@ class GetNewestSetResultsUseCaseTest {
         coVerify {
             workoutLogRepository.getMostRecentSetResultsForLiftIds(
                 liftIds = liftIdsToSearchFor,
-                linearProgressionLiftIds = hashSetOf(101L),
                 includeDeloads = false
             )
         }
+    }
+
+    private fun createSetLogEntry(
+        id: Long,
+        workoutLogEntryId: Long = 1,
+        liftId: Long,
+        liftPosition: Int,
+        setPosition: Int = 0,
+        weight: Float = 100f,
+        reps: Int = 5,
+        rpe: Float = 8f,
+        setType: SetType = SetType.STANDARD,
+        isDeload: Boolean = false,
+        workoutLiftDeloadWeek: Int? = null,
+        liftName: String = "Test Lift",
+        liftMovementPattern: MovementPattern = MovementPattern.LEG_PUSH,
+        progressionScheme: ProgressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+        myoRepSetPosition: Int? = null,
+        repRangeTop: Int? = null,
+        repRangeBottom: Int? = null,
+        rpeTarget: Float = 8f,
+        weightRecommendation: Float? = null,
+        persistedOneRepMax: Int? = null,
+        isPersonalRecord: Boolean = false,
+        setMatching: Boolean = false,
+        maxSets: Int? = null,
+        repFloor: Int? = null,
+        dropPercentage: Float? = null
+    ): SetLogEntry {
+        return SetLogEntry(
+            id = id, workoutLogEntryId = workoutLogEntryId, liftId = liftId, liftPosition = liftPosition, setPosition = setPosition,
+            weight = weight, reps = reps, rpe = rpe,
+            setType = setType, isDeload = isDeload, workoutLiftDeloadWeek = workoutLiftDeloadWeek, liftName = liftName,
+            liftMovementPattern = liftMovementPattern, progressionScheme = progressionScheme, myoRepSetPosition = myoRepSetPosition,
+            repRangeTop = repRangeTop, repRangeBottom = repRangeBottom, rpeTarget = rpeTarget, weightRecommendation = weightRecommendation,
+            persistedOneRepMax = persistedOneRepMax, isPersonalRecord = isPersonalRecord, setMatching = setMatching, maxSets = maxSets,
+            repFloor = repFloor, dropPercentage = dropPercentage
+        )
     }
 }
