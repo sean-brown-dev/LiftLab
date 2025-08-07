@@ -1,17 +1,16 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
+import com.browntowndev.liftlab.ui.models.Utils.getAllVolumeTypeDisplayNames
 import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
+import com.browntowndev.liftlab.ui.models.workout.LiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 data class LiftDetailsState(
-    val lift: Lift? = null,
-    val workoutLogs: List<WorkoutLogEntry> = listOf(),
-    val volumeTypeDisplayNames: List<String> = listOf(),
-    val secondaryVolumeTypeDisplayNames: List<String> = listOf(),
+    val lift: LiftUiModel? = null,
+    val workoutLogs: List<WorkoutLogEntryUiModel> = listOf(),
     val selectedOneRepMaxWorkoutFilters: Set<Long> = setOf(),
     val selectedVolumeWorkoutFilters: Set<Long> = setOf(),
     val selectedIntensityWorkoutFilters: Set<Long> = setOf(),
@@ -25,4 +24,11 @@ data class LiftDetailsState(
     val oneRepMaxChartModel: ChartModel<LineCartesianLayerModel>? = null,
     val volumeChartModel: ComposedChartModel<LineCartesianLayerModel>? = null,
     val intensityChartModel: ChartModel<LineCartesianLayerModel>? = null,
-)
+) {
+    val volumeTypeOptions by lazy {
+        getAllVolumeTypeDisplayNames().filterNot {
+            it in lift?.volumeTypes.orEmpty() ||
+                it in lift?.secondaryVolumeTypes.orEmpty()
+        }
+    }
+}

@@ -1,19 +1,21 @@
 package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.BuildSetResultUseCase
-import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedLiftMetricChartDataUseCase
-import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedVolumeMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.AddVolumeTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.RemoveVolumeTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteLiftMetricChartByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteVolumeMetricChartByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetConfiguredMetricsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedLiftMetricChartDataUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedVolumeMetricChartDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.InsertManyLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.UpsertManyVolumeMetricChartsUseCase
@@ -29,11 +31,28 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateP
 import com.browntowndev.liftlab.core.domain.useCase.settings.GetSettingConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateLiftSpecificDeloadSettingUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateSettingUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetLogEntryByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetResultByIdUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWorkoutStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetNewestSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetPersonalRecordsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
@@ -45,30 +64,13 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.ReorderWorkou
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.RestTimerCompletedUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistingSetResultUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetLogEntryByIdUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistingSetResultUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -137,6 +139,8 @@ val useCaseModule = module {
     singleOf(::UpdateLiftNameUseCase)
     singleOf(::UpdateMovementPatternUseCase)
     singleOf(::UpdateVolumeTypeUseCase)
+    singleOf(::AddVolumeTypeUseCase)
+    singleOf(::RemoveVolumeTypeUseCase)
 
     // Metrics
     singleOf(::GetGroupedLiftMetricChartDataUseCase)

@@ -5,13 +5,10 @@ import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getSevenWeeksDateRange
 import com.browntowndev.liftlab.core.common.authStateFlow
+import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.domain.enums.toLiftMetricChartType
-import com.browntowndev.liftlab.core.domain.enums.toVolumeType
-import com.browntowndev.liftlab.core.domain.enums.toVolumeTypeImpact
-import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
-import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
 import com.browntowndev.liftlab.core.domain.extensions.filterByDateRange
 import com.browntowndev.liftlab.core.domain.models.metrics.ConfiguredMetricsState
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
@@ -25,15 +22,19 @@ import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
 import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toVolumeMetricChartModels
+import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.getMicroCycleCompletionChart
 import com.browntowndev.liftlab.ui.models.metrics.getWeeklyCompletionChart
+import com.browntowndev.liftlab.ui.models.workout.toVolumeType
+import com.browntowndev.liftlab.ui.models.workout.toVolumeTypeImpact
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
-import dev.gitlive.firebase.auth.FirebaseUser
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.AuthResult
 import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import dev.gitlive.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -109,6 +110,8 @@ class HomeViewModel(
                         volumeMetricChartModels =
                             newHomeState.lifts.toVolumeMetricChartModels(
                                 groupedData = configurationState.volumeMetricChartData
+                                    .map { it.key to it.value.fastMap { workoutLog -> workoutLog.toUiModel() } }
+                                    .toMap()
                             )
                     )
                 } else newHomeState.copy(
@@ -121,6 +124,8 @@ class HomeViewModel(
                         liftMetricChartModels =
                             configurationState.liftMetricCharts.toChartModels(
                                 groupedLogs = configurationState.liftMetricChartData
+                                    .map { it.key to it.value.fastMap { workoutLog -> workoutLog.toUiModel() } }
+                                    .toMap()
                             )
                     )
                 } else newHomeState.copy(

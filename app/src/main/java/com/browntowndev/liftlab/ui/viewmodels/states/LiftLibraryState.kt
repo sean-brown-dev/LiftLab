@@ -2,12 +2,12 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
-import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.ui.models.workout.LiftUiModel
 
 @Stable
 data class LiftLibraryState (
-    val allLifts: List<Lift> = listOf(),
-    val filteredLifts: List<Lift> = listOf(),
+    val allLifts: List<LiftUiModel> = listOf(),
+    val filteredLifts: List<LiftUiModel> = listOf(),
     val selectedNewLifts: List<Long> = listOf(),
     val addAtPosition: Int? = null,
     val workoutId: Long? = null,

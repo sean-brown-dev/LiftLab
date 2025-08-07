@@ -1,18 +1,21 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
-import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
-import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
-import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
+import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
+import com.browntowndev.liftlab.ui.models.workout.LiftUiModel
+import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -48,7 +51,7 @@ class LiftLibraryViewModel(
                 .map { liftConfigurationState ->
                     val sortedLifts = liftConfigurationState.lifts.sortedBy { it.name }
                     LiftLibraryState(
-                        allLifts = sortedLifts,
+                        allLifts = sortedLifts.fastMap { it.toUiModel() },
                         liftsToFilterOut = liftConfigurationState.liftIdsForWorkout,
                     )
                 }.onEach { state ->
@@ -131,7 +134,7 @@ class LiftLibraryViewModel(
         createWorkoutLiftsFromLiftsUseCase(
             workoutId = _state.value.workoutId!!,
             firstPosition = _state.value.addAtPosition!!,
-            lifts = newLifts
+            lifts = newLifts.fastMap { it.toDomainModel() }
         )
         navigateBackToWorkoutBuilder()
     }
@@ -203,11 +206,11 @@ class LiftLibraryViewModel(
     }
 
     private fun getFilteredLifts(
-        liftsToFilter: List<Lift>,
+        liftsToFilter: List<LiftUiModel>,
         nameFilter: String?,
         movementPatternFilters: List<FilterChipOption>,
         liftIdFilters: Set<Long>,
-    ): List<Lift> {
+    ): List<LiftUiModel> {
         return liftsToFilter.let { lifts ->
             val hasNameFilter = nameFilter?.isNotEmpty() == true
             val hasMovementPatternFilters = movementPatternFilters.isNotEmpty()
@@ -239,7 +242,7 @@ class LiftLibraryViewModel(
         }
     }
 
-    fun deleteLift(lift: Lift) = executeWithErrorHandling("Failed to delete lift") {
-        deleteLiftUseCase(lift)
+    fun deleteLift(lift: LiftUiModel) = executeWithErrorHandling("Failed to delete lift") {
+        deleteLiftUseCase(lift.toDomainModel())
     }
 }

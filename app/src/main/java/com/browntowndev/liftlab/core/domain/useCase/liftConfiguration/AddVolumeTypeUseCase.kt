@@ -3,31 +3,18 @@ package com.browntowndev.liftlab.core.domain.useCase.liftConfiguration
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
-import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 
-class UpdateVolumeTypeUseCase(
+class AddVolumeTypeUseCase(
     private val liftsRepository: LiftsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(
-        lift: Lift,
-        index: Int,
-        newVolumeType: VolumeType,
-        volumeTypeCategory: VolumeTypeCategory
-    ) = transactionScope.execute {
-        val newVolumeTypeBitmask = lift.volumeTypesBitmask.getVolumeTypes()
-            .toMutableList()
-            .apply {
-                if (index >= size) throw IllegalArgumentException("Index for updating volume type is out of bounds")
-                this[index] = newVolumeType
-            }.sumOf {
-                it.bitMask
-            }
-
+    suspend operator fun invoke(lift: Lift, newVolumeType: VolumeType, volumeTypeCategory: VolumeTypeCategory) = transactionScope.execute {
+        val newVolumeTypeBitmask = lift.volumeTypesBitmask + newVolumeType.bitMask
         val liftToUpdate = if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = newVolumeTypeBitmask)
             else lift.copy(secondaryVolumeTypesBitmask = newVolumeTypeBitmask)
+
         liftsRepository.update(liftToUpdate)
     }
 }

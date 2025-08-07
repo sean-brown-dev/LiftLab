@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 
@@ -27,11 +26,10 @@ fun volumeTypeMenu(
     sectionHeader: String,
     allowDeleteAll: Boolean,
     volumeTypes: List<String>,
-    volumeTypeOptions: Map<String, VolumeType>,
-    unselectedVolumeTypeOptions: List<VolumeType>,
-    onUpdateVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
-    onAddVolumeType: (newVolumeType: VolumeType) -> Unit,
-    onRemoveVolumeType: (toRemove: VolumeType) -> Unit,
+    volumeTypeOptions: List<String>,
+    onUpdateVolumeType: (index: Int, newVolumeType: String) -> Unit,
+    onAddVolumeType: (newVolumeType: String) -> Unit,
+    onRemoveVolumeType: (toRemove: String) -> Unit,
 ) {
     lazyListScope.item {
         SectionLabel(text = sectionHeader)
@@ -43,18 +41,18 @@ fun volumeTypeMenu(
             confirmationDialogBody = "Confirm to remove the volume type.",
             enabled = remember(key1 = allowDeleteAll, key2 = volumeTypes) { allowDeleteAll || volumeTypes.size > 1 },
             shape = RoundedCornerShape(5.dp),
-            onDelete = { onRemoveVolumeType(volumeTypeOptions[volumeType]!!) }
+            onDelete = { onRemoveVolumeType(volumeType) }
         ) {
             VolumeTypeDropdown(
                 volumeTypeDisplay = volumeType,
-                unselectedVolumeTypeOptions = unselectedVolumeTypeOptions,
+                unselectedVolumeTypeOptions = volumeTypeOptions,
                 onUpdateVolumeType = { onUpdateVolumeType(index, it) },
             )
         }
     }
 
     lazyListScope.item {
-        if (unselectedVolumeTypeOptions.isNotEmpty()) {
+        if (volumeTypeOptions.isNotEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
@@ -64,7 +62,7 @@ fun volumeTypeMenu(
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.primary
                     ),
-                    onClick =  { onAddVolumeType(unselectedVolumeTypeOptions.first()) }
+                    onClick =  { onAddVolumeType(volumeTypeOptions.first()) }
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,

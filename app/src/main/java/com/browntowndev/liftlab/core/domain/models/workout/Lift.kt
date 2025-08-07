@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.core.domain.models.workout
 
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.core.domain.enums.displayName
 import kotlin.time.Duration
 
 data class Lift(
@@ -15,6 +14,4 @@ data class Lift(
     val restTimerEnabled: Boolean,
     val isBodyweight: Boolean,
     val note: String?,
-) {
-    val movementPatternDisplayName get() = this.movementPattern.displayName()
-}
+)

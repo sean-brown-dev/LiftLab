@@ -3,25 +3,28 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.domain.enums.VolumeType
-import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
-import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.common.toTwoDecimalString
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
 import com.browntowndev.liftlab.core.domain.extensions.toFilterOptions
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.AddVolumeTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.RemoveVolumeTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
-import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getPerWorkoutVolumeChartModel
+import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.models.workout.toVolumeType
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +44,8 @@ class LiftDetailsViewModel(
     private val updateLiftNameUseCase: UpdateLiftNameUseCase,
     private val updateMovementPatternUseCase: UpdateMovementPatternUseCase,
     private val updateVolumeTypeUseCase: UpdateVolumeTypeUseCase,
+    private val addVolumeTypeUseCase: AddVolumeTypeUseCase,
+    private val removeVolumeTypeUseCase: RemoveVolumeTypeUseCase,
     private val createLiftUseCase: CreateLiftUseCase,
     getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase,
     private val onNavigateBack: () -> Unit,
@@ -55,21 +60,14 @@ class LiftDetailsViewModel(
             .scan(LiftDetailsState()) { currentLiftDetailsState, liftWithHistoryState ->
                 // Lift values can change, so always recalculate these on state change
                 val newLiftDetailsState = currentLiftDetailsState.copy(
-                    lift = liftWithHistoryState.lift,
-                    volumeTypeDisplayNames = liftWithHistoryState.lift.volumeTypesBitmask.getVolumeTypes()
-                        .fastMap { volumeType ->
-                            volumeType.displayName()
-                        }.sorted(),
-                    secondaryVolumeTypeDisplayNames = liftWithHistoryState.lift.secondaryVolumeTypesBitmask?.getVolumeTypes()
-                        ?.fastMap { volumeType ->
-                            volumeType.displayName()
-                        }?.sorted() ?: listOf(),
+                    lift = liftWithHistoryState.lift.toUiModel(),
                 )
 
                 // Only recalculate when workout logs change (will only happen once, they can't change within this viewmodel)
                 if (currentLiftDetailsState.workoutLogs != liftWithHistoryState.workoutLogEntries) {
+                    val workoutLogUiModels = liftWithHistoryState.workoutLogEntries.fastMap { it.toUiModel() }
                     newLiftDetailsState.copy(
-                        workoutLogs = liftWithHistoryState.workoutLogEntries,
+                        workoutLogs = workoutLogUiModels,
                         oneRepMax = liftWithHistoryState.topTenPerformances.firstOrNull()?.let { pr -> pr.first.toMediumDateString() to pr.second.oneRepMax.toString() },
                         maxVolume = liftWithHistoryState.maxVolume?.let { it.first.toMediumDateString() to it.second.toTwoDecimalString() },
                         maxWeight = liftWithHistoryState.maxWeight?.let { it.first.toMediumDateString() to it.second.toTwoDecimalString() },
@@ -83,9 +81,9 @@ class LiftDetailsViewModel(
                         totalReps = liftWithHistoryState.totalReps.toString(),
                         totalVolume = liftWithHistoryState.totalVolume.toTwoDecimalString(),
                         workoutFilterOptions = liftWithHistoryState.workoutLogEntries.toFilterOptions(),
-                        oneRepMaxChartModel = getOneRepMaxChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
-                        volumeChartModel = getPerWorkoutVolumeChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
-                        intensityChartModel = getIntensityChartModel(liftWithHistoryState.workoutLogEntries, setOf()),
+                        oneRepMaxChartModel = getOneRepMaxChartModel(workoutLogUiModels, setOf()),
+                        volumeChartModel = getPerWorkoutVolumeChartModel(workoutLogUiModels, setOf()),
+                        intensityChartModel = getIntensityChartModel(workoutLogUiModels, setOf()),
                     )
                 } else newLiftDetailsState
             }.onEach { state ->
@@ -109,77 +107,61 @@ class LiftDetailsViewModel(
     }
 
     fun updateName(newName: String) = executeWithErrorHandling("Failed to update lift name") {
-        updateLiftNameUseCase(_state.value.lift!!, newName)
+        updateLiftNameUseCase(_state.value.lift!!.toDomainModel(), newName)
     }
 
-    fun addVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift volume type") {
-        val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask + newVolumeType.bitMask
-        updateVolumeType(newVolumeTypeBitmask)
-    }
-
-    fun addSecondaryVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift secondary volume type") {
-        val newVolumeTypeBitmask = (_state.value.lift!!.secondaryVolumeTypesBitmask ?: 0) + newVolumeType.bitMask
-        updateSecondaryVolumeType(newVolumeTypeBitmask)
-    }
-
-    fun removeVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift volume type") {
-        val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask - toRemove.bitMask
-        updateVolumeType(newVolumeTypeBitmask)
-    }
-
-    fun removeSecondaryVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
-        val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!! - toRemove.bitMask
-        updateSecondaryVolumeType(newVolumeTypeBitmask)
-    }
-
-    fun updateVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift volume types") {
-        val oldVolumeTypeDisplayName = _state.value.volumeTypeDisplayNames[index]
-        val newVolumeTypeBitmask = _state.value.lift!!.volumeTypesBitmask
-            .getVolumeTypes()
-            .toMutableList()
-            .apply {
-                val volumeTypeIndex = indexOfFirst { v -> v.displayName() == oldVolumeTypeDisplayName }
-                this[volumeTypeIndex] = newVolumeType
-            }.sumOf {
-                it.bitMask
-            }
-
-        updateVolumeType(newVolumeTypeBitmask)
-    }
-
-    private fun updateVolumeType(newVolumeTypeBitmask: Int) = executeWithErrorHandling("Failed to update lift volume types") {
-        updateVolumeTypeUseCase(
-            lift = _state.value.lift!!,
-            newVolumeTypeBitmask = newVolumeTypeBitmask,
+    fun addVolumeType(newVolumeType: String) = executeWithErrorHandling("Failed to add lift volume type") {
+        addVolumeTypeUseCase(
+            lift = _state.value.lift!!.toDomainModel(),
+            newVolumeType = newVolumeType.toVolumeType(),
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
 
-    fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift secondary volume types") {
-        val oldVolumeTypeDisplayName = _state.value.secondaryVolumeTypeDisplayNames[index]
-        val newVolumeTypeBitmask = _state.value.lift!!.secondaryVolumeTypesBitmask!!
-            .getVolumeTypes()
-            .toMutableList()
-            .apply {
-                val volumeTypeIndex = indexOfFirst { v -> v.displayName() == oldVolumeTypeDisplayName }
-                this[volumeTypeIndex] = newVolumeType
-            }.sumOf {
-                it.bitMask
-            }
-
-        updateSecondaryVolumeType(newVolumeTypeBitmask)
+    fun addSecondaryVolumeType(newVolumeType: String) = executeWithErrorHandling("Failed to add lift secondary volume type") {
+        addVolumeTypeUseCase(
+            lift = _state.value.lift!!.toDomainModel(),
+            newVolumeType = newVolumeType.toVolumeType(),
+            volumeTypeCategory = VolumeTypeCategory.SECONDARY
+        )
     }
 
-    private fun updateSecondaryVolumeType(newSecondaryVolumeTypeBitmask: Int?) = executeWithErrorHandling("Failed to update lift secondary volume types") {
+    fun removeVolumeType(toRemove: String) = executeWithErrorHandling("Failed to remove lift volume type") {
+        removeVolumeTypeUseCase(
+            lift = _state.value.lift!!.toDomainModel(),
+            volumeTypeToRemove = toRemove.toVolumeType(),
+            volumeTypeCategory = VolumeTypeCategory.PRIMARY
+        )
+    }
+
+    fun removeSecondaryVolumeType(toRemove: String) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
+        removeVolumeTypeUseCase(
+            lift = _state.value.lift!!.toDomainModel(),
+            volumeTypeToRemove = toRemove.toVolumeType(),
+            volumeTypeCategory = VolumeTypeCategory.SECONDARY
+        )
+    }
+
+    fun updateVolumeType(index: Int, newVolumeType: String) = executeWithErrorHandling("Failed to update lift volume types") {
         updateVolumeTypeUseCase(
-            lift = _state.value.lift!!,
-            newVolumeTypeBitmask = newSecondaryVolumeTypeBitmask,
+            lift = _state.value.lift!!.toDomainModel(),
+            index = index,
+            newVolumeType = newVolumeType.toVolumeType(),
+            volumeTypeCategory = VolumeTypeCategory.PRIMARY
+        )
+    }
+
+    fun updateSecondaryVolumeType(index: Int, newVolumeType: String) = executeWithErrorHandling("Failed to update lift secondary volume types") {
+        updateVolumeTypeUseCase(
+            lift = _state.value.lift!!.toDomainModel(),
+            index = index,
+            newVolumeType = newVolumeType.toVolumeType(),
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }
 
     fun updateMovementPattern(newMovementPattern: MovementPattern) = executeWithErrorHandling("Failed to update lift movement pattern") {
-        updateMovementPatternUseCase(_state.value.lift!!, newMovementPattern)
+        updateMovementPatternUseCase(_state.value.lift!!.toDomainModel(), newMovementPattern)
     }
 
     private fun createNewLift() = executeWithErrorHandling("Failed to create new lift") {
@@ -188,7 +170,7 @@ class LiftDetailsViewModel(
             lift.copy(name = "New Lift")
         } else lift
 
-        createLiftUseCase(liftEntityToCreate)
+        createLiftUseCase(liftEntityToCreate.toDomainModel())
         onNavigateBack()
     }
 

@@ -1,11 +1,12 @@
 package com.browntowndev.liftlab.ui.models.workout
 
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.appendSuperscript
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
-import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.domain.utils.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
@@ -16,7 +17,6 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiMod
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
 import java.util.Locale.US
-import kotlin.collections.getOrDefault
 
 
 private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<WorkoutLiftUiModel>, impact: VolumeTypeImpact):  HashMap<String, Pair<Float, Boolean>> {
@@ -410,5 +410,66 @@ fun CustomLiftSetUiModel.transformToType(
                 SetType.DROP_SET -> this // Already handled above
             }
         else -> throw IllegalArgumentException("${this::class.simpleName} is not a recognized custom set type.")
+    }
+}
+
+fun Int.toVolumeTypeDisplayNames() =
+    this.getVolumeTypes().fastMap { it.displayName() }
+
+fun VolumeType.displayName(): String {
+    return when (this) {
+        VolumeType.CHEST -> "Chest"
+        VolumeType.BACK -> "Back"
+        VolumeType.QUAD -> "Quads"
+        VolumeType.HAMSTRING -> "Hamstrings"
+        VolumeType.GLUTE -> "Glutes"
+        VolumeType.POSTERIOR_DELTOID -> "Posterior Deltoids"
+        VolumeType.LATERAL_DELTOID -> "Lateral Deltoids"
+        VolumeType.ANTERIOR_DELTOID -> "Anterior Deltoids"
+        VolumeType.TRICEP -> "Triceps"
+        VolumeType.BICEP -> "Biceps"
+        VolumeType.TRAP -> "Traps"
+        VolumeType.CALF -> "Calves"
+        VolumeType.FOREARM -> "Forearms"
+        VolumeType.AB -> "Abs"
+        VolumeType.LOWER_BACK -> "Lower Back"
+    }
+}
+
+fun VolumeTypeImpact.displayName(): String {
+    return when (this) {
+        VolumeTypeImpact.PRIMARY -> "Primary"
+        VolumeTypeImpact.SECONDARY -> "Secondary"
+        VolumeTypeImpact.COMBINED -> "All"
+    }
+}
+
+fun String.toVolumeType(): VolumeType {
+    return when (this) {
+        VolumeType.CHEST.displayName() -> VolumeType.CHEST
+        VolumeType.BACK.displayName() -> VolumeType.BACK
+        VolumeType.QUAD.displayName() -> VolumeType.QUAD
+        VolumeType.HAMSTRING.displayName() -> VolumeType.HAMSTRING
+        VolumeType.GLUTE.displayName() -> VolumeType.GLUTE
+        VolumeType.POSTERIOR_DELTOID.displayName() -> VolumeType.POSTERIOR_DELTOID
+        VolumeType.LATERAL_DELTOID.displayName() -> VolumeType.LATERAL_DELTOID
+        VolumeType.ANTERIOR_DELTOID.displayName() -> VolumeType.ANTERIOR_DELTOID
+        VolumeType.TRICEP.displayName() -> VolumeType.TRICEP
+        VolumeType.BICEP.displayName() -> VolumeType.BICEP
+        VolumeType.TRAP.displayName() -> VolumeType.TRAP
+        VolumeType.CALF.displayName() -> VolumeType.CALF
+        VolumeType.FOREARM.displayName() -> VolumeType.FOREARM
+        VolumeType.AB.displayName() -> VolumeType.AB
+        VolumeType.LOWER_BACK.displayName() -> VolumeType.LOWER_BACK
+        else -> throw IllegalArgumentException("Unknown volume type: $this")
+    }
+}
+
+fun String.toVolumeTypeImpact(): VolumeTypeImpact {
+    return when (this) {
+        VolumeTypeImpact.PRIMARY.displayName() -> VolumeTypeImpact.PRIMARY
+        VolumeTypeImpact.SECONDARY.displayName() -> VolumeTypeImpact.SECONDARY
+        VolumeTypeImpact.COMBINED.displayName() -> VolumeTypeImpact.COMBINED
+        else -> throw IllegalArgumentException("Unknown volume type impact: $this")
     }
 }

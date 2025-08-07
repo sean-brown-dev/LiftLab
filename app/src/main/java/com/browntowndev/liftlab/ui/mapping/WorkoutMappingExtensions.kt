@@ -19,6 +19,8 @@ import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
+import com.browntowndev.liftlab.ui.models.workout.toVolumeType
+import com.browntowndev.liftlab.ui.models.workout.toVolumeTypeDisplayNames
 
 object WorkoutMappingExtensions {
     fun Workout.toUiModel(): WorkoutUiModel {
@@ -216,10 +218,9 @@ object WorkoutMappingExtensions {
             id = this.id,
             name = this.name,
             movementPattern = this.movementPattern,
-            volumeTypesBitmask = this.volumeTypesBitmask,
-            secondaryVolumeTypesBitmask = this.secondaryVolumeTypesBitmask,
+            volumeTypes = this.volumeTypesBitmask.toVolumeTypeDisplayNames(),
+            secondaryVolumeTypes = this.secondaryVolumeTypesBitmask?.toVolumeTypeDisplayNames() ?: emptyList(),
             incrementOverride = this.incrementOverride,
-
             restTime = this.restTime,
             restTimerEnabled = this.restTimerEnabled,
             isBodyweight = this.isBodyweight,
@@ -232,8 +233,8 @@ object WorkoutMappingExtensions {
             id = this.id,
             name = this.name,
             movementPattern = this.movementPattern,
-            volumeTypesBitmask = this.volumeTypesBitmask,
-            secondaryVolumeTypesBitmask = this.secondaryVolumeTypesBitmask,
+            volumeTypesBitmask = this.volumeTypes.sumOf { it.toVolumeType().bitMask },
+            secondaryVolumeTypesBitmask = this.secondaryVolumeTypes.sumOf { it.toVolumeType().bitMask },
             incrementOverride = this.incrementOverride,
             restTime = this.restTime,
             restTimerEnabled = this.restTimerEnabled,
