@@ -89,22 +89,54 @@ private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<WorkoutLiftUiM
     }
 }
 
+/**
+ * Calculates and returns a list of human-readable labels representing the volume types and their
+ * counts for a given `WorkoutUiModel`.
+ *
+ * This function leverages `getVolumeTypeLabelsForGenericWorkoutLifts` to perform the
+ * calculation, passing in the lifts from the current `WorkoutUiModel`.
+ *
+ * @param impact Specifies how to consider volume types (PRIMARY, SECONDARY, or COMBINED).
+ * @return A list of `CharSequence` objects, where each sequence is a formatted string
+ *         like "VolumeTypeName: Count" or "VolumeTypeName: Count+myo" if MyoReps are present.
+ *         Example: `["Chest: 3.0", "Shoulders: 1.5+myo"]`
+ */
 fun WorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts, impact)
 }
 
 private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftUiModel>, impact: VolumeTypeImpact): List<CharSequence> {
-    return getVolumeTypeMapForLoggingWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
-        val plainVolumeString = "$volumeType: ${totalVolume.first}"
-        if(totalVolume.second) plainVolumeString.appendSuperscript("+myo")
+    return getVolumeTypeMapForLoggingWorkoutLifts(lifts, impact).map { (volumeType, volumeData) ->
+        val plainVolumeString = "$volumeType: ${volumeData.first}"
+        if(volumeData.second) plainVolumeString.appendSuperscript("+myo")
         else plainVolumeString
     }
 }
 
+/**
+ * Calculates and returns a list of human-readable labels representing the volume types and their
+ * counts for a given `LoggingWorkoutUiModel`.
+ *
+ * This function leverages `getVolumeTypeLabelsForLoggingWorkoutLifts` to perform the
+ * calculation, passing in the lifts from the current `LoggingWorkoutUiModel`.
+ *
+ * @param impact Specifies how to consider volume types (PRIMARY, SECONDARY, or COMBINED).
+ * @return A list of `CharSequence` objects, where each sequence is a formatted string
+ *         like "VolumeTypeName: Count" or "VolumeTypeName: Count+myo" if MyoReps are present.
+ *         Example: `["Chest: 3", "Shoulders: 2+myo"]`
+ */
 fun LoggingWorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts, impact)
 }
 
+/**
+ * Calculates and returns a list of human-readable labels representing the aggregated volume types
+ * and their counts across all workouts in a `ProgramUiModel`.
+ *
+ * @param impact Specifies how to consider volume types (PRIMARY, SECONDARY, or COMBINED).
+ * @return A list of `CharSequence` objects, where each sequence is a formatted string
+ *         like "VolumeTypeName: Count" or "VolumeTypeName: Count+myo" if MyoReps are present.
+ */
 fun ProgramUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(
         lifts = this.workouts.flatMap { workout ->
@@ -114,6 +146,34 @@ fun ProgramUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSeque
     )
 }
 
+/**
+ * Creates a copy of a `LoggingSetUiModel` with potentially modified properties.
+ *
+ * This function acts as a generic copier for different subtypes of `LoggingSetUiModel`
+ * (e.g., `LoggingStandardSetUiModel`, `LoggingMyoRepSetUiModel`, `LoggingDropSetUiModel`).
+ * It allows overriding common properties shared across these types. If a property is not
+ * provided, the original value from `this` set is used.
+ *
+ * @param position The new position of the set.
+ * @param myoRepSetPosition The new position within a MyoRepSet (if applicable).
+ * @param rpeTarget The new target RPE.
+ * @param repRangeBottom The new bottom of the rep range.
+ * @param repRangeTop The new top of the rep range.
+ * @param weightRecommendation The new recommended weight.
+ * @param hadInitialWeightRecommendation Whether the set initially had a weight recommendation.
+ * @param previousSetResultLabel The label for the previous set's result.
+ * @param repRangePlaceholder The placeholder text for the rep range.
+ * @param setNumberLabel The label for the set number.
+ * @param completedWeight The weight completed for the set.
+ * @param completedReps The reps completed for the set.
+ * @param completedRpe The RPE achieved for the set.
+ * @param complete Whether the set is marked as complete.
+ * @return A new `LoggingSetUiModel` instance of the same subtype as `this`, but with
+ *         the specified properties updated.
+ * @throws Exception if `this` is an unknown subtype of `LoggingSetUiModel`.
+ *
+ * Example Usage: `val updatedSet = existingSet.copyGeneric(completedReps = 10, complete = true)`
+ */
 fun LoggingSetUiModel.copyGeneric(
     position: Int = this.position,
     myoRepSetPosition: Int? = (this as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,

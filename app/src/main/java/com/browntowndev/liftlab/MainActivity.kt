@@ -22,6 +22,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
 import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
+import com.browntowndev.liftlab.ui.viewmodels.StartupViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -30,26 +31,31 @@ import org.koin.core.component.inject
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
+    val startupViewModel: StartupViewModel by inject()
     val remoteSyncViewModel: RemoteSyncViewModel by inject()
     val donationViewModel: DonationViewModel by inject()
 
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         installSplashScreen().setKeepOnScreenCondition {
-            remoteSyncViewModel.syncState.value.syncing
+            !startupViewModel.initialized.value ||
+                remoteSyncViewModel.syncState.value.syncing
         }
 
-        remoteSyncViewModel.syncAll()
         requestNotificationPermission(this)
         SettingsManager.initialize(this@MainActivity)
+        startupViewModel.beginInitializationCheck {
+            remoteSyncViewModel.syncAllSuspending()
+        }
 
         setContent {
+            val initialized by startupViewModel.initialized.collectAsState()
             val syncState by remoteSyncViewModel.syncState.collectAsState()
             val donationState by donationViewModel.state.collectAsState()
+
             LiftLab(
-                initializing = syncState.syncing,
+                initializing = syncState.syncing || !initialized,
                 showSyncFailedDialog = syncState.showSyncFailedDialog,
                 donationState = donationState,
                 onClearBillingError = donationViewModel::clearBillingError,

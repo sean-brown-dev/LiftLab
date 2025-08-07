@@ -179,7 +179,9 @@ class SetResultsMigration: Migration(17, 18) {
                 setLog.remoteId,
                 setLog.remoteLastUpdated
             FROM setLogEntries setLog
-            INNER JOIN workoutInProgress wip ON setLog.workoutId = wip.workoutId
+            INNER JOIN workoutLogEntries wle ON setLog.workoutLogEntryId = wle.workout_log_entry_id
+            INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
+            INNER JOIN workoutsInProgress wip ON hwn.workoutId = wip.workoutId
         """.trimIndent())
 
         // 3. Drop old table

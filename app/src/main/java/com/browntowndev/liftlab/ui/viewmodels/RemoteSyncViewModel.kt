@@ -24,29 +24,33 @@ class RemoteSyncViewModel(
     private val _syncState = MutableStateFlow(RemoteSyncState())
     val syncState = _syncState.asStateFlow()
 
+    suspend fun syncAllSuspending() {
+        _syncState.update {
+            it.copy(
+                syncing = true,
+                showSyncFailedDialog = false,
+            )
+        }
+
+        try {
+            Log.d(TAG, "Syncing all")
+            retryWithBackoff {
+                syncOrchestrator.syncFromThenToRemote()
+            }
+            Log.d(TAG, "Sync complete")
+        } catch (e: Exception) {
+            toggleSyncErrorDialog()
+        } finally {
+            _syncState.update {
+                it.copy(syncing = false)
+            }
+        }
+    }
+
     fun syncAll() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                try {
-                    _syncState.update {
-                        it.copy(
-                            syncing = true,
-                            showSyncFailedDialog = false,
-                        )
-                    }
-
-                    Log.d(TAG, "Syncing all")
-                    retryWithBackoff {
-                        syncOrchestrator.syncFromThenToRemote()
-                    }
-                    Log.d(TAG, "Sync complete")
-                } catch (e: Exception) {
-                    toggleSyncErrorDialog()
-                } finally {
-                    _syncState.update {
-                        it.copy(syncing = false)
-                    }
-                }
+                syncAllSuspending()
             }
         }
     }

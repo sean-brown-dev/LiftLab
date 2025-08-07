@@ -1,21 +1,6 @@
 package com.browntowndev.liftlab.dependencyInjection
 
-import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
-import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
-import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
-import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
-import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
-import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.*
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -148,4 +133,5 @@ val viewModelModule = module {
     viewModelOf(::TimerViewModel)
     viewModelOf(::PickerViewModel)
     viewModelOf(::RemoteSyncViewModel)
+    viewModelOf(::StartupViewModel)
 }
