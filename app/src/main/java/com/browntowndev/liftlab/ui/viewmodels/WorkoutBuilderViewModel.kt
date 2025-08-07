@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.ui.viewmodels
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
@@ -24,6 +23,7 @@ import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.DisplayProgressionScheme
 import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.MyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
@@ -248,7 +248,7 @@ class WorkoutBuilderViewModel(
         updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
     }
 
-    fun setLiftProgressionScheme(workoutLiftId: Long, newProgressionScheme: ProgressionScheme) = executeWithErrorHandling("Failed to update progression scheme") {
+    fun setLiftProgressionScheme(workoutLiftId: Long, newProgressionScheme: DisplayProgressionScheme) = executeWithErrorHandling("Failed to update progression scheme") {
         val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val updatedWorkoutLift = when (workoutLift) {
             is StandardWorkoutLiftUiModel -> workoutLift.copy(progressionScheme = newProgressionScheme)

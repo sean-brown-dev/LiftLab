@@ -7,7 +7,8 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getSevenWeek
 import com.browntowndev.liftlab.core.common.authStateFlow
 import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.domain.models.metrics.ConfiguredMetricsState
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
@@ -27,7 +28,6 @@ import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.getMicroCycleCompletionChart
 import com.browntowndev.liftlab.ui.models.metrics.getWeeklyCompletionChart
-import com.browntowndev.liftlab.ui.models.workout.toVolumeType
 import com.browntowndev.liftlab.ui.models.workout.toVolumeTypeImpact
 import com.browntowndev.liftlab.ui.models.workoutLogging.filterByDateRange
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
@@ -324,8 +324,8 @@ class HomeViewModel(
     private fun addVolumeMetricChart() = executeWithErrorHandling("Failed to add volume metric chart") {
         val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
             VolumeMetricChart(
-                volumeType = volumeTypeStr.toVolumeType(),
-                volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpact.COMBINED
+                volumeType = VolumeType.fromDisplayName(volumeTypeStr),
+                volumeTypeImpactSelection = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpactSelection.COMBINED
             )
         }
         upsertManyVolumeMetricChartsUseCase(charts)

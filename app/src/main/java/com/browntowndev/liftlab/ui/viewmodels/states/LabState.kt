@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 import com.browntowndev.liftlab.ui.models.workout.getVolumeTypeLabels
@@ -24,15 +24,15 @@ data class LabState(
     val originalProgramName: String = program?.name ?: ""
 
     val combinedVolumeTypes: List<CharSequence> by lazy {
-        this.program?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
+        this.program?.getVolumeTypeLabels(VolumeTypeImpactSelection.COMBINED) ?: listOf()
     }
 
     val primaryVolumeTypes: List<CharSequence> by lazy {
-        this.program?.getVolumeTypeLabels(VolumeTypeImpact.PRIMARY) ?: listOf()
+        this.program?.getVolumeTypeLabels(VolumeTypeImpactSelection.PRIMARY) ?: listOf()
     }
 
     val secondaryVolumeTypes: List<CharSequence> by lazy {
-        this.program?.getVolumeTypeLabels(VolumeTypeImpact.SECONDARY) ?: listOf()
+        this.program?.getVolumeTypeLabels(VolumeTypeImpactSelection.SECONDARY) ?: listOf()
     }
 
     val nameOfProgramToDelete: String? by lazy {

@@ -1,8 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.ui.mapping.EnumMapping.toDomainModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 import com.browntowndev.liftlab.ui.models.workout.getVolumeTypeLabels
 
@@ -17,6 +19,10 @@ data class WorkoutBuilderState (
     val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),
     val workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>> = mapOf(),
 ) {
+    val progressionSchemes by lazy {
+        ProgressionScheme.entries.toDomainModel()
+    }
+
     val movementPatternOfDeletingWorkoutLift by lazy {
         workout?.let {
             it.lifts.find { lift -> lift.id == this.workoutLiftIdToDelete }?.liftMovementPattern?.displayName()
@@ -24,13 +30,13 @@ data class WorkoutBuilderState (
     }
 
     val combinedVolumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpactSelection.COMBINED) ?: listOf()
     }
     val primaryVolumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.PRIMARY) ?: listOf()
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpactSelection.PRIMARY) ?: listOf()
     }
     val secondaryVolumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.SECONDARY) ?: listOf()
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpactSelection.SECONDARY) ?: listOf()
     }
 }
 

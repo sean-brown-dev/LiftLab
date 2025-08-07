@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.ui.models.metrics.PersonalRecordUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
@@ -34,13 +34,13 @@ data class WorkoutState(
     }
 
     val combinedVolumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.COMBINED) ?: listOf()
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpactSelection.COMBINED) ?: listOf()
     }
     val primaryVolumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.PRIMARY) ?: listOf()
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpactSelection.PRIMARY) ?: listOf()
     }
     val secondaryVolumeTypes: List<CharSequence> by lazy {
-        this.workout?.getVolumeTypeLabels(VolumeTypeImpact.SECONDARY) ?: listOf()
+        this.workout?.getVolumeTypeLabels(VolumeTypeImpactSelection.SECONDARY) ?: listOf()
     }
 
     val inProgress by lazy {

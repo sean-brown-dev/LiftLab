@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
@@ -162,9 +162,9 @@ fun createLiftMetricChart(
 fun createVolumeMetricChart(
     id: Long = TestDefaults.DEFAULT_ID,
     volumeType: VolumeType = VolumeType.QUAD,
-    volumeTypeImpact: VolumeTypeImpact = VolumeTypeImpact.PRIMARY
+    volumeTypeImpactSelection: VolumeTypeImpactSelection = VolumeTypeImpactSelection.PRIMARY
 ) = VolumeMetricChart(
     id = id,
     volumeType = volumeType,
-    volumeTypeImpact = volumeTypeImpact
+    volumeTypeImpactSelection = volumeTypeImpactSelection
 )

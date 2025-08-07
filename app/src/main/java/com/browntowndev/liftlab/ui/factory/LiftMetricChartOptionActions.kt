@@ -4,9 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.models.Utils.getAllVolumeTypeDisplayNames
+import com.browntowndev.liftlab.ui.mapping.EnumMapping.toDisplayNames
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptions
 import com.browntowndev.liftlab.ui.models.workout.displayName
@@ -47,9 +48,9 @@ fun createLiftMetricChartOptions(actions: LiftMetricChartOptionActions): LiftMet
             LiftMetricOptions(
                 options = listOf("Volume Metrics"),
                 child = LiftMetricOptions(
-                    options = getAllVolumeTypeDisplayNames(),
+                    options = VolumeType.entries.toDisplayNames(),
                     child = LiftMetricOptions(
-                        options = VolumeTypeImpact.entries.map { it.displayName() },
+                        options = VolumeTypeImpactSelection.entries.map { it.displayName() },
                         completionButtonText = "Confirm",
                         completionButtonIcon = Icons.Filled.Check,
                         onCompletion = actions.onAddVolumeMetricChart,

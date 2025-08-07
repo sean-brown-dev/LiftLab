@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
@@ -30,10 +30,10 @@ class GetGroupedVolumeMetricChartDataUseCase {
         // 2. Process each chart
         return volumeMetricCharts.associateWith { chart ->
             // Determine the set of lift IDs relevant for the current chart
-            val relevantLiftIds = when (chart.volumeTypeImpact) {
-                VolumeTypeImpact.PRIMARY -> primaryLiftsByVolumeType[chart.volumeType].orEmpty()
-                VolumeTypeImpact.SECONDARY -> secondaryLiftsByVolumeType[chart.volumeType].orEmpty()
-                VolumeTypeImpact.COMBINED -> {
+            val relevantLiftIds = when (chart.volumeTypeImpactSelection) {
+                VolumeTypeImpactSelection.PRIMARY -> primaryLiftsByVolumeType[chart.volumeType].orEmpty()
+                VolumeTypeImpactSelection.SECONDARY -> secondaryLiftsByVolumeType[chart.volumeType].orEmpty()
+                VolumeTypeImpactSelection.COMBINED -> {
                     val primary = primaryLiftsByVolumeType[chart.volumeType].orEmpty()
                     val secondary = secondaryLiftsByVolumeType[chart.volumeType].orEmpty()
                     primary + secondary

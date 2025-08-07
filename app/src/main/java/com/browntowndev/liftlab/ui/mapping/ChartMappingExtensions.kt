@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.mapping
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
@@ -71,11 +71,11 @@ object ChartMappingExtensions {
             if (logs.isNotEmpty()) {
                 VolumeMetricChartModel(
                     id = chart.id,
-                    volumeType = chart.volumeType.displayName(),
-                    volumeTypeImpact = chart.volumeTypeImpact.displayName(),
+                    volumeType = chart.volumeType.displayName,
+                    volumeTypeImpact = chart.volumeTypeImpactSelection.displayName(),
                     chartModel = getPerMicrocycleVolumeChartModel(
                         workoutLogs = logs,
-                        secondaryVolumeTypesByLiftId = if (chart.volumeTypeImpact != VolumeTypeImpact.PRIMARY)
+                        secondaryVolumeTypesByLiftId = if (chart.volumeTypeImpactSelection != VolumeTypeImpactSelection.PRIMARY)
                             secondaryVolumeTypesById else null
                     )
                 )

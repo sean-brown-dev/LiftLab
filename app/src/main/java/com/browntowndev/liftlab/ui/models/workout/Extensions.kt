@@ -5,8 +5,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.appendSuperscript
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.enums.VolumeType
-import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
+import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
 import com.browntowndev.liftlab.core.domain.utils.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
@@ -19,18 +18,18 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
 import java.util.Locale.US
 
 
-private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<WorkoutLiftUiModel>, impact: VolumeTypeImpact):  HashMap<String, Pair<Float, Boolean>> {
+private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<WorkoutLiftUiModel>, impact: VolumeTypeImpactSelection):  HashMap<String, Pair<Float, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Float, Boolean>>()
     lifts.fastForEach { lift ->
         val volumeTypes = when(impact) {
-            VolumeTypeImpact.PRIMARY -> lift.liftVolumeTypes
-            VolumeTypeImpact.SECONDARY -> lift.liftSecondaryVolumeTypes
-            VolumeTypeImpact.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
+            VolumeTypeImpactSelection.PRIMARY -> lift.liftVolumeTypes
+            VolumeTypeImpactSelection.SECONDARY -> lift.liftSecondaryVolumeTypes
+            VolumeTypeImpactSelection.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
         }
         val secondaryVolumeTypes = lift.liftSecondaryVolumeTypes?.getVolumeTypes()?.toHashSet()
 
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
-            val displayName = volumeType.displayName()
+            val displayName = volumeType.displayName
             val currTotalVolume: Pair<Float, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = (lift as? CustomWorkoutLiftUiModel)?.customLiftSets?.any { it is MyoRepSetUiModel } ?: false
             var newTotalVolume: Float = if(secondaryVolumeTypes?.contains(volumeType) == true)
@@ -49,17 +48,17 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<WorkoutLiftUiMode
     return volumeCounts
 }
 
-private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftUiModel>, impact: VolumeTypeImpact):  HashMap<String, Pair<Int, Boolean>> {
+private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftUiModel>, impact: VolumeTypeImpactSelection):  HashMap<String, Pair<Int, Boolean>> {
     val volumeCounts = hashMapOf<String, Pair<Int, Boolean>>()
     lifts.fastForEach { lift ->
         val volumeTypes = when(impact) {
-            VolumeTypeImpact.PRIMARY -> lift.liftVolumeTypes
-            VolumeTypeImpact.SECONDARY -> lift.liftSecondaryVolumeTypes
-            VolumeTypeImpact.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
+            VolumeTypeImpactSelection.PRIMARY -> lift.liftVolumeTypes
+            VolumeTypeImpactSelection.SECONDARY -> lift.liftSecondaryVolumeTypes
+            VolumeTypeImpactSelection.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
         }
 
         volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
-            val displayName = volumeType.displayName()
+            val displayName = volumeType.displayName
             val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = lift.sets.any { it is LoggingMyoRepSetUiModel }
             var newTotalVolume: Int = lift.setCount
@@ -75,7 +74,7 @@ private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLif
     return volumeCounts
 }
 
-private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<WorkoutLiftUiModel>, impact: VolumeTypeImpact): List<CharSequence> {
+private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<WorkoutLiftUiModel>, impact: VolumeTypeImpactSelection): List<CharSequence> {
     return getVolumeTypeMapForGenericWorkoutLifts(lifts, impact).map { (volumeType, totalVolume) ->
         val volume = if (totalVolume.first % 1.0 == 0.0) {
             String.format(US, "%.0f", totalVolume.first) // No decimals if the value is a whole number
@@ -101,11 +100,11 @@ private fun getVolumeTypeLabelsForGenericWorkoutLifts(lifts: List<WorkoutLiftUiM
  *         like "VolumeTypeName: Count" or "VolumeTypeName: Count+myo" if MyoReps are present.
  *         Example: `["Chest: 3.0", "Shoulders: 1.5+myo"]`
  */
-fun WorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun WorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpactSelection): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(this.lifts, impact)
 }
 
-private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftUiModel>, impact: VolumeTypeImpact): List<CharSequence> {
+private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLiftUiModel>, impact: VolumeTypeImpactSelection): List<CharSequence> {
     return getVolumeTypeMapForLoggingWorkoutLifts(lifts, impact).map { (volumeType, volumeData) ->
         val plainVolumeString = "$volumeType: ${volumeData.first}"
         if(volumeData.second) plainVolumeString.appendSuperscript("+myo")
@@ -125,7 +124,7 @@ private fun getVolumeTypeLabelsForLoggingWorkoutLifts(lifts: List<LoggingWorkout
  *         like "VolumeTypeName: Count" or "VolumeTypeName: Count+myo" if MyoReps are present.
  *         Example: `["Chest: 3", "Shoulders: 2+myo"]`
  */
-fun LoggingWorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun LoggingWorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpactSelection): List<CharSequence> {
     return getVolumeTypeLabelsForLoggingWorkoutLifts(this.lifts, impact)
 }
 
@@ -137,7 +136,7 @@ fun LoggingWorkoutUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<Ch
  * @return A list of `CharSequence` objects, where each sequence is a formatted string
  *         like "VolumeTypeName: Count" or "VolumeTypeName: Count+myo" if MyoReps are present.
  */
-fun ProgramUiModel.getVolumeTypeLabels(impact: VolumeTypeImpact): List<CharSequence> {
+fun ProgramUiModel.getVolumeTypeLabels(impact: VolumeTypeImpactSelection): List<CharSequence> {
     return getVolumeTypeLabelsForGenericWorkoutLifts(
         lifts = this.workouts.flatMap { workout ->
             workout.lifts
@@ -267,7 +266,7 @@ fun WorkoutUiModel.getRecalculatedWorkoutLiftStepSizeOptions(
 ): Map<Long, Map<Int, List<Int>>> {
     return lifts
         .filterIsInstance<StandardWorkoutLiftUiModel>()
-        .filter { it.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
+        .filter { it.progressionScheme.name == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName }
         .associate { workoutLift ->
             workoutLift.id to getPossibleStepSizes(
                 repRangeTop = workoutLift.repRangeTop,
@@ -300,7 +299,7 @@ fun WorkoutUiModel.getRecalculatedWorkoutLiftStepSizeOptions(
 fun StandardWorkoutLiftUiModel.getRecalculatedStepSizeForLift(
     deloadToUseInsteadOfLiftLevel: Int?
 ): Int? {
-    return if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
+    return if (progressionScheme.name == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName) {
         getPossibleStepSizes(
             repRangeTop = repRangeTop,
             repRangeBottom = repRangeBottom,
@@ -414,62 +413,15 @@ fun CustomLiftSetUiModel.transformToType(
 }
 
 fun Int.toVolumeTypeDisplayNames() =
-    this.getVolumeTypes().fastMap { it.displayName() }
+    this.getVolumeTypes().fastMap { it.displayName }
 
-fun VolumeType.displayName(): String {
+fun VolumeTypeImpactSelection.displayName(): String {
     return when (this) {
-        VolumeType.CHEST -> "Chest"
-        VolumeType.BACK -> "Back"
-        VolumeType.QUAD -> "Quads"
-        VolumeType.HAMSTRING -> "Hamstrings"
-        VolumeType.GLUTE -> "Glutes"
-        VolumeType.POSTERIOR_DELTOID -> "Posterior Deltoids"
-        VolumeType.LATERAL_DELTOID -> "Lateral Deltoids"
-        VolumeType.ANTERIOR_DELTOID -> "Anterior Deltoids"
-        VolumeType.TRICEP -> "Triceps"
-        VolumeType.BICEP -> "Biceps"
-        VolumeType.TRAP -> "Traps"
-        VolumeType.CALF -> "Calves"
-        VolumeType.FOREARM -> "Forearms"
-        VolumeType.AB -> "Abs"
-        VolumeType.LOWER_BACK -> "Lower Back"
+        VolumeTypeImpactSelection.PRIMARY -> "Primary"
+        VolumeTypeImpactSelection.SECONDARY -> "Secondary"
+        VolumeTypeImpactSelection.COMBINED -> "All"
     }
 }
 
-fun VolumeTypeImpact.displayName(): String {
-    return when (this) {
-        VolumeTypeImpact.PRIMARY -> "Primary"
-        VolumeTypeImpact.SECONDARY -> "Secondary"
-        VolumeTypeImpact.COMBINED -> "All"
-    }
-}
-
-fun String.toVolumeType(): VolumeType {
-    return when (this) {
-        VolumeType.CHEST.displayName() -> VolumeType.CHEST
-        VolumeType.BACK.displayName() -> VolumeType.BACK
-        VolumeType.QUAD.displayName() -> VolumeType.QUAD
-        VolumeType.HAMSTRING.displayName() -> VolumeType.HAMSTRING
-        VolumeType.GLUTE.displayName() -> VolumeType.GLUTE
-        VolumeType.POSTERIOR_DELTOID.displayName() -> VolumeType.POSTERIOR_DELTOID
-        VolumeType.LATERAL_DELTOID.displayName() -> VolumeType.LATERAL_DELTOID
-        VolumeType.ANTERIOR_DELTOID.displayName() -> VolumeType.ANTERIOR_DELTOID
-        VolumeType.TRICEP.displayName() -> VolumeType.TRICEP
-        VolumeType.BICEP.displayName() -> VolumeType.BICEP
-        VolumeType.TRAP.displayName() -> VolumeType.TRAP
-        VolumeType.CALF.displayName() -> VolumeType.CALF
-        VolumeType.FOREARM.displayName() -> VolumeType.FOREARM
-        VolumeType.AB.displayName() -> VolumeType.AB
-        VolumeType.LOWER_BACK.displayName() -> VolumeType.LOWER_BACK
-        else -> throw IllegalArgumentException("Unknown volume type: $this")
-    }
-}
-
-fun String.toVolumeTypeImpact(): VolumeTypeImpact {
-    return when (this) {
-        VolumeTypeImpact.PRIMARY.displayName() -> VolumeTypeImpact.PRIMARY
-        VolumeTypeImpact.SECONDARY.displayName() -> VolumeTypeImpact.SECONDARY
-        VolumeTypeImpact.COMBINED.displayName() -> VolumeTypeImpact.COMBINED
-        else -> throw IllegalArgumentException("Unknown volume type impact: $this")
-    }
-}
+fun String.toVolumeTypeImpact(): VolumeTypeImpactSelection =
+    VolumeTypeImpactSelection.entries.find { it.displayName() == this } ?: throw IllegalArgumentException("Unknown volume type impact: $this")

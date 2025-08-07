@@ -1,26 +1,53 @@
 package com.browntowndev.liftlab.core.domain.enums
 
-enum class ProgressionScheme {
-    WAVE_LOADING_PROGRESSION,
-    LINEAR_PROGRESSION,
-    DOUBLE_PROGRESSION,
-    DYNAMIC_DOUBLE_PROGRESSION,
-}
+/**
+ * Defines the progression model for a lift.
+ *
+ * This enum is self-contained, holding all associated properties like display names
+ * and business logic rules (e.g., whether it supports custom sets).
+ */
+enum class ProgressionScheme(
+    val displayName: String,
+    val shortName: String,
+    val isLinearProgression: Boolean = false,
+    val canHaveCustomSets: Boolean,
+    val rpeLabel: String
+) {
+    WAVE_LOADING_PROGRESSION(
+        displayName = "Wave Loading",
+        shortName = "WL",
+        canHaveCustomSets = false,
+        rpeLabel = "Top Set RPE"
+    ),
+    LINEAR_PROGRESSION(
+        displayName = "Linear Progression",
+        shortName = "LP",
+        isLinearProgression = true,
+        canHaveCustomSets = false,
+        rpeLabel = "Max RPE"
+    ),
+    DOUBLE_PROGRESSION(
+        displayName = "Double Progression",
+        shortName = "DP",
+        canHaveCustomSets = true,
+        rpeLabel = "RPE"
+    ),
+    DYNAMIC_DOUBLE_PROGRESSION(
+        displayName = "Dynamic Double Progression",
+        shortName = "DDP",
+        canHaveCustomSets = true,
+        rpeLabel = "RPE"
+    );
 
-fun ProgressionScheme.displayName(): String {
-    return when(this) {
-        ProgressionScheme.DOUBLE_PROGRESSION -> "Double Progression"
-        ProgressionScheme.WAVE_LOADING_PROGRESSION -> "Wave Loading"
-        ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "Dynamic Double Progression"
-        ProgressionScheme.LINEAR_PROGRESSION -> "Linear Progression"
-    }
-}
-
-fun ProgressionScheme.displayNameShort(): String {
-    return when(this) {
-        ProgressionScheme.DOUBLE_PROGRESSION -> "DP"
-        ProgressionScheme.WAVE_LOADING_PROGRESSION -> "WL"
-        ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "DDP"
-        ProgressionScheme.LINEAR_PROGRESSION -> "LP"
+    /**
+     * Finds a [ProgressionScheme] by its [displayName], ignoring case.
+     * @param name The display name to search for (e.g., "Dynamic Double Progression", "Wave Loading").
+     * @return The matching [ProgressionScheme] or null if no match is found.
+     * @throws IllegalArgumentException if the [name] does not match any known progression scheme.
+     */
+    companion object {
+        fun fromDisplayName(name: String): ProgressionScheme =
+            ProgressionScheme.entries.find { it.displayName.equals(name, ignoreCase = true) }
+                ?: throw IllegalArgumentException("Unknown volume type: $this")
     }
 }

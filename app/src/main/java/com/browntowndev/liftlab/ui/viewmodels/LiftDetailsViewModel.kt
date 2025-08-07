@@ -7,6 +7,7 @@ import com.browntowndev.liftlab.core.common.toMediumDateString
 import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
 import com.browntowndev.liftlab.core.domain.extensions.toFilterOptions
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.AddVolumeTypeUseCase
@@ -24,7 +25,6 @@ import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getPerWorkoutVolumeChartModel
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
-import com.browntowndev.liftlab.ui.models.workout.toVolumeType
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,7 +113,7 @@ class LiftDetailsViewModel(
     fun addVolumeType(newVolumeType: String) = executeWithErrorHandling("Failed to add lift volume type") {
         addVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            newVolumeType = newVolumeType.toVolumeType(),
+            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
@@ -121,7 +121,7 @@ class LiftDetailsViewModel(
     fun addSecondaryVolumeType(newVolumeType: String) = executeWithErrorHandling("Failed to add lift secondary volume type") {
         addVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            newVolumeType = newVolumeType.toVolumeType(),
+            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }
@@ -129,7 +129,7 @@ class LiftDetailsViewModel(
     fun removeVolumeType(toRemove: String) = executeWithErrorHandling("Failed to remove lift volume type") {
         removeVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            volumeTypeToRemove = toRemove.toVolumeType(),
+            volumeTypeToRemove = VolumeType.fromDisplayName(toRemove),
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
@@ -137,7 +137,7 @@ class LiftDetailsViewModel(
     fun removeSecondaryVolumeType(toRemove: String) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
         removeVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            volumeTypeToRemove = toRemove.toVolumeType(),
+            volumeTypeToRemove = VolumeType.fromDisplayName(toRemove),
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }
@@ -146,7 +146,7 @@ class LiftDetailsViewModel(
         updateVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
             index = index,
-            newVolumeType = newVolumeType.toVolumeType(),
+            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
@@ -155,7 +155,7 @@ class LiftDetailsViewModel(
         updateVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
             index = index,
-            newVolumeType = newVolumeType.toVolumeType(),
+            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }

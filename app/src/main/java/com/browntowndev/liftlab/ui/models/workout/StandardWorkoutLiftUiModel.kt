@@ -1,7 +1,6 @@
 package com.browntowndev.liftlab.ui.models.workout
 
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import kotlin.time.Duration
 
 data class StandardWorkoutLiftUiModel(
@@ -15,7 +14,7 @@ data class StandardWorkoutLiftUiModel(
     override val liftNote: String?,
     override val position: Int,
     override val setCount: Int,
-    override val progressionScheme: ProgressionScheme,
+    override val progressionScheme: DisplayProgressionScheme,
     override val deloadWeek: Int?,
     override val incrementOverride: Float?,
     override val restTime: Duration?,

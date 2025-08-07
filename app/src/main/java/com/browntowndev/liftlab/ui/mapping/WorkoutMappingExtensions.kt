@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.mapping
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
@@ -10,6 +11,8 @@ import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
+import com.browntowndev.liftlab.ui.mapping.EnumMapping.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.EnumMapping.toUiModel
 import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
@@ -19,7 +22,6 @@ import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
-import com.browntowndev.liftlab.ui.models.workout.toVolumeType
 import com.browntowndev.liftlab.ui.models.workout.toVolumeTypeDisplayNames
 
 object WorkoutMappingExtensions {
@@ -71,7 +73,7 @@ object WorkoutMappingExtensions {
             liftNote = liftNote,
             position = position,
             setCount = setCount,
-            progressionScheme = progressionScheme,
+            progressionScheme = progressionScheme.toUiModel(),
             deloadWeek = deloadWeek,
             incrementOverride = incrementOverride,
             restTime = restTime,
@@ -94,7 +96,7 @@ object WorkoutMappingExtensions {
             liftNote = liftNote,
             position = position,
             setCount = setCount,
-            progressionScheme = progressionScheme,
+            progressionScheme = progressionScheme.toDomainModel(),
             deloadWeek = deloadWeek,
             incrementOverride = incrementOverride,
             restTime = restTime,
@@ -117,7 +119,7 @@ object WorkoutMappingExtensions {
             liftNote = liftNote,
             position = position,
             setCount = setCount,
-            progressionScheme = progressionScheme,
+            progressionScheme = progressionScheme.toUiModel(),
             deloadWeek = deloadWeek,
             incrementOverride = incrementOverride,
             restTime = restTime,
@@ -137,7 +139,7 @@ object WorkoutMappingExtensions {
             liftNote = liftNote,
             position = position,
             setCount = setCount,
-            progressionScheme = progressionScheme,
+            progressionScheme = progressionScheme.toDomainModel(),
             deloadWeek = deloadWeek,
             incrementOverride = incrementOverride,
             restTime = restTime,
@@ -233,8 +235,8 @@ object WorkoutMappingExtensions {
             id = this.id,
             name = this.name,
             movementPattern = this.movementPattern,
-            volumeTypesBitmask = this.volumeTypes.sumOf { it.toVolumeType().bitMask },
-            secondaryVolumeTypesBitmask = this.secondaryVolumeTypes.sumOf { it.toVolumeType().bitMask },
+            volumeTypesBitmask = this.volumeTypes.sumOf { VolumeType.fromDisplayName(it).bitMask },
+            secondaryVolumeTypesBitmask = this.secondaryVolumeTypes.sumOf { VolumeType.fromDisplayName(it).bitMask },
             incrementOverride = this.incrementOverride,
             restTime = this.restTime,
             restTimerEnabled = this.restTimerEnabled,

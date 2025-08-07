@@ -29,7 +29,7 @@ import com.browntowndev.liftlab.ui.composables.CustomAnchorDropdown
 fun WavePatternDropdown(
     workoutLiftId: Long,
     stepSize: Int?,
-    progressionScheme: ProgressionScheme,
+    progressionScheme: String,
     workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>>,
     onUpdateStepSize: (workoutLiftId: Long, stepSize: Int) -> Unit,
 ) {
@@ -67,7 +67,7 @@ fun WavePatternDropdown(
                 }
             }
         }
-    } else if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
+    } else if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName) {
         Row (
             modifier = Modifier.padding(top = 5.dp, start = 20.dp),
             verticalAlignment = Alignment.CenterVertically
