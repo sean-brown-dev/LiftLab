@@ -33,7 +33,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
             "WHERE log.deleted = 0")
-    fun getAllFlattened(): Flow<List<FlattenedWorkoutLogEntryDto>>
+    fun getAllFlattenedFlow(): Flow<List<FlattenedWorkoutLogEntryDto>>
 
     @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +

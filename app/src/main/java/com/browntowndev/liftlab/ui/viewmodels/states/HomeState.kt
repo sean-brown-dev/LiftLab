@@ -1,17 +1,17 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.VolumeMetricChartModel
+import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
 
 data class HomeState(
-    val activeProgram: Program? = null,
-    val workoutLogs: List<WorkoutLogEntry> = emptyList(),
+    val activeProgram: ProgramUiModel? = null,
+    val workoutLogs: List<WorkoutLogEntryUiModel> = emptyList(),
     val lifts: List<Lift> = emptyList(),
     val workoutCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,
     val microCycleCompletionChart: ChartModel<ColumnCartesianLayerModel>? = null,

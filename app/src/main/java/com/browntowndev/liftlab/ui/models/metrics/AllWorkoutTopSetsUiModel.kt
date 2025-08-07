@@ -15,13 +15,14 @@ data class AllWorkoutTopSetsUiModel(
     operator fun get(workoutLogId: WorkoutLogId): WorkoutTopSetsUiModel? = topSetsByWorkout[workoutLogId]
 
     data class WorkoutTopSetsUiModel(
-        private val recordsByExercise: Map<LiftId, TopSetUiModel>
+        private val recordsByLift: Map<LiftId, TopSetUiModel>,
+        val personalRecordCount: Int,
     ) {
-        val liftIds: Set<LiftId> get() = recordsByExercise.keys
+        val liftIds: Set<LiftId> get() = recordsByLift.keys
+        val topSets: List<TopSetUiModel> get() = recordsByLift.values.toList()
+        val size get() = recordsByLift.size
 
-        val size get() = recordsByExercise.size
-
-        operator fun get(id: LiftId): TopSetUiModel? = recordsByExercise[id]
+        operator fun get(id: LiftId): TopSetUiModel? = recordsByLift[id]
 
         data class TopSetUiModel(
             val setCount: Int,

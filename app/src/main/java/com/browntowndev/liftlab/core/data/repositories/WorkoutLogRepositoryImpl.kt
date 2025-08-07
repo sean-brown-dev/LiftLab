@@ -27,7 +27,7 @@ class WorkoutLogRepositoryImpl(
         workoutLogEntryDao.getAll().fastMap { it.toDomainModel() }
 
     override fun getAllFlow(): Flow<List<WorkoutLogEntry>> {
-        return workoutLogEntryDao.getAllFlattened().map {
+        return workoutLogEntryDao.getAllFlattenedFlow().map {
             it.toDomainModel()
         }
     }

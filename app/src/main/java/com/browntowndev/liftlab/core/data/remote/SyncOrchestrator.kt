@@ -52,8 +52,8 @@ class SyncOrchestrator(
         }
     }
 
-    suspend fun syncFromThenToRemote() {
-        Log.d(TAG, "syncAll called")
+    suspend fun syncFromThenToRemote(syncAllFromRemote: Boolean = false) {
+        Log.d(TAG, "syncAll called with sync all data: $syncAllFromRemote")
         if (!remoteDataClient.canSync) {
             Log.d(TAG, "Cannot sync, remoteDataClient.canSync is false")
             return
@@ -63,7 +63,7 @@ class SyncOrchestrator(
             mutex.withLock {
                 Log.d(TAG, "Starting sync process")
                 transactionScope.execute {
-                    downloadNewerChanges()
+                    downloadNewerChanges(syncAll = syncAllFromRemote)
                     uploadPendingChanges()
                 }
                 Log.d(TAG, "Sync process finished")
@@ -75,13 +75,14 @@ class SyncOrchestrator(
         }
     }
 
-    private suspend fun downloadNewerChanges() {
+    private suspend fun downloadNewerChanges(syncAll: Boolean) {
         Log.d(TAG, "Starting downloadNewerChanges")
 
         syncHierarchy.executeForEachRepositoryParallel { syncRepository ->
             val collectionName = syncRepository.collectionName
-            val syncMetadata = syncMetadataRepository.get(collectionName = collectionName)
-            val lastSynced = syncMetadata?.lastSyncTimestamp ?: Date(0)
+            val lastSynced = if (syncAll) Date(0)
+                else syncMetadataRepository.get(collectionName = collectionName)?.lastSyncTimestamp ?: Date(0)
+            Log.d(TAG, "Last synced for $collectionName: $lastSynced")
             var latestRemoteLastUpdated = lastSynced
 
             remoteDataClient.getAllSince(

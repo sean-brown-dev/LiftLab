@@ -59,6 +59,7 @@ object ChartMappingExtensions {
             }
         }.sortedBy { it.liftName }
     }
+
     /**
      * Maps the grouped data from the domain layer into a list of UI-ready volume chart models.
      */

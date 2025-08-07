@@ -1,21 +1,22 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import android.util.Log
-import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.toDate
+import com.browntowndev.liftlab.core.common.toMediumDateString
+import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
+import com.browntowndev.liftlab.ui.factory.createProgramAndWorkoutFilterChipOptions
+import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.PROGRAM
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.WORKOUT
-import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
-import com.browntowndev.liftlab.core.common.toDate
-import com.browntowndev.liftlab.core.common.toMediumDateString
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
-import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
-import com.browntowndev.liftlab.ui.factory.createProgramAndWorkoutFilterChipOptions
+import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,7 @@ class WorkoutHistoryViewModel(
             .distinctUntilChanged()
             .map { summarizedWorkoutMetricsState ->
                 val dateOrderedWorkoutLogs = summarizedWorkoutMetricsState.dateOrderedWorkoutLogsWithPersonalRecords
+                    .fastMap { it.toUiModel() }
                 val topSets = summarizedWorkoutMetricsState.topSets
                 val workoutNamesById = dateOrderedWorkoutLogs
                     .distinctBy { workoutLog -> workoutLog.workoutId }
@@ -60,7 +62,7 @@ class WorkoutHistoryViewModel(
                 WorkoutHistoryState(
                     dateOrderedWorkoutLogs = dateOrderedWorkoutLogs,
                     filteredWorkoutLogs = dateOrderedWorkoutLogs,
-                    topSets = topSets,
+                    topSets = topSets.toUiModel(),
                     workoutNamesById = workoutNamesById,
                     programNamesById = programNamesById
                 )
@@ -149,14 +151,14 @@ class WorkoutHistoryViewModel(
         applyFilters()
     }
 
-    private fun isInProgramFilters(state: WorkoutHistoryState, workoutLog: WorkoutLogEntry): Boolean {
+    private fun isInProgramFilters(state: WorkoutHistoryState, workoutLog: WorkoutLogEntryUiModel): Boolean {
         return state.programAndWorkoutFilters.none { it.type == PROGRAM } ||
-                state.programAndWorkoutFilters.fastAny { it.key == workoutLog.programId }
+                workoutLog.programId in state.programAndWorkoutFiltersByKey
     }
 
-    private fun isInWorkoutFilters(state: WorkoutHistoryState, workoutLog: WorkoutLogEntry): Boolean {
+    private fun isInWorkoutFilters(state: WorkoutHistoryState, workoutLog: WorkoutLogEntryUiModel): Boolean {
         return state.programAndWorkoutFilters.none { it.type == WORKOUT } ||
-                state.programAndWorkoutFilters.fastAny { it.key == workoutLog.workoutId }
+                workoutLog.workoutId in state.programAndWorkoutFiltersByKey
     }
 
     fun applyFilters() = executeWithErrorHandling("Failed to apply filters") {

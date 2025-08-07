@@ -49,14 +49,12 @@ class GetConfiguredMetricsStateFlowUseCase(
             liftsFlow,
             workoutLogsFlow,
             liftMetricChartsFlow,
-            volumeMetricChartsFlow,
-        ) { program, lifts, logs, liftCharts, volumeMetricCharts ->
+        ) { program, lifts, logs, liftCharts ->
             object {
                 val program = program
                 val lifts = lifts
                 val logs = logs
                 val liftCharts = liftCharts
-                val volumeMetricCharts = volumeMetricCharts
             }
         }
 
@@ -76,7 +74,6 @@ class GetConfiguredMetricsStateFlowUseCase(
                 lifts = allFlowData.sourceData.lifts,
                 workoutLogs = allFlowData.sourceData.logs,
                 liftMetricCharts = allFlowData.sourceData.liftCharts,
-                volumeMetricCharts = allFlowData.sourceData.volumeMetricCharts,
                 volumeMetricChartData = allFlowData.groupedVolumeMetricData,
                 liftMetricChartData = allFlowData.groupedLiftMetricData,
             )

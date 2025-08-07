@@ -9,7 +9,6 @@ data class ConfiguredMetricsState(
     val workoutLogs: List<WorkoutLogEntry> = emptyList(),
     val lifts: List<Lift> = emptyList(),
     val liftMetricCharts: List<LiftMetricChart> = emptyList(),
-    val volumeMetricCharts: List<VolumeMetricChart> = emptyList(),
     val liftMetricChartData:  Map<Long, List<WorkoutLogEntry>> = emptyMap(),
     val volumeMetricChartData:  Map<VolumeMetricChart, List<WorkoutLogEntry>> = emptyMap(),
 )

@@ -27,7 +27,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toTwoDecimalString
-import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
+import com.browntowndev.liftlab.ui.models.metrics.AllWorkoutTopSetsUiModel
 import java.util.Date
 
 @Composable
@@ -37,7 +37,7 @@ fun WorkoutHistoryCard(
     workoutDuration: Long,
     mesoCycle: Int,
     microCycle: Int,
-    topSets: AllWorkoutTopSets.WorkoutTopSets?,
+    topSets: AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel?,
     onEditWorkout: () -> Unit,
     onDeleteWorkout: () -> Unit,
 ) {

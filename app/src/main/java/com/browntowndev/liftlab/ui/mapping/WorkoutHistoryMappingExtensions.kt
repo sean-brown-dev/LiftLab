@@ -12,28 +12,19 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 
 object WorkoutHistoryMappingExtensions {
     fun AllWorkoutTopSets.toUiModel(): AllWorkoutTopSetsUiModel {
-        val topSetsByWorkoutUiModel = mutableMapOf<Long, AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel>()
-        this.javaClass.getDeclaredField("topSetsByWorkout").let { field ->
-            field.isAccessible = true
-            val topSetsByWorkout = field.get(this) as Map<Long, AllWorkoutTopSets.WorkoutTopSets>
-            topSetsByWorkout.forEach { (workoutLogId, workoutTopSets) ->
-                topSetsByWorkoutUiModel[workoutLogId] = workoutTopSets.toUiModel()
-            }
+        val topSetsByWorkoutUiModel = this.entries.associate { (workoutLogId, workoutTopSets) ->
+            workoutLogId.value to workoutTopSets.toUiModel()
         }
         return AllWorkoutTopSetsUiModel(topSetsByWorkoutUiModel)
     }
 
-
     fun AllWorkoutTopSets.WorkoutTopSets.toUiModel(): AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel {
-        val recordsByExerciseUiModel = mutableMapOf<Long, AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel.TopSetUiModel>()
-        this.javaClass.getDeclaredField("recordsByExercise").let { field ->
-            field.isAccessible = true
-            val recordsByExercise = field.get(this) as Map<Long, AllWorkoutTopSets.WorkoutTopSets.TopSet>
-            recordsByExercise.forEach { (liftId, topSet) ->
-                recordsByExerciseUiModel[liftId] = topSet.toUiModel()
-            }
+        val recordsByExerciseUiModel = this.entries.associate { (liftId, topSet) ->
+            liftId.value to topSet.toUiModel()
         }
-        return AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel(recordsByExerciseUiModel)
+        return AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel(
+            recordsByLift = recordsByExerciseUiModel,
+            personalRecordCount = this.personalRecordCount)
     }
 
     fun AllWorkoutTopSets.WorkoutTopSets.TopSet.toUiModel(): AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel.TopSetUiModel {

@@ -9,7 +9,6 @@ import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpact
 import com.browntowndev.liftlab.core.domain.enums.toLiftMetricChartType
-import com.browntowndev.liftlab.core.domain.extensions.filterByDateRange
 import com.browntowndev.liftlab.core.domain.models.metrics.ConfiguredMetricsState
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
@@ -22,6 +21,7 @@ import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
 import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toVolumeMetricChartModels
+import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
@@ -29,6 +29,7 @@ import com.browntowndev.liftlab.ui.models.metrics.getMicroCycleCompletionChart
 import com.browntowndev.liftlab.ui.models.metrics.getWeeklyCompletionChart
 import com.browntowndev.liftlab.ui.models.workout.toVolumeType
 import com.browntowndev.liftlab.ui.models.workout.toVolumeTypeImpact
+import com.browntowndev.liftlab.ui.models.workoutLogging.filterByDateRange
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -75,24 +76,27 @@ class HomeViewModel(
         val firebaseAuthFlow = firebaseAuth.authStateFlow().distinctUntilChanged()
         getConfiguredMetricsStateFlowUseCase()
             .distinctUntilChanged()
-            .scan(ConfiguredMetricsState() to HomeState()) { currentStates, configurationState ->
+            .scan(ConfiguredMetricsState() to HomeState()) { currentStates, newConfiguredMetricsState ->
+                val currentConfiguredMetricsState = currentStates.first
+                val currentHomeState = currentStates.second
+
                 var newHomeState = HomeState(
-                    activeProgram = configurationState.activeProgram,
-                    lifts = configurationState.lifts,
-                    workoutLogs = configurationState.workoutLogs,
+                    activeProgram = newConfiguredMetricsState.activeProgram?.toUiModel(),
+                    lifts = newConfiguredMetricsState.lifts,
+                    workoutLogs = newConfiguredMetricsState.workoutLogs.fastMap { it.toUiModel() },
                 )
 
-                newHomeState = if (currentStates.second.activeProgram != configurationState.activeProgram ||
-                    currentStates.second.workoutLogs != configurationState.workoutLogs) {
+                newHomeState = if (currentHomeState.activeProgram != newHomeState.activeProgram ||
+                    currentHomeState.workoutLogs != newHomeState.workoutLogs) {
                     newHomeState.copy(
                         microCycleCompletionChart = if (newHomeState.workoutLogs.isEmpty()) null
                             else getMicroCycleCompletionChart(workoutLogs = newHomeState.workoutLogs, program = newHomeState.activeProgram)
                     )
                 } else newHomeState.copy(
-                    microCycleCompletionChart = currentStates.second.microCycleCompletionChart
+                    microCycleCompletionChart = currentHomeState.microCycleCompletionChart
                 )
 
-                newHomeState = if (currentStates.second.workoutLogs != configurationState.workoutLogs) {
+                newHomeState = if (currentHomeState.workoutLogs != newHomeState.workoutLogs) {
                     newHomeState.copy(
                         workoutCompletionChart = if (newHomeState.workoutLogs.isEmpty()) null
                             else getWeeklyCompletionChart(
@@ -101,38 +105,37 @@ class HomeViewModel(
                             )
                     )
                 } else newHomeState.copy(
-                    workoutCompletionChart = currentStates.second.workoutCompletionChart
+                    workoutCompletionChart = currentHomeState.workoutCompletionChart
                 )
 
-                newHomeState = if (currentStates.first.volumeMetricChartData != configurationState.volumeMetricChartData ||
-                    currentStates.first.volumeMetricCharts != configurationState.volumeMetricCharts) {
+                newHomeState = if (currentConfiguredMetricsState.volumeMetricChartData != newConfiguredMetricsState.volumeMetricChartData) {
                     newHomeState.copy(
                         volumeMetricChartModels =
                             newHomeState.lifts.toVolumeMetricChartModels(
-                                groupedData = configurationState.volumeMetricChartData
+                                groupedData = newConfiguredMetricsState.volumeMetricChartData
                                     .map { it.key to it.value.fastMap { workoutLog -> workoutLog.toUiModel() } }
                                     .toMap()
                             )
                     )
                 } else newHomeState.copy(
-                    volumeMetricChartModels = currentStates.second.volumeMetricChartModels
+                    volumeMetricChartModels = currentHomeState.volumeMetricChartModels
                 )
 
-                newHomeState = if (currentStates.first.liftMetricChartData != configurationState.liftMetricChartData ||
-                    currentStates.first.liftMetricCharts != configurationState.liftMetricCharts) {
+                newHomeState = if (currentConfiguredMetricsState.liftMetricChartData != newConfiguredMetricsState.liftMetricChartData ||
+                    currentConfiguredMetricsState.liftMetricCharts != newConfiguredMetricsState.liftMetricCharts) {
                     newHomeState.copy(
                         liftMetricChartModels =
-                            configurationState.liftMetricCharts.toChartModels(
-                                groupedLogs = configurationState.liftMetricChartData
+                            newConfiguredMetricsState.liftMetricCharts.toChartModels(
+                                groupedLogs = newConfiguredMetricsState.liftMetricChartData
                                     .map { it.key to it.value.fastMap { workoutLog -> workoutLog.toUiModel() } }
                                     .toMap()
                             )
                     )
                 } else newHomeState.copy(
-                    liftMetricChartModels = currentStates.second.liftMetricChartModels
+                    liftMetricChartModels = currentHomeState.liftMetricChartModels
                 )
 
-                configurationState to newHomeState
+                newConfiguredMetricsState to newHomeState
             }.combine(firebaseAuthFlow) { (configurationState, homeState), firebaseUser ->
                 homeState.copy(
                     firebaseUsername = firebaseUser?.email,

@@ -23,6 +23,9 @@ data class AllWorkoutTopSets(
 ) {
     val size get() = topSetsByWorkout.size
 
+    val entries: Set<Map.Entry<WorkoutLogId, WorkoutTopSets>>
+        get() = topSetsByWorkout.entries
+
     fun isEmpty() = topSetsByWorkout.isEmpty()
 
     /**
@@ -38,9 +41,10 @@ data class AllWorkoutTopSets(
         // The map is private to ensure access only through our safe functions
         private val recordsByExercise: Map<LiftId, TopSet>
     ) {
-        val liftIds: Set<LiftId> get() = recordsByExercise.keys
+        val entries: Set<Map.Entry<LiftId, TopSet>>
+            get() = recordsByExercise.entries
 
-        val topSets: List<TopSet> get() = recordsByExercise.values.toList()
+        val liftIds: Set<LiftId> get() = recordsByExercise.keys
 
         val size get() = recordsByExercise.size
 

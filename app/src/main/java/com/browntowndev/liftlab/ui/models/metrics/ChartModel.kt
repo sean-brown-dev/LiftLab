@@ -2,9 +2,8 @@ package com.browntowndev.liftlab.ui.models.metrics
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.SetLogEntryUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 import com.patrykandpatrick.vico.core.cartesian.axis.VerticalAxis
@@ -327,7 +326,7 @@ fun getIntensityChartModel(
 
 fun getWeeklyCompletionChart(
     workoutCompletionRange: List<Pair<LocalDate, LocalDate>>,
-    workoutsInDateRange: List<WorkoutLogEntry>,
+    workoutsInDateRange: List<WorkoutLogEntryUiModel>,
 ): ChartModel<ColumnCartesianLayerModel> {
     val completedWorkoutsByWeek = workoutCompletionRange
         .fastMap { week ->
@@ -382,8 +381,8 @@ fun getWeeklyCompletionChart(
 }
 
 fun getMicroCycleCompletionChart(
-    workoutLogs: List<WorkoutLogEntry>,
-    program: Program?,
+    workoutLogs: List<WorkoutLogEntryUiModel>,
+    program: ProgramUiModel?,
 ): ChartModel<ColumnCartesianLayerModel> {
     val workoutsForCurrentMeso = workoutLogs
         .filter { it.programId == program?.id && it.mesocycle == program.currentMesocycle }
