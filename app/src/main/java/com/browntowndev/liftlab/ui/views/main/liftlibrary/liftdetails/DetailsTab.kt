@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
 import com.browntowndev.liftlab.ui.composables.SectionLabel
@@ -26,16 +27,16 @@ fun DetailsTab(
     liftName: String,
     liftNamePlaceholder: String = "",
     movementPattern: MovementPattern,
-    volumeTypeOptions: List<String>,
-    volumeTypes: List<String>,
-    secondaryVolumeTypes: List<String>,
+    volumeTypeOptions: List<VolumeType>,
+    volumeTypes: List<VolumeType>,
+    secondaryVolumeTypes: List<VolumeType>,
     onLiftNameChanged: (newName: String) -> Unit,
-    onAddVolumeType: (newVolumeType: String) -> Unit,
-    onAddSecondaryVolumeType: (newVolumeType: String) -> Unit,
-    onRemoveVolumeType: (toRemove: String) -> Unit,
-    onRemoveSecondaryVolumeType: (toRemove: String) -> Unit,
-    onUpdateVolumeType: (index: Int, newVolumeType: String) -> Unit,
-    onUpdateSecondaryVolumeType: (index: Int, newVolumeType: String) -> Unit,
+    onAddVolumeType: (newVolumeType: VolumeType) -> Unit,
+    onAddSecondaryVolumeType: (newVolumeType: VolumeType) -> Unit,
+    onRemoveVolumeType: (toRemove: VolumeType) -> Unit,
+    onRemoveSecondaryVolumeType: (toRemove: VolumeType) -> Unit,
+    onUpdateVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
+    onUpdateSecondaryVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
     onUpdateMovementPattern: (MovementPattern) -> Unit,
 ) {
     LazyColumn(

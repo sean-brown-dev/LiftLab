@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
-import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
+import com.browntowndev.liftlab.core.domain.enums.toVolumeTypes
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
@@ -30,7 +30,7 @@ class GetGroupedVolumeMetricChartDataUseCase {
         // 2. Process each chart
         return volumeMetricCharts.associateWith { chart ->
             // Determine the set of lift IDs relevant for the current chart
-            val relevantLiftIds = when (chart.volumeTypeImpactSelection) {
+            val relevantLiftIds = when (chart.volumeTypeImpact) {
                 VolumeTypeImpactSelection.PRIMARY -> primaryLiftsByVolumeType[chart.volumeType].orEmpty()
                 VolumeTypeImpactSelection.SECONDARY -> secondaryLiftsByVolumeType[chart.volumeType].orEmpty()
                 VolumeTypeImpactSelection.COMBINED -> {
@@ -65,7 +65,7 @@ class GetGroupedVolumeMetricChartDataUseCase {
         val lookup = mutableMapOf<VolumeType, MutableSet<Long>>()
         lifts.forEach { lift ->
             val bitmask = bitmaskSelector(lift)
-            bitmask?.getVolumeTypes()?.forEach { volumeType ->
+            bitmask?.toVolumeTypes()?.forEach { volumeType ->
                 lookup.getOrPut(volumeType) { mutableSetOf() }.add(lift.id)
             }
         }

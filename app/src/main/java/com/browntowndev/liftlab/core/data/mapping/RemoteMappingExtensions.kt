@@ -196,7 +196,7 @@ object RemoteMappingExtensions {
     fun VolumeMetricChartRemoteDto.toEntity(): VolumeMetricChartEntity = VolumeMetricChartEntity(
         id = this.id,
         volumeType = this.volumeType,
-        volumeTypeImpactSelection = this.volumeTypeImpactSelection
+        volumeTypeImpact = this.volumeTypeImpact
     ).apply {
         this.remoteId = this@toEntity.remoteId
         this.remoteLastUpdated = this@toEntity.lastUpdated
@@ -206,7 +206,7 @@ object RemoteMappingExtensions {
     fun VolumeMetricChartEntity.toRemoteDto(): VolumeMetricChartRemoteDto = VolumeMetricChartRemoteDto(
         id = this.id,
         volumeType = this.volumeType,
-        volumeTypeImpactSelection = this.volumeTypeImpactSelection
+        volumeTypeImpact = this.volumeTypeImpact
     ).apply {
         this.remoteId = this@toRemoteDto.remoteId
         this.lastUpdated = this@toRemoteDto.remoteLastUpdated

@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 
@@ -25,11 +26,11 @@ fun volumeTypeMenu(
     lazyListScope: LazyListScope,
     sectionHeader: String,
     allowDeleteAll: Boolean,
-    volumeTypes: List<String>,
-    volumeTypeOptions: List<String>,
-    onUpdateVolumeType: (index: Int, newVolumeType: String) -> Unit,
-    onAddVolumeType: (newVolumeType: String) -> Unit,
-    onRemoveVolumeType: (toRemove: String) -> Unit,
+    volumeTypes: List<VolumeType>,
+    volumeTypeOptions: List<VolumeType>,
+    onUpdateVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
+    onAddVolumeType: (newVolumeType: VolumeType) -> Unit,
+    onRemoveVolumeType: (toRemove: VolumeType) -> Unit,
 ) {
     lazyListScope.item {
         SectionLabel(text = sectionHeader)

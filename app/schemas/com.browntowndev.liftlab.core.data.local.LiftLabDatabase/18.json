@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 18,
-    "identityHash": "aa17a12e2c75842cb1e1a8043745ccfd",
+    "identityHash": "d71fe667446b464e69833ac1d12c4ba6",
     "entities": [
       {
         "tableName": "lifts",
@@ -1541,7 +1541,7 @@
       },
       {
         "tableName": "volumeMetricCharts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_volume_chart_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `volumeType` TEXT NOT NULL, `volumeTypeImpactSelection` TEXT NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_volume_chart_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `volumeType` TEXT NOT NULL, `volumeTypeImpact` TEXT NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
         "fields": [
           {
             "fieldPath": "id",
@@ -1556,8 +1556,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "volumeTypeImpactSelection",
-            "columnName": "volumeTypeImpactSelection",
+            "fieldPath": "volumeTypeImpact",
+            "columnName": "volumeTypeImpact",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -1664,7 +1664,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'aa17a12e2c75842cb1e1a8043745ccfd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd71fe667446b464e69833ac1d12c4ba6')"
     ]
   }
 }

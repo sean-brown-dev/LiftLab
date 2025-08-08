@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 data class VolumeMetricChartRemoteDto(
     var id: Long = 0L,
     var volumeType: VolumeType = VolumeType.CHEST,
-    var volumeTypeImpactSelection: VolumeTypeImpactSelection = VolumeTypeImpactSelection.PRIMARY,
+    var volumeTypeImpact: VolumeTypeImpactSelection = VolumeTypeImpactSelection.PRIMARY,
 ): BaseRemoteDto() {
     override fun copyWithBase(): BaseRemoteDto {
         return this.copy().apply {

@@ -1,14 +1,22 @@
-package com.browntowndev.liftlab.ui.models.workout
+package com.browntowndev.liftlab.ui.extensions
 
 import androidx.compose.ui.util.fastForEach
-import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.appendSuperscript
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
-import com.browntowndev.liftlab.core.domain.enums.getVolumeTypes
+import com.browntowndev.liftlab.core.domain.enums.toVolumeTypes
 import com.browntowndev.liftlab.core.domain.utils.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
+import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.MyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.WorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingSetUiModel
@@ -26,10 +34,10 @@ private fun getVolumeTypeMapForGenericWorkoutLifts(lifts: List<WorkoutLiftUiMode
             VolumeTypeImpactSelection.SECONDARY -> lift.liftSecondaryVolumeTypes
             VolumeTypeImpactSelection.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
         }
-        val secondaryVolumeTypes = lift.liftSecondaryVolumeTypes?.getVolumeTypes()?.toHashSet()
+        val secondaryVolumeTypes = lift.liftSecondaryVolumeTypes?.toVolumeTypes()?.toHashSet()
 
-        volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
-            val displayName = volumeType.displayName
+        volumeTypes?.toVolumeTypes()?.fastForEach { volumeType ->
+            val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Float, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = (lift as? CustomWorkoutLiftUiModel)?.customLiftSets?.any { it is MyoRepSetUiModel } ?: false
             var newTotalVolume: Float = if(secondaryVolumeTypes?.contains(volumeType) == true)
@@ -57,8 +65,8 @@ private fun getVolumeTypeMapForLoggingWorkoutLifts(lifts: List<LoggingWorkoutLif
             VolumeTypeImpactSelection.COMBINED -> lift.liftVolumeTypes + (lift.liftSecondaryVolumeTypes ?: 0)
         }
 
-        volumeTypes?.getVolumeTypes()?.fastForEach { volumeType ->
-            val displayName = volumeType.displayName
+        volumeTypes?.toVolumeTypes()?.fastForEach { volumeType ->
+            val displayName = volumeType.displayName()
             val currTotalVolume: Pair<Int, Boolean>? = volumeCounts.getOrDefault(displayName, null)
             val hasMyoReps = lift.sets.any { it is LoggingMyoRepSetUiModel }
             var newTotalVolume: Int = lift.setCount
@@ -266,7 +274,7 @@ fun WorkoutUiModel.getRecalculatedWorkoutLiftStepSizeOptions(
 ): Map<Long, Map<Int, List<Int>>> {
     return lifts
         .filterIsInstance<StandardWorkoutLiftUiModel>()
-        .filter { it.progressionScheme.name == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName }
+        .filter { it.progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION }
         .associate { workoutLift ->
             workoutLift.id to getPossibleStepSizes(
                 repRangeTop = workoutLift.repRangeTop,
@@ -299,7 +307,7 @@ fun WorkoutUiModel.getRecalculatedWorkoutLiftStepSizeOptions(
 fun StandardWorkoutLiftUiModel.getRecalculatedStepSizeForLift(
     deloadToUseInsteadOfLiftLevel: Int?
 ): Int? {
-    return if (progressionScheme.name == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName) {
+    return if (progressionScheme.name == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName()) {
         getPossibleStepSizes(
             repRangeTop = repRangeTop,
             repRangeBottom = repRangeBottom,
@@ -409,17 +417,6 @@ fun CustomLiftSetUiModel.transformToType(
                 SetType.DROP_SET -> this // Already handled above
             }
         else -> throw IllegalArgumentException("${this::class.simpleName} is not a recognized custom set type.")
-    }
-}
-
-fun Int.toVolumeTypeDisplayNames() =
-    this.getVolumeTypes().fastMap { it.displayName }
-
-fun VolumeTypeImpactSelection.displayName(): String {
-    return when (this) {
-        VolumeTypeImpactSelection.PRIMARY -> "Primary"
-        VolumeTypeImpactSelection.SECONDARY -> "Secondary"
-        VolumeTypeImpactSelection.COMBINED -> "All"
     }
 }
 

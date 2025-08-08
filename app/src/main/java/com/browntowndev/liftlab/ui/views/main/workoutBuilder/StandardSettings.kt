@@ -15,9 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.ui.composables.FloatTextField
 import com.browntowndev.liftlab.ui.composables.IntegerTextField
-import com.browntowndev.liftlab.ui.models.workout.DisplayProgressionScheme
+import com.browntowndev.liftlab.ui.extensions.rpeLabel
 
 
 @Composable
@@ -28,7 +29,7 @@ fun StandardSettings(
     repRangeBottom: Int,
     repRangeTop: Int,
     rpeTarget: Float,
-    progressionScheme: DisplayProgressionScheme,
+    progressionScheme: ProgressionScheme,
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
@@ -75,7 +76,7 @@ private fun StandardSettingRow(
     repRangeBottom: Int,
     repRangeTop: Int,
     rpeTarget: Float,
-    progressionScheme: DisplayProgressionScheme,
+    progressionScheme: ProgressionScheme,
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
@@ -126,7 +127,7 @@ private fun StandardSettingRow(
             listState = listState,
             disableSystemKeyboard = true,
             hideCursor = true,
-            label = progressionScheme.rpeLabel,
+            label = progressionScheme.rpeLabel(),
             onFocusChanged = onToggleRpePicker,
             onValueChanged = onRpeTargetChanged,
             onPixelOverflowChanged = onPixelOverflowChanged,

@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDom
 import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
-import com.browntowndev.liftlab.ui.models.workout.copyGeneric
+import com.browntowndev.liftlab.ui.extensions.copyGeneric
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel

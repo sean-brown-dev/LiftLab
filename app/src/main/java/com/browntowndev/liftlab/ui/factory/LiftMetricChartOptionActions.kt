@@ -7,10 +7,10 @@ import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.mapping.EnumMapping.toDisplayNames
+import com.browntowndev.liftlab.ui.extensions.displayName
+import com.browntowndev.liftlab.ui.extensions.displayNames
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptions
-import com.browntowndev.liftlab.ui.models.workout.displayName
 
 /**
  * Groups all the user actions from the lift metric chart picker.
@@ -48,7 +48,7 @@ fun createLiftMetricChartOptions(actions: LiftMetricChartOptionActions): LiftMet
             LiftMetricOptions(
                 options = listOf("Volume Metrics"),
                 child = LiftMetricOptions(
-                    options = VolumeType.entries.toDisplayNames(),
+                    options = VolumeType.entries.displayNames(),
                     child = LiftMetricOptions(
                         options = VolumeTypeImpactSelection.entries.map { it.displayName() },
                         completionButtonText = "Confirm",

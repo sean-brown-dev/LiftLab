@@ -17,6 +17,7 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.RemoveVolu
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
+import com.browntowndev.liftlab.ui.extensions.displayName
 import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
@@ -110,52 +111,52 @@ class LiftDetailsViewModel(
         updateLiftNameUseCase(_state.value.lift!!.toDomainModel(), newName)
     }
 
-    fun addVolumeType(newVolumeType: String) = executeWithErrorHandling("Failed to add lift volume type") {
+    fun addVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift volume type") {
         addVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
+            newVolumeType = newVolumeType,
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
 
-    fun addSecondaryVolumeType(newVolumeType: String) = executeWithErrorHandling("Failed to add lift secondary volume type") {
+    fun addSecondaryVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift secondary volume type") {
         addVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
+            newVolumeType = newVolumeType,
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }
 
-    fun removeVolumeType(toRemove: String) = executeWithErrorHandling("Failed to remove lift volume type") {
+    fun removeVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift volume type") {
         removeVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            volumeTypeToRemove = VolumeType.fromDisplayName(toRemove),
+            volumeTypeToRemove = toRemove,
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
 
-    fun removeSecondaryVolumeType(toRemove: String) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
+    fun removeSecondaryVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
         removeVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
-            volumeTypeToRemove = VolumeType.fromDisplayName(toRemove),
+            volumeTypeToRemove = toRemove,
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }
 
-    fun updateVolumeType(index: Int, newVolumeType: String) = executeWithErrorHandling("Failed to update lift volume types") {
+    fun updateVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift volume types") {
         updateVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
             index = index,
-            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
+            newVolumeType = newVolumeType,
             volumeTypeCategory = VolumeTypeCategory.PRIMARY
         )
     }
 
-    fun updateSecondaryVolumeType(index: Int, newVolumeType: String) = executeWithErrorHandling("Failed to update lift secondary volume types") {
+    fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift secondary volume types") {
         updateVolumeTypeUseCase(
             lift = _state.value.lift!!.toDomainModel(),
             index = index,
-            newVolumeType = VolumeType.fromDisplayName(newVolumeType),
+            newVolumeType = newVolumeType,
             volumeTypeCategory = VolumeTypeCategory.SECONDARY
         )
     }

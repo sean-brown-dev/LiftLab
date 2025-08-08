@@ -7,13 +7,13 @@ import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.ui.extensions.displayName
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricChartModel
 import com.browntowndev.liftlab.ui.models.metrics.VolumeMetricChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getPerMicrocycleVolumeChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getPerWorkoutVolumeChartModel
-import com.browntowndev.liftlab.ui.models.workout.displayName
 import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 
 object ChartMappingExtensions {
@@ -71,11 +71,11 @@ object ChartMappingExtensions {
             if (logs.isNotEmpty()) {
                 VolumeMetricChartModel(
                     id = chart.id,
-                    volumeType = chart.volumeType.displayName,
-                    volumeTypeImpact = chart.volumeTypeImpactSelection.displayName(),
+                    volumeType = chart.volumeType.displayName(),
+                    volumeTypeImpact = chart.volumeTypeImpact.displayName(),
                     chartModel = getPerMicrocycleVolumeChartModel(
                         workoutLogs = logs,
-                        secondaryVolumeTypesByLiftId = if (chart.volumeTypeImpactSelection != VolumeTypeImpactSelection.PRIMARY)
+                        secondaryVolumeTypesByLiftId = if (chart.volumeTypeImpact != VolumeTypeImpactSelection.PRIMARY)
                             secondaryVolumeTypesById else null
                     )
                 )

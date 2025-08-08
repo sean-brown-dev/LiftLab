@@ -1,5 +1,6 @@
-package com.browntowndev.liftlab.ui.models.workoutLogging
+package com.browntowndev.liftlab.ui.extensions
 
+import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
 import java.util.Date
 
 

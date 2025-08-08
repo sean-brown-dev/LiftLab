@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
-import com.browntowndev.liftlab.ui.models.workout.getVolumeTypeLabels
+import com.browntowndev.liftlab.ui.extensions.getVolumeTypeLabels
 
 @Stable
 data class LabState(

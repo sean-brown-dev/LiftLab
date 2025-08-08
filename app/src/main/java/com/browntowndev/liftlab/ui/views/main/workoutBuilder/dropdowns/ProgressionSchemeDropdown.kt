@@ -21,9 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.ui.composables.TextDropdown
 import com.browntowndev.liftlab.ui.composables.TextDropdownTextAnchor
-import com.browntowndev.liftlab.ui.models.workout.DisplayProgressionScheme
+import com.browntowndev.liftlab.ui.extensions.displayName
+import com.browntowndev.liftlab.ui.extensions.shortDisplayName
 
 
 @Composable
@@ -31,8 +33,8 @@ fun ProgressionSchemeDropdown(
     modifier: Modifier = Modifier,
     text: String,
     hasCustomSets: Boolean,
-    progressionSchemes: List<DisplayProgressionScheme>,
-    onChangeProgressionScheme: (DisplayProgressionScheme) -> Unit,
+    progressionSchemes: List<ProgressionScheme>,
+    onChangeProgressionScheme: (ProgressionScheme) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -60,14 +62,14 @@ fun ProgressionSchemeDropdown(
                     !hasCustomSets || it.canHaveCustomSets
                 }.fastForEach { progressionScheme ->
                     DropdownMenuItem(
-                        text = { Text(progressionScheme.name) },
+                        text = { Text(progressionScheme.displayName()) },
                         onClick = {
                             isExpanded = false
                             onChangeProgressionScheme(progressionScheme)
                         },
                         leadingIcon = {
                             TextDropdownTextAnchor(
-                                text = progressionScheme.shortName,
+                                text = progressionScheme.shortDisplayName(),
                                 fontSize = 14.sp
                             )
                         }

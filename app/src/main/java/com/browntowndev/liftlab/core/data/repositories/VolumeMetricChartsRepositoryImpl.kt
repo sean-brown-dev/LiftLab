@@ -2,11 +2,11 @@ package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.VolumeMetricChartsDao
-import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
-import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -19,7 +19,7 @@ class VolumeMetricChartsRepositoryImpl(
         val toUpsert = VolumeMetricChartEntity(
             id = model.id,
             volumeType = model.volumeType,
-            volumeTypeImpactSelection = model.volumeTypeImpactSelection,
+            volumeTypeImpact = model.volumeTypeImpact,
         ).applyRemoteStorageMetadata(
             remoteId = current?.remoteId,
             remoteLastUpdated = current?.remoteLastUpdated,
@@ -42,7 +42,7 @@ class VolumeMetricChartsRepositoryImpl(
                 VolumeMetricChartEntity(
                     id = volumeMetricChart.id,
                     volumeType = volumeMetricChart.volumeType,
-                    volumeTypeImpactSelection = volumeMetricChart.volumeTypeImpactSelection,
+                    volumeTypeImpact = volumeMetricChart.volumeTypeImpact,
                 ).applyRemoteStorageMetadata(
                     remoteId = current?.remoteId,
                     remoteLastUpdated = current?.remoteLastUpdated,
@@ -63,7 +63,7 @@ class VolumeMetricChartsRepositoryImpl(
         val toInsert = VolumeMetricChartEntity(
             id = model.id,
             volumeType = model.volumeType,
-            volumeTypeImpactSelection = model.volumeTypeImpactSelection,
+            volumeTypeImpact = model.volumeTypeImpact,
         )
         val id = volumeMetricChartsDao.insert(toInsert)
         syncScheduler.scheduleSync()
@@ -76,7 +76,7 @@ class VolumeMetricChartsRepositoryImpl(
             VolumeMetricChartEntity(
                 id = it.id,
                 volumeType = it.volumeType,
-                volumeTypeImpactSelection = it.volumeTypeImpactSelection,
+                volumeTypeImpact = it.volumeTypeImpact,
             )
         }
         val ids = volumeMetricChartsDao.insertMany(toInsert)
@@ -108,7 +108,7 @@ class VolumeMetricChartsRepositoryImpl(
             VolumeMetricChart(
                 id = it.id,
                 volumeType = it.volumeType,
-                volumeTypeImpactSelection = it.volumeTypeImpactSelection,
+                volumeTypeImpact = it.volumeTypeImpact,
             )
         }
     }
@@ -119,7 +119,7 @@ class VolumeMetricChartsRepositoryImpl(
                 VolumeMetricChart(
                     id = entity.id,
                     volumeType = entity.volumeType,
-                    volumeTypeImpactSelection = entity.volumeTypeImpactSelection,
+                    volumeTypeImpact = entity.volumeTypeImpact,
                 )
             }
         }
@@ -130,7 +130,7 @@ class VolumeMetricChartsRepositoryImpl(
             VolumeMetricChart(
                 id = it.id,
                 volumeType = it.volumeType,
-                volumeTypeImpactSelection = it.volumeTypeImpactSelection,
+                volumeTypeImpact = it.volumeTypeImpact,
             )
         }
     }
@@ -140,7 +140,7 @@ class VolumeMetricChartsRepositoryImpl(
             VolumeMetricChart(
                 id = it.id,
                 volumeType = it.volumeType,
-                volumeTypeImpactSelection = it.volumeTypeImpactSelection,
+                volumeTypeImpact = it.volumeTypeImpact,
             )
         }
     }
@@ -149,7 +149,7 @@ class VolumeMetricChartsRepositoryImpl(
         val toUpdate = VolumeMetricChartEntity(
             id = model.id,
             volumeType = model.volumeType,
-            volumeTypeImpactSelection = model.volumeTypeImpactSelection,
+            volumeTypeImpact = model.volumeTypeImpact,
         )
         volumeMetricChartsDao.update(toUpdate)
         syncScheduler.scheduleSync()
@@ -160,7 +160,7 @@ class VolumeMetricChartsRepositoryImpl(
             VolumeMetricChartEntity(
                 id = it.id,
                 volumeType = it.volumeType,
-                volumeTypeImpactSelection = it.volumeTypeImpactSelection,
+                volumeTypeImpact = it.volumeTypeImpact,
             )
         }
         volumeMetricChartsDao.updateMany(toUpdate)

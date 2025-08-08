@@ -41,6 +41,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
@@ -50,6 +51,8 @@ import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.extensions.displayName
+import com.browntowndev.liftlab.ui.extensions.sortedByDisplayName
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.Route
@@ -145,7 +148,7 @@ fun WorkoutBuilder(
                         }
                         val customLiftsVisible = remember(customLift) { customLift != null }
                         val showDeloadWeekOption = remember(workoutLift.progressionScheme) {
-                            !workoutLift.progressionScheme.isLinearProgression &&
+                            workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION &&
                                     SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
                         }
 
@@ -202,11 +205,12 @@ fun WorkoutBuilder(
                                 )
                             },
                         ) {
+                            val progressionSchemes = remember { ProgressionScheme.entries.sortedByDisplayName() }
                             ProgressionSchemeDropdown(
                                 modifier = Modifier.padding(start = 20.dp),
-                                text = workoutLift.progressionScheme.name,
+                                text = workoutLift.progressionScheme.displayName(),
                                 hasCustomSets = customLiftsVisible,
-                                progressionSchemes = state.progressionSchemes,
+                                progressionSchemes = progressionSchemes,
                                 onChangeProgressionScheme = {
                                     workoutBuilderViewModel.setLiftProgressionScheme(
                                         workoutLift.id,
@@ -217,7 +221,7 @@ fun WorkoutBuilder(
                             WavePatternDropdown(
                                 workoutLiftId = workoutLift.id,
                                 stepSize = (workoutLift as? StandardWorkoutLiftUiModel)?.stepSize,
-                                progressionScheme = workoutLift.progressionScheme.name,
+                                progressionScheme = workoutLift.progressionScheme,
                                 workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
                                 onUpdateStepSize = { workoutLiftId, newStepSize ->
                                     workoutBuilderViewModel.updateStepSize(workoutLiftId = workoutLiftId, newStepSize = newStepSize)

@@ -7,7 +7,6 @@ import com.browntowndev.liftlab.core.common.Utils.General.Companion.getSevenWeek
 import com.browntowndev.liftlab.core.common.authStateFlow
 import com.browntowndev.liftlab.core.common.getLastSevenWeeksInRange
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.toLiftMetricChartType
 import com.browntowndev.liftlab.core.domain.models.metrics.ConfiguredMetricsState
@@ -18,6 +17,9 @@ import com.browntowndev.liftlab.core.domain.useCase.metrics.DeleteVolumeMetricCh
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetConfiguredMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.InsertManyLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.UpsertManyVolumeMetricChartsUseCase
+import com.browntowndev.liftlab.ui.extensions.filterByDateRange
+import com.browntowndev.liftlab.ui.extensions.toVolumeType
+import com.browntowndev.liftlab.ui.extensions.toVolumeTypeImpact
 import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
 import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
 import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
@@ -28,8 +30,6 @@ import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.getMicroCycleCompletionChart
 import com.browntowndev.liftlab.ui.models.metrics.getWeeklyCompletionChart
-import com.browntowndev.liftlab.ui.models.workout.toVolumeTypeImpact
-import com.browntowndev.liftlab.ui.models.workoutLogging.filterByDateRange
 import com.browntowndev.liftlab.ui.viewmodels.states.HomeState
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -324,8 +324,8 @@ class HomeViewModel(
     private fun addVolumeMetricChart() = executeWithErrorHandling("Failed to add volume metric chart") {
         val charts = _state.value.volumeTypeSelections.fastMap { volumeTypeStr ->
             VolumeMetricChart(
-                volumeType = VolumeType.fromDisplayName(volumeTypeStr),
-                volumeTypeImpactSelection = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpactSelection.COMBINED
+                volumeType = volumeTypeStr.toVolumeType(),
+                volumeTypeImpact = _state.value.volumeImpactSelection?.toVolumeTypeImpact() ?: VolumeTypeImpactSelection.COMBINED
             )
         }
         upsertManyVolumeMetricChartsUseCase(charts)

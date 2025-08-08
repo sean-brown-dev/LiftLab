@@ -166,5 +166,5 @@ fun createVolumeMetricChart(
 ) = VolumeMetricChart(
     id = id,
     volumeType = volumeType,
-    volumeTypeImpactSelection = volumeTypeImpactSelection
+    volumeTypeImpact = volumeTypeImpactSelection
 )

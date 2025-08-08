@@ -1,6 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
-import com.browntowndev.liftlab.ui.models.Utils.getAllVolumeTypeDisplayNames
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
 import com.browntowndev.liftlab.ui.models.workout.LiftUiModel
@@ -26,7 +26,7 @@ data class LiftDetailsState(
     val intensityChartModel: ChartModel<LineCartesianLayerModel>? = null,
 ) {
     val volumeTypeOptions by lazy {
-        getAllVolumeTypeDisplayNames().filterNot {
+        VolumeType.entries.filterNot {
             it in lift?.volumeTypes.orEmpty() ||
                 it in lift?.secondaryVolumeTypes.orEmpty()
         }

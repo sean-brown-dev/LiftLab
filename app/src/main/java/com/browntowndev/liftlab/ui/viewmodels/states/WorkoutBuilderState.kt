@@ -1,12 +1,10 @@
 package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.mapping.EnumMapping.toDomainModel
+import com.browntowndev.liftlab.ui.extensions.getVolumeTypeLabels
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
-import com.browntowndev.liftlab.ui.models.workout.getVolumeTypeLabels
 
 @Stable
 data class WorkoutBuilderState (
@@ -19,10 +17,6 @@ data class WorkoutBuilderState (
     val detailExpansionStates: HashMap<Long, HashSet<Int>> = hashMapOf(),
     val workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>> = mapOf(),
 ) {
-    val progressionSchemes by lazy {
-        ProgressionScheme.entries.toDomainModel()
-    }
-
     val movementPatternOfDeletingWorkoutLift by lazy {
         workout?.let {
             it.lifts.find { lift -> lift.id == this.workoutLiftIdToDelete }?.liftMovementPattern?.displayName()

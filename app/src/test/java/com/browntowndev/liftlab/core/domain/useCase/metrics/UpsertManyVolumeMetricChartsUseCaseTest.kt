@@ -40,12 +40,12 @@ class UpsertManyVolumeMetricChartsUseCaseTest {
             VolumeMetricChart(
                 id = 1,
                 volumeType = VolumeType.CHEST,
-                volumeTypeImpactSelection = VolumeTypeImpactSelection.PRIMARY
+                volumeTypeImpact = VolumeTypeImpactSelection.PRIMARY
             ),
             VolumeMetricChart(
                 id = 2,
                 volumeType = VolumeType.QUAD,
-                volumeTypeImpactSelection = VolumeTypeImpactSelection.PRIMARY)
+                volumeTypeImpact = VolumeTypeImpactSelection.PRIMARY)
         )
         coEvery { volumeMetricChartsRepository.upsertMany(charts) } coAnswers { emptyList() }
 
