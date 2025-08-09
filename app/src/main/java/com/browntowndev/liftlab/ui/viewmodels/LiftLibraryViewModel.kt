@@ -47,6 +47,22 @@ class LiftLibraryViewModel(
 
     init {
         viewModelScope.launch {
+            // Setup state with initial movement pattern filter
+            _state.update {
+                it.copy(
+                    movementPatternFilters = if (initialMovementPatternFilter.isNotEmpty()) {
+                        listOf(
+                            FilterChipOption(
+                                type = MOVEMENT_PATTERN,
+                                value = initialMovementPatternFilter
+                            )
+                        )
+                    } else {
+                        it.movementPatternFilters
+                    }
+                )
+            }
+
             getFilterableLiftsStateFlowUseCase(workoutId)
                 .map { liftConfigurationState ->
                     val sortedLifts = liftConfigurationState.lifts.sortedBy { it.name }
@@ -67,16 +83,6 @@ class LiftLibraryViewModel(
                             workoutId = workoutId,
                             addAtPosition = addAtPosition,
                             newLiftMetricChartIds = newLiftMetricChartIds,
-                            movementPatternFilters = if (initialMovementPatternFilter.isNotEmpty()) {
-                                listOf(
-                                    FilterChipOption(
-                                        type = MOVEMENT_PATTERN,
-                                        value = initialMovementPatternFilter
-                                    )
-                                )
-                            } else {
-                                it.movementPatternFilters
-                            }
                         )
                     }
                 }.launchIn(this)
