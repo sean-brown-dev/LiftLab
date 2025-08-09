@@ -12,12 +12,10 @@ class SetProgramAsActiveUseCase(
 ) {
     suspend operator fun invoke(idOfProgramToActivate: Long, allPrograms: List<Program>) = transactionScope.execute {
         val programToActivate = allPrograms.find { it.id == idOfProgramToActivate } ?: throw IllegalArgumentException("Program not found")
-        programToActivate.copy(isActive = true)
-        programsRepository.update(programToActivate)
+        programsRepository.update(programToActivate.copy(isActive = true))
 
         val programsToDeactivate = allPrograms
-            .filter { it.isActive }
-
+            .filter { it.isActive && it.id != idOfProgramToActivate }
 
         if (programsToDeactivate.size > 1) {
             FirebaseCrashlytics.getInstance().recordException(Exception("Multiple programs were active at once. $programsToDeactivate"))

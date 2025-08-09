@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
 import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -54,7 +55,16 @@ class SyncOrchestrator(
 
     suspend fun syncFromThenToRemote(syncAllFromRemote: Boolean = false) {
         Log.d(TAG, "syncAll called with sync all data: $syncAllFromRemote")
-        if (!remoteDataClient.canSync) {
+
+        var canSync = remoteDataClient.canSync
+        var retries = 0
+        while (retries < 3 && !canSync) {
+            Log.d(TAG, "Cannot sync, retrying")
+            canSync = remoteDataClient.canSync
+            retries++
+            delay(100)
+        }
+        if (!canSync) {
             Log.d(TAG, "Cannot sync, remoteDataClient.canSync is false")
             return
         }

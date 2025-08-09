@@ -4,9 +4,11 @@ import androidx.annotation.Keep
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
 
 @Keep
+@IgnoreExtraProperties
 data class SetLogEntryRemoteDto(
     var id: Long = 0L,
     var workoutLogEntryId: Long = 0L,
