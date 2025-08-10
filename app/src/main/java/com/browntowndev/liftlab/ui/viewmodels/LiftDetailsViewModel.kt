@@ -17,7 +17,6 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.RemoveVolu
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
-import com.browntowndev.liftlab.ui.extensions.displayName
 import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
@@ -25,6 +24,7 @@ import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getPerWorkoutVolumeChartModel
+import com.browntowndev.liftlab.ui.models.workout.LiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -108,70 +108,106 @@ class LiftDetailsViewModel(
     }
 
     fun updateName(newName: String) = executeWithErrorHandling("Failed to update lift name") {
-        updateLiftNameUseCase(_state.value.lift!!.toDomainModel(), newName)
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = updateLiftNameUseCase(lift.toDomainModel(), newName).toUiModel()
+            )
+        }
     }
 
     fun addVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift volume type") {
-        addVolumeTypeUseCase(
-            lift = _state.value.lift!!.toDomainModel(),
-            newVolumeType = newVolumeType,
-            volumeTypeCategory = VolumeTypeCategory.PRIMARY
-        )
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = addVolumeTypeUseCase(
+                    lift = lift.toDomainModel(),
+                    newVolumeType = newVolumeType,
+                    volumeTypeCategory = VolumeTypeCategory.PRIMARY
+                ).toUiModel()
+            )
+        }
     }
 
     fun addSecondaryVolumeType(newVolumeType: VolumeType) = executeWithErrorHandling("Failed to add lift secondary volume type") {
-        addVolumeTypeUseCase(
-            lift = _state.value.lift!!.toDomainModel(),
-            newVolumeType = newVolumeType,
-            volumeTypeCategory = VolumeTypeCategory.SECONDARY
-        )
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = addVolumeTypeUseCase(
+                    lift = lift.toDomainModel(),
+                    newVolumeType = newVolumeType,
+                    volumeTypeCategory = VolumeTypeCategory.SECONDARY
+                ).toUiModel()
+            )
+        }
     }
 
     fun removeVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift volume type") {
-        removeVolumeTypeUseCase(
-            lift = _state.value.lift!!.toDomainModel(),
-            volumeTypeToRemove = toRemove,
-            volumeTypeCategory = VolumeTypeCategory.PRIMARY
-        )
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = removeVolumeTypeUseCase(
+                    lift = lift.toDomainModel(),
+                    volumeTypeToRemove = toRemove,
+                    volumeTypeCategory = VolumeTypeCategory.PRIMARY
+                ).toUiModel()
+            )
+        }
     }
 
     fun removeSecondaryVolumeType(toRemove: VolumeType) = executeWithErrorHandling("Failed to remove lift secondary volume type") {
-        removeVolumeTypeUseCase(
-            lift = _state.value.lift!!.toDomainModel(),
-            volumeTypeToRemove = toRemove,
-            volumeTypeCategory = VolumeTypeCategory.SECONDARY
-        )
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = removeVolumeTypeUseCase(
+                    lift = lift.toDomainModel(),
+                    volumeTypeToRemove = toRemove,
+                    volumeTypeCategory = VolumeTypeCategory.SECONDARY
+                ).toUiModel()
+            )
+        }
     }
 
     fun updateVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift volume types") {
-        updateVolumeTypeUseCase(
-            lift = _state.value.lift!!.toDomainModel(),
-            index = index,
-            newVolumeType = newVolumeType,
-            volumeTypeCategory = VolumeTypeCategory.PRIMARY
-        )
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = updateVolumeTypeUseCase(
+                    lift = lift.toDomainModel(),
+                    index = index,
+                    newVolumeType = newVolumeType,
+                    volumeTypeCategory = VolumeTypeCategory.PRIMARY
+                ).toUiModel()
+            )
+        }
     }
 
     fun updateSecondaryVolumeType(index: Int, newVolumeType: VolumeType) = executeWithErrorHandling("Failed to update lift secondary volume types") {
-        updateVolumeTypeUseCase(
-            lift = _state.value.lift!!.toDomainModel(),
-            index = index,
-            newVolumeType = newVolumeType,
-            volumeTypeCategory = VolumeTypeCategory.SECONDARY
-        )
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = updateVolumeTypeUseCase(
+                    lift = lift.toDomainModel(),
+                    index = index,
+                    newVolumeType = newVolumeType,
+                    volumeTypeCategory = VolumeTypeCategory.SECONDARY
+                ).toUiModel()
+            )
+        }
     }
 
     fun updateMovementPattern(newMovementPattern: MovementPattern) = executeWithErrorHandling("Failed to update lift movement pattern") {
-        updateMovementPatternUseCase(_state.value.lift!!.toDomainModel(), newMovementPattern)
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        _state.update {
+            it.copy(
+                lift = updateMovementPatternUseCase(lift.toDomainModel(), newMovementPattern).toUiModel()
+            )
+        }
     }
 
     private fun createNewLift() = executeWithErrorHandling("Failed to create new lift") {
-        val lift = _state.value.lift!!
-        val liftEntityToCreate = if (state.value.lift!!.name.isEmpty()) {
-            lift.copy(name = "New Lift")
-        } else lift
-
-        createLiftUseCase(liftEntityToCreate.toDomainModel())
+        val lift = tryGetLiftAndLogIfNull() ?: return@executeWithErrorHandling
+        createLiftUseCase(lift.toDomainModel())
         onNavigateBack()
     }
 
@@ -209,4 +245,15 @@ class LiftDetailsViewModel(
             }
         }
     }
+
+    private fun tryGetLiftAndLogIfNull(): LiftUiModel? =
+        _state.value.lift.let { liftUiModel ->
+            if (liftUiModel == null) {
+                val logMsg = "Lift details were not loaded properly"
+                Log.e("LiftDetailsViewModel", logMsg)
+                FirebaseCrashlytics.getInstance().recordException(Exception(logMsg))
+                emitUserMessage("Lift details were not loaded properly")
+                null
+            } else liftUiModel
+        }
 }

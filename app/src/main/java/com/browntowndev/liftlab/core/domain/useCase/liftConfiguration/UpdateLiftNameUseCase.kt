@@ -8,7 +8,21 @@ class UpdateLiftNameUseCase(
     private val liftsRepository: LiftsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(lift: Lift, newName: String) = transactionScope.execute {
-        liftsRepository.update(lift.copy(name = newName))
+    /**
+     * Updates the name of a lift and returns the updated lift.
+     * If the lift does not exist, the updated lift is returned but not persisted.
+     *
+     * @param lift The lift to update.
+     * @param newName The new name for the lift.
+     * @return The updated lift.
+     */
+    suspend operator fun invoke(lift: Lift, newName: String): Lift = transactionScope.executeWithResult {
+        val liftToUpdate = lift.copy(name = newName)
+
+        if (liftToUpdate.id > 0L) {
+            liftsRepository.update(liftToUpdate)
+        }
+
+        liftToUpdate
     }
 }

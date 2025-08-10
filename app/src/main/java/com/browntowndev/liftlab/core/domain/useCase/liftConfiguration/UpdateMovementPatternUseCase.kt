@@ -10,7 +10,15 @@ class UpdateMovementPatternUseCase(
     private val liftRepository: LiftsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(lift: Lift, movementPattern: MovementPattern) = transactionScope.execute {
+    /**
+     * Updates the movement pattern of a lift. If the lift does not exists
+     * it is not persisted.
+     *
+     * @param lift The lift to update.
+     * @param movementPattern The new movement pattern to set.
+     * @return The updated lift.
+     */
+    suspend operator fun invoke(lift: Lift, movementPattern: MovementPattern): Lift = transactionScope.executeWithResult {
         val volumeTypes = VolumeTypeUtils.getDefaultVolumeTypes(movementPattern)
         val secondaryVolumeTypes = VolumeTypeUtils.getDefaultSecondaryVolumeTypes(movementPattern)
         val updatedLift = lift.copy(
@@ -19,6 +27,10 @@ class UpdateMovementPatternUseCase(
             secondaryVolumeTypesBitmask = secondaryVolumeTypes?.sumOf { it.bitMask }
         )
 
-        liftRepository.update(updatedLift)
+        if (lift.id > 0L) {
+            liftRepository.update(updatedLift)
+        }
+
+        updatedLift
     }
 }

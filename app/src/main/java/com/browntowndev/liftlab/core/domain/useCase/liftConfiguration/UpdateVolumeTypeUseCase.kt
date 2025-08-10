@@ -11,12 +11,22 @@ class UpdateVolumeTypeUseCase(
     private val liftsRepository: LiftsRepository,
     private val transactionScope: TransactionScope,
 ) {
+    /**
+     * Updates a lift's volume type. If the lift does not exist
+     * it is not persisted.
+     *
+     * @param lift The lift to update
+     * @param index The index of the volume type to update
+     * @param newVolumeType The new volume type to set
+     * @param volumeTypeCategory The category of the volume type to update
+     * @return The updated lift
+     */
     suspend operator fun invoke(
         lift: Lift,
         index: Int,
         newVolumeType: VolumeType,
         volumeTypeCategory: VolumeTypeCategory
-    ) = transactionScope.execute {
+    ): Lift = transactionScope.executeWithResult {
         val newVolumeTypeBitmask = lift.volumeTypesBitmask.toVolumeTypes()
             .toMutableList()
             .apply {
@@ -28,6 +38,11 @@ class UpdateVolumeTypeUseCase(
 
         val liftToUpdate = if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = newVolumeTypeBitmask)
             else lift.copy(secondaryVolumeTypesBitmask = newVolumeTypeBitmask)
-        liftsRepository.update(liftToUpdate)
+
+        if (lift.id > 0L) {
+            liftsRepository.update(liftToUpdate)
+        }
+
+        liftToUpdate
     }
 }

@@ -10,11 +10,24 @@ class AddVolumeTypeUseCase(
     private val liftsRepository: LiftsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(lift: Lift, newVolumeType: VolumeType, volumeTypeCategory: VolumeTypeCategory) = transactionScope.execute {
+    /**
+     * Adds a volume type to the lift. If the lift does not exist it
+     * is not persisted.
+     *
+     * @param lift The lift to update
+     * @param newVolumeType The volume type to add
+     * @param volumeTypeCategory The category of the volume type to add
+     * @return The updated lift
+     */
+    suspend operator fun invoke(lift: Lift, newVolumeType: VolumeType, volumeTypeCategory: VolumeTypeCategory): Lift = transactionScope.executeWithResult {
         val newVolumeTypeBitmask = lift.volumeTypesBitmask + newVolumeType.bitMask
         val liftToUpdate = if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = newVolumeTypeBitmask)
             else lift.copy(secondaryVolumeTypesBitmask = newVolumeTypeBitmask)
 
-        liftsRepository.update(liftToUpdate)
+        if (lift.id > 0L) {
+            liftsRepository.update(liftToUpdate)
+        }
+
+        liftToUpdate
     }
 }

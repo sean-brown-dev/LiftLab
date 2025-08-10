@@ -9,6 +9,7 @@ class CreateLiftUseCase(
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(lift: Lift) = transactionScope.execute {
-        liftsRepository.insert(lift)
+        val liftToCreate = if (lift.name.isEmpty()) lift.copy(name = "New Lift") else lift
+        liftsRepository.insert(liftToCreate)
     }
 }
