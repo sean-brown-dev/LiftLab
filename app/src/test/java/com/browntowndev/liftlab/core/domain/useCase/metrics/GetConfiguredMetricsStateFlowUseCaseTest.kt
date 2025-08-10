@@ -1,12 +1,12 @@
 package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.util.createLift
 import com.browntowndev.liftlab.core.domain.util.createLiftMetricChart
 import com.browntowndev.liftlab.core.domain.util.createProgram
@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import java.time.Instant
 
 @ExtendWith(MockKExtension::class)
 class GetConfiguredMetricsStateFlowUseCaseTest {
@@ -85,7 +84,6 @@ class GetConfiguredMetricsStateFlowUseCaseTest {
         assertEquals(lifts, result.lifts)
         assertEquals(workoutLogs, result.workoutLogs)
         assertEquals(liftMetricCharts, result.liftMetricCharts)
-        assertEquals(volumeMetricCharts, result.volumeMetricCharts)
         assertEquals(groupedLiftData, result.liftMetricChartData)
         assertEquals(groupedVolumeData, result.volumeMetricChartData)
     }

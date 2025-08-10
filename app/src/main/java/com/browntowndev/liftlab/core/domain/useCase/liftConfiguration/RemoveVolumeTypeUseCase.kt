@@ -26,9 +26,12 @@ class RemoveVolumeTypeUseCase(
     ): Lift =
         transactionScope.executeWithResult {
             val newVolumeTypeBitmask = lift.volumeTypesBitmask - volumeTypeToRemove.bitMask
+            val nullableVolumeTypeBitmask = if (newVolumeTypeBitmask == 0) null else newVolumeTypeBitmask
+            if (nullableVolumeTypeBitmask == null) throw IllegalArgumentException("Primary volume type cannot be removed")
+
             val liftToUpdate =
                 if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = newVolumeTypeBitmask)
-                else lift.copy(secondaryVolumeTypesBitmask = newVolumeTypeBitmask)
+                else lift.copy(secondaryVolumeTypesBitmask = nullableVolumeTypeBitmask)
 
             if (lift.id > 0L) {
                 liftsRepository.update(liftToUpdate)

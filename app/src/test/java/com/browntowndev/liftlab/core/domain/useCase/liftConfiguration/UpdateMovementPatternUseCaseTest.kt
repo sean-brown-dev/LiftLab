@@ -46,7 +46,7 @@ class UpdateMovementPatternUseCaseTest {
         // Mock the repository dependency
         liftRepository = mockk()
         transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+        coEvery { transactionScope.executeWithResult(any<suspend () -> Unit>()) } coAnswers {
             firstArg<suspend () -> Unit>().invoke()
         }
         updateMovementPatternUseCase = UpdateMovementPatternUseCase(liftRepository, transactionScope)

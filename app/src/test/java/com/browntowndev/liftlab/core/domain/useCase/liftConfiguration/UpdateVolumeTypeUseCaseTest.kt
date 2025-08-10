@@ -12,10 +12,8 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class UpdateVolumeTypeUseCaseTest {
 
@@ -47,7 +45,7 @@ class UpdateVolumeTypeUseCaseTest {
     fun setUp() {
         liftsRepository = mockk()
         transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+        coEvery { transactionScope.executeWithResult(any<suspend () -> Unit>()) } coAnswers {
             firstArg<suspend () -> Unit>().invoke()
         }
         updateVolumeTypeUseCase = UpdateVolumeTypeUseCase(liftsRepository, transactionScope)
@@ -61,18 +59,17 @@ class UpdateVolumeTypeUseCaseTest {
                 volumeTypesBitmask = VolumeType.CHEST.bitMask,
                 secondaryVolumeTypesBitmask = VolumeType.TRICEP.bitMask
             )
-            val newPrimaryBitmask = VolumeType.CHEST.bitMask or VolumeType.ANTERIOR_DELTOID.bitMask
             val liftSlot = slot<Lift>()
             coEvery { liftsRepository.update(capture(liftSlot)) } returns Unit
 
             // WHEN
-            updateVolumeTypeUseCase(initialLift, newPrimaryBitmask, VolumeTypeCategory.PRIMARY)
+            updateVolumeTypeUseCase(initialLift, 0, VolumeType.ANTERIOR_DELTOID, VolumeTypeCategory.PRIMARY)
 
             // THEN
             coVerify(exactly = 1) { liftsRepository.update(any()) }
 
             val capturedLift = liftSlot.captured
-            assertEquals(newPrimaryBitmask, capturedLift.volumeTypesBitmask)
+            assertEquals(VolumeType.ANTERIOR_DELTOID.bitMask, capturedLift.volumeTypesBitmask)
             assertEquals(
                 initialLift.secondaryVolumeTypesBitmask,
                 capturedLift.secondaryVolumeTypesBitmask
@@ -88,61 +85,21 @@ class UpdateVolumeTypeUseCaseTest {
                 volumeTypesBitmask = VolumeType.CHEST.bitMask,
                 secondaryVolumeTypesBitmask = VolumeType.TRICEP.bitMask
             )
-            val newSecondaryBitmask = VolumeType.TRICEP.bitMask or VolumeType.BICEP.bitMask
             val liftSlot = slot<Lift>()
             coEvery { liftsRepository.update(capture(liftSlot)) } returns Unit
 
             // WHEN
-            updateVolumeTypeUseCase(initialLift, newSecondaryBitmask, VolumeTypeCategory.SECONDARY)
+            updateVolumeTypeUseCase(initialLift, 0, VolumeType.BICEP, VolumeTypeCategory.SECONDARY)
 
             // THEN
             coVerify(exactly = 1) { liftsRepository.update(any()) }
 
             val capturedLift = liftSlot.captured
-            assertEquals(newSecondaryBitmask, capturedLift.secondaryVolumeTypesBitmask)
+            assertEquals(VolumeType.BICEP.bitMask, capturedLift.secondaryVolumeTypesBitmask)
             assertEquals(
                 initialLift.volumeTypesBitmask,
                 capturedLift.volumeTypesBitmask
             ) // Should be unchanged
             assertEquals(initialLift.id, capturedLift.id)
-        }
-
-    @Test
-    fun `invoke with SECONDARY category and null bitmask should update secondary to null`() =
-        runTest {
-            // GIVEN
-            val initialLift =
-                createTestLift(secondaryVolumeTypesBitmask = VolumeType.TRICEP.bitMask)
-            val liftSlot = slot<Lift>()
-            coEvery { liftsRepository.update(capture(liftSlot)) } returns Unit
-
-            // WHEN
-            updateVolumeTypeUseCase(initialLift, null, VolumeTypeCategory.SECONDARY)
-
-            // THEN
-            coVerify(exactly = 1) { liftsRepository.update(any()) }
-
-            val capturedLift = liftSlot.captured
-            assertNull(capturedLift.secondaryVolumeTypesBitmask)
-            assertEquals(
-                initialLift.volumeTypesBitmask,
-                capturedLift.volumeTypesBitmask
-            ) // Should be unchanged
-        }
-
-    @Test
-    fun `invoke with PRIMARY category and null bitmask should throw IllegalArgumentException`() =
-        runTest {
-            // GIVEN
-            val initialLift = createTestLift()
-
-            // WHEN & THEN
-            val exception = assertThrows<IllegalArgumentException> {
-                updateVolumeTypeUseCase(initialLift, null, VolumeTypeCategory.PRIMARY)
-            }
-            assertEquals("Primary volume type cannot be null", exception.message)
-
-            // Verify that the repository was never called because the exception was thrown first
-            coVerify(exactly = 0) { liftsRepository.update(any()) }
         }
 }
