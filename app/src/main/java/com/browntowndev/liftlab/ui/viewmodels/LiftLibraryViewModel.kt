@@ -125,13 +125,12 @@ class LiftLibraryViewModel(
     }
 
     private fun updateLiftMetricChartsWithSelectedLiftIds() = executeWithErrorHandling("Failed to create lift metric chart(s)") {
-        viewModelScope.launch {
-            val newLiftIds = _state.value.selectedNewLiftsHashSet
-            createLiftMetricChartsUseCase(
-                chartIds = _state.value.newLiftMetricChartIds,
-                liftIds = newLiftIds.toList())
-            onNavigateHome()
-        }
+        val newLiftIds = _state.value.selectedNewLiftsHashSet
+        createLiftMetricChartsUseCase(
+            chartIds = _state.value.newLiftMetricChartIds,
+            liftIds = newLiftIds.toList()
+        )
+        onNavigateHome()
     }
 
     private fun addWorkoutLifts() = executeWithErrorHandling("Failed to add lift(s)") {

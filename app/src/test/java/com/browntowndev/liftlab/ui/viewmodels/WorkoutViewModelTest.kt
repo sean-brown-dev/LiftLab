@@ -1,4 +1,4 @@
-package com.browntown.liftlab.ui.viewmodels
+package com.browntowndev.liftlab.ui.viewmodels
 
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
@@ -18,7 +18,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNot
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import io.mockk.MockKAnnotations
 import io.mockk.coVerify
 import io.mockk.every
