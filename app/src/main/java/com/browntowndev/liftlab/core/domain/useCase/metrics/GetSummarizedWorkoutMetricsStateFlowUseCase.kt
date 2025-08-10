@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.domain.models.SummarizedWorkoutMetricsState
 import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftId
+import com.browntowndev.liftlab.core.domain.models.metrics.SummarizedWorkoutMetricsState
 import com.browntowndev.liftlab.core.domain.models.metrics.WorkoutLogId
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry

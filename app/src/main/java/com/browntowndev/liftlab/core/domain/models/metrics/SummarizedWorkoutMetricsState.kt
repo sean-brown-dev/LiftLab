@@ -1,6 +1,5 @@
-package com.browntowndev.liftlab.core.domain.models
+package com.browntowndev.liftlab.core.domain.models.metrics
 
-import com.browntowndev.liftlab.core.domain.models.metrics.AllWorkoutTopSets
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 
 data class SummarizedWorkoutMetricsState(
