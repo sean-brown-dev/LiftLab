@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.core.domain.extensions
 
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastFirstOrNull
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
@@ -10,6 +12,8 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 
 
 fun List<WorkoutLogEntry>.toFilterOptions(): Map<Long, String> {
@@ -55,4 +59,38 @@ fun LoggingWorkoutLift.findSet(setPosition: Int, myoRepSetPosition: Int?): Gener
     }
 
     return set
+}
+
+fun LoggingWorkoutLiftUiModel.hasIncompleteModifiedSets(): Boolean =
+    sets.fastAny { set -> !set.complete && (set.completedReps != null || set.completedWeight != null || set.completedRpe != null) }
+
+/**
+ * Merges the modified sets from the other lift into this lift.
+ */
+fun LoggingWorkoutLiftUiModel.mergeModifiedSets(other: LoggingWorkoutLiftUiModel): LoggingWorkoutLiftUiModel {
+    data class SetMergeKey(
+        val position: Int,
+        val myoRepSetPosition: Int?,
+    )
+
+    val modifiedSetsFromOther = other.sets
+        .filter { it.completedReps != null || it.completedWeight != null || it.completedRpe != null }
+        .associateBy { set ->
+            SetMergeKey(
+                position = set.position,
+                myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
+            )
+        }
+
+    val mergedLift = copy(
+        sets = sets.fastMap { set ->
+            val mergeKey = SetMergeKey(
+                position = set.position,
+                myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
+            )
+            modifiedSetsFromOther[mergeKey] ?: set
+        }
+    )
+
+    return mergedLift
 }

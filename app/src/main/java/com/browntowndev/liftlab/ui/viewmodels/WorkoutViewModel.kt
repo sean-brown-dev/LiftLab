@@ -6,11 +6,12 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.util.fastMap
+import androidx.compose.ui.util.fastMapNotNull
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
+import com.browntowndev.liftlab.core.domain.extensions.hasIncompleteModifiedSets
+import com.browntowndev.liftlab.core.domain.extensions.mergeModifiedSets
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
@@ -19,6 +20,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteWorko
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteSetResultByIdUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.RestTimerCompletedUseCase
@@ -36,6 +38,8 @@ import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiM
 import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -55,6 +59,7 @@ import kotlin.time.Duration
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutViewModel(
     getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
+    private val hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase,
     private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
     private val reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase,
     private val startWorkoutUseCase: StartWorkoutUseCase,
@@ -117,41 +122,72 @@ class WorkoutViewModel(
     }
 
     init {
-        getActiveWorkoutStateFlowUseCase().map { activeWorkoutState ->
-            WorkoutState(
-                inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
-                completedSets = activeWorkoutState.completedSets.fastMap { it.toUiModel() },
-                programMetadata = activeWorkoutState.programMetadata?.toUiModel(),
-                workout = activeWorkoutState.workout?.toUiModel(),
-                personalRecords = activeWorkoutState.personalRecords
-                    .map { it.key to it.value.toUiModel() }
-                    .toMap(),
-                restTimerStartedAt = activeWorkoutState.restTimerStartedAt,
-                restTime = activeWorkoutState.restTime,
-                initialized = true,
-            )
-        }.onEach { newUiState ->
-            mutableWorkoutState.update { currentState ->
-                currentState.copy(
-                    inProgressWorkout = newUiState.inProgressWorkout,
-                    completedSets = newUiState.completedSets,
-                    programMetadata = newUiState.programMetadata,
-                    workout = newUiState.workout,
-                    personalRecords = newUiState.personalRecords,
-                    restTimerStartedAt = newUiState.restTimerStartedAt,
-                    restTime = newUiState.restTime,
+        getActiveWorkoutStateFlowUseCase()
+            .map { activeWorkoutState ->
+                WorkoutState(
+                    inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
+                    completedSets = activeWorkoutState.completedSets.fastMap { it.toUiModel() },
+                    programMetadata = activeWorkoutState.programMetadata?.toUiModel(),
+                    workout = activeWorkoutState.workout?.toUiModel(),
+                    personalRecords = activeWorkoutState.personalRecords
+                        .map { it.key to it.value.toUiModel() }
+                        .toMap(),
+                    restTimerStartedAt = activeWorkoutState.restTimerStartedAt,
+                    restTime = activeWorkoutState.restTime,
                     initialized = true,
-                    workoutLogVisible = if (newUiState.inProgressWorkout == null) false else currentState.workoutLogVisible,
-                    isCompletionSummaryVisible = false,
-                    isDeloadPromptDialogShown = false,
-                    isReordering = false,
                 )
-            }
-        }.catch { e ->
-            Log.e("WorkoutViewModel", "Error in initialize", e)
-            FirebaseCrashlytics.getInstance().recordException(e)
-            emitUserMessage("An unexpected error occurred during initialization. Please restart the app.")
-        }.launchIn(viewModelScope)
+            }.onEach { newUiState ->
+                val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null) {
+                    newUiState.workout
+                }
+                else {
+                    // Hydrate workout with any sets that have been started but not marked completed.
+                    // These only exist in-memory in our state, so the state flow use case knows nothing
+                    // about them and we have to hydrate the updated workout from the state flow with
+                    // that data.
+                    val updatedLiftsById = newUiState.workout.lifts.associateBy { it.id }
+                    hydrateLoggingWorkoutWithExistingLiftDataUseCase(
+                        loggingWorkout = newUiState.workout.toDomainModel(),
+                        liftsToUpdateFrom = mutableWorkoutState.value.workout!!.lifts
+                            .fastMapNotNull {
+                                // newUiState has the latest completed/incompleted set data, but it doesn't have
+                                // the in-memory modified lifts which were never completed. So, we need to merge
+                                // the new lifts into the current in-memory lifts to get the holistic state
+                                // of the lift
+                                updatedLiftsById[it.id]?.let { updatedLift ->
+                                    it.mergeModifiedSets(updatedLift)
+                                }
+                            }
+                            .filter {
+                                // Now that we have fully updated the lift, we can filter out any
+                                // lifts that have not been modified
+                                it.hasIncompleteModifiedSets()
+                            }
+                            .fastMap { it.toDomainModel() },
+                    ).toUiModel()
+                }
+
+                mutableWorkoutState.update { currentState ->
+                    currentState.copy(
+                        workout = newWorkout,
+                        inProgressWorkout = newUiState.inProgressWorkout,
+                        completedSets = newUiState.completedSets,
+                        programMetadata = newUiState.programMetadata,
+                        personalRecords = newUiState.personalRecords,
+                        restTimerStartedAt = newUiState.restTimerStartedAt,
+                        restTime = newUiState.restTime,
+                        initialized = true,
+                        workoutLogVisible = if (newUiState.inProgressWorkout == null) false else currentState.workoutLogVisible,
+                        isCompletionSummaryVisible = false,
+                        isDeloadPromptDialogShown = false,
+                        isReordering = false,
+                    )
+                }
+            }.catch { e ->
+                Log.e("WorkoutViewModel", "Error in initialize", e)
+                FirebaseCrashlytics.getInstance().recordException(e)
+                emitUserMessage("An unexpected error occurred during initialization. Please restart the app.")
+            }.launchIn(viewModelScope)
     }
 
     fun toggleReorderLifts() {

@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 
 /**
- * Copies over all modified sets from the list of lifts into the given logging workout
+ * Hydrates the logging workout with existing lift data.
  */
 class HydrateLoggingWorkoutWithExistingLiftDataUseCase {
     private data class ModifiedLiftKey(
@@ -22,6 +22,13 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCase {
         val myoRepSetPosition: Int?,
     )
 
+    /**
+     * Hydrates the logging workout with existing lift data.
+     *
+     * @param loggingWorkout The logging workout to hydrate.
+     * @param liftsToUpdateFrom The lifts to update from.
+     * @return The hydrated logging workout.
+     */
     operator fun invoke(
         loggingWorkout: LoggingWorkout,
         liftsToUpdateFrom: List<LoggingWorkoutLift>

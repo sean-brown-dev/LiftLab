@@ -76,6 +76,7 @@ val viewModelModule = module {
     factory { params ->
         WorkoutViewModel(
             getWorkoutCompletionSummaryUseCase = get(),
+            hydrateLoggingWorkoutWithExistingLiftDataUseCase = get(),
             reorderWorkoutLiftsUseCase = get(),
             startWorkoutUseCase = get(),
             skipDeloadAndStartWorkoutUseCase = get(),
