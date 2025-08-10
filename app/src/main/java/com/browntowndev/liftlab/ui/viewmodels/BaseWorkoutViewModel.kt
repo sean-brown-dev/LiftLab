@@ -32,7 +32,6 @@ abstract class BaseWorkoutViewModel(
     protected var mutableWorkoutState = MutableStateFlow(WorkoutState())
     val workoutState = mutableWorkoutState.asStateFlow()
 
-    protected open fun stopRestTimer() { }
     protected open suspend fun insertRestTimerInProgress(restTime: Long) { }
     protected abstract suspend fun upsertManySetResults(updatedResults: List<SetResult>): List<Long>
     protected abstract suspend fun upsertSetResult(updatedResult: SetResult): Long
@@ -293,7 +292,6 @@ abstract class BaseWorkoutViewModel(
 
     fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) =
         executeWithErrorHandling("Failed to undo completion") {
-            stopRestTimer()
             Log.d(
                 "WorkoutViewModel",
                 "undoSetCompletion ${mutableWorkoutState.value.completedSets}"

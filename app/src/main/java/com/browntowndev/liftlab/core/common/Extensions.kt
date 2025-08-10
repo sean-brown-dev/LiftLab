@@ -16,8 +16,8 @@ import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.awaitClose
@@ -25,6 +25,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import java.text.DateFormat.LONG
 import java.text.DateFormat.MEDIUM
 import java.text.DateFormat.SHORT
@@ -39,7 +40,6 @@ import java.util.Locale.US
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -258,17 +258,28 @@ fun Date.toLocalDate(): LocalDate {
         .toLocalDate()
 }
 
+/**
+ * Launch suspend work from a BroadcastReceiver safely.
+ *
+ * - Uses goAsync() so onReceive can return immediately.
+ * - Finishes the PendingResult no matter what.
+ * - Avoids GlobalScope.
+ * - Adds an optional timeout (Android expects you to finish quickly).
+ */
 fun BroadcastReceiver.executeInCoroutineScope(
-    context: CoroutineContext = EmptyCoroutineContext,
+    context: CoroutineContext = Dispatchers.Default,
+    timeoutMs: Long = 9_000L, // keep under the ~10s expectation
     block: suspend CoroutineScope.() -> Unit
 ) {
-    val pendingResult = goAsync()
-    @OptIn(DelicateCoroutinesApi::class) // Must run globally; there's no teardown callback.
-    GlobalScope.launch(context) {
+    val pending = goAsync()
+    val scope = CoroutineScope(SupervisorJob() + context)
+    scope.launch {
         try {
-            block()
+            withTimeout(timeoutMs) {
+                block()
+            }
         } finally {
-            pendingResult.finish()
+            pending.finish()
         }
     }
 }

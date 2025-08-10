@@ -14,7 +14,6 @@ enum class TopAppBarAction {
     FilterStarted,
     EditDeloadWeek,
     FinishWorkout,
-    RestTimerCompleted,
     ConfirmAddLift,
     CreateNewLift,
     ConfirmCreateNewLift,

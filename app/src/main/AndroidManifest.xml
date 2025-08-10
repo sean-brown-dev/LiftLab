@@ -35,19 +35,24 @@
             android:exported="false">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="rest timer countdown notification"
+                android:value="rest_timer"
             />
         </service>
+        <receiver
+            android:name=".ui.notifications.RestTimerButtonHandler"
+            android:exported="false" />
+        <receiver
+            android:name=".ui.notifications.RestTimerCompletedReceiver"
+            android:exported="false" />
         <service
             android:name=".ui.notifications.ActiveWorkoutNotificationService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="active workout notification"
+                android:value="active_workout"
                 />
         </service>
-        <receiver android:name=".ui.notifications.RestTimerButtonHandler" android:exported="false" />
         <meta-data android:name="com.google.android.gms.wallet.api.enabled" android:value="true" />
         <provider
             android:name="androidx.core.content.FileProvider"

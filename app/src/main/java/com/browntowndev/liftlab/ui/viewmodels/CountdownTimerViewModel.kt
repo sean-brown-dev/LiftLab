@@ -1,92 +1,99 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
+import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.ui.notifications.LiftLabTimer
+import com.browntowndev.liftlab.ui.notifications.NotificationHelper
 import com.browntowndev.liftlab.ui.viewmodels.states.CountdownTimerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
 class CountdownTimerViewModel(
-    private val onComplete: (ranToCompletion: Boolean) -> Unit,
-): ViewModel() {
-    private var _state = MutableStateFlow(CountdownTimerState())
+    private val liftLabTimer: LiftLabTimer,
+    private val onComplete: () -> Unit,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(CountdownTimerState())
     val state = _state.asStateFlow()
-    private var _countDownTimer: LiftLabTimer? = null
+
+    init {
+        liftLabTimer.isRunning.onEach { isRunning ->
+            _state.update {
+                it.copy(
+                    running = isRunning,
+                )
+            }
+        }.launchIn(viewModelScope)
+    }
 
     fun start(
-        timerId: String,
-        originalCountDownStartedFrom: Long,
-        startTimeInMillis: Long
+        context: Context,
+        timerStartTimeInMillis: Long,
+        startDurationInMillis: Long
     ): Boolean {
-        // If this isn't a new request then don't restart the timer
-        if (timerId == state.value.timerId) {
+        if (liftLabTimer.isRunning.value) return false
+
+        val countdownStartTimeMs = timerStartTimeInMillis.toDate().time
+        val elapsedMs = (getCurrentDate().time - countdownStartTimeMs)
+        val remaining = (startDurationInMillis - elapsedMs).coerceAtLeast(0L)
+
+        if (remaining == 0L) {
+            finishAndNotify(context)
             return false
         }
 
-        if (_countDownTimer !=  null) {
-            cancelWithoutCallback()
-        }
+        liftLabTimer.start(
+            countDown = true,
+            millisInFuture = remaining,
+            countDownInterval = 1000L,
+            onTick = { millisecondsRemaining ->
+                _state.update { it.copy(millisRemaining = millisecondsRemaining) }
+            },
+            onFinish = {
+                finishAndNotify(context)
+            }
+        )
 
         _state.update {
             it.copy(
-                timerId = timerId,
-                running = true,
-                originalCountDownStartedFrom = originalCountDownStartedFrom,
-                startTimeInMillis = startTimeInMillis,
-                millisRemaining = startTimeInMillis,
+                startDurationInMillis = startDurationInMillis,
+                millisRemaining = remaining,
             )
         }
-
-        _countDownTimer = object : LiftLabTimer(
-            countDown = true,
-            millisInFuture = startTimeInMillis,
-            countDownInterval = 100L,
-        ) {
-            override fun onTick(newTimeInMillis: Long) {
-                _state.update {
-                    it.copy(
-                        millisRemaining = newTimeInMillis,
-                    )
-                }
-            }
-
-            override fun onFinish() {
-                _state.update {
-                    it.copy(
-                        originalCountDownStartedFrom = 0L,
-                        millisRemaining = 0L,
-                        running = false,
-                    )
-                }
-
-                _state.update {
-                    it.copy(
-                        startTimeInMillis = 0L,
-                    )
-                }
-
-                onComplete(true)
-            }
-        }.start()
-
         return true
     }
 
-    private fun cancelWithoutCallback() {
-        _countDownTimer?.cancel()
-        _state.update {
-            it.copy(
-                running = false,
-                startTimeInMillis = 0L,
-                millisRemaining = 0L,
-                originalCountDownStartedFrom = 0L,
-            )
-        }
+    fun cancel() {
+        liftLabTimer.cancel()
+        setStateAsFinished()
+        onComplete()
     }
 
-    fun cancel() {
-        cancelWithoutCallback()
-        onComplete(false)
+    private fun finishAndNotify(context: Context) {
+        setStateAsFinished()
+        postCompletionAlert(context)
+        onComplete()
+    }
+
+    private fun setStateAsFinished() {
+        _state.update { it.copy(millisRemaining = 0L, startDurationInMillis = 0L) }
+    }
+
+    /**
+     * Posts a notification when the countdown is complete. Uses same notification as RestTimerNotificationService
+     */
+    private fun postCompletionAlert(context: Context) {
+        NotificationHelper.postRestTimerCompletionAlert(context)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        liftLabTimer.cancel()
     }
 }

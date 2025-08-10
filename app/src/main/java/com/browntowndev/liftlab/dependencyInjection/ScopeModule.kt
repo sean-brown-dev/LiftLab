@@ -13,4 +13,7 @@ val liftLabScopeModule = module {
     single(named("BillingScope")) {
         CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
+    single(named("ForegroundServiceScope")) {
+        CoroutineScope(Dispatchers.Default + SupervisorJob())
+    }
 }

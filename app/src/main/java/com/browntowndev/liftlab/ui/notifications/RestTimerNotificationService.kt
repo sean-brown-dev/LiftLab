@@ -12,115 +12,172 @@ import android.os.IBinder
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
+import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import com.browntowndev.liftlab.MainActivity
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toTimeString
+import com.browntowndev.liftlab.ui.utils.RestTimerNotification.RETURN_TO_WORKOUT_REQUEST_CODE
+import com.browntowndev.liftlab.ui.utils.RestTimerNotification.SKIP_REST_TIMER_REQUEST_CODE
+import org.koin.android.ext.android.inject
+import org.koin.core.qualifier.named
 import kotlin.math.round
 
 class RestTimerNotificationService : Service() {
+
     companion object {
         const val NOTIFICATION_ID = 1
-        private const val CHANNEL_ID = "RestTimerForegroundService"
-        private const val CHANNEL_NAME = "RestTimerForegroundService"
-        const val SKIP_ACTION = "com.browntowndev.liftlab.core.notifications.RestTimerNotificationService.SKIP_ACTION"
-        const val EXTRA_COUNT_DOWN_FROM = "com.browntowndev.liftlab.countDownFrom"
+
+        // Ongoing foreground notification (progress) – low importance, no sound
+        private const val REST_TIMER_SERVICE_CHANNEL_ID = "RestTimerForegroundService"
+        private const val PROGRESS_CHANNEL_NAME = "Rest Timer Progress"
+
+        const val SKIP_ACTION =
+            "com.browntowndev.liftlab.core.notifications.RestTimerNotificationService.SKIP_ACTION"
+        const val EXTRA_COUNT_DOWN_FROM =
+            "com.browntowndev.liftlab.countDownFrom"
     }
 
-    private var _countDownTimer: LiftLabTimer? = null
-    private val _notificationManager: NotificationManager by lazy {
+    private val timer: LiftLabTimer by inject(named("CountdownTimer"))
+
+    private val notificationManager: NotificationManager by lazy {
         getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     }
 
     @OptIn(ExperimentalFoundationApi::class)
-    private val _notificationBuilder: NotificationCompat.Builder by lazy {
-        val returnToWorkoutPendingIntent = Intent(this, MainActivity::class.java).apply {
+    private val notificationBuilder: NotificationCompat.Builder by lazy {
+        val returnToWorkout = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }.let {
-            PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(
+                this,
+                RETURN_TO_WORKOUT_REQUEST_CODE,
+                it,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
 
-        val skipButtonPendingIntent = Intent(this, RestTimerButtonHandler::class.java).apply {
+        val skipPendingIntent = Intent(this, RestTimerButtonHandler::class.java).apply {
             action = SKIP_ACTION
         }.let {
-            PendingIntent.getBroadcast(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getBroadcast(
+                this,
+                SKIP_REST_TIMER_REQUEST_CODE,
+                it,
+                PendingIntent.FLAG_IMMUTABLE
+            )
         }
 
-        NotificationCompat.Builder(this, CHANNEL_ID)
+        NotificationCompat.Builder(this, REST_TIMER_SERVICE_CHANNEL_ID)
             .setSmallIcon(R.drawable.lab_flask)
             .setContentTitle("Rest Timer")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_LOW) // keep progress quiet
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setForegroundServiceBehavior(FOREGROUND_SERVICE_IMMEDIATE)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setAutoCancel(true)
-            .addAction(R.drawable.skip_icon, "Skip", skipButtonPendingIntent)
-            .setContentIntent(returnToWorkoutPendingIntent)
+            .setAutoCancel(false)
+            .addAction(R.drawable.skip_icon, "Skip", skipPendingIntent)
+            .setContentIntent(returnToWorkout)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        Log.d(Log.DEBUG.toString(), "onBind()")
+        Log.d("RestTimerSvc", "onBind()")
         return null
     }
 
     override fun onCreate() {
-        Log.d(Log.DEBUG.toString(), "onCreate()")
         super.onCreate()
-
-        createNotificationChannel()
+        createProgressChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIFICATION_ID, _notificationBuilder.build(), FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                notificationBuilder.build(),
+                FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
         } else {
-            startForeground(NOTIFICATION_ID, _notificationBuilder.build())
+            startForeground(NOTIFICATION_ID, notificationBuilder.build())
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(Log.DEBUG.toString(), "onStartCommand()")
+        Log.d("RestTimerSvc", "onStartCommand()")
 
         val countDownFrom = intent?.getLongExtra(EXTRA_COUNT_DOWN_FROM, 0L) ?: 0L
-        val roundedCountDownFrom = (round(countDownFrom / 1000.0) * 1000).toLong()
+        val rounded = (round(countDownFrom / 1000.0) * 1000).toLong()
 
-        _countDownTimer = object : LiftLabTimer(
+        if (rounded <= 0L) {
+            updateProgress("Rest complete!")
+            postCompletionAlert()
+            broadcastTimerCompleted()
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        timer.start(
             countDown = true,
-            millisInFuture = roundedCountDownFrom,
+            millisInFuture = rounded,
             countDownInterval = 1000L,
-        ) {
-            override fun onTick(newTimeInMillis: Long) {
-                updateTime(time = newTimeInMillis.toTimeString())
+            onTick = { millisecondsRemaining ->
+                updateProgress(millisecondsRemaining.toTimeString())
+            },
+            onFinish = {
+                updateProgress("Rest complete!")
+                postCompletionAlert()
+                broadcastTimerCompleted()
+                startActiveWorkoutNotification()
+                stopSelf()
             }
-
-            override fun onFinish() {
-                updateTime(time = "Rest complete!")
-            }
-        }.start()
+        )
 
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        _countDownTimer?.cancel()
-        _notificationManager.cancel(NOTIFICATION_ID)
+        timer.cancel()
+        notificationManager.cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
     @Synchronized
-    private fun updateTime(time: String) {
-        _notificationBuilder.setContentText(time)
-        _notificationManager.notify(NOTIFICATION_ID, _notificationBuilder.build())
+    private fun updateProgress(text: String) {
+        notificationManager.notify(
+            NOTIFICATION_ID,
+            notificationBuilder.setContentText(text).build()
+        )
     }
 
-    private fun createNotificationChannel() {
+    private fun createProgressChannel() {
         val channel = NotificationChannel(
-            CHANNEL_ID,
-            CHANNEL_NAME,
+            REST_TIMER_SERVICE_CHANNEL_ID,
+            PROGRESS_CHANNEL_NAME,
             NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Shows remaining rest time while app is backgrounded"
+            setShowBadge(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            setSound(null, null) // no sound for progress
+        }
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    private fun postCompletionAlert() {
+        NotificationHelper.postRestTimerCompletionAlert(context = this)
+    }
+
+    private fun broadcastTimerCompleted() {
+        val intent = Intent(this, RestTimerCompletedReceiver::class.java).apply {
+            action = RestTimerCompletedReceiver.ACTION
+        }
+        sendBroadcast(intent)
+    }
+
+    private fun startActiveWorkoutNotification() {
+        val appContext = this.applicationContext
+        ContextCompat.startForegroundService(
+            appContext, Intent(appContext, ActiveWorkoutNotificationService::class.java)
         )
-        channel.description = "Rest Timer Foreground Service"
-        channel.setShowBadge(false)
-        channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-        _notificationManager.createNotificationChannel(channel)
     }
 }

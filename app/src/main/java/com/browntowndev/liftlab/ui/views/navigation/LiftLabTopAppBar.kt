@@ -23,20 +23,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.composables.ProgressCountdownTimer
-import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
-import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
-import org.greenrobot.eventbus.EventBus
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,42 +189,22 @@ private fun Title(
                 )
             }
         }
-    } else {
-        val context = LocalContext.current
-        val restTimerAction = state.actions
-            .filterIsInstance<ActionMenuItem.TimerMenuItem.AlwaysShown>()
-            .firstOrNull { it.isVisible }
-
-        if (restTimerAction != null) {
-            Box (
-                contentAlignment = Alignment.CenterStart,
+    } else if (state.screenHasRestTimer) {
+        Box (
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            ProgressCountdownTimer(
+                timeStartedInMillis = state.timeStartedInMillis,
+                countDownFrom = state.totalRestTime,
             ) {
-                ProgressCountdownTimer(
-                    timerRequestId = restTimerAction.timerRequestId,
-                    start = restTimerAction.started,
-                    countDownStartedFrom = restTimerAction.countDownStartedFrom,
-                    countDownFrom = restTimerAction.countDownFrom
-                ) { ranToCompletion ->
-                    topAppBarViewModel.mutateControlValue(
-                        AppBarMutateControlRequest(
-                            restTimerAction.controlName,
-                            Triple(0L, 0L, false)
-                        )
-                    )
-                    EventBus.getDefault().post(TopAppBarEvent.ActionEvent(TopAppBarAction.RestTimerCompleted))
-
-                    if (ranToCompletion) {
-                        topAppBarViewModel.playRestTimerCompletionSound(context)
-                    }
-                }
-                Icon(
-                    modifier = Modifier.size(25.dp),
-                    painter = painterResource(id = R.drawable.stopwatch_icon),
-                    contentDescription = null,
-                    tint = if (restTimerAction.started) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onBackground,
-                )
+                topAppBarViewModel.completeRestTimer()
             }
+            Icon(
+                modifier = Modifier.size(25.dp),
+                painter = painterResource(id = R.drawable.stopwatch_icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

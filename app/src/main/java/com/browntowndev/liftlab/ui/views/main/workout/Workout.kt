@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,9 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -27,33 +27,30 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
-import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.ShimmerSkeletonList
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
+import com.browntowndev.liftlab.ui.viewmodels.DurationTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
-import com.browntowndev.liftlab.ui.models.controls.Route
-import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Workout(
@@ -68,44 +65,18 @@ fun Workout(
     onNavigateToWorkoutHistory: () -> Unit,
     onNavigateToLiftLibrary: (route: Route.LiftLibrary) -> Unit,
 ) {
-    val liftLevelDeloadsEnabled = remember {
-        SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
-    }
-    var restTimerRestarted by remember { mutableStateOf(false) }
-
-    val timerViewModel: TimerViewModel = koinViewModel()
+    val durationTimerViewModel: DurationTimerViewModel = koinViewModel()
     val workoutViewModel: WorkoutViewModel = koinViewModel {
         parametersOf(
-            onNavigateToWorkoutHistory,
-            {
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
-                )
-            },
-            liftLevelDeloadsEnabled,
+            onNavigateToWorkoutHistory
         )
     }
     val state by workoutViewModel.workoutState.collectAsState()
-    val timerState by timerViewModel.state.collectAsState()
+    val timerState by durationTimerViewModel.state.collectAsState()
 
     LaunchedEffect(key1 = showLog) {
         if (showLog) {
             workoutViewModel.setWorkoutLogVisibility(true)
-        }
-    }
-
-    LaunchedEffect(state.restTimerStartedAt) {
-        if (state.restTimerStartedAt != null && !restTimerRestarted) {
-            val restTimeRemaining = state.restTime - (getCurrentDate().time - state.restTimerStartedAt!!.time)
-            mutateTopAppBarControlValue(
-                AppBarMutateControlRequest(REST_TIMER, Triple(state.restTime, restTimeRemaining, true).right())
-            )
-            restTimerRestarted = true
-            Log.d(Log.DEBUG.toString(), "restarted rest timer.")
-        } else if (state.restTime == 0L && state.restTimerStartedAt == null) {
-            mutateTopAppBarControlValue(
-                AppBarMutateControlRequest(REST_TIMER, Triple(0L, 0L, false).right())
-            )
         }
     }
 
@@ -150,7 +121,7 @@ fun Workout(
             setTopAppBarControlVisibility(REST_TIMER, state.workoutLogVisible)
 
             if (!state.inProgress) {
-                timerViewModel.stop()
+                durationTimerViewModel.stop()
             }
         } else if (state.initialized) {
             mutateTopAppBarControlValue(
@@ -169,9 +140,9 @@ fun Workout(
         }
     }
 
-    LaunchedEffect(key1 = state.startTime) {
-        if (state.startTime != null) {
-            timerViewModel.startFrom(state.startTime!!) // This is smart and won't restart from 0
+    LaunchedEffect(key1 = state.startTime, key2 = timerState.running) {
+        if (state.startTime != null && !timerState.running) {
+            durationTimerViewModel.startFrom(state.startTime!!) // This is smart and won't restart from 0
         }
     }
 

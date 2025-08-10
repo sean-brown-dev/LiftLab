@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
@@ -38,11 +39,9 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun ProgressCountdownTimer(
-    timerRequestId: String,
-    start: Boolean = false,
-    countDownStartedFrom: Long? = null,
+    timeStartedInMillis: Long? = null,
     countDownFrom: Long? = null,
-    onComplete: (ranToCompletion: Boolean) -> Unit,
+    onComplete: () -> Unit,
 ) {
     val viewModel: CountdownTimerViewModel = koinViewModel {
         parametersOf(
@@ -56,9 +55,10 @@ fun ProgressCountdownTimer(
         label = "Rest Timer Progress"
     )
 
-    LaunchedEffect(key1 = start, key2 = timerRequestId) {
-        if (start && countDownFrom != null && countDownStartedFrom != null) {
-            viewModel.start(timerRequestId, countDownStartedFrom, countDownFrom)
+    val context = LocalContext.current
+    LaunchedEffect(key1 = timeStartedInMillis, key2 = countDownFrom, key3 = state.running) {
+        if (countDownFrom != null && timeStartedInMillis != null) {
+            viewModel.start(context, timeStartedInMillis, countDownFrom)
         } else {
             viewModel.cancel()
         }

@@ -55,6 +55,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetNewestSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetPersonalRecordsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetRestTimerInProgressFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithCompletedSetsUseCase
@@ -103,6 +104,7 @@ val useCaseModule = module {
     singleOf(::UpsertExistingSetResultUseCase)
     singleOf(::DeleteSetLogEntryByIdUseCase)
     singleOf(::DeleteWorkoutLogEntryUseCase)
+    singleOf(::GetRestTimerInProgressFlowUseCase)
 
     // Workout Configuration
     singleOf(::AddSetUseCase)

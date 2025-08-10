@@ -1,9 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
-import com.browntowndev.liftlab.core.common.toDate
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.ActiveWorkoutState
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -14,12 +12,10 @@ import kotlinx.coroutines.flow.flowOf
 class GetActiveWorkoutStateFlowUseCase(
     private val programsRepository: ProgramsRepository,
     private val workoutInProgressRepository: WorkoutInProgressRepository,
-    private val restTimerInProgressRepository: RestTimerInProgressRepository,
     private val getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<ActiveWorkoutState> {
-        val restTimerFlow = restTimerInProgressRepository.getFlow()
         return programsRepository.getActiveProgramMetadataFlow()
             .flatMapLatest { programMetadata ->
                 if (programMetadata == null) flowOf(ActiveWorkoutState())
@@ -42,11 +38,6 @@ class GetActiveWorkoutStateFlowUseCase(
                         )
                     }
                 }
-            }.combine(restTimerFlow) { newState, restTimerInProgress ->
-                newState.copy(
-                    restTimerStartedAt = restTimerInProgress?.timeStartedInMillis?.toDate(),
-                    restTime = restTimerInProgress?.restTime ?: 0L,
-                )
             }
     }
 }

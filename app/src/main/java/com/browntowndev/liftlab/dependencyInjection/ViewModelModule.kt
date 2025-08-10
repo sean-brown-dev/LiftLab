@@ -12,12 +12,13 @@ import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
 import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.StartupViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.DurationTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val viewModelModule = module {
@@ -88,12 +89,10 @@ val viewModelModule = module {
             deleteSetResultByIdUseCase = get(),
             insertRestTimerInProgressUseCase = get(),
             updateRestTimeUseCase = get(),
-            restTimerCompletedUseCase = get(),
             updateLiftNoteUseCase = get(),
             completeSetUseCase = get(),
             undoSetCompletionUseCase = get(),
-            navigateToWorkoutHistory = params[0],
-            cancelRestTimer = params[1],
+            navigateToWorkoutHistory = params.get(),
             eventBus = get(),
         )
     }
@@ -111,7 +110,12 @@ val viewModelModule = module {
         )
     }
     factory { params ->
-        CountdownTimerViewModel(onComplete = params.get())
+        CountdownTimerViewModel(
+            liftLabTimer = get(named("CountdownTimer")),
+            onComplete = params.get())
+    }
+    factory {
+        DurationTimerViewModel(liftLabTimer = get(named("DurationTimer")))
     }
     factory { params ->
         HomeViewModel(
@@ -149,7 +153,6 @@ val viewModelModule = module {
     viewModelOf(::LabViewModel)
     viewModelOf(::TopAppBarViewModel)
     viewModelOf(::BottomNavBarViewModel)
-    viewModelOf(::TimerViewModel)
     viewModelOf(::PickerViewModel)
     viewModelOf(::RemoteSyncViewModel)
     viewModelOf(::StartupViewModel)

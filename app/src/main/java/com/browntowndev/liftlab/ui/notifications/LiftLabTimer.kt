@@ -1,37 +1,61 @@
 package com.browntowndev.liftlab.ui.notifications
 
 import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-abstract class LiftLabTimer(
-    private val countDown: Boolean,
-    private val millisInFuture: Long,
-    private val countDownInterval: Long,
-) {
-    abstract fun onTick(newTimeInMillis: Long)
-    abstract fun onFinish()
+class LiftLabTimer {
+    private var timer: CountDownTimer? = null
+    private val _isRunning = MutableStateFlow(false)
+    val isRunning = _isRunning.asStateFlow()
 
-    private val _countdownTimer = object: CountDownTimer(millisInFuture, countDownInterval) {
-        override fun onTick(millisRemaining: Long) {
-            val newTimeInMillis = if (countDown) {
-                millisRemaining + (countDownInterval - (millisRemaining % countDownInterval))
-            } else {
-                millisInFuture - (millisRemaining + (countDownInterval - (millisRemaining % countDownInterval)))
+    @Synchronized
+    fun start(
+        countDown: Boolean,
+        millisInFuture: Long,
+        countDownInterval: Long,
+        onTick: (newTimeInMillis: Long) -> Unit,
+        onFinish: () -> Unit ={ },
+    ): LiftLabTimer {
+        // Has to run on main looper
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            Handler(Looper.getMainLooper()).post {
+                start(countDown, millisInFuture, countDownInterval, onTick, onFinish)
+            }
+            return this
+        }
+
+        // Kill any existing timer first
+        timer?.cancel()
+
+        timer = object : CountDownTimer(millisInFuture, countDownInterval) {
+            override fun onTick(millisRemaining: Long) {
+                val nextAligned = countDownInterval - (millisRemaining % countDownInterval)
+                val newTimeInMillis = if (countDown) {
+                    millisRemaining + nextAligned
+                } else {
+                    millisInFuture - (millisRemaining + nextAligned)
+                }
+                onTick(newTimeInMillis)
             }
 
-            this@LiftLabTimer.onTick(newTimeInMillis)
-        }
+            override fun onFinish() {
+                timer = null
+                _isRunning.value = false
+                onFinish()
+            }
+        }.start()
 
-        override fun onFinish() {
-            this@LiftLabTimer.onFinish()
-        }
-    }
-
-    fun cancel() {
-        _countdownTimer.cancel()
-    }
-
-    fun start(): LiftLabTimer {
-        _countdownTimer.start()
+        _isRunning.value = true
         return this
+    }
+
+    @Synchronized
+    fun cancel() {
+        timer?.cancel()
+        timer = null
+        _isRunning.value = false
     }
 }

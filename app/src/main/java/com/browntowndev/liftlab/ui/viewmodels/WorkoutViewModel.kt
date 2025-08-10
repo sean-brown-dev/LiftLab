@@ -23,7 +23,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCom
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.ReorderWorkoutLiftsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.RestTimerCompletedUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
@@ -49,7 +48,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import java.io.File
@@ -71,10 +69,8 @@ class WorkoutViewModel(
     private val deleteSetResultByIdUseCase: DeleteSetResultByIdUseCase,
     private val insertRestTimerInProgressUseCase: InsertRestTimerInProgressUseCase,
     private val updateRestTimeUseCase: UpdateRestTimeUseCase,
-    private val restTimerCompletedUseCase: RestTimerCompletedUseCase,
     private val updateLiftNoteUseCase: UpdateLiftNoteUseCase,
     private val navigateToWorkoutHistory: () -> Unit,
-    private val cancelRestTimer: () -> Unit,
     completeSetUseCase: CompleteSetUseCase,
     undoSetCompletionUseCase: UndoSetCompletionUseCase,
     eventBus: EventBus,
@@ -100,17 +96,6 @@ class WorkoutViewModel(
                     )
                 }
             }
-            TopAppBarAction.RestTimerCompleted -> viewModelScope.launch {
-                try {
-                    restTimerCompletedUseCase()
-                } catch (e: Exception) {
-                    Log.e("WorkoutViewModel", "Error handling rest timer completion", e)
-                    FirebaseCrashlytics.getInstance().recordException(e)
-                    viewModelScope.launch {
-                        emitUserMessage("Failed to complete rest timer. Please try again.")
-                    }
-                }
-            }
             TopAppBarAction.FinishWorkout -> if (mutableWorkoutState.value.isCompletionSummaryVisible) {
                 finishWorkout()
             } else {
@@ -132,8 +117,6 @@ class WorkoutViewModel(
                     personalRecords = activeWorkoutState.personalRecords
                         .map { it.key to it.value.toUiModel() }
                         .toMap(),
-                    restTimerStartedAt = activeWorkoutState.restTimerStartedAt,
-                    restTime = activeWorkoutState.restTime,
                     initialized = true,
                 )
             }.onEach { newUiState ->
@@ -174,8 +157,6 @@ class WorkoutViewModel(
                         completedSets = newUiState.completedSets,
                         programMetadata = newUiState.programMetadata,
                         personalRecords = newUiState.personalRecords,
-                        restTimerStartedAt = newUiState.restTimerStartedAt,
-                        restTime = newUiState.restTime,
                         initialized = true,
                         workoutLogVisible = if (newUiState.inProgressWorkout == null) false else currentState.workoutLogVisible,
                         isCompletionSummaryVisible = false,
@@ -305,7 +286,6 @@ class WorkoutViewModel(
     }
 
     fun finishWorkout() = executeWithErrorHandling("Failed to complete workout") {
-        stopRestTimer()
         completeWorkoutUseCase(
             inProgressWorkout = mutableWorkoutState.value.inProgressWorkout!!,
             programMetadata = mutableWorkoutState.value.programMetadata!!.toDomainModel(),
@@ -357,10 +337,6 @@ class WorkoutViewModel(
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {
         insertRestTimerInProgressUseCase(restTime)
-    }
-
-    override fun stopRestTimer() {
-        cancelRestTimer()
     }
 
     private fun getWorkoutLiftAndLogIfNull(workoutLiftId: Long): LoggingWorkoutLiftUiModel? {

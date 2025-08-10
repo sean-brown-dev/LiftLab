@@ -11,11 +11,11 @@ import arrow.core.left
 import arrow.core.right
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.BottomNavItem
 import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import org.greenrobot.eventbus.EventBus
 import org.koin.core.component.inject
 import java.util.UUID
@@ -114,7 +114,7 @@ data class WorkoutScreen(
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.TimerMenuItem.AlwaysShown(
-                isVisible = restTimerControlVisible,
+                isVisible = true,//restTimerControlVisible,
                 controlName = REST_TIMER,
                 started = restTimerRunning,
                 countDownStartedFrom = restTime,

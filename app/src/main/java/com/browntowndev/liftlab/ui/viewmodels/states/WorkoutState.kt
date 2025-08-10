@@ -2,14 +2,13 @@ package com.browntowndev.liftlab.ui.viewmodels.states
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection
+import com.browntowndev.liftlab.ui.extensions.getVolumeTypeLabels
 import com.browntowndev.liftlab.ui.models.metrics.PersonalRecordUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
-import com.browntowndev.liftlab.ui.extensions.getVolumeTypeLabels
 import com.browntowndev.liftlab.ui.models.workoutLogging.ActiveProgramMetadataUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.SetResultUiModel
-import java.util.Date
 
 @Stable
 data class WorkoutState(
@@ -21,8 +20,6 @@ data class WorkoutState(
     val completedSets: List<SetResultUiModel> = emptyList(),
     val workoutLogVisible: Boolean = false,
     val isReordering: Boolean = false,
-    val restTimerStartedAt: Date? = null,
-    val restTime: Long = 0L,
     val isCompletionSummaryVisible: Boolean = false,
     val isConfirmCancelWorkoutDialogShown: Boolean = false,
     val isDeloadPromptDialogShown: Boolean = false,
