@@ -88,7 +88,7 @@ class RestTimerNotificationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createProgressChannel()
+        createRestTimerChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceCompat.startForeground(
                 this,
@@ -149,7 +149,7 @@ class RestTimerNotificationService : Service() {
         )
     }
 
-    private fun createProgressChannel() {
+    private fun createRestTimerChannel() {
         val channel = NotificationChannel(
             REST_TIMER_SERVICE_CHANNEL_ID,
             PROGRESS_CHANNEL_NAME,
