@@ -39,6 +39,7 @@ object SettingsManager {
     private const val PREFERENCES_NAME = "LiftLabPreferences"
     private lateinit var sharedPreferences: SharedPreferences
 
+    @Synchronized
     fun initialize(context: Context) {
         sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 

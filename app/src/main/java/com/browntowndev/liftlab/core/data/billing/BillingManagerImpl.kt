@@ -2,14 +2,33 @@ package com.browntowndev.liftlab.core.data.billing
 
 import android.app.Activity
 import android.util.Log
-import com.android.billingclient.api.*
+import com.android.billingclient.api.AcknowledgePurchaseParams
+import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.ProductType
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ConsumeParams
+import com.android.billingclient.api.PendingPurchasesParams
+import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.Purchase.PurchaseState
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
+import com.android.billingclient.api.acknowledgePurchase
+import com.android.billingclient.api.consumePurchase
+import com.android.billingclient.api.queryProductDetails
+import com.android.billingclient.api.queryPurchasesAsync
 import com.browntowndev.liftlab.core.common.THANK_YOU_DIALOG_BODY
 import com.browntowndev.liftlab.core.common.toFriendlyMessage
+import com.browntowndev.liftlab.core.coroutines.AppDispatchers
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -17,7 +36,7 @@ import kotlinx.coroutines.launch
 
 class BillingManagerImpl(
     billingClientBuilder: BillingClient.Builder,
-    private val externalScope: CoroutineScope
+    dispatchers: AppDispatchers,
 ) : BillingManager, PurchasesUpdatedListener, BillingClientStateListener {
     val oneTimeDonationProductIds =
         setOf(
@@ -56,6 +75,12 @@ class BillingManagerImpl(
 
     private lateinit var billingClient: BillingClient
 
+    private val coroutineScope = CoroutineScope(dispatchers.io + SupervisorJob() + CoroutineName("BillingManager"))
+    private val handler = CoroutineExceptionHandler { _, e ->
+        Log.e("BillingManager", "Coroutine error", e)
+        FirebaseCrashlytics.getInstance().recordException(e)
+    }
+
     init {
         try {
             Log.d("BillingRepositoryImpl", "Initializing billing client")
@@ -78,7 +103,7 @@ class BillingManagerImpl(
         try {
             Log.d("BillingRepositoryImpl", "Billing setup finished with result: ${billingResult.responseCode}")
             if (billingResult.responseCode == BillingResponseCode.OK) {
-                externalScope.launch {
+                coroutineScope.launch(handler) {
                     queryProducts()
                     acknowledgeUnacknowledgedPurchases(ProductType.SUBS)
                     acknowledgeUnacknowledgedPurchases(ProductType.INAPP)
@@ -108,7 +133,7 @@ class BillingManagerImpl(
         if (billingResult.responseCode == BillingResponseCode.OK && purchases != null) {
             purchases.forEach { purchase ->
                 if (purchase.purchaseState == PurchaseState.PURCHASED && !purchase.isAcknowledged) {
-                    externalScope.launch { handlePurchase(purchase) }
+                    coroutineScope.launch(handler) { handlePurchase(purchase) }
                 } else if (purchase.purchaseState == PurchaseState.UNSPECIFIED_STATE) {
                     _billingMessage.update { "An error may have occurred. Please verify the donation was successful." }
                     _isProcessingPurchase.update { false }

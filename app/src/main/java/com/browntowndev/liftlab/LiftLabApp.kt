@@ -2,8 +2,8 @@ package com.browntowndev.liftlab
 
 import android.app.Application
 import android.util.Log
+import com.browntowndev.liftlab.dependencyInjection.coroutinesModule
 import com.browntowndev.liftlab.dependencyInjection.eventBusModule
-import com.browntowndev.liftlab.dependencyInjection.liftLabScopeModule
 import com.browntowndev.liftlab.dependencyInjection.notificationModule
 import com.browntowndev.liftlab.dependencyInjection.persistenceModule
 import com.browntowndev.liftlab.dependencyInjection.syncModule
@@ -39,7 +39,7 @@ class LiftLabApp() : Application() {
             androidContext(this@LiftLabApp)
             workManagerFactory()
             modules(
-                liftLabScopeModule,
+                coroutinesModule,
                 useCaseModule,
                 persistenceModule,
                 syncModule,

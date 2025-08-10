@@ -22,8 +22,10 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.ui.utils.ActiveWorkoutNotification.RETURN_TO_WORKOUT_REQUEST_CODE
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,13 +36,13 @@ class ActiveWorkoutNotificationService : Service() {
     companion object {
         const val NOTIFICATION_ID = 2
         private const val CHANNEL_ID = "ActiveWorkoutForegroundService"
-        private const val CHANNEL_NAME = "ActiveWorkoutForegroundService"
+        private const val CHANNEL_NAME = "Active Workout"
     }
 
     private var nextSet: String = ""
     private val durationTimer: LiftLabTimer by inject(named("DurationTimer"))
     private val notificationHelper: NotificationHelper by inject()
-    private val coroutineScope by inject<CoroutineScope>(named("ForegroundServiceScope"))
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineName("ActiveWorkoutNotification"))
     private val notificationManager: NotificationManager by lazy {
         getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     }
@@ -89,10 +91,13 @@ class ActiveWorkoutNotificationService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(Log.DEBUG.toString(), "onStartCommand()")
         SettingsManager.initialize((this as Context).applicationContext)
+        Log.d("ActiveWorkoutNotificationService", "onStartCommand: Initialized SettingsManager")
 
         coroutineScope.launch {
+            Log.d("ActiveWorkoutNotificationService", "onStartCommand: Checking for active workout")
             val activeWorkoutMetadata = notificationHelper.getActiveWorkoutMetadata()
             if (activeWorkoutMetadata == null) {
+                Log.d("ActiveWorkoutNotificationService", "onStartCommand: No active workout")
                 stopSelf()
                 return@launch
             }
@@ -101,6 +106,9 @@ class ActiveWorkoutNotificationService : Service() {
             notificationBuilder.setContentText(activeWorkoutMetadata.nextSet)
             nextSet = activeWorkoutMetadata.nextSet // Used to update the notification on each tick
             val startDuration = getCurrentDate().time - activeWorkoutMetadata.startTime.time
+
+            Log.d("ActiveWorkoutNotificationService", "onStartCommand nextSet: $nextSet")
+            Log.d("ActiveWorkoutNotificationService", "onStartCommand startDuration: $startDuration")
 
             // CountDownTimer has to run on the main thread
             withContext(Dispatchers.Main.immediate) {
