@@ -21,8 +21,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateW
 import com.browntowndev.liftlab.ui.extensions.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.ui.extensions.getRecalculatedWorkoutLiftStepSizeOptions
 import com.browntowndev.liftlab.ui.extensions.transformToType
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel

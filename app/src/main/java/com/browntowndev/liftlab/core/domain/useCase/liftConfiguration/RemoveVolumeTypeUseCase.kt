@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.domain.useCase.liftConfiguration
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeCategory
+import com.browntowndev.liftlab.core.domain.enums.toVolumeTypes
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 
@@ -25,13 +26,22 @@ class RemoveVolumeTypeUseCase(
         volumeTypeCategory: VolumeTypeCategory
     ): Lift =
         transactionScope.executeWithResult {
-            val newVolumeTypeBitmask = lift.volumeTypesBitmask - volumeTypeToRemove.bitMask
-            val nullableVolumeTypeBitmask = if (newVolumeTypeBitmask == 0) null else newVolumeTypeBitmask
-            if (nullableVolumeTypeBitmask == null) throw IllegalArgumentException("Primary volume type cannot be removed")
-
             val liftToUpdate =
-                if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = newVolumeTypeBitmask)
-                else lift.copy(secondaryVolumeTypesBitmask = nullableVolumeTypeBitmask)
+                if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) {
+                    val currentVolumeTypes = lift.volumeTypesBitmask.toVolumeTypes()
+                    if (currentVolumeTypes.size == 1) throw IllegalArgumentException("Cannot remove the only remaining volume type")
+                    if (!currentVolumeTypes.contains(volumeTypeToRemove)) throw IllegalArgumentException("Volume type not present")
+                    val newVolumeType = lift.volumeTypesBitmask - volumeTypeToRemove.bitMask
+
+                    lift.copy(volumeTypesBitmask = newVolumeType)
+                }
+                else {
+                    val currentVolumeTypes = lift.volumeTypesBitmask.toVolumeTypes()
+                    if (!currentVolumeTypes.contains(volumeTypeToRemove)) throw IllegalArgumentException("Volume type not present")
+                    val newVolumeType = (lift.secondaryVolumeTypesBitmask ?: 0) - volumeTypeToRemove.bitMask
+
+                    lift.copy(secondaryVolumeTypesBitmask = newVolumeType)
+                }
 
             if (lift.id > 0L) {
                 liftsRepository.update(liftToUpdate)

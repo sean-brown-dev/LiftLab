@@ -5,21 +5,23 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
+import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.data.mapping.toCalculationDomainModel
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
-import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
-import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
-import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
-import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.DoubleProgressionCalculator
-import io.mockk.*
-import org.junit.jupiter.api.*
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class DoubleProgressionCalculatorTests {
     private val calculator = DoubleProgressionCalculator()

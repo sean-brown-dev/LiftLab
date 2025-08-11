@@ -8,8 +8,8 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFiltera
 import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.MOVEMENT_PATTERN
 import com.browntowndev.liftlab.ui.models.controls.Route

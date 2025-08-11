@@ -5,8 +5,8 @@ import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import kotlinx.coroutines.flow.Flow

@@ -1,14 +1,14 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
+import com.browntowndev.liftlab.core.data.mapping.toSetResult
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import io.mockk.coEvery
 import io.mockk.coVerify

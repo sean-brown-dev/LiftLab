@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
 import com.browntowndev.liftlab.ui.factory.createProgramAndWorkoutFilterChipOptions
-import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.DATE_RANGE
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.PROGRAM

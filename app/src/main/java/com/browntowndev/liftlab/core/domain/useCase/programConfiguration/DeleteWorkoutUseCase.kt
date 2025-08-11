@@ -29,8 +29,8 @@ class DeleteWorkoutUseCase(
         workoutLiftsRepository.deleteMany(workoutLiftsToDelete)
 
         // Delete any custom lift sets for this workout
-        workoutLiftsToDelete.fastForEach {
-            customLiftSetsRepository.deleteAllForLift(workout.id)
+        workoutLiftsToDelete.fastForEach { workoutLift ->
+            customLiftSetsRepository.deleteAllForLift(workoutLift.id)
         }
 
         // Delete any workoutInProgress records for this workout

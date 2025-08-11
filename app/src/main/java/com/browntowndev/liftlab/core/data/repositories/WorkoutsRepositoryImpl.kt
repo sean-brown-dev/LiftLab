@@ -7,11 +7,9 @@ import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toCalculationDomainModel
-import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.data.mapping.WorkoutMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toCalculationDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift

@@ -17,9 +17,8 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.RemoveVolu
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolumeTypeUseCase
-import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.getIntensityChartModel
 import com.browntowndev.liftlab.ui.models.metrics.getOneRepMaxChartModel

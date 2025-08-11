@@ -2,17 +2,17 @@ package com.browntowndev.liftlab.core.data.repositories
 
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
-import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
+import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.data.mapping.ProgramMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
+import com.browntowndev.liftlab.core.data.mapping.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

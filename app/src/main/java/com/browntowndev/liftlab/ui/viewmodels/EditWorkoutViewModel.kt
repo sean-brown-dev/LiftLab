@@ -13,9 +13,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetCompletedW
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistingSetResultUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
-import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.extensions.copyGeneric

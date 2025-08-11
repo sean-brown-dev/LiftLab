@@ -17,8 +17,7 @@ class CreateProgramUseCase(
         )
 
         if (isActive && currentActiveProgram != null) {
-            currentActiveProgram.copy(isActive = false)
-            programsRepository.update(currentActiveProgram)
+            programsRepository.update(currentActiveProgram.copy(isActive = false))
         }
     }
 }

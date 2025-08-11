@@ -16,9 +16,8 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SetProg
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
-import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel

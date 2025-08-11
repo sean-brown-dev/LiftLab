@@ -5,8 +5,8 @@ import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.common.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
-import com.browntowndev.liftlab.core.data.mapping.RemoteMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.data.mapping.RemoteMappingExtensions.toRemoteDto
+import com.browntowndev.liftlab.core.data.mapping.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlin.reflect.KClass

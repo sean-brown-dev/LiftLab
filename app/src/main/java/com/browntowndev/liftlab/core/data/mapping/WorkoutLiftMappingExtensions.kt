@@ -1,205 +1,201 @@
 package com.browntowndev.liftlab.core.data.mapping
 
-import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toCalculationDomainModel
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 
-object WorkoutLiftMappingExtensions {
-    fun WorkoutLiftWithRelationships.toCalculationDomainModel(): CalculationWorkoutLift {
-        return if (this.workoutLiftEntity.repRangeTop != null &&
-            this.workoutLiftEntity.repRangeBottom != null &&
-            this.workoutLiftEntity.rpeTarget != null
-        ) {
-            toCalculationStandardWorkoutLift()
-        }
-        else {
-            toCalculationCustomWorkoutLift()
-        }
+fun WorkoutLiftWithRelationships.toCalculationDomainModel(): CalculationWorkoutLift {
+    return if (this.workoutLiftEntity.repRangeTop != null &&
+        this.workoutLiftEntity.repRangeBottom != null &&
+        this.workoutLiftEntity.rpeTarget != null
+    ) {
+        toCalculationStandardWorkoutLift()
     }
+    else {
+        toCalculationCustomWorkoutLift()
+    }
+}
 
-    fun WorkoutLiftWithRelationships.toDomainModel(): GenericWorkoutLift {
-        return if (this.workoutLiftEntity.repRangeTop != null &&
-            this.workoutLiftEntity.repRangeBottom != null &&
-            this.workoutLiftEntity.rpeTarget != null
-        ) {
-            toStandardWorkoutLift()
-        }
-        else {
-            toCustomWorkoutLift()
-        }
+fun WorkoutLiftWithRelationships.toDomainModel(): GenericWorkoutLift {
+    return if (this.workoutLiftEntity.repRangeTop != null &&
+        this.workoutLiftEntity.repRangeBottom != null &&
+        this.workoutLiftEntity.rpeTarget != null
+    ) {
+        toStandardWorkoutLift()
     }
+    else {
+        toCustomWorkoutLift()
+    }
+}
 
-    fun WorkoutLiftEntity.toDomainModel(): GenericWorkoutLift {
-        return if (this.repRangeTop != null && this.repRangeBottom != null && this.rpeTarget != null) {
-            toStandardWorkoutLift()
-        } else {
-            toCustomWorkoutLift()
-        }
+fun WorkoutLiftEntity.toDomainModel(): GenericWorkoutLift {
+    return if (this.repRangeTop != null && this.repRangeBottom != null && this.rpeTarget != null) {
+        toStandardWorkoutLift()
+    } else {
+        toCustomWorkoutLift()
     }
+}
 
-    fun GenericWorkoutLift.toEntity(): WorkoutLiftEntity {
-        return when (this) {
-            is StandardWorkoutLift -> toEntity()
-            is CustomWorkoutLift -> toEntity()
-            else -> throw ClassNotFoundException("${this::class.simpleName} is not implemented in ${WorkoutLiftMappingExtensions::class.simpleName}")
-        }
+fun GenericWorkoutLift.toEntity(): WorkoutLiftEntity {
+    return when (this) {
+        is StandardWorkoutLift -> toEntity()
+        is CustomWorkoutLift -> toEntity()
+        else -> throw ClassNotFoundException("${this::class.simpleName} is not implemented in toEntity()")
     }
+}
 
-    private fun WorkoutLiftWithRelationships.toCalculationStandardWorkoutLift(): CalculationStandardWorkoutLift {
-        return CalculationStandardWorkoutLift(
-            id = this.workoutLiftEntity.id,
-            liftId = this.workoutLiftEntity.liftId,
-            position = this.workoutLiftEntity.position,
-            setCount = this.workoutLiftEntity.setCount,
-            repRangeBottom = this.workoutLiftEntity.repRangeBottom!!,
-            repRangeTop = this.workoutLiftEntity.repRangeTop!!,
-            rpeTarget = this.workoutLiftEntity.rpeTarget!!,
-            progressionScheme = this.workoutLiftEntity.progressionScheme,
-            deloadWeek = this.workoutLiftEntity.deloadWeek,
-            incrementOverride = this.liftEntity.incrementOverride,
-            stepSize = this.workoutLiftEntity.stepSize,
-        )
-    }
+private fun WorkoutLiftWithRelationships.toCalculationStandardWorkoutLift(): CalculationStandardWorkoutLift {
+    return CalculationStandardWorkoutLift(
+        id = this.workoutLiftEntity.id,
+        liftId = this.workoutLiftEntity.liftId,
+        position = this.workoutLiftEntity.position,
+        setCount = this.workoutLiftEntity.setCount,
+        repRangeBottom = this.workoutLiftEntity.repRangeBottom!!,
+        repRangeTop = this.workoutLiftEntity.repRangeTop!!,
+        rpeTarget = this.workoutLiftEntity.rpeTarget!!,
+        progressionScheme = this.workoutLiftEntity.progressionScheme,
+        deloadWeek = this.workoutLiftEntity.deloadWeek,
+        incrementOverride = this.liftEntity.incrementOverride,
+        stepSize = this.workoutLiftEntity.stepSize,
+    )
+}
 
-    private fun WorkoutLiftWithRelationships.toCalculationCustomWorkoutLift(): CalculationCustomWorkoutLift {
-        return CalculationCustomWorkoutLift(
-            id = this.workoutLiftEntity.id,
-            liftId = this.workoutLiftEntity.liftId,
-            position = this.workoutLiftEntity.position,
-            progressionScheme = this.workoutLiftEntity.progressionScheme,
-            deloadWeek = this.workoutLiftEntity.deloadWeek,
-            incrementOverride = this.liftEntity.incrementOverride,
-            customLiftSets = this.customLiftSetEntities
-                .map { it.toCalculationDomainModel() }
-                .sortedBy { it.position }
-        )
-    }
+private fun WorkoutLiftWithRelationships.toCalculationCustomWorkoutLift(): CalculationCustomWorkoutLift {
+    return CalculationCustomWorkoutLift(
+        id = this.workoutLiftEntity.id,
+        liftId = this.workoutLiftEntity.liftId,
+        position = this.workoutLiftEntity.position,
+        progressionScheme = this.workoutLiftEntity.progressionScheme,
+        deloadWeek = this.workoutLiftEntity.deloadWeek,
+        incrementOverride = this.liftEntity.incrementOverride,
+        customLiftSets = this.customLiftSetEntities
+            .map { it.toCalculationDomainModel() }
+            .sortedBy { it.position }
+    )
+}
 
-    private fun WorkoutLiftWithRelationships.toStandardWorkoutLift(): StandardWorkoutLift {
-        return StandardWorkoutLift(
-            id = this.workoutLiftEntity.id,
-            workoutId = this.workoutLiftEntity.workoutId,
-            liftId = this.workoutLiftEntity.liftId,
-            liftName = this.liftEntity.name,
-            liftMovementPattern = this.liftEntity.movementPattern,
-            liftVolumeTypes = this.liftEntity.volumeTypesBitmask,
-            liftSecondaryVolumeTypes = this.liftEntity.secondaryVolumeTypesBitmask,
-            deloadWeek = this.workoutLiftEntity.deloadWeek,
-            incrementOverride = this.liftEntity.incrementOverride,
-            restTime = this.liftEntity.restTime,
-            restTimerEnabled = this.liftEntity.restTimerEnabled,
-            position = this.workoutLiftEntity.position,
-            setCount = this.workoutLiftEntity.setCount,
-            repRangeBottom = this.workoutLiftEntity.repRangeBottom!!,
-            repRangeTop = this.workoutLiftEntity.repRangeTop!!,
-            rpeTarget = this.workoutLiftEntity.rpeTarget!!,
-            progressionScheme = this.workoutLiftEntity.progressionScheme,
-            liftNote = this.liftEntity.note,
-            stepSize = this.workoutLiftEntity.stepSize,
-        )
-    }
+private fun WorkoutLiftWithRelationships.toStandardWorkoutLift(): StandardWorkoutLift {
+    return StandardWorkoutLift(
+        id = this.workoutLiftEntity.id,
+        workoutId = this.workoutLiftEntity.workoutId,
+        liftId = this.workoutLiftEntity.liftId,
+        liftName = this.liftEntity.name,
+        liftMovementPattern = this.liftEntity.movementPattern,
+        liftVolumeTypes = this.liftEntity.volumeTypesBitmask,
+        liftSecondaryVolumeTypes = this.liftEntity.secondaryVolumeTypesBitmask,
+        deloadWeek = this.workoutLiftEntity.deloadWeek,
+        incrementOverride = this.liftEntity.incrementOverride,
+        restTime = this.liftEntity.restTime,
+        restTimerEnabled = this.liftEntity.restTimerEnabled,
+        position = this.workoutLiftEntity.position,
+        setCount = this.workoutLiftEntity.setCount,
+        repRangeBottom = this.workoutLiftEntity.repRangeBottom!!,
+        repRangeTop = this.workoutLiftEntity.repRangeTop!!,
+        rpeTarget = this.workoutLiftEntity.rpeTarget!!,
+        progressionScheme = this.workoutLiftEntity.progressionScheme,
+        liftNote = this.liftEntity.note,
+        stepSize = this.workoutLiftEntity.stepSize,
+    )
+}
 
-    private fun WorkoutLiftWithRelationships.toCustomWorkoutLift(): CustomWorkoutLift {
-        return CustomWorkoutLift(
-            id = this.workoutLiftEntity.id,
-            workoutId = this.workoutLiftEntity.workoutId,
-            liftId = this.workoutLiftEntity.liftId,
-            liftName = this.liftEntity.name,
-            liftMovementPattern = this.liftEntity.movementPattern,
-            liftVolumeTypes = this.liftEntity.volumeTypesBitmask,
-            liftSecondaryVolumeTypes = this.liftEntity.secondaryVolumeTypesBitmask,
-            deloadWeek = this.workoutLiftEntity.deloadWeek,
-            incrementOverride = this.liftEntity.incrementOverride,
-            restTime = this.liftEntity.restTime,
-            restTimerEnabled = this.liftEntity.restTimerEnabled,
-            position = this.workoutLiftEntity.position,
-            setCount = this.workoutLiftEntity.setCount,
-            progressionScheme = this.workoutLiftEntity.progressionScheme,
-            liftNote = this.liftEntity.note,
-            customLiftSets = this.customLiftSetEntities
-                .map { it.toDomainModel() }
-                .sortedBy { it.position }
-        )
-    }
+private fun WorkoutLiftWithRelationships.toCustomWorkoutLift(): CustomWorkoutLift {
+    return CustomWorkoutLift(
+        id = this.workoutLiftEntity.id,
+        workoutId = this.workoutLiftEntity.workoutId,
+        liftId = this.workoutLiftEntity.liftId,
+        liftName = this.liftEntity.name,
+        liftMovementPattern = this.liftEntity.movementPattern,
+        liftVolumeTypes = this.liftEntity.volumeTypesBitmask,
+        liftSecondaryVolumeTypes = this.liftEntity.secondaryVolumeTypesBitmask,
+        deloadWeek = this.workoutLiftEntity.deloadWeek,
+        incrementOverride = this.liftEntity.incrementOverride,
+        restTime = this.liftEntity.restTime,
+        restTimerEnabled = this.liftEntity.restTimerEnabled,
+        position = this.workoutLiftEntity.position,
+        setCount = this.workoutLiftEntity.setCount,
+        progressionScheme = this.workoutLiftEntity.progressionScheme,
+        liftNote = this.liftEntity.note,
+        customLiftSets = this.customLiftSetEntities
+            .map { it.toDomainModel() }
+            .sortedBy { it.position }
+    )
+}
 
-    private fun WorkoutLiftEntity.toStandardWorkoutLift(): StandardWorkoutLift {
-        return StandardWorkoutLift(
-            id = this.id,
-            workoutId = this.workoutId,
-            liftId = this.liftId,
-            liftName = "LIFT NOT LOADED",
-            liftMovementPattern = MovementPattern.CHEST_ISO,
-            liftVolumeTypes = 0,
-            liftSecondaryVolumeTypes = null,
-            deloadWeek = this.deloadWeek,
-            incrementOverride = null,
-            restTime = null,
-            restTimerEnabled = false,
-            position = this.position,
-            setCount = this.setCount,
-            repRangeBottom = this.repRangeBottom!!,
-            repRangeTop = this.repRangeTop!!,
-            rpeTarget = this.rpeTarget!!,
-            progressionScheme = this.progressionScheme,
-            liftNote = "LIFT NOT LOADED",
-            stepSize = this.stepSize,
-        )
-    }
+private fun WorkoutLiftEntity.toStandardWorkoutLift(): StandardWorkoutLift {
+    return StandardWorkoutLift(
+        id = this.id,
+        workoutId = this.workoutId,
+        liftId = this.liftId,
+        liftName = "LIFT NOT LOADED",
+        liftMovementPattern = MovementPattern.CHEST_ISO,
+        liftVolumeTypes = 0,
+        liftSecondaryVolumeTypes = null,
+        deloadWeek = this.deloadWeek,
+        incrementOverride = null,
+        restTime = null,
+        restTimerEnabled = false,
+        position = this.position,
+        setCount = this.setCount,
+        repRangeBottom = this.repRangeBottom!!,
+        repRangeTop = this.repRangeTop!!,
+        rpeTarget = this.rpeTarget!!,
+        progressionScheme = this.progressionScheme,
+        liftNote = "LIFT NOT LOADED",
+        stepSize = this.stepSize,
+    )
+}
 
-    private fun WorkoutLiftEntity.toCustomWorkoutLift(): CustomWorkoutLift {
-        return CustomWorkoutLift(
-            id = this.id,
-            workoutId = this.workoutId,
-            liftId = this.liftId,
-            liftName = "LIFT NOT LOADED",
-            liftMovementPattern = MovementPattern.CHEST_ISO,
-            liftVolumeTypes = 0,
-            liftSecondaryVolumeTypes = null,
-            deloadWeek = this.deloadWeek,
-            incrementOverride = null,
-            restTime = null,
-            restTimerEnabled = false,
-            position = this.position,
-            setCount = this.setCount,
-            progressionScheme = this.progressionScheme,
-            liftNote = "LIFT NOT LOADED",
-            customLiftSets = emptyList(),
-        )
-    }
+private fun WorkoutLiftEntity.toCustomWorkoutLift(): CustomWorkoutLift {
+    return CustomWorkoutLift(
+        id = this.id,
+        workoutId = this.workoutId,
+        liftId = this.liftId,
+        liftName = "LIFT NOT LOADED",
+        liftMovementPattern = MovementPattern.CHEST_ISO,
+        liftVolumeTypes = 0,
+        liftSecondaryVolumeTypes = null,
+        deloadWeek = this.deloadWeek,
+        incrementOverride = null,
+        restTime = null,
+        restTimerEnabled = false,
+        position = this.position,
+        setCount = this.setCount,
+        progressionScheme = this.progressionScheme,
+        liftNote = "LIFT NOT LOADED",
+        customLiftSets = emptyList(),
+    )
+}
 
-    private fun StandardWorkoutLift.toEntity(): WorkoutLiftEntity {
-        return WorkoutLiftEntity(
-            id = this.id,
-            liftId = this.liftId,
-            workoutId = this.workoutId,
-            deloadWeek = this.deloadWeek,
-            position = this.position,
-            setCount = this.setCount,
-            rpeTarget = this.rpeTarget,
-            repRangeBottom = this.repRangeBottom,
-            repRangeTop = this.repRangeTop,
-            progressionScheme = this.progressionScheme,
-            stepSize = this.stepSize,
-        )
-    }
+private fun StandardWorkoutLift.toEntity(): WorkoutLiftEntity {
+    return WorkoutLiftEntity(
+        id = this.id,
+        liftId = this.liftId,
+        workoutId = this.workoutId,
+        deloadWeek = this.deloadWeek,
+        position = this.position,
+        setCount = this.setCount,
+        rpeTarget = this.rpeTarget,
+        repRangeBottom = this.repRangeBottom,
+        repRangeTop = this.repRangeTop,
+        progressionScheme = this.progressionScheme,
+        stepSize = this.stepSize,
+    )
+}
 
-    private fun CustomWorkoutLift.toEntity(): WorkoutLiftEntity {
-        return WorkoutLiftEntity(
-            id = this.id,
-            liftId = this.liftId,
-            workoutId = this.workoutId,
-            deloadWeek = this.deloadWeek,
-            position = this.position,
-            setCount = this.setCount,
-            progressionScheme = this.progressionScheme,
-        )
-    }
+private fun CustomWorkoutLift.toEntity(): WorkoutLiftEntity {
+    return WorkoutLiftEntity(
+        id = this.id,
+        liftId = this.liftId,
+        workoutId = this.workoutId,
+        deloadWeek = this.deloadWeek,
+        position = this.position,
+        setCount = this.setCount,
+        progressionScheme = this.progressionScheme,
+    )
 }

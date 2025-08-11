@@ -20,9 +20,8 @@ class AddVolumeTypeUseCase(
      * @return The updated lift
      */
     suspend operator fun invoke(lift: Lift, newVolumeType: VolumeType, volumeTypeCategory: VolumeTypeCategory): Lift = transactionScope.executeWithResult {
-        val newVolumeTypeBitmask = lift.volumeTypesBitmask + newVolumeType.bitMask
-        val liftToUpdate = if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = newVolumeTypeBitmask)
-            else lift.copy(secondaryVolumeTypesBitmask = newVolumeTypeBitmask)
+        val liftToUpdate = if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.copy(volumeTypesBitmask = lift.volumeTypesBitmask + newVolumeType.bitMask)
+            else lift.copy(secondaryVolumeTypesBitmask = (lift.secondaryVolumeTypesBitmask ?: 0) + newVolumeType.bitMask)
 
         if (lift.id > 0L) {
             liftsRepository.update(liftToUpdate)

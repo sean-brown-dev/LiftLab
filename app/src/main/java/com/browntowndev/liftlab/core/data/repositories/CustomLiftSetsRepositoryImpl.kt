@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.core.data.repositories
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
-import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.data.mapping.CustomLiftSetMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet

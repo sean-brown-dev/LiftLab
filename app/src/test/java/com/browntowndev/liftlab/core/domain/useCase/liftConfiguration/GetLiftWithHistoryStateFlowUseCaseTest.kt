@@ -1,292 +1,234 @@
 package com.browntowndev.liftlab.core.domain.useCase.liftConfiguration
 
-import app.cash.turbine.test
+// ---- Explicit JUnit Jupiter assertion imports (no wildcards) ----
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.core.domain.models.workout.LiftWithHistoryState
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOf
+import io.mockk.unmockkAll
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertIterableEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertThrows
 import java.util.Date
-import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class GetLiftWithHistoryStateFlowUseCaseTest {
 
     private lateinit var liftsRepository: LiftsRepository
     private lateinit var workoutLogRepository: WorkoutLogRepository
-    private lateinit var getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase
-
-    // Test Data
-    private val testLift = Lift(
-        id = 1L,
-        name = "Barbell Bench Press",
-        movementPattern = MovementPattern.HORIZONTAL_PUSH,
-        volumeTypesBitmask = VolumeType.AB.bitMask,
-        isBodyweight = false,
-        restTimerEnabled = true,
-        note = null,
-        secondaryVolumeTypesBitmask = null,
-        incrementOverride = null,
-        restTime = null,
-    )
-    private val date1 = Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(10))
-    private val date2 = Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(5))
-    private val date3 = Date(System.currentTimeMillis())
-
-    // Sets are defined out of order to test sorting
-    private val set1 = createTestSetLogEntry(reps = 10, weight = 100f) // 1RM ~133.3, Volume = 1000
-    private val set2 = createTestSetLogEntry(reps = 5, weight = 120f)  // 1RM ~140.0, Volume = 600
-    private val set3 = createTestSetLogEntry(reps = 1, weight = 135f)  // 1RM  135.0, Volume = 135
-    private val set4 = createTestSetLogEntry(reps = 3, weight = 130f)  // 1RM ~143.0, Volume = 390
-    private val set5 = createTestSetLogEntry(
-        reps = 8,
-        weight = 110f
-    )  // 1RM ~140.0, Volume = 880 (lower 1RM than set2 due to formula precision)
-
-    private val workoutLog1 = createTestWorkoutLogEntry(date = date1, setResults = listOf(set1, set5))
-    private val workoutLog2 = createTestWorkoutLogEntry(date = date2, setResults = listOf(set2))
-    private val workoutLog3 = createTestWorkoutLogEntry(date = date3, setResults = listOf(set3, set4))
-
-    private val testWorkoutLogs = listOf(workoutLog1, workoutLog2, workoutLog3)
-
-    /**
-     * Helper to create a SetLogEntry with defaults for non-essential test properties.
-     * Focuses on reps and weight, which are crucial for calculations.
-     */
-    private fun createTestSetLogEntry(
-        reps: Int,
-        weight: Float,
-        id: Long = (0..10000L).random(), // Use random ID to avoid accidental equality
-        rpe: Float = 10f, // RPE 10 is a common value for max effort sets, affecting 1RM
-    ): SetLogEntry {
-        return SetLogEntry(
-            id = id,
-            workoutLogEntryId = 1L,
-            liftId = 1L,
-            workoutLiftDeloadWeek = null,
-            liftName = "Test Lift",
-            liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
-            setType = SetType.STANDARD,
-            liftPosition = 1,
-            setPosition = 1,
-            myoRepSetPosition = null,
-            repRangeTop = 10,
-            repRangeBottom = 8,
-            rpeTarget = 8.5f,
-            weightRecommendation = null,
-            weight = weight,
-            reps = reps,
-            rpe = rpe,
-            persistedOneRepMax = null,
-            isPersonalRecord = false,
-            setMatching = null,
-            maxSets = null,
-            repFloor = null,
-            dropPercentage = null,
-            isDeload = false
-        )
-    }
-
-    /**
-     * Helper to create a WorkoutLogEntry with defaults for non-essential test properties.
-     * Focuses on the date and the list of sets, which are crucial for history.
-     */
-    private fun createTestWorkoutLogEntry(
-        date: Date,
-        setResults: List<SetLogEntry>,
-        id: Long = (0..10000L).random(), // Use random ID
-    ): WorkoutLogEntry {
-        return WorkoutLogEntry(
-            id = id,
-            historicalWorkoutNameId = 1L,
-            programWorkoutCount = 1,
-            programDeloadWeek = 4,
-            programName = "Test Program",
-            workoutName = "Test Workout A",
-            programId = 1L,
-            workoutId = 1L,
-            mesocycle = 1,
-            microcycle = 1,
-            microcyclePosition = 1,
-            date = date,
-            durationInMillis = 3600_000, // 1 hour
-            setLogEntries = setResults
-        )
-    }
+    private lateinit var useCase: GetLiftWithHistoryStateFlowUseCase
 
     @BeforeEach
     fun setUp() {
-        liftsRepository = mockk()
-        workoutLogRepository = mockk()
-        getLiftWithHistoryStateFlowUseCase = GetLiftWithHistoryStateFlowUseCase(
-            liftsRepository = liftsRepository,
-            workoutLogRepository = workoutLogRepository
-        )
+        liftsRepository = mockk(relaxed = true)
+        workoutLogRepository = mockk(relaxed = true)
+        useCase = GetLiftWithHistoryStateFlowUseCase(liftsRepository, workoutLogRepository)
+    }
+
+    @AfterEach
+    fun tearDown() = unmockkAll()
+
+    @Test
+    fun `when liftId is null, emits default new-lift state and does not query repositories`() = runTest {
+        val state = useCase(liftId = null).first()
+
+        // Verify repositories were not queried
+        coVerify(exactly = 0) {
+            @Suppress("UnusedFlow")
+            liftsRepository.getByIdFlow(any())
+        }
+        coVerify(exactly = 0) {
+            @Suppress("UnusedFlow")
+            workoutLogRepository.getWorkoutLogsForLiftFlow(any())
+        }
+
+        // Default Lift values (as constructed in the use case)
+        val l: Lift = state.lift
+        assertEquals(0L, l.id)
+        assertEquals("", l.name)
+        assertEquals(MovementPattern.AB_ISO, l.movementPattern)
+        assertEquals(VolumeType.AB.bitMask, l.volumeTypesBitmask)
+        assertNull(l.secondaryVolumeTypesBitmask)
+        assertNull(l.incrementOverride)
+        assertNull(l.restTime)
+        assertTrue(l.restTimerEnabled)
+        assertEquals(false, l.isBodyweight)
+        assertNull(l.note)
     }
 
     @Test
-    fun `invoke with null liftId returns default state for new lift creation`() = runTest {
-        // When
-        val resultFlow = getLiftWithHistoryStateFlowUseCase(null)
+    fun `when lift exists and logs are empty, metrics are null or zero`() = runTest {
+        val liftId = 123L
+        val lift = mockk<Lift>(relaxed = true)
 
-        // Then
-        resultFlow.test {
-            val state = awaitItem()
+        val liftFlow = MutableStateFlow<Lift?>(lift)
+        val logsFlow = MutableStateFlow<List<WorkoutLogEntry>>(emptyList())
 
-            // Assert Lift properties for a new lift
-            assertEquals(0L, state.lift.id)
-            assertEquals("", state.lift.name)
-            assertEquals(MovementPattern.AB_ISO, state.lift.movementPattern)
-            assert(state.lift.restTimerEnabled)
+        coEvery { liftsRepository.getByIdFlow(liftId) } returns liftFlow
+        coEvery { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns logsFlow
 
-            // Assert history is empty
-            assert(state.workoutLogEntries.isEmpty())
-            assertNull(state.maxVolume)
-            assertNull(state.maxWeight)
-            assert(state.topTenPerformances.isEmpty())
-            assertEquals(0, state.totalReps)
-            assertEquals(0f, state.totalVolume)
+        val s: LiftWithHistoryState = useCase(liftId).first()
 
-            awaitComplete()
-        }
+        assertSame(lift, s.lift)
+        assertTrue(s.workoutLogEntries.isEmpty())
 
-        // Verify no repository interactions
-        verify(exactly = 0) { liftsRepository.getByIdFlow(any()) }
-        verify(exactly = 0) { workoutLogRepository.getWorkoutLogsForLiftFlow(any()) }
+        // Metrics
+        assertNull(s.maxVolume)
+        assertNull(s.maxWeight)
+        assertTrue(s.topTenPerformances.isEmpty())
+        assertEquals(0, s.totalReps)
+        assertEquals(0f, s.totalVolume)
     }
 
     @Test
-    fun `invoke with valid liftId and no history returns lift with empty stats`() = runTest {
-        // Given
-        val liftId = 1L
-        every { liftsRepository.getByIdFlow(liftId) } returns flowOf(testLift)
-        every { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns flowOf(emptyList())
+    fun `computes metrics correctly with non-empty logs`() = runTest {
+        val liftId = 10L
+        val lift = mockk<Lift>(relaxed = true)
 
-        // When
-        val resultFlow = getLiftWithHistoryStateFlowUseCase(liftId)
+        val d1 = Date(1700000000000) // arbitrary stable dates
+        val d2 = Date(1700100000000)
 
-        // Then
-        resultFlow.test {
-            val state = awaitItem()
-            assertEquals(testLift, state.lift)
-            assert(state.workoutLogEntries.isEmpty())
-            assertNull(state.maxVolume)
-            assertNull(state.maxWeight)
-            assert(state.topTenPerformances.isEmpty())
-            assertEquals(0, state.totalReps)
-            assertEquals(0f, state.totalVolume)
-            awaitComplete()
+        // Sets for day 1: volumes 1000, 675; weights 200, 225
+        val s1 = set(reps = 5, weight = 200f, oneRepMax = 250)
+        val s2 = set(reps = 3, weight = 225f, oneRepMax = 275)
+
+        // Sets for day 2: volumes 800, 315; weights 100, 315
+        val s3 = set(reps = 8, weight = 100f, oneRepMax = 180)
+        val s4 = set(reps = 1, weight = 315f, oneRepMax = 350)
+
+        val log1 = log(d1, listOf(s1, s2))
+        val log2 = log(d2, listOf(s3, s4))
+
+        val liftFlow = MutableStateFlow<Lift?>(lift)
+        val logsFlow = MutableStateFlow(listOf(log1, log2))
+
+        coEvery { liftsRepository.getByIdFlow(liftId) } returns liftFlow
+        coEvery { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns logsFlow
+
+        val s: LiftWithHistoryState = useCase(liftId).first()
+
+        // Max volume = max(max(1000,675)=1000 on d1, max(800,315)=800 on d2) -> (d1, 1000)
+        assertNotNull(s.maxVolume)
+        assertEquals(d1, s.maxVolume!!.first)
+        assertEquals(1000f, s.maxVolume.second)
+
+        // Max weight = max(max(200,225)=225 on d1, max(100,315)=315 on d2) -> (d2, 315)
+        assertNotNull(s.maxWeight)
+        assertEquals(d2, s.maxWeight!!.first)
+        assertEquals(315f, s.maxWeight.second)
+
+        // Top ten performances sorted by descending oneRepMax
+        val expectedOrder = listOf(s4, s2, s1, s3)
+        assertIterableEquals(expectedOrder, s.topTenPerformances.map { it.second })
+
+        // Totals across all sets
+        assertEquals(5 + 3 + 8 + 1, s.totalReps)
+        assertEquals(1000f + 675f + 800f + 315f, s.totalVolume)
+    }
+
+    @Test
+    fun `top ten performances are limited to 10 and sorted descending by oneRepMax`() = runTest {
+        val liftId = 55L
+        val lift = mockk<Lift>(relaxed = true)
+
+        // Build 12 sets with distinct oneRepMax values 1..12
+        val d = Date(1700200000000)
+        val sets1to6 = (1..6).map { set(reps = 1, weight = 1f, oneRepMax = it) }
+        val sets7to12 = (7..12).map { set(reps = 1, weight = 1f, oneRepMax = it) }
+
+        val logA = log(d, sets1to6)
+        val logB = log(d, sets7to12)
+
+        val liftFlow = MutableStateFlow<Lift?>(lift)
+        val logsFlow = MutableStateFlow(listOf(logA, logB))
+
+        coEvery { liftsRepository.getByIdFlow(liftId) } returns liftFlow
+        coEvery { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns logsFlow
+
+        val s: LiftWithHistoryState = useCase(liftId).first()
+
+        // Expect 12..3 (top 10)
+        val topTen = s.topTenPerformances.map { it.second.oneRepMax }
+        assertEquals(10, topTen.size)
+        assertIterableEquals((12 downTo 3).toList(), topTen)
+    }
+
+    @Test
+    fun `throws when lift flow emits null (lift not found)`() = runTest {
+        val liftId = 777L
+        val liftFlow = MutableStateFlow<Lift?>(null)
+        val logsFlow = MutableStateFlow<List<WorkoutLogEntry>>(emptyList())
+
+        coEvery { liftsRepository.getByIdFlow(liftId) } returns liftFlow
+        coEvery { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns logsFlow
+
+        // Because the current value is null, the first() should throw
+        assertThrows<IllegalArgumentException> {
+            useCase(liftId).first()
         }
     }
 
     @Test
-    fun `invoke with valid liftId returns lift with correctly calculated history`() = runTest {
-        // Given
-        val liftId = 1L
-        every { liftsRepository.getByIdFlow(liftId) } returns flowOf(testLift)
-        every { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns flowOf(
-            testWorkoutLogs
-        )
+    fun `subsequent snapshots reflect updates to logs`() = runTest {
+        val liftId = 202L
+        val lift = mockk<Lift>(relaxed = true)
 
-        // When
-        val resultFlow = getLiftWithHistoryStateFlowUseCase(liftId)
+        val d = Date(1700300000000)
+        val logEmpty = emptyList<WorkoutLogEntry>()
+        val s1 = set(5, 100f, 200)
+        val logFull = listOf(log(d, listOf(s1)))
 
-        // Then
-        resultFlow.test {
-            val state = awaitItem()
+        val liftFlow = MutableStateFlow<Lift?>(lift)
+        val logsFlow = MutableStateFlow(logEmpty)
 
-            // Assert correct lift and logs are present
-            assertEquals(testLift, state.lift)
-            assertEquals(testWorkoutLogs, state.workoutLogEntries)
+        coEvery { liftsRepository.getByIdFlow(liftId) } returns liftFlow
+        coEvery { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns logsFlow
 
-            // Assert Max Volume (10 * 100f = 1000f in workoutLog1)
-            assertNotNull(state.maxVolume)
-            assertEquals(date1, state.maxVolume.first)
-            assertEquals(1000f, state.maxVolume.second)
+        // Snapshot #1: no logs
+        val s0 = useCase(liftId).first()
+        assertTrue(s0.workoutLogEntries.isEmpty())
+        assertEquals(0, s0.totalReps)
+        assertEquals(0f, s0.totalVolume)
 
-            // Assert Max Weight (135f in workoutLog3)
-            assertNotNull(state.maxWeight)
-            assertEquals(date3, state.maxWeight.first)
-            assertEquals(135f, state.maxWeight.second)
-
-            // Assert Total Reps (10 + 8 + 5 + 1 + 3 = 27)
-            assertEquals(27, state.totalReps)
-
-            // Assert Total Volume (1000 + 880 + 600 + 135 + 390 = 3005)
-            assertEquals(3005f, state.totalVolume)
-
-            // Assert Top Performances (sorted by 1RM descending)
-            val topPerformances = state.topTenPerformances
-            assertEquals(5, topPerformances.size) // We have 5 total sets
-            assertEquals(set4.oneRepMax, topPerformances[0].second.oneRepMax) // 1RM ~143.0
-            assertEquals(set2.oneRepMax, topPerformances[1].second.oneRepMax) // 1RM ~140.0
-            assertEquals(set5.oneRepMax, topPerformances[2].second.oneRepMax) // 1RM ~140.0 (but slightly lower)
-            assertEquals(set3.oneRepMax, topPerformances[3].second.oneRepMax) // 1RM  135.0
-            assertEquals(set1.oneRepMax, topPerformances[4].second.oneRepMax) // 1RM ~133.3
-
-            awaitComplete()
-        }
+        // Update logs, take another snapshot (fresh collector)
+        logsFlow.value = logFull
+        val s1snap = useCase(liftId).first()
+        assertEquals(listOf(d), s1snap.workoutLogEntries.map { it.date })
+        assertEquals(5, s1snap.totalReps)
+        assertEquals(500f, s1snap.totalVolume)
     }
 
-    @Test
-    fun `invoke with non-existent liftId throws IllegalArgumentException`() {
-        // Given
-        val nonExistentLiftId = 99L
-        every { liftsRepository.getByIdFlow(nonExistentLiftId) } returns flowOf(null)
-        every { workoutLogRepository.getWorkoutLogsForLiftFlow(nonExistentLiftId) } returns flowOf(
-            emptyList()
-        )
+    // -------- Helpers --------
 
-        // When & Then
-        val exception = assertThrows<IllegalArgumentException> {
-            runTest {
-                getLiftWithHistoryStateFlowUseCase(nonExistentLiftId).collect()
-            }
+    private fun set(reps: Int, weight: Float, oneRepMax: Int): SetLogEntry =
+        mockk(relaxed = true) {
+            every { this@mockk.reps } returns reps
+            every { this@mockk.weight } returns weight
+            every { this@mockk.oneRepMax } returns oneRepMax
         }
-        assertEquals("Lift with id 99 not found", exception.message)
-    }
 
-    @Test
-    fun `topTenPerformances caps the list at 10 items`() = runTest {
-        // Given
-        val liftId = 1L
-        val manySets = (1..20).map { createTestSetLogEntry(reps = 5, weight = 100f + it) }
-        val longWorkoutLog = listOf(createTestWorkoutLogEntry(date = date1, setResults = manySets))
-
-        every { liftsRepository.getByIdFlow(liftId) } returns flowOf(testLift)
-        every { workoutLogRepository.getWorkoutLogsForLiftFlow(liftId) } returns flowOf(
-            longWorkoutLog
-        )
-
-        // When
-        val resultFlow = getLiftWithHistoryStateFlowUseCase(liftId)
-
-        // Then
-        resultFlow.test {
-            val state = awaitItem()
-            val topPerformances = state.topTenPerformances
-
-            // Assert size is capped at 10
-            assertEquals(10, topPerformances.size)
-            // Assert it took the best performing set (highest weight)
-            assertEquals(manySets.last(), topPerformances.first().second)
-            awaitComplete()
+    private fun log(date: Date, sets: List<SetLogEntry>): WorkoutLogEntry =
+        mockk(relaxed = true) {
+            every { this@mockk.date } returns date
+            every { this@mockk.setLogEntries } returns sets
         }
-    }
 }

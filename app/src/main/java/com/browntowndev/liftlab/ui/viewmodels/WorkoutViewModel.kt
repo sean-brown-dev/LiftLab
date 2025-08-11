@@ -29,14 +29,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetComple
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
-import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutCompletionSummaryUiMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutInProgressUiMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel

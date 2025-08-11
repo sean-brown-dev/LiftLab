@@ -9,7 +9,7 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
-import com.browntowndev.liftlab.ui.mapping.WorkoutLoggingMappingExtensions.toDomainModel
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LinearProgressionSetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel

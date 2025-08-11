@@ -22,10 +22,9 @@ import com.browntowndev.liftlab.ui.extensions.toVolumeType
 import com.browntowndev.liftlab.ui.extensions.toVolumeTypeImpact
 import com.browntowndev.liftlab.ui.factory.LiftMetricChartOptionActions
 import com.browntowndev.liftlab.ui.factory.createLiftMetricChartOptions
-import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toChartModels
-import com.browntowndev.liftlab.ui.mapping.ChartMappingExtensions.toVolumeMetricChartModels
-import com.browntowndev.liftlab.ui.mapping.ProgramMappingExtensions.toUiModel
-import com.browntowndev.liftlab.ui.mapping.WorkoutHistoryMappingExtensions.toUiModel
+import com.browntowndev.liftlab.ui.mapping.toChartModels
+import com.browntowndev.liftlab.ui.mapping.toVolumeMetricChartModels
+import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.getMicroCycleCompletionChart

@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.core.data.mapping.SetResultMappingExtensions.toSetResult
+import com.browntowndev.liftlab.core.data.mapping.toSetResult
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult

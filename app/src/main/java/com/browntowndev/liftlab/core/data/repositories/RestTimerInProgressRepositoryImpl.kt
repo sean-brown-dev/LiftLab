@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.core.data.repositories
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
-import com.browntowndev.liftlab.core.data.mapping.RestTimerInProgressMappingExtensions.toDomainModel
-import com.browntowndev.liftlab.core.data.mapping.RestTimerInProgressMappingExtensions.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.RestTimerInProgress
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository

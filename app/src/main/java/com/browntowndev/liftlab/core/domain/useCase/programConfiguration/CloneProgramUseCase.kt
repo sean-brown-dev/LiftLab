@@ -29,7 +29,7 @@ class CloneProgramUseCase {
         )
 
         val programId = programsRepository.insert(clonedProgram)
-        clonedProgram.workouts.fastForEach { workout ->
+        program.workouts.fastForEach { workout ->
             cloneWorkout(
                 workoutsRepository,
                 workoutLiftsRepository,
@@ -51,7 +51,7 @@ class CloneProgramUseCase {
             programId = programId,
             name = workout.name,
             position = workout.position,
-            lifts = listOf(),
+            lifts = emptyList(),
         )
 
         val workoutId = workoutsRepository.insert(workoutClone)

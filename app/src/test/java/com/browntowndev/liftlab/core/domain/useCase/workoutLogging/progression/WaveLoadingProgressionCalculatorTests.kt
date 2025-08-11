@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetRes
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
-import com.browntowndev.liftlab.core.data.mapping.WorkoutLiftMappingExtensions.toCalculationDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toCalculationDomainModel
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.WaveLoadingProgressionCalculator
 import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
 import io.mockk.*
