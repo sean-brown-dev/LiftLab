@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.repositories
+package com.browntowndev.liftlab.core.data.local.repositories
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap

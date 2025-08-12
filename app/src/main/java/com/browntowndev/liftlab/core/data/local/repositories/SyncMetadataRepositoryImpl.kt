@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.repositories
+package com.browntowndev.liftlab.core.data.local.repositories
 
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
 import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto

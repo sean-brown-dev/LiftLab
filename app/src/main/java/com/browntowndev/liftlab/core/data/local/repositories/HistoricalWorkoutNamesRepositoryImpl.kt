@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.repositories
+package com.browntowndev.liftlab.core.data.local.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel

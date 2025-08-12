@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.repositories
+package com.browntowndev.liftlab.core.data.local.repositories
 
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.domain.repositories.SettingKey
