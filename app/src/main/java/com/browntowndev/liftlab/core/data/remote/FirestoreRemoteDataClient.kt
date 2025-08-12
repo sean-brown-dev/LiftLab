@@ -123,7 +123,7 @@ class FirestoreRemoteDataClient(
                 }
             }
 
-            batch.commit()
+            batch.commit().await()
         }
 
         return upsertDocumentIds

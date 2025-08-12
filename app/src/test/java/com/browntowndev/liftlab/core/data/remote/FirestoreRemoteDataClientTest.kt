@@ -254,6 +254,9 @@ class FirestoreRemoteDataClientTest {
 
     @Test
     fun `executeBatchSync - upsert with and without remoteId, and delete only for non-null remoteId`() = runTest {
+        // Needed because executeBatchSync now does batch.commit().await()
+        io.mockk.mockkStatic("kotlinx.coroutines.tasks.TasksKt")
+
         every { firestoreClient.isUserLoggedIn } returns true
 
         val batch = mockk<WriteBatch>(relaxed = true)
@@ -265,35 +268,29 @@ class FirestoreRemoteDataClientTest {
         every { firestoreClient.userCollection("B") } returns colB
 
         // Document refs + ids
-        val genA = mockk<DocumentReference>(relaxed = true)
-        every { genA.id } returns "genA1"
-        val refB = mockk<DocumentReference>(relaxed = true)
-        every { refB.id } returns "ridB2"
-        val delRef = mockk<DocumentReference>(relaxed = true)
-        every { delRef.id } returns "ridDel"
+        val genA = mockk<DocumentReference>(relaxed = true).also { every { it.id } returns "genA1" }
+        val refB = mockk<DocumentReference>(relaxed = true).also { every { it.id } returns "ridB2" }
+        val delRef = mockk<DocumentReference>(relaxed = true).also { every { it.id } returns "ridDel" }
 
         every { colA.document() } returns genA
         every { colB.document("ridB2") } returns refB
         every { colA.document("ridDel") } returns delRef
 
-        // FIX: WriteBatch.set/delete return WriteBatch (chainable). Stub to return `batch`, not Unit.
+        // Chainable WriteBatch API
         every { batch.set(any<DocumentReference>(), any()) } returns batch
         every { batch.set(any<DocumentReference>(), any(), any()) } returns batch
         every { batch.delete(any<DocumentReference>()) } returns batch
-        every { batch.commit() } returns mockk(relaxed = true)
+
+        // Commit now awaited -> return a Task<Void> and stub await() to resume
+        val commitTask = mockk<Task<Void>>(relaxed = true)
+        every { batch.commit() } returns commitTask
+        coEvery { commitTask.await() } returns mockk(relaxed = true)  // Void task -> return null
 
         // Entities
-        val upsertNoId = mockk<BaseRemoteDto>(relaxed = true)
-        every { upsertNoId.remoteId } returns null
-
-        val upsertWithId = mockk<BaseRemoteDto>(relaxed = true)
-        every { upsertWithId.remoteId } returns "ridB2"
-
-        val deleteWithId = mockk<BaseRemoteDto>(relaxed = true)
-        every { deleteWithId.remoteId } returns "ridDel"
-
-        val deleteNoId = mockk<BaseRemoteDto>(relaxed = true)
-        every { deleteNoId.remoteId } returns null
+        val upsertNoId = mockk<BaseRemoteDto>(relaxed = true).also { every { it.remoteId } returns null }
+        val upsertWithId = mockk<BaseRemoteDto>(relaxed = true).also { every { it.remoteId } returns "ridB2" }
+        val deleteWithId = mockk<BaseRemoteDto>(relaxed = true).also { every { it.remoteId } returns "ridDel" }
+        val deleteNoId = mockk<BaseRemoteDto>(relaxed = true).also { every { it.remoteId } returns null }
 
         val batches = listOf(
             BatchSyncCollection("A", listOf(upsertNoId), SyncType.Upsert),
@@ -307,6 +304,7 @@ class FirestoreRemoteDataClientTest {
         // Upsert IDs include the generated doc id and the provided id
         assertIterableEquals(listOf("genA1", "ridB2"), outIds)
     }
+
 
     // ---------------------------------------------------------------------
     // Helpers

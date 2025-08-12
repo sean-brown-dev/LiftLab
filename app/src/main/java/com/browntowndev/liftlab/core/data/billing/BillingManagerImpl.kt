@@ -83,7 +83,7 @@ class BillingManagerImpl(
 
     init {
         try {
-            Log.d("BillingRepositoryImpl", "Initializing billing client")
+            Log.d("BillingManagerImpl ", "Initializing billing client")
             billingClient = billingClientBuilder
                 .setListener(this)
                 .enablePendingPurchases(PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
@@ -93,7 +93,7 @@ class BillingManagerImpl(
                 billingClient.startConnection(this)
             }
         } catch(e: Exception) {
-            Log.e("BillingRepositoryImpl", "Error initializing billing client", e)
+            Log.e("BillingManagerImpl ", "Error initializing billing client", e)
             FirebaseCrashlytics.getInstance().recordException(e)
             _billingMessage.update { "Failed to initialize billing client" }
         }
@@ -101,7 +101,7 @@ class BillingManagerImpl(
 
     override fun onBillingSetupFinished(billingResult: BillingResult) {
         try {
-            Log.d("BillingRepositoryImpl", "Billing setup finished with result: ${billingResult.responseCode}")
+            Log.d("BillingManagerImpl ", "Billing setup finished with result: ${billingResult.responseCode}")
             if (billingResult.responseCode == BillingResponseCode.OK) {
                 coroutineScope.launch(handler) {
                     queryProducts()
@@ -110,12 +110,12 @@ class BillingManagerImpl(
                     queryActiveSubscription()
                 }
             } else {
-                Log.e("BillingRepositoryImpl", "Billing setup failed with result: ${billingResult.responseCode}")
+                Log.e("BillingManagerImpl ", "Billing setup failed with result: ${billingResult.responseCode}")
                 FirebaseCrashlytics.getInstance().log("Billing setup failed with result: ${billingResult.responseCode}")
                 _billingMessage.update { "Failed to initialize billing client" }
             }
         } catch (e: Exception) {
-            Log.e("BillingRepositoryImpl", "Error in onBillingSetupFinished", e)
+            Log.e("BillingManagerImpl ", "Error in onBillingSetupFinished", e)
             FirebaseCrashlytics.getInstance().recordException(e)
             _billingMessage.update { "Failed to initialize billing client" }
         }
@@ -173,7 +173,7 @@ class BillingManagerImpl(
         val oneTimeProducts = getProducts(ProductType.INAPP, oneTimeDonationProductIds)
             .sortedBy { it.oneTimePurchaseOfferDetails?.priceAmountMicros }
         _oneTimeDonationProducts.update { oneTimeProducts }
-        Log.d("BillingRepositoryImpl", "One-time donation products: $oneTimeProducts")
+        Log.d("BillingManagerImpl ", "One-time donation products: $oneTimeProducts")
 
         val subs = getProducts(ProductType.SUBS, monthlyDonationProductIds)
             .sortedBy {
@@ -185,7 +185,7 @@ class BillingManagerImpl(
                     ?.priceAmountMicros
             }
         _subscriptionProducts.update { subs }
-        Log.d("BillingRepositoryImpl", "Subscription products: $subs")
+        Log.d("BillingManagerImpl ", "Subscription products: $subs")
     }
 
     private suspend fun queryActiveSubscription() {
