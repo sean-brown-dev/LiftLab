@@ -29,7 +29,7 @@ class FirestoreRemoteDataClient(
     /**
      * Returns a Flow that emits batches of documents updated since a given date.
      */
-    override fun getAllSince(collectionName: String, lastUpdated: Date): Flow<List<BaseRemoteDto>> =
+    override fun getAllSinceFlow(collectionName: String, lastUpdated: Date): Flow<List<BaseRemoteDto>> =
         flow {
             if (!firestoreClient.isUserLoggedIn) return@flow
 
@@ -45,7 +45,7 @@ class FirestoreRemoteDataClient(
     /**
      * Returns a Flow that emits chunks of documents with the given IDs.
      */
-    override fun getMany(collectionName: String, ids: List<String>): Flow<List<BaseRemoteDto>> =
+    override fun getManyFlow(collectionName: String, ids: List<String>): Flow<List<BaseRemoteDto>> =
         flow {
             if (!firestoreClient.isUserLoggedIn || ids.isEmpty()) {
                 emit(emptyList()) // Emit an empty list and complete the flow

@@ -5,21 +5,21 @@ import com.browntowndev.liftlab.core.data.billing.BillingManager
 import com.browntowndev.liftlab.core.data.billing.BillingManagerImpl
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
-import com.browntowndev.liftlab.core.data.repositories.CustomLiftSetsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.HistoricalWorkoutNamesRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.LiftMetricChartsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.LiftsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.LiveWorkoutCompletedSetsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.ProgramsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.RestTimerInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.SetLogEntryRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.SettingsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.SyncMetadataRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.VolumeMetricChartsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutInProgressRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutLiftsRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutLogRepositoryImpl
-import com.browntowndev.liftlab.core.data.repositories.WorkoutsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.CustomLiftSetsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.HistoricalWorkoutNamesRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.LiftMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.LiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.LiveWorkoutCompletedSetsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.ProgramsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.RestTimerInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.SetLogEntryRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.SettingsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.SyncMetadataRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.VolumeMetricChartsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.WorkoutInProgressRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.WorkoutLiftsRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.WorkoutLogRepositoryImpl
+import com.browntowndev.liftlab.core.data.local.repositories.WorkoutsRepositoryImpl
 import com.browntowndev.liftlab.core.data.workers.LiftLabDatabaseWorker
 import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
@@ -106,7 +106,6 @@ val persistenceModule = module {
     single<CustomLiftSetsRepository> {
         CustomLiftSetsRepositoryImpl(
             customSetsDao = get(),
-            workoutLiftsDao = get(),
             syncScheduler = get(),
         )
     }

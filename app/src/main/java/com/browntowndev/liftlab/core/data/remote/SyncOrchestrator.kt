@@ -90,12 +90,16 @@ class SyncOrchestrator(
 
         syncHierarchy.executeForEachRepositoryParallel { syncRepository ->
             val collectionName = syncRepository.collectionName
-            val lastSynced = if (syncAll) Date(0)
-                else syncMetadataRepository.get(collectionName = collectionName)?.lastSyncTimestamp ?: Date(0)
+            val lastSynced = if (syncAll) {
+                Date(0)
+            }else {
+                val syncMeta = syncMetadataRepository.get(collectionName = collectionName)
+                syncMeta?.lastSyncTimestamp ?: Date(0)
+            }
             Log.d(TAG, "Last synced for $collectionName: $lastSynced")
             var latestRemoteLastUpdated = lastSynced
 
-            remoteDataClient.getAllSince(
+            remoteDataClient.getAllSinceFlow(
                 collectionName = collectionName, lastUpdated = lastSynced
             ).collect { remoteEntities ->
                 if (remoteEntities.isEmpty()) return@collect
@@ -179,26 +183,23 @@ class SyncOrchestrator(
         }
 
         val syncBatches: List<BatchSyncCollection> = buildList {
-            if (toUpsert.isNotEmpty()) {
-                add(
-                    BatchSyncCollection(
-                        collectionName = syncRepository.collectionName,
-                        remoteEntities = toUpsert,
-                        syncType = SyncType.Upsert
-                    )
+            add(
+                BatchSyncCollection(
+                    collectionName = syncRepository.collectionName,
+                    remoteEntities = toUpsert,
+                    syncType = SyncType.Upsert
                 )
-            }
+            )
         }
 
         Log.d(TAG, "Executing upsert batch sync for ${syncRepository.collectionName}: ${syncBatches.size} batches")
         val upsertDocumentIds = remoteDataClient.executeBatchSync(syncBatches)
         if (upsertDocumentIds.isNotEmpty()) {
             Log.d(TAG, "Successfully upserted ${upsertDocumentIds.size} documents for ${syncRepository.collectionName}, fetching updated DTOs")
-            remoteDataClient.getMany(
+            remoteDataClient.getManyFlow(
                 collectionName = syncRepository.collectionName,
                 ids = upsertDocumentIds
-            ).filter { it.isNotEmpty() }
-            .collect { upsertedRemoteDTOs ->
+            ).filter { it.isNotEmpty() }.collect { upsertedRemoteDTOs ->
                 if (upsertedRemoteDTOs.isEmpty()) return@collect
 
                 syncRepository.upsertMany(upsertedRemoteDTOs)

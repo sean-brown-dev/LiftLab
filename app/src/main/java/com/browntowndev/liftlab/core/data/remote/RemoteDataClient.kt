@@ -6,7 +6,7 @@ import java.util.Date
 
 interface RemoteDataClient {
     val canSync: Boolean
-    fun getAllSince(collectionName: String, lastUpdated: Date): Flow<List<BaseRemoteDto>>
-    fun getMany(collectionName: String, ids: List<String>): Flow<List<BaseRemoteDto>>
+    fun getAllSinceFlow(collectionName: String, lastUpdated: Date): Flow<List<BaseRemoteDto>>
+    fun getManyFlow(collectionName: String, ids: List<String>): Flow<List<BaseRemoteDto>>
     suspend fun executeBatchSync(batches: List<BatchSyncCollection>): List<String>
 }

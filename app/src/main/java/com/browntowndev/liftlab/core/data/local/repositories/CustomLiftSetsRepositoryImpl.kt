@@ -3,21 +3,18 @@ package com.browntowndev.liftlab.core.data.local.repositories
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
+import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
-import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.repositories.CustomLiftSetsRepository
-import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.collections.map
 
 class CustomLiftSetsRepositoryImpl(
     private val customSetsDao: CustomSetsDao,
-    private val workoutLiftsDao: WorkoutLiftsDao,
     private val syncScheduler: SyncScheduler,
 ): CustomLiftSetsRepository {
     override suspend fun getAll(): List<GenericLiftSet> =
@@ -107,33 +104,23 @@ class CustomLiftSetsRepositoryImpl(
         }
     }
 
-    override suspend fun deleteByPosition(workoutLiftId: Long, position: Int) {
+    override suspend fun deleteByPosition(workoutLiftId: Long, position: Int): Int {
         Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $workoutLiftId, $position")
 
         val setsForLift = customSetsDao.getByWorkoutLiftId(workoutLiftId)
         Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $setsForLift")
 
-        val toDelete = setsForLift.singleOrNull { it.position == position } ?: return
+        val toDelete = setsForLift.filter { it.position == position }
+        if (toDelete.isEmpty()) return 0
         Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $toDelete")
 
-        val deletedCount = customSetsDao.softDelete(toDelete.id)
+        val deletedCount = customSetsDao.softDeleteMany(toDelete.fastMap { it.id })
         if (deletedCount > 0) {
             customSetsDao.syncPositions(workoutLiftId, position)
-            val entitiesToUpdate = customSetsDao.getByWorkoutLiftId(workoutLiftId)
-            Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $entitiesToUpdate")
-
-            // Update set count of workoutEntity liftEntity
-            val currentWorkoutLift = workoutLiftsDao.getWithoutRelationships(workoutLiftId)!!
-            val workoutLiftToUpdate = currentWorkoutLift.copy(setCount = entitiesToUpdate.size).applyRemoteStorageMetadata(
-                remoteId = currentWorkoutLift.remoteId,
-                remoteLastUpdated = currentWorkoutLift.remoteLastUpdated,
-                synced = false,
-            )
-            workoutLiftsDao.update(workoutLiftToUpdate)
-            Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $workoutLiftToUpdate")
-
             syncScheduler.scheduleSync()
         }
+
+        return deletedCount
     }
 
     override fun deleteByProgramId(programId: Long) {
