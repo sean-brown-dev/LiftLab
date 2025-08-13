@@ -3,14 +3,15 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coJustRun
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
@@ -39,17 +40,40 @@ class UpdateWorkoutLiftUseCaseTest {
     @Test
     @DisplayName("Updates a custom lift and includes its sets in the delta")
     fun updates_custom_lift_and_sets() = runTest {
-        val custom = mockk<CustomWorkoutLift> {
-            every { id } returns 44L
-            every { workoutId } returns 9L
-            every { liftId } returns 1001L
-            every { liftName } returns "Some Lift"
-            every { position } returns 3
-            every { setCount } returns 5
-            every { progressionScheme } returns ProgressionScheme.WAVE_LOADING_PROGRESSION
-            every { deloadWeek } returns null
-            every { customLiftSets } returns listOf(mockk(), mockk())
-        }
+        val custom = CustomWorkoutLift(
+            id = 11L,
+            workoutId = 22L,
+            progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+            liftId = 33L,
+            liftName = "Lift Name",
+            liftNote = "Lift Note",
+            liftMovementPattern = MovementPattern.HORIZONTAL_PULL,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            position = 0,
+            deloadWeek = null,
+            restTime = null,
+            restTimerEnabled = true,
+            incrementOverride = null,
+            customLiftSets = listOf(
+                StandardSet(
+                    id = 44L,
+                    workoutLiftId = 11L,
+                    position = 0,
+                    rpeTarget = 8.0f,
+                    repRangeBottom = 8,
+                    repRangeTop = 12
+                ),
+                StandardSet(
+                    id = 45L,
+                    workoutLiftId = 11L,
+                    position = 0,
+                    rpeTarget = 8.0f,
+                    repRangeBottom = 8,
+                    repRangeTop = 12
+                ),
+            ),
+        )
 
         val captured = slot<ProgramDelta>()
         coJustRun { programsRepository.applyDelta(eq(10L), capture(captured)) }
@@ -59,9 +83,9 @@ class UpdateWorkoutLiftUseCaseTest {
         val delta = captured.captured
         assertEquals(1, delta.workouts.size)
         val wc = delta.workouts[0]
-        assertEquals(9L, wc.workoutId)
+        assertEquals(22L, wc.workoutId)
         val lc = wc.lifts[0]
-        assertEquals(44L, lc.workoutLiftId)
+        assertEquals(11L, lc.workoutLiftId)
         assertEquals(2, lc.sets.size) // both custom sets included
     }
 }

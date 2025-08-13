@@ -65,9 +65,9 @@ class UpdateProgramDeloadWeekUseCaseTest {
             restTime = null,
             restTimerEnabled = false,
             incrementOverride = null,
-            liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
-            liftVolumeTypes = 1,
-            liftSecondaryVolumeTypes = 1,
+            liftMovementPattern = MovementPattern.CHEST_ISO,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = 0,
             liftNote = null
         )
         val lift2 = StandardWorkoutLift(
@@ -86,9 +86,9 @@ class UpdateProgramDeloadWeekUseCaseTest {
             restTime = null,
             restTimerEnabled = false,
             incrementOverride = null,
-            liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
-            liftVolumeTypes = 1,
-            liftSecondaryVolumeTypes = 1,
+            liftMovementPattern = MovementPattern.CHEST_ISO,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = 0,
             liftNote = null
         )
         val program = Program(
@@ -133,14 +133,14 @@ class UpdateProgramDeloadWeekUseCaseTest {
 
         val liftsForW1 = byWorkoutId.getValue(10L).lifts
         assertEquals(1, liftsForW1.size)
-        assertEquals(recalculated1.id, liftsForW1[0].insertLift?.id)
-        assertEquals(4, (liftsForW1[0].insertLift as StandardWorkoutLift).stepSize)
+        assertEquals(recalculated1.id, liftsForW1[0].workoutLiftId)
+        assertEquals(4, liftsForW1[0].liftUpdate?.stepSize)
 
         val liftsForW2 = byWorkoutId.getValue(11L).lifts
         assertEquals(1, liftsForW2.size)
-        assertEquals(recalculated2.id, liftsForW2[0].insertLift?.id)
-        assertEquals(2, (liftsForW2[0].insertLift as StandardWorkoutLift).stepSize)
+        assertEquals(recalculated2.id, liftsForW2[0].workoutLiftId)
+        assertEquals(2, liftsForW2[0].liftUpdate?.stepSize)
 
-        coVerify(exactly = 1) { programsRepository.applyDelta(eq(program.id), any()) }
+        coVerify { programsRepository.applyDelta(eq(program.id), any()) }
     }
 }

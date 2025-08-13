@@ -8,6 +8,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
@@ -36,14 +37,12 @@ class ReplaceWorkoutLiftUseCaseTest {
     @Test
     @DisplayName("Replaces a workout-lift's liftId via delta")
     fun replaces_lift() = runTest {
+        coEvery { programsRepository.getForWorkout(0L) } returns mockk { every { id } returns 1L }
+
         val captured = slot<ProgramDelta>()
         coJustRun { programsRepository.applyDelta(eq(1L), capture(captured)) }
 
-        useCase.invoke(
-            workoutId = 0L,
-            workoutLiftId = 5L,
-            replacementLiftId = 999L
-        )
+        useCase.invoke(workoutId = 0L, workoutLiftId = 5L, replacementLiftId = 999L)
 
         val delta = captured.captured
         assertEquals(1, delta.workouts.size)

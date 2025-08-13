@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.ProgramConfigurationState
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
@@ -29,7 +31,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -76,7 +78,18 @@ class LabViewModelTest {
         every { eventBus.unregister(any()) } just Runs
 
         // Keep init quiet
-        every { getProgramConfigurationStateFlowUseCase.invoke() } returns emptyFlow()
+        every { getProgramConfigurationStateFlowUseCase.invoke() } returns
+            flowOf(
+                ProgramConfigurationState(
+                allPrograms = emptyList(),
+                program = Program(
+                    id = 1L,
+                    name = "Program",
+                    isActive = true,
+                    deloadWeek = 4,
+                    workouts = emptyList()
+                )
+            ))
 
         viewModel = LabViewModel(
             updateProgramDeloadWeekUseCase = updateProgramDeloadWeekUseCase,
@@ -188,14 +201,14 @@ class LabViewModelTest {
     // --- Create / update flows ---
 
     @Test
-    fun createProgram_usesIsActiveWhenNotManaging_andNullCurrentActive() = runTest {
+    fun createProgram_usesIsActiveWhenNotManaging_andPassesCurrentActive() = runTest {
         coEvery { createProgramUseCase(name = any(), isActive = any(), currentActiveProgram = any()) } just Runs
 
         viewModel.createProgram("New Program")
         mainDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            createProgramUseCase(name = "New Program", isActive = true, currentActiveProgram = null)
+            createProgramUseCase(name = "New Program", isActive = true, currentActiveProgram = viewModel.state.value.program!!.toDomainModel())
         }
     }
 

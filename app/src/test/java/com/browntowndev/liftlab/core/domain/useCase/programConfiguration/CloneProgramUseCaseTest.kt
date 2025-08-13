@@ -7,6 +7,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import io.mockk.MockKAnnotations
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration
 
 class CloneProgramUseCaseTest {
     @MockK lateinit var programsRepository: ProgramsRepository
@@ -67,7 +69,23 @@ class CloneProgramUseCaseTest {
                     workoutId = 10L,
                     liftId = 501L,
                     position = 1,
-                    setCount = 0
+                    sets = listOf(
+                        StandardSet(
+                            id = 1L,
+                            workoutLiftId = 100L,
+                            position = 1,
+                            rpeTarget = 8f,
+                            repRangeBottom = 10,
+                            repRangeTop = 12
+                        ),
+                        StandardSet(
+                            id = 2L,
+                            workoutLiftId = 100L,
+                            position = 2,
+                            rpeTarget = 8f,
+                            repRangeBottom = 10,
+                            repRangeTop = 12),
+                    )
                 )
             )
         )
@@ -82,7 +100,6 @@ class CloneProgramUseCaseTest {
                     workoutId = 11L,
                     liftId = 502L,
                     position = 1,
-                    setCount = 0
                 )
             )
         )
@@ -116,9 +133,15 @@ class CloneProgramUseCaseTest {
         assertTrue(delta.workouts.all { it.workoutInsert?.programId == 123L }, "Inserted workouts must target the new program id")
 
         // Lifts: ensure we attempt to recreate lifts too (counts should match per workout)
-        delta.workouts.forEach { wc ->
-            val source = program.workouts.single { it.name == wc.workoutInsert?.name }
-            assertEquals(source.lifts.size, wc.workoutInsert?.lifts?.size, "Lifts should match")
+        delta.workouts.forEachIndexed { index, wc ->
+            val source = program.workouts.single { it.name == wc.workoutInsert!!.name }
+            assertEquals(source.lifts.size, wc.workoutInsert!!.lifts.size, "Lifts should match")
+
+            if (index == 0) {
+                assertEquals(2, wc.workoutInsert.lifts.filterIsInstance<CustomWorkoutLift>().sumOf { it.customLiftSets.size }, "Sets should match")
+            } else {
+                assertEquals(0, wc.workoutInsert.lifts.filterIsInstance<CustomWorkoutLift>().sumOf { it.customLiftSets.size }, "Sets should match")
+            }
         }
     }
 
@@ -139,7 +162,7 @@ class CloneProgramUseCaseTest {
             override val progressionScheme: ProgressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION
             override val deloadWeek: Int? = null
             override val incrementOverride: Float? = null
-            override val restTime: kotlin.time.Duration? = null
+            override val restTime: Duration? = null
             override val restTimerEnabled: Boolean = false
             override val liftNote: String? = null
         }
@@ -169,7 +192,6 @@ class CloneProgramUseCaseTest {
             workoutId = 10L,
             liftId = 501L,
             position = 1,
-            setCount = 1,
             sets = listOf(badSet) // <- not StandardSet/DropSet/MyoRepSet
         )
         val program = Program(
@@ -194,7 +216,6 @@ class CloneProgramUseCaseTest {
         workoutId: Long,
         liftId: Long,
         position: Int,
-        setCount: Int,
         sets: List<GenericLiftSet> = emptyList(),
     ): CustomWorkoutLift {
         return CustomWorkoutLift(

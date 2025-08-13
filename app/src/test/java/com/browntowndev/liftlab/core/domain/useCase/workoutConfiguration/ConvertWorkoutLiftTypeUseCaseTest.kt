@@ -3,16 +3,26 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coJustRun
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 class ConvertWorkoutLiftTypeUseCaseTest {
 
@@ -49,7 +59,7 @@ class ConvertWorkoutLiftTypeUseCaseTest {
         val captured = slot<ProgramDelta>()
         coJustRun { programsRepository.applyDelta(eq(1L), capture(captured)) }
 
-        useCase.invoke(programId = 1L, workoutLiftToConvert = custom as GenericWorkoutLift, enableCustomSets = false)
+        useCase(programId = 1L, workoutLiftToConvert = custom as GenericWorkoutLift, enableCustomSets = false)
 
         val delta = captured.captured
         assertEquals(1, delta.workouts.size)
@@ -70,14 +80,31 @@ class ConvertWorkoutLiftTypeUseCaseTest {
     @Test
     @DisplayName("enableCustomSets=true from Standard→Custom: applies a delta (details verified in integration tests)")
     fun enable_custom_sets_from_standard_applies_delta() = runTest {
-        val std = mockk<StandardWorkoutLift> {
-            every { id } returns 11L
-            every { workoutId } returns 22L
-        }
+        val std = StandardWorkoutLift(
+            id = 11L,
+            workoutId = 22L,
+            setCount = 3,
+            repRangeBottom = 4,
+            repRangeTop = 5,
+            rpeTarget = 6f,
+            progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+            stepSize = 2,
+            liftId = 33L,
+            liftName = "Lift Name",
+            liftNote = "Lift Note",
+            liftMovementPattern = MovementPattern.HORIZONTAL_PULL,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            position = 0,
+            deloadWeek = null,
+            restTime = null,
+            restTimerEnabled = true,
+            incrementOverride = null
+        )
 
         coJustRun { programsRepository.applyDelta(any(), any()) }
 
-        useCase.invoke(programId = 1L, workoutLiftToConvert = std as GenericWorkoutLift, enableCustomSets = true)
+        useCase(programId = 1L, workoutLiftToConvert = std as GenericWorkoutLift, enableCustomSets = true)
 
         coVerify(exactly = 1) { programsRepository.applyDelta(eq(1L), any()) }
     }
@@ -86,10 +113,8 @@ class ConvertWorkoutLiftTypeUseCaseTest {
     @DisplayName("enableCustomSets=true throws if already Custom")
     fun enable_custom_sets_throws_if_already_custom() = runTest {
         val custom = mockk<CustomWorkoutLift>()
-        val ex = assertThrows(Exception::class.java) {
-            runTest {
-                useCase.invoke(programId = 1L, workoutLiftToConvert = custom as GenericWorkoutLift, enableCustomSets = true)
-            }
+        val ex = assertThrows<Exception> {
+            useCase(programId = 1L, workoutLiftToConvert = custom as GenericWorkoutLift, enableCustomSets = true)
         }
         assertTrue(ex.message!!.contains("already has custom"))
     }
@@ -98,10 +123,12 @@ class ConvertWorkoutLiftTypeUseCaseTest {
     @DisplayName("enableCustomSets=false throws if not Custom")
     fun disable_custom_sets_throws_if_not_custom() = runTest {
         val std = mockk<StandardWorkoutLift>()
-        val ex = assertThrows(Exception::class.java) {
-            runTest {
-                useCase.invoke(programId = 1L, workoutLiftToConvert = std as GenericWorkoutLift, enableCustomSets = false)
-            }
+        val ex = assertThrows<Exception> {
+            useCase(
+                programId = 1L,
+                workoutLiftToConvert = std as GenericWorkoutLift,
+                enableCustomSets = false
+            )
         }
         assertTrue(ex.message!!.contains("does not have custom"))
     }
