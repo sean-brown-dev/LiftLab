@@ -25,6 +25,7 @@ import com.browntowndev.liftlab.core.domain.delta.validate
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -256,6 +257,36 @@ class ProgramsRepositoryImpl(
     }
 
     /**
+     * Insert the workout and its children.
+     *
+     * @param programId Program ID for the workout.
+     * @param workout Workout to insert.
+     * @return Canonical workout ID.
+     */
+    private suspend fun insertWorkoutAndChildren(programId: Long, workout: Workout): Long {
+        // program ID should already match, but just in case
+        val workoutEntity = workout.toEntity().copy(programId = programId)
+        val workoutId = workoutsDao.insert(workoutEntity)
+        if (workout.lifts.isEmpty()) return workoutId
+
+        val workoutLifts = workout.lifts.fastMap { it.toEntity().copy(workoutId = workoutId) }
+        val workoutLiftIds = workoutLiftsDao.insertMany(workoutLifts)
+        val customLiftSets = workout.lifts.zip(workoutLiftIds).fastFlatMap { (lift, workoutLiftId) ->
+            if (lift is CustomWorkoutLift) {
+                lift.customLiftSets.fastMap {
+                    it.toEntity().copy(workoutLiftId = workoutLiftId)
+                }
+            } else emptyList()
+        }
+
+        if (customLiftSets.isNotEmpty()) {
+            customSetsDao.insertMany(customLiftSets)
+        }
+
+        return workoutId
+    }
+
+    /**
      * Result of attempting to upsert a workout, deriving canonical workoutId.
      */
     private data class MaybeUpsertWorkoutResult(
@@ -271,14 +302,16 @@ class ProgramsRepositoryImpl(
      * @return Result of attempting to upsert a workout, deriving canonical workoutId.
      */
     private suspend fun maybeUpsertWorkout(programId: Long, workoutChange: WorkoutChange): MaybeUpsertWorkoutResult {
-        val workoutToUpsert = if (workoutChange.workoutInsert != null) {
-            workoutChange.workoutInsert.toEntity().copy(programId = programId) // program ID should already match, but just in case
+        var upserted = false
+        val workoutId = if (workoutChange.workoutInsert != null) {
+            upserted = true
+            insertWorkoutAndChildren(programId, workoutChange.workoutInsert)
         }
         else if (workoutChange.workoutUpdate != null) {
             val existingWorkout = workoutsDao.getWithoutRelationshipsWithProgramValidation(workoutChange.workoutId, programId)
                 ?: error("Workout ${workoutChange.workoutId} not found for program: $programId")
 
-            existingWorkout.copy(
+            val updatedWorkout = existingWorkout.copy(
                 name = workoutChange.workoutUpdate.name ?: existingWorkout.name,
                 position = workoutChange.workoutUpdate.position ?: existingWorkout.position,
             ).applyRemoteStorageMetadata(
@@ -286,17 +319,10 @@ class ProgramsRepositoryImpl(
                 remoteLastUpdated = existingWorkout.remoteLastUpdated,
                 synced = false
             )
-        } else null
-
-        var upserted = false
-        val workoutId = if (workoutToUpsert == null) {
-            workoutChange.workoutId
-        } else {
+            workoutsDao.update(updatedWorkout)
             upserted = true
-            workoutsDao.upsert(workoutToUpsert).let { upsertId ->
-                if (upsertId == -1L) workoutToUpsert.id else upsertId
-            }
-        }
+            existingWorkout.id
+        } else workoutChange.workoutId
 
         return MaybeUpsertWorkoutResult(workoutId, upserted)
     }

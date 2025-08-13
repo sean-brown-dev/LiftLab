@@ -35,18 +35,22 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.fail
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration
 
 /**
- * Comprehensive test suite for ProgramsRepositoryImpl using the UPDATED ProgramDelta DSL.
- * Includes helper builders to ensure entity/DTO construction matches the latest constructors.
+ * ProgramsRepositoryImpl test suite aligned with the latest repository semantics:
+ * - Robust set position reindexing after deletions (no getMaxPosition / syncPositions)
+ * - maybeUpsertWorkout: insert uses insertWorkoutAndChildren (inserts lifts + sets); update uses workoutsDao.update
+ * - maybeUpsertWorkoutLifts: inserts via insertMany; updates via updateMany
+ *
+ * NOTE: Helper builders are preserved with the user's naming scheme (buildX).
  */
 class ProgramsRepositoryImplTest {
 
-    // ---------- Test helpers (builders) ----------
+    // ---------- Helper builders (preserve names) ----------
 
     private fun buildProgramEntity(
         id: Long = 1L,
@@ -157,30 +161,28 @@ class ProgramsRepositoryImplTest {
     )
 
     private fun buildWorkoutLiftWithRelationships(
-        wl: WorkoutLiftEntity = buildWorkoutLiftEntity(),
-        lift: LiftEntity = buildLiftEntity(id = wl.liftId),
+        workoutLiftEntity: WorkoutLiftEntity = buildWorkoutLiftEntity(),
+        liftEntity: LiftEntity = buildLiftEntity(id = workoutLiftEntity.liftId),
         sets: List<CustomLiftSetEntity> = emptyList(),
-    ): WorkoutLiftWithRelationships =
-        WorkoutLiftWithRelationships(
-            workoutLiftEntity = wl,
-            liftEntity = lift,
-            customLiftSetEntities = sets,
-        )
+    ) = WorkoutLiftWithRelationships(
+        workoutLiftEntity = workoutLiftEntity,
+        liftEntity = liftEntity,
+        customLiftSetEntities = sets,
+    )
 
     private fun buildWorkoutWithRelationships(
-        w: WorkoutEntity = buildWorkoutEntity(),
+        workoutEntity: WorkoutEntity = buildWorkoutEntity(),
         lifts: List<WorkoutLiftWithRelationships> = emptyList(),
-    ): WorkoutWithRelationships =
-        WorkoutWithRelationships(
-            workoutEntity = w,
-            lifts = lifts,
-        )
+    ) = WorkoutWithRelationships(
+        workoutEntity = workoutEntity,
+        lifts = lifts,
+    )
 
     private fun buildProgramWithRelationships(
-        p: ProgramEntity = buildProgramEntity(),
+        programEntity: ProgramEntity = buildProgramEntity(),
         workouts: List<WorkoutWithRelationships> = emptyList(),
     ) = ProgramWithRelationshipsDto(
-        programEntity = p,
+        programEntity = programEntity,
         workouts = workouts,
     )
 
@@ -193,7 +195,7 @@ class ProgramsRepositoryImplTest {
     private lateinit var liveWorkoutCompletedSetsDao: LiveWorkoutCompletedSetsDao
     private lateinit var workoutInProgressDao: WorkoutInProgressDao
     private lateinit var syncScheduler: SyncScheduler
-    private lateinit var transactionScope: TransactionScope
+    private lateinit var tx: TransactionScope
     private lateinit var repo: ProgramsRepositoryImpl
 
     @BeforeEach
@@ -205,8 +207,8 @@ class ProgramsRepositoryImplTest {
         liveWorkoutCompletedSetsDao = mockk(relaxed = true)
         workoutInProgressDao = mockk(relaxed = true)
         syncScheduler = mockk(relaxed = true)
-        transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
+        tx = mockk(relaxed = true)
+        coEvery { tx.execute(any<suspend () -> Unit>()) } coAnswers {
             firstArg<suspend () -> Unit>().invoke()
         }
 
@@ -218,7 +220,7 @@ class ProgramsRepositoryImplTest {
             liveWorkoutCompletedSetsDao,
             workoutInProgressDao,
             syncScheduler,
-            transactionScope
+            tx
         )
     }
 
@@ -241,7 +243,7 @@ class ProgramsRepositoryImplTest {
             liveWorkoutCompletedSetsDao.softDeleteByProgramId(1L)
             syncScheduler.scheduleSync()
         }
-        coVerify(exactly = 1) { transactionScope.execute(any<suspend () -> Unit>()) }
+        coVerify(exactly = 1) { tx.execute(any<suspend () -> Unit>()) }
     }
 
     @Test
@@ -310,10 +312,9 @@ class ProgramsRepositoryImplTest {
     // ------------------------ applyDelta: Insert & Update workout ------------------------
 
     @Test
-    fun `applyDelta - insert workout uses returned id downstream and schedules`() = runTest {
-        // upsert of insert returns generated id
-        coEvery { workoutsDao.upsert(any()) } returns 99L
-        coEvery { workoutLiftsDao.getForWorkout(99L) } returns emptyList()
+    fun `applyDelta - insert workout inserts only workout when no children present`() = runTest {
+        // Insert-only: no children
+        coEvery { workoutsDao.insert(any()) } returns 99L
 
         val newWorkoutDomain = buildWorkoutEntity(id = 0L, programId = 1L, name = "W", position = 0).toDomainModel()
 
@@ -321,9 +322,45 @@ class ProgramsRepositoryImplTest {
 
         repo.applyDelta(1L, delta)
 
-        coVerify { workoutsDao.upsert(match { it.programId == 1L && it.name == "W" && it.id == 0L }) }
-        coVerify { workoutLiftsDao.getForWorkout(99L) }
+        coVerify { workoutsDao.insert(match { it.programId == 1L && it.name == "W" && it.id == 0L }) }
+        coVerify(exactly = 0) { workoutLiftsDao.insertMany(any()) }
+        coVerify(exactly = 0) { customSetsDao.insertMany(any()) }
         coVerify { syncScheduler.scheduleSync() }
+    }
+
+    @Test
+    fun `applyDelta - insert workout inserts children (lifts and sets) when present`() = runTest {
+        // Build a domain workout with children using DTO-to-domain mapping
+        val w = buildWorkoutEntity(id = 0L, programId = 1L, name = "WithChildren", position = 0)
+        val wl = buildWorkoutLiftEntity(id = 0L, workoutId = 0L, liftId = 300L, position = 0, setCount = 3)
+        val c1 = buildCustomLiftSetEntity(id = 0L, workoutLiftId = 0L, position = 0)
+        val c2 = buildCustomLiftSetEntity(id = 0L, workoutLiftId = 0L, position = 1)
+        val wDto = buildWorkoutWithRelationships(
+            workoutEntity = w,
+            lifts = listOf(
+                buildWorkoutLiftWithRelationships(wl, buildLiftEntity(id = 300L), sets = listOf(c1, c2))
+            )
+        )
+        val newWorkoutDomain = wDto.toDomainModel() // includes lifts + sets
+
+        coEvery { workoutsDao.insert(any()) } returns 77L
+        coEvery { workoutLiftsDao.insertMany(any()) } returns listOf(700L) // returned id for wl
+        coEvery { customSetsDao.insertMany(any()) } returns listOf(800L, 801L)
+
+        val delta = programDelta { workout(newWorkoutDomain) }
+
+        repo.applyDelta(1L, delta)
+
+        coVerifyOrder {
+            workoutsDao.insert(match { it.programId == 1L && it.name == "WithChildren" })
+            workoutLiftsDao.insertMany(match { it.size == 1 && it[0].workoutId == 77L && it[0].liftId == 300L })
+            customSetsDao.insertMany(match {
+                it.size == 2 &&
+                it.all { s -> s.workoutLiftId == 700L } &&
+                it.map { s -> s.position } == listOf(0,1)
+            })
+            syncScheduler.scheduleSync()
+        }
     }
 
     @Test
@@ -332,18 +369,17 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta { workout(77L, name = "X") { } }
 
-        try {
-            repo.applyDelta(1L, delta)
-            fail("Expected IllegalStateException")
-        } catch (e: IllegalStateException) { /* expected */ }
+        assertThrows(IllegalStateException::class.java) {
+            runTest { repo.applyDelta(1L, delta) }
+        }
         coVerify(exactly = 0) { syncScheduler.scheduleSync() }
     }
 
     @Test
-    fun `applyDelta - update workout merges fields and marks unsynced`() = runTest {
+    fun `applyDelta - update workout merges fields and calls update`() = runTest {
         val existing = buildWorkoutEntity(id = 77L, programId = 1L, name = "Old", position = 5)
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(77L, 1L) } returns existing
-        coEvery { workoutsDao.upsert(any()) } returns -1L // emulate update
+        coJustRun { workoutsDao.update(any()) }
         coEvery { workoutLiftsDao.getForWorkout(77L) } returns emptyList()
 
         val delta = programDelta { workout(77L, name = "New", position = 9) { } }
@@ -351,7 +387,7 @@ class ProgramsRepositoryImplTest {
         repo.applyDelta(1L, delta)
 
         coVerify {
-            workoutsDao.upsert(match { it.id == 77L && it.name == "New" && it.position == 9 })
+            workoutsDao.update(match { it.id == 77L && it.name == "New" && it.position == 9 })
         }
         coVerify { syncScheduler.scheduleSync() }
     }
@@ -404,8 +440,8 @@ class ProgramsRepositoryImplTest {
         coVerify {
             workoutLiftsDao.updateMany(match {
                 it.size == 2 &&
-                        it.any { e -> e.id == 5L && e.position == 2 && e.liftId == 202L && e.setCount == 4 && e.deloadWeek == 2 && e.repRangeTop == 12 && e.repRangeBottom == 9 && e.rpeTarget == 9f && e.stepSize == 5 } &&
-                        it.any { e -> e.id == 6L && e.position == 0 }
+                it.any { e -> e.id == 5L && e.position == 2 && e.liftId == 202L && e.setCount == 4 && e.deloadWeek == 2 && e.repRangeTop == 12 && e.repRangeBottom == 9 && e.rpeTarget == 9f && e.stepSize == 5 } &&
+                it.any { e -> e.id == 6L && e.position == 0 }
             })
         }
         coVerify { syncScheduler.scheduleSync() }
@@ -418,10 +454,9 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta { workout(10L) { lift(999L, position = 1) { } } }
 
-        try {
-            repo.applyDelta(1L, delta)
-            fail("Expected IllegalStateException")
-        } catch (e: IllegalStateException) { /* expected */ }
+        assertThrows(IllegalStateException::class.java) {
+            runTest { repo.applyDelta(1L, delta) }
+        }
         coVerify(exactly = 0) { syncScheduler.scheduleSync() }
     }
 
@@ -467,23 +502,29 @@ class ProgramsRepositoryImplTest {
         coVerify {
             customSetsDao.upsertMany(match {
                 it.size == 2 &&
-                        it.any { s -> s.id == 2L && s.workoutLiftId == 5L } &&
-                        it.any { s -> s.id == 0L && s.workoutLiftId == 5L && s.position == 2 }
+                it.any { s -> s.id == 2L && s.workoutLiftId == 5L } &&
+                it.any { s -> s.id == 0L && s.workoutLiftId == 5L && s.position == 2 }
             })
         }
         coVerify { syncScheduler.scheduleSync() }
     }
 
     @Test
-    fun `applyDelta - delete sets by ids (single lift) groups by workoutLift and syncs positions for that lift`() = runTest {
+    fun `applyDelta - delete sets by ids (single lift) deletes and reindexes remaining sets for that lift`() = runTest {
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(10L, 1L) } returns buildWorkoutEntity(id = 10L, programId = 1L)
         coEvery { workoutLiftsDao.getForWorkout(10L) } returns listOf(
             buildWorkoutLiftWithRelationships(buildWorkoutLiftEntity(id = 5L, workoutId = 10L, liftId = 200L), buildLiftEntity(id = 200L))
         )
         coEvery { customSetsDao.getMany(any()) } returns emptyList()
-        coEvery { customSetsDao.getMaxPosition(listOf(1L, 2L, 3L)) } returns 3
         coEvery { customSetsDao.softDeleteMany(listOf(1L, 2L, 3L)) } returns 3
-        coJustRun { customSetsDao.syncPositions(5L, 3) }
+
+        // After deletions, remaining sets under lift 5 should be reindexed to 0..n-1
+        val remaining = listOf(
+            buildCustomLiftSetEntity(id = 10L, workoutLiftId = 5L, position = 5),
+            buildCustomLiftSetEntity(id = 12L, workoutLiftId = 5L, position = 7),
+        )
+        coEvery { customSetsDao.getByWorkoutLiftId(5L) } returns remaining
+        coJustRun { customSetsDao.updateMany(any()) }
 
         val delta = programDelta {
             workout(10L) {
@@ -494,28 +535,39 @@ class ProgramsRepositoryImplTest {
         repo.applyDelta(1L, delta)
 
         coVerifyOrder {
-            customSetsDao.getMaxPosition(listOf(1L, 2L, 3L))
             customSetsDao.softDeleteMany(listOf(1L, 2L, 3L))
-            customSetsDao.syncPositions(5L, 3)
+            customSetsDao.getByWorkoutLiftId(5L)
+            customSetsDao.updateMany(match { updated ->
+                updated.size == 2 &&
+                updated[0].id == 10L && updated[0].position == 0 &&
+                updated[1].id == 12L && updated[1].position == 1
+            })
             syncScheduler.scheduleSync()
         }
     }
 
     @Test
-    fun `applyDelta - delete sets by ids (two lifts) calls getMaxPosition, delete, then syncPositions per group`() = runTest {
+    fun `applyDelta - delete sets by ids (two lifts) deletes and reindexes remaining sets per group`() = runTest {
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(10L, 1L) } returns buildWorkoutEntity(id = 10L, programId = 1L)
         coEvery { workoutLiftsDao.getForWorkout(10L) } returns listOf(
             buildWorkoutLiftWithRelationships(buildWorkoutLiftEntity(id = 5L, workoutId = 10L, liftId = 200L), buildLiftEntity(id = 200L)),
             buildWorkoutLiftWithRelationships(buildWorkoutLiftEntity(id = 6L, workoutId = 10L, liftId = 201L), buildLiftEntity(id = 201L))
         )
-        // Group A
-        coEvery { customSetsDao.getMaxPosition(listOf(1L, 2L)) } returns 2
+        // Group A (lift 5L)
         coEvery { customSetsDao.softDeleteMany(listOf(1L, 2L)) } returns 2
-        coJustRun { customSetsDao.syncPositions(5L, 2) }
-        // Group B
-        coEvery { customSetsDao.getMaxPosition(listOf(7L, 8L, 9L)) } returns 9
+        val remainingA = listOf(
+            buildCustomLiftSetEntity(id = 10L, workoutLiftId = 5L, position = 9),
+            buildCustomLiftSetEntity(id = 11L, workoutLiftId = 5L, position = 10),
+        )
+        coEvery { customSetsDao.getByWorkoutLiftId(5L) } returns remainingA
+        // Group B (lift 6L)
         coEvery { customSetsDao.softDeleteMany(listOf(7L, 8L, 9L)) } returns 3
-        coJustRun { customSetsDao.syncPositions(6L, 9) }
+        val remainingB = listOf(
+            buildCustomLiftSetEntity(id = 20L, workoutLiftId = 6L, position = 4),
+            buildCustomLiftSetEntity(id = 21L, workoutLiftId = 6L, position = 5),
+        )
+        coEvery { customSetsDao.getByWorkoutLiftId(6L) } returns remainingB
+        coJustRun { customSetsDao.updateMany(any()) }
 
         val delta = programDelta {
             workout(10L) {
@@ -527,16 +579,47 @@ class ProgramsRepositoryImplTest {
         repo.applyDelta(1L, delta)
 
         coVerifyOrder {
-            customSetsDao.getMaxPosition(listOf(1L, 2L))
             customSetsDao.softDeleteMany(listOf(1L, 2L))
-            customSetsDao.syncPositions(5L, 2)
+            customSetsDao.getByWorkoutLiftId(5L)
+            customSetsDao.updateMany(match { updated ->
+                updated.size == 2 &&
+                updated[0].id == 10L && updated[0].position == 0 &&
+                updated[1].id == 11L && updated[1].position == 1
+            })
 
-            customSetsDao.getMaxPosition(listOf(7L, 8L, 9L))
             customSetsDao.softDeleteMany(listOf(7L, 8L, 9L))
-            customSetsDao.syncPositions(6L, 9)
+            customSetsDao.getByWorkoutLiftId(6L)
+            customSetsDao.updateMany(match { updated ->
+                updated.size == 2 &&
+                updated[0].id == 20L && updated[0].position == 0 &&
+                updated[1].id == 21L && updated[1].position == 1
+            })
 
             syncScheduler.scheduleSync()
         }
+    }
+
+    @Test
+    fun `applyDelta - delete sets by ids with no remaining sets skips reindex`() = runTest {
+        coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(10L, 1L) } returns buildWorkoutEntity(id = 10L, programId = 1L)
+        coEvery { workoutLiftsDao.getForWorkout(10L) } returns listOf(
+            buildWorkoutLiftWithRelationships(buildWorkoutLiftEntity(id = 5L, workoutId = 10L, liftId = 200L), buildLiftEntity(id = 200L))
+        )
+        coEvery { customSetsDao.getMany(any()) } returns emptyList()
+        coEvery { customSetsDao.softDeleteMany(listOf(1L, 2L)) } returns 2
+        coEvery { customSetsDao.getByWorkoutLiftId(5L) } returns emptyList()
+
+        val delta = programDelta {
+            workout(10L) {
+                lift(5L) { removeSets(1L, 2L) }
+            }
+        }
+
+        repo.applyDelta(1L, delta)
+
+        // No updateMany called when nothing remains
+        coVerify(exactly = 0) { customSetsDao.updateMany(any()) }
+        coVerify { syncScheduler.scheduleSync() }
     }
 
     @Test
@@ -558,6 +641,7 @@ class ProgramsRepositoryImplTest {
     }
 
     // ------------------------ applyDelta: Mixed combination scenario ------------------------
+
     @Test
     fun `applyDelta - mixed multi-lift multi-set delta results in single sync and correct grouped operations`() = runTest {
         // Program patch prerequisites
@@ -566,21 +650,29 @@ class ProgramsRepositoryImplTest {
         // Existing workout (20L) and new workout (insert → 99L)
         val existingWorkout = buildWorkoutEntity(id = 20L, programId = 1L, name = "Existing", position = 0)
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(20L, 1L) } returns existingWorkout
-        coEvery { workoutsDao.upsert(any()) } returnsMany listOf(-1L, 99L) // first updates 20L, second inserts new id 99L
+        coEvery { workoutsDao.update(any()) } returns Unit
+        coEvery { workoutsDao.insert(any()) } returns 99L // new workout
 
         // Existing lifts for workout 20L
         val wl5 = buildWorkoutLiftEntity(id = 5L, workoutId = 20L, liftId = 200L, position = 0, setCount = 3)
         val wl6 = buildWorkoutLiftEntity(id = 6L, workoutId = 20L, liftId = 201L, position = 1, setCount = 3)
-        coEvery { workoutLiftsDao.getForWorkout(20L) } returns listOf(buildWorkoutLiftWithRelationships(wl5, buildLiftEntity(id = 200L)), buildWorkoutLiftWithRelationships(wl6, buildLiftEntity(id = 201L)))
+        coEvery { workoutLiftsDao.getForWorkout(20L) } returns listOf(
+            buildWorkoutLiftWithRelationships(wl5, buildLiftEntity(id = 200L)),
+            buildWorkoutLiftWithRelationships(wl6, buildLiftEntity(id = 201L))
+        )
 
         // Lifts ops on existing workout
         coEvery { workoutLiftsDao.updateMany(any()) } returns Unit
         coEvery { workoutLiftsDao.softDeleteMany(listOf(6L)) } returns 1
 
-        // Set deletions grouping under existing lift 5L
-        coEvery { customSetsDao.getMaxPosition(listOf(21L, 22L)) } returns 22
+        // Set deletions grouping under existing lift 5L - robust flow
         coEvery { customSetsDao.softDeleteMany(listOf(21L, 22L)) } returns 2
-        coJustRun { customSetsDao.syncPositions(5L, 22) }
+        val remainingAfterDelete = listOf(
+            buildCustomLiftSetEntity(id = 30L, workoutLiftId = 5L, position = 3),
+            buildCustomLiftSetEntity(id = 31L, workoutLiftId = 5L, position = 4),
+        )
+        coEvery { customSetsDao.getByWorkoutLiftId(5L) } returns remainingAfterDelete
+        coJustRun { customSetsDao.updateMany(any()) }
         // Purge sets for removed lift 6L
         coJustRun { customSetsDao.softDeleteByWorkoutLiftIds(listOf(6L)) }
 
@@ -607,15 +699,21 @@ class ProgramsRepositoryImplTest {
 
         // Verifications
         coVerify { programsDao.update(match { it.name == "Patched" && it.deloadWeek == 1 }) }
-        coVerify { workoutsDao.upsert(match { it.id == 20L && it.name == "Renamed" }) }
-        coVerify { workoutsDao.upsert(match { it.id == 0L && it.name == "NewW" }) }
+        coVerify { workoutsDao.update(match { it.id == 20L && it.name == "Renamed" }) }
+        coVerify { workoutsDao.insert(match { it.id == 0L && it.name == "NewW" }) }
         coVerify { workoutLiftsDao.updateMany(match { it.any { e -> e.id == 5L && e.position == 1 } }) }
         coVerify { workoutLiftsDao.softDeleteMany(listOf(6L)) }
-        // grouped deletions on existing lift 5L
-        coVerify { customSetsDao.getMaxPosition(listOf(21L, 22L)) }
-        coVerify { customSetsDao.softDeleteMany(listOf(21L, 22L)) }
-        coVerify { customSetsDao.syncPositions(5L, 22) }
-        // purge path
+        // grouped deletions on existing lift 5L using new flow
+        coVerifyOrder {
+            customSetsDao.softDeleteMany(listOf(21L, 22L))
+            customSetsDao.getByWorkoutLiftId(5L)
+            customSetsDao.updateMany(match { updated ->
+                updated.size == 2 &&
+                updated[0].id == 30L && updated[0].position == 0 &&
+                updated[1].id == 31L && updated[1].position == 1
+            })
+        }
+        // purge path for removed lift
         coVerify { customSetsDao.softDeleteByWorkoutLiftIds(listOf(6L)) }
         // one sync overall
         coVerify(exactly = 1) { syncScheduler.scheduleSync() }
