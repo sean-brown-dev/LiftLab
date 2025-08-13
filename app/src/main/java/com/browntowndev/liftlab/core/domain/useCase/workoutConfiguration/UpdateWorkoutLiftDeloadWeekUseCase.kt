@@ -19,7 +19,7 @@ class UpdateWorkoutLiftDeloadWeekUseCase(
     ) = transactionScope.execute {
         val delta = programDelta {
             workout(workoutLift.workoutId) {
-                lift(
+                updateLift(
                     workoutLiftId = workoutLift.id,
                     deloadWeek = deloadWeek,
                     stepSize = (workoutLift as? StandardWorkoutLift)?.getRecalculatedStepSizeForLift(

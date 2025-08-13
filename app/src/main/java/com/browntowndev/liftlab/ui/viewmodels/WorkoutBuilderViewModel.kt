@@ -123,7 +123,9 @@ class WorkoutBuilderViewModel(
     fun deleteMovementPattern() = executeWithErrorHandling("Failed to delete movement pattern") {
         val workoutLiftId = _state.value.workoutLiftIdToDelete ?: -1
         val workoutLiftToDelete = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
-        deleteWorkoutLiftUseCase(workoutLiftToDelete.toDomainModel())
+        deleteWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = workoutLiftToDelete.toDomainModel())
     }
 
     fun updateWorkoutName(newName: String) = executeWithErrorHandling("Failed to update workout name") {

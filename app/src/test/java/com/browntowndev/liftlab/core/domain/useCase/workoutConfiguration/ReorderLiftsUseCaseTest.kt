@@ -1,6 +1,7 @@
-package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
+package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
@@ -13,12 +14,15 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import io.mockk.CapturingSlot
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -26,6 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class ReorderLiftsUseCaseTest {
 
+    private lateinit var programsRepository: ProgramsRepository
     private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
     private lateinit var setResultsRepository: LiveWorkoutCompletedSetsRepository
     private lateinit var reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase
@@ -33,17 +38,23 @@ class ReorderLiftsUseCaseTest {
 
     @BeforeEach
     fun setUp() {
+        programsRepository = mockk(relaxed = true)
         workoutLiftsRepository = mockk(relaxed = true)
         setResultsRepository = mockk(relaxed = true)
         transactionScope = mockk(relaxed = true)
         coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
             firstArg<suspend () -> Unit>().invoke()
         }
-        reorderWorkoutLiftsUseCase = ReorderWorkoutLiftsUseCase(workoutLiftsRepository, setResultsRepository, transactionScope)
+        reorderWorkoutLiftsUseCase = ReorderWorkoutLiftsUseCase(
+            programsRepository,
+            workoutLiftsRepository,
+            setResultsRepository,
+            transactionScope
+        )
     }
 
     @Test
-    fun `invoke reorders lifts and updates set results correctly`() = runTest {
+    fun `invoke reorders lifts via program delta and updates set results correctly`() = runTest {
         // Given
         val workoutLifts = listOf(
             StandardWorkoutLift(
@@ -108,50 +119,76 @@ class ReorderLiftsUseCaseTest {
             lifts = loggingWorkoutLifts
         )
         val completedSets = listOf(
-            StandardSetResult(id = 301, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 0,
+            StandardSetResult(
+                id = 301, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 0,
                 weight = 100.0f, reps = 5, rpe = 8.0f,
-                setType = SetType.STANDARD, isDeload = false),
-            MyoRepSetResult(id = 302, workoutId = 1, liftId = 202, liftPosition = 1, setPosition = 0,
+                setType = SetType.STANDARD, isDeload = false
+            ),
+            MyoRepSetResult(
+                id = 302, workoutId = 1, liftId = 202, liftPosition = 1, setPosition = 0,
                 weight = 50.0f, reps = 10, rpe = 8.0f,
-                setType = SetType.MYOREP, isDeload = false),
-            LinearProgressionSetResult(id = 303, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 1,
+                setType = SetType.MYOREP, isDeload = false
+            ),
+            LinearProgressionSetResult(
+                id = 303, workoutId = 1, liftId = 201, liftPosition = 0, setPosition = 1,
                 weight = 100.0f, reps = 6, rpe = 8.0f,
-                isDeload = false, missedLpGoals = 0)
+                isDeload = false, missedLpGoals = 0
+            )
         )
         val newWorkoutLiftIndices = mapOf(101L to 1, 102L to 0)
 
         coEvery { workoutLiftsRepository.getForWorkout(workout.id) } returns workoutLifts
 
+        // Capture ProgramDelta passed to applyDelta
+        val programDeltaSlot: CapturingSlot<ProgramDelta> = slot()
+        coEvery {
+            programsRepository.applyDelta(
+                programId = 999L,
+                delta = capture(programDeltaSlot)
+            )
+        } returns Unit
+
         // When
-        reorderWorkoutLiftsUseCase(workout, completedSets, newWorkoutLiftIndices)
+        reorderWorkoutLiftsUseCase(
+            programId = 999L,
+            workout = workout,
+            completedSets = completedSets,
+            newWorkoutLiftIndices = newWorkoutLiftIndices
+        )
 
-        // Then
-        coVerify {
-            workoutLiftsRepository.updateMany(withArg { updatedLifts ->
-                assertEquals(2, updatedLifts.size)
-                val lift1 = updatedLifts.find { it.id == 101L }
-                val lift2 = updatedLifts.find { it.id == 102L }
-                assertEquals(1, lift1?.position)
-                assertEquals(0, lift2?.position)
-            })
-        }
+        // Then: ProgramsRepository is used with ProgramDelta that has correct liftUpdate positions
+        coVerify(exactly = 1) { programsRepository.applyDelta(999L, any()) }
+        val capturedDelta = programDeltaSlot.captured
+        Assertions.assertEquals(1, capturedDelta.workouts.size)
+        val workoutChange = capturedDelta.workouts.first()
+        Assertions.assertEquals(workout.id, workoutChange.workoutId)
 
+        // Order of updates follows the repository.getForWorkout() order: [101, 102]
+        val idOrder = workoutChange.lifts.map { it.workoutLiftId }
+        Assertions.assertEquals(listOf(101L, 102L), idOrder)
+
+        val positionByLiftId =
+            workoutChange.lifts.associate { it.workoutLiftId to (it.liftUpdate?.position) }
+        Assertions.assertEquals(newWorkoutLiftIndices[101L], positionByLiftId[101L])
+        Assertions.assertEquals(newWorkoutLiftIndices[102L], positionByLiftId[102L])
+
+        // Then: completed sets are reindexed by liftPosition
         coVerify {
             setResultsRepository.upsertMany(withArg { updatedSets ->
-                assertEquals(3, updatedSets.size)
+                Assertions.assertEquals(3, updatedSets.size)
                 val set1 = updatedSets.find { it.id == 301L }
                 val set2 = updatedSets.find { it.id == 302L }
                 val set3 = updatedSets.find { it.id == 303L }
 
-                assertEquals(1, set1?.liftPosition)
-                assertEquals(0, set2?.liftPosition)
-                assertEquals(1, set3?.liftPosition)
+                Assertions.assertEquals(1, set1?.liftPosition)
+                Assertions.assertEquals(0, set2?.liftPosition)
+                Assertions.assertEquals(1, set3?.liftPosition)
             })
         }
     }
 
     @Test
-    fun `invoke with no completed sets only reorders lifts`() = runTest {
+    fun `invoke with no completed sets only reorders lifts via program delta`() = runTest {
         // Given
         val workoutLifts = listOf(
             StandardWorkoutLift(
@@ -203,11 +240,32 @@ class ReorderLiftsUseCaseTest {
 
         coEvery { workoutLiftsRepository.getForWorkout(workout.id) } returns workoutLifts
 
+        // Capture ProgramDelta
+        val programDeltaSlot: CapturingSlot<ProgramDelta> = slot()
+        coEvery {
+            programsRepository.applyDelta(
+                programId = 100L,
+                delta = capture(programDeltaSlot)
+            )
+        } returns Unit
+
         // When
-        reorderWorkoutLiftsUseCase(workout, completedSets, newWorkoutLiftIndices)
+        reorderWorkoutLiftsUseCase(
+            programId = 100L,
+            workout = workout,
+            completedSets = completedSets,
+            newWorkoutLiftIndices = newWorkoutLiftIndices
+        )
 
         // Then
-        coVerify { workoutLiftsRepository.updateMany(any()) }
+        coVerify(exactly = 1) { programsRepository.applyDelta(100L, any()) }
+        val capturedDelta = programDeltaSlot.captured
+        val workoutChange = capturedDelta.workouts.first()
+        val positionByLiftId =
+            workoutChange.lifts.associate { it.workoutLiftId to (it.liftUpdate?.position) }
+        Assertions.assertEquals(0, positionByLiftId[101L])
+
+        // No set results updates
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }
     }
 
@@ -265,7 +323,12 @@ class ReorderLiftsUseCaseTest {
 
         // When / Then
         assertThrows<NullPointerException> {
-            reorderWorkoutLiftsUseCase(workout, emptyList(), newWorkoutLiftIndices)
+            reorderWorkoutLiftsUseCase(
+                programId = 1L,
+                workout = workout,
+                completedSets = emptyList(),
+                newWorkoutLiftIndices = newWorkoutLiftIndices
+            )
         }
     }
 }

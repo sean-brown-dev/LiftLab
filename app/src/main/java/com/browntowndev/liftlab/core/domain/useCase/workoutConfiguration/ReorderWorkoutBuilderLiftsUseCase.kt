@@ -28,7 +28,7 @@ class ReorderWorkoutBuilderLiftsUseCase(
             workout(workoutId) {
                 workoutLifts.fastForEach { workoutLift ->
                     workoutLiftPositionByLiftId.put(workoutLift.liftId, workoutLift.position)
-                    lift(
+                    updateLift(
                         workoutLiftId = workoutLift.id,
                         position = newWorkoutLiftIndices[workoutLift.id]!!
                     )

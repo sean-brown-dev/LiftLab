@@ -1,17 +1,21 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 
 class CreateWorkoutLiftsFromLiftsUseCase(
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val programsRepository: ProgramsRepository,
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(workoutId: Long, firstPosition: Int, lifts: List<Lift>) = transactionScope.execute {
+        if (lifts.isEmpty()) return@execute
+
         var position = firstPosition
         val newLifts = lifts.fastMap { lift ->
             val newWorkoutLift = StandardWorkoutLift(
@@ -38,6 +42,14 @@ class CreateWorkoutLiftsFromLiftsUseCase(
             newWorkoutLift
         }
 
-        workoutLiftsRepository.insertMany(newLifts)
+        val delta = programDelta {
+            workout(workoutId) {
+                newLifts.fastForEach { lift ->
+                    insertLift(lift)
+                }
+            }
+        }
+        val programId = programsRepository.getForWorkout(workoutId)?.id ?: error("No program found for workout")
+        programsRepository.applyDelta(programId, delta)
     }
 }

@@ -1,11 +1,15 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -22,13 +26,13 @@ import org.junit.jupiter.api.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class CreateWorkoutLiftsFromLiftsUseCaseTest {
 
-    private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
+    private lateinit var programsRepository: ProgramsRepository
     private lateinit var transactionScope: TransactionScope
     private lateinit var useCase: CreateWorkoutLiftsFromLiftsUseCase
 
     @BeforeEach
     fun setUp() {
-        workoutLiftsRepository = mockk(relaxed = true)
+        programsRepository = mockk(relaxed = true)
 
         transactionScope = mockk(relaxed = true)
         coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
@@ -41,7 +45,7 @@ class CreateWorkoutLiftsFromLiftsUseCaseTest {
         }
 
         useCase = CreateWorkoutLiftsFromLiftsUseCase(
-            workoutLiftsRepository = workoutLiftsRepository,
+            programsRepository = programsRepository,
             transactionScope = transactionScope
         )
     }
@@ -72,9 +76,10 @@ class CreateWorkoutLiftsFromLiftsUseCaseTest {
             restTimerEnabled = false
         )
 
-        val returnedIds = listOf(10L, 11L)
-        val slot = slot<List<StandardWorkoutLift>>()
-        coEvery { workoutLiftsRepository.insertMany(capture(slot)) } returns returnedIds
+        coEvery { programsRepository.getForWorkout(workoutId) } returns Program(id = 1L, name = "Test Program")
+
+        val slot = slot<ProgramDelta>()
+        coJustRun { programsRepository.applyDelta(1L,capture(slot)) }
 
         // When
         useCase(
@@ -85,10 +90,14 @@ class CreateWorkoutLiftsFromLiftsUseCaseTest {
 
         // Then: repository called once, inside one transaction
         coVerify(exactly = 1) { transactionScope.execute(any<suspend () -> Unit>()) }
-        coVerify(exactly = 1) { workoutLiftsRepository.insertMany(any()) }
+        coVerify(exactly = 1) { programsRepository.applyDelta(1L, any()) }
 
-        // Validate mapped lifts
-        val (wlA, wlB) = slot.captured
+        // Validate
+        assertEquals(workoutId, slot.captured.workouts[0].workoutId)
+
+        val wlA = slot.captured.workouts[0].lifts[0].insertLift!! as StandardWorkoutLift
+        val wlB = slot.captured.workouts[0].lifts[1].insertLift!! as StandardWorkoutLift
+
         // --- Lift A ---
         assertEquals(workoutId, wlA.workoutId)
         assertEquals(liftA.id, wlA.liftId)
@@ -132,18 +141,15 @@ class CreateWorkoutLiftsFromLiftsUseCaseTest {
     }
 
     @Test
-    fun `empty lifts still executes transaction and calls insertMany with empty list`() = runTest {
+    fun `empty lifts short circuits and no repository is called`() = runTest {
         val workoutId = 200L
         val firstPosition = 0
 
-        val captured = slot<List<StandardWorkoutLift>>()
-        coEvery { workoutLiftsRepository.insertMany(capture(captured)) } returns emptyList()
-
-        val result = useCase(workoutId, firstPosition, emptyList())
+        useCase(workoutId, firstPosition, emptyList())
 
         coVerify(exactly = 1) { transactionScope.execute(any<suspend () -> Unit>()) }
-        coVerify(exactly = 1) { workoutLiftsRepository.insertMany(any()) }
-        assertTrue(captured.captured.isEmpty(), "Should pass an empty list to insertMany")
+        coVerify(exactly = 0) { programsRepository.getForWorkout(any()) }
+        coVerify(exactly = 0) { programsRepository.applyDelta(any(), any()) }
     }
 
     @Test
@@ -161,12 +167,14 @@ class CreateWorkoutLiftsFromLiftsUseCaseTest {
             )
         }
 
-        val captured = slot<List<StandardWorkoutLift>>()
-        coEvery { workoutLiftsRepository.insertMany(capture(captured)) } returns listOf(1, 2, 3, 4)
+        coEvery { programsRepository.getForWorkout(workoutId) } returns Program(id = 1L, name = "Test Program")
+
+        val captured = slot<ProgramDelta>()
+        coJustRun { programsRepository.applyDelta(1L, capture(captured)) }
 
         useCase(workoutId = workoutId, firstPosition = 7, lifts = lifts)
 
-        val positions = captured.captured.map { it.position }
+        val positions = captured.captured.workouts.single().lifts.fastMap { it.insertLift!!.position }
         assertEquals(listOf(7, 8, 9, 10), positions)
     }
 

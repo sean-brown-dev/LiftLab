@@ -10,7 +10,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.ReorderWorkoutLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
@@ -25,6 +25,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.spyk
@@ -236,10 +237,14 @@ class WorkoutViewModelTest {
     @Test
     fun reorderLifts_delegatesWithCorrectIndices() = runTest {
         // seed workout
-        modifyState { it.copy(workout = sampleWorkoutWithTwoLifts(), completedSets = emptyList()) }
+        modifyState { it.copy(
+            programMetadata = mockk { every { programId } returns 1L },
+            workout = sampleWorkoutWithTwoLifts(),
+            completedSets = emptyList())
+        }
 
         // expect call
-        coEvery { reorderWorkoutLiftsUseCase(workout = any(), completedSets = any(), newWorkoutLiftIndices = any()) } just runs
+        coEvery { reorderWorkoutLiftsUseCase(programId = any(), workout = any(), completedSets = any(), newWorkoutLiftIndices = any()) } just runs
 
         // swap order: 20 -> index 0, 10 -> index 1
         val order = listOf(
@@ -252,7 +257,7 @@ class WorkoutViewModelTest {
 
         val mapSlot = slot<Map<Long, Int>>()
         coVerify(exactly = 1) {
-            reorderWorkoutLiftsUseCase(workout = any(), completedSets = any(), newWorkoutLiftIndices = capture(mapSlot))
+            reorderWorkoutLiftsUseCase(programId = any(), workout = any(), completedSets = any(), newWorkoutLiftIndices = capture(mapSlot))
         }
         assertEquals(mapOf(20L to 0, 10L to 1), mapSlot.captured)
     }

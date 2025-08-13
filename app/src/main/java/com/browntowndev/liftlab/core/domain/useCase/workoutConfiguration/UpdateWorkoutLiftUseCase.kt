@@ -19,7 +19,7 @@ class UpdateWorkoutLiftUseCase(
             workout(workoutLift.workoutId) {
                 val stdWorkoutLift = workoutLift as? StandardWorkoutLift
                 val customWorkoutLift = workoutLift as? CustomWorkoutLift
-                lift(
+                updateLift(
                     workoutLiftId = workoutLift.id,
                     liftId = workoutLift.liftId,
                     position = workoutLift.position,

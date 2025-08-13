@@ -5,9 +5,8 @@ import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import kotlinx.coroutines.flow.Flow
 
-interface WorkoutsRepository : Repository<Workout, Long> {
+interface WorkoutsRepository : ReadOnlyRepository<Workout, Long> {
     fun getMetadataFlow(id: Long): Flow<WorkoutMetadata>
-    suspend fun updateName(id: Long, newName: String)
     fun getFlow(workoutId: Long): Flow<Workout?>
     fun getByMicrocyclePositionForCalculation(
         programId: Long,

@@ -51,36 +51,37 @@ class WorkoutChangeBuilder {
         )
     }
 
-    /** Add a pre-built lift change. */
-    fun lift(change: LiftChange) {
-        liftChanges += change
-    }
-
-    /** Build a lift with set changes via DSL. */
-    fun lift(workoutLiftId: Long, build: LiftChangeBuilder.() -> Unit) {
-        liftChanges += LiftChangeBuilder(workoutLiftId).apply(build).build()
-    }
-
     /** Insert a new lift via DSL. */
-    fun lift(insertWorkoutLift: GenericWorkoutLift) {
+    fun insertLift(insertWorkoutLift: GenericWorkoutLift) {
         liftChanges += LiftChangeBuilder(insertWorkoutLift).build()
     }
 
+    /** Build a lift with set changes via DSL. */
+    fun updateSets(workoutLiftId: Long, build: LiftChangeBuilder.() -> Unit) {
+        liftChanges += LiftChangeBuilder(workoutLiftId).apply(build).build()
+    }
+
+    /** Add a pre-built lift change. */
+    fun updateLift(change: LiftChange) {
+        liftChanges += change
+    }
+
     /** Update an existing lift and add set changes via DSL. */
-    fun lift(workoutLiftId: Long,
-             liftId: Long? = null,
-             position: Int? = null,
-             setCount: Int? = null,
-             progressionScheme: ProgressionScheme? = null,
-             deloadWeek: Int? = null,
-             incrementOverride: Float? = null,
-             restTime: Duration? = null,
-             restTimerEnabled: Boolean? = null,
-             repRangeTop: Int? = null,
-             repRangeBottom: Int? = null,
-             rpeTarget: Float? = null,
-             stepSize: Int? = null,
-             build: LiftChangeBuilder.() -> Unit = { }
+    fun updateLift(
+        workoutLiftId: Long,
+       liftId: Long? = null,
+       position: Int? = null,
+       setCount: Int? = null,
+       progressionScheme: ProgressionScheme? = null,
+       deloadWeek: Int? = null,
+       incrementOverride: Float? = null,
+       restTime: Duration? = null,
+       restTimerEnabled: Boolean? = null,
+       repRangeTop: Int? = null,
+       repRangeBottom: Int? = null,
+       rpeTarget: Float? = null,
+       stepSize: Int? = null,
+       build: LiftChangeBuilder.() -> Unit = { }
     ) {
         val liftUpdate = LiftUpdate(
             liftId = liftId,
@@ -100,7 +101,7 @@ class WorkoutChangeBuilder {
     }
 
     /** Update an existing lift and add set changes via DSL. */
-    fun lift(workoutLiftId: Long, liftUpdate: LiftUpdate, build: LiftChangeBuilder.() -> Unit = { }) {
+    fun updateLift(workoutLiftId: Long, liftUpdate: LiftUpdate, build: LiftChangeBuilder.() -> Unit = { }) {
         liftChanges += LiftChangeBuilder(workoutLiftId, liftUpdate).apply(build).build()
     }
 

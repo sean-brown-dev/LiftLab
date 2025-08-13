@@ -110,8 +110,8 @@ class UpdateProgramDeloadWeekUseCaseTest {
             // deloadToUseInsteadOfLiftLevel will be the new deload (e.g., 5) or null if using lift-specific
             program.workouts.getAllLiftsWithRecalculatedStepSize(any())
         } returns mapOf(
-            lift1.id to recalculated1,
-            lift2.id to recalculated2
+            lift1.workoutId to listOf(recalculated1),
+            lift2.workoutId to listOf(recalculated2)
         )
 
         val captured = slot<ProgramDelta>()

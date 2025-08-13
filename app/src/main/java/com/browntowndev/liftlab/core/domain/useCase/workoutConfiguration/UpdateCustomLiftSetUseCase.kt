@@ -16,7 +16,7 @@ class UpdateCustomLiftSetUseCase(
     ) = transactionScope.execute {
         val delta = programDelta {
             workout(workoutId) {
-                lift(set.workoutLiftId) {
+                updateSets(set.workoutLiftId) {
                     set(set)
                 }
             }

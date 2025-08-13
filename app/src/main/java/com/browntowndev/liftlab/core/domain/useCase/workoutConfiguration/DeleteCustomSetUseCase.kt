@@ -11,7 +11,7 @@ class DeleteCustomSetUseCase(
     suspend operator fun invoke(programId: Long, workoutId: Long, workoutLiftId: Long, setId: Long) = transactionScope.execute {
         val delta = programDelta {
             workout(workoutId) {
-                lift(workoutLiftId) {
+                updateSets(workoutLiftId) {
                     removeSets(setId)
                 }
             }

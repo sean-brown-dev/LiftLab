@@ -77,6 +77,7 @@ fun WorkoutLog(
     onReorderLiftsClicked: () -> Unit,
     onAddSet: (workoutLiftId: Long) -> Unit,
 ) {
+    // TODO: See if this hacky stuff can be moved into the VM somehow
     // Remember the myo rep set indices from the previous composition. Below they will
     // animate if they're not found in this set (they are new)
     var indicesOfExistingMyoRepSets by remember {

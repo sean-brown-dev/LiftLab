@@ -26,7 +26,6 @@ import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.ui.models.metrics.AllWorkoutTopSetsUiModel
 import java.util.Date
 
@@ -132,10 +131,6 @@ fun WorkoutHistoryCard(
             )
         }
         topSets?.topSets?.fastForEach { topSet ->
-            // TODO: Move this into a UI model
-            val weight = remember(topSet) {
-                topSet.weight.toTwoDecimalString()
-            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "${topSet.setCount} x ${topSet.liftName}",
@@ -147,7 +142,7 @@ fun WorkoutHistoryCard(
                     softWrap = true,
                 )
                 Text(
-                    text = "$weight x ${topSet.reps} @${topSet.rpe}",
+                    text = "${topSet.weight} x ${topSet.reps} @${topSet.rpe}",
                     color = if (topSet.isPersonalRecord) {
                         MaterialTheme.colorScheme.tertiary
                     } else {

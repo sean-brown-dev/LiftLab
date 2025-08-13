@@ -46,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toShortTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
@@ -58,8 +60,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Date
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.scale
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -292,6 +292,7 @@ fun CompletionSummary(
     }
 }
 
+// TODO: See if this can go into the viewmodel
 @OptIn(ExperimentalComposeApi::class)
 private suspend fun shareWorkoutSummary(
     workoutSummaryCaptureController: CaptureController,

@@ -6,9 +6,9 @@ import com.browntowndev.liftlab.core.domain.extensions.getAllLiftsWithRecalculat
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.SettingKey
 import com.browntowndev.liftlab.core.domain.repositories.SettingsRepository
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import io.mockk.CapturingSlot
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,34 +17,30 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class UpdateLiftSpecificDeloadSettingUseCaseTest {
 
-    private lateinit var workoutLiftsRepository: WorkoutLiftsRepository
+    private lateinit var programsRepository: ProgramsRepository
     private lateinit var settingsRepository: SettingsRepository
     private lateinit var useCase: UpdateLiftSpecificDeloadSettingUseCase
 
     @BeforeEach
     fun setUp() {
-        workoutLiftsRepository = mockk(relaxed = true)
+        programsRepository = mockk(relaxed = true)
         settingsRepository = mockk(relaxed = true)
 
         useCase = UpdateLiftSpecificDeloadSettingUseCase(
-            workoutLiftsRepository = workoutLiftsRepository,
+            programsRepository = programsRepository,
             settingsRepository = settingsRepository
         )
 
-        // Static-mock the file class that contains the extension
-        // (update the string if your extension lives in a differently named file).
+        // Static-mock the top-level extension function
         mockkStatic("com.browntowndev.liftlab.core.domain.extensions.WorkoutExtensionsKt")
     }
 
@@ -52,107 +48,120 @@ class UpdateLiftSpecificDeloadSettingUseCaseTest {
     fun tearDown() = unmockkAll()
 
     @Test
-    fun `enabling lift-specific deload uses null override, updates lifts when non-empty, and disables deload prompt`() = runTest {
-        val mockWorkouts = mockk<List<Workout>>(relaxed = true)
+    fun `enabling lift-specific deload uses null override, builds delta with lifts in order, and disables deload prompt`() = runTest {
+        val workouts: List<Workout> = mockk(relaxed = true)
         val program = mockk<Program>(relaxed = true) {
-            every { workouts } returns mockWorkouts
-            every { deloadWeek } returns 4 // should be ignored when enabling
+            every { id } returns 1L
+            every { this@mockk.workouts } returns workouts
+            every { deloadWeek } returns 4 // ignored when enabling
         }
 
-        // Build a deterministic non-empty result
-        val w1 = stdLift(id = 1L, workoutId = 10L, liftId = 100L, position = 0)
-        val w2 = stdLift(id = 2L, workoutId = 10L, liftId = 200L, position = 1)
-        val recalculated = mapOf(100L to w1, 200L to w2)
+        // Two lifts under one workout; order (B, A) must be preserved in delta
+        val workoutId = 10L
+        val liftA = buildStandardWorkoutLift(id = 1L, workoutId = workoutId, liftId = 100L, position = 0)
+        val liftB = buildStandardWorkoutLift(id = 2L, workoutId = workoutId, liftId = 200L, position = 1)
 
-        // Expect: when enabling, extension is called with null override
-        every {
-            mockWorkouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = null)
-        } returns recalculated
+        every { workouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = null) } returns
+                mapOf(workoutId to listOf(liftB, liftA))
 
-        val updatedSlot: CapturingSlot<List<StandardWorkoutLift>> = slot()
-        coEvery { workoutLiftsRepository.updateMany(capture(updatedSlot)) } returns Unit
+        val deltaSlot: CapturingSlot<com.browntowndev.liftlab.core.domain.delta.ProgramDelta> = slot()
+        coEvery { programsRepository.applyDelta(programId = 1L, delta = capture(deltaSlot)) } returns Unit
         coEvery { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, true) } returns Unit
         coEvery { settingsRepository.setSetting(SettingKey.PromptForDeloadWeek, false) } returns Unit
 
         useCase(program = program, useLiftSpecificDeload = true)
 
-        // Repo interactions
-        coVerify(exactly = 1) { workoutLiftsRepository.updateMany(any()) }
-        assertEquals(2, updatedSlot.captured.size)
-        assertTrue(updatedSlot.captured.containsAll(listOf(w1, w2)))
+        // Repository invocation and delta inspection
+        coVerify(exactly = 1) { programsRepository.applyDelta(1L, any()) }
+        val delta = deltaSlot.captured
+        assertEquals(1, delta.workouts.size)
+        val workoutChange = delta.workouts.first()
+        assertEquals(workoutId, workoutChange.workoutId)
+        assertEquals(listOf(liftB.id, liftA.id), workoutChange.lifts.map { it.workoutLiftId })
 
-        // Settings writes
+        // Settings
         coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, true) }
         coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.PromptForDeloadWeek, false) }
     }
 
     @Test
-    fun `disabling lift-specific deload uses program deload override and updates lifts when non-empty`() = runTest {
-        val mockWorkouts = mockk<List<Workout>>(relaxed = true)
+    fun `disabling lift-specific deload uses program deload override and builds grouped delta per workout`() = runTest {
+        val workouts: List<Workout> = mockk(relaxed = true)
         val program = mockk<Program>(relaxed = true) {
-            every { workouts } returns mockWorkouts
-            every { deloadWeek } returns 3 // MUST be used when disabling lift-specific
+            every { id } returns 7L
+            every { this@mockk.workouts } returns workouts
+            every { deloadWeek } returns 3
         }
 
-        val w1 = stdLift(id = 11L, workoutId = 20L, liftId = 110L, position = 0)
-        val recalculated = mapOf(110L to w1)
+        val workoutIdA = 20L
+        val workoutIdB = 30L
+        val liftC = buildStandardWorkoutLift(id = 11L, workoutId = workoutIdA, liftId = 110L, position = 0)
+        val liftD = buildStandardWorkoutLift(id = 12L, workoutId = workoutIdA, liftId = 120L, position = 1)
+        val liftE = buildStandardWorkoutLift(id = 21L, workoutId = workoutIdB, liftId = 210L, position = 0)
 
-        every {
-            mockWorkouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = 3)
-        } returns recalculated
+        // Use linkedMapOf to lock in map iteration order (A then B)
+        every { workouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = 3) } returns
+                linkedMapOf(workoutIdA to listOf(liftC, liftD), workoutIdB to listOf(liftE))
 
-        val updatedSlot: CapturingSlot<List<StandardWorkoutLift>> = slot()
-        coEvery { workoutLiftsRepository.updateMany(capture(updatedSlot)) } returns Unit
+        val deltaSlot: CapturingSlot<com.browntowndev.liftlab.core.domain.delta.ProgramDelta> = slot()
+        coEvery { programsRepository.applyDelta(programId = 7L, delta = capture(deltaSlot)) } returns Unit
         coEvery { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, false) } returns Unit
 
         useCase(program = program, useLiftSpecificDeload = false)
 
-        coVerify(exactly = 1) { workoutLiftsRepository.updateMany(any()) }
-        assertEquals(1, updatedSlot.captured.size)
-        assertTrue(updatedSlot.captured.contains(w1))
+        coVerify(exactly = 1) { programsRepository.applyDelta(7L, any()) }
+        val delta = deltaSlot.captured
+        assertEquals(2, delta.workouts.size)
+
+        val changeA = delta.workouts.first { it.workoutId == workoutIdA }
+        assertEquals(listOf(liftC.id, liftD.id), changeA.lifts.map { it.workoutLiftId })
+
+        val changeB = delta.workouts.first { it.workoutId == workoutIdB }
+        assertEquals(listOf(liftE.id), changeB.lifts.map { it.workoutLiftId })
 
         coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, false) }
-        // When disabling, the use case does NOT touch PromptForDeloadWeek
+        // This use case does not touch PromptForDeloadWeek when disabling
         coVerify(exactly = 0) { settingsRepository.setSetting(SettingKey.PromptForDeloadWeek, any()) }
     }
 
     @Test
-    fun `when recalculation returns empty map, it still writes LiftSpecificDeload but skips updateMany`() = runTest {
-        val mockWorkouts = mockk<List<Workout>>(relaxed = true)
+    fun `when recalculation returns empty map, still writes setting but skips applyDelta`() = runTest {
+        val workouts: List<Workout> = mockk(relaxed = true)
         val program = mockk<Program>(relaxed = true) {
-            every { workouts } returns mockWorkouts
+            every { id } returns 9L
+            every { this@mockk.workouts } returns workouts
             every { deloadWeek } returns 5
         }
 
-        // Case A: enabling (null override) with empty result
-        every { mockWorkouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = null) } returns emptyMap()
+        // Enable path -> empty result
+        every { workouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = null) } returns emptyMap()
         coEvery { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, true) } returns Unit
         coEvery { settingsRepository.setSetting(SettingKey.PromptForDeloadWeek, false) } returns Unit
 
         useCase(program = program, useLiftSpecificDeload = true)
 
-        coVerify(exactly = 0) { workoutLiftsRepository.updateMany(any()) }
+        coVerify(exactly = 0) { programsRepository.applyDelta(any(), any()) }
         coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, true) }
         coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.PromptForDeloadWeek, false) }
 
-        // Case B: disabling (program deload override) with empty result
-        every { mockWorkouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = 5) } returns emptyMap()
+        // Disable path -> empty result
+        every { workouts.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel = 5) } returns emptyMap()
         coEvery { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, false) } returns Unit
 
         useCase(program = program, useLiftSpecificDeload = false)
 
-        coVerify(exactly = 0) { workoutLiftsRepository.updateMany(any()) }
+        coVerify(exactly = 0) { programsRepository.applyDelta(any(), any()) }
         coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.LiftSpecificDeload, false) }
-        coVerify(exactly = 1) { settingsRepository.setSetting(SettingKey.PromptForDeloadWeek, false) } // from Case A only
+        // PromptForDeloadWeek remains as set above (only affected during enabling path)
     }
 
     // -------- helpers --------
 
-    private fun stdLift(
+    private fun buildStandardWorkoutLift(
         id: Long,
         workoutId: Long,
         liftId: Long,
-        position: Int
+        position: Int,
     ) = StandardWorkoutLift(
         id = id,
         workoutId = workoutId,

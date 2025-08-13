@@ -84,18 +84,11 @@ val persistenceModule = module {
     single<WorkoutLiftsRepository> {
         WorkoutLiftsRepositoryImpl(
             workoutLiftsDao = get(),
-            customSetsDao = get(),
-            syncScheduler = get(),
         )
     }
     single<WorkoutsRepository> {
         WorkoutsRepositoryImpl(
-            workoutLiftsDao = get(),
-            customSetsDao = get(),
             workoutsDao = get(),
-            liveWorkoutCompletedSetsDao = get(),
-            workoutInProgressDao = get(),
-            syncScheduler = get(),
         )
     }
     single<LiveWorkoutCompletedSetsRepository> {
@@ -113,7 +106,6 @@ val persistenceModule = module {
     single<CustomLiftSetsRepository> {
         CustomLiftSetsRepositoryImpl(
             customSetsDao = get(),
-            syncScheduler = get(),
         )
     }
     single<WorkoutInProgressRepository> {

@@ -25,7 +25,7 @@ class ConvertWorkoutLiftTypeUseCase(
                 val customWorkoutLift = standardWorkoutLift.convertToCustomWorkoutLift()
                 val delta = programDelta {
                     workout(customWorkoutLift.workoutId) {
-                        lift(customWorkoutLift.id) {
+                        updateSets(customWorkoutLift.id) {
                             customWorkoutLift.customLiftSets.fastForEach { customSet ->
                                 set(customSet)
                             }
@@ -41,7 +41,7 @@ class ConvertWorkoutLiftTypeUseCase(
                 val topCustomLiftSet = customWorkoutLift.customLiftSets.maxByOrNull { it.position }
                 val delta = programDelta {
                     workout(customWorkoutLift.workoutId) {
-                        lift(
+                        updateLift(
                             workoutLiftId = customWorkoutLift.id,
                             repRangeBottom = topCustomLiftSet?.repRangeBottom ?: 8,
                             repRangeTop = topCustomLiftSet?.repRangeTop ?: 10,

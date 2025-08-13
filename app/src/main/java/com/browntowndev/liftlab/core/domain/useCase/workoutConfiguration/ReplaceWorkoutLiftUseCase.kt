@@ -16,7 +16,7 @@ class ReplaceWorkoutLiftUseCase(
         val programId = programsRepository.getForWorkout(workoutId)?.id ?: error("Program not found for workout: $workoutId")
         val delta = programDelta {
             workout(workoutId) {
-                lift(workoutLiftId, liftId = replacementLiftId)
+                updateLift(workoutLiftId, liftId = replacementLiftId)
             }
         }
 

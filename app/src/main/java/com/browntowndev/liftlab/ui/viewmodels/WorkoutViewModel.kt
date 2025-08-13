@@ -22,7 +22,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.ReorderWorkoutLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
@@ -171,18 +171,18 @@ class WorkoutViewModel(
         }
     }
 
-    fun reorderLifts(newLiftOrder: List<ReorderableListItem>) =
-        executeWithErrorHandling("Failed to reorder lifts") {
-            val newWorkoutLiftIndices = newLiftOrder
-                .mapIndexed { index, item -> item.key to index }
-                .associate { it.first to it.second }
+    fun reorderLifts(newLiftOrder: List<ReorderableListItem>) = executeWithErrorHandling("Failed to reorder lifts") {
+        val newWorkoutLiftIndices = newLiftOrder
+            .mapIndexed { index, item -> item.key to index }
+            .associate { it.first to it.second }
 
-            reorderWorkoutLiftsUseCase(
-                workout = mutableWorkoutState.value.workout!!.toDomainModel(),
-                completedSets = mutableWorkoutState.value.completedSets.fastMap { it.toDomainModel() },
-                newWorkoutLiftIndices = newWorkoutLiftIndices
-            )
-        }
+        reorderWorkoutLiftsUseCase(
+            programId = mutableWorkoutState.value.programMetadata!!.programId,
+            workout = mutableWorkoutState.value.workout!!.toDomainModel(),
+            completedSets = mutableWorkoutState.value.completedSets.fastMap { it.toDomainModel() },
+            newWorkoutLiftIndices = newWorkoutLiftIndices
+        )
+    }
 
     fun setWorkoutLogVisibility(visible: Boolean) {
         mutableWorkoutState.update {

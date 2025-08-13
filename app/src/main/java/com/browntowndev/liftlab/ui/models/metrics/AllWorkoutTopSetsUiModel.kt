@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.models.metrics
 
+import com.browntowndev.liftlab.core.common.toTwoDecimalString
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 
 typealias LiftId = Long
@@ -30,7 +31,7 @@ data class AllWorkoutTopSetsUiModel(
         ) {
             val isPersonalRecord get() = setLog.isPersonalRecord
             val reps get() = setLog.reps
-            val weight get() = setLog.weight
+            val weight get() = setLog.weight.toTwoDecimalString()
             val rpe get() = setLog.rpe
             val liftName get() = setLog.liftName
         }

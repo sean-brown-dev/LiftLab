@@ -52,6 +52,13 @@ class ProgramDeltaBuilder {
         workoutChanges += WorkoutChangeBuilder(workoutId).apply(build).build()
     }
 
+    /** Build and add a workout change that will contain only lift changes via builder DSL. */
+    suspend fun workoutSuspend(workoutId: Long, buildSuspending: suspend WorkoutChangeBuilder.() -> Unit) {
+        workoutChanges += WorkoutChangeBuilder(workoutId).apply {
+            buildSuspending()
+        }.build()
+    }
+
     /** Add a new workout via builder DSL. */
     fun workout(insertWorkout: Workout) {
         workoutChanges += WorkoutChangeBuilder(insertWorkout).build()

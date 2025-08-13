@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.extensions.getAllLiftsWithRecalculatedStepSize
@@ -15,9 +16,13 @@ class UpdateProgramDeloadWeekUseCase(
             updateProgram(deloadWeek = deloadWeek)
             program.workouts.getAllLiftsWithRecalculatedStepSize(
                 deloadToUseInsteadOfLiftLevel = if (useLiftSpecificDeload) null else deloadWeek,
-            ).values.forEach { workoutLiftWithNewSteps ->
-                workout(workoutLiftWithNewSteps.workoutId) {
-                    lift(workoutLiftId = workoutLiftWithNewSteps.id, stepSize = workoutLiftWithNewSteps.stepSize)
+            ).forEach { workoutLiftWithNewSteps ->
+                val workoutId = workoutLiftWithNewSteps.key
+                val liftsWithNewSteps = workoutLiftWithNewSteps.value
+                workout(workoutId) {
+                    liftsWithNewSteps.fastForEach { workoutLift ->
+                        updateLift(workoutLiftId = workoutLift.id, stepSize = workoutLift.stepSize)
+                    }
                 }
             }
         }

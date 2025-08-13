@@ -405,8 +405,8 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta {
             workout(10L) {
-                lift(lift1Domain)
-                lift(lift2Domain)
+                insertLift(lift1Domain)
+                insertLift(lift2Domain)
             }
         }
 
@@ -430,8 +430,8 @@ class ProgramsRepositoryImplTest {
         val delta = programDelta {
             workout(10L) {
                 // Update many scalar fields
-                lift(5L, liftId = 202L, position = 2, setCount = 4, deloadWeek = 2, repRangeTop = 12, repRangeBottom = 9, rpeTarget = 9f, stepSize = 5) { }
-                lift(6L, position = 0) { }
+                updateLift(5L, liftId = 202L, position = 2, setCount = 4, deloadWeek = 2, repRangeTop = 12, repRangeBottom = 9, rpeTarget = 9f, stepSize = 5) { }
+                updateLift(6L, position = 0) { }
             }
         }
 
@@ -452,7 +452,7 @@ class ProgramsRepositoryImplTest {
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(10L, 1L) } returns buildWorkoutEntity(id = 10L, programId = 1L)
         coEvery { workoutLiftsDao.getForWorkout(10L) } returns emptyList()
 
-        val delta = programDelta { workout(10L) { lift(999L, position = 1) { } } }
+        val delta = programDelta { workout(10L) { updateLift(999L, position = 1) { } } }
 
         assertThrows(IllegalStateException::class.java) {
             runTest { repo.applyDelta(1L, delta) }
@@ -490,7 +490,7 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta {
             workout(10L) {
-                lift(5L) {
+                updateSets(5L) {
                     set(existing.toDomainModel())
                     set(buildCustomLiftSetEntity(id = 0L, workoutLiftId = 5L, position = 2).toDomainModel())
                 }
@@ -528,7 +528,7 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta {
             workout(10L) {
-                lift(5L) { removeSets(1L, 2L, 3L) }
+                updateSets(5L) { removeSets(1L, 2L, 3L) }
             }
         }
 
@@ -571,8 +571,8 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta {
             workout(10L) {
-                lift(5L) { removeSets(1L, 2L) }
-                lift(6L) { removeSets(7L, 8L, 9L) }
+                updateSets(5L) { removeSets(1L, 2L) }
+                updateSets(6L) { removeSets(7L, 8L, 9L) }
             }
         }
 
@@ -611,7 +611,7 @@ class ProgramsRepositoryImplTest {
 
         val delta = programDelta {
             workout(10L) {
-                lift(5L) { removeSets(1L, 2L) }
+                updateSets(5L) { removeSets(1L, 2L) }
             }
         }
 
@@ -630,7 +630,7 @@ class ProgramsRepositoryImplTest {
         )
         coJustRun { customSetsDao.softDeleteByWorkoutLiftIds(listOf(5L)) }
 
-        val delta = programDelta { workout(10L) { lift(5L) { removeAllSets() } } }
+        val delta = programDelta { workout(10L) { updateSets(5L) { removeAllSets() } } }
 
         repo.applyDelta(1L, delta)
 
@@ -684,7 +684,7 @@ class ProgramsRepositoryImplTest {
             updateProgram(name = "Patched", deloadWeek = 1)
 
             workout(20L, name = "Renamed", position = 0) {
-                lift(5L, position = 1) {
+                updateLift(5L, position = 1) {
                     set(existingSetDomain)
                     removeSets(21L, 22L)
                 }

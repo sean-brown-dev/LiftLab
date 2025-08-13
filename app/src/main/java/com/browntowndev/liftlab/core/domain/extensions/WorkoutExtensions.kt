@@ -69,10 +69,10 @@ fun Workout.getRecalculatedWorkoutLiftStepSizeOptions(
  * @param deloadToUseInsteadOfLiftLevel An optional integer representing the deload week to
  *   use for recalculation. If provided, this value overrides any lift-specific deload settings.
  *   If null, the lift's own `deloadWeek` is used.
- * @return A map where the key is the `workoutLift.id` (Long) and the value is the
+ * @return A map where the key is the `workoutId` (Long) and the value is the
  *   `StandardWorkoutLift` with the recalculated step size. Only lifts with changed step sizes are included.
  */
-fun List<Workout>.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel: Int?): Map<Long, StandardWorkoutLift> {
+fun List<Workout>.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLevel: Int?): Map<Long, List<StandardWorkoutLift>> {
     return this
         .fastFlatMap { workout ->
             workout.lifts
@@ -83,10 +83,10 @@ fun List<Workout>.getAllLiftsWithRecalculatedStepSize(deloadToUseInsteadOfLiftLe
                 deloadToUseInsteadOfLiftLevel = deloadToUseInsteadOfLiftLevel ?: workoutLift.deloadWeek
             ).let { newStepSize ->
                 if (workoutLift.stepSize != newStepSize) {
-                    workoutLift.id to workoutLift.copy(stepSize = newStepSize)
+                    workoutLift.workoutId to workoutLift.copy(stepSize = newStepSize)
                 } else null
             }
-        }.associate { it.first to it.second }
+        }.groupBy({ it.first }, { it.second })
 }
 
 /**

@@ -58,8 +58,7 @@ import kotlin.time.Duration
 class WorkoutBuilderViewModelTest {
 
     // Use cases
-    @RelaxedMockK
-    lateinit var convertWorkoutLiftTypeUseCase: ConvertWorkoutLiftTypeUseCase
+    @RelaxedMockK lateinit var convertWorkoutLiftTypeUseCase: ConvertWorkoutLiftTypeUseCase
     @RelaxedMockK lateinit var reorderWorkoutBuilderLiftsUseCase: ReorderWorkoutBuilderLiftsUseCase
     @RelaxedMockK lateinit var deleteWorkoutLiftUseCase: DeleteWorkoutLiftUseCase
     @RelaxedMockK lateinit var updateWorkoutNameUseCase: UpdateWorkoutNameUseCase
@@ -332,7 +331,7 @@ class WorkoutBuilderViewModelTest {
         viewModel.toggleMovementPatternDeletionModal(standardLift.id)
         viewModel.deleteMovementPattern()
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { deleteWorkoutLiftUseCase(any()) }
+        coVerify(exactly = 1) { deleteWorkoutLiftUseCase(any(), any()) }
     }
 
     @Test
