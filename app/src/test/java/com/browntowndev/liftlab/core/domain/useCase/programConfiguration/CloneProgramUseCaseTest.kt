@@ -118,7 +118,7 @@ class CloneProgramUseCaseTest {
         // Lifts: ensure we attempt to recreate lifts too (counts should match per workout)
         delta.workouts.forEach { wc ->
             val source = program.workouts.single { it.name == wc.workoutInsert?.name }
-            assertEquals(source.lifts.size, wc.lifts.size)
+            assertEquals(source.lifts.size, wc.workoutInsert?.lifts?.size, "Lifts should match")
         }
     }
 
