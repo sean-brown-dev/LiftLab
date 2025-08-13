@@ -51,11 +51,9 @@ class SkipDeloadAndStartWorkoutUseCaseTest {
 
         // Then
         coVerify {
-            programsRepository.updateMesoAndMicroCycle(
-                id = programMetadata.programId,
-                mesoCycle = programMetadata.currentMesocycle + 1,
-                microCycle = 0,
-                microCyclePosition = 0
+            programsRepository.applyDelta(
+                programId = programMetadata.programId,
+                delta = any()
             )
         }
         coVerify { startWorkoutUseCase(workoutId) }

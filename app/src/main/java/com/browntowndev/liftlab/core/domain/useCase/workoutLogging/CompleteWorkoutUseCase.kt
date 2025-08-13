@@ -5,14 +5,15 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.delta.programDelta
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -62,12 +63,14 @@ class CompleteWorkoutUseCase(
                 if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
             val newMicroCyclePosition =
                 if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
-            programsRepository.updateMesoAndMicroCycle(
-                id = programMetadata.programId,
-                mesoCycle = newMesoCycle,
-                microCycle = newMicroCycle,
-                microCyclePosition = newMicroCyclePosition,
-            )
+            val delta = programDelta {
+                updateProgram(
+                    currentMesocycle = newMesoCycle,
+                    currentMicrocycle = newMicroCycle,
+                    currentMicrocyclePosition = newMicroCyclePosition,
+                )
+            }
+            programsRepository.applyDelta(programMetadata.programId, delta)
 
             // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
             var historicalWorkoutNameId =

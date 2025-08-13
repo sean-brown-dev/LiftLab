@@ -1,13 +1,25 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
+import com.browntowndev.liftlab.core.domain.delta.programDelta
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 
 class ReplaceWorkoutLiftUseCase(
-    private val workoutLiftsRepository: WorkoutLiftsRepository,
+    private val programsRepository: ProgramsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(workoutLiftId: Long, replacementLiftId: Long) = transactionScope.execute {
-        workoutLiftsRepository.updateLiftId(workoutLiftId = workoutLiftId, newLiftId = replacementLiftId)
+    suspend operator fun invoke(
+        workoutId: Long,
+        workoutLiftId: Long,
+        replacementLiftId: Long
+    ) = transactionScope.execute {
+        val programId = programsRepository.getForWorkout(workoutId)?.id ?: error("Program not found for workout: $workoutId")
+        val delta = programDelta {
+            workout(workoutId) {
+                lift(workoutLiftId, liftId = replacementLiftId)
+            }
+        }
+
+        programsRepository.applyDelta(programId, delta)
     }
 }

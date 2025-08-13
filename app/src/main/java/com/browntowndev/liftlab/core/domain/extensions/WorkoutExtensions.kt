@@ -2,11 +2,12 @@ package com.browntowndev.liftlab.core.domain.extensions
 
 import androidx.compose.ui.util.fastFlatMap
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.utils.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
 
@@ -151,7 +152,6 @@ fun StandardWorkoutLift.convertToCustomWorkoutLift(): CustomWorkoutLift {
         liftVolumeTypes = liftVolumeTypes,
         liftSecondaryVolumeTypes = liftSecondaryVolumeTypes,
         position = position,
-        setCount = setCount,
         progressionScheme = progressionScheme,
         deloadWeek = deloadWeek,
         liftNote = null,
@@ -162,36 +162,8 @@ fun StandardWorkoutLift.convertToCustomWorkoutLift(): CustomWorkoutLift {
     )
 }
 
-/**
- * Converts a [CustomWorkoutLift] to a [StandardWorkoutLift].
- *
- * This function attempts to derive standard lift properties (like rep ranges and RPE)
- * from the first set in the [CustomWorkoutLift]'s `customLiftSets`. If no custom sets
- * exist, it uses default values.
- *
- * @return A new [StandardWorkoutLift] instance.
- */
-fun CustomWorkoutLift.convertToStandardWorkoutLift(): StandardWorkoutLift {
-    val topCustomLiftSet = customLiftSets.firstOrNull()
-    return StandardWorkoutLift(
-        id = id,
-        workoutId = workoutId,
-        liftId = liftId,
-        liftName = liftName,
-        liftMovementPattern = liftMovementPattern,
-        liftVolumeTypes = liftVolumeTypes,
-        liftSecondaryVolumeTypes = liftSecondaryVolumeTypes,
-        deloadWeek = deloadWeek,
-        liftNote = null,
-        position = position,
-        setCount = setCount,
-        repRangeBottom = topCustomLiftSet?.repRangeBottom ?: 8,
-        repRangeTop = topCustomLiftSet?.repRangeTop ?: 10,
-        rpeTarget = topCustomLiftSet?.rpeTarget ?: 8f,
-        incrementOverride = null,
-        restTime = restTime,
-        restTimerEnabled = restTimerEnabled,
-        progressionScheme = progressionScheme,
-    )
+fun GenericWorkoutLift.copyId(id: Long): GenericWorkoutLift = when (this) {
+    is StandardWorkoutLift -> copy(id = id)
+    is CustomWorkoutLift -> copy(id = id)
+    else -> throw IllegalArgumentException("Invalid workout lift type")
 }
-

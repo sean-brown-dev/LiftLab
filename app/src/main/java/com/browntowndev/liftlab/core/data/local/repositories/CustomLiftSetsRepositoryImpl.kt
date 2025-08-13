@@ -94,16 +94,6 @@ class CustomLiftSetsRepositoryImpl(
         return id
     }
 
-    override suspend fun deleteAllForLift(workoutLiftId: Long) {
-        val toDelete = customSetsDao.getByWorkoutLiftId(workoutLiftId)
-        if (toDelete.isEmpty()) return
-
-        val deletedCount = customSetsDao.softDeleteMany(toDelete.map { it.id })
-        if (deletedCount > 0) {
-            syncScheduler.scheduleSync()
-        }
-    }
-
     override suspend fun deleteByPosition(workoutLiftId: Long, position: Int): Int {
         Log.d("CustomLiftSetsRepositoryImpl", "deleteByPosition: $workoutLiftId, $position")
 
@@ -121,10 +111,6 @@ class CustomLiftSetsRepositoryImpl(
         }
 
         return deletedCount
-    }
-
-    override fun deleteByProgramId(programId: Long) {
-        customSetsDao.softDeleteByProgramId(programId)
     }
 
     override suspend fun delete(model: GenericLiftSet): Int {

@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
+import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import kotlinx.coroutines.flow.Flow
 
@@ -13,8 +13,6 @@ interface WorkoutsRepository : Repository<Workout, Long> {
         programId: Long,
         microcyclePosition: Int,
     ): Flow<CalculationWorkout?>
-
-    fun deleteByProgramId(programId: Long)
 
     suspend fun getAllForProgramWithoutLiftsPopulated(programId: Long): List<Workout>
 }

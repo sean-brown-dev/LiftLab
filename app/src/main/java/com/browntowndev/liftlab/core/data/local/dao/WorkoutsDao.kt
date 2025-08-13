@@ -23,6 +23,9 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Query("SELECT * FROM workouts WHERE workout_id = :id AND deleted = 0")
     suspend fun getWithoutRelationships(id: Long): WorkoutEntity?
 
+    @Query("SELECT * FROM workouts WHERE workout_id = :id and programId = :programId AND deleted = 0")
+    suspend fun getWithoutRelationshipsWithProgramValidation(id: Long, programId: Long): WorkoutEntity?
+
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<WorkoutWithRelationships>

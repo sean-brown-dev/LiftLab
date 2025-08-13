@@ -1,17 +1,17 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
-import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import io.mockk.coEvery
@@ -75,7 +75,6 @@ class ReorderLiftsUseCaseTest {
                 liftVolumeTypes = 1,
                 liftSecondaryVolumeTypes = null,
                 position = 1,
-                setCount = 4,
                 progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
                 deloadWeek = null,
                 incrementOverride = null,

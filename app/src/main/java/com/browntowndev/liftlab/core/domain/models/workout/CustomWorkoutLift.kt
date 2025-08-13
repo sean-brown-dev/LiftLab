@@ -15,7 +15,6 @@ data class CustomWorkoutLift(
     override val liftVolumeTypes: Int,
     override val liftSecondaryVolumeTypes: Int?,
     override val position: Int,
-    override val setCount: Int,
     override val progressionScheme: ProgressionScheme,
     override val deloadWeek: Int?,
     override val incrementOverride: Float?,
@@ -23,4 +22,6 @@ data class CustomWorkoutLift(
     override val restTimerEnabled: Boolean,
     override val liftNote: String?,
     val customLiftSets: List<GenericLiftSet>
-) : GenericWorkoutLift
+) : GenericWorkoutLift {
+    override val setCount: Int = customLiftSets.size
+}

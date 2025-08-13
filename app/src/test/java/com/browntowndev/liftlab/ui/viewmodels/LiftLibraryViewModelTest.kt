@@ -87,7 +87,7 @@ class LiftLibraryViewModelTest {
 
         viewModel = LiftLibraryViewModel(
             deleteLiftUseCase = deleteLiftUseCase,
-            replaceWorkoutLIftUseCase = replaceWorkoutLiftUseCase,
+            replaceWorkoutLiftUseCase = replaceWorkoutLiftUseCase,
             createLiftMetricChartsUseCase = createLiftMetricChartsUseCase,
             createWorkoutLiftsFromLiftsUseCase = createWorkoutLiftsFromLiftsUseCase,
             onNavigateHome = { navigatedHome = true },
@@ -231,7 +231,7 @@ class LiftLibraryViewModelTest {
         // Case 1: from WorkoutBuilder
         viewModel.replaceWorkoutLift(workoutLiftId = 123L, replacementLiftId = 456L, callerRouteId = Route.WorkoutBuilder.id)
         mainDispatcher.scheduler.advanceUntilIdle()
-        coVerify { replaceWorkoutLiftUseCase(workoutLiftId = 123L, replacementLiftId = 456L) }
+        coVerify { replaceWorkoutLiftUseCase(workoutId = 999L, workoutLiftId = 123L, replacementLiftId = 456L) }
         assertEquals(999L, navigatedToWorkoutBuilderId)
 
         // Reset navigation target
@@ -240,7 +240,7 @@ class LiftLibraryViewModelTest {
         // Case 2: from anywhere else
         viewModel.replaceWorkoutLift(workoutLiftId = 111L, replacementLiftId = 222L, callerRouteId = -1L)
         mainDispatcher.scheduler.advanceUntilIdle()
-        coVerify { replaceWorkoutLiftUseCase(workoutLiftId = 111L, replacementLiftId = 222L) }
+        coVerify { replaceWorkoutLiftUseCase(workoutId = 999L, workoutLiftId = 111L, replacementLiftId = 222L) }
         assertTrue(navigatedToActiveWorkout)
     }
     // ---- Filtering tests ----
@@ -248,8 +248,8 @@ class LiftLibraryViewModelTest {
     @Test
     fun applyFilters_withName_only_filtersCaseInsensitive() = runTest {
         // Build lifts
-        val mpA = com.browntowndev.liftlab.core.domain.enums.MovementPattern.values()[0]
-        val mpB = com.browntowndev.liftlab.core.domain.enums.MovementPattern.values()[1]
+        val mpA = MovementPattern.entries[0]
+        val mpB = MovementPattern.entries[1]
 
         val bench = com.browntowndev.liftlab.ui.models.workout.LiftUiModel(
             id = 1L, name = "Bench Press", movementPattern = mpA,
@@ -287,8 +287,8 @@ class LiftLibraryViewModelTest {
 
     @Test
     fun applyFilters_withMovementPattern_only_filtersCorrectly() = runTest {
-        val mpA = com.browntowndev.liftlab.core.domain.enums.MovementPattern.values()[0]
-        val mpB = com.browntowndev.liftlab.core.domain.enums.MovementPattern.values()[1]
+        val mpA = MovementPattern.entries[0]
+        val mpB = MovementPattern.entries[1]
 
         val a1 = com.browntowndev.liftlab.ui.models.workout.LiftUiModel(
             id = 10L, name = "A1", movementPattern = mpA,

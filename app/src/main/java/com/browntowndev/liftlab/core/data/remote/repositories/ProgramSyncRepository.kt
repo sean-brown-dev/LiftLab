@@ -18,10 +18,10 @@ class ProgramSyncRepository(
     override val remoteDtoClass: KClass<ProgramRemoteDto> = ProgramRemoteDto::class
 
     override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<ProgramRemoteDto> =
-        programsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
+        programsDao.getManyByRemoteId(remoteIds).map { it.programEntity.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<ProgramRemoteDto> =
-        programsDao.getAllUnsynced().map { it.toRemoteDto() }
+        programsDao.getAllUnsynced().map { it.programEntity.toRemoteDto() }
 
     override suspend fun upsertManyTyped(entities: List<ProgramRemoteDto>): List<Long> {
         val upsertedCloudEntities = programsDao.upsertMany(entities.fastMap { it.toEntity() })
@@ -45,10 +45,10 @@ class ProgramSyncRepository(
                 val logMessage = "Multiple programs were active at once. local: $activePrograms, cloud: $upsertedCloudEntities"
                 FirebaseCrashlytics.getInstance().recordException(Exception(logMessage))
                 Log.e("ProgramSyncRepository", logMessage)
-                activePrograms.drop(1).fastMap { it.copy(isActive = false) }
+                activePrograms.drop(1).fastMap { it.programEntity.copy(isActive = false) }
             } else {
                 // Deactivate all but the active cloud entity
-                activePrograms.filter { it.id != cloudProgramToKeepActive.id }.fastMap { it.copy(isActive = false) }
+                activePrograms.filter { it.programEntity.id != cloudProgramToKeepActive.id }.fastMap { it.programEntity.copy(isActive = false) }
             }
             Log.d("ProgramSyncRepository", "Deactivating $programsToDeactivate")
             programsDao.updateMany(programsToDeactivate)
@@ -59,12 +59,12 @@ class ProgramSyncRepository(
 
     override suspend fun deleteByRemoteId(remoteId: String): Int {
         val toDelete = programsDao.getByRemoteId(remoteId) ?: return 0
-        return programsDao.delete(toDelete)
+        return programsDao.delete(toDelete.programEntity)
     }
 
     override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
         val toDelete = programsDao.getManyByRemoteId(remoteIds)
         if (toDelete.isEmpty()) return 0
-        return programsDao.deleteMany(toDelete)
+        return programsDao.deleteMany(toDelete.fastMap { it.programEntity })
     }
 }

@@ -118,7 +118,6 @@ private fun WorkoutLiftWithRelationships.toCustomWorkoutLift(): CustomWorkoutLif
         restTime = this.liftEntity.restTime,
         restTimerEnabled = this.liftEntity.restTimerEnabled,
         position = this.workoutLiftEntity.position,
-        setCount = this.workoutLiftEntity.setCount,
         progressionScheme = this.workoutLiftEntity.progressionScheme,
         liftNote = this.liftEntity.note,
         customLiftSets = this.customLiftSetEntities
@@ -165,7 +164,6 @@ private fun WorkoutLiftEntity.toCustomWorkoutLift(): CustomWorkoutLift {
         restTime = null,
         restTimerEnabled = false,
         position = this.position,
-        setCount = this.setCount,
         progressionScheme = this.progressionScheme,
         liftNote = "LIFT NOT LOADED",
         customLiftSets = emptyList(),
@@ -188,7 +186,7 @@ private fun StandardWorkoutLift.toEntity(): WorkoutLiftEntity {
     )
 }
 
-private fun CustomWorkoutLift.toEntity(): WorkoutLiftEntity {
+        private fun CustomWorkoutLift.toEntity(): WorkoutLiftEntity {
     return WorkoutLiftEntity(
         id = this.id,
         liftId = this.liftId,

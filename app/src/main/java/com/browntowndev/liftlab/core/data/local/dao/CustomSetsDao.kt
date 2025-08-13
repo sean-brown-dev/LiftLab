@@ -58,5 +58,42 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
             WHERE w.programId = :programId
         )
     """)
-    fun softDeleteByProgramId(programId: Long)
+    suspend fun softDeleteByProgramId(programId: Long)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (
+            SELECT workout_lift_id
+            FROM workoutLifts wl
+            INNER JOIN workouts w ON w.workout_id = wl.workoutId
+            WHERE w.workout_id = :workoutId
+        )
+    """)
+    suspend fun softDeleteByWorkoutId(workoutId: Long)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId = :workoutLiftId
+    """)
+    suspend fun softDeleteByWorkoutLiftId(workoutLiftId: Long)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (:workoutLiftIds)
+    """)
+    suspend fun softDeleteByWorkoutLiftIds(workoutLiftIds: List<Long>)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (
+            SELECT workout_lift_id
+            FROM workoutLifts
+            WHERE workoutId IN (:workoutIds)
+        )
+    """)
+    suspend fun softDeleteByWorkoutIds(workoutIds: List<Long>)
 }

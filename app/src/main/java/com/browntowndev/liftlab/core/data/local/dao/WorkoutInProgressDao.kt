@@ -37,6 +37,9 @@ interface WorkoutInProgressDao: BaseDao<WorkoutInProgressEntity> {
     @Query("DELETE FROM workoutsInProgress")
     suspend fun delete()
 
+    @Query("UPDATE workoutsInProgress SET deleted = 1, synced = 0 WHERE workoutId = :workoutId")
+    suspend fun softDeleteByWorkoutId(workoutId: Long)
+
     @Query("UPDATE workoutsInProgress SET deleted = 1, synced = 0 WHERE workout_in_progress_id = :id")
     suspend fun softDelete(id: Long): Int
 
@@ -48,4 +51,16 @@ interface WorkoutInProgressDao: BaseDao<WorkoutInProgressEntity> {
 
     @Query("SELECT * FROM workoutsInProgress WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<WorkoutInProgressEntity>
+
+    @Query("UPDATE workoutsInProgress SET deleted = 1, synced = 0 WHERE workoutId IN (:workoutIds)")
+    fun softDeleteByWorkoutIds(workoutIds: List<Long>)
+
+    @Query("""
+        UPDATE workoutsInProgress 
+        SET deleted = 1, synced = 0 
+        WHERE workoutId IN (
+            SELECT workoutId FROM workouts WHERE programId = :programId
+        )
+    """)
+    suspend fun softDeleteByProgramId(programId: Long)
 }

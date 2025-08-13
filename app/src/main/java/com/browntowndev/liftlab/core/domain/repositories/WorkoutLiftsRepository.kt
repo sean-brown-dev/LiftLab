@@ -6,5 +6,4 @@ interface WorkoutLiftsRepository : Repository<GenericWorkoutLift, Long> {
     suspend fun updateLiftId(workoutLiftId: Long, newLiftId: Long)
     suspend fun getLiftIdsForWorkout(workoutId: Long): List<Long>
     suspend fun getForWorkout(workoutId: Long): List<GenericWorkoutLift>
-    fun deleteByProgramId(programId: Long)
 }

@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
@@ -65,7 +65,7 @@ class WorkoutBuilderViewModelTest {
     @RelaxedMockK lateinit var updateRestTimeUseCase: UpdateRestTimeUseCase
     @RelaxedMockK lateinit var updateLiftIncrementOverrideUseCase: UpdateLiftIncrementOverrideUseCase
     @RelaxedMockK lateinit var updateWorkoutLiftUseCase: UpdateWorkoutLiftUseCase
-    @RelaxedMockK lateinit var deleteCustomLiftSetByPositionUseCase: DeleteCustomLiftSetByPositionUseCase
+    @RelaxedMockK lateinit var deleteCustomSetUseCase: DeleteCustomSetUseCase
     @RelaxedMockK lateinit var updateCustomLiftSetUseCase: UpdateCustomLiftSetUseCase
     @RelaxedMockK lateinit var addSetUseCase: AddSetUseCase
     @RelaxedMockK lateinit var updateWorkoutLiftDeloadWeekUseCase: UpdateWorkoutLiftDeloadWeekUseCase
@@ -110,7 +110,7 @@ class WorkoutBuilderViewModelTest {
             updateRestTimeUseCase = updateRestTimeUseCase,
             updateLiftIncrementOverrideUseCase = updateLiftIncrementOverrideUseCase,
             updateWorkoutLiftUseCase = updateWorkoutLiftUseCase,
-            deleteCustomLiftSetByPositionUseCase = deleteCustomLiftSetByPositionUseCase,
+            deleteCustomSetUseCase = deleteCustomSetUseCase,
             updateCustomLiftSetUseCase = updateCustomLiftSetUseCase,
             addSetUseCase = addSetUseCase,
             updateWorkoutLiftDeloadWeekUseCase = updateWorkoutLiftDeloadWeekUseCase,
@@ -302,28 +302,28 @@ class WorkoutBuilderViewModelTest {
     fun setLiftSetCount_updatesViaUseCase() = runTest {
         viewModel.setLiftSetCount(workoutLiftId = standardLift.id, newSetCount = 5)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftUseCase(any()) }
+        coVerify(exactly = 1) { updateWorkoutLiftUseCase(77L, any()) }
     }
 
     @Test
     fun setLiftRpeTarget_updatesViaUseCase() = runTest {
         viewModel.setLiftRpeTarget(workoutLiftId = standardLift.id, newRpeTarget = 9.0f)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftUseCase(any()) }
+        coVerify(exactly = 1) { updateWorkoutLiftUseCase(77L, any()) }
     }
 
     @Test
     fun updateDeloadWeek_delegatesWithProgramDeloadWeek() = runTest {
         viewModel.updateDeloadWeek(workoutLiftId = standardLift.id, newDeloadWeek = 2)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftDeloadWeekUseCase(any(), 2, 4) }
+        coVerify(exactly = 1) { updateWorkoutLiftDeloadWeekUseCase(77L, any(), 2, 4) }
     }
 
     @Test
     fun toggleHasCustomLiftSets_delegatesToConvertUseCase() = runTest {
         viewModel.toggleHasCustomLiftSets(workoutLiftId = standardLift.id, enableCustomSets = true)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { convertWorkoutLiftTypeUseCase(any(), true) }
+        coVerify(exactly = 1) { convertWorkoutLiftTypeUseCase(77L, any(), true) }
     }
 
     @Test
@@ -338,21 +338,21 @@ class WorkoutBuilderViewModelTest {
     fun addSet_delegatesWithWorkoutLiftId() = runTest {
         viewModel.addSet(workoutLiftId = customLift.id)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { addSetUseCase(any(), customLift.id) }
+        coVerify(exactly = 1) { addSetUseCase(77L, any()) }
     }
 
     @Test
     fun deleteSet_delegatesToDeleteCustomLiftSetByPosition() = runTest {
         viewModel.deleteSet(workoutLiftId = customLift.id, position = 2)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { deleteCustomLiftSetByPositionUseCase(customLift.id, 2) }
+        coVerify(exactly = 1) { deleteCustomSetUseCase(any(), workout.id, customLift.id, 1L) }
     }
 
     @Test
     fun setCustomSetRpeTarget_updatesCustomSet() = runTest {
         viewModel.setCustomSetRpeTarget(workoutLiftId = customLift.id, position = 1, newRpeTarget = 8.5f)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateCustomLiftSetUseCase(any()) }
+        coVerify(exactly = 1) { updateCustomLiftSetUseCase(77L, 123L, any()) }
     }
 
     @Test
@@ -362,20 +362,20 @@ class WorkoutBuilderViewModelTest {
         viewModel.setCustomSetMatchSetGoal(workoutLiftId = customLift.id, position = 2, newMatchSetGoal = 4)
         viewModel.setCustomSetMaxSets(workoutLiftId = customLift.id, position = 2, newMaxSets = 7)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(atLeast = 4) { updateCustomLiftSetUseCase(any()) }
+        coVerify(atLeast = 4) { updateCustomLiftSetUseCase(77L, 123L, any()) }
     }
 
     @Test
     fun dropSet_edit_delegatesToUpdateCustomSetUseCase() = runTest {
         viewModel.setCustomSetDropPercentage(workoutLiftId = customLift.id, position = 1, newDropPercentage = 0.3f)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateCustomLiftSetUseCase(any()) }
+        coVerify(exactly = 1) { updateCustomLiftSetUseCase(77L, 123L, any()) }
     }
 
     @Test fun edit_withOutOfBoundsIndex_doesNotCallUseCase() = runTest {
         viewModel.setCustomSetRepFloor(customLift.id, position = 99, newRepFloor = 9)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 0) { updateCustomLiftSetUseCase(any()) }
+        coVerify(exactly = 0) { updateCustomLiftSetUseCase(any(), any(), any()) }
         coVerify(exactly = 1) { crashlytics.recordException(any()) }
     }
 
@@ -411,7 +411,7 @@ class WorkoutBuilderViewModelTest {
         )
         viewModel.confirmStandardSetRepRangeBottom(workoutLiftId = standardLift.id)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftUseCase(any()) }
+        coVerify(exactly = 1) { updateWorkoutLiftUseCase(77L, any()) }
     }
 
     @Test
@@ -428,7 +428,7 @@ class WorkoutBuilderViewModelTest {
         )
         viewModel.confirmStandardSetRepRangeTop(workoutLiftId = standardLift.id)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftUseCase(any()) }
+        coVerify(exactly = 1) { updateWorkoutLiftUseCase(77L, any()) }
     }
 
     @Test
@@ -448,7 +448,7 @@ class WorkoutBuilderViewModelTest {
 
         coVerify(exactly = 0) { updateRestTimeUseCase.invoke(any(), any(), any()) }
         coVerify(exactly = 0) { updateLiftIncrementOverrideUseCase.invoke(any(), any()) }
-        coVerify(exactly = 0) { reorderWorkoutBuilderLiftsUseCase.invoke(any(), any(), any()) }
-        coVerify(exactly = 0) { updateWorkoutLiftUseCase.invoke(any()) }
+        coVerify(exactly = 0) { reorderWorkoutBuilderLiftsUseCase.invoke(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { updateWorkoutLiftUseCase.invoke(any(), any()) }
     }
 }

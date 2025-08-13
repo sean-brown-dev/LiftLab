@@ -149,7 +149,10 @@ class LabViewModel(
 
     fun updateWorkoutName(workoutId: Long, newName: String) = executeWithErrorHandling("Error updating workout name") {
         if (_state.value.originalWorkoutName != newName) {
-            updateWorkoutNameUseCase(workoutId, newName)
+            updateWorkoutNameUseCase(
+                programId = _state.value.program!!.id,
+                workoutId,
+                newName)
         } else collapseEditWorkoutNameModal()
     }
 

@@ -28,7 +28,7 @@ import org.greenrobot.eventbus.Subscribe
 
 class LiftLibraryViewModel(
     private val deleteLiftUseCase: DeleteLiftUseCase,
-    private val replaceWorkoutLIftUseCase: ReplaceWorkoutLiftUseCase,
+    private val replaceWorkoutLiftUseCase: ReplaceWorkoutLiftUseCase,
     private val createLiftMetricChartsUseCase: CreateLiftMetricChartsUseCase,
     private val createWorkoutLiftsFromLiftsUseCase: CreateWorkoutLiftsFromLiftsUseCase,
     private val onNavigateHome: () -> Unit,
@@ -151,7 +151,8 @@ class LiftLibraryViewModel(
     ) = executeWithErrorHandling("Failed to replace lift") {
         _state.update { it.copy(replacingLift = true) }
 
-        replaceWorkoutLIftUseCase(
+        replaceWorkoutLiftUseCase(
+            workoutId = _state.value.workoutId!!,
             workoutLiftId = workoutLiftId,
             replacementLiftId = replacementLiftId
         )

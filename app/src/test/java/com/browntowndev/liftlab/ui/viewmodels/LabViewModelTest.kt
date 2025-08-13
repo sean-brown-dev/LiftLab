@@ -201,13 +201,13 @@ class LabViewModelTest {
 
     @Test
     fun updateWorkoutName_callsUseCase_whenChanged() = runTest {
-        coEvery { updateWorkoutNameUseCase(any(), any()) } just Runs
+        coEvery { updateWorkoutNameUseCase(any(), any(), any()) } just Runs
 
         viewModel.showEditWorkoutNameModal(55L, "Old")
         viewModel.updateWorkoutName(55L, "New")
         mainDispatcher.scheduler.advanceUntilIdle()
 
-        coVerify(exactly = 1) { updateWorkoutNameUseCase(55L, "New") }
+        coVerify(exactly = 1) { updateWorkoutNameUseCase(any(), 55L, "New") }
     }
 
     @Test
@@ -216,7 +216,7 @@ class LabViewModelTest {
         viewModel.updateWorkoutName(55L, "Old")
         mainDispatcher.scheduler.advanceUntilIdle()
 
-        coVerify(exactly = 0) { updateWorkoutNameUseCase(any(), any()) }
+        coVerify(exactly = 0) { updateWorkoutNameUseCase(any(), any(), any()) }
         assertNull(viewModel.state.value.workoutIdToRename)
         assertNull(viewModel.state.value.originalWorkoutName)
     }

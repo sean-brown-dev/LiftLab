@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
@@ -61,7 +61,7 @@ class WorkoutBuilderViewModel(
     private val updateRestTimeUseCase: UpdateRestTimeUseCase,
     private val updateLiftIncrementOverrideUseCase: UpdateLiftIncrementOverrideUseCase,
     private val updateWorkoutLiftUseCase: UpdateWorkoutLiftUseCase,
-    private val deleteCustomLiftSetByPositionUseCase: DeleteCustomLiftSetByPositionUseCase,
+    private val deleteCustomSetUseCase: DeleteCustomSetUseCase,
     private val updateCustomLiftSetUseCase: UpdateCustomLiftSetUseCase,
     private val addSetUseCase: AddSetUseCase,
     private val updateWorkoutLiftDeloadWeekUseCase: UpdateWorkoutLiftDeloadWeekUseCase,
@@ -128,7 +128,10 @@ class WorkoutBuilderViewModel(
 
     fun updateWorkoutName(newName: String) = executeWithErrorHandling("Failed to update workout name") {
         val workout = getCurrentWorkoutAndLogIfNull() ?: return@executeWithErrorHandling
-        updateWorkoutNameUseCase(workout.id, newName)
+        updateWorkoutNameUseCase(
+            programId = workout.programId,
+            workoutId = workout.id,
+            newName)
     }
 
     fun toggleWorkoutRenameModal() {
@@ -180,7 +183,10 @@ class WorkoutBuilderViewModel(
     fun toggleHasCustomLiftSets(workoutLiftId: Long, enableCustomSets: Boolean) = executeWithErrorHandling("Failed to toggle custom lift sets") {
         val workoutLiftToConvert = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId)
             ?: return@executeWithErrorHandling
-        convertWorkoutLiftTypeUseCase(workoutLiftToConvert.toDomainModel(), enableCustomSets)
+        convertWorkoutLiftTypeUseCase(
+            programId = _state.value.workout!!.programId, // Couldn't get workoutLift without there being workout, so this is fine
+            workoutLiftToConvert = workoutLiftToConvert.toDomainModel(),
+            enableCustomSets)
     }
 
     fun setRestTime(workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) = executeWithErrorHandling("Failed to update rest time") {
@@ -207,6 +213,7 @@ class WorkoutBuilderViewModel(
             .mapIndexed { index, item -> item.key to index }
             .associate { it.first to it.second }
         reorderWorkoutBuilderLiftsUseCase(
+            programId = _state.value.workout!!.programId,
             workoutId = workoutId,
             workoutLifts = _state.value.workout!!.lifts.fastMap { it.toDomainModel() },
             newWorkoutLiftIndices = newWorkoutLiftIndices)
@@ -229,7 +236,11 @@ class WorkoutBuilderViewModel(
 
     fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int?) = executeWithErrorHandling("Failed to update deload week") {
         val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
-        updateWorkoutLiftDeloadWeekUseCase(workoutLift.toDomainModel(), newDeloadWeek, getProgramDeloadWeekAndLogIfNull())
+        updateWorkoutLiftDeloadWeekUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = workoutLift.toDomainModel(),
+            newDeloadWeek,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull())
     }
 
     fun setLiftSetCount(workoutLiftId: Long, newSetCount: Int) = executeWithErrorHandling("Failed to update set count") {
@@ -239,13 +250,17 @@ class WorkoutBuilderViewModel(
             is CustomWorkoutLiftUiModel -> workoutLift.copy(setCount = newSetCount)
             else -> throw Exception("${workoutLift::class.simpleName} not recognized.")
         }
-        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            updatedWorkoutLift.toDomainModel())
     }
 
     fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Float) = executeWithErrorHandling("Failed to update RPE target") {
         val workoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val updatedWorkoutLift = workoutLift.copy(rpeTarget = newRpeTarget)
-        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
     fun setLiftProgressionScheme(workoutLiftId: Long, newProgressionScheme: ProgressionScheme) = executeWithErrorHandling("Failed to update progression scheme") {
@@ -255,24 +270,33 @@ class WorkoutBuilderViewModel(
             is CustomWorkoutLiftUiModel -> workoutLift.copy(progressionScheme = newProgressionScheme)
             else -> throw Exception("${workoutLift::class.simpleName} not recognized.")
         }
-        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
     fun updateStepSize(workoutLiftId: Long, newStepSize: Int) = executeWithErrorHandling("Failed to update step size") {
         val updatedWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId)?.copy(stepSize = newStepSize)
             ?: return@executeWithErrorHandling
-        updateWorkoutLiftUseCase(updatedWorkoutLift.toDomainModel())
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
     fun addSet(workoutLiftId: Long) = executeWithErrorHandling("Failed to add set") {
         addSetUseCase(
-            workoutLifts = _state.value.workout!!.lifts.fastMap { it.toDomainModel() },
-            workoutLiftId = workoutLiftId,
+            programId = _state.value.workout!!.programId,
+            workoutLift = _state.value.workout!!.lifts.filterIsInstance<CustomWorkoutLiftUiModel>().single { it.id == workoutLiftId }.toDomainModel(),
         )
     }
 
     fun deleteSet(workoutLiftId: Long, position: Int) = executeWithErrorHandling("Failed to delete set") {
-        deleteCustomLiftSetByPositionUseCase(workoutLiftId, position)
+        val setId = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position)?.id ?: return@executeWithErrorHandling
+        deleteCustomSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            workoutLiftId = workoutLiftId,
+            setId = setId)
     }
 
     fun setCustomSetRpeTarget(workoutLiftId: Long, position: Int, newRpeTarget: Float) = executeWithErrorHandling("Failed to update RPE target") {
@@ -283,43 +307,64 @@ class WorkoutBuilderViewModel(
             else -> throw Exception("${currentSet::class.simpleName} cannot have an rpe target.")
         }
 
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun setCustomSetRepFloor(workoutLiftId: Long, position: Int, newRepFloor: Int) = executeWithErrorHandling("Failed to update rep floor") {
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(repFloor = newRepFloor)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun setCustomSetUseSetMatching(workoutLiftId: Long, position: Int, setMatching: Boolean) = executeWithErrorHandling("Failed to toggle set matching") {
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(setMatching = setMatching)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun setCustomSetMatchSetGoal(workoutLiftId: Long, position: Int, newMatchSetGoal: Int) = executeWithErrorHandling("Failed to update set match goal") {
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(setGoal = newMatchSetGoal)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun setCustomSetMaxSets(workoutLiftId: Long, position: Int, newMaxSets: Int?) = executeWithErrorHandling("Failed to update max sets") {
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(maxSets = newMaxSets)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun setCustomSetDropPercentage(workoutLiftId: Long, position: Int, newDropPercentage: Float) = executeWithErrorHandling("Failed to update drop percentage") {
         val updatedSet = getCustomLiftSetAndLogIfNull<DropSetUiModel>(workoutLiftId, position)?.copy(dropPercentage = newDropPercentage)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun changeCustomSetType(workoutLiftId: Long, position: Int, newSetType: SetType) = executeWithErrorHandling("Failed to change set type") {
         val transformedSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position)?.transformToType(newSetType)
             ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(transformedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = transformedSet.toDomainModel())
     }
 
     private fun updateCustomSetProperty(
@@ -409,7 +454,9 @@ class WorkoutBuilderViewModel(
             )
         )
 
-        updateWorkoutLiftUseCase(workoutLift.toDomainModel())
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = workoutLift.toDomainModel())
     }
 
     fun confirmStandardSetRepRangeTop(workoutLiftId: Long) = executeWithErrorHandling("Failed to update rep range top") {
@@ -427,7 +474,9 @@ class WorkoutBuilderViewModel(
             )
         )
 
-        updateWorkoutLiftUseCase(workoutLift.toDomainModel())
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutLift = workoutLift.toDomainModel())
     }
 
     fun setCustomSetRepRangeBottom(workoutLiftId: Long, position: Int, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
@@ -472,7 +521,10 @@ class WorkoutBuilderViewModel(
             is DropSetUiModel -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
             else -> throw Exception("${customSet::class.simpleName} is not defined")
         }
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     fun confirmCustomSetRepRangeTop(workoutLiftId: Long, position: Int) = executeWithErrorHandling("Failed to update rep range top") {
@@ -487,7 +539,10 @@ class WorkoutBuilderViewModel(
             is DropSetUiModel -> customSet.copy(repRangeTop = validatedRepRangeTop)
             else -> throw Exception("${customSet::class.simpleName} is not defined")
         }
-        updateCustomLiftSetUseCase(updatedSet.toDomainModel())
+        updateCustomLiftSetUseCase(
+            programId = _state.value.workout!!.programId,
+            workoutId = _state.value.workout!!.id,
+            set = updatedSet.toDomainModel())
     }
 
     private fun getValidatedRepRangeBottom(newRepRangeBottom: Int, repRangeTop: Int): Int {

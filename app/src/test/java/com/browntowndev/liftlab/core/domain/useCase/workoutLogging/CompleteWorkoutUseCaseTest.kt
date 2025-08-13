@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -96,7 +96,7 @@ class CompleteWorkoutUseCaseTest {
         // Then
         coVerify { workoutInProgressRepository.deleteAll() }
         coVerify { restTimerInProgressRepository.deleteAll() }
-        coVerify { programsRepository.updateMesoAndMicroCycle(programMetadata.programId, 1, 1, 1) }
+        coVerify { programsRepository.applyDelta(1L, any()) }
         coVerify { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(programMetadata.programId, workout.id) }
         coVerify(exactly = 0) { historicalWorkoutNamesRepository.insert(any()) }
         coVerify { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) }

@@ -29,6 +29,12 @@ interface LiveWorkoutCompletedSetsDao: BaseDao<LiveWorkoutCompletedSetEntity> {
     @Query("DELETE FROM liveWorkoutCompletedSets")
     suspend fun deleteAll()
 
+    @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0 WHERE workoutId = :workoutId")
+    suspend fun softDeleteAllByWorkoutId(workoutId: Long)
+
+    @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0 WHERE workoutId = :workoutIds")
+    suspend fun softDeleteByWorkoutIds(workoutIds: List<Long>)
+
     @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0")
     suspend fun softDeleteAll()
 
@@ -43,4 +49,13 @@ interface LiveWorkoutCompletedSetsDao: BaseDao<LiveWorkoutCompletedSetEntity> {
 
     @Query("SELECT * FROM liveWorkoutCompletedSets WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<LiveWorkoutCompletedSetEntity>
+
+    @Query("""
+        UPDATE liveWorkoutCompletedSets
+        SET deleted = 1, synced = 0
+        WHERE workoutId IN (
+            SELECT workoutId FROM workouts WHERE programId = :programId
+        )
+    """)
+    suspend fun softDeleteByProgramId(programId: Long)
 }

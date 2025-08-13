@@ -1,136 +1,55 @@
+
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
+import com.browntowndev.liftlab.core.domain.delta.ProgramDelta.WorkoutChange.WorkoutUpdate
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
-import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
-import io.mockk.CapturingSlot
-import io.mockk.Runs
+import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.just
+import io.mockk.coJustRun
 import io.mockk.mockk
 import io.mockk.slot
-import io.mockk.unmockkAll
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ReorderWorkoutsUseCaseTest {
-
-    private lateinit var workoutsRepository: WorkoutsRepository
+    private lateinit var programsRepository: ProgramsRepository
     private lateinit var transactionScope: TransactionScope
     private lateinit var useCase: ReorderWorkoutsUseCase
 
     @BeforeEach
-    fun setUp() {
-        workoutsRepository = mockk(relaxed = true)
-
-        // Preferred TransactionScope mock
+    fun setup() {
+        programsRepository = mockk(relaxed = true)
         transactionScope = mockk(relaxed = true)
         coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
             firstArg<suspend () -> Unit>().invoke()
         }
-
-        useCase = ReorderWorkoutsUseCase(
-            workoutsRepository = workoutsRepository,
-            transactionScope = transactionScope
-        )
-    }
-
-    @AfterEach
-    fun tearDown() = unmockkAll()
-
-    @Test
-    fun `reorders multiple workouts, preserves input order, and calls updateMany with copies`() = runTest {
-        val w1 = mockk<Workout>(relaxed = true) { every { id } returns 1L }
-        val w2 = mockk<Workout>(relaxed = true) { every { id } returns 2L }
-
-        // Copies returned by .copy(position = ...)
-        val w1Copy = mockk<Workout>(relaxed = true)
-        val w2Copy = mockk<Workout>(relaxed = true)
-        every { w1.copy(position = 7) } returns w1Copy
-        every { w2.copy(position = 3) } returns w2Copy
-
-        val captured: CapturingSlot<List<Workout>> = slot()
-        coEvery { workoutsRepository.updateMany(capture(captured)) } just Runs
-        advanceUntilIdle()
-
-        useCase(
-            workouts = listOf(w1, w2),
-            newOrders = mapOf(1L to 7, 2L to 3)
-        )
-
-        // Transaction executed once; repository received the two copies in input order
-        coVerify(exactly = 1) { transactionScope.execute(any<suspend () -> Unit>()) }
-        coVerify(exactly = 1) { workoutsRepository.updateMany(any()) }
-        assertEquals(listOf(w1Copy, w2Copy), captured.captured)
-
-        // Ensure the correct new positions were used
-        io.mockk.verify(exactly = 1) { w1.copy(position = 7) }
-        io.mockk.verify(exactly = 1) { w2.copy(position = 3) }
+        useCase = ReorderWorkoutsUseCase(programsRepository, transactionScope)
     }
 
     @Test
-    fun `extra ids in newOrders are ignored, only matching workouts are updated`() = runTest {
-        val w1 = mockk<Workout>(relaxed = true) { every { id } returns 10L }
-        val w2 = mockk<Workout>(relaxed = true) { every { id } returns 20L }
+    fun `reorders workouts by building updates for each id`() = runTest {
+        val w1 = Workout(id = 10L, programId = 2L, name = "W1", position = 0, lifts = emptyList())
+        val w2 = Workout(id = 11L, programId = 2L, name = "W2", position = 1, lifts = emptyList())
+        val w3 = Workout(id = 12L, programId = 2L, name = "W3", position = 2, lifts = emptyList())
 
-        val w1Copy = mockk<Workout>(relaxed = true)
-        val w2Copy = mockk<Workout>(relaxed = true)
-        every { w1.copy(position = 1) } returns w1Copy
-        every { w2.copy(position = 2) } returns w2Copy
+        val newOrders = mapOf(10L to 2, 11L to 0, 12L to 1)
 
-        val cap: CapturingSlot<List<Workout>> = slot()
-        coEvery { workoutsRepository.updateMany(capture(cap)) } just Runs
+        val captured = slot<ProgramDelta>()
+        coJustRun { programsRepository.applyDelta(eq(2L), capture(captured)) }
 
-        useCase(
-            workouts = listOf(w1, w2),
-            newOrders = mapOf(10L to 1, 20L to 2, 999L to 0) // 999L not present in workouts
-        )
+        useCase.invoke(listOf(w1, w2, w3), newOrders)
 
-        coVerify(exactly = 1) { workoutsRepository.updateMany(any()) }
-        assertEquals(listOf(w1Copy, w2Copy), cap.captured)
-    }
-
-    @Test
-    fun `throws when a workout id is missing from newOrders and does not call updateMany`() = runTest {
-        val w1 = mockk<Workout>(relaxed = true) { every { id } returns 101L }
-        val w2 = mockk<Workout>(relaxed = true) { every { id } returns 202L }
-
-        // Only stub copy for the first; second will fail the mapping
-        val w1Copy = mockk<Workout>(relaxed = true)
-        every { w1.copy(position = 5) } returns w1Copy
-
-        val ex = assertThrows<IllegalArgumentException> {
-            useCase(
-                workouts = listOf(w1, w2),
-                newOrders = mapOf(101L to 5) // missing 202L
-            )
+        val delta = captured.captured
+        assertEquals(3, delta.workouts.size)
+        delta.workouts.forEach { wc ->
+            assertTrue(wc.workoutId in newOrders.keys)
+            val expectedPos = newOrders.getValue(wc.workoutId)
+            assertEquals(WorkoutUpdate(position = expectedPos), wc.workoutUpdate)
         }
-        assertTrue(ex.message?.contains("202") == true, "Exception should mention missing workout id")
-
-        coVerify(exactly = 1) { transactionScope.execute(any<suspend () -> Unit>()) }
-        coVerify(exactly = 0) { workoutsRepository.updateMany(any()) }
-    }
-
-    @Test
-    fun `empty workouts list results in updateMany with empty list`() = runTest {
-        val cap: CapturingSlot<List<Workout>> = slot()
-        coEvery { workoutsRepository.updateMany(capture(cap)) } just Runs
-        advanceUntilIdle()
-
-        useCase(workouts = emptyList(), newOrders = emptyMap())
-
-        coVerify(exactly = 1) { transactionScope.execute(any<suspend () -> Unit>()) }
-        coVerify(exactly = 1) { workoutsRepository.updateMany(any()) }
-        assertTrue(cap.captured.isEmpty())
     }
 }

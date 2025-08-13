@@ -48,7 +48,7 @@ val viewModelModule = module {
             updateRestTimeUseCase = get(),
             updateLiftIncrementOverrideUseCase = get(),
             updateWorkoutLiftUseCase = get(),
-            deleteCustomLiftSetByPositionUseCase = get(),
+            deleteCustomSetUseCase = get(),
             updateCustomLiftSetUseCase = get(),
             addSetUseCase = get(),
             updateWorkoutLiftDeloadWeekUseCase = get(),
@@ -59,7 +59,7 @@ val viewModelModule = module {
     factory { params ->
         LiftLibraryViewModel(
             deleteLiftUseCase = get(),
-            replaceWorkoutLIftUseCase = get(),
+            replaceWorkoutLiftUseCase = get(),
             createLiftMetricChartsUseCase = get(),
             createWorkoutLiftsFromLiftsUseCase = get(),
             getFilterableLiftsStateFlowUseCase = get(),

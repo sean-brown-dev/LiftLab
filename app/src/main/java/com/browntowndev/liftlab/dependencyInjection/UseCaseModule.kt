@@ -34,7 +34,7 @@ import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateSettingUseCas
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomLiftSetByPositionUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
@@ -109,7 +109,7 @@ val useCaseModule = module {
     // Workout Configuration
     singleOf(::AddSetUseCase)
     singleOf(::ConvertWorkoutLiftTypeUseCase)
-    singleOf(::DeleteCustomLiftSetByPositionUseCase)
+    singleOf(::DeleteCustomSetUseCase)
     singleOf(::DeleteWorkoutLiftUseCase)
     singleOf(::GetWorkoutConfigurationStateFlowUseCase)
     singleOf(::ReorderWorkoutBuilderLiftsUseCase)

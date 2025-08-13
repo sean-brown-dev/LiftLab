@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.delta.ProgramDelta.ProgramUpdate
+import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 
@@ -17,7 +19,13 @@ class CreateProgramUseCase(
         )
 
         if (isActive && currentActiveProgram != null) {
-            programsRepository.update(currentActiveProgram.copy(isActive = false))
+            val delta = programDelta {
+                updateProgram {
+                    ProgramUpdate(isActive = false)
+                }
+            }
+
+            programsRepository.applyDelta(currentActiveProgram.id, delta)
         }
     }
 }
