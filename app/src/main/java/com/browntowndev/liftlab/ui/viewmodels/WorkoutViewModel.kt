@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.extensions.hasIncompleteModifiedSets
 import com.browntowndev.liftlab.core.domain.extensions.mergeModifiedSets
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
@@ -22,7 +23,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
@@ -38,6 +38,7 @@ import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -102,6 +103,7 @@ class WorkoutViewModel(
 
     init {
         getActiveWorkoutStateFlowUseCase()
+            .distinctUntilChanged()
             .map { activeWorkoutState ->
                 WorkoutState(
                     inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
@@ -114,10 +116,9 @@ class WorkoutViewModel(
                     initialized = true,
                 )
             }.onEach { newUiState ->
-                val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null) {
+                val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null || newUiState.inProgressWorkout == null) {
                     newUiState.workout
-                }
-                else {
+                } else {
                     // Hydrate workout with any sets that have been started but not marked completed.
                     // These only exist in-memory in our state, so the state flow use case knows nothing
                     // about them and we have to hydrate the updated workout from the state flow with
@@ -126,24 +127,27 @@ class WorkoutViewModel(
                     hydrateLoggingWorkoutWithExistingLiftDataUseCase(
                         loggingWorkout = newUiState.workout.toDomainModel(),
                         liftsToUpdateFrom = mutableWorkoutState.value.workout!!.lifts
-                            .fastMapNotNull {
+                            .fastMapNotNull { uiStateLift ->
                                 // newUiState has the latest completed/incompleted set data, but it doesn't have
                                 // the in-memory modified lifts which were never completed. So, we need to merge
                                 // the new lifts into the current in-memory lifts to get the holistic state
                                 // of the lift
-                                updatedLiftsById[it.id]?.let { updatedLift ->
-                                    it.mergeModifiedSets(updatedLift)
+                                updatedLiftsById[uiStateLift.id]?.let { updatedLift ->
+                                    uiStateLift.mergeModifiedSets(updatedLift)
                                 }
                             }
                             .filter {
-                                // Now that we have fully updated the lift, we can filter out any
-                                // lifts that have not been modified
+                                // Now that we have fully updated the lifts, we can filter out any
+                                // that do not have any modified sets
                                 it.hasIncompleteModifiedSets()
                             }
                             .fastMap { it.toDomainModel() },
                     ).toUiModel()
                 }
 
+                // Multiple emissions can happen and we don't want to actually close the log
+                // until the workout for the next microcycle position has emitted
+                val workoutChanged = mutableWorkoutState.value.workout?.id != newWorkout?.id
                 mutableWorkoutState.update { currentState ->
                     currentState.copy(
                         workout = newWorkout,
@@ -152,7 +156,7 @@ class WorkoutViewModel(
                         programMetadata = newUiState.programMetadata,
                         personalRecords = newUiState.personalRecords,
                         initialized = true,
-                        workoutLogVisible = if (newUiState.inProgressWorkout == null) false else currentState.workoutLogVisible,
+                        workoutLogVisible = if (newUiState.inProgressWorkout == null && workoutChanged) false else currentState.workoutLogVisible,
                         isCompletionSummaryVisible = false,
                         isDeloadPromptDialogShown = false,
                         isReordering = false,
@@ -326,8 +330,9 @@ class WorkoutViewModel(
     override suspend fun upsertSetResult(updatedResult: SetResult): Long =
         upsertSetResultUseCase(updatedResult)
 
-    override suspend fun deleteSetResult(id: Long) =
+    override suspend fun deleteSetResult(id: Long) {
         deleteSetResultByIdUseCase(id)
+    }
 
     override suspend fun insertRestTimerInProgress(restTime: Long) {
         insertRestTimerInProgressUseCase(restTime)
