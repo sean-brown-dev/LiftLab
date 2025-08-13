@@ -157,7 +157,7 @@ class WorkoutViewModel(
                         personalRecords = newUiState.personalRecords,
                         initialized = true,
                         workoutLogVisible = if (newUiState.inProgressWorkout == null && workoutChanged) false else currentState.workoutLogVisible,
-                        isCompletionSummaryVisible = false,
+                        isCompletionSummaryVisible = if (newUiState.inProgressWorkout == null && workoutChanged) false else currentState.isCompletionSummaryVisible,
                         isDeloadPromptDialogShown = false,
                         isReordering = false,
                     )
