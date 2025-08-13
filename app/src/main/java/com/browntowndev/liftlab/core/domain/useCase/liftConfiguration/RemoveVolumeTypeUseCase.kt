@@ -25,7 +25,7 @@ class RemoveVolumeTypeUseCase(
         volumeTypeToRemove: VolumeType,
         volumeTypeCategory: VolumeTypeCategory
     ): Lift =
-        transactionScope.executeWithResult {
+        transactionScope.execute {
             val liftToUpdate =
                 if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) {
                     val currentVolumeTypes = lift.volumeTypesBitmask.toVolumeTypes()

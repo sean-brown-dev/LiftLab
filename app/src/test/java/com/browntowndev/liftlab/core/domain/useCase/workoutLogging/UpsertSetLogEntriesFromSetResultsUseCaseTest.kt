@@ -68,9 +68,9 @@ class UpsertSetLogEntriesFromSetResultsUseCaseTest {
         every { res0.toSetLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns entry0
         every { res1.toSetLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns entry1
 
-        coEvery { transactionScope.executeWithResult(any<suspend () -> List<Long>>()) } coAnswers {
-            val block = arg<suspend () -> List<Long>>(0)
-            block.invoke()
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
+            block()
         }
     }
 

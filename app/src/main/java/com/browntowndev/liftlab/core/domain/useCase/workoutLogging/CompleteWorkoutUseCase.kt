@@ -23,6 +23,9 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 
+private data class LiftAndPositionKey(val liftId: Long, val liftPosition: Int)
+private fun SetResult.toLiftAndPositionKey() = LiftAndPositionKey(liftId, liftPosition)
+
 class CompleteWorkoutUseCase(
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
@@ -40,80 +43,80 @@ class CompleteWorkoutUseCase(
         completedSets: List<SetResult>,
         isDeloadWeek: Boolean,
     ) = transactionScope.execute {
-            // Remove the workoutEntity from in progress
-            workoutInProgressRepository.deleteAll()
-            restTimerInProgressRepository.deleteAll()
+        restTimerInProgressRepository.deleteAll()
 
-            val startTimeInMillis = inProgressWorkout.startTime.time
-            val durationInMillis = (getCurrentDate().time - startTimeInMillis)
+        val startTimeInMillis = inProgressWorkout.startTime.time
+        val durationInMillis = (getCurrentDate().time - startTimeInMillis)
 
-            // Increment the mesocycle and microcycle
-            val microCycleComplete =
-                (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
-            val liftLevelDeloadsEnabled =
-                SettingsManager.getSetting(
-                    LIFT_SPECIFIC_DELOADING,
-                    DEFAULT_LIFT_SPECIFIC_DELOADING
-                )
-            val deloadWeekComplete =
-                !liftLevelDeloadsEnabled && microCycleComplete && isDeloadWeek
-            val newMesoCycle =
-                if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
-            val newMicroCycle =
-                if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
-            val newMicroCyclePosition =
-                if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
-            val delta = programDelta {
-                updateProgram(
-                    currentMesocycle = newMesoCycle,
-                    currentMicrocycle = newMicroCycle,
-                    currentMicrocyclePosition = newMicroCyclePosition,
-                )
-            }
-            programsRepository.applyDelta(programMetadata.programId, delta)
+        // Increment the mesocycle and microcycle
+        val microCycleComplete =
+            (programMetadata.workoutCount - 1) == programMetadata.currentMicrocyclePosition
+        val liftLevelDeloadsEnabled =
+            SettingsManager.getSetting(
+                LIFT_SPECIFIC_DELOADING,
+                DEFAULT_LIFT_SPECIFIC_DELOADING
+            )
+        val deloadWeekComplete =
+            !liftLevelDeloadsEnabled && microCycleComplete && isDeloadWeek
+        val newMesoCycle =
+            if (deloadWeekComplete) programMetadata.currentMesocycle + 1 else programMetadata.currentMesocycle
+        val newMicroCycle =
+            if (deloadWeekComplete) 0 else if (microCycleComplete) programMetadata.currentMicrocycle + 1 else programMetadata.currentMicrocycle
+        val newMicroCyclePosition =
+            if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
+        val delta = programDelta {
+            updateProgram(
+                currentMesocycle = newMesoCycle,
+                currentMicrocycle = newMicroCycle,
+                currentMicrocyclePosition = newMicroCyclePosition,
+            )
+        }
+        programsRepository.applyDelta(programMetadata.programId, delta)
 
-            // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
-            var historicalWorkoutNameId =
-                historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
+        // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
+        var historicalWorkoutNameId =
+            historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
+                programId = programMetadata.programId,
+                workoutId = workout.id,
+            )
+        if (historicalWorkoutNameId == null) {
+            historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
+                HistoricalWorkoutName(
                     programId = programMetadata.programId,
                     workoutId = workout.id,
+                    programName = programMetadata.name,
+                    workoutName = workout.name,
                 )
-            if (historicalWorkoutNameId == null) {
-                historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
-                    HistoricalWorkoutName(
-                        programId = programMetadata.programId,
-                        workoutId = workout.id,
-                        programName = programMetadata.name,
-                        workoutName = workout.name,
-                    )
-                )
-            }
-            val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
-                historicalWorkoutNameId = historicalWorkoutNameId,
-                programDeloadWeek = programMetadata.deloadWeek,
-                programWorkoutCount = programMetadata.workoutCount,
-                mesoCycle = programMetadata.currentMesocycle,
-                microCycle = programMetadata.currentMicrocycle,
-                microcyclePosition = programMetadata.currentMicrocyclePosition,
-                date = getCurrentDate(),
-                durationInMillis = durationInMillis,
             )
+        }
+        val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
+            historicalWorkoutNameId = historicalWorkoutNameId,
+            programDeloadWeek = programMetadata.deloadWeek,
+            programWorkoutCount = programMetadata.workoutCount,
+            mesoCycle = programMetadata.currentMesocycle,
+            microCycle = programMetadata.currentMicrocycle,
+            microcyclePosition = programMetadata.currentMicrocyclePosition,
+            date = getCurrentDate(),
+            durationInMillis = durationInMillis,
+        )
 
-            moveSetResultsToLogHistory(
-                workoutLogEntryId = workoutLogEntryId,
-                workout = workout,
-                completedSets = completedSets,
-            )
+        moveSetResultsToLogHistory(
+            workoutLogEntryId = workoutLogEntryId,
+            workout = workout,
+            completedSets = completedSets,
+        )
 
-            // Update any Linear Progression failures
-            // The reason this is done when the workout is completed is because if it were done on the fly
-            // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
-            // and then you get double increment. Or any variation of them going between success/failure by
-            // modifying results.
-            updateLinearProgressionFailures(
-                completedSets = completedSets,
-                workout = workout,
-            )
+        // Update any Linear Progression failures
+        // The reason this is done when the workout is completed is because if it were done on the fly
+        // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
+        // and then you get double increment. Or any variation of them going between success/failure by
+        // modifying results.
+        updateLinearProgressionFailures(
+            completedSets = completedSets,
+            workout = workout,
+        )
+
+        workoutInProgressRepository.deleteAll()
     }
 
     private suspend fun moveSetResultsToLogHistory(
@@ -138,7 +141,7 @@ class CompleteWorkoutUseCase(
         val myoRepSetsToSynchronizePositonsFor = completedSets
             .filterIsInstance<MyoRepSetResult>()
             .filter { it.id !in excludeFromCopy }
-            .groupBy { "${it.liftId}-${it.liftPosition}" }
+            .groupBy { it.toLiftAndPositionKey() }
             .values
             .flatMap { resultsForLift ->
                 resultsForLift.sortedBy { it.id }.mapIndexedNotNull { index, result ->

@@ -36,8 +36,9 @@ class ReorderWorkoutBuilderLiftsUseCaseTest {
         workoutInProgressRepository = mockk(relaxed = true)
         liveWorkoutCompletedSetsRepository = mockk(relaxed = true)
         transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.execute(any<suspend () -> Unit>()) } coAnswers {
-            firstArg<suspend () -> Unit>().invoke()
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
+            block()
         }
         useCase = ReorderWorkoutBuilderLiftsUseCase(
             programsRepository,
@@ -81,7 +82,7 @@ class ReorderWorkoutBuilderLiftsUseCaseTest {
         coJustRun { programsRepository.applyDelta(any(), any()) }
 
         coEvery { liveWorkoutCompletedSetsRepository.getAll() } returns emptyList()
-        coJustRun { liveWorkoutCompletedSetsRepository.upsertMany(any()) }
+        coEvery { liveWorkoutCompletedSetsRepository.upsertMany(any()) } returns emptyList()
 
         val wl1 = mockk<GenericWorkoutLift> { every { id } returns 1L; every { liftId } returns 101L; every { position } returns 0 }
         val wl2 = mockk<GenericWorkoutLift> { every { id } returns 2L; every { liftId } returns 102L; every { position } returns 1 }

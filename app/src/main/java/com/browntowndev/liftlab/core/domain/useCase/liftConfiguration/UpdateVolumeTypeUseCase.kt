@@ -26,7 +26,7 @@ class UpdateVolumeTypeUseCase(
         index: Int,
         newVolumeType: VolumeType,
         volumeTypeCategory: VolumeTypeCategory
-    ): Lift = transactionScope.executeWithResult {
+    ): Lift = transactionScope.execute {
         val newVolumeTypeBitmask = lift.volumeTypesBitmask.toVolumeTypes()
             .toMutableList()
             .apply {

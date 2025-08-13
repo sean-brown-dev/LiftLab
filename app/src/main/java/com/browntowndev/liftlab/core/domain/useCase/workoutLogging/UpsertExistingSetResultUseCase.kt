@@ -13,7 +13,7 @@ class UpsertExistingSetResultUseCase(
         workoutLogEntryId: Long,
         setResult: SetResult,
         loggingWorkoutLift: LoggingWorkoutLift,
-    ): Long = transactionScope.executeWithResult {
+    ): Long = transactionScope.execute {
         val setLogEntry = getSetLogEntryFromSetResult(loggingWorkoutLift, setResult, workoutLogEntryId)
         setLogEntryRepository.upsert(setLogEntry)
     }

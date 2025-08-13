@@ -173,7 +173,6 @@ class BaseWorkoutViewModelTest {
         } coAnswers {
             val cb = arg<suspend (SetResult) -> Long>(4)
             cb.invoke(mockk(relaxed = true))
-            Unit
         }
 
         vm.completeSet(restTime = 0L, restTimerEnabled = false, onBuildSetResult =  {

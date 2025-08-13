@@ -14,7 +14,7 @@ class UpsertSetLogEntriesFromSetResultsUseCase(
         workoutLogEntryId: Long,
         loggingWorkoutLifts: List<LoggingWorkoutLift>,
         setResults: List<SetResult>,
-    ): List<Long>  = transactionScope.executeWithResult {
+    ): List<Long>  = transactionScope.execute {
         setResults.fastMap { setResult ->
             if (setResult.liftPosition >= loggingWorkoutLifts.size) throw Exception("Lift position is out of bounds")
             val loggingWorkoutLift = loggingWorkoutLifts[setResult.liftPosition]

@@ -145,7 +145,7 @@ class LiftDetailsViewModelTest {
         val expectedDomain = ui.toDomainModel()
 
         val slot = slot<DomainLift>()
-        coEvery { createLiftUseCase(capture(slot)) } just Runs
+        coEvery { createLiftUseCase(capture(slot)) } returns 1
 
         viewModel.handleTopAppBarActionEvent(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmCreateNewLift))
         mainDispatcher.scheduler.advanceUntilIdle()

@@ -158,7 +158,7 @@ class HomeViewModelTest {
     @Test
     fun deleteLiftMetricChart_delegatesToUseCase() = runTest {
         val vm = newViewModel()
-        coEvery { deleteLiftMetricChartByIdUseCase(55L) } just Runs
+        coEvery { deleteLiftMetricChartByIdUseCase(55L) } returns 1
 
         vm.deleteLiftMetricChart(55L)
         mainDispatcher.scheduler.advanceUntilIdle()
@@ -169,7 +169,7 @@ class HomeViewModelTest {
     @Test
     fun deleteVolumeMetricChart_delegatesToUseCase() = runTest {
         val vm = newViewModel()
-        coEvery { deleteVolumeMetricChartByIdUseCase(66L) } just Runs
+        coEvery { deleteVolumeMetricChartByIdUseCase(66L) } returns 1
 
         vm.deleteVolumeMetricChart(66L)
         mainDispatcher.scheduler.advanceUntilIdle()

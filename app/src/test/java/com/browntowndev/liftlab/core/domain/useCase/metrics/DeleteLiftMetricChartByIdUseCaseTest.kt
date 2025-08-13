@@ -25,9 +25,8 @@ class DeleteLiftMetricChartByIdUseCaseTest {
     @BeforeEach
     fun setUp() {
         useCase = DeleteLiftMetricChartByIdUseCase(liftMetricChartsRepository, transactionScope)
-        // Make the transaction scope execute the lambda passed to it
-        coEvery { transactionScope.execute(any()) } coAnswers {
-            val block = it.invocation.args[0] as suspend () -> Unit
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
             block()
         }
     }

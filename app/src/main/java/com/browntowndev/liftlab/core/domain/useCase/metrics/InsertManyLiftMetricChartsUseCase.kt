@@ -8,9 +8,9 @@ class InsertManyLiftMetricChartsUseCase(
     private val liftMetricChartsRepository: LiftMetricChartsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(charts: List<LiftMetricChart>): List<Long> =  transactionScope.executeWithResult {
+    suspend operator fun invoke(charts: List<LiftMetricChart>): List<Long> =  transactionScope.execute {
         // Clear out table of charts with no lifts in case any get stranded somehow
         liftMetricChartsRepository.deleteAllWithNoLifts()
-        return@executeWithResult liftMetricChartsRepository.insertMany(charts)
+        return@execute liftMetricChartsRepository.insertMany(charts)
     }
 }

@@ -20,7 +20,7 @@ class CreateLiftMetricChartsUseCaseTest {
     @BeforeEach
     fun setUp() {
         liftMetricChartsRepository = mockk()
-        transactionScope = mockk()
+        transactionScope = mockk(relaxed = true)
         useCase = CreateLiftMetricChartsUseCase(liftMetricChartsRepository, transactionScope)
     }
 
@@ -32,8 +32,9 @@ class CreateLiftMetricChartsUseCaseTest {
 
         coEvery { liftMetricChartsRepository.getMany(chartIds) } returns initialCharts
         coEvery { liftMetricChartsRepository.upsertMany(any()) } coAnswers { emptyList() }
-        coEvery { transactionScope.execute(any()) } coAnswers {
-            (it.invocation.args[0] as suspend () -> Unit).invoke()
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
+            block()
         }
 
         useCase(chartIds, liftIds)

@@ -149,7 +149,6 @@ class EditWorkoutViewModelTest {
             }
             // invoke the VM's callback (which will call upsertExistingSetResultUseCase internally)
             cb.invoke(domainSet)
-            Unit
         }
 
         coEvery { upsertExistingSetResultUseCase(any(), any(), any()) } returns 99L
@@ -192,7 +191,7 @@ class EditWorkoutViewModelTest {
             cb.invoke(77L)
         }
 
-        coEvery { deleteSetLogEntryByIdUseCase(any()) } just Runs
+        coEvery { deleteSetLogEntryByIdUseCase(any()) } returns 1
 
         vm.undoSetCompletion(liftPosition = 1, setPosition = 2, myoRepSetPosition = null)
         mainDispatcher.scheduler.advanceUntilIdle()

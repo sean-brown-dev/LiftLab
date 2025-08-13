@@ -37,9 +37,8 @@ class RemoveVolumeTypeUseCaseTest {
     fun setUp() {
         liftsRepository = mockk(relaxed = true)
 
-        // Your preferred TransactionScope pattern (value-returning)
         transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.executeWithResult(any<suspend () -> Any?>()) } coAnswers {
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
             val block = firstArg<suspend () -> Any?>()
             block()
         }
@@ -228,7 +227,7 @@ class RemoveVolumeTypeUseCaseTest {
     }
 
     @Test
-    fun `executes inside executeWithResult and returns its value`() = runTest {
+    fun `executes inside execute and returns its value`() = runTest {
         val ab = VolumeType.AB
         val abMask = ab.bitMask
         val primaryMask = 80

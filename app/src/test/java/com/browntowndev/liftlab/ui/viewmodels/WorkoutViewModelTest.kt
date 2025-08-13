@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
@@ -10,7 +11,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetActiveWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutCompletionSummaryUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
@@ -266,7 +266,7 @@ class WorkoutViewModelTest {
     @Test
     fun startWorkout_delegatesAndUpdatesState() = runTest {
         modifyState { it.copy(workout = sampleWorkoutWithTwoLifts()) }
-        coEvery { startWorkoutUseCase(1L) } just runs
+        coEvery { startWorkoutUseCase(1L) } returns 1
 
         viewModel.startWorkout()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -285,7 +285,7 @@ class WorkoutViewModelTest {
             workoutCount = 3
         )
         modifyState { it.copy(programMetadata = program, workout = sampleWorkoutWithTwoLifts()) }
-        coEvery { skipDeloadAndStartWorkoutUseCase(programMetadata = any(), workoutId = 1L) } just runs
+        coEvery { skipDeloadAndStartWorkoutUseCase(programMetadata = any(), workoutId = 1L) } returns 1
 
         viewModel.skipDeloadMicrocycleAndStartWorkout()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -306,7 +306,7 @@ class WorkoutViewModelTest {
         )
         modifyState { it.copy(programMetadata = program, workout = sampleWorkoutWithTwoLifts()) }
         // ensure start is not invoked
-        coEvery { startWorkoutUseCase(any()) } just runs
+        coEvery { startWorkoutUseCase(any()) } returns 1
 
         viewModel.showDeloadPromptOrStartWorkout()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -325,7 +325,7 @@ class WorkoutViewModelTest {
             workoutCount = 3
         )
         modifyState { it.copy(programMetadata = program, workout = sampleWorkoutWithTwoLifts()) }
-        coEvery { startWorkoutUseCase(1L) } just runs
+        coEvery { startWorkoutUseCase(1L) } returns 1
 
         viewModel.showDeloadPromptOrStartWorkout()
         testDispatcher.scheduler.advanceUntilIdle()

@@ -55,9 +55,9 @@ class UpsertExistingSetResultUseCaseTest {
         every { result.toSetLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns setLogEntry
 
         // Make the transaction execute the provided block
-        coEvery { transactionScope.executeWithResult(any<suspend () -> Long>()) } coAnswers {
-            val block = arg<suspend () -> Long>(0)
-            block.invoke()
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
+            block()
         }
     }
 

@@ -25,8 +25,8 @@ class DeleteVolumeMetricChartByIdUseCaseTest {
     @BeforeEach
     fun setUp() {
         useCase = DeleteVolumeMetricChartByIdUseCase(volumeMetricChartsRepository, transactionScope)
-        coEvery { transactionScope.execute(any()) } coAnswers {
-            val block = it.invocation.args[0] as suspend () -> Unit
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
             block()
         }
     }

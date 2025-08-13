@@ -57,9 +57,8 @@ class UpdateVolumeTypeUseCaseTest {
     fun setUp() {
         liftsRepository = mockk(relaxed = true)
 
-        // FIX: value-returning signature; return the block's value
         transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.executeWithResult(any<suspend () -> Any?>()) } coAnswers {
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
             val block = firstArg<suspend () -> Any?>()
             block()
         }

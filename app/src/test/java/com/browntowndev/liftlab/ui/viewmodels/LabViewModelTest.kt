@@ -21,6 +21,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
@@ -251,7 +252,7 @@ class LabViewModelTest {
         val w = makeWorkout(1L, 99L)
         val expectedDomain = w.toDomainModel()
 
-        coEvery { deleteWorkoutUseCase(any()) } just Runs
+        coJustRun { deleteWorkoutUseCase(any()) }
 
         viewModel.deleteWorkout(w)
         mainDispatcher.scheduler.advanceUntilIdle()

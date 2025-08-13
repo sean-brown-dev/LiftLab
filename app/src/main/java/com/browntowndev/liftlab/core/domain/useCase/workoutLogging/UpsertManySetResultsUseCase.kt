@@ -8,7 +8,7 @@ class UpsertManySetResultsUseCase(
     private val setResultsRepository: LiveWorkoutCompletedSetsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(setResults: List<SetResult>): List<Long> = transactionScope.executeWithResult {
+    suspend operator fun invoke(setResults: List<SetResult>): List<Long> = transactionScope.execute {
         setResultsRepository.upsertMany(setResults)
     }
 }

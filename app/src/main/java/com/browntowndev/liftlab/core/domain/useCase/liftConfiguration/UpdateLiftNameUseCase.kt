@@ -16,7 +16,7 @@ class UpdateLiftNameUseCase(
      * @param newName The new name for the lift.
      * @return The updated lift.
      */
-    suspend operator fun invoke(lift: Lift, newName: String): Lift = transactionScope.executeWithResult {
+    suspend operator fun invoke(lift: Lift, newName: String): Lift = transactionScope.execute {
         val liftToUpdate = lift.copy(name = newName)
 
         if (liftToUpdate.id > 0L) {

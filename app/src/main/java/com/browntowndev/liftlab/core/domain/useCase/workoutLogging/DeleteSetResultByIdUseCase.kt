@@ -7,7 +7,7 @@ class DeleteSetResultByIdUseCase(
     private val liveWorkoutCompletedSetsRepository: LiveWorkoutCompletedSetsRepository,
     private val transactionScope: TransactionScope,
 ) {
-    suspend operator fun invoke(id: Long)  = transactionScope.execute {
+    suspend operator fun invoke(id: Long): Int  = transactionScope.execute {
         liveWorkoutCompletedSetsRepository.deleteById(id)
     }
 }

@@ -18,7 +18,7 @@ class UpdateMovementPatternUseCase(
      * @param movementPattern The new movement pattern to set.
      * @return The updated lift.
      */
-    suspend operator fun invoke(lift: Lift, movementPattern: MovementPattern): Lift = transactionScope.executeWithResult {
+    suspend operator fun invoke(lift: Lift, movementPattern: MovementPattern): Lift = transactionScope.execute {
         val volumeTypes = VolumeTypeUtils.getDefaultVolumeTypes(movementPattern)
         val secondaryVolumeTypes = VolumeTypeUtils.getDefaultSecondaryVolumeTypes(movementPattern)
         val updatedLift = lift.copy(

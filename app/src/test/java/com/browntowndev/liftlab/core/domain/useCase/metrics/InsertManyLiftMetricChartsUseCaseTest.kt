@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.core.domain.useCase.metrics
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 import com.browntowndev.liftlab.core.domain.util.TestDefaults
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -31,8 +31,8 @@ class InsertManyLiftMetricChartsUseCaseTest {
     @BeforeEach
     fun setUp() {
         useCase = InsertManyLiftMetricChartsUseCase(liftMetricChartsRepository, transactionScope)
-        coEvery { transactionScope.executeWithResult<List<Long>>(any()) } coAnswers {
-            val block = it.invocation.args[0] as suspend () -> List<Long>
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
+            val block = firstArg<suspend () -> Any?>()
             block()
         }
     }
@@ -50,7 +50,7 @@ class InsertManyLiftMetricChartsUseCaseTest {
         val result = useCase(charts)
 
         assertEquals(expectedIds, result)
-        coVerify(exactly = 1) { transactionScope.executeWithResult(any()) }
+        coVerify(exactly = 1) { transactionScope.execute(any()) }
         coVerify(exactly = 1) { liftMetricChartsRepository.deleteAllWithNoLifts() }
         coVerify(exactly = 1) { liftMetricChartsRepository.insertMany(charts) }
     }

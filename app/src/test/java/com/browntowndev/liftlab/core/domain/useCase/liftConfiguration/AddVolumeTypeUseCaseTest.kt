@@ -32,9 +32,8 @@ class AddVolumeTypeUseCaseTest {
     fun setUp() {
         liftsRepository = mockk(relaxed = true)
 
-        // Your preferred TransactionScope mock pattern (value-returning)
         transactionScope = mockk(relaxed = true)
-        coEvery { transactionScope.executeWithResult(any<suspend () -> Any?>()) } coAnswers {
+        coEvery { transactionScope.execute(any<suspend () -> Any?>()) } coAnswers {
             val block = firstArg<suspend () -> Any?>()
             block()
         }
@@ -143,7 +142,7 @@ class AddVolumeTypeUseCaseTest {
     }
 
     @Test
-    fun `executes inside executeWithResult and returns its value`() = runTest {
+    fun `executes inside execute and returns its value`() = runTest {
         val lift = mockk<Lift>(relaxed = true) {
             every { id } returns 1L
             every { volumeTypesBitmask } returns 0
