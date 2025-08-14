@@ -33,6 +33,7 @@ fun ShimmerSkeletonList(
     LazyColumn(
         modifier = modifier.then(Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .shimmer(shimmerInstance))
     ) {
         items(cardCount) {

@@ -28,8 +28,8 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
@@ -37,7 +37,6 @@ import com.browntowndev.liftlab.ui.composables.ShimmerSkeletonList
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
-import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
@@ -59,7 +58,7 @@ fun Workout(
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     onNavigateToWorkoutHistory: () -> Unit,
-    onNavigateToLiftLibrary: (route: Route.LiftLibrary) -> Unit,
+    onNavigateToLiftLibrary: (workoutId: Long, workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
 ) {
     val durationTimerViewModel: DurationTimerViewModel = koinViewModel()
     val workoutViewModel: WorkoutViewModel = koinViewModel {
@@ -266,12 +265,11 @@ fun Workout(
                 )
             },
             onReplaceLift = { workoutLiftId, movementPattern ->
-                onNavigateToLiftLibrary(Route.LiftLibrary(
-                    callerRouteId = Route.Workout.id,
-                    workoutId = state.workout!!.id,
-                    workoutLiftId = workoutLiftId,
-                    movementPattern = movementPattern.displayName(),
-                ))
+                onNavigateToLiftLibrary(
+                    state.workout!!.id,
+                    workoutLiftId,
+                    movementPattern
+                )
             },
             onNoteChanged = { liftId, note ->
               workoutViewModel.updateNote(liftId = liftId, note = note)
@@ -350,7 +348,7 @@ fun Workout(
         }
     } else if (state.workoutLogVisible) {
         ShimmerSkeletonList(
-            modifier = Modifier.padding(paddingValues).padding(top = 85.dp)
+            modifier = Modifier.padding(paddingValues).padding(top = 82.dp)
         )
     }
 }

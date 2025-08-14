@@ -14,6 +14,7 @@ import androidx.navigation.toRoute
 import arrow.core.left
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.EditWorkoutScreen
@@ -234,8 +235,15 @@ fun NavigationGraph(
                     onNavigateToWorkoutHistory = {
                         navHostController.navigate(WorkoutHistoryScreen.navigation.route)
                     },
-                ) { route ->
-                    navHostController.navigate(route)
+                ) { workoutId, workoutLiftId, movementPattern ->
+                    navHostController.navigate(
+                        Route.LiftLibrary(
+                            callerRouteId = Route.Workout.id,
+                            workoutId = workoutId,
+                            workoutLiftId = workoutLiftId,
+                            movementPattern = movementPattern.displayName()
+                        )
+                    )
                 }
             }
         }
