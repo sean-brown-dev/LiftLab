@@ -1,7 +1,5 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -70,7 +68,6 @@ import org.koin.core.parameter.parametersOf
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkoutBuilder(

@@ -6,9 +6,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -17,7 +14,6 @@ import androidx.navigation.toRoute
 import arrow.core.left
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
-import com.browntowndev.liftlab.core.common.SHOW_WORKOUT_LOG
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
@@ -184,7 +180,7 @@ fun NavigationGraph(
                         navHostController.navigate(liftDetailsRoute)
                     },
                     onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
-                        // Pop back to lab
+                        // Pop back to workout builder
                         navHostController.navigate(Route.Lab) {
                             popUpTo(navHostController.graph.startDestinationRoute!!) {
                                 inclusive = false
@@ -193,12 +189,10 @@ fun NavigationGraph(
                         navHostController.navigate(Route.WorkoutBuilder(workoutId = workoutBuilderWorkoutId))
                     },
                     onNavigateToActiveWorkout = {
-                        // Pop back to lab
-                        navHostController.navigate(Route.Workout(showLog = true)) {
-                            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                                inclusive = true
-                            }
-                        }
+                        navHostController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("liftLibraryResult", true)
+                        navHostController.popBackStack()
                     },
                 )
             }
@@ -237,30 +231,15 @@ fun NavigationGraph(
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
-                var showLog by remember(backstackEntry.id) {
-                    mutableStateOf(
-                        value = navHostController.currentBackStackEntry?.savedStateHandle?.get(
-                            SHOW_WORKOUT_LOG
-                        ) ?: backstackEntry.toRoute<Route.Workout>().showLog ?: false
-                    )
-                }
-                navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                    SHOW_WORKOUT_LOG,
-                    false
-                )
-
                 LaunchedEffect(key1 = navHostController.currentBackStackEntry) {
                     onSetScreen(WorkoutScreen())
-                    if (navHostController.currentBackStackEntry?.id != backstackEntry.id) {
-                        showLog = false
-                    }
                 }
 
                 Workout(
+                    navHostController = navHostController,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
                     snackbarHostState = snackbarHostState,
-                    showLog = showLog,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(

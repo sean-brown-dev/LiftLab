@@ -45,7 +45,6 @@ import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @ExperimentalFoundationApi
 @Composable
 fun ReorderableLazyColumn(

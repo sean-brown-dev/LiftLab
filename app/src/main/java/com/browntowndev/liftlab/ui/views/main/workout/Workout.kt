@@ -1,8 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +12,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -23,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastMap
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
@@ -47,16 +50,16 @@ import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
 import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.flow.distinctUntilChanged
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Workout(
+    navHostController: NavHostController,
     paddingValues: PaddingValues,
     screenId: String?,
-    showLog: Boolean,
     snackbarHostState: SnackbarHostState,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
@@ -74,71 +77,78 @@ fun Workout(
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by durationTimerViewModel.state.collectAsState()
 
-    LaunchedEffect(key1 = showLog) {
-        if (showLog) {
-            workoutViewModel.setWorkoutLogVisibility(true)
-        }
-    }
-
     workoutViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutViewModel)
     SnackbarProvider(snackbarHostState, workoutViewModel.userMessages)
 
-    LaunchedEffect(key1 = state.workout, key2 = state.workoutLogVisible, key3 = state.initialized) {
-        if (state.workout != null) {
-            if (!state.workoutLogVisible) {
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(
-                        Screen.TITLE,
-                        state.workout!!.name.left()
-                    )
-                )
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(
-                        Screen.SUBTITLE,
-                        ("Mesocycle: ${state.programMetadata!!.currentMesocycle + 1} " +
-                                "Microcycle: ${state.programMetadata!!.currentMicrocycle + 1}").left()
-                    )
-                )
-            } else {
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(
-                        Screen.TITLE,
-                        "".left()
-                    )
-                )
-                mutateTopAppBarControlValue(
-                    AppBarMutateControlRequest(
-                        Screen.SUBTITLE,
-                        "".left()
-                    )
-                )
-            }
 
-            setTopAppBarCollapsed(state.workoutLogVisible)
-            setBottomNavBarVisibility(!state.workoutLogVisible)
-            setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, state.workoutLogVisible)
-            setTopAppBarControlVisibility(REST_TIMER, state.workoutLogVisible)
-
-            if (!state.inProgress) {
-                durationTimerViewModel.stop()
-            }
-        } else if (state.initialized) {
-            mutateTopAppBarControlValue(
-                AppBarMutateControlRequest(
-                    Screen.TITLE,
-                    "Workout".left()
-                )
-            )
-            mutateTopAppBarControlValue(
-                AppBarMutateControlRequest(
-                    Screen.SUBTITLE,
-                    "".left()
-                )
-            )
-            setBottomNavBarVisibility(true)
-        }
+    val savedStateHandle = remember(navHostController) {
+        navHostController.currentBackStackEntry!!.savedStateHandle
     }
+
+    // Read current value synchronously for the first frame
+    val initialReturning = remember(savedStateHandle) {
+        savedStateHandle.get<Boolean>("liftLibraryResult") == true
+    }
+
+    // Now build a flow that starts with that synchronous value
+    val navFromLiftLibrary by savedStateHandle
+        .getStateFlow("liftLibraryResult", initialReturning)   // <-- seed with initialReturning, not false
+        .collectAsStateWithLifecycle()
+
+    var prevWorkoutId: Long? by remember { mutableStateOf(null) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { Triple(state.workout?.id, state.workoutLogVisible, state.initialized) }
+            .distinctUntilChanged()
+            .collect { (workoutId, logVisible, initialized) ->
+
+                // Clear the return flag only AFTER a workout arrives
+                if (navFromLiftLibrary && workoutId != null) {
+                    savedStateHandle["liftLibraryResult"] = false
+                }
+
+                // HOLD: returning and waiting
+                val holding = navFromLiftLibrary && workoutId == null
+                if (holding) return@collect
+
+                // ---------- Controls ----------
+                setTopAppBarCollapsed(logVisible)
+                setBottomNavBarVisibility(!logVisible)
+                setTopAppBarControlVisibility(Screen.NAVIGATION_ICON, logVisible)
+                setTopAppBarControlVisibility(REST_TIMER, logVisible)
+                if (!state.inProgress) durationTimerViewModel.stop()
+
+                // Require TWO consecutive nulls before showing the default header
+                val nullPersisted = (workoutId == null && prevWorkoutId == null)
+
+                when {
+                    initialized && nullPersisted -> {
+                        // Only hit after two null emissions → stable “no workout”
+                        mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, "Workout".left()))
+                        mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "".left()))
+                        setBottomNavBarVisibility(true)
+                    }
+                    !logVisible && workoutId != null -> {
+                        mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, state.workout!!.name.left()))
+                        mutateTopAppBarControlValue(
+                            AppBarMutateControlRequest(
+                                Screen.SUBTITLE,
+                                ("Mesocycle: ${state.programMetadata!!.currentMesocycle + 1} " +
+                                        "Microcycle: ${state.programMetadata!!.currentMicrocycle + 1}").left()
+                            )
+                        )
+                    }
+                    else -> {
+                        mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.TITLE, "".left()))
+                        mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "".left()))
+                    }
+                }
+
+                // update for next tick
+                prevWorkoutId = workoutId
+            }
+    }
+
 
     LaunchedEffect(key1 = state.startTime, key2 = timerState.running) {
         if (state.startTime != null && !timerState.running) {
@@ -372,7 +382,7 @@ fun Workout(
                 }
             }
         }
-    } else if (state.workoutLogVisible) {
+    } else if (state.workoutLogVisible || navFromLiftLibrary) {
         ShimmerSkeletonList(
             modifier = Modifier.padding(paddingValues).padding(top = 20.dp),
             cardCount = 5,
