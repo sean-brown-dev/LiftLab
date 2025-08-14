@@ -45,6 +45,13 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 
+/**
+ * Rounds a float to one decimal place.
+ *
+ * @return The rounded float.
+ */
+fun Float.roundToOneDecimal(): Float = (this * 10f).roundToInt() / 10f
+
 fun Float.toTwoDecimalString(): String {
     val numberFormat = NumberFormat.getNumberInstance()
     numberFormat.maximumFractionDigits = 2

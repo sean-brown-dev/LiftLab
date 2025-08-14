@@ -4,8 +4,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.work.WorkManager
 import com.browntowndev.liftlab.core.data.common.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.remote.FirestoreClient
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.browntowndev.liftlab.core.data.remote.FirestoreClientImpl
 import com.browntowndev.liftlab.core.data.remote.FirestoreRemoteDataClient
 import com.browntowndev.liftlab.core.data.remote.RemoteDataClient
@@ -26,6 +24,8 @@ import com.browntowndev.liftlab.core.data.remote.repositories.WorkoutInProgressS
 import com.browntowndev.liftlab.core.data.remote.repositories.WorkoutLiftsSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.WorkoutLogEntriesSyncRepository
 import com.browntowndev.liftlab.core.data.remote.repositories.WorkoutsSyncRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -33,7 +33,7 @@ import org.koin.dsl.module
 val syncModule = module {
     single { FirebaseAuth.getInstance() }
     single { FirebaseFirestore.getInstance() }
-    single<FirestoreClient> { FirestoreClientImpl(get(), get()) }
+    single<FirestoreClient> { FirestoreClientImpl(get(), get(), get(AppScope)) }
     single { WorkManager.getInstance(get()) }
     single<SyncScheduler> {
         WorkManagerSyncScheduler(get())

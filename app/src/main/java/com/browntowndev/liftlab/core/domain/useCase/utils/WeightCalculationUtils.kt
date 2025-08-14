@@ -1,9 +1,9 @@
 package com.browntowndev.liftlab.core.domain.useCase.utils
 
 import android.util.Log
-import com.browntowndev.liftlab.core.common.Utils.General.Companion.roundToOneDecimal
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.roundDownToNearestFactor
+import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import kotlin.math.ceil
 import kotlin.math.exp
 import kotlin.math.floor

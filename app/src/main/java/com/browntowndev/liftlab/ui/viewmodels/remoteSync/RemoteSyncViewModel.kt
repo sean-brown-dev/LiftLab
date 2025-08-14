@@ -7,14 +7,20 @@ import com.browntowndev.liftlab.core.data.remote.SyncOrchestrator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class RemoteSyncViewModel(
     private val syncOrchestrator: SyncOrchestrator,
+    private val isOnlineFlow: Flow<Boolean>,
+    private val isLoggedInFlow: Flow<Boolean>,
 ): ViewModel() {
     companion object {
         private const val TAG = "RemoteSyncViewModel"
@@ -22,6 +28,15 @@ class RemoteSyncViewModel(
 
     private val _syncState = MutableStateFlow(RemoteSyncState())
     val syncState = _syncState.asStateFlow()
+
+    suspend fun awaitSyncReady(
+        maxWaitMs: Long = 2500L, // tweak: 1500–3000ms feels snappy
+    ): Boolean = withTimeoutOrNull(maxWaitMs) {
+        Log.d(TAG, "Waiting until sync is ready.")
+        combine(isOnlineFlow, isLoggedInFlow) { online, loggedIn ->
+            online && loggedIn
+        }.first { it }
+    } ?: false
 
     suspend fun syncAllSuspending() {
         _syncState.update {
@@ -32,6 +47,11 @@ class RemoteSyncViewModel(
         }
 
         try {
+            if(!awaitSyncReady()) {
+                Log.d(TAG, "Skipping sync. User is either not online or not logged in.")
+                return
+            }
+
             Log.d(TAG, "Syncing all")
             retryWithBackoff {
                 syncOrchestrator.syncFromThenToRemote()

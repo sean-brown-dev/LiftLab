@@ -3,8 +3,8 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.Utils.General.Companion.roundToOneDecimal
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
+import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs

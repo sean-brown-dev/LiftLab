@@ -7,11 +7,9 @@ import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
 import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
@@ -229,54 +227,6 @@ class SyncOrchestratorTest {
     }
 
     // -------------------- syncFromThenToRemote --------------------
-
-    @Test
-    fun `syncFromThenToRemote - retries canSync up to 3 times then proceeds`() = runTest {
-        // false, false, true -> proceed
-        every { remoteDataClient.canSync } returnsMany listOf(false, false, true)
-
-        // Minimal plumbing for download+upload
-        // download: no metadata for A,B -> start at epoch
-        coEvery { syncMetadataRepository.get(any()) } returns null
-        // getAllSince emits two chunks for A and one for B
-        val newerA1 = remoteDto("a1", Date(10), deleted = false)
-        val newerA2 = remoteDto("a2", Date(20), deleted = false)
-        val flowA = listOf(listOf(newerA1), listOf(newerA2)).asFlow()
-        val flowB = flowOf(emptyList<BaseRemoteDto>())
-
-        every { repoA.collectionName } returns "A"
-        every { repoB.collectionName } returns "B"
-        every { remoteDataClient.getAllSinceFlow("A", any()) } returns flowA
-        every { remoteDataClient.getAllSinceFlow("B", any()) } returns flowB
-
-        // Locals: nothing existing, so both remotes are strictly newer and should be upserted
-        coEvery { repoA.getManyByRemoteId(listOf("a1")) } returns emptyList()
-        coEvery { repoA.getManyByRemoteId(listOf("a2")) } returns emptyList()
-        coEvery { repoA.upsertMany(listOf(newerA1)) } returns listOf(1L)
-        coEvery { repoA.upsertMany(listOf(newerA2)) } returns listOf(2L)
-
-        // upload: nothing to do
-        coEvery { repoA.getAllUnsynced() } returns emptyList()
-        coEvery { repoB.getAllUnsynced() } returns emptyList()
-
-        // metadata upsert capture
-        val metas = mutableListOf<SyncMetadataDto>()
-        coEvery { syncMetadataRepository.upsert(capture(metas)) } just Runs
-
-        orchestrator.syncFromThenToRemote(syncAllFromRemote = false)
-
-        // Both download chunks applied
-        coVerify { repoA.upsertMany(listOf(newerA1)) }
-        coVerify { repoA.upsertMany(listOf(newerA2)) }
-
-        // Metadata updated to the LATEST date seen (20 for A; epoch for B)
-        val metaA = metas[0]
-        val metaB = metas[1]
-        assertEquals("A", metaA.collectionName)
-        assertEquals(Date(20), metaA.lastSyncTimestamp)
-        assertEquals("B", metaB.collectionName)
-        assertEquals(Date(0), metaB.lastSyncTimestamp)
-    }
 
     @Test
     fun `syncFromThenToRemote - returns early when canSync remains false after retries`() =

@@ -1,12 +1,14 @@
 package com.browntowndev.liftlab.core.common
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 import java.util.Date
-import kotlin.math.roundToInt
 
 class Utils {
     sealed class General {
@@ -27,12 +29,13 @@ class Utils {
                 return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
             }
 
-            /**
-             * Rounds a float to one decimal place.
-             *
-             * @return The rounded float.
-             */
-            fun Float.roundToOneDecimal(): Float = (this * 10f).roundToInt() / 10f
+            fun isOnlineNow(context: Context): Boolean {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val network = cm.activeNetwork ?: return false
+                val caps = cm.getNetworkCapabilities(network) ?: return false
+                return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            }
         }
     }
 

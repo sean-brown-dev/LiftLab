@@ -1,10 +1,11 @@
 package com.browntowndev.liftlab.dependencyInjection
 
+import com.browntowndev.liftlab.core.common.NetworkMonitor
+import com.browntowndev.liftlab.core.data.remote.FirestoreClient
+import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.timer.CountdownTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.donation.DonationViewModel
-import com.browntowndev.liftlab.ui.viewmodels.timer.DurationTimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.home.HomeViewModel
 import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
 import com.browntowndev.liftlab.ui.viewmodels.liftDetails.LiftDetailsViewModel
@@ -13,10 +14,11 @@ import com.browntowndev.liftlab.ui.viewmodels.picker.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.remoteSync.RemoteSyncViewModel
 import com.browntowndev.liftlab.ui.viewmodels.settings.SettingsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.startup.StartupViewModel
-import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
-import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.timer.CountdownTimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.timer.DurationTimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -149,12 +151,20 @@ val viewModelModule = module {
             eventBus = get()
         )
     }
+    factory {
+        val isLoggedInFlow = get<FirestoreClient>().isUserLoggedInFlow
+        val isOnlineFlow = get<NetworkMonitor>().isOnlineFlow
+        RemoteSyncViewModel(
+            syncOrchestrator = get(),
+            isOnlineFlow = isOnlineFlow,
+            isLoggedInFlow = isLoggedInFlow,
+        )
+    }
 
     viewModelOf(::DonationViewModel)
     viewModelOf(::LabViewModel)
     viewModelOf(::TopAppBarViewModel)
     viewModelOf(::BottomNavBarViewModel)
     viewModelOf(::PickerViewModel)
-    viewModelOf(::RemoteSyncViewModel)
     viewModelOf(::StartupViewModel)
 }
