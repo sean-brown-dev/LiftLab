@@ -38,9 +38,9 @@ import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.verticalScrollbar
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.ui.models.controls.Route
-import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.liftLibrary.LiftLibraryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 

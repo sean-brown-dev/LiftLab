@@ -19,7 +19,9 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNot
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
-import com.browntowndev.liftlab.ui.viewmodels.states.workout.WorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.workout.BaseWorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify

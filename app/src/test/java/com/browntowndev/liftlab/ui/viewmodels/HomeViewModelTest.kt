@@ -9,6 +9,7 @@ import com.browntowndev.liftlab.core.domain.useCase.metrics.GetConfiguredMetrics
 import com.browntowndev.liftlab.core.domain.useCase.metrics.InsertManyLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.UpsertManyVolumeMetricChartsUseCase
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
+import com.browntowndev.liftlab.ui.viewmodels.home.HomeViewModel
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult

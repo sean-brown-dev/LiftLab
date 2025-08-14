@@ -16,7 +16,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateW
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.LabState
+import com.browntowndev.liftlab.ui.viewmodels.lab.LabState
+import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs

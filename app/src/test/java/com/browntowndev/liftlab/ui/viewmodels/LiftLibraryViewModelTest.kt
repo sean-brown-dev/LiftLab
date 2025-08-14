@@ -10,7 +10,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateW
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
-import com.browntowndev.liftlab.ui.viewmodels.states.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.liftLibrary.LiftLibraryState
+import com.browntowndev.liftlab.ui.viewmodels.liftLibrary.LiftLibraryViewModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs

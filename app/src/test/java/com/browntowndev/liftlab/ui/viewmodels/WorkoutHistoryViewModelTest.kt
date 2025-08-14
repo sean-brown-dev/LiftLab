@@ -9,7 +9,8 @@ import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.DA
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.PROGRAM
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutHistoryState
+import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryState
+import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.coVerify

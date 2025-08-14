@@ -20,9 +20,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.ui.notifications.NotificationHelper
-import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
-import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
-import com.browntowndev.liftlab.ui.viewmodels.StartupViewModel
+import com.browntowndev.liftlab.ui.viewmodels.donation.DonationViewModel
+import com.browntowndev.liftlab.ui.viewmodels.remoteSync.RemoteSyncViewModel
+import com.browntowndev.liftlab.ui.viewmodels.startup.StartupViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinExperimentalAPI

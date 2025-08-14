@@ -15,7 +15,8 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateVolu
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workout.LiftUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.LiftDetailsState
+import com.browntowndev.liftlab.ui.viewmodels.liftDetails.LiftDetailsState
+import com.browntowndev.liftlab.ui.viewmodels.liftDetails.LiftDetailsViewModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs

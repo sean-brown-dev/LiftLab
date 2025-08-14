@@ -23,9 +23,9 @@ import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi

@@ -39,11 +39,11 @@ import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
-import com.browntowndev.liftlab.ui.viewmodels.DurationTimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen.Companion.REST_TIMER
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutScreen.Companion.BACK_NAVIGATION_ICON
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutScreen.Companion.REST_TIMER
+import com.browntowndev.liftlab.ui.viewmodels.timer.DurationTimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf

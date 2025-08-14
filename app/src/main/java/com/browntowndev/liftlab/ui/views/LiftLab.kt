@@ -27,9 +27,9 @@ import com.browntowndev.liftlab.ui.composables.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.LiftLabSnackbar
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
-import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
+import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.donation.DonationState
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
 import com.browntowndev.liftlab.ui.views.navigation.NavigationGraph

@@ -24,8 +24,8 @@ import com.browntowndev.liftlab.ui.models.workout.MyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
-import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutBuilderState
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs

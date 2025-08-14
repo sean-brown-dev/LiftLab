@@ -16,17 +16,17 @@ import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.Route
-import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.EditWorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftDetailsScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.SettingsScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutBuilderScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutHistoryScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.donation.DonationState
 import com.browntowndev.liftlab.ui.views.main.home.Home
 import com.browntowndev.liftlab.ui.views.main.home.Settings
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
@@ -161,15 +161,7 @@ fun NavigationGraph(
                         )
                     },
                     onNavigateHome = {
-                        // Pop back to the start destination
-                        navHostController.navigate(navHostController.graph.startDestinationRoute!!) {
-                            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                                inclusive = true
-                            }
-                        }
-
-                        // Go back to Home
-                        navHostController.navigate(Route.Home)
+                        navHostController.popBackStack()
                     },
                     onNavigateToLiftDetails = { liftId ->
                         val liftDetailsRoute = if (liftId != null)
@@ -180,13 +172,7 @@ fun NavigationGraph(
                         navHostController.navigate(liftDetailsRoute)
                     },
                     onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
-                        // Pop back to workout builder
-                        navHostController.navigate(Route.Lab) {
-                            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                                inclusive = false
-                            }
-                        }
-                        navHostController.navigate(Route.WorkoutBuilder(workoutId = workoutBuilderWorkoutId))
+                        navHostController.popBackStack()
                     },
                     onNavigateToActiveWorkout = {
                         navHostController.popBackStack()

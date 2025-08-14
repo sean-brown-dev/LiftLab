@@ -52,7 +52,7 @@ import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
 import com.browntowndev.liftlab.ui.composables.SectionLabel
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.TimeSelectionSpinner
-import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
+import com.browntowndev.liftlab.ui.viewmodels.settings.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.DurationUnit

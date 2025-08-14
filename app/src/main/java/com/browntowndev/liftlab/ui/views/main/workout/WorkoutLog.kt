@@ -50,8 +50,8 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.ui.composables.RpeKeyboard
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
-import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
+import com.browntowndev.liftlab.ui.viewmodels.picker.PickerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration
 

@@ -17,6 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,9 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,13 +38,12 @@ import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.composables.EmptyChartPlaceholder
 import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.RowMultiSelect
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
-import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import androidx.compose.material3.Text
-import com.browntowndev.liftlab.ui.composables.SnackbarProvider
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.home.HomeViewModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel

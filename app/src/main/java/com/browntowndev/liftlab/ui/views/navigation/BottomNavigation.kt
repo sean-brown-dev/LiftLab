@@ -26,10 +26,10 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.browntowndev.liftlab.ui.models.controls.BottomNavItem
 import com.browntowndev.liftlab.ui.models.controls.Route
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutScreen
 
 @ExperimentalFoundationApi
 @Composable

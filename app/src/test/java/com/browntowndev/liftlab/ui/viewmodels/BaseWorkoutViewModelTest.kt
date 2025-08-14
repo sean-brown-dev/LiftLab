@@ -9,7 +9,8 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetComple
 import com.browntowndev.liftlab.ui.models.workoutLogging.ActiveProgramMetadataUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.workout.WorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.workout.BaseWorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs

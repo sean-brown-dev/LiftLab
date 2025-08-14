@@ -29,8 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.composables.ProgressCountdownTimer
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
