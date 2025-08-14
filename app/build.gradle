@@ -7,8 +7,12 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
+    id 'tech.apter.junit5.jupiter.robolectric-extension-gradle-plugin'
+    id 'jacoco'
 }
-
+jacoco {
+    toolVersion = "0.8.11"
+}
 android {
     namespace = 'com.browntowndev.liftlab'
     compileSdk = 36
@@ -69,6 +73,7 @@ android {
         unitTests {
             // return default values for any un‑mocked android.* calls
             returnDefaultValues = true
+            includeAndroidResources= true
 
             // configure *all* Test tasks for unit tests
             all { Test testTask ->
@@ -76,6 +81,10 @@ android {
                 testTask.jvmArgs += '-XX:+EnableDynamicAgentLoading'
                 // enable JUnit‑5 discovery
                 testTask.useJUnitPlatform()
+
+                // Use jacaco for coverage so it works with Robolectric
+                jacoco.includeNoLocationClasses = true
+                jacoco.excludes = ['jdk.internal.*']
             }
         }
     }
@@ -204,6 +213,8 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     testImplementation("app.cash.turbine:turbine:1.2.1")
+    testImplementation("org.robolectric:robolectric:4.15.1")
+    testImplementation("androidx.test:core:1.7.0") // ApplicationProvider
 
     // --- To run old JUnit 4 tests temporarily, uncomment below: ---
     // testImplementation 'junit:junit:4.13.2'

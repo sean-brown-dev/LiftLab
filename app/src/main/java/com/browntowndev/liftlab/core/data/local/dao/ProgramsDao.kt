@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProgramsDao: BaseDao<ProgramEntity> {
+    @Transaction
     @Query("SELECT * FROM programs WHERE synced = 0")
     suspend fun getAllUnsynced(): List<ProgramWithRelationshipsDto>
 
@@ -39,6 +40,7 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
     @Query("SELECT * FROM programs WHERE deleted = 0")
     fun getAllFlow(): Flow<List<ProgramWithRelationshipsDto>>
 
+    @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id AND deleted = 0")
     suspend fun get(id: Long) : ProgramWithRelationshipsDto?
 
@@ -69,12 +71,15 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
     @Query("UPDATE programs SET deleted = 1, synced = 0 WHERE program_id IN (:ids)")
     suspend fun softDeleteMany(ids: List<Long>): Int
 
+    @Transaction
     @Query("SELECT * FROM programs WHERE remoteId = :remoteId")
     suspend fun getByRemoteId(remoteId: String): ProgramWithRelationshipsDto?
 
+    @Transaction
     @Query("SELECT * FROM programs WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<ProgramWithRelationshipsDto>
 
+    @Transaction
     @Query("""
         SELECT * FROM programs
         WHERE deleted = 0
@@ -83,6 +88,7 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
     """)
     fun getNewest(): ProgramWithRelationshipsDto?
 
+    @Transaction
     @Query("""
         SELECT * FROM programs
         WHERE deleted = 0 AND 

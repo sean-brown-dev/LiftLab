@@ -20,7 +20,6 @@ import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.core.module.dsl.viewModelOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val viewModelModule = module {
@@ -114,11 +113,11 @@ val viewModelModule = module {
     }
     factory { params ->
         CountdownTimerViewModel(
-            liftLabTimer = get(named("CountdownTimer")),
+            liftLabTimer = get(CountdownTimer),
             onComplete = params.get())
     }
     factory {
-        DurationTimerViewModel(liftLabTimer = get(named("DurationTimer")))
+        DurationTimerViewModel(liftLabTimer = get(DurationTimer))
     }
     factory { params ->
         HomeViewModel(

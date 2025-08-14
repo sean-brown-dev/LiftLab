@@ -30,7 +30,6 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Query("SELECT * FROM workouts WHERE workout_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<WorkoutWithRelationships>
 
-    @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id IN (:ids) AND deleted = 0")
     suspend fun getManyWithoutRelationships(ids: List<Long>): List<WorkoutEntity>
 

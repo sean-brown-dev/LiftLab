@@ -8,7 +8,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,6 +20,8 @@ import com.browntowndev.liftlab.core.common.MAX_TIME_IN_WHOLE_MILLISECONDS
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.getCurrentDate
 import com.browntowndev.liftlab.core.common.toTimeString
+import com.browntowndev.liftlab.core.coroutines.AppDispatchers
+import com.browntowndev.liftlab.dependencyInjection.DurationTimer
 import com.browntowndev.liftlab.ui.utils.ActiveWorkoutNotification.RETURN_TO_WORKOUT_REQUEST_CODE
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +31,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
-import org.koin.core.qualifier.named
 
 class ActiveWorkoutNotificationService : Service() {
     companion object {
@@ -40,9 +40,10 @@ class ActiveWorkoutNotificationService : Service() {
     }
 
     private var nextSet: String = ""
-    private val durationTimer: LiftLabTimer by inject(named("DurationTimer"))
+    private val durationTimer: LiftLabTimer by inject(DurationTimer)
     private val notificationHelper: NotificationHelper by inject()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob() + CoroutineName("ActiveWorkoutNotification"))
+    private val dispatchers: AppDispatchers by inject() // <-- Inject the dispatcher for testing
+    private val coroutineScope = CoroutineScope(dispatchers.io + SupervisorJob() + CoroutineName("ActiveWorkoutNotification"))
     private val notificationManager: NotificationManager by lazy {
         getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     }
@@ -76,16 +77,12 @@ class ActiveWorkoutNotificationService : Service() {
         super.onCreate()
 
         createNotificationChannel()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            ServiceCompat.startForeground(
-                this,
-                NOTIFICATION_ID,
-                notificationBuilder.build(),
-                FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, notificationBuilder.build())
-        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ID,
+            notificationBuilder.build(),
+            FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
