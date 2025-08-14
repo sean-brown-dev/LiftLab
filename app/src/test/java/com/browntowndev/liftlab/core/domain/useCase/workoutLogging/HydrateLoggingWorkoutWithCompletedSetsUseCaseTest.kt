@@ -92,6 +92,19 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             hadInitialWeightRecommendation = false,
             previousSetResultLabel = ""
         )
+        val setResultForLastCompleted = StandardSetResult(
+            id = 1L,
+            workoutId = 1L,
+            liftPosition = 0,
+            setPosition = 0,
+            liftId = 101L,
+            weight = 100f,
+            reps = 6,
+            rpe = 8.5f,
+            persistedOneRepMax = null,
+            setType = SetType.STANDARD,
+            isDeload = false,
+        )
         val dropSet = LoggingDropSet(
             position = 1,
             dropPercentage = 0.20f, // 20% drop
@@ -115,7 +128,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When: no new set results; hydrator should calculate next-set recommendation
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
         val next = result.first().sets[1] as LoggingDropSet
 
         // Then: (100 * (1 - 0.2)) rounded to 2.5 → 80.0
@@ -135,6 +148,19 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             completedReps = 5,               // raw reps
             completedRpe = 10f,              // RPE 10 → adjustedCompleted = 5
             repRangePlaceholder = "8-10", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val setResultForLastCompleted = StandardSetResult(
+            id = 1L,
+            workoutId = 1L,
+            liftPosition = 0,
+            setPosition = 0,
+            liftId = 101L,
+            weight = 100f,
+            reps = 5,
+            rpe = 10f,
+            persistedOneRepMax = null,
+            setType = SetType.STANDARD,
+            isDeload = false,
         )
         val nextStandard = LoggingStandardSet(
             position = 1,
@@ -164,7 +190,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
         val updated = result.first().sets[1] as LoggingStandardSet
 
         // Then
@@ -181,9 +207,22 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             repRangeBottom = 6, repRangeTop = 8, rpeTarget = 8f,
             complete = true,
             completedWeight = 80f,
-            completedReps = 12,             // raw reps
-            completedRpe = 10f,             // adjustedCompleted = 12
+            completedReps = 9,             // raw reps
+            completedRpe = 6f,             // adjustedCompleted = 12
             repRangePlaceholder = "6-8", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val setResultForLastCompleted = StandardSetResult(
+            id = 1L,
+            workoutId = 1L,
+            liftPosition = 0,
+            setPosition = 0,
+            liftId = 201L,
+            weight = 80f,
+            reps = 9,
+            rpe = 6f,
+            persistedOneRepMax = null,
+            setType = SetType.STANDARD,
+            isDeload = false,
         )
         val nextStandard = LoggingStandardSet(
             position = 1,
@@ -205,15 +244,15 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         // Expected: repGoal should be repRangeBottom (6) to push weight up
         val expected = WeightCalculationUtils.calculateSuggestedWeight(
             completedWeight = 80f,
-            completedReps = 12,
-            completedRpe = 10f,
+            completedReps = 9,
+            completedRpe = 6f,
             repGoal = 6,
             rpeGoal = 8f,
             roundingFactor = incrementOverride
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
         val updated = result.first().sets[1] as LoggingStandardSet
 
         // Then
@@ -234,6 +273,19 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             completedReps = 8,     // raw reps
             completedRpe = 10f,    // adjustedCompleted = 8
             repRangePlaceholder = "7-9", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val setResultForLastCompleted = StandardSetResult(
+            id = 1L,
+            workoutId = 1L,
+            liftPosition = 0,
+            setPosition = 0,
+            liftId = 301L,
+            weight = 90f,
+            reps = 8,
+            rpe = 10f,
+            persistedOneRepMax = null,
+            setType = SetType.STANDARD,
+            isDeload = false,
         )
         // New set changes bottom (or RPE) but not top-only
         val nextStandard = LoggingStandardSet(
@@ -266,7 +318,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
         val updated = result.first().sets[1] as LoggingStandardSet
 
         // Then

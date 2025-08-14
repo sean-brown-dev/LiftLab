@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
@@ -52,6 +53,7 @@ class WorkoutViewModelTest {
 
     // Use cases & deps
     @RelaxedMockK lateinit var getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase
+    @RelaxedMockK lateinit var getActiveProgramWorkoutCountFlowUseCase: GetActiveProgramWorkoutCountFlowUseCase
     @RelaxedMockK lateinit var hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase
     @RelaxedMockK lateinit var getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase
     @RelaxedMockK lateinit var reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase
@@ -90,6 +92,7 @@ class WorkoutViewModelTest {
 
         viewModel = WorkoutViewModel(
             getActiveWorkoutStateFlowUseCase = getActiveWorkoutStateFlowUseCase,
+            getActiveProgramWorkoutCountFlowUseCase = getActiveProgramWorkoutCountFlowUseCase,
             hydrateLoggingWorkoutWithExistingLiftDataUseCase = hydrateLoggingWorkoutWithExistingLiftDataUseCase,
             getWorkoutCompletionSummaryUseCase = getWorkoutCompletionSummaryUseCase,
             reorderWorkoutLiftsUseCase = reorderWorkoutLiftsUseCase,
