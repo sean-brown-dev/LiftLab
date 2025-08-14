@@ -33,13 +33,25 @@ class LiveWorkoutCompletedSetsRepositoryImpl(
     }
 
     override suspend fun update(model: SetResult) {
-        val toUpdate = model.toEntity()
+        val current = liveWorkoutCompletedSetsDao.get(model.id) ?: return
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.remoteLastUpdated,
+            synced = false
+        )
         liveWorkoutCompletedSetsDao.update(toUpdate)
         syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<SetResult>) {
-        val toUpdate = models.map { it.toEntity() }
+        val existingById = liveWorkoutCompletedSetsDao.getMany(models.map { it.id }).associateBy { it.id }
+        val toUpdate = models.map {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false
+            )
+        }
         liveWorkoutCompletedSetsDao.updateMany(toUpdate)
         syncScheduler.scheduleSync()
     }

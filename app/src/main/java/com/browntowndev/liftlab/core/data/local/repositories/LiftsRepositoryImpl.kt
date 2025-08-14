@@ -1,15 +1,15 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
+import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.domain.models.workout.Lift
-import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
-import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
-import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metadata.LiftMetadata
+import com.browntowndev.liftlab.core.domain.models.workout.Lift
+import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration
@@ -114,7 +114,14 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun updateMany(models: List<Lift>) {
-        val entities = models.fastMap { it.toEntity() }
+        val existingById = liftsDao.getMany(models.map { it.id }).associateBy { it.id }
+        val entities = models.fastMap {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false,
+            )
+        }
         liftsDao.updateMany(entities)
         syncScheduler.scheduleSync()
     }
@@ -133,7 +140,14 @@ class LiftsRepositoryImpl(
     }
 
     override suspend fun upsertMany(models: List<Lift>): List<Long> {
-        val entities = models.map { it.toEntity() }
+        val existingById = liftsDao.getMany(models.map { it.id }).associateBy { it.id }
+        val entities = models.map {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false,
+            )
+        }
         val upsertResultIds = liftsDao.upsertMany(entities)
         val entityIds = entities.zip(upsertResultIds).fastMap { (entity, id) ->
             if (id == -1L) entity else entity.copy(id = id)

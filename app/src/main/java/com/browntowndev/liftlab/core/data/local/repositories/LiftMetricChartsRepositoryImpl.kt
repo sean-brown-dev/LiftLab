@@ -1,12 +1,12 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
-import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
-import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao
+import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
+import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -118,21 +118,31 @@ class LiftMetricChartsRepositoryImpl(
     }
 
     override suspend fun update(model: LiftMetricChart) {
+        val existing = liftMetricChartsDao.get(model.id) ?: return
         val entity = LiftMetricChartEntity(
             id = model.id,
             liftId = model.liftId,
-            chartType = model.chartType
+            chartType = model.chartType,
+        ).applyRemoteStorageMetadata(
+            remoteId = existing.remoteId,
+            remoteLastUpdated = existing.remoteLastUpdated,
+            synced = false,
         )
         liftMetricChartsDao.update(entity)
         syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<LiftMetricChart>) {
+        val existingById = liftMetricChartsDao.getMany(models.map { it.id }).associateBy { it.id }
         val entities = models.map {
             LiftMetricChartEntity(
                 id = it.id,
                 liftId = it.liftId,
                 chartType = it.chartType
+            ).applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false,
             )
         }
         liftMetricChartsDao.updateMany(entities)

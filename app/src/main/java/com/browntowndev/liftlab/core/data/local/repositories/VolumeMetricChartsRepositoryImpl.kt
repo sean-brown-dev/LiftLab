@@ -146,21 +146,31 @@ class VolumeMetricChartsRepositoryImpl(
     }
 
     override suspend fun update(model: VolumeMetricChart) {
+        val existing = volumeMetricChartsDao.get(model.id) ?: return
         val toUpdate = VolumeMetricChartEntity(
             id = model.id,
             volumeType = model.volumeType,
             volumeTypeImpact = model.volumeTypeImpact,
+        ).applyRemoteStorageMetadata(
+            remoteId = existing.remoteId,
+            remoteLastUpdated = existing.remoteLastUpdated,
+            synced = false
         )
         volumeMetricChartsDao.update(toUpdate)
         syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<VolumeMetricChart>) {
+        val existingById = volumeMetricChartsDao.getMany(models.map { it.id }).associateBy { it.id }
         val toUpdate = models.map {
             VolumeMetricChartEntity(
                 id = it.id,
                 volumeType = it.volumeType,
                 volumeTypeImpact = it.volumeTypeImpact,
+            ).applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false
             )
         }
         volumeMetricChartsDao.updateMany(toUpdate)

@@ -5,8 +5,8 @@ import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLogEntryDao
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
+import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
@@ -46,6 +46,7 @@ class WorkoutLogRepositoryImpl(
         )
         workoutLogEntryDao.update(toUpdate)
 
+        // TODO: Delete if removed, insert if new. Consider making delta
         val currentSetLogs = setLogEntryDao.getForWorkoutLogEntry(model.id)
             .associateBy { it.id }
         val toUpdateSetLogs = model.setLogEntries.map {

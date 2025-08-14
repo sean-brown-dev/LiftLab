@@ -1,9 +1,8 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
 import androidx.compose.ui.util.fastMap
-
-import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.remote.SyncScheduler
@@ -61,12 +60,24 @@ class SetLogEntryRepositoryImpl(
         setLogEntryDao.getMany(ids).fastMap { it.toDomainModel() }
 
     override suspend fun update(model: SetLogEntry) {
-        setLogEntryDao.update(model.toEntity())
+        val existing = setLogEntryDao.get(model.id) ?: return
+        setLogEntryDao.update(model.toEntity().applyRemoteStorageMetadata(
+            remoteId = existing.remoteId,
+            remoteLastUpdated = existing.remoteLastUpdated,
+            synced = false
+        ))
         syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<SetLogEntry>) {
-        setLogEntryDao.updateMany(models.fastMap { it.toEntity() })
+        val existingById = setLogEntryDao.getMany(models.fastMap { it.id }).associateBy { it.id }
+        setLogEntryDao.updateMany(models.fastMap {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false
+            )
+        })
         syncScheduler.scheduleSync()
     }
 

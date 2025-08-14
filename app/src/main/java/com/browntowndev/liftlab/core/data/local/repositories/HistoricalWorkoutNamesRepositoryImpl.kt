@@ -1,12 +1,13 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.local.dao.HistoricalWorkoutNamesDao
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
-import com.browntowndev.liftlab.core.data.local.dao.HistoricalWorkoutNamesDao
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -14,6 +15,11 @@ class HistoricalWorkoutNamesRepositoryImpl(
     private val historicalWorkoutNamesDao: HistoricalWorkoutNamesDao,
     private val syncScheduler: SyncScheduler,
 ) : HistoricalWorkoutNamesRepository {
+
+    override suspend fun getIdByProgramAndWorkoutId(programId: Long, workoutId: Long): Long? {
+        return historicalWorkoutNamesDao.getByProgramAndWorkoutId(programId, workoutId)?.id
+    }
+
     override suspend fun getAll(): List<HistoricalWorkoutName> {
         return historicalWorkoutNamesDao.getAll().map { it.toDomainModel() }
     }
@@ -31,19 +37,36 @@ class HistoricalWorkoutNamesRepositoryImpl(
     }
 
     override suspend fun update(model: HistoricalWorkoutName) {
-        val toUpdate = model.toEntity()
+        val current = historicalWorkoutNamesDao.get(model.id) ?: return
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.remoteLastUpdated,
+            synced = false
+        )
         historicalWorkoutNamesDao.update(toUpdate)
         syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<HistoricalWorkoutName>) {
-        val toUpdate = models.map { it.toEntity() }
+        val existingById = historicalWorkoutNamesDao.getMany(models.map { it.id }).associateBy { it.id }
+        val toUpdate = models.map {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false
+            )
+        }
         historicalWorkoutNamesDao.updateMany(toUpdate)
         syncScheduler.scheduleSync()
     }
 
     override suspend fun upsert(model: HistoricalWorkoutName): Long {
-        val toUpsert = model.toEntity()
+        val current = historicalWorkoutNamesDao.get(model.id)
+        val toUpsert = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current?.remoteId,
+            remoteLastUpdated = current?.remoteLastUpdated,
+            synced = false
+        )
         val id = historicalWorkoutNamesDao.upsert(toUpsert)
         syncScheduler.scheduleSync()
 
@@ -51,7 +74,14 @@ class HistoricalWorkoutNamesRepositoryImpl(
     }
 
     override suspend fun upsertMany(models: List<HistoricalWorkoutName>): List<Long> {
-        val toUpsert = models.map { it.toEntity() }
+        val existingById = historicalWorkoutNamesDao.getMany(models.map { it.id }).associateBy { it.id }
+        val toUpsert = models.map {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false
+            )
+        }
         val ids = historicalWorkoutNamesDao.upsertMany(toUpsert)
         val entityIds = toUpsert.zip(ids).map { (entity, returnedId) ->
             if (returnedId == -1L) entity else entity.copy(id = returnedId)
@@ -102,9 +132,5 @@ class HistoricalWorkoutNamesRepositoryImpl(
             syncScheduler.scheduleSync()
         }
         return count
-    }
-
-    override suspend fun getIdByProgramAndWorkoutId(programId: Long, workoutId: Long): Long? {
-        return historicalWorkoutNamesDao.getByProgramAndWorkoutId(programId, workoutId)?.id
     }
 }

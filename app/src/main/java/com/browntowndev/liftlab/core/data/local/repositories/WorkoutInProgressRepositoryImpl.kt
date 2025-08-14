@@ -3,10 +3,11 @@ package com.browntowndev.liftlab.core.data.local.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
+import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
-import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,6 +19,28 @@ class WorkoutInProgressRepositoryImpl(
 ): WorkoutInProgressRepository {
     override suspend fun isWorkoutInProgress(workoutId: Long): Boolean =
         workoutInProgressDao.getByWorkoutId(workoutId) != null
+
+    override suspend fun getWithoutCompletedSets(): WorkoutInProgress? {
+        return workoutInProgressDao.get()?.let { inProgressEntity ->
+            WorkoutInProgress(
+                workoutId = inProgressEntity.workoutId,
+                startTime = inProgressEntity.startTime,
+            )
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
+        return workoutInProgressDao.getFlow().mapLatest { inProgressWorkout ->
+            if (inProgressWorkout == null) null
+            else {
+                WorkoutInProgress(
+                    workoutId = inProgressWorkout.workoutId,
+                    startTime = inProgressWorkout.startTime,
+                )
+            }
+        }
+    }
 
     override suspend fun getAll(): List<WorkoutInProgress> {
         return workoutInProgressDao.getAll().map {
@@ -58,21 +81,31 @@ class WorkoutInProgressRepositoryImpl(
     }
 
     override suspend fun update(model: WorkoutInProgress) {
+        val existing = workoutInProgressDao.get(model.workoutId) ?: return
         val toUpdate = WorkoutInProgressEntity(
             id = model.workoutId,
             workoutId = model.workoutId,
             startTime = model.startTime,
+        ).applyRemoteStorageMetadata(
+            remoteId = existing.remoteId,
+            remoteLastUpdated = existing.remoteLastUpdated,
+            synced = false
         )
         workoutInProgressDao.update(toUpdate)
         syncScheduler.scheduleSync()
     }
 
     override suspend fun updateMany(models: List<WorkoutInProgress>) {
+        val existingById = workoutInProgressDao.getMany(models.map { it.workoutId }).associateBy { it.id }
         val toUpdate = models.map {
             WorkoutInProgressEntity(
                 id = it.workoutId,
                 workoutId = it.workoutId,
                 startTime = it.startTime,
+            ).applyRemoteStorageMetadata(
+                remoteId = existingById[it.workoutId]?.remoteId,
+                remoteLastUpdated = existingById[it.workoutId]?.remoteLastUpdated,
+                synced = false
             )
         }
         workoutInProgressDao.updateMany(toUpdate)
@@ -80,10 +113,15 @@ class WorkoutInProgressRepositoryImpl(
     }
 
     override suspend fun upsert(model: WorkoutInProgress): Long {
+        val existing = workoutInProgressDao.get(model.workoutId)
         val toUpsert = WorkoutInProgressEntity(
             id = model.workoutId,
             workoutId = model.workoutId,
             startTime = model.startTime,
+        ).applyRemoteStorageMetadata(
+            remoteId = existing?.remoteId,
+            remoteLastUpdated = existing?.remoteLastUpdated,
+            synced = false
         )
         val id = workoutInProgressDao.upsert(toUpsert)
         syncScheduler.scheduleSync()
@@ -92,11 +130,16 @@ class WorkoutInProgressRepositoryImpl(
     }
 
     override suspend fun upsertMany(models: List<WorkoutInProgress>): List<Long> {
+        val existingById = workoutInProgressDao.getMany(models.map { it.workoutId }).associateBy { it.id }
         val toUpsert = models.map {
             WorkoutInProgressEntity(
                 id = it.workoutId,
                 workoutId = it.workoutId,
                 startTime = it.startTime,
+            ).applyRemoteStorageMetadata(
+                remoteId = existingById[it.workoutId]?.remoteId,
+                remoteLastUpdated = existingById[it.workoutId]?.remoteLastUpdated,
+                synced = false
             )
         }
         val ids = workoutInProgressDao.upsertMany(toUpsert)
@@ -173,27 +216,5 @@ class WorkoutInProgressRepositoryImpl(
             syncScheduler.scheduleSync()
         }
         return deleteCount
-    }
-
-    override suspend fun getWithoutCompletedSets(): WorkoutInProgress? {
-        return workoutInProgressDao.get()?.let { inProgressEntity ->
-            WorkoutInProgress(
-                workoutId = inProgressEntity.workoutId,
-                startTime = inProgressEntity.startTime,
-            )
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?> {
-        return workoutInProgressDao.getFlow().mapLatest { inProgressWorkout ->
-            if (inProgressWorkout == null) null
-            else {
-                WorkoutInProgress(
-                    workoutId = inProgressWorkout.workoutId,
-                    startTime = inProgressWorkout.startTime,
-                )
-            }
-        }
     }
 }
