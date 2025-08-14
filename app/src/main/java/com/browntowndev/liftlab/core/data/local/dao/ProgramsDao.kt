@@ -91,4 +91,13 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
         )
     """)
     fun getForWorkout(workoutId: Long): ProgramWithRelationshipsDto?
+
+    @Query("""
+        SELECT COUNT(*) FROM workouts
+        WHERE deleted = 0 AND 
+        programId IN (
+            SELECT programId FROM programs WHERE isActive = 1 AND deleted = 0
+        )
+    """)
+    fun getActiveProgramWorkoutCountFlow(): Flow<Int>
 }

@@ -76,6 +76,10 @@ class ProgramsRepositoryImpl(
         return programMeta
     }
 
+    override fun getActiveProgramWorkoutCountFlow(): Flow<Int> {
+        return programsDao.getActiveProgramWorkoutCountFlow()
+    }
+
     private fun getSortedCopy(program: Program): Program {
         return program.copy(workouts = program.workouts
             .sortedBy { workout -> workout.position }

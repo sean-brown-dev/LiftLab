@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiMod
 import com.browntowndev.liftlab.ui.models.workoutLogging.MyoRepSetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.SetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.StandardSetResultUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.states.workout.WorkoutState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

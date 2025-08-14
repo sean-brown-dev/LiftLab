@@ -13,6 +13,7 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.extensions.hasIncompleteModifiedSets
 import com.browntowndev.liftlab.core.domain.extensions.mergeModifiedSets
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CancelWorkoutUseCase
@@ -34,13 +35,13 @@ import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
-import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.states.workout.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
@@ -52,6 +53,7 @@ import kotlin.time.Duration
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutViewModel(
     getActiveWorkoutStateFlowUseCase: GetActiveWorkoutStateFlowUseCase,
+    getActiveProgramWorkoutCountFlowUseCase: GetActiveProgramWorkoutCountFlowUseCase,
     private val hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase,
     private val getWorkoutCompletionSummaryUseCase: GetWorkoutCompletionSummaryUseCase,
     private val reorderWorkoutLiftsUseCase: ReorderWorkoutLiftsUseCase,
@@ -102,79 +104,81 @@ class WorkoutViewModel(
     }
 
     init {
-        getActiveWorkoutStateFlowUseCase()
-            .distinctUntilChanged()
-            .map { activeWorkoutState ->
-                WorkoutState(
-                    inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
-                    completedSets = activeWorkoutState.completedSets.fastMap { it.toUiModel() },
-                    programMetadata = activeWorkoutState.programMetadata?.toUiModel(),
-                    workout = activeWorkoutState.workout?.toUiModel(),
-                    personalRecords = activeWorkoutState.personalRecords
-                        .map { it.key to it.value.toUiModel() }
-                        .toMap(),
-                    initialized = true,
+        val workoutCountFlow = getActiveProgramWorkoutCountFlowUseCase().distinctUntilChanged()
+        val activeWorkoutStateFlow = getActiveWorkoutStateFlowUseCase().distinctUntilChanged()
+
+        combine(workoutCountFlow, activeWorkoutStateFlow) { workoutCount, activeWorkoutState ->
+            val hasWorkouts = workoutCount > 0
+            WorkoutState(
+                inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
+                completedSets = activeWorkoutState.completedSets.fastMap { it.toUiModel() },
+                programMetadata = activeWorkoutState.programMetadata?.toUiModel(),
+                workout = activeWorkoutState.workout?.toUiModel(),
+                personalRecords = activeWorkoutState.personalRecords
+                    .map { it.key to it.value.toUiModel() }
+                    .toMap(),
+                initialized = !hasWorkouts || activeWorkoutState.workout != null,
+            )
+        }.onEach { newUiState ->
+            val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null || newUiState.inProgressWorkout == null) {
+                newUiState.workout
+            } else {
+                // Hydrate workout with any sets that have been started but not marked completed.
+                // These only exist in-memory in our state, so the state flow use case knows nothing
+                // about them and we have to hydrate the updated workout from the state flow with
+                // that data.
+                val updatedLiftsById = newUiState.workout.lifts.associateBy { it.id }
+                hydrateLoggingWorkoutWithExistingLiftDataUseCase(
+                    loggingWorkout = newUiState.workout.toDomainModel(),
+                    liftsToUpdateFrom = mutableWorkoutState.value.workout!!.lifts
+                        .fastMapNotNull { uiStateLift ->
+                            // newUiState has the latest completed/incompleted set data, but it doesn't have
+                            // the in-memory modified lifts which were never completed. So, we need to merge
+                            // the new lifts into the current in-memory lifts to get the holistic state
+                            // of the lift
+                            updatedLiftsById[uiStateLift.id]?.let { updatedLift ->
+                                uiStateLift.mergeModifiedSets(updatedLift)
+                            }
+                        }
+                        .filter {
+                            // Now that we have fully updated the lifts, we can filter out any
+                            // that do not have any modified sets
+                            it.hasIncompleteModifiedSets()
+                        }
+                        .fastMap { it.toDomainModel() },
+                ).toUiModel()
+            }
+
+            // Multiple emissions can happen and we don't want to actually close the log/summary
+            // until the workout for the next microcycle position has emitted, or the workout was
+            // cancelled
+            val workoutCompleted = newUiState.inProgressWorkout == null &&
+                    mutableWorkoutState.value.workout != null &&
+                    mutableWorkoutState.value.workout?.id != newWorkout?.id
+            val workoutCancelled = mutableWorkoutState.value.inProgressWorkout != null &&
+                    newUiState.inProgressWorkout == null &&
+                    !mutableWorkoutState.value.isCompletionSummaryVisible
+            val completedOrCancelled = workoutCompleted || workoutCancelled
+
+            mutableWorkoutState.update { currentState ->
+                currentState.copy(
+                    workout = newWorkout,
+                    inProgressWorkout = newUiState.inProgressWorkout,
+                    completedSets = newUiState.completedSets,
+                    programMetadata = newUiState.programMetadata,
+                    personalRecords = newUiState.personalRecords,
+                    initialized = newUiState.initialized,
+                    workoutLogVisible = if (completedOrCancelled) false else currentState.workoutLogVisible,
+                    isCompletionSummaryVisible = if (completedOrCancelled) false else currentState.isCompletionSummaryVisible,
+                    isDeloadPromptDialogShown = false,
+                    isReordering = false,
                 )
-            }.onEach { newUiState ->
-                val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null || newUiState.inProgressWorkout == null) {
-                    newUiState.workout
-                } else {
-                    // Hydrate workout with any sets that have been started but not marked completed.
-                    // These only exist in-memory in our state, so the state flow use case knows nothing
-                    // about them and we have to hydrate the updated workout from the state flow with
-                    // that data.
-                    val updatedLiftsById = newUiState.workout.lifts.associateBy { it.id }
-                    hydrateLoggingWorkoutWithExistingLiftDataUseCase(
-                        loggingWorkout = newUiState.workout.toDomainModel(),
-                        liftsToUpdateFrom = mutableWorkoutState.value.workout!!.lifts
-                            .fastMapNotNull { uiStateLift ->
-                                // newUiState has the latest completed/incompleted set data, but it doesn't have
-                                // the in-memory modified lifts which were never completed. So, we need to merge
-                                // the new lifts into the current in-memory lifts to get the holistic state
-                                // of the lift
-                                updatedLiftsById[uiStateLift.id]?.let { updatedLift ->
-                                    uiStateLift.mergeModifiedSets(updatedLift)
-                                }
-                            }
-                            .filter {
-                                // Now that we have fully updated the lifts, we can filter out any
-                                // that do not have any modified sets
-                                it.hasIncompleteModifiedSets()
-                            }
-                            .fastMap { it.toDomainModel() },
-                    ).toUiModel()
-                }
-
-                // Multiple emissions can happen and we don't want to actually close the log/summary
-                // until the workout for the next microcycle position has emitted, or the workout was
-                // cancelled
-                val workoutCompleted = newUiState.inProgressWorkout == null &&
-                        mutableWorkoutState.value.workout != null &&
-                        mutableWorkoutState.value.workout?.id != newWorkout?.id
-                val workoutCancelled = mutableWorkoutState.value.inProgressWorkout != null &&
-                        newUiState.inProgressWorkout == null &&
-                        !mutableWorkoutState.value.isCompletionSummaryVisible
-                val completedOrCancelled = workoutCompleted || workoutCancelled
-
-                mutableWorkoutState.update { currentState ->
-                    currentState.copy(
-                        workout = newWorkout,
-                        inProgressWorkout = newUiState.inProgressWorkout,
-                        completedSets = newUiState.completedSets,
-                        programMetadata = newUiState.programMetadata,
-                        personalRecords = newUiState.personalRecords,
-                        initialized = true,
-                        workoutLogVisible = if (completedOrCancelled) false else currentState.workoutLogVisible,
-                        isCompletionSummaryVisible = if (completedOrCancelled) false else currentState.isCompletionSummaryVisible,
-                        isDeloadPromptDialogShown = false,
-                        isReordering = false,
-                    )
-                }
-            }.catch { e ->
-                Log.e("WorkoutViewModel", "Error in initialize", e)
-                FirebaseCrashlytics.getInstance().recordException(e)
-                emitUserMessage("An unexpected error occurred during initialization. Please restart the app.")
-            }.launchIn(viewModelScope)
+            }
+        }.catch { e ->
+            Log.e("WorkoutViewModel", "Error in initialize", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
+            emitUserMessage("An unexpected error occurred during initialization. Please restart the app.")
+        }.launchIn(viewModelScope)
     }
 
     fun toggleReorderLifts() {

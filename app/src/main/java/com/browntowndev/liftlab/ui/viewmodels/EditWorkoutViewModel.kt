@@ -22,7 +22,7 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
 import com.browntowndev.liftlab.ui.viewmodels.states.EditWorkoutState
-import com.browntowndev.liftlab.ui.viewmodels.states.WorkoutState
+import com.browntowndev.liftlab.ui.viewmodels.states.workout.WorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

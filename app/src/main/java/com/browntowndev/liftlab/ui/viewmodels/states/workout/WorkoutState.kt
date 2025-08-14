@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.viewmodels.states
+package com.browntowndev.liftlab.ui.viewmodels.states.workout
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.domain.enums.VolumeTypeImpactSelection

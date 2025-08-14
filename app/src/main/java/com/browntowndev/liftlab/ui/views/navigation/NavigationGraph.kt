@@ -189,9 +189,6 @@ fun NavigationGraph(
                         navHostController.navigate(Route.WorkoutBuilder(workoutId = workoutBuilderWorkoutId))
                     },
                     onNavigateToActiveWorkout = {
-                        navHostController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("liftLibraryResult", true)
                         navHostController.popBackStack()
                     },
                 )
@@ -236,7 +233,6 @@ fun NavigationGraph(
                 }
 
                 Workout(
-                    navHostController = navHostController,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
                     snackbarHostState = snackbarHostState,

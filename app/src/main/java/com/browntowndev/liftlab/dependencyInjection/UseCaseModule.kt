@@ -23,6 +23,7 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateP
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetProgramConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.ReorderWorkoutsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SetProgramAsActiveUseCase
@@ -38,6 +39,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteC
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWorkoutConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
@@ -61,7 +63,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.GetWorkoutSta
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithCompletedSetsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.HydrateLoggingWorkoutWithExistingLiftDataUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.InsertRestTimerInProgressUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.RestTimerCompletedUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.SkipDeloadAndStartWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.StartWorkoutUseCase
@@ -132,6 +133,7 @@ val useCaseModule = module {
     singleOf(::SetProgramAsActiveUseCase)
     singleOf(::UpdateProgramDeloadWeekUseCase)
     singleOf(::UpdateProgramNameUseCase)
+    singleOf(::GetActiveProgramWorkoutCountFlowUseCase)
 
     // Lift Configuration
     singleOf(::GetFilterableLiftsStateFlowUseCase)
