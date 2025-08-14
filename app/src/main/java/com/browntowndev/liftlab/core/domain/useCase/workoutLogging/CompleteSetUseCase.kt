@@ -19,6 +19,7 @@ class CompleteSetUseCase(
         onUpsertSetResult: suspend (SetResult) -> Long
     ) = transactionScope.execute {
         if (restTimerEnabled) {
+            restTimerInProgressRepository.deleteAll()
             restTimerInProgressRepository.insert(restTime)
         }
 

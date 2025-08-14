@@ -37,7 +37,7 @@ class CountdownTimerViewModel(
         timerStartTimeInMillis: Long,
         startDurationInMillis: Long
     ): Boolean {
-        if (liftLabTimer.isRunning.value) return false
+        if (liftLabTimer.isRunning.value && _state.value.startTimeInMillis == timerStartTimeInMillis) return false
 
         val countdownStartTimeMs = timerStartTimeInMillis.toDate().time
         val elapsedMs = (getCurrentDate().time - countdownStartTimeMs)
@@ -62,6 +62,7 @@ class CountdownTimerViewModel(
 
         _state.update {
             it.copy(
+                startTimeInMillis = timerStartTimeInMillis,
                 startDurationInMillis = startDurationInMillis,
                 millisRemaining = remaining,
             )

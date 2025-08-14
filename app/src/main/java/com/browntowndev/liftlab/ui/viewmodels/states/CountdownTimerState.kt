@@ -7,6 +7,7 @@ data class CountdownTimerState(
     val running: Boolean = false,
     val startDurationInMillis: Long = 0L,
     val millisRemaining: Long = 0L,
+    val startTimeInMillis: Long = 0L,
 ) {
     val timeRemaining: String by lazy {
         millisRemaining.toTimeString()
