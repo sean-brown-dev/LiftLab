@@ -146,10 +146,16 @@ class WorkoutViewModel(
                 }
 
                 // Multiple emissions can happen and we don't want to actually close the log/summary
-                // until the workout for the next microcycle position has emitted
+                // until the workout for the next microcycle position has emitted, or the workout was
+                // cancelled
                 val workoutCompleted = newUiState.inProgressWorkout == null &&
                         mutableWorkoutState.value.workout != null &&
                         mutableWorkoutState.value.workout?.id != newWorkout?.id
+                val workoutCancelled = mutableWorkoutState.value.inProgressWorkout != null &&
+                        newUiState.inProgressWorkout == null &&
+                        !mutableWorkoutState.value.isCompletionSummaryVisible
+                val completedOrCancelled = workoutCompleted || workoutCancelled
+
                 mutableWorkoutState.update { currentState ->
                     currentState.copy(
                         workout = newWorkout,
@@ -158,8 +164,8 @@ class WorkoutViewModel(
                         programMetadata = newUiState.programMetadata,
                         personalRecords = newUiState.personalRecords,
                         initialized = true,
-                        workoutLogVisible = if (workoutCompleted) false else currentState.workoutLogVisible,
-                        isCompletionSummaryVisible = if (workoutCompleted) false else currentState.isCompletionSummaryVisible,
+                        workoutLogVisible = if (completedOrCancelled) false else currentState.workoutLogVisible,
+                        isCompletionSummaryVisible = if (completedOrCancelled) false else currentState.isCompletionSummaryVisible,
                         isDeloadPromptDialogShown = false,
                         isReordering = false,
                     )
