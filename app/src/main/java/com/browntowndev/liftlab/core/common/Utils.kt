@@ -6,6 +6,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.TemporalAdjusters
 import java.util.Date
+import kotlin.math.roundToInt
 
 class Utils {
     sealed class General {
@@ -25,6 +26,13 @@ class Utils {
                 val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
                 return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
             }
+
+            /**
+             * Rounds a float to one decimal place.
+             *
+             * @return The rounded float.
+             */
+            fun Float.roundToOneDecimal(): Float = (this * 10f).roundToInt() / 10f
         }
     }
 

@@ -3,15 +3,16 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.Utils.General.Companion.roundToOneDecimal
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
-import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
 import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.useCase.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
@@ -22,6 +23,7 @@ import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     companion object {
         private const val TAG = "HydrateLoggingWorkoutWithCompletedSetsUseCase"
+        private const val SET_TOO_EASY_REPS_THRESHOLD = 3f
     }
 
     operator fun invoke(
@@ -144,25 +146,32 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         }
 
         is LoggingStandardSet -> {
-            val lastMissedGoal = lastCompletedStandardSet.completedReps!! < lastCompletedStandardSet.repRangeBottom!! ||
-                    lastCompletedStandardSet.completedRpe!! > lastCompletedStandardSet.rpeTarget
-            val lastGoalDiffered = lastCompletedStandardSet.repRangeBottom != set.repRangeBottom ||
-                    lastCompletedStandardSet.rpeTarget != set.rpeTarget
+            val rpeAdjustedCompletedReps = lastCompletedStandardSet.completedReps!! + (10f - lastCompletedStandardSet.completedRpe!!)
+            val rpeAdjustedRepRangeTop = set.repRangeTop + (10f - set.rpeTarget)
+            val rpeAdjustedRepRangeBottom = set.repRangeBottom + (10f - set.rpeTarget)
 
-            val weightRecommendation = if (lastMissedGoal || lastGoalDiffered) {
+            val exceededRepRangeTop = rpeAdjustedCompletedReps >= (rpeAdjustedRepRangeTop + SET_TOO_EASY_REPS_THRESHOLD)
+            val missedRepRangeBottom = rpeAdjustedCompletedReps < rpeAdjustedRepRangeBottom
+
+            val lastGoalDiffered =
+                lastCompletedStandardSet.repRangeBottom != set.repRangeBottom ||
+                lastCompletedStandardSet.rpeTarget.roundToOneDecimal() != set.rpeTarget.roundToOneDecimal()
+
+            val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || lastGoalDiffered
+
+            val weightRecommendation = if (shouldRecalculate) {
                 WeightCalculationUtils.calculateSuggestedWeight(
                     completedWeight = lastCompletedStandardSet.completedWeight!!,
                     completedReps = lastCompletedStandardSet.completedReps!!,
                     completedRpe = lastCompletedStandardSet.completedRpe!!,
-                    repGoal = set.repRangeBottom,
+                    repGoal = if (exceededRepRangeTop) set.repRangeBottom else set.repRangeTop,
                     rpeGoal = set.rpeTarget,
                     roundingFactor = workoutLift.incrementOverride ?: SettingsManager.getSetting(
                         SettingsManager.SettingNames.INCREMENT_AMOUNT,
                         SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT,
                     ),
                 )
-            }
-            else set.weightRecommendation ?: lastCompletedStandardSet.completedWeight
+            } else set.weightRecommendation ?: lastCompletedStandardSet.completedWeight
             set.copy(weightRecommendation = weightRecommendation)
         }
         else -> throw Exception("${set::class.simpleName} is not defined.")
