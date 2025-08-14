@@ -1,32 +1,30 @@
 package com.browntowndev.liftlab.core.data.remote
 
+import com.browntowndev.liftlab.core.common.authStateFlow
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class FirestoreClientImpl(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     appScope: CoroutineScope,
 ): FirestoreClient {
-    private val _isUserLoggedIn = MutableStateFlow(auth.currentUser != null)
-    override val isUserLoggedInFlow: StateFlow<Boolean> = _isUserLoggedIn.asStateFlow()
-    override val isUserLoggedIn: Boolean get() = _isUserLoggedIn.value
-
-    init {
-        val listener = FirebaseAuth.AuthStateListener { firebaseAuth ->
-            _isUserLoggedIn.value = (firebaseAuth.currentUser != null)
-        }
-        auth.addAuthStateListener(listener)
-        // Optional: unregister when app scope ends
-        appScope.coroutineContext[Job]?.invokeOnCompletion {
-            auth.removeAuthStateListener(listener)
-        }
-    }
+    override val isUserLoggedIn: Boolean = auth.uid != null
+    override val isUserLoggedInFlow: StateFlow<Boolean> = auth
+        .authStateFlow()
+        .map { it != null }
+        .distinctUntilChanged()
+        .stateIn(
+            appScope,
+            SharingStarted.Eagerly,
+            auth.currentUser != null
+        )
 
     override fun batch() = firestore.batch()
 
