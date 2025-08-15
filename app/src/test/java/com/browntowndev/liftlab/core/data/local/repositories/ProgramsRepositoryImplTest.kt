@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
@@ -266,7 +267,7 @@ class ProgramsRepositoryImplTest {
         coEvery { programsDao.get(1L) } returns buildProgramWithRelationships(buildProgramEntity(id = 1L, name = "Old", deloadWeek = 1, isActive = true, currentMesocycle = 2, currentMicrocycle = 3, currentMicrocyclePosition = 0))
 
         val delta = programDelta {
-            updateProgram(name = "New", deloadWeek = 4, currentMicrocycle = 5)
+            updateProgram(name = Patch.Set("New"), deloadWeek = Patch.Set(4), currentMicrocycle = Patch.Set(5))
         }
 
         repo.applyDelta(1L, delta)
@@ -367,7 +368,7 @@ class ProgramsRepositoryImplTest {
     fun `applyDelta - update workout missing throws`() = runTest {
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(77L, 1L) } returns null
 
-        val delta = programDelta { workout(77L, name = "X") { } }
+        val delta = programDelta { workout(77L, name = Patch.Set("X")) { } }
 
         assertThrows(IllegalStateException::class.java) {
             runTest { repo.applyDelta(1L, delta) }
@@ -382,7 +383,7 @@ class ProgramsRepositoryImplTest {
         coJustRun { workoutsDao.update(any()) }
         coEvery { workoutLiftsDao.getForWorkout(77L) } returns emptyList()
 
-        val delta = programDelta { workout(77L, name = "New", position = 9) { } }
+        val delta = programDelta { workout(77L, name = Patch.Set("New"), position = Patch.Set(9)) { } }
 
         repo.applyDelta(1L, delta)
 
@@ -430,8 +431,8 @@ class ProgramsRepositoryImplTest {
         val delta = programDelta {
             workout(10L) {
                 // Update many scalar fields
-                updateLift(5L, liftId = 202L, position = 2, setCount = 4, deloadWeek = 2, repRangeTop = 12, repRangeBottom = 9, rpeTarget = 9f, stepSize = 5) { }
-                updateLift(6L, position = 0) { }
+                updateLift(5L, liftId = Patch.Set(202L), position = Patch.Set(2), setCount = Patch.Set(4), deloadWeek = Patch.Set(2), repRangeTop = Patch.Set(12), repRangeBottom = Patch.Set(9), rpeTarget = Patch.Set(9f), stepSize = Patch.Set(5)) { }
+                updateLift(6L, position = Patch.Set(0)) { }
             }
         }
 
@@ -452,7 +453,7 @@ class ProgramsRepositoryImplTest {
         coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(10L, 1L) } returns buildWorkoutEntity(id = 10L, programId = 1L)
         coEvery { workoutLiftsDao.getForWorkout(10L) } returns emptyList()
 
-        val delta = programDelta { workout(10L) { updateLift(999L, position = 1) { } } }
+        val delta = programDelta { workout(10L) { updateLift(999L, position = Patch.Set(1)) { } } }
 
         assertThrows(IllegalStateException::class.java) {
             runTest { repo.applyDelta(1L, delta) }
@@ -681,10 +682,10 @@ class ProgramsRepositoryImplTest {
         val existingSetDomain = buildCustomLiftSetEntity(id = 2L, workoutLiftId = 5L).toDomainModel()
 
         val delta = programDelta {
-            updateProgram(name = "Patched", deloadWeek = 1)
+            updateProgram(name = Patch.Set("Patched"), deloadWeek = Patch.Set(1))
 
-            workout(20L, name = "Renamed", position = 0) {
-                updateLift(5L, position = 1) {
+            workout(20L, name = Patch.Set("Renamed"), position = Patch.Set(0)) {
+                updateLift(5L, position = Patch.Set(1)) {
                     set(existingSetDomain)
                     removeSets(21L, 22L)
                 }
@@ -798,5 +799,52 @@ class ProgramsRepositoryImplTest {
         assertEquals(1L, meta!!.programId)
         assertEquals("A", meta.name)
         assertEquals(5, meta.workoutCount)
+    }
+
+    @Test
+    fun `applyDelta - update lifts with Patch_Set_null clears nullable scalar fields`() = runTest {
+        coEvery { workoutsDao.getWithoutRelationshipsWithProgramValidation(10L, 1L) } returns buildWorkoutEntity(id = 10L, programId = 1L)
+        val existing = buildWorkoutLiftEntity(
+            id = 5L, workoutId = 10L, liftId = 200L,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            position = 0, setCount = 3,
+            deloadWeek = 1, repRangeTop = 10, repRangeBottom = 8, rpeTarget = 8f, stepSize = 2
+        )
+        coEvery { workoutLiftsDao.getForWorkout(10L) } returns listOf(
+            buildWorkoutLiftWithRelationships(existing, buildLiftEntity(id = 200L))
+        )
+        coEvery { workoutLiftsDao.updateMany(any()) } returns Unit
+
+        val delta = programDelta {
+            workout(10L) {
+                // Explicitly CLEAR several fields
+                updateLift(
+                    workoutLiftId = 5L,
+                    repRangeTop = Patch.Set(null),
+                    repRangeBottom = Patch.Set(null),
+                    rpeTarget = Patch.Set(null),
+                    stepSize = Patch.Set(null)
+                ) { }
+            }
+        }
+
+        repo.applyDelta(1L, delta)
+
+        coVerify {
+            workoutLiftsDao.updateMany(match { list ->
+                list.size == 1 && list[0].let { e ->
+                    e.id == 5L &&
+                            e.repRangeTop == null &&
+                            e.repRangeBottom == null &&
+                            e.rpeTarget == null &&
+                            e.stepSize == null &&
+                            // unchanged fields are preserved
+                            e.deloadWeek == 1 &&
+                            e.liftId == 200L &&
+                            e.setCount == 3
+                }
+            })
+        }
+        coVerify { syncScheduler.scheduleSync() }
     }
 }

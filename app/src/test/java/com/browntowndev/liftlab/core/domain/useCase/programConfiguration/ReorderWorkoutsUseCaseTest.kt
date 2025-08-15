@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta.WorkoutChange.WorkoutUpdate
@@ -49,7 +50,7 @@ class ReorderWorkoutsUseCaseTest {
         delta.workouts.forEach { wc ->
             assertTrue(wc.workoutId in newOrders.keys)
             val expectedPos = newOrders.getValue(wc.workoutId)
-            assertEquals(WorkoutUpdate(position = expectedPos), wc.workoutUpdate)
+            assertEquals(WorkoutUpdate(position = Patch.Set(expectedPos)), wc.workoutUpdate)
         }
     }
 }

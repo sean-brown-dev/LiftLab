@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -123,7 +124,7 @@ class UpdateProgramDeloadWeekUseCaseTest {
 
         // Then: program patch + two lift updates addressed to correct workoutIds
         val delta = captured.captured
-        assertEquals(ProgramUpdate(deloadWeek = newDeloadWeek), delta.programUpdate)
+        assertEquals(ProgramUpdate(deloadWeek = Patch.Set(newDeloadWeek)), delta.programUpdate)
 
         // We should have two workout blocks (for workoutId=10 and 11) with their respective lift changes
         assertEquals(2, delta.workouts.size)
@@ -134,12 +135,12 @@ class UpdateProgramDeloadWeekUseCaseTest {
         val liftsForW1 = byWorkoutId.getValue(10L).lifts
         assertEquals(1, liftsForW1.size)
         assertEquals(recalculated1.id, liftsForW1[0].workoutLiftId)
-        assertEquals(4, liftsForW1[0].liftUpdate?.stepSize)
+        assertEquals(Patch.Set(4), liftsForW1[0].liftUpdate?.stepSize)
 
         val liftsForW2 = byWorkoutId.getValue(11L).lifts
         assertEquals(1, liftsForW2.size)
         assertEquals(recalculated2.id, liftsForW2[0].workoutLiftId)
-        assertEquals(2, liftsForW2[0].liftUpdate?.stepSize)
+        assertEquals(Patch.Set(2), liftsForW2[0].liftUpdate?.stepSize)
 
         coVerify { programsRepository.applyDelta(eq(program.id), any()) }
     }

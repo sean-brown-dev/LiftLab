@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -48,7 +49,7 @@ class ReplaceWorkoutLiftUseCaseTest {
         assertEquals(1, delta.workouts.size)
         val liftChange = delta.workouts[0].lifts[0]
         assertEquals(5L, liftChange.workoutLiftId)
-        assertEquals(999L, liftChange.liftUpdate!!.liftId)
+        assertEquals(Patch.Set(999L), liftChange.liftUpdate!!.liftId)
 
         coVerify { programsRepository.applyDelta(eq(1L), any()) }
     }

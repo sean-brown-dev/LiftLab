@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -48,7 +49,7 @@ class CreateProgramUseCaseTest {
         assertEquals(1, captured.size)
         val delta = captured.single()
         assertFalse(delta.deleteProgram)
-        assertEquals(ProgramUpdate(isActive = false), delta.programUpdate)
+        assertEquals(ProgramUpdate(isActive = Patch.Set(false)), delta.programUpdate)
         assertTrue(delta.workouts.isEmpty())
         assertTrue(delta.removedWorkoutIds.isEmpty())
     }

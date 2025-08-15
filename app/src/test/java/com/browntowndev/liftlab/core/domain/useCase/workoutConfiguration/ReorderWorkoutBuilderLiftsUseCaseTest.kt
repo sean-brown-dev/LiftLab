@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -69,9 +70,9 @@ class ReorderWorkoutBuilderLiftsUseCaseTest {
         assertEquals(3, wc.lifts.size)
 
         val byLiftId = wc.lifts.associateBy { it.workoutLiftId }
-        assertEquals(2, byLiftId.getValue(1L).liftUpdate!!.position)
-        assertEquals(0, byLiftId.getValue(2L).liftUpdate!!.position)
-        assertEquals(1, byLiftId.getValue(3L).liftUpdate!!.position)
+        assertEquals(Patch.Set(2), byLiftId.getValue(1L).liftUpdate!!.position)
+        assertEquals(Patch.Set(0), byLiftId.getValue(2L).liftUpdate!!.position)
+        assertEquals(Patch.Set(1), byLiftId.getValue(3L).liftUpdate!!.position)
     }
 
     @Test

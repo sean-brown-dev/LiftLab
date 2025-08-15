@@ -5,9 +5,11 @@ import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -323,5 +325,152 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
 
         // Then
         assertEquals(expected, updated.weightRecommendation!!, 1e-3f)
+    }
+
+    @Test
+    fun `myo sets with matching results stay complete and flip isNew=false (newly created next set remains isNew=true)`() {
+        // Existing activation set + 2 mini-sets, all marked complete prior to hydration
+        val activation = LoggingMyoRepSet(
+            position = 0,
+            rpeTarget = 8f,
+            repRangeBottom = 12, repRangeTop = 15,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null, // activation
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 12,
+            completedRpe = 8f,
+            repFloor = 5,
+            isNew = true // should be forced to false during hydration
+        )
+        val mini0 = activation.copy(
+            myoRepSetPosition = 0,
+            repRangePlaceholder = "—",
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 10,
+            completedRpe = 9f,
+            isNew = true
+        )
+        val mini1 = mini0.copy(
+            myoRepSetPosition = 1,
+            complete = true,
+            completedReps = 8,
+            completedRpe = 9.5f,
+            isNew = true
+        )
+
+        val lift = LoggingWorkoutLift(
+            id = 1L,
+            liftId = 101L,
+            liftName = "Incline DB Press (Myo)",
+            position = 0,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null,
+            incrementOverride = 2.5f,
+            restTime = null,
+            restTimerEnabled = false,
+            sets = listOf(activation, mini0, mini1),
+            liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            note = null
+        )
+
+        // Provide matching MyoRepSetResults so hydration will KEEP them complete
+        val results = listOf(
+            MyoRepSetResult(
+                workoutId = 1L, liftId = 101L, liftPosition = 0, setPosition = 0,
+                myoRepSetPosition = null, // activation
+                weight = 100f, reps = 12, rpe = 8f, isDeload = false
+            ),
+            MyoRepSetResult(
+                workoutId = 1L, liftId = 101L, liftPosition = 0, setPosition = 0,
+                myoRepSetPosition = 0, // mini 0
+                weight = 100f, reps = 10, rpe = 9f, isDeload = false
+            ),
+            MyoRepSetResult(
+                workoutId = 1L, liftId = 101L, liftPosition = 0, setPosition = 0,
+                myoRepSetPosition = 1, // mini 1
+                weight = 100f, reps = 8, rpe = 9.5f, isDeload = false
+            )
+        )
+
+        val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+
+        // Assert: the ORIGINAL sets (first three) are still complete and now isNew == false
+        hydrated.sets.take(3).forEach { set ->
+            val s = set as LoggingMyoRepSet
+            assertTrue(s.complete, "Existing myo set should remain complete when a matching result is supplied")
+            assertFalse(s.isNew, "Existing myo set should be flipped to isNew=false during hydration")
+        }
+
+        // Optional behavior: hydrator may append a NEXT myo mini-set if your goal logic says continue.
+        // If appended, it must be flagged as isNew == true.
+        if (hydrated.sets.size > 3) {
+            val maybeNew = hydrated.sets[3] as LoggingMyoRepSet
+            assertFalse(maybeNew.complete, "Newly added next myo mini-set should start incomplete")
+            assertTrue(maybeNew.isNew, "Newly added next myo mini-set should be isNew=true")
+        }
+    }
+
+    @Test
+    fun `myo sets WITHOUT results are un-completed by hydration`() {
+        val activation = LoggingMyoRepSet(
+            position = 0,
+            rpeTarget = 8f,
+            repRangeBottom = 12, repRangeTop = 15,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 12,
+            completedRpe = 8f,
+            isNew = true
+        )
+        val mini0 = activation.copy(
+            myoRepSetPosition = 0,
+            repRangeBottom = 3, repRangeTop = null,
+            repRangePlaceholder = "—",
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 3,
+            completedRpe = 9f,
+            isNew = true
+        )
+
+        val lift = LoggingWorkoutLift(
+            id = 1L,
+            liftId = 101L,
+            liftName = "Incline DB Press (Myo)",
+            position = 0,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null,
+            incrementOverride = 2.5f,
+            restTime = null,
+            restTimerEnabled = false,
+            sets = listOf(activation, mini0),
+            liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            note = null
+        )
+
+        val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = emptyList(), microCycle = 0).first()
+
+        // Assert: since no results were provided, previously-complete myo sets are un-completed
+        hydrated.sets.take(2).forEach { set ->
+            val s = set as LoggingMyoRepSet
+            assertFalse(s.complete, "Existing myo set should be un-completed if no matching result is supplied")
+            // Whether isNew flips here depends on your final implementation; we don’t assert it in this negative test.
+        }
     }
 }

@@ -1,10 +1,12 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
+import android.util.Log
 import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastFlatMap
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
+import com.browntowndev.liftlab.core.common.valueOrDefault
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
 import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
@@ -190,6 +192,7 @@ class ProgramsRepositoryImpl(
                         entity.copy(position = index)
                     }
                     customSetsDao.updateMany(setsWithNewPositions)
+                    Log.d("ProgramsRepositoryImpl", "Updated set positions for lift: ${setDeletion.workoutLiftId}")
                 }
                 didMutate = true
             }
@@ -197,6 +200,7 @@ class ProgramsRepositoryImpl(
             if (setDeletionIds.workoutLiftIds.isNotEmpty()) {
                 customSetsDao.softDeleteByWorkoutLiftIds(setDeletionIds.workoutLiftIds)
                 didMutate = true
+                Log.d("ProgramsRepositoryImpl", "Deleted custom lift sets: ${setDeletionIds.workoutLiftIds}")
             }
         }
 
@@ -217,6 +221,7 @@ class ProgramsRepositoryImpl(
             customSetsDao.softDeleteByProgramId(programId)
             workoutInProgressDao.softDeleteByProgramId(programId)
             liveWorkoutCompletedSetsDao.softDeleteByProgramId(programId)
+            Log.d("ProgramsRepositoryImpl", "Deleted program: $programId")
         }
 
         return deleted > 0
@@ -230,12 +235,12 @@ class ProgramsRepositoryImpl(
             ?: error("Program $programId not found")
 
         val patchedProgram = existingProgram.copy(
-            name = programUpdate.name ?: existingProgram.name,
-            isActive = programUpdate.isActive ?: existingProgram.isActive,
-            deloadWeek = programUpdate.deloadWeek ?: existingProgram.deloadWeek,
-            currentMesocycle = programUpdate.currentMesocycle ?: existingProgram.currentMesocycle,
-            currentMicrocycle = programUpdate.currentMicrocycle ?: existingProgram.currentMicrocycle,
-            currentMicrocyclePosition = programUpdate.currentMicrocyclePosition ?: existingProgram.currentMicrocyclePosition
+            name = programUpdate.name.valueOrDefault(existingProgram.name),
+            isActive = programUpdate.isActive.valueOrDefault(existingProgram.isActive),
+            deloadWeek = programUpdate.deloadWeek.valueOrDefault(existingProgram.deloadWeek),
+            currentMesocycle = programUpdate.currentMesocycle.valueOrDefault(existingProgram.currentMesocycle),
+            currentMicrocycle = programUpdate.currentMicrocycle.valueOrDefault(existingProgram.currentMicrocycle),
+            currentMicrocyclePosition = programUpdate.currentMicrocyclePosition.valueOrDefault(existingProgram.currentMicrocyclePosition)
         ).applyRemoteStorageMetadata(
             remoteId = existingProgram.remoteId,
             remoteLastUpdated = existingProgram.remoteLastUpdated,
@@ -243,6 +248,7 @@ class ProgramsRepositoryImpl(
         )
 
         programsDao.update(patchedProgram)
+        Log.d("ProgramsRepositoryImpl", "Patched program: $programId")
     }
 
     /**
@@ -255,6 +261,8 @@ class ProgramsRepositoryImpl(
             customSetsDao.softDeleteByWorkoutIds(workoutIds)
             workoutInProgressDao.softDeleteByWorkoutIds(workoutIds)
             liveWorkoutCompletedSetsDao.softDeleteByWorkoutIds(workoutIds)
+
+            Log.d("ProgramsRepositoryImpl", "Deleted workouts: $workoutIds")
         }
 
         return rows > 0
@@ -271,10 +279,13 @@ class ProgramsRepositoryImpl(
         // program ID should already match, but just in case
         val workoutEntity = workout.toEntity().copy(programId = programId)
         val workoutId = workoutsDao.insert(workoutEntity)
+        Log.d("ProgramsRepositoryImpl", "Inserted workout: $workoutId")
         if (workout.lifts.isEmpty()) return workoutId
 
         val workoutLifts = workout.lifts.fastMap { it.toEntity().copy(workoutId = workoutId) }
         val workoutLiftIds = workoutLiftsDao.insertMany(workoutLifts)
+        Log.d("ProgramsRepositoryImpl", "Inserted workout lifts for workout: $workoutId")
+
         val customLiftSets = workout.lifts.zip(workoutLiftIds).fastFlatMap { (lift, workoutLiftId) ->
             if (lift is CustomWorkoutLift) {
                 lift.customLiftSets.fastMap {
@@ -285,6 +296,7 @@ class ProgramsRepositoryImpl(
 
         if (customLiftSets.isNotEmpty()) {
             customSetsDao.insertMany(customLiftSets)
+            Log.d("ProgramsRepositoryImpl", "Inserted custom lift sets for workout: $workoutId")
         }
 
         return workoutId
@@ -316,8 +328,8 @@ class ProgramsRepositoryImpl(
                 ?: error("Workout ${workoutChange.workoutId} not found for program: $programId")
 
             val updatedWorkout = existingWorkout.copy(
-                name = workoutChange.workoutUpdate.name ?: existingWorkout.name,
-                position = workoutChange.workoutUpdate.position ?: existingWorkout.position,
+                name = workoutChange.workoutUpdate.name.valueOrDefault(existingWorkout.name),
+                position = workoutChange.workoutUpdate.position.valueOrDefault(existingWorkout.position),
             ).applyRemoteStorageMetadata(
                 remoteId = existingWorkout.remoteId,
                 remoteLastUpdated = existingWorkout.remoteLastUpdated,
@@ -325,6 +337,7 @@ class ProgramsRepositoryImpl(
             )
             workoutsDao.update(updatedWorkout)
             upserted = true
+            Log.d("ProgramsRepositoryImpl", "Patched workout: ${workoutChange.workoutId}")
             existingWorkout.id
         } else workoutChange.workoutId
 
@@ -356,6 +369,7 @@ class ProgramsRepositoryImpl(
                     synced = false
                 )
             }
+            Log.d("ProgramsRepositoryImpl", "Inserted workout lifts for workout: $workoutId")
             workoutLiftsDao.insertMany(upsertLiftEntitiesWithRemoteMetadata).toMutableList()
         } else mutableListOf()
 
@@ -368,15 +382,15 @@ class ProgramsRepositoryImpl(
                 val liftUpdate = updateChange.liftUpdate!!
                 existing.copy(
                     workoutId = workoutId,
-                    liftId = liftUpdate.liftId ?: existing.liftId,
-                    position = liftUpdate.position ?: existing.position,
-                    setCount = liftUpdate.setCount ?: existing.setCount,
-                    progressionScheme = liftUpdate.progressionScheme ?: existing.progressionScheme,
-                    deloadWeek = liftUpdate.deloadWeek ?: existing.deloadWeek,
-                    repRangeTop = liftUpdate.repRangeTop ?: existing.repRangeTop,
-                    repRangeBottom = liftUpdate.repRangeBottom ?: existing.repRangeBottom,
-                    rpeTarget = liftUpdate.rpeTarget ?: existing.rpeTarget,
-                    stepSize = liftUpdate.stepSize ?: existing.stepSize,
+                    liftId = liftUpdate.liftId.valueOrDefault(existing.liftId),
+                    position = liftUpdate.position.valueOrDefault(existing.position),
+                    setCount = liftUpdate.setCount.valueOrDefault(existing.setCount),
+                    progressionScheme = liftUpdate.progressionScheme.valueOrDefault(existing.progressionScheme),
+                    deloadWeek = liftUpdate.deloadWeek.valueOrDefault(existing.deloadWeek),
+                    repRangeTop = liftUpdate.repRangeTop.valueOrDefault(existing.repRangeTop),
+                    repRangeBottom = liftUpdate.repRangeBottom.valueOrDefault(existing.repRangeBottom),
+                    rpeTarget = liftUpdate.rpeTarget.valueOrDefault(existing.rpeTarget),
+                    stepSize = liftUpdate.stepSize.valueOrDefault(existing.stepSize),
                 ).applyRemoteStorageMetadata(
                     remoteId = existing.remoteId,
                     remoteLastUpdated = existing.remoteLastUpdated,
@@ -385,6 +399,7 @@ class ProgramsRepositoryImpl(
             }
 
             workoutLiftsDao.updateMany(liftsToUpdate)
+            Log.d("ProgramsRepositoryImpl", "Patched workout lifts for workout: $workoutId")
             liftsToUpdate.fastMap { it.id }
         } else emptyList()
 
@@ -402,6 +417,7 @@ class ProgramsRepositoryImpl(
         val deletedRows = workoutLiftsDao.softDeleteMany(removedLiftIds)
         if (deletedRows > 0) {
             customSetsDao.softDeleteByWorkoutLiftIds(removedLiftIds)
+            Log.d("ProgramsRepositoryImpl", "Deleted workout lifts: $removedLiftIds")
         }
 
         return deletedRows > 0
@@ -415,6 +431,7 @@ class ProgramsRepositoryImpl(
      * @return True if any sets were upserted.
      */
     private suspend fun upsertSetEntities(workoutChange: WorkoutChange, workoutLiftIdByLiftChange: Map<LiftChange, Long>): Boolean {
+        Log.d("ProgramsRepositoryImpl", "Upserting custom lift sets")
         val upsertSetEntities = mutableListOf<CustomLiftSetEntity>()
         val existingSetIds = workoutChange.lifts
             .flatMap { it.sets }
@@ -446,6 +463,7 @@ class ProgramsRepositoryImpl(
         val hasSetsToUpsert = upsertSetEntities.isNotEmpty()
         if (hasSetsToUpsert) {
             customSetsDao.upsertMany(upsertSetEntities)
+            Log.d("ProgramsRepositoryImpl", "Upserted custom lift sets: $upsertSetEntities")
         }
 
         return hasSetsToUpsert

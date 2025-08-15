@@ -1,12 +1,17 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coJustRun
+import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -39,6 +44,6 @@ class UpdateWorkoutNameUseCaseTest {
         val delta = captured.captured
         assertEquals(1, delta.workouts.size)
         assertEquals(42L, delta.workouts[0].workoutId)
-        assertEquals("Leg Day++", delta.workouts[0].workoutUpdate!!.name)
+        assertEquals(Patch.Set("Leg Day++"), delta.workouts[0].workoutUpdate!!.name)
     }
 }

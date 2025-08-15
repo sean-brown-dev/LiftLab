@@ -2,6 +2,8 @@ package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMaxOfOrNull
+import com.browntowndev.liftlab.core.common.Patch
+import com.browntowndev.liftlab.core.common.valueOrDefault
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.delta.programDeltaSuspend
@@ -21,18 +23,18 @@ class DeleteWorkoutUseCase(
                 .filterNot { it.id == workout.id }
                 .sortedBy { it.position }
                 .fastForEachIndexed { index, workoutEntity ->
-                    workout(workoutId = workoutEntity.id, position = index)
+                    workout(workoutId = workoutEntity.id, position = Patch.Set(index))
                 }
         }
         programsRepository.applyDelta(workout.programId, delta)
 
         // If current microcycle position is now greater than the number of workouts
         // set it to the last workoutEntity index
-        val lastWorkoutPosition = delta.workouts.fastMaxOfOrNull { it.workoutUpdate?.position ?: 0 } ?: 0
+        val lastWorkoutPosition = delta.workouts.fastMaxOfOrNull { it.workoutUpdate?.position?.valueOrDefault(0) ?: 0 } ?: 0
         programsRepository.getActive()?.let { program ->
             if (program.currentMicrocyclePosition > lastWorkoutPosition) {
                 val microcyclePositionDelta = programDelta {
-                    updateProgram(currentMicrocyclePosition = lastWorkoutPosition)
+                    updateProgram(currentMicrocyclePosition = Patch.Set(lastWorkoutPosition))
                 }
                 programsRepository.applyDelta(program.id, microcyclePositionDelta)
             }

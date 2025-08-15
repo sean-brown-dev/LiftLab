@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.domain.delta
 
+import com.browntowndev.liftlab.core.common.Patch
+import com.browntowndev.liftlab.core.common.overwrite
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 
 /**
@@ -23,21 +25,21 @@ class ProgramDeltaBuilder {
 
     /** Patch program fields (simple overload). */
     fun updateProgram(
-        name: String? = null,
-        isActive: Boolean? = null,
-        deloadWeek: Int? = null,
-        currentMesocycle: Int? = null,
-        currentMicrocycle: Int? = null,
-        currentMicrocyclePosition: Int? = null
+        name: Patch<String> = Patch.Unset,
+        isActive: Patch<Boolean> = Patch.Unset,
+        deloadWeek: Patch<Int> = Patch.Unset,
+        currentMesocycle: Patch<Int> = Patch.Unset,
+        currentMicrocycle: Patch<Int> = Patch.Unset,
+        currentMicrocyclePosition: Patch<Int> = Patch.Unset
     ) {
         updateProgram {
             copy(
-                name = name ?: this.name,
-                isActive = isActive ?: this.isActive,
-                deloadWeek = deloadWeek ?: this.deloadWeek,
-                currentMesocycle = currentMesocycle ?: this.currentMesocycle,
-                currentMicrocycle = currentMicrocycle ?: this.currentMicrocycle,
-                currentMicrocyclePosition = currentMicrocyclePosition ?: this.currentMicrocyclePosition
+                name = this.name.overwrite(name),
+                isActive = this.isActive.overwrite(isActive),
+                deloadWeek = this.deloadWeek.overwrite(deloadWeek),
+                currentMesocycle = this.currentMesocycle.overwrite(currentMesocycle),
+                currentMicrocycle = this.currentMicrocycle.overwrite(currentMicrocycle),
+                currentMicrocyclePosition = this.currentMicrocyclePosition.overwrite(currentMicrocyclePosition)
             )
         }
     }
@@ -65,7 +67,7 @@ class ProgramDeltaBuilder {
     }
 
     /** Update an existing workout and add lift changes via builder DSL. */
-    fun workout(workoutId: Long, name: String? = null, position: Int? = null, build: WorkoutChangeBuilder.() -> Unit = { }) {
+    fun workout(workoutId: Long, name: Patch<String> = Patch.Unset, position: Patch<Int> = Patch.Unset, build: WorkoutChangeBuilder.() -> Unit = { }) {
         workoutChanges += WorkoutChangeBuilder(workoutId, name, position).apply(build).build()
     }
 

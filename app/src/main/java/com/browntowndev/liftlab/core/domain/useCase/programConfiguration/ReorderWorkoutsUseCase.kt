@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta.WorkoutChange.WorkoutUpdate
 import com.browntowndev.liftlab.core.domain.delta.programDelta
@@ -21,7 +22,7 @@ class ReorderWorkoutsUseCase(
                 if (newOrder != null) {
                     workout(
                         workoutId = workout.id,
-                        workoutUpdate = WorkoutUpdate(position = newOrder)
+                        workoutUpdate = WorkoutUpdate(position = Patch.Set(newOrder))
                     )
                 } else throw IllegalArgumentException("New position not found for workout: ${workout.id}")
             }

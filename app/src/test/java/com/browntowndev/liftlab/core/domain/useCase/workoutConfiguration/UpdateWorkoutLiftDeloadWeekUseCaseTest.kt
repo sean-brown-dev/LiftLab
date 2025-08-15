@@ -1,14 +1,20 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coJustRun
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -45,7 +51,7 @@ class UpdateWorkoutLiftDeloadWeekUseCaseTest {
 
         val lc = captured.captured.workouts[0].lifts[0]
         assertEquals(33L, lc.workoutLiftId)
-        assertEquals(2, lc.liftUpdate!!.deloadWeek)
-        assertNull(lc.liftUpdate!!.stepSize)
+        assertEquals(Patch.Set(2), lc.liftUpdate!!.deloadWeek)
+        assertEquals(Patch.Set(null), lc.liftUpdate.stepSize)
     }
 }

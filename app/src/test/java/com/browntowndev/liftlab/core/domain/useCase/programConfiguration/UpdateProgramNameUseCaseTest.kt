@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -40,7 +41,7 @@ class UpdateProgramNameUseCaseTest {
         useCase.invoke(programId, "Renamed")
 
         val delta = captured.captured
-        assertEquals(ProgramUpdate(name = "Renamed"), delta.programUpdate)
+        assertEquals(ProgramUpdate(name = Patch.Set("Renamed")), delta.programUpdate)
         assertFalse(delta.deleteProgram)
         assertTrue(delta.workouts.isEmpty())
         assertTrue(delta.removedWorkoutIds.isEmpty())

@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -63,12 +64,12 @@ class DeleteWorkoutUseCaseTest {
         assertTrue(first.removedWorkoutIds.contains(20L))
         // Expect reindex of remaining workouts: by sorted position -> indices 0..n-1
         val updatesById = first.workouts.associateBy { it.workoutId }
-        assertEquals(0, updatesById.getValue(21L).workoutUpdate?.position)
-        assertEquals(1, updatesById.getValue(22L).workoutUpdate?.position)
+        assertEquals(Patch.Set(0), updatesById.getValue(21L).workoutUpdate?.position)
+        assertEquals(Patch.Set(1), updatesById.getValue(22L).workoutUpdate?.position)
 
         // Second call: microcycle adjustment
         val second = captured.last().second
-        assertEquals(ProgramUpdate(currentMicrocyclePosition = 1), second.programUpdate)
+        assertEquals(ProgramUpdate(currentMicrocyclePosition = Patch.Set(1)), second.programUpdate)
     }
 
     @Test

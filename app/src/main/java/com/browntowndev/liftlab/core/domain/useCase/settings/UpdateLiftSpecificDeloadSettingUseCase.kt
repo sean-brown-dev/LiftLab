@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.settings
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.extensions.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
@@ -24,7 +25,7 @@ class UpdateLiftSpecificDeloadSettingUseCase(
                     val liftsWithNewSteps = workoutLiftWithNewSteps.value
                     workout(workoutId) {
                         liftsWithNewSteps.fastForEach { workoutLift ->
-                            updateLift(workoutLiftId = workoutLift.id, stepSize = workoutLift.stepSize)
+                            updateLift(workoutLiftId = workoutLift.id, stepSize = Patch.Set(workoutLift.stepSize))
                         }
                     }
                 }

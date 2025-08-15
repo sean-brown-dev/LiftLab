@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
@@ -16,9 +17,9 @@ class SkipDeloadAndStartWorkoutUseCase(
     ) = transactionScope.execute {
         val delta = programDelta {
             updateProgram(
-                currentMesocycle = programMetadata.currentMesocycle + 1,
-                currentMicrocycle = 0,
-                currentMicrocyclePosition = 0,
+                currentMesocycle = Patch.Set(programMetadata.currentMesocycle + 1),
+                currentMicrocycle = Patch.Set(0),
+                currentMicrocyclePosition = Patch.Set(0),
             )
         }
         programsRepository.applyDelta(programMetadata.programId, delta)

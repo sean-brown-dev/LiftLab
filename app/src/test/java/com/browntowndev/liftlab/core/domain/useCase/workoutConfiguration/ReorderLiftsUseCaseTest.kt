@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
@@ -169,8 +170,8 @@ class ReorderLiftsUseCaseTest {
 
         val positionByLiftId =
             workoutChange.lifts.associate { it.workoutLiftId to (it.liftUpdate?.position) }
-        Assertions.assertEquals(newWorkoutLiftIndices[101L], positionByLiftId[101L])
-        Assertions.assertEquals(newWorkoutLiftIndices[102L], positionByLiftId[102L])
+        Assertions.assertEquals(Patch.Set(newWorkoutLiftIndices[101L]), positionByLiftId[101L])
+        Assertions.assertEquals(Patch.Set(newWorkoutLiftIndices[102L]), positionByLiftId[102L])
 
         // Then: completed sets are reindexed by liftPosition
         coVerify {
@@ -263,7 +264,7 @@ class ReorderLiftsUseCaseTest {
         val workoutChange = capturedDelta.workouts.first()
         val positionByLiftId =
             workoutChange.lifts.associate { it.workoutLiftId to (it.liftUpdate?.position) }
-        Assertions.assertEquals(0, positionByLiftId[101L])
+        Assertions.assertEquals(Patch.Set(0), positionByLiftId[101L])
 
         // No set results updates
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }

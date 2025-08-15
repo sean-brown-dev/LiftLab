@@ -363,3 +363,19 @@ fun Int.toFriendlyMessage(): String {
         else -> "An error occurred during the purchase."
     }
 }
+
+/**
+ * If patch is set, returns its value, otherwise returns the default value.
+ *
+ * @param default Default value to return if patch is unset.
+ * @return The value of the patch or the default value.
+ */
+fun <T> Patch<T>.valueOrDefault(default: T): T = when (this) {
+    is Patch.Unset -> default
+    is Patch.Set -> value
+}
+
+fun <T> Patch<T>.overwrite(other: Patch<T>): Patch<T> = when (other) {
+    is Patch.Unset -> this
+    is Patch.Set -> other
+}

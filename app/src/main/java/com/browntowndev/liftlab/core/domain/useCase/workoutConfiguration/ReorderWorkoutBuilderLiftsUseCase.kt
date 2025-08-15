@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -30,7 +31,7 @@ class ReorderWorkoutBuilderLiftsUseCase(
                     workoutLiftPositionByLiftId.put(workoutLift.liftId, workoutLift.position)
                     updateLift(
                         workoutLiftId = workoutLift.id,
-                        position = newWorkoutLiftIndices[workoutLift.id]!!
+                        position = Patch.Set(newWorkoutLiftIndices[workoutLift.id]!!)
                     )
                 }
             }

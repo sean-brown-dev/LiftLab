@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.extensions.getAllLiftsWithRecalculatedStepSize
@@ -13,7 +14,7 @@ class UpdateProgramDeloadWeekUseCase(
 ) {
     suspend operator fun invoke(program: Program, deloadWeek: Int, useLiftSpecificDeload: Boolean) = transactionScope.execute {
         val delta = programDelta {
-            updateProgram(deloadWeek = deloadWeek)
+            updateProgram(deloadWeek = Patch.Set(deloadWeek))
             program.workouts.getAllLiftsWithRecalculatedStepSize(
                 deloadToUseInsteadOfLiftLevel = if (useLiftSpecificDeload) null else deloadWeek,
             ).forEach { workoutLiftWithNewSteps ->
@@ -21,7 +22,7 @@ class UpdateProgramDeloadWeekUseCase(
                 val liftsWithNewSteps = workoutLiftWithNewSteps.value
                 workout(workoutId) {
                     liftsWithNewSteps.fastForEach { workoutLift ->
-                        updateLift(workoutLiftId = workoutLift.id, stepSize = workoutLift.stepSize)
+                        updateLift(workoutLiftId = workoutLift.id, stepSize = Patch.Set(workoutLift.stepSize))
                     }
                 }
             }

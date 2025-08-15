@@ -1,9 +1,10 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
-import com.browntowndev.liftlab.core.domain.extensions.convertToCustomWorkoutLift
+import com.browntowndev.liftlab.core.domain.extensions.generateCustomSets
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
@@ -22,11 +23,17 @@ class ConvertWorkoutLiftTypeUseCase(
                 val standardWorkoutLift = workoutLiftToConvert as? StandardWorkoutLift
                     ?: throw Exception("Lift already has custom lift sets.")
 
-                val customWorkoutLift = standardWorkoutLift.convertToCustomWorkoutLift()
+                val customSets = standardWorkoutLift.generateCustomSets()
                 val delta = programDelta {
-                    workout(customWorkoutLift.workoutId) {
-                        updateSets(customWorkoutLift.id) {
-                            customWorkoutLift.customLiftSets.fastForEach { customSet ->
+                    workout(standardWorkoutLift.workoutId) {
+                        updateLift(
+                            workoutLiftId = standardWorkoutLift.id,
+                            repRangeBottom = Patch.Set(null),
+                            repRangeTop = Patch.Set(null),
+                            rpeTarget = Patch.Set(null),
+                            stepSize = Patch.Set(null)
+                        ) {
+                            customSets.fastForEach { customSet ->
                                 set(customSet)
                             }
                         }
@@ -43,9 +50,9 @@ class ConvertWorkoutLiftTypeUseCase(
                     workout(customWorkoutLift.workoutId) {
                         updateLift(
                             workoutLiftId = customWorkoutLift.id,
-                            repRangeBottom = topCustomLiftSet?.repRangeBottom ?: 8,
-                            repRangeTop = topCustomLiftSet?.repRangeTop ?: 10,
-                            rpeTarget = topCustomLiftSet?.rpeTarget ?: 8f,
+                            repRangeBottom = Patch.Set(topCustomLiftSet?.repRangeBottom ?: 8),
+                            repRangeTop = Patch.Set(topCustomLiftSet?.repRangeTop ?: 10),
+                            rpeTarget = Patch.Set(topCustomLiftSet?.rpeTarget ?: 8f),
                         ) {
                             removeAllSets()
                         }

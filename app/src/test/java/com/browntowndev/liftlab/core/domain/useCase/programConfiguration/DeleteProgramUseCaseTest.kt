@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -56,7 +57,7 @@ class DeleteProgramUseCaseTest {
 
         // Second delta: set newest active
         val activateCall = captured.first { it.first == newest.id }.second
-        assertEquals(ProgramUpdate(isActive = true), activateCall.programUpdate)
+        assertEquals(ProgramUpdate(isActive = Patch.Set(true)), activateCall.programUpdate)
     }
 
     @Test

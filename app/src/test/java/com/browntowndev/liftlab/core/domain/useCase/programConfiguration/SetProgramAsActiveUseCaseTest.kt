@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -46,10 +47,10 @@ class SetProgramAsActiveUseCaseTest {
 
         // First: activate target
         val activate = captured.first { it.first == target.id }.second
-        assertEquals(ProgramUpdate(isActive = true), activate.programUpdate)
+        assertEquals(ProgramUpdate(isActive = Patch.Set(true)), activate.programUpdate)
 
         // Then: deactivate previously active
         val deactivate = captured.first { it.first == previouslyActive.id }.second
-        assertEquals(ProgramUpdate(isActive = false), deactivate.programUpdate)
+        assertEquals(ProgramUpdate(isActive = Patch.Set(false)), deactivate.programUpdate)
     }
 }

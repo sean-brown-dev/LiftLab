@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -21,18 +22,18 @@ class UpdateWorkoutLiftUseCase(
                 val customWorkoutLift = workoutLift as? CustomWorkoutLift
                 updateLift(
                     workoutLiftId = workoutLift.id,
-                    liftId = workoutLift.liftId,
-                    position = workoutLift.position,
-                    setCount = workoutLift.setCount,
-                    progressionScheme = workoutLift.progressionScheme,
-                    deloadWeek = workoutLift.deloadWeek,
-                    incrementOverride = workoutLift.incrementOverride,
-                    restTime = workoutLift.restTime,
-                    restTimerEnabled = workoutLift.restTimerEnabled,
-                    repRangeTop = stdWorkoutLift?.repRangeTop,
-                    repRangeBottom = stdWorkoutLift?.repRangeBottom,
-                    rpeTarget = stdWorkoutLift?.rpeTarget,
-                    stepSize = stdWorkoutLift?.stepSize,
+                    liftId = Patch.Set(workoutLift.liftId),
+                    position = Patch.Set(workoutLift.position),
+                    setCount = Patch.Set(workoutLift.setCount),
+                    progressionScheme = Patch.Set(workoutLift.progressionScheme),
+                    deloadWeek = Patch.Set(workoutLift.deloadWeek),
+                    incrementOverride = Patch.Set(workoutLift.incrementOverride),
+                    restTime = Patch.Set(workoutLift.restTime),
+                    restTimerEnabled = Patch.Set(workoutLift.restTimerEnabled),
+                    repRangeTop = Patch.Set(stdWorkoutLift?.repRangeTop),
+                    repRangeBottom = Patch.Set(stdWorkoutLift?.repRangeBottom),
+                    rpeTarget = Patch.Set(stdWorkoutLift?.rpeTarget),
+                    stepSize = Patch.Set(stdWorkoutLift?.stepSize),
                 ) {
                     customWorkoutLift?.customLiftSets?.forEach { set ->
                         set(set)

@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
@@ -66,9 +67,9 @@ class CompleteWorkoutUseCase(
             if (microCycleComplete) 0 else programMetadata.currentMicrocyclePosition + 1
         val delta = programDelta {
             updateProgram(
-                currentMesocycle = newMesoCycle,
-                currentMicrocycle = newMicroCycle,
-                currentMicrocyclePosition = newMicroCyclePosition,
+                currentMesocycle = Patch.Set(newMesoCycle),
+                currentMicrocycle = Patch.Set(newMicroCycle),
+                currentMicrocyclePosition = Patch.Set(newMicroCyclePosition),
             )
         }
         programsRepository.applyDelta(programMetadata.programId, delta)

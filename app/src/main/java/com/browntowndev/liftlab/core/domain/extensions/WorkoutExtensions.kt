@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.core.domain.extensions
 import androidx.compose.ui.util.fastFlatMap
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
@@ -129,7 +128,7 @@ fun StandardWorkoutLift.getRecalculatedStepSizeForLift(
  * by copying most properties and using the generated sets.
  * @return A new [CustomWorkoutLift] instance.
  */
-fun StandardWorkoutLift.convertToCustomWorkoutLift(): CustomWorkoutLift {
+fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
     val customSets = mutableListOf<GenericLiftSet>()
     for (i in 0 until setCount) {
         customSets.add(
@@ -143,27 +142,5 @@ fun StandardWorkoutLift.convertToCustomWorkoutLift(): CustomWorkoutLift {
         )
     }
 
-    return CustomWorkoutLift(
-        id = id,
-        workoutId = workoutId,
-        liftId = liftId,
-        liftName = liftName,
-        liftMovementPattern = liftMovementPattern,
-        liftVolumeTypes = liftVolumeTypes,
-        liftSecondaryVolumeTypes = liftSecondaryVolumeTypes,
-        position = position,
-        progressionScheme = progressionScheme,
-        deloadWeek = deloadWeek,
-        liftNote = null,
-        incrementOverride = incrementOverride,
-        restTime = restTime,
-        restTimerEnabled = restTimerEnabled,
-        customLiftSets = customSets
-    )
-}
-
-fun GenericWorkoutLift.copyId(id: Long): GenericWorkoutLift = when (this) {
-    is StandardWorkoutLift -> copy(id = id)
-    is CustomWorkoutLift -> copy(id = id)
-    else -> throw IllegalArgumentException("Invalid workout lift type")
+    return customSets
 }

@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta.ProgramUpdate
 import com.browntowndev.liftlab.core.domain.delta.programDelta
@@ -21,7 +22,7 @@ class CreateProgramUseCase(
         if (isActive && currentActiveProgram != null) {
             val delta = programDelta {
                 updateProgram {
-                    ProgramUpdate(isActive = false)
+                    ProgramUpdate(isActive = Patch.Set(false))
                 }
             }
 

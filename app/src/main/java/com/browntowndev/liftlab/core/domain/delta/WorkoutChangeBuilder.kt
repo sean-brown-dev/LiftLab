@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.delta
 
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta.WorkoutChange.WorkoutUpdate
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -36,12 +37,11 @@ class WorkoutChangeBuilder {
 
     /**
      * Target an existing workout to patch scalar fields.
-     * Any prior call to [insert] will be overridden.
      */
     constructor(
         workoutId: Long,
-        name: String? = null,
-        position: Int? = null
+        name: Patch<String> = Patch.Unset,
+        position: Patch<Int> = Patch.Unset
     ) {
         this.workoutId = workoutId
         this.workoutInsert = null
@@ -69,19 +69,19 @@ class WorkoutChangeBuilder {
     /** Update an existing lift and add set changes via DSL. */
     fun updateLift(
         workoutLiftId: Long,
-       liftId: Long? = null,
-       position: Int? = null,
-       setCount: Int? = null,
-       progressionScheme: ProgressionScheme? = null,
-       deloadWeek: Int? = null,
-       incrementOverride: Float? = null,
-       restTime: Duration? = null,
-       restTimerEnabled: Boolean? = null,
-       repRangeTop: Int? = null,
-       repRangeBottom: Int? = null,
-       rpeTarget: Float? = null,
-       stepSize: Int? = null,
-       build: LiftChangeBuilder.() -> Unit = { }
+        liftId: Patch<Long> = Patch.Unset,
+        position: Patch<Int> = Patch.Unset,
+        setCount: Patch<Int> = Patch.Unset,
+        progressionScheme: Patch<ProgressionScheme> = Patch.Unset,
+        deloadWeek: Patch<Int?> = Patch.Unset,
+        incrementOverride: Patch<Float?> = Patch.Unset,
+        restTime: Patch<Duration?> = Patch.Unset,
+        restTimerEnabled: Patch<Boolean?> = Patch.Unset,
+        repRangeTop: Patch<Int?> = Patch.Unset,
+        repRangeBottom: Patch<Int?> = Patch.Unset,
+        rpeTarget: Patch<Float?> = Patch.Unset,
+        stepSize: Patch<Int?> = Patch.Unset,
+        build: LiftChangeBuilder.() -> Unit = { }
     ) {
         val liftUpdate = LiftUpdate(
             liftId = liftId,

@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
@@ -14,7 +15,7 @@ class SetProgramAsActiveUseCase(
     suspend operator fun invoke(idOfProgramToActivate: Long, allPrograms: List<Program>) = transactionScope.execute {
         val programToActivate = allPrograms.find { it.id == idOfProgramToActivate } ?: throw IllegalArgumentException("Program not found")
         val activateProgramDelta = programDelta {
-            updateProgram(isActive = true)
+            updateProgram(isActive = Patch.Set(true))
         }
         programsRepository.applyDelta(programToActivate.id, activateProgramDelta)
 
@@ -27,7 +28,7 @@ class SetProgramAsActiveUseCase(
 
         programsToDeactivate.fastForEach { program ->
             val deactivateDelta = programDelta {
-                updateProgram(isActive = false)
+                updateProgram(isActive = Patch.Set(false))
             }
             programsRepository.applyDelta(program.id, deactivateDelta)
         }

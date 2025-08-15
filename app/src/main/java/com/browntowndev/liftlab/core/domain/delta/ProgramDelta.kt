@@ -5,6 +5,7 @@ package com.browntowndev.liftlab.core.domain.delta
 // -----------------------------------------------
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
@@ -38,12 +39,12 @@ data class ProgramDelta(
 ) {
 
     data class ProgramUpdate(
-        val name: String? = null,
-        val isActive: Boolean? = null,
-        val deloadWeek: Int? = null,
-        val currentMesocycle: Int? = null,
-        val currentMicrocycle: Int? = null,
-        val currentMicrocyclePosition: Int? = null
+        val name: Patch<String> = Patch.Unset,
+        val isActive: Patch<Boolean> = Patch.Unset,
+        val deloadWeek: Patch<Int> = Patch.Unset,
+        val currentMesocycle: Patch<Int> = Patch.Unset,
+        val currentMicrocycle: Patch<Int> = Patch.Unset,
+        val currentMicrocyclePosition: Patch<Int> = Patch.Unset
     )
 
     data class WorkoutChange(
@@ -79,8 +80,8 @@ data class ProgramDelta(
         val removedWorkoutLiftIds: List<Long> = emptyList()
     ) {
         data class WorkoutUpdate(
-            val name: String? = null,
-            val position: Int? = null,
+            val name: Patch<String> = Patch.Unset,
+            val position: Patch<Int> = Patch.Unset,
         )
 
         data class LiftChange(
@@ -109,18 +110,18 @@ data class ProgramDelta(
             val removedSetIds: List<Long> = emptyList()
         ) {
             data class LiftUpdate(
-                val liftId: Long? = null,
-                val position: Int? = null,
-                val setCount: Int? = null,
-                val progressionScheme: ProgressionScheme? = null,
-                val deloadWeek: Int? = null,
-                val incrementOverride: Float? = null,
-                val restTime: Duration? = null,
-                val restTimerEnabled: Boolean? = null,
-                val repRangeTop: Int? = null,
-                val repRangeBottom: Int? = null,
-                val rpeTarget: Float? = null,
-                val stepSize: Int? = null,
+                val liftId: Patch<Long> = Patch.Unset,
+                val position: Patch<Int> = Patch.Unset,
+                val setCount: Patch<Int> = Patch.Unset,
+                val progressionScheme: Patch<ProgressionScheme> = Patch.Unset,
+                val deloadWeek: Patch<Int?> = Patch.Unset,
+                val incrementOverride: Patch<Float?> = Patch.Unset,
+                val restTime: Patch<Duration?> = Patch.Unset,
+                val restTimerEnabled: Patch<Boolean?> = Patch.Unset,
+                val repRangeTop: Patch<Int?> = Patch.Unset,
+                val repRangeBottom: Patch<Int?> = Patch.Unset,
+                val rpeTarget: Patch<Float?> = Patch.Unset,
+                val stepSize: Patch<Int?> = Patch.Unset,
             )
 
             /** A single set upsert (id==0L => insert, id>0L => update). */
