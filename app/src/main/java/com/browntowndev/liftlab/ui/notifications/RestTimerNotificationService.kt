@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -89,16 +88,12 @@ class RestTimerNotificationService : Service() {
     override fun onCreate() {
         super.onCreate()
         createRestTimerChannel()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            ServiceCompat.startForeground(
-                this,
-                NOTIFICATION_ID,
-                notificationBuilder.build(),
-                FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-            )
-        } else {
-            startForeground(NOTIFICATION_ID, notificationBuilder.build())
-        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ID,
+            notificationBuilder.build(),
+            FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
