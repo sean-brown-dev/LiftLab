@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme

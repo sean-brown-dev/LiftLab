@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.remote
+package com.browntowndev.liftlab.core.sync
 
 
 import android.content.Context

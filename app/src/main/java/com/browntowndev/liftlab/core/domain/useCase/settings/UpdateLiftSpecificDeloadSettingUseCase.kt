@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.domain.delta.programDelta
 import com.browntowndev.liftlab.core.domain.extensions.getAllLiftsWithRecalculatedStepSize
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.SettingKey
+import com.browntowndev.liftlab.core.domain.common.SettingKey
 import com.browntowndev.liftlab.core.domain.repositories.SettingsRepository
 
 class UpdateLiftSpecificDeloadSettingUseCase(

@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.domain.useCase.settings
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.settings.SettingsConfigurationState
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.SettingKey
+import com.browntowndev.liftlab.core.domain.common.SettingKey
 import com.browntowndev.liftlab.core.domain.repositories.SettingsRepository
 import io.mockk.every
 import io.mockk.mockk

@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao
 import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metrics.LiftMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.LiftMetricChartsRepository
 import kotlinx.coroutines.flow.Flow

@@ -4,7 +4,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.VolumeMetricChartsDao
 import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metrics.VolumeMetricChart
 import com.browntowndev.liftlab.core.domain.repositories.VolumeMetricChartsRepository
 import kotlinx.coroutines.flow.Flow

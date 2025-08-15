@@ -6,7 +6,7 @@ import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metadata.LiftMetadata
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository

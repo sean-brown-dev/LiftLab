@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.remote
+package com.browntowndev.liftlab.core.data.remote.client
 
 import com.browntowndev.liftlab.core.common.authStateFlow
 import com.google.firebase.auth.FirebaseAuth
@@ -15,7 +15,6 @@ class FirestoreClientImpl(
     private val auth: FirebaseAuth,
     appScope: CoroutineScope,
 ): FirestoreClient {
-    override val isUserLoggedIn: Boolean = auth.uid != null
     override val isUserLoggedInFlow: StateFlow<Boolean> = auth
         .authStateFlow()
         .map { it != null }
@@ -25,6 +24,8 @@ class FirestoreClientImpl(
             SharingStarted.Eagerly,
             auth.currentUser != null
         )
+    override val isUserLoggedIn: Boolean
+        get() = isUserLoggedInFlow.value
 
     override fun batch() = firestore.batch()
 

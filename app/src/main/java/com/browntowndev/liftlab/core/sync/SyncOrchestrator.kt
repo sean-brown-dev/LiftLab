@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.data.remote
+package com.browntowndev.liftlab.core.sync
 
 import android.util.Log
 import androidx.compose.ui.util.fastFilter
@@ -8,10 +8,12 @@ import androidx.compose.ui.util.fastMapNotNull
 import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.common.TransactionScope
-import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
+import com.browntowndev.liftlab.core.data.remote.client.RemoteDataClient
 import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
-import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
+import com.browntowndev.liftlab.core.domain.models.sync.SyncDto
+import com.browntowndev.liftlab.core.domain.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
+import com.browntowndev.liftlab.core.sync.policy.PostSyncPolicy
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.sync.Mutex
@@ -24,6 +26,7 @@ class SyncOrchestrator(
     private val remoteDataClient: RemoteDataClient,
     private val transactionScope: TransactionScope,
     private val syncHierarchy: List<HashSet<String>>,
+    private val postDownloadPolicies: List<PostSyncPolicy>,
 ) {
     companion object {
         private val mutex = Mutex()
@@ -79,16 +82,17 @@ class SyncOrchestrator(
     private suspend fun downloadNewerChanges(syncAll: Boolean) {
         Log.d(TAG, "Starting downloadNewerChanges")
 
-        syncHierarchy.executeForEachRepositoryParallel { syncRepository ->
+        syncHierarchy.executeForEachRepositoryParallel { syncRepository, postSyncPolicy ->
             val collectionName = syncRepository.collectionName
             val lastSynced = if (syncAll) {
                 Date(0)
-            }else {
+            } else {
                 val syncMeta = syncMetadataRepository.get(collectionName = collectionName)
                 syncMeta?.lastSyncTimestamp ?: Date(0)
             }
             Log.d(TAG, "Last synced for $collectionName: $lastSynced")
             var latestRemoteLastUpdated = lastSynced
+            val remoteIds = mutableListOf<String>()
 
             remoteDataClient.getAllSinceFlow(
                 collectionName = collectionName, lastUpdated = lastSynced
@@ -103,10 +107,16 @@ class SyncOrchestrator(
                     remoteEntityChunk = remoteEntities,
                     syncRepository = syncRepository,
                 )
-                val latestRemoteLastUpdatedForBatch =
-                    remoteEntities.maxOf { it.lastUpdated ?: Date(0) }
-                latestRemoteLastUpdated =
-                    maxOf(latestRemoteLastUpdated, latestRemoteLastUpdatedForBatch)
+
+                remoteIds.addAll(remoteEntities.fastMap { it.remoteId ?: error("Remote ID is null") })
+
+                val latestRemoteLastUpdatedForBatch = remoteEntities.maxOf { it.lastUpdated ?: Date(0) }
+                latestRemoteLastUpdated = maxOf(latestRemoteLastUpdated, latestRemoteLastUpdatedForBatch)
+            }
+
+            postSyncPolicy?.let {
+                Log.d(TAG, "Applying post sync policy. [${it.collectionName}]")
+                it.apply(remoteIds)
             }
 
             Log.d(
@@ -124,7 +134,7 @@ class SyncOrchestrator(
     }
 
     private suspend fun updateLocalEntitiesFromRemoteChunk(
-        remoteEntityChunk: List<BaseRemoteDto>,
+        remoteEntityChunk: List<SyncDto>,
         syncRepository: RemoteSyncRepository,
     ) {
         val localEntities = syncRepository.getManyByRemoteId(remoteEntityChunk.mapNotNull { it.remoteId })
@@ -149,10 +159,10 @@ class SyncOrchestrator(
 
     private suspend fun uploadPendingChanges() {
         Log.d(TAG, "Starting uploadPendingChanges")
-        syncHierarchy.executeForEachRepositoryParallel { syncRepository ->
+        syncHierarchy.executeForEachRepositoryParallel { syncRepository, _ ->
             processUpsertBatches(syncRepository)
         }
-        syncHierarchy.asReversed().executeForEachRepositoryParallel { syncRepository ->
+        syncHierarchy.asReversed().executeForEachRepositoryParallel { syncRepository, _ ->
             processDeleteBatches(syncRepository)
         }
         Log.d(TAG, "Finished uploadPendingChanges")
@@ -245,13 +255,14 @@ class SyncOrchestrator(
     }
 
     private suspend fun List<HashSet<String>>.executeForEachRepositoryParallel(
-        action: suspend (syncRepository: RemoteSyncRepository
-    ) -> Unit) {
+        action: suspend (syncRepository: RemoteSyncRepository, postSyncPolicy: PostSyncPolicy?) -> Unit) {
+        val postSyncPoliciesByCollectionName = postDownloadPolicies.associateBy { it.collectionName }
         fastForEach { collectionNames ->
             syncRepositories
                 .filter { it.collectionName in collectionNames }
                 .forEachParallel { syncRepository ->
-                    action(syncRepository)
+                    val postSyncPolicy = postSyncPoliciesByCollectionName[syncRepository.collectionName]
+                    action(syncRepository, postSyncPolicy)
                 }
         }
     }

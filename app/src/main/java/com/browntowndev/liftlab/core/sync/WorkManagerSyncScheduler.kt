@@ -1,6 +1,11 @@
-package com.browntowndev.liftlab.core.data.remote
+package com.browntowndev.liftlab.core.sync
 
-import androidx.work.*
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import androidx.work.WorkRequest.Companion.MIN_BACKOFF_MILLIS
 import java.util.concurrent.TimeUnit
 

@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
@@ -46,17 +46,25 @@ class WorkoutLogRepositoryImpl(
         )
         workoutLogEntryDao.update(toUpdate)
 
-        // TODO: Delete if removed, insert if new. Consider making delta
         val currentSetLogs = setLogEntryDao.getForWorkoutLogEntry(model.id)
             .associateBy { it.id }
-        val toUpdateSetLogs = model.setLogEntries.map {
-            it.toEntity().applyRemoteStorageMetadata(
-                remoteId = currentSetLogs[it.id]?.remoteId,
-                remoteLastUpdated = currentSetLogs[it.id]?.remoteLastUpdated,
-                synced = false,
-            )
+
+        val toDeleteIds = currentSetLogs.keys - model.setLogEntries.map { it.id }
+        setLogEntryDao.softDeleteMany(toDeleteIds.toList())
+
+        val toUpsertIds = model.setLogEntries.map { it.id } - toDeleteIds
+        if (toUpsertIds.isNotEmpty()) {
+            val toUpsert = model.setLogEntries.filter { it.id in toUpsertIds }
+            val toUpdateSetLogs = toUpsert.map {
+                it.toEntity().applyRemoteStorageMetadata(
+                    remoteId = currentSetLogs[it.id]?.remoteId,
+                    remoteLastUpdated = currentSetLogs[it.id]?.remoteLastUpdated,
+                    synced = false,
+                )
+            }
+            setLogEntryDao.upsertMany(toUpdateSetLogs)
         }
-        setLogEntryDao.updateMany(toUpdateSetLogs)
+
         syncScheduler.scheduleSync()
     }
 
@@ -91,6 +99,7 @@ class WorkoutLogRepositoryImpl(
     override suspend fun deleteById(id: Long): Int {
         val deleteCount =  workoutLogEntryDao.softDelete(id)
         if (deleteCount > 0) {
+            setLogEntryDao.softDeleteByWorkoutLogEntryId(id)
             syncScheduler.scheduleSync()
         }
 

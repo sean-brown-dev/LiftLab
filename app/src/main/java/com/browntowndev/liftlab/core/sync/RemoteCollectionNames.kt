@@ -1,6 +1,5 @@
-package com.browntowndev.liftlab.core.data.common
+package com.browntowndev.liftlab.core.sync
 
-// Firebase
 object RemoteCollectionNames {
     const val CUSTOM_LIFT_SETS_COLLECTION = "customLiftSets"
     const val HISTORICAL_WORKOUT_NAMES_COLLECTION = "historicalWorkoutNames"

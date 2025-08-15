@@ -28,7 +28,6 @@ val NULLABLE_DELOAD_WEEK_OPTIONS =
 
 // Navigation
 const val LIFT_METRIC_CHART_IDS = "liftMetricChartIds"
-const val SHOW_WORKOUT_LOG = "showWorkoutLog"
 
 // Donation
 const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"

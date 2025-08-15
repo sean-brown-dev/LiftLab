@@ -7,7 +7,7 @@ import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
-import com.browntowndev.liftlab.core.domain.repositories.SettingKey
+import com.browntowndev.liftlab.core.domain.common.SettingKey
 import com.browntowndev.liftlab.core.domain.repositories.SettingsRepository
 import io.mockk.CapturingSlot
 import io.mockk.coEvery

@@ -14,7 +14,6 @@ import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadat
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -136,26 +135,6 @@ class CompleteWorkoutUseCase(
         }.map {
             it.id
         }.toHashSet()
-
-        // If someone marked a myorep set incomplete in the middle of a sequence and didn't
-        // finish it, fix the myorep set positions to fill the gap
-        val myoRepSetsToSynchronizePositonsFor = completedSets
-            .filterIsInstance<MyoRepSetResult>()
-            .filter { it.id !in excludeFromCopy }
-            .groupBy { it.toLiftAndPositionKey() }
-            .values
-            .flatMap { resultsForLift ->
-                resultsForLift.sortedBy { it.id }.mapIndexedNotNull { index, result ->
-                    val expectedMyoRepSetPosition: Int? = if (index == 0) null else index - 1
-                    if (result.myoRepSetPosition != expectedMyoRepSetPosition) {
-                        result.copy(myoRepSetPosition = expectedMyoRepSetPosition)
-                    } else null
-                }
-            }
-
-        if (myoRepSetsToSynchronizePositonsFor.isNotEmpty()) {
-            liveWorkoutCompletedSetsRepository.upsertMany(myoRepSetsToSynchronizePositonsFor)
-        }
 
         // Copy all of the set results from this workout into the set history table
         setLogEntryRepository.insertFromLiveWorkoutCompletedSets(

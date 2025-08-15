@@ -1,10 +1,11 @@
-package com.browntowndev.liftlab.core.data.remote
+package com.browntowndev.liftlab.core.data.remote.client
 
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.forEachParallel
 import com.browntowndev.liftlab.core.data.common.SyncType
-import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
+import com.browntowndev.liftlab.core.domain.models.sync.SyncDto
+import com.browntowndev.liftlab.core.sync.BatchSyncCollection
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.Query
@@ -17,7 +18,7 @@ import kotlin.reflect.KClass
 
 class FirestoreRemoteDataClient(
     private val firestoreClient: FirestoreClient,
-    private val collectionTypes: Map<String, KClass<out BaseRemoteDto>>
+    private val collectionTypes: Map<String, KClass<out SyncDto>>
 ): RemoteDataClient {
 
     companion object {
@@ -29,7 +30,7 @@ class FirestoreRemoteDataClient(
     /**
      * Returns a Flow that emits batches of documents updated since a given date.
      */
-    override fun getAllSinceFlow(collectionName: String, lastUpdated: Date): Flow<List<BaseRemoteDto>> =
+    override fun getAllSinceFlow(collectionName: String, lastUpdated: Date): Flow<List<SyncDto>> =
         flow {
             if (!firestoreClient.isUserLoggedIn) return@flow
 
@@ -45,7 +46,7 @@ class FirestoreRemoteDataClient(
     /**
      * Returns a Flow that emits chunks of documents with the given IDs.
      */
-    override fun getManyFlow(collectionName: String, ids: List<String>): Flow<List<BaseRemoteDto>> =
+    override fun getManyFlow(collectionName: String, ids: List<String>): Flow<List<SyncDto>> =
         flow {
             if (!firestoreClient.isUserLoggedIn || ids.isEmpty()) {
                 emit(emptyList()) // Emit an empty list and complete the flow
@@ -66,7 +67,7 @@ class FirestoreRemoteDataClient(
             }
         }
 
-    private fun Query.executeBatched(collectionName: String): Flow<List<BaseRemoteDto>> =
+    private fun Query.executeBatched(collectionName: String): Flow<List<SyncDto>> =
         flow {
             if (!firestoreClient.isUserLoggedIn) return@flow
 
@@ -129,12 +130,12 @@ class FirestoreRemoteDataClient(
         return upsertDocumentIds
     }
 
-    private fun List<DocumentSnapshot>.toDtos(collectionName: String): List<BaseRemoteDto> {
+    private fun List<DocumentSnapshot>.toDtos(collectionName: String): List<SyncDto> {
         val clazz = getClazz(collectionName)
         return this.mapNotNull { document -> document.toObject(clazz) }
     }
 
-    private fun getClazz(collectionName: String): Class<out BaseRemoteDto> {
+    private fun getClazz(collectionName: String): Class<out SyncDto> {
         return collectionTypes[collectionName]?.java ?: throw IllegalArgumentException("No KClass found for collection: $collectionName")
     }
 }

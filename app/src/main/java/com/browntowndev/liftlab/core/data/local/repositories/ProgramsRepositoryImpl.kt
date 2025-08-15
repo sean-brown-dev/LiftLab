@@ -18,7 +18,7 @@ import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.delta.LiftChange
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -63,6 +63,13 @@ class ProgramsRepositoryImpl(
     override suspend fun getActive(): Program? {
         return programsDao.getActive()?.let { programEntity ->
             val program = programEntity.toDomainModel()
+            getSortedCopy(program)
+        }
+    }
+
+    override suspend fun getAllActive(): List<Program> {
+        return programsDao.getAllActive().fastMap { entity ->
+            val program = entity.toDomainModel()
             getSortedCopy(program)
         }
     }

@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels.remoteSync
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.data.remote.SyncOrchestrator
+import com.browntowndev.liftlab.core.sync.SyncOrchestrator
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

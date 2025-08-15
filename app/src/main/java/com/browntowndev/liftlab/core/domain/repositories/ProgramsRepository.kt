@@ -12,6 +12,7 @@ interface ProgramsRepository {
     suspend fun insert(program: Program): Long
     suspend fun applyDelta(programId: Long, delta: ProgramDelta)
     suspend fun getActive(): Program?
+    suspend fun getAllActive(): List<Program>
     fun getActiveProgramFlow(): Flow<Program?>
     fun getActiveProgramWorkoutCountFlow(): Flow<Int>
     suspend fun getDeloadWeek(id: Long): Int

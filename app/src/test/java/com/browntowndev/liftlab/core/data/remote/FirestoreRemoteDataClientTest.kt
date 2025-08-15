@@ -2,7 +2,10 @@ package com.browntowndev.liftlab.core.data.remote
 
 // ---- Explicit JUnit Jupiter assertions (no wildcards) ----
 import com.browntowndev.liftlab.core.data.common.SyncType
+import com.browntowndev.liftlab.core.data.remote.client.FirestoreClient
+import com.browntowndev.liftlab.core.data.remote.client.FirestoreRemoteDataClient
 import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
+import com.browntowndev.liftlab.core.sync.BatchSyncCollection
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference

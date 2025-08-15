@@ -1,11 +1,13 @@
-package com.browntowndev.liftlab.core.data.remote
+package com.browntowndev.liftlab.core.sync
 
 import com.browntowndev.liftlab.core.data.common.SyncType
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.data.remote.client.RemoteDataClient
 import com.browntowndev.liftlab.core.data.remote.dto.BaseRemoteDto
 import com.browntowndev.liftlab.core.data.remote.dto.SyncMetadataDto
-import com.browntowndev.liftlab.core.data.remote.repositories.RemoteSyncRepository
+import com.browntowndev.liftlab.core.domain.repositories.RemoteSyncRepository
 import com.browntowndev.liftlab.core.domain.repositories.SyncMetadataRepository
+import com.browntowndev.liftlab.core.sync.policy.PostSyncPolicy
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -13,24 +15,26 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.Date
 
+@Suppress("UnusedFlow")
 @OptIn(ExperimentalCoroutinesApi::class)
 class SyncOrchestratorTest {
 
     private lateinit var syncMetadataRepository: SyncMetadataRepository
     private lateinit var remoteDataClient: RemoteDataClient
     private lateinit var transactionScope: TransactionScope
+    private lateinit var postProgramSyncPolicy: PostSyncPolicy
 
     private lateinit var repoA: RemoteSyncRepository
     private lateinit var repoB: RemoteSyncRepository
@@ -43,6 +47,8 @@ class SyncOrchestratorTest {
     fun setUp() {
         syncMetadataRepository = mockk(relaxed = true)
         remoteDataClient = mockk(relaxed = true)
+        postProgramSyncPolicy = mockk(relaxed = true)
+        every { postProgramSyncPolicy.collectionName } returns "A"
 
         // Preferred TransactionScope pattern
         transactionScope = mockk(relaxed = true)
@@ -62,7 +68,8 @@ class SyncOrchestratorTest {
             syncRepositories = listOf(repoA, repoB),
             remoteDataClient = remoteDataClient,
             transactionScope = transactionScope,
-            syncHierarchy = hierarchy
+            syncHierarchy = hierarchy,
+            postDownloadPolicies = listOf(postProgramSyncPolicy)
         )
     }
 
@@ -222,8 +229,8 @@ class SyncOrchestratorTest {
         val ex = assertThrows<RuntimeException> {
             orchestrator.syncToRemote()
         }
-        assertTrue(ex.message?.contains("boom") == true)
-        io.mockk.verify(exactly = 1) { crash.recordException(any()) }
+        Assertions.assertTrue(ex.message?.contains("boom") == true)
+        verify(exactly = 1) { crash.recordException(any()) }
     }
 
     // -------------------- syncFromThenToRemote --------------------
@@ -277,8 +284,8 @@ class SyncOrchestratorTest {
             coVerify(exactly = 0) { syncMetadataRepository.get(any()) }
 
             // Metadata updated to now1 (A) and epoch (B)
-            assertEquals(Date(1000), metas[0].lastSyncTimestamp)
-            assertEquals(Date(0), metas[1].lastSyncTimestamp)
+            Assertions.assertEquals(Date(1000), metas[0].lastSyncTimestamp)
+            Assertions.assertEquals(Date(0), metas[1].lastSyncTimestamp)
         }
 
     @Test
@@ -323,9 +330,41 @@ class SyncOrchestratorTest {
 
         coVerify(exactly = 1) { repoA.upsertMany(listOf(remoteNewer)) }
         // lastSyncTimestamp becomes max(remote chunk), i.e., 100
-        assertEquals(Date(100).time, metas[0].lastSyncTimestamp.time)
-        assertEquals(Date(0).time, metas[1].lastSyncTimestamp.time)
+        Assertions.assertEquals(Date(100).time, metas[0].lastSyncTimestamp.time)
+        Assertions.assertEquals(Date(0).time, metas[1].lastSyncTimestamp.time)
     }
+
+    @Test
+    fun `syncFromThenToRemote - invokes postDownloadPolicy after successful upsert`() = runTest {
+        every { remoteDataClient.canSync } returns true
+        every { repoA.collectionName } returns "A"
+
+        val remoteDto = remoteDto("rid-123", Date(1000), deleted = false)
+
+        // Metadata (simulate last sync = epoch)
+        coEvery { syncMetadataRepository.get("A") } returns SyncMetadataDto("A", Date(0))
+
+        // Remote stream delivers one new dto
+        every { remoteDataClient.getAllSinceFlow("A", any()) } returns flowOf(listOf(remoteDto))
+
+        // No local conflicts
+        coEvery { repoA.getManyByRemoteId(listOf("rid-123")) } returns emptyList()
+        coEvery { repoA.upsertMany(listOf(remoteDto)) } returns listOf(1L)
+
+        // Upload phase: no unsynced
+        coEvery { repoA.getAllUnsynced() } returns emptyList()
+        coEvery { repoB.getAllUnsynced() } returns emptyList()
+
+        // Metadata capture (not critical for this test)
+        coEvery { syncMetadataRepository.upsert(any()) } returns Unit
+
+        // Act
+        orchestrator.syncFromThenToRemote(syncAllFromRemote = false)
+
+        // Assert: policy called with IDs
+        coVerify(exactly = 1) { postProgramSyncPolicy.apply(match { it.contains("rid-123") }) }
+    }
+
 
     // -------------------- helpers --------------------
 

@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.data.remote.repositories
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.remote.dto.WorkoutLiftRemoteDto
-import com.browntowndev.liftlab.core.data.common.RemoteCollectionNames
+import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
 import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.mapping.toRemoteDto

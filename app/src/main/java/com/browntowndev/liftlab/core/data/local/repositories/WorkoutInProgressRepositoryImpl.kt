@@ -5,7 +5,7 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutInProgress
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi

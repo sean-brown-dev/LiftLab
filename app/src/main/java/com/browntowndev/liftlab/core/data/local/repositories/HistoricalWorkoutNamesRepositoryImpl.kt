@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.data.local.dao.HistoricalWorkoutNamesDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.HistoricalWorkoutName
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import kotlinx.coroutines.flow.Flow

@@ -5,7 +5,7 @@ import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.data.remote.SyncScheduler
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
@@ -164,14 +164,6 @@ class SetLogEntryRepositoryImpl(
 
     override suspend fun deleteById(id: Long): Int {
         val deleteCount = setLogEntryDao.softDelete(id)
-        if (deleteCount > 0) {
-            syncScheduler.scheduleSync()
-        }
-        return deleteCount
-    }
-
-    override suspend fun deleteByWorkoutLogEntryId(workoutLogEntryId: Long): Int {
-        val deleteCount = setLogEntryDao.softDeleteByWorkoutLogEntryId(workoutLogEntryId)
         if (deleteCount > 0) {
             syncScheduler.scheduleSync()
         }

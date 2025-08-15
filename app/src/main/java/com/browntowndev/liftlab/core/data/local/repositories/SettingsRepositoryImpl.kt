@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.local.repositories
 
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.domain.repositories.SettingKey
+import com.browntowndev.liftlab.core.domain.common.SettingKey
 import com.browntowndev.liftlab.core.domain.repositories.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 

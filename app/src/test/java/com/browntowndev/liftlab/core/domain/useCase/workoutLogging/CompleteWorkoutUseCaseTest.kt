@@ -5,11 +5,9 @@ import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.repositories.HistoricalWorkoutNamesRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
@@ -30,7 +28,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.Date
-import kotlin.test.assertEquals
 
 class CompleteWorkoutUseCaseTest {
 
@@ -111,105 +108,6 @@ class CompleteWorkoutUseCaseTest {
         coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any(), any()) }
         coVerify { setResultsRepository.deleteAll() }
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }
-    }
-
-    @Test
-    fun `invoke - synchronizes myo-rep set positions and upserts corrected results`() = runTest {
-        // myo-rep results for the same (liftId, liftPosition) but with a gap in myoRepSetPosition
-        // First set has null (primer), second set is incorrectly "2" instead of "0".
-        val r1 = MyoRepSetResult(
-            id = 10L,
-            workoutId = 101L,
-            liftId = 11L,
-            liftPosition = 0,
-            setPosition = 0,
-            weight = 100f,
-            reps = 10,
-            rpe = 10f,
-            isDeload = false,
-        )
-        val r2 = MyoRepSetResult(
-            id = 11L,
-            workoutId = 101L,
-            liftId = 11L,
-            liftPosition = 0,
-            setPosition = 0,
-            myoRepSetPosition = 2,
-            weight = 100f,
-            reps = 10,
-            rpe = 10f,
-            isDeload = false,
-        )
-
-        // Given a workout whose lift positions match the completed sets
-        val workout = LoggingWorkout(
-            id = 101L,
-            name = "Push A",
-            lifts = listOf(
-                LoggingWorkoutLift(
-                    id = 1L,
-                    liftId = 11L,
-                    position = 0,
-                    progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
-                    deloadWeek = null,
-                    incrementOverride = null,
-                    sets = listOf(
-                        LoggingMyoRepSet(
-                            position = 0,
-                            rpeTarget = 10f,
-                            repRangeBottom = 10,
-                            repRangeTop = 12,
-                            weightRecommendation = null,
-                            hadInitialWeightRecommendation = false,
-                            previousSetResultLabel = "",
-                            repRangePlaceholder = "",
-                            setNumberLabel = ""
-                        )
-                    )
-                )
-            )
-        )
-
-        // Make sure the workout's lift-position mapping matches the results so they are NOT excludedFromCopy
-        // (If your lift type is different, set liftId=11 and position=0 accordingly.)
-        // If your constructor differs, replace this with a mock for workout.lifts that returns a (liftId=11, position=0).
-        // The key is that the mapping { 11L -> 0 } exists so neither r1 nor r2 are excluded.
-
-        // Historical name exists so we don't insert a new one
-        coEvery { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(any(), any()) } returns 200L
-        coEvery { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) } returns 300L
-
-        val inProgress = WorkoutInProgressUiModel(startTime = Date(System.currentTimeMillis() - 1_000))
-        val meta = ActiveProgramMetadata(
-            programId = 1L,
-            name = "Test",
-            deloadWeek = 0,
-            currentMesocycle = 0,
-            currentMicrocycle = 0,
-            currentMicrocyclePosition = 0,
-            workoutCount = 1
-        )
-
-        val capturedFixes = slot<List<MyoRepSetResult>>()
-        coEvery { setResultsRepository.upsertMany(capture(capturedFixes)) } returns emptyList()
-
-        // When
-        completeWorkoutUseCase(
-            inProgressWorkout = inProgress,
-            programMetadata = meta,
-            workout = workout,
-            completedSets = listOf(r1, r2),
-            isDeloadWeek = false
-        )
-
-        // Then: we should have upserted the corrected myo-rep position
-        coVerify { setResultsRepository.upsertMany(any()) }
-        assert(capturedFixes.captured.size == 1)
-        assertEquals(0, capturedFixes.captured[0].myoRepSetPosition)
-
-        // And we still copy to history and clear live results
-        coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any(), any()) }
-        coVerify { setResultsRepository.deleteAll() }
     }
 
     @Test

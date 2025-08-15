@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.viewmodels.settings
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
-import com.browntowndev.liftlab.core.domain.repositories.SettingKey
+import com.browntowndev.liftlab.core.domain.common.SettingKey
 import com.browntowndev.liftlab.core.domain.useCase.settings.GetSettingConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateLiftSpecificDeloadSettingUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateSettingUseCase
