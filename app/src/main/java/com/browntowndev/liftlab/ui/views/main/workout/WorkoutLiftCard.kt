@@ -198,6 +198,7 @@ fun WorkoutLiftCard(
                     lazyListState = lazyListState,
                     animateVisibility = (set as? LoggingMyoRepSetUiModel)?.isNew == true,
                     position = set.position,
+                    myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                     progressionScheme = workoutLift.progressionScheme,
                     setNumberLabel = set.setNumberLabel,
                     weightRecommendation = set.weightRecommendation,

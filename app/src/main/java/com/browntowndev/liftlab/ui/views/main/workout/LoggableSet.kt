@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -22,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +41,7 @@ fun LoggableSet(
     lazyListState: LazyListState,
     animateVisibility: Boolean,
     position: Int,
+    myoRepSetPosition: Int?,
     progressionScheme: ProgressionScheme,
     setNumberLabel: String,
     previousSetResultLabel: String,
@@ -55,13 +59,29 @@ fun LoggableSet(
     toggleRpePicker: (visible: Boolean) -> Unit,
     onAddSpacer: (height: Dp) -> Unit,
 ) {
-    val transitionState = remember(animateVisibility) { MutableTransitionState(!animateVisibility) }
-    AnimatedVisibility(
-        visibleState = transitionState,
-        enter = expandVertically(
+    var hasAnimated by remember(position, myoRepSetPosition) { mutableStateOf(false) }
+    val transitionState = remember(position, myoRepSetPosition, animateVisibility) {
+        MutableTransitionState(!animateVisibility).apply { targetState = true }
+    }
+
+    // Only animate the first time the set becomes visible
+    val enterTransition = if (!hasAnimated && animateVisibility) {
+        expandVertically(
             expandFrom = Alignment.Top,
             animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
         )
+    } else {
+        EnterTransition.None
+    }
+
+    LaunchedEffect(transitionState) {
+        if (transitionState.currentState) hasAnimated = true
+    }
+
+    AnimatedVisibility(
+        visibleState = transitionState,
+        enter = enterTransition,
+        exit = ExitTransition.None,
     ) {
         SetRow(
             lazyListState = lazyListState,
@@ -83,12 +103,6 @@ fun LoggableSet(
             toggleRpePicker = toggleRpePicker,
             onAddSpacer = onAddSpacer,
         )
-    }
-
-    LaunchedEffect(animateVisibility) {
-        if (animateVisibility) {
-            transitionState.targetState = true
-        }
     }
 }
 
