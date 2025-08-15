@@ -1,5 +1,8 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
@@ -12,6 +15,8 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import io.mockk.every
+import io.mockk.mockkObject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -26,6 +31,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
     @BeforeEach
     fun setUp() {
         hydrateLoggingWorkoutWithCompletedSetsUseCase = HydrateLoggingWorkoutWithCompletedSetsUseCase()
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(INCREMENT_AMOUNT, any()) } returns DEFAULT_INCREMENT_AMOUNT
     }
 
     @Test
@@ -472,5 +479,183 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             assertFalse(s.complete, "Existing myo set should be un-completed if no matching result is supplied")
             // Whether isNew flips here depends on your final implementation; we don’t assert it in this negative test.
         }
+    }
+
+    @Test
+    fun `activation-only input - single sequence with two minis produces two continuations and tail placeholder when continue true`() {
+        // Lift contains ONLY the activation set
+        val activation = LoggingMyoRepSet(
+            position = 0,
+            rpeTarget = 8f,
+            repRangeBottom = 12,
+            repRangeTop = 15,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 12,
+            completedRpe = 8f,
+            setMatching = false,
+            repFloor = 3,
+            isNew = false
+        )
+        val lift = LoggingWorkoutLift(
+            id = 11L,
+            liftId = 201L,
+            liftName = "Incline DB Press (Myo)",
+            position = 0,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null,
+            incrementOverride = 2.5f,
+            sets = listOf(activation) // <-- activation-only
+        )
+        // Results include the activation and two continuation minis
+        val results = listOf(
+            MyoRepSetResult(workoutId = 1L, liftId = 201L, liftPosition = 0, setPosition = 0, myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false),
+            MyoRepSetResult(workoutId = 1L, liftId = 201L, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0, weight = 100f, reps = 6, rpe = 9f, isDeload = false),
+            MyoRepSetResult(workoutId = 1L, liftId = 201L, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1, weight = 100f, reps = 4, rpe = 9.5f, isDeload = false),
+        )
+        val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+
+        // Assert we started with activation-only
+        val inputWasActivationOnly = lift.sets.filterIsInstance<LoggingMyoRepSet>().all { it.myoRepSetPosition == null }
+        assertTrue(inputWasActivationOnly, "Test precondition: input lift must contain only activation sets")
+
+        val myoSets = hydrated.sets.filterIsInstance<LoggingMyoRepSet>().filter { it.position == 0 }
+        // Expect activation + 2 continuations + tail placeholder
+        assertEquals(4, myoSets.size)
+        assertEquals(listOf(null, 0, 1, 2), myoSets.map { it.myoRepSetPosition })
+        assertFalse(myoSets.last().complete)
+        assertTrue(myoSets.last().isNew)
+    }
+
+    @Test
+    fun `activation-only input - two sequences with boundary and tail placeholders`() {
+        val act0 = LoggingMyoRepSet(
+            position = 0,
+            rpeTarget = 8f,
+            repRangeBottom = 10,
+            repRangeTop = 12,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "10–12",
+            myoRepSetPosition = null,
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 12,
+            completedRpe = 8f,
+            setMatching = false,
+            repFloor = 3,
+            isNew = false
+        )
+        val act1 = act0.copy(position = 1, completedReps = 11)
+
+        val lift = LoggingWorkoutLift(
+            id = 12L,
+            liftId = 202L,
+            liftName = "Press (Myo)",
+            position = 0,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null,
+            incrementOverride = 2.5f,
+            sets = listOf(act0, act1) // <-- activation-only for each sequence
+        )
+
+        val results = listOf(
+            // Sequence 0
+            MyoRepSetResult(workoutId = 1L, liftId = 202L, liftPosition = 0, setPosition = 0, myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false),
+            MyoRepSetResult(workoutId = 1L, liftId = 202L, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0,    weight = 100f, reps = 6, rpe = 9f, isDeload = false),
+            // Sequence 1
+            MyoRepSetResult(workoutId = 1L, liftId = 202L, liftPosition = 0, setPosition = 1, myoRepSetPosition = null, weight = 100f, reps = 11, rpe = 8.5f, isDeload = false),
+            MyoRepSetResult(workoutId = 1L, liftId = 202L, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0,    weight = 100f, reps = 4, rpe = 9f, isDeload = false),
+        )
+
+        val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+
+        // Assert activation-only precondition
+        val allActivationOnly = lift.sets.filterIsInstance<LoggingMyoRepSet>().all { it.myoRepSetPosition == null }
+        assertTrue(allActivationOnly, "Test precondition: input lifts contain only activation sets")
+
+        val seq0 = hydrated.sets.filterIsInstance<LoggingMyoRepSet>().filter { it.position == 0 }
+        val seq1 = hydrated.sets.filterIsInstance<LoggingMyoRepSet>().filter { it.position == 1 }
+
+        // Seq 0 should have activation + cont0 + boundary placeholder
+        assertEquals(listOf(null, 0, 1), seq0.map { it.myoRepSetPosition }, "Seq0 should include boundary placeholder at index 1")
+        assertFalse(seq0.last().complete); assertTrue(seq0.last().isNew)
+
+        // Seq 1 should have activation + cont0 + tail placeholder
+        assertEquals(listOf(null, 0, 1), seq1.map { it.myoRepSetPosition }, "Seq1 should include tail placeholder at index 1")
+        assertFalse(seq1.last().complete); assertTrue(seq1.last().isNew)
+    }
+
+    @Test
+    fun `activation-only result creates first myo continuation placeholder`() {
+        // Arrange: lift has ONLY the activation set, no minis persisted
+        val activation = LoggingMyoRepSet(
+            position = 0,
+            rpeTarget = 8f,
+            repRangeBottom = 12,
+            repRangeTop = 15,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,   // activation
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 12,
+            completedRpe = 8f,
+            setMatching = false,
+            repFloor = 3,
+            isNew = false
+        )
+
+        val lift = LoggingWorkoutLift(
+            id = 99L,
+            liftId = 199L,
+            liftName = "Myo Lift (activation-only)",
+            position = 0,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null,
+            incrementOverride = 2.5f,
+            sets = listOf(activation)
+        )
+
+        // Results include ONLY the activation result (no myo minis yet)
+        val results = listOf(
+            MyoRepSetResult(
+                workoutId = 1L,
+                liftId = 199L,
+                liftPosition = 0,
+                setPosition = 0,
+                myoRepSetPosition = null,  // activation only
+                weight = 100f,
+                reps = 12,
+                rpe = 8f,
+                isDeload = false
+            )
+        )
+
+        // Act
+        val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+
+        // Assert precondition: input was activation-only
+        val inputActivationOnly = lift.sets.filterIsInstance<LoggingMyoRepSet>().all { it.myoRepSetPosition == null }
+        assertTrue(inputActivationOnly, "Precondition failed: input must be activation-only")
+
+        // Expect activation + the newly-added placeholder for mini-set 0
+        val myoSets = hydrated.sets.filterIsInstance<LoggingMyoRepSet>().filter { it.position == 0 }
+        assertEquals(2, myoSets.size, "Should have activation + first myo placeholder")
+        assertEquals(listOf(null, 0), myoSets.map { it.myoRepSetPosition }, "Mini index should start at 0")
+        val placeholder = myoSets.last()
+        assertFalse(placeholder.complete, "Newly created first myo mini-set should be incomplete placeholder")
+        assertTrue(placeholder.isNew, "Placeholder mini-set should be marked isNew=true")
     }
 }

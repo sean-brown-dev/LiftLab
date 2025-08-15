@@ -1,6 +1,10 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import android.util.Log
+import androidx.compose.ui.util.fastDistinctBy
+import androidx.compose.ui.util.fastFilter
+import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
@@ -13,6 +17,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepS
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepContinuationResult
 import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.useCase.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
@@ -124,7 +129,16 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
 
         // Add new myo reps if needed
         return updatedSets.toMutableList().apply {
-            addNextMyoRepsToComplete(isDeloadWeek, workoutLift)
+            addMyoRepSequence(
+                liftId = workoutLift.liftId,
+                liftPosition = workoutLift.position,
+                isDeloadWeek = isDeloadWeek,
+                incrementOverride = workoutLift.incrementOverride?: SettingsManager.getSetting(
+                    SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                    SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT,
+                ),
+                allSetResults = allSetResults,
+            )
         }
     }
 
@@ -177,63 +191,210 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         else -> throw Exception("${set::class.simpleName} is not defined.")
     }
 
-    private fun MutableList<GenericLoggingSet>.addNextMyoRepsToComplete(
+    /**
+     * Key of a specific myo rep set within a lift.
+     */
+    private data class MyoKey(val setPosition: Int, val myoPos: Int?)
+
+    /**
+     * Adds the myo rep sequence(s) to the list of sets. The list of sets
+     * only contains the activation sets since myo reps are dynamically created upon completion.
+     *
+     * @param liftId The lift id.
+     * @param liftPosition The lift position.
+     * @param isDeloadWeek Whether the deload week is currently active.
+     * @param incrementOverride The increment override to use when calculating the weight recommendation.
+     * @param allSetResults The list of all set results.
+     * @return The list of sets with the myo rep sequence(s) added.
+     */
+    private fun MutableList<GenericLoggingSet>.addMyoRepSequence(
+        liftId: Long,
+        liftPosition: Int,
         isDeloadWeek: Boolean,
-        workoutLift: LoggingWorkoutLift
+        incrementOverride: Float,
+        allSetResults: List<SetResult>,
     ) {
-        val myoRepSets = this.filterIsInstance<LoggingMyoRepSet>()
-        Log.d(TAG, "myoRepSets: $myoRepSets")
+        val myoRepSetResults = allSetResults.filterIsInstance<MyoRepSetResult>()
+        if (myoRepSetResults.isEmpty()) return
+
+        val myoRepSets = mutableListOf<LoggingMyoRepSet>()
+        this.fastForEachIndexed { index, set ->
+            if (set is LoggingMyoRepSet) {
+                val nonNewMyoSet = set.copy(isNew = false)
+                myoRepSets.add(nonNewMyoSet)
+                set(index, nonNewMyoSet)
+            }
+        }
         if (myoRepSets.isEmpty()) return
 
-        myoRepSets
-            .sortedBy { it.myoRepSetPosition }
-            .groupBy { it.position }
-            .values
-            .forEach { myoRepResults ->
-                val lastMyoRepSet = myoRepResults.last()
-                val result = MyoRepSetGoalUtils.shouldContinueMyoReps(
-                    lastMyoRepSet = lastMyoRepSet,
-                    myoRepSetResults = myoRepResults,
-                )
+        val activationMyoRepSetsByPosition = myoRepSets
+            .fastFilter { it.myoRepSetPosition == null }
+            .associateBy { it.position }
 
-                if (result.shouldContinueMyoReps) {
-                    val myoRepSetPosition = (lastMyoRepSet.myoRepSetPosition ?: -1) + 1
-                    val weightRecommendation = if (!result.activationSetMissedGoal) {
-                        lastMyoRepSet.completedWeight
-                    } else WeightCalculationUtils.Companion.calculateSuggestedWeight(
-                        completedWeight = lastMyoRepSet.completedWeight!!,
-                        completedReps = lastMyoRepSet.completedReps!!,
-                        completedRpe = lastMyoRepSet.completedRpe!!,
-                        repGoal = lastMyoRepSet.repRangeBottom!!,
-                        rpeGoal = lastMyoRepSet.rpeTarget,
-                        roundingFactor = workoutLift.incrementOverride
-                            ?: SettingsManager.getSetting(
-                                SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT,
-                            ),
-                    )
+        val liveMyoRepSetsByPosition = myoRepSets.groupBy { it.position }.toMutableMap()
+        fun addNewMyoRepSetToSetsByPositionMap(set: LoggingMyoRepSet) {
+            val currentSetsAtPosition = liveMyoRepSetsByPosition[set.position]?.toMutableList() ?: mutableListOf()
+            currentSetsAtPosition.add(set)
+            liveMyoRepSetsByPosition[set.position] = currentSetsAtPosition
+        }
 
-                    val newMyoRepSet = lastMyoRepSet.copy(
-                        myoRepSetPosition = myoRepSetPosition,
-                        repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
-                            ">${lastMyoRepSet.repFloor}"
-                        } else if (!isDeloadWeek) {
-                            "—"
-                        } else {
-                            lastMyoRepSet.repRangeBottom.toString()
-                        },
-                        weightRecommendation = weightRecommendation,
-                        complete = false,
-                        completedWeight = null,
-                        completedReps = null,
-                        completedRpe = null,
+        val existingMyoRepSetsByKey = myoRepSets
+            .associateBy { MyoKey(it.position, it.myoRepSetPosition) }
+
+        var previousMyoRepSet: LoggingMyoRepSet? = null
+        myoRepSetResults
+            .fastFilter { it.liftId == liftId &&  it.liftPosition == liftPosition }
+            .sortedWith(compareBy({ it.setPosition }, { it.myoRepSetPosition }))
+            .fastDistinctBy { it.setPosition to it.myoRepSetPosition }
+            .fastForEach { setResult ->
+                // Get the last myo rep set for the sequence
+                val lastMyoRepSetForCurrentSequence = when {
+                    // LastMyoRepSet is null, we are on the first set of the first sequence
+                    previousMyoRepSet == null -> activationMyoRepSetsByPosition[setResult.setPosition] ?: error("No activation myo rep set found")
+
+                    // Last myo rep set still in same sequence, use it
+                    previousMyoRepSet.position == setResult.setPosition -> previousMyoRepSet
+
+                    // We have a new sequence, get the activation set for it
+                    else -> activationMyoRepSetsByPosition[setResult.setPosition] ?: error("No activation myo rep set found")
+                }
+
+                // See if this is a new sequence so we can add a new myo rep set for the previous sequence if goals were completed
+                val newSequence = previousMyoRepSet != null && lastMyoRepSetForCurrentSequence.position != previousMyoRepSet.position
+                if (newSequence) {
+                    val myoRepSetResult = MyoRepSetGoalUtils.shouldContinueMyoReps(
+                        lastMyoRepSet = previousMyoRepSet,
+                        myoRepSetResults = liveMyoRepSetsByPosition[previousMyoRepSet.position] ?:
+                            error("No myo rep sets found at position: ${previousMyoRepSet.position}"),
                     )
-                    Log.d(TAG, "newMyoRepSet: $newMyoRepSet")
-                    add(
-                        index = this.indexOf(lastMyoRepSet) + 1,
-                        element = newMyoRepSet
+                    addMyoRepSet(
+                        lastMyoRepSet = previousMyoRepSet,
+                        isDeloadWeek = isDeloadWeek,
+                        incrementOverride = incrementOverride,
+                        result = myoRepSetResult,
+                    )?.let { newSet ->
+                        addNewMyoRepSetToSetsByPositionMap(newSet)
+                    }
+                }
+
+                val existingSet = existingMyoRepSetsByKey[MyoKey(setResult.setPosition, setResult.myoRepSetPosition)]
+                if (existingSet == null) {
+                    previousMyoRepSet = addMyoRepSet(
+                        lastMyoRepSet = lastMyoRepSetForCurrentSequence,
+                        setResult = setResult,
+                        isDeloadWeek = isDeloadWeek,
                     )
+                    addNewMyoRepSetToSetsByPositionMap(previousMyoRepSet)
+                } else {
+                    previousMyoRepSet = existingSet
                 }
             }
+
+        // Loop will not check the very last sequence's tail to see if a new set needs added,
+        // since it only does so on sequence change, so do it here.
+        previousMyoRepSet?.let { last ->
+            val decision = MyoRepSetGoalUtils.shouldContinueMyoReps(
+                lastMyoRepSet = last,
+                myoRepSetResults = liveMyoRepSetsByPosition[last.position] ?:
+                    error("No myo rep sets found at position: ${last.position}")
+            )
+            addMyoRepSet(
+                lastMyoRepSet = last,
+                isDeloadWeek = isDeloadWeek,
+                incrementOverride = incrementOverride,
+                result = decision
+            )
+        }
+    }
+
+    /**
+     * Conditionally adds a new myo rep set to the list of sets based on [MyoRepContinuationResult] and returns the set that was added.
+     *
+     * @param lastMyoRepSet The last myo rep set in the sequence.
+     * @param isDeloadWeek Whether the deload week is currently active.
+     * @param incrementOverride The increment override to use when calculating the weight recommendation.
+     * @param result The added myo rep set.
+     */
+    private fun MutableList<GenericLoggingSet>.addMyoRepSet(
+        lastMyoRepSet: LoggingMyoRepSet,
+        isDeloadWeek: Boolean,
+        incrementOverride: Float,
+        result: MyoRepContinuationResult,
+    ): LoggingMyoRepSet? {
+        if (!result.shouldContinueMyoReps) return null
+
+        val lastMyoRepSetIncomplete = lastMyoRepSet.completedWeight == null || lastMyoRepSet.completedReps == null || lastMyoRepSet.completedRpe == null
+
+        val weightRecommendation = if (!result.activationSetMissedGoal || lastMyoRepSetIncomplete) {
+            lastMyoRepSet.completedWeight
+        } else WeightCalculationUtils.calculateSuggestedWeight(
+            completedWeight = lastMyoRepSet.completedWeight,
+            completedReps = lastMyoRepSet.completedReps,
+            completedRpe = lastMyoRepSet.completedRpe,
+            repGoal = lastMyoRepSet.repRangeBottom!!,
+            rpeGoal = lastMyoRepSet.rpeTarget,
+            roundingFactor = incrementOverride,
+        )
+
+        val newMyoRepSet = lastMyoRepSet.copy(
+            myoRepSetPosition = (lastMyoRepSet.myoRepSetPosition ?: -1) + 1,
+            repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
+                ">${lastMyoRepSet.repFloor}"
+            } else if (!isDeloadWeek) {
+                "—"
+            } else {
+                lastMyoRepSet.repRangeBottom.toString()
+            },
+            weightRecommendation = weightRecommendation,
+            complete = false,
+            completedWeight = null,
+            completedReps = null,
+            completedRpe = null,
+            isNew = true,
+        )
+        Log.d(TAG, "newMyoRepSet: $newMyoRepSet")
+        add(
+            index = this.indexOf(lastMyoRepSet) + 1,
+            element = newMyoRepSet
+        )
+
+        return newMyoRepSet
+    }
+
+    /**
+     * Adds a new myo rep set to the list of sets and returns the set that was added.
+     *
+     * @param lastMyoRepSet The last myo rep set in the sequence.
+     * @param setResult The result of the set.
+     * @param isDeloadWeek Whether the deload week is currently active.
+     */
+    private fun MutableList<GenericLoggingSet>.addMyoRepSet(
+        lastMyoRepSet: LoggingMyoRepSet,
+        setResult: SetResult,
+        isDeloadWeek: Boolean,
+    ): LoggingMyoRepSet {
+        val newMyoRepSet = lastMyoRepSet.copy(
+            myoRepSetPosition = (lastMyoRepSet.myoRepSetPosition ?: -1) + 1,
+            repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
+                ">${lastMyoRepSet.repFloor}"
+            } else if (!isDeloadWeek) {
+                "—"
+            } else {
+                lastMyoRepSet.repRangeBottom.toString()
+            },
+            weightRecommendation = lastMyoRepSet.completedWeight,
+            complete = true,
+            completedWeight = setResult.weight,
+            completedReps = setResult.reps,
+            completedRpe = setResult.rpe,
+            isNew = false,
+        )
+        Log.d(TAG, "newMyoRepSet: $newMyoRepSet")
+        add(
+            index = this.indexOf(lastMyoRepSet) + 1,
+            element = newMyoRepSet
+        )
+
+        return newMyoRepSet
     }
 }

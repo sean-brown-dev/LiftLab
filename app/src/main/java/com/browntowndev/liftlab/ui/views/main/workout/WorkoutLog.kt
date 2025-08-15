@@ -77,21 +77,6 @@ fun WorkoutLog(
     onReorderLiftsClicked: () -> Unit,
     onAddSet: (workoutLiftId: Long) -> Unit,
 ) {
-    // TODO: See if this hacky stuff can be moved into the VM somehow
-    // Remember the myo rep set indices from the previous composition. Below they will
-    // animate if they're not found in this set (they are new)
-    var indicesOfExistingMyoRepSets by remember {
-        mutableStateOf(
-            lifts.flatMap { workoutLift ->
-                workoutLift.sets
-                    .filterIsInstance<LoggingMyoRepSetUiModel>()
-                    .fastMap { set ->
-                        "${workoutLift.id}-${set.myoRepSetPosition}"
-                    }
-            }.toSet()
-        )
-    }
-
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = visible,
@@ -147,7 +132,6 @@ fun WorkoutLog(
                     WorkoutLiftCard(
                         workoutLift = lift,
                         isEdit = isEdit,
-                        indicesOfExistingMyoRepSets = indicesOfExistingMyoRepSets,
                         lazyListState = lazyListState,
                         onUndoSetCompletion = onUndoSetCompletion,
                         onChangeRestTime = onChangeRestTime,
@@ -205,18 +189,5 @@ fun WorkoutLog(
                 },
             )
         }
-    }
-
-    // After everything is rendered update this map to include any new
-    // myo rep sets that were added so they don't animate next time they
-    // come into view
-    LaunchedEffect(lifts) {
-        indicesOfExistingMyoRepSets = lifts.flatMap { workoutLift ->
-            workoutLift.sets
-                .filterIsInstance<LoggingMyoRepSetUiModel>()
-                .fastMap { set ->
-                    "${workoutLift.id}-${set.myoRepSetPosition}"
-                }
-        }.toSet()
     }
 }

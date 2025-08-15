@@ -22,6 +22,7 @@ data class LoggingMyoRepSet(
     val setMatching: Boolean = false,
     val maxSets: Int? = null,
     val repFloor: Int? = null,
+    val isNew: Boolean = true,
 ): GenericLoggingSet {
     override fun copyCompletionData(
         complete: Boolean,

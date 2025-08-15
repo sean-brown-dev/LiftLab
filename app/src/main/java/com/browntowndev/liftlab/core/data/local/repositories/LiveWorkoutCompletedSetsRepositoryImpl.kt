@@ -16,6 +16,12 @@ class LiveWorkoutCompletedSetsRepositoryImpl(
     private val liveWorkoutCompletedSetsDao: LiveWorkoutCompletedSetsDao,
     private val syncScheduler: SyncScheduler,
 ): LiveWorkoutCompletedSetsRepository {
+    override suspend fun getAllForLiftAtPosition(liftId: Long, liftPosition: Int, position: Int): List<SetResult> {
+        return liveWorkoutCompletedSetsDao.getAllForLiftAtPosition(liftId, liftPosition, position).fastMap {
+            it.toSetResult()
+        }
+    }
+
     override suspend fun getAll(): List<SetResult> {
         return liveWorkoutCompletedSetsDao.getAll().map { it.toSetResult() }
     }

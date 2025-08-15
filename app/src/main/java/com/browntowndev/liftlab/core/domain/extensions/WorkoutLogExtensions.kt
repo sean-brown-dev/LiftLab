@@ -94,3 +94,7 @@ fun LoggingWorkoutLiftUiModel.mergeModifiedSets(other: LoggingWorkoutLiftUiModel
 
     return mergedLift
 }
+
+fun MutableList<GenericLoggingSet>.myoRepSetsAt(position: Int): List<LoggingMyoRepSet> =
+    filterIsInstance<LoggingMyoRepSet>().filter { it.position == position }.sortedBy { it.myoRepSetPosition }
+

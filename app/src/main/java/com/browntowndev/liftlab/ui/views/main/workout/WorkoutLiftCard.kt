@@ -58,7 +58,6 @@ import kotlin.time.toDuration
 fun WorkoutLiftCard(
     workoutLift: LoggingWorkoutLiftUiModel,
     isEdit: Boolean,
-    indicesOfExistingMyoRepSets: Set<String>,
     lazyListState: LazyListState,
     onUpdatePickerSpacer: (padding: Dp) -> Unit,
     onShowRpePicker: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, currentRpe: Float?) -> Unit,
@@ -87,6 +86,7 @@ fun WorkoutLiftCard(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center,
         ) {
+            // TODO: Move to VM or set in UI model
             val restTime = remember(workoutLift.restTime) {
                 workoutLift.restTime?.inWholeMilliseconds
                     ?: SettingsManager.getSetting(
@@ -194,13 +194,9 @@ fun WorkoutLiftCard(
             LogHeaders()
 
             workoutLift.sets.fastForEach { set ->
-                val animateVisibility = remember(workoutLift.sets.size) {
-                    set is LoggingMyoRepSetUiModel &&
-                            !indicesOfExistingMyoRepSets.contains("${workoutLift.id}-${set.myoRepSetPosition}")
-                }
                 LoggableSet(
                     lazyListState = lazyListState,
-                    animateVisibility = animateVisibility,
+                    animateVisibility = (set as? LoggingMyoRepSetUiModel)?.isNew == true,
                     position = set.position,
                     progressionScheme = workoutLift.progressionScheme,
                     setNumberLabel = set.setNumberLabel,

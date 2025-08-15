@@ -185,7 +185,8 @@ fun LoggingMyoRepSet.toUiModel(): LoggingMyoRepSetUiModel {
         myoRepSetPosition = myoRepSetPosition,
         setMatching = setMatching,
         maxSets = maxSets,
-        repFloor = repFloor
+        repFloor = repFloor,
+        isNew = isNew,
     )
 }
 
@@ -207,7 +208,8 @@ fun LoggingMyoRepSetUiModel.toDomainModel(): LoggingMyoRepSet {
         myoRepSetPosition = myoRepSetPosition,
         setMatching = setMatching,
         maxSets = maxSets,
-        repFloor = repFloor
+        repFloor = repFloor,
+        isNew = isNew,
     )
 }
 

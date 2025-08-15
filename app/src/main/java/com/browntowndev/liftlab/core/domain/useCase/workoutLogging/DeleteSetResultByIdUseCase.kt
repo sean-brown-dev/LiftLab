@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import com.browntowndev.liftlab.core.data.common.TransactionScope
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 
 class DeleteSetResultByIdUseCase(
@@ -8,6 +9,20 @@ class DeleteSetResultByIdUseCase(
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(id: Long): Int  = transactionScope.execute {
-        liveWorkoutCompletedSetsRepository.deleteById(id)
+        val requestedToDelete = liveWorkoutCompletedSetsRepository.getById(id) ?: return@execute 0
+        if (requestedToDelete !is MyoRepSetResult) {
+            liveWorkoutCompletedSetsRepository.delete(requestedToDelete)
+        } else {
+            val sequenceToDelete = liveWorkoutCompletedSetsRepository.getAllForLiftAtPosition(
+                liftId = requestedToDelete.liftId,
+                liftPosition = requestedToDelete.liftPosition,
+                requestedToDelete.setPosition
+            ).filter { myoRepInSequence ->
+                val myoRepPosition = (myoRepInSequence as? MyoRepSetResult)?.myoRepSetPosition ?: -1
+                myoRepPosition >= (requestedToDelete.myoRepSetPosition ?: -1)
+            }
+
+            liveWorkoutCompletedSetsRepository.deleteMany(sequenceToDelete)
+        }
     }
 }

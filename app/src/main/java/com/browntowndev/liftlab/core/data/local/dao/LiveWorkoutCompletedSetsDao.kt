@@ -8,6 +8,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LiveWorkoutCompletedSetsDao: BaseDao<LiveWorkoutCompletedSetEntity> {
+    @Query("""
+        SELECT * FROM liveWorkoutCompletedSets
+        WHERE liftId = :liftId AND 
+              liftPosition = :liftPosition AND 
+              setPosition = :position AND 
+              deleted = 0
+    """)
+    suspend fun getAllForLiftAtPosition(liftId: Long, liftPosition: Int, position: Int): List<LiveWorkoutCompletedSetEntity>
+
     @Query("SELECT * FROM liveWorkoutCompletedSets WHERE synced = 0")
     suspend fun getAllUnsynced(): List<LiveWorkoutCompletedSetEntity>
 

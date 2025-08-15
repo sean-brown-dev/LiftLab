@@ -9,6 +9,8 @@ class UpsertSetResultUseCase(
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke(setResult: SetResult): Long = transactionScope.execute {
-        liveWorkoutCompletedSetsRepository.upsert(setResult)
+        liveWorkoutCompletedSetsRepository.upsert(setResult).let {
+            if (it == -1L) setResult.id else it
+        }
     }
 }
