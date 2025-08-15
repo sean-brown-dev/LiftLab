@@ -77,6 +77,11 @@ android {
 
             // configure *all* Test tasks for unit tests
             all { Test testTask ->
+                // --- ADD THIS LINE ---
+                // Disable default Jacoco instrumentation; the Robolectric plugin handles it.
+                testTask.jacoco.enabled = false
+                // --------------------
+
                 // add the dynamic‑agent flag (hides that Byte‑Buddy warning)
                 testTask.jvmArgs += '-XX:+EnableDynamicAgentLoading'
                 // enable JUnit‑5 discovery
