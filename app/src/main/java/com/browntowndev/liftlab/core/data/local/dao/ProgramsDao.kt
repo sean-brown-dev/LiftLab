@@ -76,8 +76,12 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
     suspend fun getByRemoteId(remoteId: String): ProgramWithRelationshipsDto?
 
     @Transaction
-    @Query("SELECT * FROM programs WHERE remoteId IN (:remoteIds)")
-    suspend fun getManyByRemoteId(remoteIds: List<String>): List<ProgramWithRelationshipsDto>
+    @Query("""
+        SELECT * FROM programs 
+        WHERE remoteId IN (:remoteIds)
+        AND (deleted = 0 OR :includeDeleted)
+    """)
+    suspend fun getManyByRemoteId(remoteIds: List<String>, includeDeleted: Boolean = true): List<ProgramWithRelationshipsDto>
 
     @Transaction
     @Query("""

@@ -9,6 +9,7 @@ plugins {
     id 'com.google.firebase.crashlytics'
     id 'tech.apter.junit5.jupiter.robolectric-extension-gradle-plugin'
     id 'jacoco'
+    id "de.mannodermaus.android-junit5"
 }
 jacoco {
     toolVersion = "0.8.11"
@@ -68,6 +69,10 @@ android {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
+    }
+    defaultConfig {
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments runnerBuilder: "de.mannodermaus.junit5.AndroidJUnit5Builder"
     }
     testOptions {
         unitTests {
@@ -220,6 +225,23 @@ dependencies {
     testImplementation("app.cash.turbine:turbine:1.2.1")
     testImplementation("org.robolectric:robolectric:4.15.1")
     testImplementation("androidx.test:core:1.7.0") // ApplicationProvider
+
+    // JUnit 5 for instrumented tests
+    androidTestImplementation platform("org.junit:junit-bom:5.13.4")
+    androidTestImplementation "org.junit.jupiter:junit-jupiter-api"
+    androidTestRuntimeOnly  "org.junit.jupiter:junit-jupiter-engine"
+
+    // AndroidX instrumentation helpers
+    def androidx_test_version = '1.7.0'
+    androidTestImplementation "androidx.test:core-ktx:$androidx_test_version"
+    androidTestImplementation "androidx.test:runner:$androidx_test_version"
+    androidTestImplementation "androidx.test.ext:junit-ktx:1.3.0" // keep if you also run JUnit4-based instrumented tests (e.g., Compose ui-test-junit4)
+
+    // Room testing (optional but handy for migrations)
+    androidTestImplementation "androidx.room:room-testing:2.7.2"
+
+    // Coroutines testing on device
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2"
 
     // --- To run old JUnit 4 tests temporarily, uncomment below: ---
     // testImplementation 'junit:junit:4.13.2'

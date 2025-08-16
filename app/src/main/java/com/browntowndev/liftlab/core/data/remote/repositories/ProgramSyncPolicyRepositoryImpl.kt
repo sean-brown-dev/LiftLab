@@ -10,6 +10,6 @@ class ProgramSyncPolicyRepositoryImpl(
     private val programsDao: ProgramsDao,
 ): ProgramSyncPolicyRepository {
     override suspend fun getManyByRemoteId(remoteIds: List<String>): List<Program> {
-        return programsDao.getManyByRemoteId(remoteIds).fastMap { it.toDomainModel() }
+        return programsDao.getManyByRemoteId(remoteIds, includeDeleted = false).fastMap { it.toDomainModel() }
     }
 }
