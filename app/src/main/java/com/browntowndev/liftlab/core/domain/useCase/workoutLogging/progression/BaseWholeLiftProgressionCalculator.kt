@@ -1,10 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
@@ -14,6 +10,10 @@ import com.browntowndev.liftlab.core.domain.models.workoutCalculation.Calculatio
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 
 abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
@@ -107,7 +107,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                     lastWeightRecommendation = getDropSetRecommendation(
                                         workoutLift,
                                         set,
-                                        lastWeightRecommendation
+                                        previousSetWeight = lastWeightRecommendation
                                     )
                                     lastWeightRecommendation
                                 } else {

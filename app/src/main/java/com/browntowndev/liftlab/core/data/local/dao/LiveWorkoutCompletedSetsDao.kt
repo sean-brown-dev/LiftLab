@@ -41,7 +41,7 @@ interface LiveWorkoutCompletedSetsDao: BaseDao<LiveWorkoutCompletedSetEntity> {
     @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0 WHERE workoutId = :workoutId")
     suspend fun softDeleteAllByWorkoutId(workoutId: Long)
 
-    @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0 WHERE workoutId = :workoutIds")
+    @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0 WHERE workoutId IN (:workoutIds)")
     suspend fun softDeleteByWorkoutIds(workoutIds: List<Long>)
 
     @Query("UPDATE liveWorkoutCompletedSets SET deleted = 1, synced = 0")

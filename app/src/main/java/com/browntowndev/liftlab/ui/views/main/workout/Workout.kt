@@ -287,7 +287,8 @@ fun Workout(
                 cancelReorder = { workoutViewModel.toggleReorderLifts() }
             )
         }
-        if (state.isCompletionSummaryVisible && state.workoutCompletionSummary != null) {
+        // inProgressWorkout can become null prior to summary being closed due to Flow emissions happening at different times
+        if (state.isCompletionSummaryVisible && state.workoutCompletionSummary != null && state.inProgressWorkout != null) {
             val context = LocalContext.current
             CompletionSummary(
                 paddingValues = paddingValues,

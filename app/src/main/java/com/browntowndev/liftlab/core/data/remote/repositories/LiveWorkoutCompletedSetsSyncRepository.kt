@@ -1,28 +1,27 @@
 package com.browntowndev.liftlab.core.data.remote.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.remote.dto.LiveWorkoutCompletedSetDto
-import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
 import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.mapping.toRemoteDto
-import kotlin.collections.map
+import com.browntowndev.liftlab.core.data.remote.dto.LiveWorkoutCompletedSetDto
+import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import kotlin.reflect.KClass
 
 class LiveWorkoutCompletedSetsSyncRepository(
-    private val previousSetResultsDao: LiveWorkoutCompletedSetsDao
+    private val liveWorkoutCompletedSetsDao: LiveWorkoutCompletedSetsDao
 ) : BaseRemoteSyncRepository<LiveWorkoutCompletedSetDto>() {
     override val collectionName: String = RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION
     override val remoteDtoClass: KClass<LiveWorkoutCompletedSetDto> = LiveWorkoutCompletedSetDto::class
 
     override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<LiveWorkoutCompletedSetDto> =
-        previousSetResultsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
+        liveWorkoutCompletedSetsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<LiveWorkoutCompletedSetDto> =
-        previousSetResultsDao.getAllUnsynced().map { it.toRemoteDto() }
+        liveWorkoutCompletedSetsDao.getAllUnsynced().map { it.toRemoteDto() }
 
     override suspend fun upsertManyTyped(entities: List<LiveWorkoutCompletedSetDto>): List<Long> =
-        previousSetResultsDao.upsertMany(entities.fastMap { it.toEntity() })
+        liveWorkoutCompletedSetsDao.upsertMany(entities.fastMap { it.toEntity() })
             .let { upsertIds ->
                 entities.zip(upsertIds).fastMap { (entity, id) ->
                     if (id == -1L) {
@@ -34,13 +33,13 @@ class LiveWorkoutCompletedSetsSyncRepository(
             }
 
     override suspend fun deleteByRemoteId(remoteId: String): Int {
-        val toDelete = previousSetResultsDao.getByRemoteId(remoteId) ?: return 0
-        return previousSetResultsDao.delete(toDelete)
+        val toDelete = liveWorkoutCompletedSetsDao.getByRemoteId(remoteId) ?: return 0
+        return liveWorkoutCompletedSetsDao.delete(toDelete)
     }
 
     override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
-        val toDelete = previousSetResultsDao.getManyByRemoteId(remoteIds)
+        val toDelete = liveWorkoutCompletedSetsDao.getManyByRemoteId(remoteIds)
         if (toDelete.isEmpty()) return 0
-        return previousSetResultsDao.deleteMany(toDelete)
+        return liveWorkoutCompletedSetsDao.deleteMany(toDelete)
     }
 }

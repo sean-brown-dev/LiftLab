@@ -100,8 +100,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liveWorkoutCompletedSetsDao(): LiveWorkoutCompletedSetsDao
     abstract fun workoutInProgressDao(): WorkoutInProgressDao
     abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
-    abstract fun workoutLogEntryDao(): WorkoutLogEntryDao
-    abstract fun setLogEntryDao(): SetLogEntryDao
+    abstract fun workoutLogEntriesDao(): WorkoutLogEntryDao
+    abstract fun setLogEntriesDao(): SetLogEntryDao
     abstract fun restTimerInProgressDao(): RestTimerInProgressDao
     abstract fun liftMetricChartsDao(): LiftMetricChartsDao
     abstract fun volumeMetricChartsDao(): VolumeMetricChartsDao

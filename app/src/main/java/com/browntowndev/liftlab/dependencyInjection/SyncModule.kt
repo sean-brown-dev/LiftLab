@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.dependencyInjection
 
 import androidx.compose.ui.util.fastMap
 import androidx.work.WorkManager
+import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
 import com.browntowndev.liftlab.core.data.remote.client.FirestoreClient
 import com.browntowndev.liftlab.core.data.remote.client.FirestoreClientImpl
 import com.browntowndev.liftlab.core.data.remote.client.FirestoreRemoteDataClient
@@ -47,62 +48,62 @@ val syncModule = module {
 
     single<RemoteSyncRepository>(named(RemoteCollectionNames.CUSTOM_LIFT_SETS_COLLECTION)) {
         CustomSetsSyncRepository(
-            get()
+            customSetsDao = get<LiftLabDatabase>().customSetsDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.HISTORICAL_WORKOUT_NAMES_COLLECTION)) {
         HistoricalWorkoutNamesSyncRepository(
-            get()
+            historicalWorkoutNamesDao = get<LiftLabDatabase>().historicalWorkoutNamesDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.LIFT_METRIC_CHARTS_COLLECTION)) {
         LiftMetricChartsSyncRepository(
-            get()
+            liftMetricChartsDao = get<LiftLabDatabase>().liftMetricChartsDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.LIFTS_COLLECTION)) {
         LiftsSyncRepository(
-            get()
+            liftsDao = get<LiftLabDatabase>().liftsDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.LIVE_WORKOUT_COMPLETED_SETS_COLLECTION)) {
         LiveWorkoutCompletedSetsSyncRepository(
-            get()
+            liveWorkoutCompletedSetsDao = get<LiftLabDatabase>().liveWorkoutCompletedSetsDao(),
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.PROGRAMS_COLLECTION)) {
         ProgramSyncRepository(
-            get()
+            programsDao = get<LiftLabDatabase>().programsDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.SET_LOG_ENTRIES_COLLECTION)) {
         SetLogEntriesSyncRepository(
-            get()
+            setLogEntriesDao = get<LiftLabDatabase>().setLogEntriesDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.VOLUME_METRIC_CHARTS_COLLECTION)) {
         VolumeMetricChartsSyncRepository(
-            get()
+            volumeMetricChartsDao = get<LiftLabDatabase>().volumeMetricChartsDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.WORKOUT_IN_PROGRESS_COLLECTION)) {
         WorkoutInProgressSyncRepository(
-            get()
+            workoutInProgressDao = get<LiftLabDatabase>().workoutInProgressDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.WORKOUT_LIFTS_COLLECTION)) {
         WorkoutLiftsSyncRepository(
-            get()
+            workoutLiftsDao = get<LiftLabDatabase>().workoutLiftsDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.WORKOUT_LOG_ENTRIES_COLLECTION)) {
         WorkoutLogEntriesSyncRepository(
-            get()
+            workoutLogEntriesDao = get<LiftLabDatabase>().workoutLogEntriesDao()
         )
     }
     single<RemoteSyncRepository>(named(RemoteCollectionNames.WORKOUTS_COLLECTION)) {
         WorkoutsSyncRepository(
-            get()
+            workoutsDao = get<LiftLabDatabase>().workoutsDao()
         )
     }
 
@@ -133,7 +134,7 @@ val syncModule = module {
 
     single<ProgramSyncPolicyRepository> {
         ProgramSyncPolicyRepositoryImpl(
-            programsDao = get(),
+            programsDao = get<LiftLabDatabase>().programsDao(),
         )
     }
     single<PostSyncPolicy> {

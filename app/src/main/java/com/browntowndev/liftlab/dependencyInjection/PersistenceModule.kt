@@ -40,6 +40,7 @@ import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 
 val persistenceModule = module {
+    // Database
     single {
         LiftLabDatabase.getInstance(
             context = get(),
@@ -52,112 +53,96 @@ val persistenceModule = module {
     }
     single { TransactionScope(get()) }
 
-    // DAOs
-    single { get<LiftLabDatabase>().programsDao() }
-    single { get<LiftLabDatabase>().workoutLiftsDao() }
-    single { get<LiftLabDatabase>().workoutsDao() }
-    single { get<LiftLabDatabase>().liveWorkoutCompletedSetsDao() }
-    single { get<LiftLabDatabase>().liftsDao() }
-    single { get<LiftLabDatabase>().customSetsDao() }
-    single { get<LiftLabDatabase>().workoutInProgressDao() }
-    single { get<LiftLabDatabase>().historicalWorkoutNamesDao() }
-    single { get<LiftLabDatabase>().workoutLogEntryDao() }
-    single { get<LiftLabDatabase>().restTimerInProgressDao() }
-    single { get<LiftLabDatabase>().liftMetricChartsDao() }
-    single { get<LiftLabDatabase>().volumeMetricChartsDao() }
-    single { get<LiftLabDatabase>().setLogEntryDao() }
-    single { get<LiftLabDatabase>().syncDao() }
-
-    // Repositories
+    // Repositories (resolve DAOs directly from the DB, no DAO singletons exported)
     single<ProgramsRepository> {
         ProgramsRepositoryImpl(
-            programsDao = get(),
-            workoutsDao = get(),
-            workoutLiftsDao = get(),
-            customSetsDao = get(),
-            liveWorkoutCompletedSetsDao = get(),
-            workoutInProgressDao = get(),
+            programsDao = get<LiftLabDatabase>().programsDao(),
+            workoutsDao = get<LiftLabDatabase>().workoutsDao(),
+            workoutLiftsDao = get<LiftLabDatabase>().workoutLiftsDao(),
+            customSetsDao = get<LiftLabDatabase>().customSetsDao(),
+            liveWorkoutCompletedSetsDao = get<LiftLabDatabase>().liveWorkoutCompletedSetsDao(),
+            workoutInProgressDao = get<LiftLabDatabase>().workoutInProgressDao(),
             syncScheduler = get(),
             transactionScope = get(),
         )
     }
     single<WorkoutLiftsRepository> {
         WorkoutLiftsRepositoryImpl(
-            workoutLiftsDao = get(),
+            workoutLiftsDao = get<LiftLabDatabase>().workoutLiftsDao(),
         )
     }
     single<WorkoutsRepository> {
         WorkoutsRepositoryImpl(
-            workoutsDao = get(),
+            workoutsDao = get<LiftLabDatabase>().workoutsDao(),
         )
     }
     single<LiveWorkoutCompletedSetsRepository> {
         LiveWorkoutCompletedSetsRepositoryImpl(
-            liveWorkoutCompletedSetsDao = get(),
+            liveWorkoutCompletedSetsDao = get<LiftLabDatabase>().liveWorkoutCompletedSetsDao(),
             syncScheduler = get(),
         )
     }
     single<LiftsRepository> {
         LiftsRepositoryImpl(
-            liftsDao = get(),
+            liftsDao = get<LiftLabDatabase>().liftsDao(),
             syncScheduler = get(),
         )
     }
     single<CustomLiftSetsRepository> {
         CustomLiftSetsRepositoryImpl(
-            customSetsDao = get(),
+            customSetsDao = get<LiftLabDatabase>().customSetsDao(),
         )
     }
     single<WorkoutInProgressRepository> {
         WorkoutInProgressRepositoryImpl(
-            workoutInProgressDao = get(),
+            workoutInProgressDao = get<LiftLabDatabase>().workoutInProgressDao(),
             syncScheduler = get(),
         )
     }
     single<HistoricalWorkoutNamesRepository> {
         HistoricalWorkoutNamesRepositoryImpl(
-            historicalWorkoutNamesDao = get(),
+            historicalWorkoutNamesDao = get<LiftLabDatabase>().historicalWorkoutNamesDao(),
             syncScheduler = get(),
         )
     }
     single<WorkoutLogRepository> {
         WorkoutLogRepositoryImpl(
-            workoutLogEntryDao = get(),
-            setLogEntryDao = get(),
+            workoutLogEntryDao = get<LiftLabDatabase>().workoutLogEntriesDao(),
+            setLogEntryDao = get<LiftLabDatabase>().setLogEntriesDao(),
             syncScheduler = get(),
         )
     }
     single<LiftMetricChartsRepository> {
         LiftMetricChartsRepositoryImpl(
-            liftMetricChartsDao = get(),
+            liftMetricChartsDao = get<LiftLabDatabase>().liftMetricChartsDao(),
             syncScheduler = get(),
         )
     }
     single<VolumeMetricChartsRepository> {
         VolumeMetricChartsRepositoryImpl(
-            volumeMetricChartsDao = get(),
+            volumeMetricChartsDao = get<LiftLabDatabase>().volumeMetricChartsDao(),
             syncScheduler = get(),
         )
     }
     single<RestTimerInProgressRepository> {
         RestTimerInProgressRepositoryImpl(
-            restTimerInProgressDao = get()
+            restTimerInProgressDao = get<LiftLabDatabase>().restTimerInProgressDao()
         )
     }
     single<SyncMetadataRepository> {
         SyncMetadataRepositoryImpl(
-            dao = get(),
+            dao = get<LiftLabDatabase>().syncDao(),
         )
     }
     single<SetLogEntryRepository> {
         SetLogEntryRepositoryImpl(
-            setLogEntryDao = get(),
+            setLogEntryDao = get<LiftLabDatabase>().setLogEntriesDao(),
             syncScheduler = get(),
         )
     }
-
     single<SettingsRepository> { SettingsRepositoryImpl() }
 
+    // Billing
     single { BillingClient.newBuilder(get()) }
     single<BillingManager> {
         BillingManagerImpl(
@@ -166,5 +151,6 @@ val persistenceModule = module {
         )
     }
 
+    // Workers
     workerOf(::LiftLabDatabaseWorker)
 }

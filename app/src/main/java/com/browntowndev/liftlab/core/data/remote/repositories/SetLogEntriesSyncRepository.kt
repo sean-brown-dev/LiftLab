@@ -10,19 +10,19 @@ import kotlin.collections.map
 import kotlin.reflect.KClass
 
 class SetLogEntriesSyncRepository(
-    private val setLogEntryDao: SetLogEntryDao,
+    private val setLogEntriesDao: SetLogEntryDao,
 ) : BaseRemoteSyncRepository<SetLogEntryRemoteDto>() {
     override val collectionName: String = RemoteCollectionNames.SET_LOG_ENTRIES_COLLECTION
     override val remoteDtoClass: KClass<SetLogEntryRemoteDto> = SetLogEntryRemoteDto::class
 
     override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<SetLogEntryRemoteDto> =
-        setLogEntryDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
+        setLogEntriesDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<SetLogEntryRemoteDto> =
-        setLogEntryDao.getAllUnsynced().map { it.toRemoteDto() }
+        setLogEntriesDao.getAllUnsynced().map { it.toRemoteDto() }
 
     override suspend fun upsertManyTyped(entities: List<SetLogEntryRemoteDto>): List<Long> =
-        setLogEntryDao.upsertMany(entities.fastMap { it.toEntity() })
+        setLogEntriesDao.upsertMany(entities.fastMap { it.toEntity() })
             .let { upsertIds ->
                 entities.zip(upsertIds).fastMap { (entity, id) ->
                     if (id == -1L) {
@@ -34,13 +34,13 @@ class SetLogEntriesSyncRepository(
             }
 
     override suspend fun deleteByRemoteId(remoteId: String): Int {
-        val toDelete = setLogEntryDao.getByRemoteId(remoteId) ?: return 0
-        return setLogEntryDao.delete(toDelete)
+        val toDelete = setLogEntriesDao.getByRemoteId(remoteId) ?: return 0
+        return setLogEntriesDao.delete(toDelete)
     }
 
     override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
-        val toDelete = setLogEntryDao.getManyByRemoteId(remoteIds)
+        val toDelete = setLogEntriesDao.getManyByRemoteId(remoteIds)
         if (toDelete.isEmpty()) return 0
-        return setLogEntryDao.deleteMany(toDelete)
+        return setLogEntriesDao.deleteMany(toDelete)
     }
 }

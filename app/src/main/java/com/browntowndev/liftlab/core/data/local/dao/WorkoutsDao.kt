@@ -57,7 +57,8 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Transaction
     @Query("SELECT * FROM workouts " +
             "WHERE position = :microcyclePosition AND " +
-            "programId = :programId AND deleted = 0")
+            "programId = :programId AND " +
+            "deleted = 0")
     fun getByMicrocyclePosition(programId: Long, microcyclePosition: Int): Flow<WorkoutWithRelationships?>
 
     @Transaction
