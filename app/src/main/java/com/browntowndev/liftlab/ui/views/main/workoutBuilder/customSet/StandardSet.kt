@@ -24,7 +24,6 @@ fun StandardSet(
     rpeTarget: Float,
     repRangeBottom: Int,
     repRangeTop: Int,
-    isPreviousSetMyoRep: Boolean,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onConfirmRepRangeBottom: () -> Unit,
@@ -48,7 +47,6 @@ fun StandardSet(
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
         isFirstSet = position == 0,
-        isPreviousSetMyoRep = isPreviousSetMyoRep,
     ) {
         Column {
             IntegerTextField(

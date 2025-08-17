@@ -36,7 +36,6 @@ fun CustomSetBase(
     rightSideSummaryText: String,
     toggleExpansion: () -> Unit,
     isFirstSet: Boolean,
-    isPreviousSetMyoRep: Boolean,
     onCustomSetTypeChanged: ((SetType) -> Unit)? = null,
     content: @Composable (BoxScope.() -> Unit),
 ) {
@@ -59,7 +58,6 @@ fun CustomSetBase(
                     standardShortDisplayName = standardShortDisplayName,
                     onCustomSetTypeChanged = onCustomSetTypeChanged,
                     isFirstSet = isFirstSet,
-                    isPreviousSetMyoRep = isPreviousSetMyoRep,
                 )
             }
             Spacer(Modifier.width(20.dp))
@@ -79,7 +77,6 @@ fun CustomSetBase(
                         fontSize = 18.sp,
                         standardShortDisplayName = standardShortDisplayName,
                         isFirstSet = isFirstSet,
-                        isPreviousSetMyoRep = isPreviousSetMyoRep,
                         onCustomSetTypeChanged = {
                             coroutineScope.launch {
                                 delay(200)

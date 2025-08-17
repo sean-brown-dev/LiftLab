@@ -24,10 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.workout.DropSet
-import com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
-import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
 import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
@@ -69,7 +65,6 @@ fun CustomSettings(
         )
     ) {
         Column {
-            var previousSetType: SetType? = null
             customSets.fastForEachIndexed { index, set ->
                 if (index > 0) {
                     Spacer(modifier = Modifier.height(5.dp))
@@ -97,7 +92,6 @@ fun CustomSettings(
                                 onConfirmRepRangeTop = { onConfirmRepRangeTop(set.position) },
                                 toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
-                                isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                 onCustomSetTypeChanged = { setType ->
                                     onCustomSetTypeChanged(
                                         set.position,
@@ -105,7 +99,6 @@ fun CustomSettings(
                                     )
                                 },
                             )
-                            previousSetType = SetType.STANDARD
                         }
                         is MyoRepSetUiModel -> {
                             MyoRepSet(
@@ -128,7 +121,6 @@ fun CustomSettings(
                                 onConfirmRepRangeTop = { onConfirmRepRangeTop(set.position) },
                                 onMatchSetGoalChanged = { onMatchSetGoalChanged(set.position, it) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
-                                isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                 onMaxSetsChanged = { onMaxSetsChanged(set.position, it) },
                                 toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
                                 onCustomSetTypeChanged = { setType ->
@@ -138,7 +130,6 @@ fun CustomSettings(
                                     )
                                 },
                             )
-                            previousSetType = SetType.MYOREP
                         }
                         is DropSetUiModel -> {
                             DropSet(
@@ -157,7 +148,6 @@ fun CustomSettings(
                                 toggleRpePicker = { toggleRpePicker(set.position, it, set.rpeTarget) },
                                 togglePercentagePicker = { togglePercentagePicker(set.position, it, set.dropPercentage) },
                                 toggleDetailsExpansion = { toggleDetailsExpansion(set.position) },
-                                isPreviousSetMyoRep = previousSetType == SetType.MYOREP,
                                 onCustomSetTypeChanged = { setType ->
                                     onCustomSetTypeChanged(
                                         set.position,
@@ -165,7 +155,6 @@ fun CustomSettings(
                                     )
                                 },
                             )
-                            previousSetType = SetType.DROP_SET
                         }
                     }
                 }

@@ -32,7 +32,6 @@ fun DropSet(
     rpeTarget: Float,
     repRangeBottom: Int?,
     repRangeTop: Int?,
-    isPreviousSetMyoRep: Boolean,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onConfirmRepRangeBottom: () -> Unit,
@@ -60,7 +59,6 @@ fun DropSet(
         rightSideSummaryText = dropPercentage.toDropPercentageString(),
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
-        isPreviousSetMyoRep = isPreviousSetMyoRep,
         isFirstSet = position == 0
     ) {
         Column {

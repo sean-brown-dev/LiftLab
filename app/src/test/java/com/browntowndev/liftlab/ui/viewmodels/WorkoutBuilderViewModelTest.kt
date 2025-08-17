@@ -4,6 +4,9 @@ package com.browntowndev.liftlab.ui.viewmodels
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.models.workout.DropSet
+import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomSetUseCase
@@ -12,6 +15,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateManyCustomLiftSetsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
@@ -29,12 +33,14 @@ import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +58,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
 import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,6 +74,7 @@ class WorkoutBuilderViewModelTest {
     @RelaxedMockK lateinit var updateWorkoutLiftUseCase: UpdateWorkoutLiftUseCase
     @RelaxedMockK lateinit var deleteCustomLiftSetByPositionUseCase: DeleteCustomSetUseCase
     @RelaxedMockK lateinit var updateCustomLiftSetUseCase: UpdateCustomLiftSetUseCase
+    @RelaxedMockK lateinit var updateManyCustomLiftsSetUseCase: UpdateManyCustomLiftSetsUseCase
     @RelaxedMockK lateinit var addSetUseCase: AddSetUseCase
     @RelaxedMockK lateinit var updateWorkoutLiftDeloadWeekUseCase: UpdateWorkoutLiftDeloadWeekUseCase
     @RelaxedMockK lateinit var getWorkoutConfigurationStateFlowUseCase: GetWorkoutConfigurationStateFlowUseCase
@@ -112,6 +120,7 @@ class WorkoutBuilderViewModelTest {
             updateWorkoutLiftUseCase = updateWorkoutLiftUseCase,
             deleteCustomSetUseCase = deleteCustomLiftSetByPositionUseCase,
             updateCustomLiftSetUseCase = updateCustomLiftSetUseCase,
+            updateManyCustomLiftSetsUseCase = updateManyCustomLiftsSetUseCase,
             addSetUseCase = addSetUseCase,
             updateWorkoutLiftDeloadWeekUseCase = updateWorkoutLiftDeloadWeekUseCase,
             getWorkoutConfigurationStateFlowUseCase = getWorkoutConfigurationStateFlowUseCase,
@@ -450,5 +459,157 @@ class WorkoutBuilderViewModelTest {
         coVerify(exactly = 0) { updateLiftIncrementOverrideUseCase.invoke(any(), any()) }
         coVerify(exactly = 0) { reorderWorkoutBuilderLiftsUseCase.invoke(any(), any(), any(), any()) }
         coVerify(exactly = 0) { updateWorkoutLiftUseCase.invoke(any(), any()) }
+    }
+
+    @Test
+    fun changeCustomSetType_convertsPreviousMyoRepAndBatchesTwoUpdates() = runTest {
+        // Rebuild the workout so that the set immediately BEFORE the edited one is a MyoRep.
+        // Layout by LIST INDEX (0-based), since ViewModel uses list index for lookup:
+        //   idx 0 -> Standard(pos=1, id=301)
+        //   idx 1 -> MyoRep(pos=2,   id=302)  <-- previous
+        //   idx 2 -> Standard(pos=3, id=303)  <-- this will be changed to DROP_SET
+        val reorderedCustomLift = customLift.copy(
+            customLiftSets = listOf(
+                StandardSetUiModel(
+                    id = 301L, workoutLiftId = customLift.id,
+                    position = 0, rpeTarget = 7.0f, repRangeBottom = 8, repRangeTop = 12
+                ),
+                MyoRepSetUiModel(
+                    id = 302L, workoutLiftId = customLift.id,
+                    position = 1, rpeTarget = 8.0f, repRangeBottom = 12, repRangeTop = 15,
+                    repFloor = 8, maxSets = 5, setMatching = false, setGoal = 3
+                ),
+                StandardSetUiModel(
+                    id = 303L, workoutLiftId = customLift.id,
+                    position = 2, rpeTarget = 7.5f, repRangeBottom = 10, repRangeTop = 12
+                )
+            )
+        )
+        val reorderedWorkout = workout.copy(
+            lifts = workout.lifts.map { if (it.id == customLift.id) reorderedCustomLift else it }
+        )
+        injectWorkout(reorderedWorkout, programDeloadWeek = 4)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Capture the batch update
+        val setsSlot = slot<List<GenericLiftSet>>()
+        coEvery {
+            updateManyCustomLiftsSetUseCase(
+                programId = reorderedWorkout.programId,
+                workoutId = reorderedWorkout.id,
+                sets = capture(setsSlot)
+            )
+        } just Runs
+
+        // Act: change the third item (index=2) to DROP_SET
+        viewModel.changeCustomSetType(
+            workoutLiftId = reorderedCustomLift.id,
+            position = 2, // list index == 2
+            newSetType = com.browntowndev.liftlab.core.domain.enums.SetType.DROP_SET
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert: single batched call
+        coVerify(exactly = 1) {
+            updateManyCustomLiftsSetUseCase(
+                reorderedWorkout.programId,
+                reorderedWorkout.id,
+                any()
+            )
+        }
+
+        // Validate the transformed payload
+        val updated = setsSlot.captured
+        // Expect exactly 2 domain sets: previous(302) now StandardSet, current(303) now DropSet
+        org.junit.jupiter.api.Assertions.assertEquals(2, updated.size)
+
+        val byId = updated.associateBy { it.id }
+        val prevDomain = byId[302L]
+        val currDomain = byId[303L]
+
+        assertNotNull(prevDomain, "Expected previous MyoRep (id=302) to be included after conversion")
+        assertNotNull(currDomain, "Expected current set (id=303) to be included after transform")
+
+        // Type assertions on the domain models
+        assertTrue(
+            prevDomain is StandardSet,
+            "Previous MyoRep should be converted to StandardSet"
+        )
+        assertTrue(
+            currDomain is DropSet,
+            "Current set should be transformed to DropSet"
+        )
+    }
+
+    @Test
+    fun changeCustomSetType_preventMyoRepBeforeExistingDropSet_byConvertingDropToStandard_batched() = runTest {
+        // Given a custom lift with Standard (pos=1, id=401) followed by DropSet (pos=2, id=402)
+        val reorderedCustomLift = customLift.copy(
+            customLiftSets = listOf(
+                StandardSetUiModel(
+                    id = 401L, workoutLiftId = customLift.id,
+                    position = 0, rpeTarget = 7.0f, repRangeBottom = 8, repRangeTop = 12
+                ),
+                DropSetUiModel(
+                    id = 402L, workoutLiftId = customLift.id,
+                    position = 1, rpeTarget = 9.0f, repRangeBottom = 10, repRangeTop = 12,
+                    dropPercentage = 0.20f
+                )
+            )
+        )
+        val reorderedWorkout = workout.copy(
+            lifts = workout.lifts.map { if (it.id == customLift.id) reorderedCustomLift else it }
+        )
+        injectWorkout(reorderedWorkout, programDeloadWeek = 4)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Capture the batched update
+        val setsSlot = slot<List<GenericLiftSet>>()
+        coEvery {
+            updateManyCustomLiftsSetUseCase(
+                programId = reorderedWorkout.programId,
+                workoutId = reorderedWorkout.id,
+                sets = capture(setsSlot)
+            )
+        } just Runs
+
+        // When: user changes the PREVIOUS standard (pos=1) to a MYOREP
+        viewModel.changeCustomSetType(
+            workoutLiftId = reorderedCustomLift.id,
+            position = 0,
+            newSetType = com.browntowndev.liftlab.core.domain.enums.SetType.MYOREP
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Then: expect one batched call that includes:
+        //  - previous (id=401) transformed to MyoRep
+        //  - following Drop (id=402) converted to Standard to maintain invariant
+        coVerify(exactly = 1) {
+            updateManyCustomLiftsSetUseCase(
+                reorderedWorkout.programId,
+                reorderedWorkout.id,
+                any()
+            )
+        }
+
+        val updated = setsSlot.captured
+        org.junit.jupiter.api.Assertions.assertEquals(2, updated.size)
+
+        val byId = updated.associateBy { it.id }
+        val prevDomain = byId[401L]
+        val nextDomain = byId[402L]
+
+        assertNotNull(prevDomain, "Expected previous set (id=401) to be included after transform to MyoRep")
+        assertNotNull(nextDomain, "Expected following DropSet (id=402) to be included for conversion to Standard")
+
+        // This is the expected behavior that your current logic misses.
+        assertTrue(
+            prevDomain is com.browntowndev.liftlab.core.domain.models.workout.MyoRepSet,
+            "Previous set should be converted to MyoRep"
+        )
+        assertTrue(
+            nextDomain is com.browntowndev.liftlab.core.domain.models.workout.StandardSet,
+            "Following DropSet should be converted to Standard to avoid MyoRep -> Drop adjacency"
+        )
     }
 }

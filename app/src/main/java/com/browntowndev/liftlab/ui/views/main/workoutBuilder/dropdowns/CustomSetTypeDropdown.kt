@@ -25,7 +25,6 @@ fun CustomSetTypeDropdown(
     fontSize: TextUnit = 14.sp,
     standardShortDisplayName: String,
     isFirstSet: Boolean,
-    isPreviousSetMyoRep: Boolean,
     onCustomSetTypeChanged: (newSetType: SetType) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
@@ -39,7 +38,7 @@ fun CustomSetTypeDropdown(
         fontSize = fontSize
     ) {
         setTypes
-            .filter { (it != SetType.DROP_SET) || (!isFirstSet && !isPreviousSetMyoRep)}
+            .filter { (it != SetType.DROP_SET) || !isFirstSet}
             .fastForEach { setType ->
             DropdownMenuItem(
                 text = { Text(setType.displayName()) },

@@ -14,6 +14,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.GetWork
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutBuilderLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateManyCustomLiftSetsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
@@ -63,6 +64,7 @@ class WorkoutBuilderViewModel(
     private val updateWorkoutLiftUseCase: UpdateWorkoutLiftUseCase,
     private val deleteCustomSetUseCase: DeleteCustomSetUseCase,
     private val updateCustomLiftSetUseCase: UpdateCustomLiftSetUseCase,
+    private val updateManyCustomLiftSetsUseCase: UpdateManyCustomLiftSetsUseCase,
     private val addSetUseCase: AddSetUseCase,
     private val updateWorkoutLiftDeloadWeekUseCase: UpdateWorkoutLiftDeloadWeekUseCase,
     getWorkoutConfigurationStateFlowUseCase: GetWorkoutConfigurationStateFlowUseCase,
@@ -361,12 +363,46 @@ class WorkoutBuilderViewModel(
     }
 
     fun changeCustomSetType(workoutLiftId: Long, position: Int, newSetType: SetType) = executeWithErrorHandling("Failed to change set type") {
-        val transformedSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position)?.transformToType(newSetType)
-            ?: return@executeWithErrorHandling
-        updateCustomLiftSetUseCase(
-            programId = _state.value.workout!!.programId,
-            workoutId = _state.value.workout!!.id,
-            set = transformedSet.toDomainModel())
+        // UI already guards against this, but just in case
+        if (position == 0 && newSetType == SetType.DROP_SET) {
+            emitUserMessage("Cannot change first set to drop set.")
+            return@executeWithErrorHandling
+        }
+
+        val workout = getCurrentWorkoutAndLogIfNull() ?: return@executeWithErrorHandling
+        val workoutLift = getWorkoutLiftAndLogIfNull<CustomWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
+        val currentSet = safeGetCustomSetAtPositionAndLogIfNull<CustomLiftSetUiModel>(workoutLift.customLiftSets, position) ?: return@executeWithErrorHandling
+
+        // Find the true previous & next by position (robust to holes).
+        val previousSet = workoutLift.customLiftSets
+            .filter { it.position < position }
+            .maxByOrNull { it.position }
+
+        val nextSet = workoutLift.customLiftSets
+            .filter { it.position > position }
+            .minByOrNull { it.position }
+
+        var didTransformMyoRep = false
+        var didTransformDropSet = false
+        val updates = buildList {
+            if (newSetType == SetType.DROP_SET && previousSet is MyoRepSetUiModel) {
+                didTransformMyoRep = true
+                add(previousSet.transformToType(SetType.STANDARD).toDomainModel())
+            } else if (newSetType == SetType.MYOREP && nextSet is DropSetUiModel) {
+                didTransformDropSet = true
+                add(nextSet.transformToType(SetType.STANDARD).toDomainModel())
+            }
+            add(currentSet.transformToType(newSetType).toDomainModel())
+        }
+
+        updateManyCustomLiftSetsUseCase(
+            programId = workout.programId,
+            workoutId = workout.id,
+            sets = updates
+        )
+
+        if (didTransformMyoRep) emitUserMessage("Previous myo-rep set converted to standard (cannot have drop set after myo-rep set)")
+        else if (didTransformDropSet) emitUserMessage("Next drop set converted to standard (cannot have myo-rep set before drop set)")
     }
 
     private fun updateCustomSetProperty(

@@ -35,7 +35,6 @@ fun MyoRepSet(
     setGoal: Int?,
     repFloor: Int?,
     maxSets: Int?,
-    isPreviousSetMyoRep: Boolean,
     onSetMatchingChanged: (enabled: Boolean) -> Unit,
     onMatchSetGoalChanged: (Int) -> Unit,
     onMaxSetsChanged: (Int?) -> Unit,
@@ -64,7 +63,6 @@ fun MyoRepSet(
         rightSideSummaryText = if(setMatching) "matched within ${setGoal ?: "?"} sets" else "until ${repFloor ?: "?"} reps",
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
-        isPreviousSetMyoRep = isPreviousSetMyoRep,
         isFirstSet = position == 0
     ) {
         Column {
