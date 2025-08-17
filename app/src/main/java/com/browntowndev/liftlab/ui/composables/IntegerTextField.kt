@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
+import kotlin.math.min
 
 @Composable
 fun IntegerTextField(
@@ -36,6 +38,10 @@ fun IntegerTextField(
 ) {
     var text by remember(value) { mutableStateOf(value?.toString() ?: "") }
 
+    // 1) Defensive bounds: coerceIn will throw if min > max, so clamp with a safe range
+    val safeMin = min(minValue, maxValue)
+    val safeMax = max(minValue, maxValue)
+
     ScrollableTextField(
         modifier = modifier,
         placeholder = placeholder,
@@ -50,19 +56,20 @@ fun IntegerTextField(
         disableSystemKeyboard = disableSystemKeyboard,
         onFocusChanged = onFocusChanged,
         onLeftFocusBlank = onLeftFocusBlank,
-        onValueChanged = { newValue ->
-            var newValueAsInt = newValue.trim().toIntOrNull()
-            text = if (newValueAsInt != null && newValueAsInt <= maxValue) {
-                newValueAsInt = if (newValueAsInt >= minValue) newValueAsInt else minValue
-                onValueChanged(newValueAsInt)
-                onNonNullValueChanged(newValueAsInt)
-                newValueAsInt.toString()
-            } else if (newValue.isEmpty()) {
+        onValueChanged = { raw ->
+            val trimmed = raw.trim()
+            if (trimmed.isEmpty()) {
                 onValueChanged(null)
-                newValue
-            } else {
-                text
+                text = raw
+                return@ScrollableTextField
             }
+
+            val parsed = trimmed.toIntOrNull() ?: return@ScrollableTextField
+            val clamped = parsed.coerceIn(safeMin, safeMax)
+
+            onValueChanged(clamped)
+            onNonNullValueChanged(clamped)
+            text = clamped.toString()
         },
         onPixelOverflowChanged = onPixelOverflowChanged,
     )

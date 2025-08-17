@@ -248,11 +248,15 @@ class WorkoutBuilderViewModel(
     }
 
     fun setLiftSetCount(workoutLiftId: Long, newSetCount: Int) = executeWithErrorHandling("Failed to update set count") {
+        if (newSetCount <= 0) {
+            emitUserMessage("Set count must be greater than 0")
+            return@executeWithErrorHandling
+        }
+
         val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val updatedWorkoutLift = when (workoutLift) {
             is StandardWorkoutLiftUiModel -> workoutLift.copy(setCount = newSetCount)
-            is CustomWorkoutLiftUiModel -> workoutLift.copy(setCount = newSetCount)
-            else -> throw Exception("${workoutLift::class.simpleName} not recognized.")
+            else -> throw Exception("${workoutLift::class.simpleName} cannot explicitly set set count.")
         }
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,

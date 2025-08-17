@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -81,26 +80,14 @@ fun LiftLabOutlinedTextField(
 
     BasicTextField(
         value = value,
-        modifier = if (label != null) {
-            // Merge semantics at the beginning of the modifier chain to ensure padding is
-            // considered part of the text field.
-            modifier
-                .semantics(mergeDescendants = true) {}
-                .padding(top = 5.dp)
-        } else {
-            modifier
-        }
+        modifier = modifier
+            .semantics(mergeDescendants = true) {}
             .defaultMinSize(
                 minWidth = OutlinedTextFieldDefaults.MinWidth,
                 minHeight = OutlinedTextFieldDefaults.MinHeight
             )
-            .then(
-                Modifier
-                    .focusRequester(focusRequester)
-                    .onFocusChanged {
-                        isFocused = it.isFocused
-                    }
-            ),
+            .focusRequester(focusRequester)
+            .onFocusChanged { isFocused = it.isFocused },
         onValueChange = onValueChange,
         onTextLayout = {
             onRequiredHeightChanged(it.size.height)
@@ -110,7 +97,7 @@ fun LiftLabOutlinedTextField(
         textStyle = mergedTextStyle,
         cursorBrush = SolidColor(
             if (isError) MaterialTheme.colorScheme.error
-            else if (hideCursor) Color.Unspecified
+            else if (hideCursor) Color.Transparent
             else MaterialTheme.colorScheme.primary
         ),
         visualTransformation = visualTransformation,
