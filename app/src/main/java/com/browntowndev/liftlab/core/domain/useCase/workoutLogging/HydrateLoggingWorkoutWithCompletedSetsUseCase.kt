@@ -21,6 +21,7 @@ import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepContinuationResu
 import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.useCase.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import kotlin.math.roundToInt
 
 /**
  * Hydrates the lifts in a logging workout with the latest set results.
@@ -28,7 +29,7 @@ import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     companion object {
         private const val TAG = "HydrateLoggingWorkoutWithCompletedSetsUseCase"
-        private const val SET_TOO_EASY_REPS_THRESHOLD = 3f
+        private const val SET_TOO_EASY_REPS_THRESHOLD = 2f
     }
 
     operator fun invoke(
@@ -50,6 +51,19 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         } else liftsToHydrate
     }
 
+    private data class SetKey(
+        val setPosition: Int,
+        val myoRepSetPosition: Int?,
+    )
+
+    /**
+     * Hydrates the lifts in a logging workout with the latest set results.
+     *
+     * @param workoutLift The workout lift to hydrate.
+     * @param allSetResults The list of all set results.
+     * @param isDeloadWeek Whether the deload week is currently active.
+     * @return The hydrated workout lift.
+     */
     private fun getSetsWithUpdatedCompletionData(
         workoutLift: LoggingWorkoutLift,
         allSetResults: List<SetResult>,
@@ -65,7 +79,30 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             )
         }
 
-        var lastCompletedStandardSet: GenericLoggingSet? = null
+        val previousCompletedSetsByKey = mutableMapOf<SetKey, GenericLoggingSet>()
+        fun getPreviousSet(set: GenericLoggingSet): GenericLoggingSet? =
+            if (set is LoggingMyoRepSet && set.myoRepSetPosition != null) {
+                // Mini sets share the same position as the activation set.
+                val previousMyoRepSetPosition = if (set.myoRepSetPosition == 0) null else set.myoRepSetPosition - 1
+                val key = SetKey(
+                    setPosition = set.position,
+                    myoRepSetPosition = previousMyoRepSetPosition,
+                )
+                previousCompletedSetsByKey[key]
+            } else {
+                val key = SetKey(
+                    setPosition = set.position - 1,
+                    myoRepSetPosition = null
+                )
+                previousCompletedSetsByKey[key]
+            }
+
+        val increment = workoutLift.incrementOverride
+            ?: SettingsManager.getSetting(
+                SettingsManager.SettingNames.INCREMENT_AMOUNT,
+                SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+            )
+
         val updatedSets = workoutLift.sets.fastMap { set ->
             val currSetKey = SetResultKey(
                 liftId = workoutLift.liftId,
@@ -74,6 +111,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 myoRepSetPosition = (set as? LoggingMyoRepSet)?.myoRepSetPosition,
             )
             val completedSetResult = setResultsByKey[currSetKey]
+            val previousSet = getPreviousSet(set)
 
             val updatedSet = when {
                 // Case 1: A result exists for this set.
@@ -97,18 +135,23 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 set.complete -> {
                     set.copyCompletionData(
                         complete = false,
-                        completedWeight = set.completedWeight, // Keep old data, more convenient
+                        completedWeight = set.completedWeight, // Keep old data, more convenient for user
                         completedReps = set.completedReps,
                         completedRpe = set.completedRpe,
                     )
                 }
 
-                // Case 3: No result, not complete, and previous is complete, update weight recommendation
-                set !is LoggingMyoRepSet && lastCompletedStandardSet?.position == set.position - 1 -> {
+                // Case 3: No result, not complete, and previous is complete, update weight recommendation (conditionally).
+                previousSet != null &&
+                (
+                    (set is LoggingMyoRepSet && previousSet is LoggingMyoRepSet) ||
+                    (set is LoggingStandardSet && previousSet is LoggingStandardSet) ||
+                    (set is LoggingDropSet && (previousSet is LoggingStandardSet || previousSet is LoggingDropSet))
+                ) -> {
                     getWithWeightRecommendation(
-                        workoutLift = workoutLift,
                         set = set,
-                        lastCompletedStandardSet = lastCompletedStandardSet
+                        lastCompletedSet = previousSet,
+                        increment = increment,
                     )
                 }
 
@@ -116,14 +159,13 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 else -> set
             }
 
-            // Update the last completed set for the next iteration.
-            lastCompletedStandardSet = if (updatedSet.complete && (updatedSet is LoggingStandardSet ||
-                        (updatedSet is LoggingMyoRepSet && updatedSet.myoRepSetPosition == null))) {
-                updatedSet
-            } else {
-                lastCompletedStandardSet
+            if (updatedSet.complete) {
+                val setKey = SetKey(
+                    setPosition = updatedSet.position,
+                    myoRepSetPosition = (updatedSet as? LoggingMyoRepSet)?.myoRepSetPosition,
+                )
+                previousCompletedSetsByKey[setKey] = updatedSet
             }
-
             updatedSet
         }
 
@@ -142,53 +184,163 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         }
     }
 
+    /**
+     * Gets the set with the updated weight recommendation.
+     *
+     * @param increment The weight increment.
+     * @param set The set.
+     * @param lastCompletedSet The last completed set.
+     * @return The set with the updated weight recommendation.
+     */
     private fun getWithWeightRecommendation(
-        workoutLift: LoggingWorkoutLift,
         set: GenericLoggingSet,
-        lastCompletedStandardSet: GenericLoggingSet,
-    ): GenericLoggingSet = when (set) {
-        is LoggingDropSet -> {
-            val increment = workoutLift.incrementOverride
-                ?: SettingsManager.getSetting(
-                    SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                    SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
-                )
-
-            val weightRecommendation = (lastCompletedStandardSet.completedWeight!! * (1 - set.dropPercentage))
-                .roundToNearestFactor(increment)
-            set.copy(weightRecommendation = weightRecommendation)
+        lastCompletedSet: GenericLoggingSet,
+        increment: Float,
+    ): GenericLoggingSet {
+        if (!lastCompletedSet.complete || lastCompletedSet.completedWeight == null || lastCompletedSet.completedReps == null || lastCompletedSet.completedRpe == null) {
+            Log.e(TAG, "lastCompletedSet is incomplete")
+            return set
         }
 
-        is LoggingStandardSet -> {
-            val rpeAdjustedCompletedReps = lastCompletedStandardSet.completedReps!! + (10f - lastCompletedStandardSet.completedRpe!!)
-            val rpeAdjustedRepRangeTop = set.repRangeTop + (10f - set.rpeTarget)
-            val rpeAdjustedRepRangeBottom = set.repRangeBottom + (10f - set.rpeTarget)
+        return when (set) {
+            is LoggingDropSet -> {
+                if (lastCompletedSet !is LoggingStandardSet && lastCompletedSet !is LoggingDropSet) {
+                    Log.e(TAG, "lastCompletedSet is not a LoggingStandardSet or LoggingDropSet")
+                    return set
+                }
 
-            val exceededRepRangeTop = rpeAdjustedCompletedReps >= (rpeAdjustedRepRangeTop + SET_TOO_EASY_REPS_THRESHOLD)
-            val missedRepRangeBottom = rpeAdjustedCompletedReps < rpeAdjustedRepRangeBottom
+                val weightRecommendation = (lastCompletedSet.completedWeight!! * (1 - set.dropPercentage))
+                    .roundToNearestFactor(increment)
+                set.copy(weightRecommendation = weightRecommendation)
+            }
 
-            val lastGoalDiffered =
-                lastCompletedStandardSet.repRangeBottom != set.repRangeBottom ||
-                lastCompletedStandardSet.rpeTarget.roundToOneDecimal() != set.rpeTarget.roundToOneDecimal()
+            is LoggingStandardSet -> {
+                if (lastCompletedSet !is LoggingStandardSet) {
+                    // Don't calculate weight recommendations on a drop set or from a myo-rep set
+                    Log.e(TAG, "lastCompletedSet is not a LoggingStandardSet")
+                    return set
+                }
 
-            val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || lastGoalDiffered
-
-            val weightRecommendation = if (shouldRecalculate) {
-                WeightCalculationUtils.calculateSuggestedWeight(
-                    completedWeight = lastCompletedStandardSet.completedWeight!!,
-                    completedReps = lastCompletedStandardSet.completedReps!!,
-                    completedRpe = lastCompletedStandardSet.completedRpe!!,
-                    repGoal = if (exceededRepRangeTop) set.repRangeBottom else set.repRangeTop,
-                    rpeGoal = set.rpeTarget,
-                    roundingFactor = workoutLift.incrementOverride ?: SettingsManager.getSetting(
-                        SettingsManager.SettingNames.INCREMENT_AMOUNT,
-                        SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT,
-                    ),
+                val missedGoalResult = calculateMissedGoalResult(
+                    completedReps = lastCompletedSet.completedReps!!,
+                    completedRpe = lastCompletedSet.completedRpe!!,
+                    repRangeTop = lastCompletedSet.repRangeTop,
+                    repRangeBottom = lastCompletedSet.repRangeBottom,
+                    rpeTarget = lastCompletedSet.rpeTarget
                 )
-            } else set.weightRecommendation ?: lastCompletedStandardSet.completedWeight
-            set.copy(weightRecommendation = weightRecommendation)
+                val exceededRepRangeTop = missedGoalResult.exceededRepRangeTop
+                val missedRepRangeBottom = missedGoalResult.missedRepRangeBottom
+
+                val lastGoalDiffered =
+                    lastCompletedSet.repRangeBottom != set.repRangeBottom ||
+                            lastCompletedSet.rpeTarget.roundToOneDecimal() != set.rpeTarget.roundToOneDecimal()
+
+                val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || lastGoalDiffered
+
+                val weightRecommendation = if (shouldRecalculate) {
+                    WeightCalculationUtils.calculateSuggestedWeight(
+                        completedWeight = lastCompletedSet.completedWeight!!,
+                        completedReps = lastCompletedSet.completedReps,
+                        completedRpe = lastCompletedSet.completedRpe,
+                        repGoal = if (exceededRepRangeTop) set.repRangeBottom else set.repRangeTop,
+                        rpeGoal = set.rpeTarget,
+                        roundingFactor = increment,
+                    )
+                } else set.weightRecommendation ?: lastCompletedSet.completedWeight
+                set.copy(weightRecommendation = weightRecommendation)
+            }
+
+            is LoggingMyoRepSet -> {
+                if (set.myoRepSetPosition == null) {
+                    // Activation set. Just do what is already recommended. Calculating from previous set is likely meaningless
+                    // since activation sets are such high reps.
+                    set
+                } else if (set.myoRepSetPosition == 0) {
+                    // First mini-set (first set after activation). See if the activation set was successful, and if not adjust the weight recommendation.
+                    if (lastCompletedSet !is LoggingMyoRepSet) {
+                        Log.e(TAG, "lastCompletedSet is not a LoggingMyoRepSet")
+                        return set
+                    }
+                    if (lastCompletedSet.myoRepSetPosition != null) {
+                        Log.e(TAG, "lastCompletedSet is not the activation set")
+                        return set
+                    }
+                    if (lastCompletedSet.repRangeTop == null || lastCompletedSet.repRangeBottom == null) {
+                        Log.e(TAG, "lastCompletedSet (activation set) is missing rep range")
+                        return set
+                    }
+
+                    val missedGoalResult = calculateMissedGoalResult(
+                        completedReps = lastCompletedSet.completedReps!!,
+                        completedRpe = lastCompletedSet.completedRpe!!,
+                        repRangeTop = lastCompletedSet.repRangeTop,
+                        repRangeBottom = lastCompletedSet.repRangeBottom,
+                        rpeTarget = lastCompletedSet.rpeTarget
+                    )
+                    val exceededRepRangeTop = missedGoalResult.exceededRepRangeTop
+                    val missedRepRangeBottom = missedGoalResult.missedRepRangeBottom
+                    val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom
+
+                    val weightRecommendation = if (shouldRecalculate) {
+                        // Guess ~30% drop from activation reps. Set minimum to rep floor or 10 (sane goal)
+                        val repGoal = (lastCompletedSet.completedReps * .3f).roundToInt().coerceIn(
+                            minimumValue = set.repFloor ?: 10,
+                            maximumValue = null,
+                        )
+                        WeightCalculationUtils.calculateSuggestedWeight(
+                            completedWeight = lastCompletedSet.completedWeight!!,
+                            completedReps = lastCompletedSet.completedReps,
+                            completedRpe = lastCompletedSet.completedRpe,
+                            repGoal = repGoal,
+                            rpeGoal = set.rpeTarget,
+                            roundingFactor = increment,
+                        )
+                    } else set.weightRecommendation ?: lastCompletedSet.completedWeight
+
+                    set.copy(weightRecommendation = weightRecommendation)
+                } else {
+                    // For all mini-sets after the first one, just do what the previous mini-set did.
+                    set.copy(weightRecommendation = lastCompletedSet.completedWeight)
+                }
+            }
+
+            else -> throw Exception("${set::class.simpleName} is not defined.")
         }
-        else -> throw Exception("${set::class.simpleName} is not defined.")
+    }
+
+    private data class MissedGoalResult(
+        val missedRepRangeBottom: Boolean,
+        val exceededRepRangeTop: Boolean,
+    )
+
+    /**
+     * Calculates whether the goal was exceeded, missed or neither.
+     *
+     * @param completedReps The completed reps.
+     * @param completedRpe The completed RPE.
+     * @param repRangeTop The rep range top.
+     * @param repRangeBottom The rep range bottom.
+     * @param rpeTarget The RPE target.
+     * @return The missed goal result.
+     */
+    private fun calculateMissedGoalResult(
+        completedReps: Int,
+        completedRpe: Float,
+        repRangeTop: Int,
+        repRangeBottom: Int,
+        rpeTarget: Float,
+    ): MissedGoalResult {
+        val rpeAdjustedCompletedReps = (completedReps + (10f - completedRpe)).roundToOneDecimal()
+        val rpeAdjustedRepRangeTop = (repRangeTop + (10f - rpeTarget)).roundToOneDecimal()
+        val rpeAdjustedRepRangeBottom = (repRangeBottom + (10f - rpeTarget)).roundToOneDecimal()
+
+        val exceededRepRangeTop = (rpeAdjustedCompletedReps - rpeAdjustedRepRangeTop) >= SET_TOO_EASY_REPS_THRESHOLD
+        val missedRepRangeBottom = rpeAdjustedCompletedReps < rpeAdjustedRepRangeBottom
+
+        return MissedGoalResult(
+            missedRepRangeBottom = missedRepRangeBottom,
+            exceededRepRangeTop = exceededRepRangeTop,
+        )
     }
 
     /**
