@@ -30,8 +30,8 @@ fun DropSet(
     position: Int,
     dropPercentage: Float,
     rpeTarget: Float,
-    repRangeBottom: Int?,
-    repRangeTop: Int?,
+    repRangeBottom: Int,
+    repRangeTop: Int,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onConfirmRepRangeBottom: () -> Unit,
@@ -51,10 +51,7 @@ fun DropSet(
         collapsedSetTypeDropdownText = dropSetDisplayNameShort,
         expandedSetTypeDropdownText = dropSetDisplayName,
         standardShortDisplayName = standardSetDisplayNameShort,
-        leftSideSummaryText =
-        if (repRangeTop != null && repRangeBottom != null) "$repRangeBottom - $repRangeTop reps @$rpeTarget"
-        else if (rpeTarget != 10f) "@$rpeTarget"
-        else "AMRAP",
+        leftSideSummaryText = "$repRangeBottom - $repRangeTop reps @$rpeTarget",
         centerIconResourceId = R.drawable.descend_icon,
         rightSideSummaryText = dropPercentage.toDropPercentageString(),
         onCustomSetTypeChanged = onCustomSetTypeChanged,
@@ -78,7 +75,8 @@ fun DropSet(
             IntegerTextField(
                 vertical = false,
                 listState = listState,
-                value = repRangeBottom!!,
+                value = repRangeBottom,
+                minValue = 1,
                 label = "Rep Range Bottom",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
@@ -92,7 +90,8 @@ fun DropSet(
             IntegerTextField(
                 vertical = false,
                 listState = listState,
-                value = repRangeTop!!,
+                value = repRangeTop,
+                minValue = 1,
                 label = "Rep Range Top",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,

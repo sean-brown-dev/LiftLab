@@ -322,6 +322,11 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetRepFloor(workoutLiftId: Long, position: Int, newRepFloor: Int) = executeWithErrorHandling("Failed to update rep floor") {
+        if (newRepFloor < 1) {
+            emitUserMessage("Rep floor must be greater than 0")
+            return@executeWithErrorHandling
+        }
+
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(repFloor = newRepFloor)
             ?: return@executeWithErrorHandling
         updateCustomLiftSetUseCase(
@@ -340,6 +345,10 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetMatchSetGoal(workoutLiftId: Long, position: Int, newMatchSetGoal: Int) = executeWithErrorHandling("Failed to update set match goal") {
+        if (newMatchSetGoal < 1) {
+            emitUserMessage("Set match goal must be greater than 0")
+            return@executeWithErrorHandling
+        }
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(setGoal = newMatchSetGoal)
             ?: return@executeWithErrorHandling
         updateCustomLiftSetUseCase(
@@ -349,6 +358,10 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetMaxSets(workoutLiftId: Long, position: Int, newMaxSets: Int?) = executeWithErrorHandling("Failed to update max sets") {
+        if (newMaxSets != null && newMaxSets < 1) {
+            emitUserMessage("Max sets must be greater than 0")
+            return@executeWithErrorHandling
+        }
         val updatedSet = getCustomLiftSetAndLogIfNull<MyoRepSetUiModel>(workoutLiftId, position)?.copy(maxSets = newMaxSets)
             ?: return@executeWithErrorHandling
         updateCustomLiftSetUseCase(
@@ -434,6 +447,11 @@ class WorkoutBuilderViewModel(
     }
 
     fun setLiftRepRangeBottom(workoutLiftId: Long, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
+        if (newRepRangeBottom < 1) {
+            emitUserMessage("Rep range bottom must be greater than 0")
+            return@executeWithErrorHandling
+        }
+
         val updatedWorkout = updateLiftProperty(workoutLiftId) { lift ->
             when (lift) {
                 is StandardWorkoutLiftUiModel -> lift.copy(
@@ -458,6 +476,11 @@ class WorkoutBuilderViewModel(
     }
 
     fun setLiftRepRangeTop(workoutLiftId: Long, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
+        if (newRepRangeTop < 1) {
+            emitUserMessage("Rep range top must be greater than 0")
+            return@executeWithErrorHandling
+        }
+
         val updatedWorkout = updateLiftProperty(workoutLiftId) { lift ->
             when (lift) {
                 is StandardWorkoutLiftUiModel -> lift.copy(
@@ -522,6 +545,11 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetRepRangeBottom(workoutLiftId: Long, position: Int, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
+        if (newRepRangeBottom < 1) {
+            emitUserMessage("Rep range bottom must be greater than 0")
+            return@executeWithErrorHandling
+        }
+
         _state.update { currentState ->
             currentState.copy(
                 workout = updateCustomSetProperty(workoutLiftId, position) { set ->
@@ -537,6 +565,11 @@ class WorkoutBuilderViewModel(
     }
 
     fun setCustomSetRepRangeTop(workoutLiftId: Long, position: Int, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
+        if (newRepRangeTop < 1) {
+            emitUserMessage("Rep range top must be greater than 0")
+            return@executeWithErrorHandling
+        }
+
         _state.update { currentState ->
             currentState.copy(
                 workout = updateCustomSetProperty(workoutLiftId, position) { set ->
@@ -588,18 +621,18 @@ class WorkoutBuilderViewModel(
     }
 
     private fun getValidatedRepRangeBottom(newRepRangeBottom: Int, repRangeTop: Int): Int {
-        return if (newRepRangeBottom < repRangeTop) {
+        return if (newRepRangeBottom > 0 && newRepRangeBottom < repRangeTop) {
             newRepRangeBottom
         } else {
-            repRangeTop - 1
+            (repRangeTop - 1).coerceAtLeast(1)
         }
     }
 
     private fun getValidatedRepRangeTop(newRepRangeTop: Int, repRangeBottom: Int): Int {
-        return if (newRepRangeTop > repRangeBottom) {
+        return if (newRepRangeTop > 0 && newRepRangeTop > repRangeBottom) {
             newRepRangeTop
         } else {
-            repRangeBottom + 1
+            (repRangeBottom + 1).coerceAtLeast(1)
         }
     }
     
