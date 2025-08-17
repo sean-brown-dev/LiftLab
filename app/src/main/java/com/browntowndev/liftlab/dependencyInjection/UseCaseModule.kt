@@ -73,7 +73,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistin
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 

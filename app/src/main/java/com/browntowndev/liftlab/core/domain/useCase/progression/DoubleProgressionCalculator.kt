@@ -1,16 +1,17 @@
-package com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression
+package com.browntowndev.liftlab.core.domain.useCase.progression
 
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 
 class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     override fun allSetsMetCriterion(
         lift: CalculationStandardWorkoutLift,
         previousSetResults: List<SetResult>,
     ): Boolean {
+        val firstSet = previousSetResults.firstOrNull()
         val allSetGoalsMet = previousSetResults.all {
             it.reps >= lift.repRangeTop && it.rpe <= lift.rpeTarget
         }

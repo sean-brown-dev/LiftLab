@@ -13,7 +13,7 @@ import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSet
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
-import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
