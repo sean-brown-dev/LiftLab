@@ -30,6 +30,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetComple
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
+import com.browntowndev.liftlab.ui.extensions.copyGeneric
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
@@ -161,7 +162,22 @@ class WorkoutViewModel(
 
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
-                    workout = newWorkout,
+                    workout = newWorkout?.let { workout ->
+                        if (workoutCancelled) {
+                            // Clear out the in-memory incomplete sets when the workout gets cancelled.
+                            workout.copy(
+                                lifts = workout.lifts.fastMap { lift ->
+                                    lift.copy(
+                                        sets = lift.sets.fastMap { set ->
+                                            if (set.completedWeight != null || set.completedReps != null || set.completedRpe != null){
+                                                set.copyGeneric(completedWeight = null, completedReps = null, completedRpe = null)
+                                            } else set
+                                        }
+                                    )
+                                }
+                            )
+                        } else workout
+                    },
                     inProgressWorkout = newUiState.inProgressWorkout,
                     completedSets = newUiState.completedSets,
                     programMetadata = newUiState.programMetadata,

@@ -43,6 +43,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.Reorder
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateCustomLiftSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateLiftIncrementOverrideUseCase
+import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateManyCustomLiftSetsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateRestTimeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
@@ -115,6 +116,7 @@ val useCaseModule = module {
     singleOf(::GetWorkoutConfigurationStateFlowUseCase)
     singleOf(::ReorderWorkoutBuilderLiftsUseCase)
     singleOf(::UpdateCustomLiftSetUseCase)
+    singleOf(::UpdateManyCustomLiftSetsUseCase)
     singleOf(::UpdateLiftIncrementOverrideUseCase)
     singleOf(::UpdateWorkoutLiftUseCase)
     singleOf(::UpdateWorkoutNameUseCase)
