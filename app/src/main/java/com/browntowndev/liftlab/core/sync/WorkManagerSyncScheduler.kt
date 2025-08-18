@@ -22,7 +22,6 @@ class WorkManagerSyncScheduler(
 
         val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
             .setConstraints(constraints)
-            // It's good practice to set a reasonable backoff policy
             .setBackoffCriteria(
                 backoffPolicy = BackoffPolicy.EXPONENTIAL,
                 backoffDelay = MIN_BACKOFF_MILLIS,

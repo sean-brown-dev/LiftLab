@@ -199,16 +199,15 @@ fun WorkoutLiftCard(
                     animateVisibility = (set as? LoggingMyoRepSetUiModel)?.isNew == true,
                     position = set.position,
                     myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
-                    progressionScheme = workoutLift.progressionScheme,
                     setNumberLabel = set.setNumberLabel,
                     weightRecommendation = set.weightRecommendation,
-                    rpeTarget = set.rpeTarget,
                     complete = set.complete,
                     completedWeight = set.completedWeight,
                     completedReps = set.completedReps,
                     completedRpe = set.completedRpe,
                     previousSetResultLabel = set.previousSetResultLabel,
                     repRangePlaceholder = set.repRangePlaceholder,
+                    rpeTargetPlaceholder = set.rpeTargetPlaceholder,
                     onWeightChanged = {
                         onWeightChanged(
                             workoutLift.id,

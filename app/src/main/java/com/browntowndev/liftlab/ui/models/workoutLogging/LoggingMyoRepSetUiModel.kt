@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.models.workoutLogging
 data class LoggingMyoRepSetUiModel(
     override val position: Int,
     override val rpeTarget: Float,
+    override val rpeTargetPlaceholder: String,
     override val repRangeBottom: Int?,
     override val repRangeTop: Int?,
     override val weightRecommendation: Float?,

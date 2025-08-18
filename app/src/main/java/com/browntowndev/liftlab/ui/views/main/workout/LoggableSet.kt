@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.ui.composables.FloatTextField
 import com.browntowndev.liftlab.ui.composables.IntegerTextField
 
@@ -42,16 +41,15 @@ fun LoggableSet(
     animateVisibility: Boolean,
     position: Int,
     myoRepSetPosition: Int?,
-    progressionScheme: ProgressionScheme,
     setNumberLabel: String,
     previousSetResultLabel: String,
     weightRecommendation: Float?,
     repRangePlaceholder: String,
+    rpeTargetPlaceholder: String,
     complete: Boolean,
     completedWeight: Float?,
     completedReps: Int?,
     completedRpe: Float?,
-    rpeTarget: Float,
     onWeightChanged: (weight: Float?) -> Unit,
     onRepsChanged: (reps: Int?) -> Unit,
     onCompleted: (weight: Float, reps: Int, rpe: Float) -> Unit,
@@ -85,17 +83,15 @@ fun LoggableSet(
     ) {
         SetRow(
             lazyListState = lazyListState,
-            position = position,
-            progressionScheme = progressionScheme,
             setNumberLabel = setNumberLabel,
             previousSetResultLabel = previousSetResultLabel,
             weightRecommendation = weightRecommendation,
             repRangePlaceholder = repRangePlaceholder,
+            rpeTargetPlaceholder = rpeTargetPlaceholder,
             complete = complete,
             completedReps = completedReps,
             completedWeight = completedWeight,
             completedRpe = completedRpe,
-            rpeTarget = rpeTarget,
             onWeightChanged = onWeightChanged,
             onRepsChanged = onRepsChanged,
             onCompleted = onCompleted,
@@ -109,17 +105,15 @@ fun LoggableSet(
 @Composable
 private fun SetRow(
     lazyListState: LazyListState,
-    position: Int,
-    progressionScheme: ProgressionScheme,
     setNumberLabel: String,
     previousSetResultLabel: String,
     weightRecommendation: Float?,
     repRangePlaceholder: String,
+    rpeTargetPlaceholder: String,
     complete: Boolean,
     completedReps: Int?,
     completedWeight: Float?,
     completedRpe: Float?,
-    rpeTarget: Float,
     onWeightChanged: (weight: Float?) -> Unit,
     onRepsChanged: (reps: Int?) -> Unit,
     onCompleted: (weight: Float, reps: Int, rpe: Float) -> Unit,
@@ -170,26 +164,11 @@ private fun SetRow(
             onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
-        // TODO: Move this to UI model
-        val rpePlaceholder = remember(rpeTarget) {
-            if (rpeTarget == 10f) {
-                ""
-            } else if (position == 0) {
-                rpeTarget.toString().removeSuffix(".0")
-            } else {
-                when (progressionScheme) {
-                    ProgressionScheme.WAVE_LOADING_PROGRESSION -> ""
-                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> rpeTarget.toString().removeSuffix(".0")
-                    ProgressionScheme.DOUBLE_PROGRESSION,
-                    ProgressionScheme.LINEAR_PROGRESSION -> "≤${rpeTarget.toString().removeSuffix(".0")}"
-                }
-            }
-        }
         FloatTextField(
             modifier = Modifier.weight(1f),
             listState = lazyListState,
             value = completedRpe,
-            placeholder = rpePlaceholder,
+            placeholder = rpeTargetPlaceholder,
             disableSystemKeyboard = true,
             hideCursor = true,
             errorOnEmpty = false,

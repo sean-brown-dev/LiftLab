@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.models.workoutLogging
 interface LoggingSetUiModel {
     val position: Int
     val rpeTarget: Float
+    val rpeTargetPlaceholder: String
     val repRangeBottom: Int?
     val repRangeTop: Int?
     val weightRecommendation: Float?

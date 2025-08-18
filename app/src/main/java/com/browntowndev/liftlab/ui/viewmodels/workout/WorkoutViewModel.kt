@@ -120,8 +120,10 @@ class WorkoutViewModel(
             )
         }.onEach { newUiState ->
             val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null || newUiState.inProgressWorkout == null) {
+                Log.d("WorkoutViewModel", "Using new workout -- no hydration")
                 newUiState.workout
             } else {
+                Log.d("WorkoutViewModel", "Hydrating workout with existing lifts")
                 // Hydrate workout with any sets that have been started but not marked completed.
                 // These only exist in-memory in our state, so the state flow use case knows nothing
                 // about them and we have to hydrate the updated workout from the state flow with
