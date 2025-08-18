@@ -58,6 +58,8 @@ class RemoteSyncViewModel(
             }
             Log.d(TAG, "Sync complete")
         } catch (e: Exception) {
+            Log.e(TAG, "Sync failed with exception", e)
+            FirebaseCrashlytics.getInstance().recordException(e)
             toggleSyncErrorDialog()
         } finally {
             _syncState.update {

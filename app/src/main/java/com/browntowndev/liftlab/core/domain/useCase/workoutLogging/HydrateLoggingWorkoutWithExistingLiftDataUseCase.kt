@@ -74,9 +74,7 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCase {
                                 position = set.position,
                                 myoRepSetPosition = (set as? LoggingMyoRepSet)?.myoRepSetPosition
                             )
-                            val modifiedSet = modifiedSetsForLift[setKey]
-                            if (modifiedSet == null) return@fastMap set
-
+                            val modifiedSet = modifiedSetsForLift[setKey] ?: return@fastMap set
                             set.copyCompletionData(
                                 complete = modifiedSet.complete,
                                 completedWeight = modifiedSet.completedWeight,

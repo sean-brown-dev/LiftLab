@@ -294,7 +294,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 val droppedFromSetResult = results.find { it.setType == SetType.STANDARD }
                 val allSetsMetCriterion = results.fastAll { result ->
                     val setForResult = setsByPosition[result.setPosition]!!
-                    customSetMeetsCriterion(set = setForResult, previousSet = result)
+                    customSetMeetsCriterion(set = setForResult, result = result)
                 }
                 if (allSetsMetCriterion) {
                     getWeightRecommendation(

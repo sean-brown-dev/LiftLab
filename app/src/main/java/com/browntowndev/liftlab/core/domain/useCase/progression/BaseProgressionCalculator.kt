@@ -5,8 +5,7 @@ import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
@@ -14,6 +13,9 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 
 abstract class BaseProgressionCalculator: ProgressionCalculator {
@@ -97,8 +99,8 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         completedReps: Int,
         completedRpe: Float,
     ): Boolean {
-        val minRepsRequiredConsideringRpe = (repRangeBottom + (10 - rpeTarget)) - 1
-        val repsConsideringRpe = completedReps + (10 - completedRpe)
+        val minRepsRequiredConsideringRpe = (repRangeBottom + (10f - rpeTarget).roundToOneDecimal()) - 1
+        val repsConsideringRpe = completedReps + (10f - completedRpe).roundToOneDecimal()
         return repsConsideringRpe < minRepsRequiredConsideringRpe
     }
 
@@ -153,8 +155,12 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             }
     }
 
-    protected fun customSetMeetsCriterion(set: CalculationCustomLiftSet, previousSet: SetResult?): Boolean {
-        return previousSet != null && set.rpeTarget >= previousSet.rpe && set.repRangeTop <= previousSet.reps
+    protected fun customSetMeetsCriterion(set: CalculationCustomLiftSet, result: SetResult?, rpeTargetOverride: Float? = null): Boolean {
+        if (result == null) return false
+        val rpeAdjustedResult = result.reps + (10f - result.rpe).roundToOneDecimal()
+        val rpeAdjustedGoal = set.repRangeTop + (10f - (rpeTargetOverride ?: set.rpeTarget)).roundToOneDecimal()
+
+        return rpeAdjustedResult >= rpeAdjustedGoal
     }
 
     protected fun customSetShouldDecreaseWeight(set: CalculationCustomLiftSet, previousSet: SetResult?): Boolean {
@@ -174,21 +180,8 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
     ) : Boolean {
         if (setData.isNullOrEmpty()) return false
 
-        val activationSet = setData.first()
-        val myoRepSets = setData.filter { it.myoRepSetPosition != null }
-        val criterionMet = set.repRangeTop <= activationSet.reps &&
-                set.rpeTarget >= activationSet.rpe &&
-                myoRepSets.all {
-                    val rpeTarget = if (it.myoRepSetPosition == null) set.rpeTarget else 10f
-                    rpeTarget >= it.rpe &&
-                            it.weight == activationSet.weight
-                }
-
-        return criterionMet && if (set.setMatching) {
-            set.setGoal >= myoRepSets.size && myoRepSets.sumOf { it.reps } >= set.repRangeTop
-        } else {
-            set.setGoal <= myoRepSets.size
-        }
+        val success = MyoRepSetGoalUtils.resultsMetGoals(set, setData)
+        return success
     }
 
     protected fun getPreviousSetResultLabel(result: SetResult?): String {

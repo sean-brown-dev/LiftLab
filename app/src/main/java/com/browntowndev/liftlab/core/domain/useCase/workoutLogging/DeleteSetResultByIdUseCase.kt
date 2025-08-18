@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import android.util.Log
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
@@ -22,6 +23,7 @@ class DeleteSetResultByIdUseCase(
                 myoRepPosition >= (requestedToDelete.myoRepSetPosition ?: -1)
             }
 
+            Log.d("DeleteSetResultByIdUseCase", "sequenceToDelete: $sequenceToDelete")
             liveWorkoutCompletedSetsRepository.deleteMany(sequenceToDelete)
         }
     }

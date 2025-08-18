@@ -15,7 +15,6 @@ import com.google.firebase.appcheck.AppCheckProviderFactory
 import com.google.firebase.appcheck.appCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
-import com.google.firebase.initialize
 import com.mmk.kmpauth.google.GoogleAuthCredentials
 import com.mmk.kmpauth.google.GoogleAuthProvider
 import org.koin.android.ext.koin.androidContext
@@ -27,7 +26,6 @@ class LiftLabApp() : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Firebase.initialize(context = this)
         Firebase.appCheck.installAppCheckProviderFactory(
             getAppCheckProviderFactory(),
         )

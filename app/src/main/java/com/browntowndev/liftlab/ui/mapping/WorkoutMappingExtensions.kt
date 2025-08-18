@@ -114,7 +114,6 @@ fun CustomWorkoutLift.toUiModel(): CustomWorkoutLiftUiModel =
         liftSecondaryVolumeTypes = liftSecondaryVolumeTypes,
         liftNote = liftNote,
         position = position,
-        setCount = setCount,
         progressionScheme = progressionScheme,
         deloadWeek = deloadWeek,
         incrementOverride = incrementOverride,

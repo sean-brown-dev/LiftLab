@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.startup
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
@@ -23,9 +24,11 @@ class StartupViewModel(
             with(Dispatchers.IO) {
                 try {
                     while (liftsRepository.getAll().isEmpty()) {
+                        Log.d("StartupViewModel", "Waiting for lifts to be loaded...")
                         delay(50)
                     }
-                } catch(_: Exception)  {
+                } catch(e: Exception)  {
+                    Log.e("StartupViewModel", "Error getting lifts from database", e)
                     delay(50)
                 }
 

@@ -31,3 +31,6 @@ const val LIFT_METRIC_CHART_IDS = "liftMetricChartIds"
 
 // Donation
 const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"
+
+// Workout Calculation
+const val SET_TOO_EASY_REPS_THRESHOLD = 2f

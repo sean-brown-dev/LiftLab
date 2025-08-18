@@ -126,6 +126,7 @@ fun StandardWorkoutLift.getRecalculatedStepSizeForLift(
  * This function creates a list of [StandardSet]s based on the `setCount`, `rpeTarget`,
  * and rep ranges of the [StandardWorkoutLift]. It then constructs a [CustomWorkoutLift]
  * by copying most properties and using the generated sets.
+ *
  * @return A new [CustomWorkoutLift] instance.
  */
 fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
@@ -135,7 +136,12 @@ fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
             StandardSet(
                 workoutLiftId = id,
                 position = i,
-                rpeTarget = rpeTarget,
+                rpeTarget = getRpeTargetForConversionToCustom(
+                    setIndex = i,
+                    setCount = setCount,
+                    progressionScheme = progressionScheme,
+                    standardSetRpeTarget = rpeTarget
+                ),
                 repRangeBottom = repRangeBottom,
                 repRangeTop = repRangeTop
             )
@@ -144,3 +150,22 @@ fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
 
     return customSets
 }
+
+/**
+ * Calculates the RPE target for conversion to custom lift sets based on the
+ * current set index, set count, progression scheme, and standard set RPE target.
+ *
+ * @param setIndex The index of the current set.
+ * @param setCount The total number of sets in the workout.
+ * @param progressionScheme The progression scheme of the workout.
+ * @param standardSetRpeTarget The RPE target of the standard set.
+ * @return The calculated RPE target for custom lift sets.
+ */
+private fun getRpeTargetForConversionToCustom(setIndex: Int, setCount: Int, progressionScheme: ProgressionScheme, standardSetRpeTarget: Float) =
+    if (progressionScheme == ProgressionScheme.DOUBLE_PROGRESSION) {
+        when {
+            setIndex == 0 -> standardSetRpeTarget
+            setIndex < (setCount - 1) -> 9f
+            else -> 10f
+        }
+    } else standardSetRpeTarget

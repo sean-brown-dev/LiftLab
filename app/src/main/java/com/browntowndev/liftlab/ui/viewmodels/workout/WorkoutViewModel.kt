@@ -11,7 +11,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.extensions.hasIncompleteModifiedSets
-import com.browntowndev.liftlab.core.domain.extensions.mergeModifiedSets
+import com.browntowndev.liftlab.core.domain.extensions.mergeModifiedIncompleteSets
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
@@ -30,7 +30,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetComple
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpdateLiftNoteUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
-import com.browntowndev.liftlab.ui.extensions.copyGeneric
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
@@ -136,9 +135,7 @@ class WorkoutViewModel(
                             // the in-memory modified lifts which were never completed. So, we need to merge
                             // the new lifts into the current in-memory lifts to get the holistic state
                             // of the lift
-                            updatedLiftsById[uiStateLift.id]?.let { updatedLift ->
-                                uiStateLift.mergeModifiedSets(updatedLift)
-                            }
+                            updatedLiftsById[uiStateLift.id]?.mergeModifiedIncompleteSets(uiStateLift)
                         }
                         .filter {
                             // Now that we have fully updated the lifts, we can filter out any
@@ -162,22 +159,7 @@ class WorkoutViewModel(
 
             mutableWorkoutState.update { currentState ->
                 currentState.copy(
-                    workout = newWorkout?.let { workout ->
-                        if (workoutCancelled) {
-                            // Clear out the in-memory incomplete sets when the workout gets cancelled.
-                            workout.copy(
-                                lifts = workout.lifts.fastMap { lift ->
-                                    lift.copy(
-                                        sets = lift.sets.fastMap { set ->
-                                            if (set.completedWeight != null || set.completedReps != null || set.completedRpe != null){
-                                                set.copyGeneric(completedWeight = null, completedReps = null, completedRpe = null)
-                                            } else set
-                                        }
-                                    )
-                                }
-                            )
-                        } else workout
-                    },
+                    workout = newWorkout,
                     inProgressWorkout = newUiState.inProgressWorkout,
                     completedSets = newUiState.completedSets,
                     programMetadata = newUiState.programMetadata,

@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
+import com.browntowndev.liftlab.ui.extensions.copyGeneric
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 
@@ -65,16 +66,16 @@ fun LoggingWorkoutLiftUiModel.hasIncompleteModifiedSets(): Boolean =
     sets.fastAny { set -> !set.complete && (set.completedReps != null || set.completedWeight != null || set.completedRpe != null) }
 
 /**
- * Merges the modified sets from the other lift into this lift.
+ * Merges the modified incomplete sets from the other lift into this lift.
  */
-fun LoggingWorkoutLiftUiModel.mergeModifiedSets(other: LoggingWorkoutLiftUiModel): LoggingWorkoutLiftUiModel {
+fun LoggingWorkoutLiftUiModel.mergeModifiedIncompleteSets(other: LoggingWorkoutLiftUiModel): LoggingWorkoutLiftUiModel {
     data class SetMergeKey(
         val position: Int,
         val myoRepSetPosition: Int?,
     )
 
     val modifiedSetsFromOther = other.sets
-        .filter { it.completedReps != null || it.completedWeight != null || it.completedRpe != null }
+        .filter { !it.complete && it.completedReps != null || it.completedWeight != null || it.completedRpe != null }
         .associateBy { set ->
             SetMergeKey(
                 position = set.position,
@@ -88,7 +89,17 @@ fun LoggingWorkoutLiftUiModel.mergeModifiedSets(other: LoggingWorkoutLiftUiModel
                 position = set.position,
                 myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
             )
-            modifiedSetsFromOther[mergeKey] ?: set
+
+            // Only hydrate blank sets from modified sets
+            val modifiedSet = modifiedSetsFromOther[mergeKey]
+            val setIsBlank = !set.complete && set.completedReps == null && set.completedWeight == null && set.completedRpe == null
+            if (setIsBlank && modifiedSet != null) {
+                set.copyGeneric(
+                    completedReps = modifiedSet.completedReps,
+                    completedWeight = modifiedSet.completedWeight,
+                    completedRpe = modifiedSet.completedRpe
+                )
+            } else set
         }
     )
 

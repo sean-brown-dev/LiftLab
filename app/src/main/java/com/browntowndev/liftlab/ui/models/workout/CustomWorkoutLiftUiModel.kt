@@ -13,7 +13,6 @@ data class CustomWorkoutLiftUiModel(
     override val liftVolumeTypes: Int,
     override val liftSecondaryVolumeTypes: Int?,
     override val position: Int,
-    override val setCount: Int,
     override val progressionScheme: ProgressionScheme,
     override val deloadWeek: Int?,
     override val incrementOverride: Float?,
@@ -21,4 +20,7 @@ data class CustomWorkoutLiftUiModel(
     override val restTimerEnabled: Boolean,
     override val liftNote: String?,
     val customLiftSets: List<CustomLiftSetUiModel>
-) : WorkoutLiftUiModel
+) : WorkoutLiftUiModel {
+    override val setCount
+        get() = customLiftSets.size
+}

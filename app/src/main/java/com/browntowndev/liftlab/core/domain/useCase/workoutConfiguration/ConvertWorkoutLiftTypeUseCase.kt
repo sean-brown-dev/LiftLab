@@ -23,7 +23,6 @@ class ConvertWorkoutLiftTypeUseCase(
                 val standardWorkoutLift = workoutLiftToConvert as? StandardWorkoutLift
                     ?: throw Exception("Lift already has custom lift sets.")
 
-                val customSets = standardWorkoutLift.generateCustomSets()
                 val delta = programDelta {
                     workout(standardWorkoutLift.workoutId) {
                         updateLift(
@@ -33,9 +32,11 @@ class ConvertWorkoutLiftTypeUseCase(
                             rpeTarget = Patch.Set(null),
                             stepSize = Patch.Set(null)
                         ) {
-                            customSets.fastForEach { customSet ->
-                                set(customSet)
-                            }
+                            standardWorkoutLift
+                                .generateCustomSets()
+                                .fastForEach { customSet ->
+                                    set(customSet)
+                                }
                         }
                     }
                 }
@@ -45,7 +46,7 @@ class ConvertWorkoutLiftTypeUseCase(
                 val customWorkoutLift = workoutLiftToConvert as? CustomWorkoutLift
                     ?: throw Exception("Lift does not have custom lift sets to remove.")
 
-                val topCustomLiftSet = customWorkoutLift.customLiftSets.maxByOrNull { it.position }
+                val topCustomLiftSet = customWorkoutLift.customLiftSets.minByOrNull { it.position }
                 val delta = programDelta {
                     workout(customWorkoutLift.workoutId) {
                         updateLift(

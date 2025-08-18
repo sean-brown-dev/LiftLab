@@ -6,6 +6,7 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.SET_TOO_EASY_REPS_THRESHOLD
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.common.roundToOneDecimal
@@ -29,7 +30,6 @@ import kotlin.math.roundToInt
 class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     companion object {
         private const val TAG = "HydrateLoggingWorkoutWithCompletedSetsUseCase"
-        private const val SET_TOO_EASY_REPS_THRESHOLD = 2f
     }
 
     operator fun invoke(
@@ -70,12 +70,11 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         isDeloadWeek: Boolean,
     ): List<GenericLoggingSet> {
         val setResultsByKey = allSetResults.associateBy { setResult ->
-            val myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition
             SetResultKey(
                 liftId = setResult.liftId,
                 liftPosition = setResult.liftPosition,
                 setPosition = setResult.setPosition,
-                myoRepSetPosition = myoRepSetPosition,
+                myoRepSetPosition = (setResult as? MyoRepSetResult)?.myoRepSetPosition,
             )
         }
 
@@ -114,32 +113,28 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             val previousSet = getPreviousSet(set)
 
             val updatedSet = when {
-                // Case 1: A result exists for this set.
+                // Case 1: A result exists for this set
                 completedSetResult != null -> {
-                    // Only copy if data is actually different.
-                    if (set.isCompleteWithSameDataAs(completedSetResult)) {
-                        set // Return the original object
-                    } else {
-                        // Data is new or different, so we must copy.
+                    // If set has new data, update it, otherwise return the same set
+                    if (!set.isCompleteWithSameDataAs(completedSetResult)) {
                         set.copyCompletionData(
                             complete = true,
                             completedWeight = completedSetResult.weight,
                             completedReps = completedSetResult.reps,
                             completedRpe = completedSetResult.rpe,
                         )
-                    }
+                    } else set
                 }
 
-                // Case 2: No set result for non-activation-myo-rep set, but it's currently marked as complete.
+                // Case 2: No set result, but it's currently marked as complete.
                 // This means it needs to be "un-completed".
-                set.complete -> {
+                set.complete ->
                     set.copyCompletionData(
                         complete = false,
                         completedWeight = set.completedWeight, // Keep old data, more convenient for user
                         completedReps = set.completedReps,
                         completedRpe = set.completedRpe,
                     )
-                }
 
                 // Case 3: No result, not complete, and previous is complete, update weight recommendation (conditionally).
                 previousSet != null &&
@@ -349,8 +344,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     private data class MyoKey(val setPosition: Int, val myoPos: Int?)
 
     /**
-     * Adds the myo rep sequence(s) to the list of sets. The list of sets
-     * only contains the activation sets since myo reps are dynamically created upon completion.
+     * Adds the myo rep sequence(s) to the list of sets.
      *
      * @param liftId The lift id.
      * @param liftPosition The lift position.
@@ -366,7 +360,9 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         incrementOverride: Float,
         allSetResults: List<SetResult>,
     ) {
-        val myoRepSetResults = allSetResults.filterIsInstance<MyoRepSetResult>()
+        val myoRepSetResults = allSetResults
+            .filterIsInstance<MyoRepSetResult>()
+            .fastFilter { it.liftId == liftId &&  it.liftPosition == liftPosition }
         if (myoRepSetResults.isEmpty()) return
 
         val myoRepSets = mutableListOf<LoggingMyoRepSet>()
@@ -395,7 +391,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
 
         var previousMyoRepSet: LoggingMyoRepSet? = null
         myoRepSetResults
-            .fastFilter { it.liftId == liftId &&  it.liftPosition == liftPosition }
             .sortedWith(compareBy({ it.setPosition }, { it.myoRepSetPosition }))
             .fastDistinctBy { it.setPosition to it.myoRepSetPosition }
             .fastForEach { setResult ->

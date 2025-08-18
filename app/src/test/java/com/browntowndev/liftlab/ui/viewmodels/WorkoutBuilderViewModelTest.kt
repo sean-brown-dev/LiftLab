@@ -162,7 +162,6 @@ class WorkoutBuilderViewModelTest {
             liftVolumeTypes = 0,
             liftSecondaryVolumeTypes = null,
             position = 1,
-            setCount = 3,
             progressionScheme = scheme,
             deloadWeek = null,
             incrementOverride = null,

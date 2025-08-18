@@ -63,7 +63,7 @@ fun ProgressionScheme.shortDisplayName(): String {
 
 fun ProgressionScheme.rpeLabel(): String =
     when (this) {
-        ProgressionScheme.DOUBLE_PROGRESSION -> "RPE"
+        ProgressionScheme.DOUBLE_PROGRESSION -> "Top Set RPE"
         ProgressionScheme.WAVE_LOADING_PROGRESSION -> "Top Set RPE"
         ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "RPE"
         ProgressionScheme.LINEAR_PROGRESSION -> "Max RPE"

@@ -109,8 +109,8 @@ class ConvertWorkoutLiftTypeUseCaseTest {
             every { id } returns 55L
             every { workoutId } returns 77L
             every { customLiftSets } returns listOf(
-                mockk { every { position } returns 0; every { repRangeBottom } returns 6; every { repRangeTop } returns 8; every { rpeTarget } returns 7f },
-                mockk { every { position } returns 3; every { repRangeBottom } returns topBottom.first; every { repRangeTop } returns topBottom.second; every { rpeTarget } returns topRpe },
+                mockk { every { position } returns 0; every { repRangeBottom } returns topBottom.first; every { repRangeTop } returns topBottom.second; every { rpeTarget } returns topRpe },
+                mockk { every { position } returns 1; every { repRangeBottom } returns 6; every { repRangeTop } returns 8; every { rpeTarget } returns 7f },
             )
         }
         val captured = slot<ProgramDelta>()
