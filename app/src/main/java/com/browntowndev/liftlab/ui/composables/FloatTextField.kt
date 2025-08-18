@@ -59,7 +59,11 @@ fun FloatTextField(
                 maxValue = maxValue,
                 minValue = minValue,
                 precision = precision,
-                onValueChanged = onValueChanged
+                onValueChanged = { newValue ->
+                    if (!errorOnEmpty || newValue != null) {
+                        onValueChanged(newValue)
+                    }
+                }
             )
         },
         onPixelOverflowChanged = onPixelOverflowChanged,

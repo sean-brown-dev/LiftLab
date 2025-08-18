@@ -59,7 +59,9 @@ fun IntegerTextField(
         onValueChanged = { raw ->
             val trimmed = raw.trim()
             if (trimmed.isEmpty()) {
-                onValueChanged(null)
+                if (!errorOnEmpty) {
+                    onValueChanged(null)
+                }
                 text = raw
                 return@ScrollableTextField
             }
