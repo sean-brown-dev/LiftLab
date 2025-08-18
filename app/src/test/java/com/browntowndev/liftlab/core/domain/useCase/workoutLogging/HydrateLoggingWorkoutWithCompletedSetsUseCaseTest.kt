@@ -14,9 +14,13 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
+import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepContinuationResult
+import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
 import io.mockk.every
 import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -1297,5 +1301,176 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
 
         // Gate blocks; recommendation remains null
         assertEquals(null, updatedStd.weightRecommendation)
+    }
+
+    @Test
+    fun `when no result exists but set is marked complete, it is uncompleted and completion fields are cleared`() {
+        // Given: a previously completed standard set with stored completion data
+        val completedSet = LoggingStandardSet(
+            position = 0,
+            weightRecommendation = 100f,
+            repRangeBottom = 5, repRangeTop = 8, rpeTarget = 8f,
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 6,
+            completedRpe = 8.5f,
+            repRangePlaceholder = "5-8",
+            hadInitialWeightRecommendation = false,
+            previousSetResultLabel = ""
+        )
+        val lift = LoggingWorkoutLift(
+            id = 1,
+            liftId = 101,
+            liftName = "Squat",
+            position = 0,
+            sets = listOf(completedSet),
+            liftMovementPattern = MovementPattern.LEG_PUSH,
+            liftVolumeTypes = 1,
+            liftSecondaryVolumeTypes = null,
+            progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+            incrementOverride = null,
+            restTime = 90.seconds,
+            restTimerEnabled = true,
+            deloadWeek = null,
+            note = null
+        )
+
+        // When: hydrate with NO set results; the set should be "un-completed"
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(
+            liftsToHydrate = listOf(lift),
+            setResults = emptyList(),
+            microCycle = 0
+        ).first()
+
+        // Then: complete -> false AND completedWeight/Reps/Rpe -> null
+        val updated = hydrated.sets.first() as LoggingStandardSet
+        assertFalse(updated.complete, "Set should be un-completed when no matching result exists")
+        assertEquals(null, updated.completedWeight, "completedWeight should be cleared")
+        assertEquals(null, updated.completedReps, "completedReps should be cleared")
+        assertEquals(null, updated.completedRpe, "completedRpe should be cleared")
+    }
+
+    @Test
+    fun `myo-rep continuation - activation missed goal uses suggested weight for next placeholder set`() {
+        // Arrange: activation + one completed mini set (so the "last myo set" is complete)
+        val activation = LoggingMyoRepSet(
+            position = 0,
+            rpeTarget = 8f,
+            repRangeBottom = 12,
+            repRangeTop = 15,
+            weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true,
+            previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,      // activation
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 12,
+            completedRpe = 8f,
+            setMatching = false,
+            repFloor = 3,
+            isNew = false
+        )
+        val mini0 = activation.copy(
+            myoRepSetPosition = 0,         // first mini set
+            repRangeBottom = 3,
+            repRangeTop = null,
+            repRangePlaceholder = "—",
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 3,
+            completedRpe = 9f,
+            isNew = false
+        )
+
+        val incrementOverride = 2.5f
+        val lift = LoggingWorkoutLift(
+            id = 1L,
+            liftId = 101L,
+            liftName = "Incline DB Press (Myo)",
+            position = 0,
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null,
+            incrementOverride = incrementOverride,
+            restTime = null,
+            restTimerEnabled = false,
+            sets = listOf(activation, mini0),
+            liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
+            liftVolumeTypes = 0,
+            liftSecondaryVolumeTypes = null,
+            note = null
+        )
+
+        // Matching results for activation + mini0 so hydration sees them as completed
+        val results = listOf<SetResult>(
+            MyoRepSetResult(
+                workoutId = 1L, liftId = 101L, liftPosition = 0, setPosition = 0,
+                myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false
+            ),
+            MyoRepSetResult(
+                workoutId = 1L, liftId = 101L, liftPosition = 0, setPosition = 0,
+                myoRepSetPosition = 0, weight = 100f, reps = 3, rpe = 9f, isDeload = false
+            )
+        )
+
+        // Force the path: continuation needed + activation missed goal
+        mockkObject(MyoRepSetGoalUtils)
+        every {
+            MyoRepSetGoalUtils.shouldContinueMyoReps(
+                lastMyoRepSet = any(),
+                myoRepSetResults = any()
+            )
+        } returns MyoRepContinuationResult(
+            shouldContinueMyoReps = true,
+            activationSetMissedGoal = true
+        )
+
+        // Make suggested weight obvious so we can assert the else-branch was used
+        mockkObject(WeightCalculationUtils)
+        every {
+            WeightCalculationUtils.calculateSuggestedWeight(
+                completedWeight = 100f,
+                completedReps = 3,
+                completedRpe = 9f,
+                repGoal = 3,                 // from mini0.repRangeBottom
+                rpeGoal = 8f,                // from lastMyoRepSet.rpeTarget
+                roundingFactor = incrementOverride
+            )
+        } returns 137.5f
+
+        // Act
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(
+            liftsToHydrate = listOf(lift),
+            setResults = results,
+            microCycle = 0
+        ).first()
+
+        // Find the newly appended placeholder mini set (should be position 0, myoRepSetPosition = 1, incomplete, isNew = true)
+        val myoSets = hydrated.sets.filterIsInstance<LoggingMyoRepSet>().filter { it.position == 0 }
+        // Expected order: activation (null), mini0 (0), new placeholder (1)
+        val newPlaceholder = myoSets.last()
+
+        // Assert: we took the else-branch (suggested weight), not just re-using completedWeight
+        assertFalse(newPlaceholder.complete, "New continuation set should be a placeholder (incomplete).")
+        assertTrue(newPlaceholder.isNew, "New continuation set should be flagged as isNew.")
+        assertEquals(1, newPlaceholder.myoRepSetPosition, "Should append the next mini-set in sequence.")
+        assertNotNull(newPlaceholder.weightRecommendation)
+        assertEquals(137.5f, newPlaceholder.weightRecommendation, 1e-3f)
+
+        // And confirm the calculator was actually used (i.e., we hit the else branch)
+        verify(exactly = 1) {
+            WeightCalculationUtils.calculateSuggestedWeight(
+                completedWeight = 100f,
+                completedReps = 3,
+                completedRpe = 9f,
+                repGoal = 3,
+                rpeGoal = 8f,
+                roundingFactor = incrementOverride
+            )
+        }
+
+        // Clean up mocks
+        unmockkObject(MyoRepSetGoalUtils)
+        unmockkObject(WeightCalculationUtils)
     }
 }
