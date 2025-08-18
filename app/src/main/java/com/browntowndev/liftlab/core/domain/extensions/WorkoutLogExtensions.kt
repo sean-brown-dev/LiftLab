@@ -105,7 +105,3 @@ fun LoggingWorkoutLiftUiModel.mergeModifiedIncompleteSets(other: LoggingWorkoutL
 
     return mergedLift
 }
-
-fun MutableList<GenericLoggingSet>.myoRepSetsAt(position: Int): List<LoggingMyoRepSet> =
-    filterIsInstance<LoggingMyoRepSet>().filter { it.position == position }.sortedBy { it.myoRepSetPosition }
-
