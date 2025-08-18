@@ -48,6 +48,7 @@ class EditWorkoutViewModel(
     completeSetUseCase = completeSetUseCase,
     undoSetCompletionUseCase = undoSetCompletionUseCase,
     eventBus = eventBus,
+    isEditingCompletedWorkout = true,
 ) {
     private val _editWorkoutState = MutableStateFlow(EditWorkoutState())
     val editWorkoutState = _editWorkoutState.asStateFlow()

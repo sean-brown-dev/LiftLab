@@ -9,9 +9,6 @@ import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
-import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.extensions.hasIncompleteModifiedSets
 import com.browntowndev.liftlab.core.domain.extensions.mergeModifiedIncompleteSets
@@ -51,8 +48,6 @@ import org.greenrobot.eventbus.Subscribe
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutViewModel(
@@ -79,6 +74,7 @@ class WorkoutViewModel(
     completeSetUseCase = completeSetUseCase,
     undoSetCompletionUseCase = undoSetCompletionUseCase,
     eventBus = eventBus,
+    isEditingCompletedWorkout = false,
 ) {
 
     companion object {

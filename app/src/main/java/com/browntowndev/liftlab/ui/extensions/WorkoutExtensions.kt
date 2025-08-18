@@ -307,7 +307,7 @@ fun WorkoutUiModel.getRecalculatedWorkoutLiftStepSizeOptions(
 fun StandardWorkoutLiftUiModel.getRecalculatedStepSizeForLift(
     deloadToUseInsteadOfLiftLevel: Int?
 ): Int? {
-    return if (progressionScheme.name == ProgressionScheme.WAVE_LOADING_PROGRESSION.displayName()) {
+    return if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
         getPossibleStepSizes(
             repRangeTop = repRangeTop,
             repRangeBottom = repRangeBottom,

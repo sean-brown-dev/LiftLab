@@ -57,8 +57,8 @@ import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
-import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
@@ -273,25 +273,15 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     onRepRangeBottomChanged = {
-                                        workoutBuilderViewModel.setLiftRepRangeBottom(
+                                        workoutBuilderViewModel.updateWorkoutLiftRepRangeBottom(
                                             workoutLiftId = workoutLift.id,
                                             newRepRangeBottom = it
                                         )
                                     },
                                     onRepRangeTopChanged = {
-                                        workoutBuilderViewModel.setLiftRepRangeTop(
+                                        workoutBuilderViewModel.updateWorkoutLiftRepRangeTop(
                                             workoutLiftId = workoutLift.id,
                                             newRepRangeTop = it
-                                        )
-                                    },
-                                    onConfirmRepRangeBottom = {
-                                        workoutBuilderViewModel.confirmStandardSetRepRangeBottom(
-                                            workoutLiftId = workoutLift.id,
-                                        )
-                                    },
-                                    onConfirmRepRangeTop = {
-                                        workoutBuilderViewModel.confirmStandardSetRepRangeTop(
-                                            workoutLiftId = workoutLift.id,
                                         )
                                     },
                                     onRpeTargetChanged = {
@@ -342,29 +332,17 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     onRepRangeBottomChanged = { position, newRepRangeBottom ->
-                                        workoutBuilderViewModel.setCustomSetRepRangeBottom(
+                                        workoutBuilderViewModel.updateCustomSetRepRangeBottom(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             newRepRangeBottom = newRepRangeBottom,
                                         )
                                     },
                                     onRepRangeTopChanged = { position, newRepRangeTop ->
-                                        workoutBuilderViewModel.setCustomSetRepRangeTop(
+                                        workoutBuilderViewModel.updateCustomSetRepRangeTop(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
-                                            newRepRangeTop = newRepRangeTop
-                                        )
-                                    },
-                                    onConfirmRepRangeBottom = { position ->
-                                        workoutBuilderViewModel.confirmCustomSetRepRangeBottom(
-                                            workoutLiftId = workoutLift.id,
-                                            position = position,
-                                        )
-                                    },
-                                    onConfirmRepRangeTop = { position ->
-                                        workoutBuilderViewModel.confirmCustomSetRepRangeTop(
-                                            workoutLiftId = workoutLift.id,
-                                            position = position,
+                                            newRepRangeTop = newRepRangeTop,
                                         )
                                     },
                                     onRepFloorChanged = { position, newRepFloor ->

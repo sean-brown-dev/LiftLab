@@ -33,8 +33,6 @@ fun StandardSettings(
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onConfirmRepRangeBottom: () -> Unit,
-    onConfirmRepRangeTop: () -> Unit,
     onRpeTargetChanged: (Float?) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
@@ -60,8 +58,6 @@ fun StandardSettings(
             onSetCountChanged = onSetCountChanged,
             onRepRangeBottomChanged = onRepRangeBottomChanged,
             onRepRangeTopChanged = onRepRangeTopChanged,
-            onConfirmRepRangeBottom = onConfirmRepRangeBottom,
-            onConfirmRepRangeTop = onConfirmRepRangeTop,
             onRpeTargetChanged = onRpeTargetChanged,
             onToggleRpePicker = onToggleRpePicker,
             onPixelOverflowChanged = onPixelOverflowChanged,
@@ -80,8 +76,6 @@ private fun StandardSettingRow(
     onSetCountChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onConfirmRepRangeBottom: () -> Unit,
-    onConfirmRepRangeTop: () -> Unit,
     onRpeTargetChanged: (Float?) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
@@ -96,6 +90,7 @@ private fun StandardSettingRow(
             minValue = 1,
             maxValue = 10,
             value = setCount,
+            emitOnlyOnLostFocus = true,
             label = "Sets",
             onNonNullValueChanged = onSetCountChanged,
         )
@@ -104,24 +99,20 @@ private fun StandardSettingRow(
             modifier = Modifier.weight(1f),
             listState = listState,
             value = repRangeBottom,
+            emitOnlyOnLostFocus = true,
             minValue = 1,
             label = "Rep Range Bottom",
             onNonNullValueChanged = onRepRangeBottomChanged,
-            onFocusChanged = {
-                if (!it) onConfirmRepRangeBottom()
-            },
         )
         Spacer(modifier = Modifier.width(2.dp))
         IntegerTextField(
             modifier = Modifier.weight(1f),
             listState = listState,
             value = repRangeTop,
+            emitOnlyOnLostFocus = true,
             minValue = 1,
             label = "Rep Range Top",
             onNonNullValueChanged = onRepRangeTopChanged,
-            onFocusChanged = {
-                if (!it) onConfirmRepRangeTop()
-            },
         )
         Spacer(modifier = Modifier.width(2.dp))
         FloatTextField(

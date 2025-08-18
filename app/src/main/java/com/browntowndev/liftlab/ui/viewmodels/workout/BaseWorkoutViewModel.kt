@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.CompleteSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UndoSetCompletionUseCase
+import com.browntowndev.liftlab.ui.extensions.copyGeneric
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LinearProgressionSetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
@@ -33,6 +34,7 @@ abstract class BaseWorkoutViewModel(
     private val completeSetUseCase: CompleteSetUseCase,
     private val undoSetCompletionUseCase: UndoSetCompletionUseCase,
     eventBus: EventBus,
+    private val isEditingCompletedWorkout: Boolean,
 ): BaseViewModel(eventBus) {
     protected val defaultRestTime = SettingsManager
         .getSetting(key = REST_TIME, defaultValue = DEFAULT_REST_TIME)
@@ -81,6 +83,9 @@ abstract class BaseWorkoutViewModel(
             }
             completeSet(0L, false, { updatedResult })
         } else if (setToUpdate.complete) {
+            // Update state so that re-hydrate can fill in the remaining modified values.
+            updateSetInWorkout(workoutLiftId, setToUpdate.copyGeneric(complete = false))
+
             val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             undoSetCompletion(
                 liftPosition = workoutLift.position,
@@ -124,56 +129,57 @@ abstract class BaseWorkoutViewModel(
         }
     }
 
-    fun setWeight(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newWeight: Float?) =
-        executeWithErrorHandling("Failed to update set weight") {
-            val set = findSet(
-                workoutLiftId = workoutLiftId,
-                setPosition = setPosition,
-                myoRepSetPosition = myoRepSetPosition,
-            ) ?: throw Exception("Set not found")
+    fun setWeight(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newWeight: Float?) = executeWithErrorHandling("Failed to update set weight") {
+        if (newWeight == null && isEditingCompletedWorkout) return@executeWithErrorHandling
 
-            val updatedSet = when (set) {
-                is LoggingStandardSetUiModel -> set.copy(completedWeight = newWeight)
-                is LoggingDropSetUiModel -> set.copy(completedWeight = newWeight)
-                is LoggingMyoRepSetUiModel -> set.copy(completedWeight = newWeight)
-                else -> throw Exception("${set::class.simpleName} is not defined.")
-            }
-            updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+        val set = findSet(
+            workoutLiftId = workoutLiftId,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+        ) ?: throw Exception("Set not found")
+
+        val updatedSet = when (set) {
+            is LoggingStandardSetUiModel -> set.copy(completedWeight = newWeight)
+            is LoggingDropSetUiModel -> set.copy(completedWeight = newWeight)
+            is LoggingMyoRepSetUiModel -> set.copy(completedWeight = newWeight)
+            else -> throw Exception("${set::class.simpleName} is not defined.")
         }
+        updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+    }
 
-    fun setReps(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newReps: Int?) =
-        executeWithErrorHandling("Failed to update set reps") {
-            val set = findSet(
-                workoutLiftId = workoutLiftId,
-                setPosition = setPosition,
-                myoRepSetPosition = myoRepSetPosition,
-            ) ?: throw Exception("Set not found")
+    fun setReps(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newReps: Int?) = executeWithErrorHandling("Failed to update set reps") {
+        if (newReps == null && isEditingCompletedWorkout) return@executeWithErrorHandling
 
-            val updatedSet = when (set) {
-                is LoggingStandardSetUiModel -> set.copy(completedReps = newReps)
-                is LoggingDropSetUiModel -> set.copy(completedReps = newReps)
-                is LoggingMyoRepSetUiModel -> set.copy(completedReps = newReps)
-                else -> throw Exception("${set::class.simpleName} is not defined.")
-            }
-            updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+        val set = findSet(
+            workoutLiftId = workoutLiftId,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+        ) ?: throw Exception("Set not found")
+
+        val updatedSet = when (set) {
+            is LoggingStandardSetUiModel -> set.copy(completedReps = newReps)
+            is LoggingDropSetUiModel -> set.copy(completedReps = newReps)
+            is LoggingMyoRepSetUiModel -> set.copy(completedReps = newReps)
+            else -> throw Exception("${set::class.simpleName} is not defined.")
         }
+        updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+    }
 
-    fun setRpe(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) =
-        executeWithErrorHandling("Failed to update set reps") {
-            val set = findSet(
-                workoutLiftId = workoutLiftId,
-                setPosition = setPosition,
-                myoRepSetPosition = myoRepSetPosition
-            ) ?: throw Exception("Set not found")
+    fun setRpe(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) = executeWithErrorHandling("Failed to update set reps") {
+        val set = findSet(
+            workoutLiftId = workoutLiftId,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition
+        ) ?: throw Exception("Set not found")
 
-            val updatedSet = when (set) {
-                is LoggingStandardSetUiModel -> set.copy(completedRpe = newRpe)
-                is LoggingDropSetUiModel -> set.copy(completedRpe = newRpe)
-                is LoggingMyoRepSetUiModel -> set.copy(completedRpe = newRpe)
-                else -> throw Exception("${set::class.simpleName} is not defined.")
-            }
-            updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+        val updatedSet = when (set) {
+            is LoggingStandardSetUiModel -> set.copy(completedRpe = newRpe)
+            is LoggingDropSetUiModel -> set.copy(completedRpe = newRpe)
+            is LoggingMyoRepSetUiModel -> set.copy(completedRpe = newRpe)
+            else -> throw Exception("${set::class.simpleName} is not defined.")
         }
+        updateSetIfAlreadyCompleted(workoutLiftId, updatedSet)
+    }
 
     private fun findSet(workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?): LoggingSetUiModel? {
         return mutableWorkoutState.value.workout?.lifts?.fastFirst {

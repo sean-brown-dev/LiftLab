@@ -20,7 +20,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateW
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
 import com.browntowndev.liftlab.ui.extensions.getRecalculatedStepSizeForLift
-import com.browntowndev.liftlab.ui.extensions.getRecalculatedWorkoutLiftStepSizeOptions
 import com.browntowndev.liftlab.ui.extensions.transformToType
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.toUiModel
@@ -48,6 +47,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import kotlin.math.max
 import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -422,173 +422,63 @@ class WorkoutBuilderViewModel(
         else if (didTransformDropSet) emitUserMessage("Next drop set converted to standard (cannot have myo-rep set before drop set)")
     }
 
-    private fun updateCustomSetProperty(
-        workoutLiftId: Long,
-        setPosition: Int,
-        copyAll: Boolean = false,
-        copySet: (CustomLiftSetUiModel) -> CustomLiftSetUiModel
-    ): WorkoutUiModel {
-        val currentWorkout = getCurrentWorkoutAndLogIfNull() ?: throw Exception("Workout not found")
-        val currentWorkoutLift = getWorkoutLiftAndLogIfNull<CustomWorkoutLiftUiModel>(workoutLiftId) ?: throw Exception("Workout lift not found")
-        val updatedWorkoutLift = currentWorkoutLift.copy(
-            customLiftSets = currentWorkoutLift.customLiftSets.fastMap { set ->
-                if (copyAll || set.position == setPosition) copySet(set) else set
-            }
-        )
-
-        val indexOfLift = currentWorkout.lifts.indexOf(currentWorkoutLift)
-        if (indexOfLift == -1) throw Exception("Workout lift not found") // Should be impossible
-        val updatedWorkout = currentWorkout.copy(
-            lifts = currentWorkout.lifts.toMutableList().apply {
-                set(indexOfLift, updatedWorkoutLift)
-            }
-        )
-        return updatedWorkout
-    }
-
-    fun setLiftRepRangeBottom(workoutLiftId: Long, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
-        if (newRepRangeBottom < 1) {
-            emitUserMessage("Rep range bottom must be greater than 0")
-            return@executeWithErrorHandling
-        }
-
-        val updatedWorkout = updateLiftProperty(workoutLiftId) { lift ->
-            when (lift) {
-                is StandardWorkoutLiftUiModel -> lift.copy(
-                    repRangeBottom = newRepRangeBottom,
-                    stepSize = lift.getRecalculatedStepSizeForLift(
-                        deloadToUseInsteadOfLiftLevel = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
-                    )
-                )
-
-                else -> throw Exception("${lift::class.simpleName} cannot have a top rep range.")
-            }
-        }
-
-        _state.update {
-            it.copy(
-                workout = updatedWorkout,
-                workoutLiftStepSizeOptions = updatedWorkout.getRecalculatedWorkoutLiftStepSizeOptions(
-                    programDeloadWeek = it.programDeloadWeek!!,
-                    liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
-            )
-        }
-    }
-
-    fun setLiftRepRangeTop(workoutLiftId: Long, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
-        if (newRepRangeTop < 1) {
-            emitUserMessage("Rep range top must be greater than 0")
-            return@executeWithErrorHandling
-        }
-
-        val updatedWorkout = updateLiftProperty(workoutLiftId) { lift ->
-            when (lift) {
-                is StandardWorkoutLiftUiModel -> lift.copy(
-                    repRangeTop = newRepRangeTop,
-                    stepSize = lift.getRecalculatedStepSizeForLift(
-                        deloadToUseInsteadOfLiftLevel = lift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
-                    )
-                )
-
-                else -> throw Exception("${lift::class.simpleName} cannot have a top rep range.")
-            }
-        }
-
-        _state.update {
-            it.copy(
-                workout = updatedWorkout,
-                workoutLiftStepSizeOptions = updatedWorkout.getRecalculatedWorkoutLiftStepSizeOptions(
-                    programDeloadWeek = it.programDeloadWeek!!,
-                    liftLevelDeloadsEnabled = liftLevelDeloadsEnabled),
-            )
-        }
-    }
-
-    fun confirmStandardSetRepRangeBottom(workoutLiftId: Long) = executeWithErrorHandling("Failed to update rep range bottom") {
+    fun updateWorkoutLiftRepRangeBottom(workoutLiftId: Long, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
         val originalWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val validatedRepRangeBottom = getValidatedRepRangeBottom(
-            newRepRangeBottom = originalWorkoutLift.repRangeBottom, 
+            newRepRangeBottom = newRepRangeBottom,
             repRangeTop = originalWorkoutLift.repRangeTop)
 
-        Log.d(TAG, "confirmStandardSetRepRangeBottom - validatedRepRangeBottom: $validatedRepRangeBottom")
+        if (validatedRepRangeBottom == originalWorkoutLift.repRangeBottom) return@executeWithErrorHandling
+
+        Log.d(TAG, "updateWorkoutLiftRepRangeBottom - validatedRepRangeBottom: $validatedRepRangeBottom")
 
         val workoutLift = originalWorkoutLift.copy(
-            repRangeBottom = validatedRepRangeBottom,
-            stepSize = originalWorkoutLift.getRecalculatedStepSizeForLift(
-                deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull(),
+            repRangeBottom = validatedRepRangeBottom
+        ).apply {
+            copy(
+                stepSize = getRecalculatedStepSizeForLift(
+                    deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
+                )
             )
-        )
+        }
 
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
             workoutLift = workoutLift.toDomainModel())
     }
 
-    fun confirmStandardSetRepRangeTop(workoutLiftId: Long) = executeWithErrorHandling("Failed to update rep range top") {
+    fun updateWorkoutLiftRepRangeTop(workoutLiftId: Long, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
         val originalWorkoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         val validatedRepRangeTop = getValidatedRepRangeTop(
-            newRepRangeTop = originalWorkoutLift.repRangeTop, 
+            newRepRangeTop = newRepRangeTop,
             repRangeBottom = originalWorkoutLift.repRangeBottom)
 
-        Log.d(TAG, "confirmStandardSetRepRangeBottom - validatedRepRangeBottom: $validatedRepRangeTop")
+        if (validatedRepRangeTop == originalWorkoutLift.repRangeTop) return@executeWithErrorHandling
+
+        Log.d(TAG, "updateWorkoutLiftRepRangeTop - validatedRepRangeTop: $validatedRepRangeTop")
 
         val workoutLift = originalWorkoutLift.copy(
-            repRangeTop = validatedRepRangeTop,
-            stepSize = originalWorkoutLift.getRecalculatedStepSizeForLift(
-                deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
+            repRangeTop = validatedRepRangeTop
+        ).apply {
+            copy(
+                stepSize = getRecalculatedStepSizeForLift(
+                    deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
+                )
             )
-        )
+        }
 
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
             workoutLift = workoutLift.toDomainModel())
     }
 
-    fun setCustomSetRepRangeBottom(workoutLiftId: Long, position: Int, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
-        if (newRepRangeBottom < 1) {
-            emitUserMessage("Rep range bottom must be greater than 0")
-            return@executeWithErrorHandling
-        }
-
-        _state.update { currentState ->
-            currentState.copy(
-                workout = updateCustomSetProperty(workoutLiftId, position) { set ->
-                    when (set) {
-                        is StandardSetUiModel -> set.copy(repRangeBottom = newRepRangeBottom)
-                        is DropSetUiModel -> set.copy(repRangeBottom = newRepRangeBottom)
-                        is MyoRepSetUiModel -> set.copy(repRangeBottom = newRepRangeBottom)
-                        else -> throw Exception("${set::class.simpleName} cannot have a bottom rep range.")
-                    }
-                }
-            )
-        }
-    }
-
-    fun setCustomSetRepRangeTop(workoutLiftId: Long, position: Int, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
-        if (newRepRangeTop < 1) {
-            emitUserMessage("Rep range top must be greater than 0")
-            return@executeWithErrorHandling
-        }
-
-        _state.update { currentState ->
-            currentState.copy(
-                workout = updateCustomSetProperty(workoutLiftId, position) { set ->
-                    when (set) {
-                        is StandardSetUiModel -> set.copy(repRangeTop = newRepRangeTop)
-                        is DropSetUiModel -> set.copy(repRangeTop = newRepRangeTop)
-                        is MyoRepSetUiModel -> set.copy(repRangeTop = newRepRangeTop)
-                        else -> throw Exception("${set::class.simpleName} cannot have a top rep range.")
-                    }
-                }
-            )
-        }
-    }
-
-    fun confirmCustomSetRepRangeBottom(workoutLiftId: Long, position: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
+    fun updateCustomSetRepRangeBottom(workoutLiftId: Long, position: Int, newRepRangeBottom: Int) = executeWithErrorHandling("Failed to update rep range bottom") {
         val customSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position) ?: return@executeWithErrorHandling
         val validatedRepRangeBottom = getValidatedRepRangeBottom(
-            newRepRangeBottom = customSet.repRangeBottom,
+            newRepRangeBottom = newRepRangeBottom,
             repRangeTop = customSet.repRangeTop)
+
+        if (validatedRepRangeBottom == customSet.repRangeBottom) return@executeWithErrorHandling
 
         val updatedSet = when (customSet) {
             is StandardSetUiModel -> customSet.copy(repRangeBottom = validatedRepRangeBottom)
@@ -602,11 +492,13 @@ class WorkoutBuilderViewModel(
             set = updatedSet.toDomainModel())
     }
 
-    fun confirmCustomSetRepRangeTop(workoutLiftId: Long, position: Int) = executeWithErrorHandling("Failed to update rep range top") {
+    fun updateCustomSetRepRangeTop(workoutLiftId: Long, position: Int, newRepRangeTop: Int) = executeWithErrorHandling("Failed to update rep range top") {
         val customSet = getCustomLiftSetAndLogIfNull<CustomLiftSetUiModel>(workoutLiftId, position) ?: return@executeWithErrorHandling
         val validatedRepRangeTop = getValidatedRepRangeTop(
-            newRepRangeTop = customSet.repRangeTop,
+            newRepRangeTop = newRepRangeTop,
             repRangeBottom = customSet.repRangeBottom)
+
+        if (validatedRepRangeTop == customSet.repRangeTop) return@executeWithErrorHandling
 
         val updatedSet = when (customSet) {
             is StandardSetUiModel -> customSet.copy(repRangeTop = validatedRepRangeTop)
@@ -620,21 +512,11 @@ class WorkoutBuilderViewModel(
             set = updatedSet.toDomainModel())
     }
 
-    private fun getValidatedRepRangeBottom(newRepRangeBottom: Int, repRangeTop: Int): Int {
-        return if (newRepRangeBottom > 0 && newRepRangeBottom < repRangeTop) {
-            newRepRangeBottom
-        } else {
-            (repRangeTop - 1).coerceAtLeast(1)
-        }
-    }
+    private fun getValidatedRepRangeBottom(newRepRangeBottom: Int, repRangeTop: Int): Int =
+        newRepRangeBottom.coerceIn(1, repRangeTop - 1)
 
-    private fun getValidatedRepRangeTop(newRepRangeTop: Int, repRangeBottom: Int): Int {
-        return if (newRepRangeTop > 0 && newRepRangeTop > repRangeBottom) {
-            newRepRangeTop
-        } else {
-            (repRangeBottom + 1).coerceAtLeast(1)
-        }
-    }
+    private fun getValidatedRepRangeTop(newRepRangeTop: Int, repRangeBottom: Int): Int =
+        newRepRangeTop.coerceIn(max(1, repRangeBottom + 1), 100)
     
     private fun getCurrentWorkoutAndLogIfNull(): WorkoutUiModel? {
         val workout = _state.value.workout

@@ -155,6 +155,7 @@ private fun SetRow(
             value = completedWeight,
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
             errorOnEmpty = isEdit,
+            emitOnlyOnLostFocus = true,
             maxValue = 2000f,
             onValueChanged = onWeightChanged,
         )
@@ -164,6 +165,7 @@ private fun SetRow(
             value = completedReps,
             placeholder = repRangePlaceholder,
             errorOnEmpty = isEdit,
+            emitOnlyOnLostFocus = true,
             onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))

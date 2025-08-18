@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
 import kotlin.math.floor
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.time.Duration
 
@@ -51,6 +52,54 @@ import kotlin.time.Duration
  * @return The rounded float.
  */
 fun Float.roundToOneDecimal(): Float = (this * 10f).roundToInt() / 10f
+
+/**
+ * Rounds a float to the given number of decimal places.
+ *
+ * @param decimalPlaces The number of decimal places to round to.
+ * @return The rounded float.
+ */
+fun Float.roundToDecimalPlaces(decimalPlaces: Int): Float {
+    val multiplier = 10.0.pow(decimalPlaces.toDouble()).toFloat()
+    return (this * multiplier).roundToInt() / multiplier
+}
+
+/**
+ * Converts a string to a float, rounding it to the given number of decimal places
+ * and clamping it to the given range. If the string is NaN, returns null.
+ *
+ * @param precision The number of decimal places to round to.
+ * @param minValue The minimum value to clamp to.
+ * @param maxValue The maximum value to clamp to.
+ * @return The clamped float, or null if the string is NaN.
+ */
+fun String.toFloatOrNullWithRoundingAndClamping(
+    precision: Int,
+    minValue: Float,
+    maxValue: Float,
+): Float?  =
+    this
+        .trim()
+        .toFloatOrNull()
+        ?.roundToDecimalPlaces(precision)
+        ?.coerceIn(minValue, maxValue)
+
+/**
+ * Converts a string to an integer, clamping it to the given range. If the string is not a
+ * valid integer, returns null.
+ *
+ * @param minValue The minimum value to clamp to.
+ * @param maxValue The maximum value to clamp to.
+ * @return The clamped integer, or null if the string is not a valid integer.
+ */
+fun String.toIntOrNullWithClamping(
+    minValue: Int,
+    maxValue: Int,
+): Int? =
+    this
+        .trim()
+        .toIntOrNull()
+        ?.coerceIn(minValue, maxValue)
 
 fun Float.toTwoDecimalString(): String {
     val numberFormat = NumberFormat.getNumberInstance()

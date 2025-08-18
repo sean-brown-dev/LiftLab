@@ -34,8 +34,6 @@ fun DropSet(
     repRangeTop: Int,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onConfirmRepRangeBottom: () -> Unit,
-    onConfirmRepRangeTop: () -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
     toggleRpePicker: (Boolean) -> Unit,
     togglePercentagePicker: (Boolean) -> Unit,
@@ -76,30 +74,26 @@ fun DropSet(
                 vertical = false,
                 listState = listState,
                 value = repRangeBottom,
+                emitOnlyOnLostFocus = true,
                 minValue = 1,
                 label = "Rep Range Bottom",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
                 onNonNullValueChanged = onRepRangeBottomChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
-                onFocusChanged = {
-                    if (!it) onConfirmRepRangeBottom()
-                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
                 vertical = false,
                 listState = listState,
                 value = repRangeTop,
+                emitOnlyOnLostFocus = true,
                 minValue = 1,
                 label = "Rep Range Top",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
                 onNonNullValueChanged = onRepRangeTopChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
-                onFocusChanged = {
-                    if (!it) onConfirmRepRangeTop()
-                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             FloatTextField(

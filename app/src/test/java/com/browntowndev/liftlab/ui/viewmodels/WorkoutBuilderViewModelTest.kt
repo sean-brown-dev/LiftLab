@@ -406,7 +406,7 @@ class WorkoutBuilderViewModelTest {
     }
 
     @Test
-    fun confirmStandardSetRepRangeBottom_validatesAndSaves() = runTest {
+    fun updateWorkoutLiftRepRangeBottom_validatesAndSaves() = runTest {
         // make bottom invalid (>= top) to exercise validation path
         injectWorkout(
             workout.copy(
@@ -417,13 +417,13 @@ class WorkoutBuilderViewModelTest {
             ),
             programDeloadWeek = 4
         )
-        viewModel.confirmStandardSetRepRangeBottom(workoutLiftId = standardLift.id)
+        viewModel.updateWorkoutLiftRepRangeBottom(workoutLiftId = standardLift.id)
         testDispatcher.scheduler.advanceUntilIdle()
         coVerify(exactly = 1) { updateWorkoutLiftUseCase(workout.programId, any()) }
     }
 
     @Test
-    fun confirmStandardSetRepRangeTop_validatesAndSaves() = runTest {
+    fun updateWorkoutLiftRepRangeTop_validatesAndSaves() = runTest {
         // make top invalid (<= bottom) to exercise validation path
         injectWorkout(
             workout.copy(
@@ -434,7 +434,7 @@ class WorkoutBuilderViewModelTest {
             ),
             programDeloadWeek = 4
         )
-        viewModel.confirmStandardSetRepRangeTop(workoutLiftId = standardLift.id)
+        viewModel.updateWorkoutLiftRepRangeTop(workoutLiftId = standardLift.id)
         testDispatcher.scheduler.advanceUntilIdle()
         coVerify(exactly = 1) { updateWorkoutLiftUseCase(workout.programId, any()) }
     }

@@ -63,7 +63,7 @@ fun ScrollableTextField(
     errorOnEmptyString: Boolean = true,
     labelColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     labelFontSize: TextUnit = 10.sp,
-    onFocusChanged: (Boolean) -> Unit,
+    onFocusChanged: (isFocused: Boolean) -> Unit,
     onLeftFocusBlank: () -> Unit = {},
     onValueChanged: ((String) -> Unit)? = null,
     onPixelOverflowChanged: (Dp) -> Unit= {},

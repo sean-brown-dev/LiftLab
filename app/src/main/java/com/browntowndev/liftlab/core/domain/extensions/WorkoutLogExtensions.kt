@@ -75,7 +75,7 @@ fun LoggingWorkoutLiftUiModel.mergeModifiedIncompleteSets(other: LoggingWorkoutL
     )
 
     val modifiedSetsFromOther = other.sets
-        .filter { !it.complete && it.completedReps != null || it.completedWeight != null || it.completedRpe != null }
+        .filter { !it.complete && (it.completedReps != null || it.completedWeight != null || it.completedRpe != null) }
         .associateBy { set ->
             SetMergeKey(
                 position = set.position,
