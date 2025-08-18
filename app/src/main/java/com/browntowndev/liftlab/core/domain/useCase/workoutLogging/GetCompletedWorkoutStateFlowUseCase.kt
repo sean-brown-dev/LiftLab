@@ -20,8 +20,6 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntr
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import java.lang.Integer.max
@@ -41,20 +39,18 @@ class GetCompletedWorkoutStateFlowUseCase(
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(workoutLogEntryId: Long): Flow<CompletedWorkoutState> {
         return workoutLogRepository.getFlow(workoutLogEntryId = workoutLogEntryId)
-            .flatMapLatest { workoutLog ->
-                flowOf(
-                    StageOneWorkoutState(
-                        workoutLog = workoutLog,
-                        duration = workoutLog.durationInMillis.toTimeString(),
-                        programMetadata = ActiveProgramMetadata(
-                            programId = workoutLog.programId,
-                            name = workoutLog.programName,
-                            deloadWeek = workoutLog.programDeloadWeek,
-                            workoutCount = workoutLog.programWorkoutCount,
-                            currentMesocycle = workoutLog.mesocycle,
-                            currentMicrocycle = workoutLog.microcycle,
-                            currentMicrocyclePosition = workoutLog.microcyclePosition,
-                        ),
+            .map { workoutLog ->
+                StageOneWorkoutState(
+                    workoutLog = workoutLog,
+                    duration = workoutLog.durationInMillis.toTimeString(),
+                    programMetadata = ActiveProgramMetadata(
+                        programId = workoutLog.programId,
+                        name = workoutLog.programName,
+                        deloadWeek = workoutLog.programDeloadWeek,
+                        workoutCount = workoutLog.programWorkoutCount,
+                        currentMesocycle = workoutLog.mesocycle,
+                        currentMicrocycle = workoutLog.microcycle,
+                        currentMicrocyclePosition = workoutLog.microcyclePosition,
                     )
                 )
             }.scan(StageOneWorkoutState()) { oldState, newState ->
