@@ -15,4 +15,5 @@ data class LoggingStandardSetUiModel(
     override  val completedWeight: Float? = null,
     override  val completedReps: Int? = null,
     override val completedRpe: Float? = null,
+    override val isNew: Boolean = false,
 ): LoggingSetUiModel

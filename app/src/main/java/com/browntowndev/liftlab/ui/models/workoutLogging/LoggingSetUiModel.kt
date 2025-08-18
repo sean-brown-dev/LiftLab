@@ -15,4 +15,5 @@ interface LoggingSetUiModel {
     val completedReps: Int?
     val completedRpe: Float?
     val complete: Boolean
+    val isNew: Boolean
 }

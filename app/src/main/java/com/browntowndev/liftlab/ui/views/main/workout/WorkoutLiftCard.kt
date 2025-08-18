@@ -185,7 +185,8 @@ fun WorkoutLiftCard(
             workoutLift.sets.fastForEach { set ->
                 LoggableSet(
                     lazyListState = lazyListState,
-                    animateVisibility = (set as? LoggingMyoRepSetUiModel)?.isNew == true,
+                    animateVisibility = set.isNew,
+                    isEdit = isEdit,
                     position = set.position,
                     myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                     setNumberLabel = set.setNumberLabel,

@@ -14,6 +14,7 @@ interface GenericLoggingSet {
     val completedReps: Int?
     val completedRpe: Float?
     val complete: Boolean
+    val isNew: Boolean
 
     fun copyCompletionData(
         complete: Boolean,

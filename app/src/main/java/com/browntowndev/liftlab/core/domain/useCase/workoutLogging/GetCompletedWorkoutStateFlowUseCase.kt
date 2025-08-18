@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.data.mapping.toSetResult
@@ -34,6 +35,7 @@ class GetCompletedWorkoutStateFlowUseCase(
         val completedSetsFromLog: List<SetResult>? = null,
         val historicallyCompletedSetResults: List<SetResult>? = null,
         val programMetadata: ActiveProgramMetadata? = null,
+        val newSetLogEntryIds: Set<Long> = emptySet(),
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -71,14 +73,25 @@ class GetCompletedWorkoutStateFlowUseCase(
                     }
                 } else oldState.historicallyCompletedSetResults
 
+                val oldSetLogEntryIds = oldState.workoutLog?.setLogEntries?.fastMap { it.id }?.toSet() ?: emptySet()
+                val newSetLogEntryIds = if (oldState.workoutLog != null) {
+                    newState.workoutLog?.setLogEntries
+                        ?.fastFilter { it.id !in oldSetLogEntryIds }
+                        ?.fastMap { it.id }
+                        ?.toSet() ?: emptySet()
+                } else emptySet()
+
                 newState.copy(
                     historicallyCompletedSetResults = historicalSetResults,
+                    newSetLogEntryIds = newSetLogEntryIds,
                 )
             }.map { stageOneState ->
                 if (stageOneState.workoutLog != null) {
                     val workout = buildLoggingWorkoutFromWorkoutLogs(
                         workoutLog = stageOneState.workoutLog,
-                        previousResults = stageOneState.historicallyCompletedSetResults ?: emptyList())
+                        previousResults = stageOneState.historicallyCompletedSetResults ?: emptyList(),
+                        newSetLogEntryIds = stageOneState.newSetLogEntryIds,
+                    )
 
                     val deloadWeekForLifts = workout.lifts
                         .associate { it.liftId to (it.deloadWeek ?: stageOneState.programMetadata!!.deloadWeek) }
@@ -95,7 +108,11 @@ class GetCompletedWorkoutStateFlowUseCase(
             }
     }
 
-    private fun buildLoggingWorkoutFromWorkoutLogs(workoutLog: WorkoutLogEntry, previousResults: List<SetResult>): LoggingWorkout {
+    private fun buildLoggingWorkoutFromWorkoutLogs(
+        workoutLog: WorkoutLogEntry,
+        previousResults: List<SetResult>,
+        newSetLogEntryIds: Set<Long>,
+    ): LoggingWorkout {
         val previousSetResults = previousResults
             .groupBy { it.liftId }
             .entries
@@ -149,6 +166,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                                         completedWeight = setLogEntry.weight,
                                         completedReps = setLogEntry.reps,
                                         completedRpe = setLogEntry.rpe,
+                                        isNew = setLogEntry.id in newSetLogEntryIds,
                                     )
                                 SetType.MYOREP ->
                                     LoggingMyoRepSet(
@@ -175,6 +193,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                                         completedWeight = setLogEntry.weight,
                                         completedReps = setLogEntry.reps,
                                         completedRpe = setLogEntry.rpe,
+                                        isNew = setLogEntry.id in newSetLogEntryIds,
                                     )
                                 SetType.DROP_SET ->
                                     LoggingDropSet(
@@ -196,6 +215,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                                         completedWeight = setLogEntry.weight,
                                         completedReps = setLogEntry.reps,
                                         completedRpe = setLogEntry.rpe,
+                                        isNew = setLogEntry.id in newSetLogEntryIds,
                                     )
                             }
                         }

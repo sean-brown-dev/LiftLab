@@ -15,7 +15,7 @@ data class LoggingMyoRepSetUiModel(
     override  val completedWeight: Float? = null,
     override  val completedReps: Int? = null,
     override val completedRpe: Float? = null,
-    val isNew: Boolean = true,
+    override val isNew: Boolean = true,
     val myoRepSetPosition: Int? = null,
     val setMatching: Boolean = false,
     val maxSets: Int? = null,

@@ -32,7 +32,8 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
-            "WHERE log.deleted = 0")
+            "WHERE log.deleted = 0 AND " +
+            "setResult.deleted = 0")
     fun getAllFlattenedFlow(): Flow<List<FlattenedWorkoutLogEntryDto>>
 
     @Transaction
@@ -44,7 +45,9 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
-            "WHERE setResult.liftId = :liftId AND log.deleted = 0")
+            "WHERE setResult.liftId = :liftId AND " +
+            "log.deleted = 0 AND " +
+            "setResult.deleted = 0")
     fun getLogsByLiftIdFlow(liftId: Long): Flow<List<FlattenedWorkoutLogEntryDto>>
 
     @Transaction
@@ -92,6 +95,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
         ON setResult.workoutLogEntryId = log.workout_log_entry_id
     WHERE setResult.liftId IN (:liftIds)
       AND log.deleted = 0
+      AND setResult.deleted = 0
       AND log.date = (
             SELECT MAX(log2.date)
             FROM workoutLogEntries log2
@@ -101,6 +105,7 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
               AND setResult2.setPosition = setResult.setPosition
               AND (setResult2.isDeload = 0 OR :includeDeloads)
               AND log2.deleted = 0
+              AND setResult2.deleted = 0
         )
 """)
     suspend fun getMostRecentLogsForLiftIds(
@@ -118,14 +123,14 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
-            "WHERE setResult.liftId IN (:liftIds) AND log.deleted = 0 AND " +
+            "WHERE setResult.liftId IN (:liftIds) AND log.deleted = 0 AND setResult.deleted = 0 AND " +
             "log.date = " +
             "(SELECT MAX(log2.date) " +
             "FROM workoutLogEntries log2 " +
             "INNER JOIN setLogEntries setResult2 ON setResult2.workoutLogEntryId = log2.workout_log_entry_id " +
             "WHERE setResult2.liftId = setResult.liftId AND " +
             "setResult2.setPosition = setResult.setPosition AND " +
-            "log2.date < :date AND log2.deleted = 0)")
+            "log2.date < :date AND log2.deleted = 0 AND setResult2.deleted = 0)")
     suspend fun getMostRecentLogsForLiftIdsPriorToDate(liftIds: List<Long>, date: Date): List<FlattenedWorkoutLogEntryDto>
 
     @Transaction

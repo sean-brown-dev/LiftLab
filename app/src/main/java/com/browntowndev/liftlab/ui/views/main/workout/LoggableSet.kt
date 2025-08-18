@@ -39,6 +39,7 @@ import com.browntowndev.liftlab.ui.composables.IntegerTextField
 fun LoggableSet(
     lazyListState: LazyListState,
     animateVisibility: Boolean,
+    isEdit: Boolean,
     position: Int,
     myoRepSetPosition: Int?,
     setNumberLabel: String,
@@ -83,6 +84,7 @@ fun LoggableSet(
     ) {
         SetRow(
             lazyListState = lazyListState,
+            isEdit = isEdit,
             setNumberLabel = setNumberLabel,
             previousSetResultLabel = previousSetResultLabel,
             weightRecommendation = weightRecommendation,
@@ -105,6 +107,7 @@ fun LoggableSet(
 @Composable
 private fun SetRow(
     lazyListState: LazyListState,
+    isEdit: Boolean,
     setNumberLabel: String,
     previousSetResultLabel: String,
     weightRecommendation: Float?,
@@ -151,7 +154,7 @@ private fun SetRow(
             listState = lazyListState,
             value = completedWeight,
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
-            errorOnEmpty = false,
+            errorOnEmpty = isEdit,
             maxValue = 2000f,
             onValueChanged = onWeightChanged,
         )
@@ -160,7 +163,7 @@ private fun SetRow(
             modifier = Modifier.weight(1f),
             value = completedReps,
             placeholder = repRangePlaceholder,
-            errorOnEmpty = false,
+            errorOnEmpty = isEdit,
             onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -171,7 +174,7 @@ private fun SetRow(
             placeholder = rpeTargetPlaceholder,
             disableSystemKeyboard = true,
             hideCursor = true,
-            errorOnEmpty = false,
+            errorOnEmpty = isEdit,
             onFocusChanged = { toggleRpePicker(it) },
             onPixelOverflowChanged = onAddSpacer,
         )

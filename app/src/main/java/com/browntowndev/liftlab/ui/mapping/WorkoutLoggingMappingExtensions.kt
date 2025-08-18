@@ -117,7 +117,8 @@ fun LoggingStandardSet.toUiModel(progressionScheme: ProgressionScheme): LoggingS
         complete = complete,
         completedWeight = completedWeight,
         completedReps = completedReps,
-        completedRpe = completedRpe
+        completedRpe = completedRpe,
+        isNew = isNew
     )
 }
 
@@ -155,7 +156,8 @@ fun LoggingDropSet.toUiModel(progressionScheme: ProgressionScheme): LoggingDropS
         completedWeight = completedWeight,
         completedReps = completedReps,
         completedRpe = completedRpe,
-        dropPercentage = dropPercentage
+        dropPercentage = dropPercentage,
+        isNew = isNew
     )
 }
 
