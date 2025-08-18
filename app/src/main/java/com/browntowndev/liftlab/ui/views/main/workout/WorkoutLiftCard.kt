@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
@@ -51,8 +50,6 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 @Composable
 fun WorkoutLiftCard(
@@ -86,14 +83,6 @@ fun WorkoutLiftCard(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Center,
         ) {
-            // TODO: Move to VM or set in UI model
-            val restTime = remember(workoutLift.restTime) {
-                workoutLift.restTime?.inWholeMilliseconds
-                    ?: SettingsManager.getSetting(
-                        SettingsManager.SettingNames.REST_TIME,
-                        SettingsManager.SettingNames.DEFAULT_REST_TIME,
-                    )
-            }
             Row {
                 Text(
                     modifier = Modifier
@@ -113,7 +102,7 @@ fun WorkoutLiftCard(
                 if (!isEdit) {
                     Spacer(modifier = Modifier.weight(1f))
                     LiftDropdown(
-                        restTime = restTime.toDuration(DurationUnit.MILLISECONDS),
+                        restTime = workoutLift.restTime,
                         restTimerEnabled = workoutLift.restTimerEnabled,
                         onChangeRestTime = { restTime, enabled ->
                             onChangeRestTime(workoutLift.id, restTime, enabled)
@@ -248,7 +237,7 @@ fun WorkoutLiftCard(
                             weight,
                             reps,
                             rpe,
-                            restTime,
+                            workoutLift.restTime.inWholeMilliseconds,
                             workoutLift.restTimerEnabled,
                         )
                         onHideRpePicker()

@@ -1,6 +1,7 @@
 
 package com.browntowndev.liftlab.ui.viewmodels
 
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -35,6 +36,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNotNull
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseWorkoutViewModelTest {
@@ -107,7 +110,8 @@ class BaseWorkoutViewModelTest {
                 progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
                 deloadWeek = null,
                 incrementOverride = null,
-                sets = emptyList()
+                sets = emptyList(),
+                restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             ),
             LoggingWorkoutLiftUiModel(
                 id = 2L,
@@ -116,7 +120,8 @@ class BaseWorkoutViewModelTest {
                 progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                 deloadWeek = 2,
                 incrementOverride = null,
-                sets = emptyList()
+                sets = emptyList(),
+                restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             ),
         )
         return LoggingWorkoutUiModel(id = 10L, name = "W", lifts = lifts)

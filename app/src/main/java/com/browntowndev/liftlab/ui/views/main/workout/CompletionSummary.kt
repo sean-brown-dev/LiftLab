@@ -292,7 +292,6 @@ fun CompletionSummary(
     }
 }
 
-// TODO: See if this can go into the viewmodel
 @OptIn(ExperimentalComposeApi::class)
 private suspend fun shareWorkoutSummary(
     workoutSummaryCaptureController: CaptureController,

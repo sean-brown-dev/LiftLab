@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.compose.ui.util.fastFirst
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -23,12 +26,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.greenrobot.eventbus.EventBus
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 abstract class BaseWorkoutViewModel(
     private val completeSetUseCase: CompleteSetUseCase,
     private val undoSetCompletionUseCase: UndoSetCompletionUseCase,
     eventBus: EventBus,
 ): BaseViewModel(eventBus) {
+    protected val defaultRestTime = SettingsManager
+        .getSetting(key = REST_TIME, defaultValue = DEFAULT_REST_TIME)
+        .toDuration(unit = DurationUnit.MILLISECONDS)
+
     protected var mutableWorkoutState = MutableStateFlow(WorkoutState())
     val workoutState = mutableWorkoutState.asStateFlow()
 

@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
@@ -49,6 +50,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WorkoutViewModelTest {
@@ -225,12 +228,14 @@ class WorkoutViewModelTest {
             com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel(
                 id = 10L, liftId = 1000L, position = 0,
                 progressionScheme = com.browntowndev.liftlab.core.domain.enums.ProgressionScheme.LINEAR_PROGRESSION,
-                deloadWeek = null, incrementOverride = null, sets = emptyList()
+                deloadWeek = null, incrementOverride = null, sets = emptyList(),
+                restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             ),
             com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel(
                 id = 20L, liftId = 2000L, position = 1,
                 progressionScheme = com.browntowndev.liftlab.core.domain.enums.ProgressionScheme.LINEAR_PROGRESSION,
-                deloadWeek = null, incrementOverride = null, sets = emptyList()
+                deloadWeek = null, incrementOverride = null, sets = emptyList(),
+                restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             ),
         )
         return com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel(

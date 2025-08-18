@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.mapping
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
@@ -22,12 +23,13 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.MyoRepSetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.SetResultUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.StandardSetResultUiModel
 import com.browntowndev.liftlab.ui.utils.getRpeTargetPlaceholder
+import kotlin.time.Duration
 
-fun LoggingWorkout.toUiModel(): LoggingWorkoutUiModel {
+fun LoggingWorkout.toUiModel(defaultRestTime: Duration): LoggingWorkoutUiModel {
     return LoggingWorkoutUiModel(
         id = this.id,
         name = this.name,
-        lifts = this.lifts.map { it.toUiModel() }
+        lifts = this.lifts.fastMap { it.toUiModel(defaultRestTime) }.sortedBy { it.position }
     )
 }
 
@@ -35,11 +37,11 @@ fun LoggingWorkoutUiModel.toDomainModel(): LoggingWorkout {
     return LoggingWorkout(
         id = this.id,
         name = this.name,
-        lifts = this.lifts.map { it.toDomainModel() }
+        lifts = this.lifts.fastMap { it.toDomainModel() }
     )
 }
 
-fun LoggingWorkoutLift.toUiModel(): LoggingWorkoutLiftUiModel {
+fun LoggingWorkoutLift.toUiModel(defaultRestTime: Duration): LoggingWorkoutLiftUiModel {
     return LoggingWorkoutLiftUiModel(
         id = id,
         liftId = liftId,
@@ -52,9 +54,14 @@ fun LoggingWorkoutLift.toUiModel(): LoggingWorkoutLiftUiModel {
         progressionScheme = progressionScheme,
         deloadWeek = deloadWeek,
         incrementOverride = incrementOverride,
-        restTime = restTime,
+        restTime = restTime ?: defaultRestTime,
         restTimerEnabled = restTimerEnabled,
-        sets = sets.map { it.toUiModel(progressionScheme) }
+        sets = sets.fastMap { it.toUiModel(progressionScheme) }.sortedWith(
+            compareBy(
+                { it.position },
+                { (it as? LoggingMyoRepSetUiModel)?.myoRepSetPosition ?: 0 }
+            )
+        )
     )
 }
 
@@ -73,7 +80,7 @@ fun LoggingWorkoutLiftUiModel.toDomainModel(): LoggingWorkoutLift {
         incrementOverride = incrementOverride,
         restTime = restTime,
         restTimerEnabled = restTimerEnabled,
-        sets = sets.map { it.toDomainModel() }
+        sets = sets.fastMap { it.toDomainModel() }
     )
 }
 

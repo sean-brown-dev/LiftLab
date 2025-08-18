@@ -16,7 +16,7 @@ data class LoggingWorkoutLiftUiModel(
     val progressionScheme: ProgressionScheme,
     val deloadWeek: Int?,
     val incrementOverride: Float?,
-    val restTime: Duration? = null,
+    val restTime: Duration,
     val restTimerEnabled: Boolean = false,
     val sets: List<LoggingSetUiModel>,
 ) {

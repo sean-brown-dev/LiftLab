@@ -21,7 +21,6 @@ import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
-import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +60,7 @@ class EditWorkoutViewModel(
                     duration = completedWorkoutState.duration ?: "00:00:00",
                 ) to
                 WorkoutState(
-                    workout = completedWorkoutState.workout?.toUiModel(),
+                    workout = completedWorkoutState.workout?.toUiModel(defaultRestTime),
                     programMetadata = completedWorkoutState.programMetadata?.toUiModel(),
                     completedSets = completedWorkoutState.completedSetsFromLog.fastMap { it.toUiModel() },
                 )
