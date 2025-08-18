@@ -131,9 +131,9 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 set.complete ->
                     set.copyCompletionData(
                         complete = false,
-                        completedWeight = set.completedWeight, // Keep old data, more convenient for user
-                        completedReps = set.completedReps,
-                        completedRpe = set.completedRpe,
+                        completedWeight = null,
+                        completedReps = null,
+                        completedRpe = null,
                     )
 
                 // Case 3: No result, not complete, and previous is complete, update weight recommendation (conditionally).
