@@ -170,14 +170,17 @@ private fun SetRow(
             onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
+        // TODO: Move this to UI model
         val rpePlaceholder = remember(rpeTarget) {
-            if (position == 0) {
+            if (rpeTarget == 10f) {
+                ""
+            } else if (position == 0) {
                 rpeTarget.toString().removeSuffix(".0")
             } else {
                 when (progressionScheme) {
                     ProgressionScheme.WAVE_LOADING_PROGRESSION -> ""
-                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
-                    ProgressionScheme.DOUBLE_PROGRESSION -> rpeTarget.toString().removeSuffix(".0")
+                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> rpeTarget.toString().removeSuffix(".0")
+                    ProgressionScheme.DOUBLE_PROGRESSION,
                     ProgressionScheme.LINEAR_PROGRESSION -> "≤${rpeTarget.toString().removeSuffix(".0")}"
                 }
             }

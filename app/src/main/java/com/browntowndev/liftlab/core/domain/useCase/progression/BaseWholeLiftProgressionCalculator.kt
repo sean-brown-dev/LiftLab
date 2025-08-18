@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.domain.extensions.getRpeTarget
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
@@ -36,21 +37,27 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         return when (workoutLift) {
             is CalculationStandardWorkoutLift -> {
                 val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
-                List(setCount) {
-                    val result = nonMyoRepSetResults[it]
-                    val displayResult = displayResults["${it}-null"]
+                List(setCount) { index ->
+                    val result = nonMyoRepSetResults[index]
+                    val displayResult = displayResults["${index}-null"]
                     val weightRecommendation = if (criterionMet) {
                         incrementWeight(workoutLift, result ?: previousSetResults.last())
                     } else if (previousSetResults.isNotEmpty()) {
                         getFailureWeight(
                             workoutLift = workoutLift,
                             previousSetResults = previousSetResults,
-                            position = it,
+                            position = index,
                         )
                     } else null
+
                     LoggingStandardSet(
-                        position = it,
-                        rpeTarget = workoutLift.rpeTarget,
+                        position = index,
+                        rpeTarget = getRpeTarget(
+                            setIndex = index,
+                            setCount = setCount,
+                            progressionScheme = workoutLift.progressionScheme,
+                            topSetRpeTarget = workoutLift.rpeTarget
+                        ),
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),

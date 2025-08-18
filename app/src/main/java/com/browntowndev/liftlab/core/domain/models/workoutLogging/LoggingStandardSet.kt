@@ -10,7 +10,7 @@ data class LoggingStandardSet(
     override val weightRecommendation: Float?,
     override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
-    override val repRangePlaceholder: String,
+    override val repRangePlaceholder: String, // TODO: Move this into UI model and calculate it. Add isDeloadWeek to this model so calc can be done
     override val setNumberLabel: String = (position + 1).toString(),
     override val complete: Boolean = false,
     override val completedWeight: Float? = null,

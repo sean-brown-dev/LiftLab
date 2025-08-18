@@ -136,11 +136,11 @@ fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
             StandardSet(
                 workoutLiftId = id,
                 position = i,
-                rpeTarget = getRpeTargetForConversionToCustom(
+                rpeTarget = getRpeTarget(
                     setIndex = i,
                     setCount = setCount,
                     progressionScheme = progressionScheme,
-                    standardSetRpeTarget = rpeTarget
+                    topSetRpeTarget = rpeTarget
                 ),
                 repRangeBottom = repRangeBottom,
                 repRangeTop = repRangeTop
@@ -151,21 +151,27 @@ fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
     return customSets
 }
 
+private fun getDoubleProgressionRpeTarget(setIndex: Int, setCount: Int, topSetRpeTarget: Float) =
+    when {
+        setIndex == 0 -> topSetRpeTarget
+        setIndex < (setCount - 1) -> 9f
+        else -> 10f
+    }
+
 /**
- * Calculates the RPE target for conversion to custom lift sets based on the
- * current set index, set count, progression scheme, and standard set RPE target.
+ * Calculates the RPE target based on the current set index, set count, progression scheme, and top set RPE target.
  *
  * @param setIndex The index of the current set.
  * @param setCount The total number of sets in the workout.
  * @param progressionScheme The progression scheme of the workout.
- * @param standardSetRpeTarget The RPE target of the standard set.
+ * @param topSetRpeTarget The RPE target of the top set.
  * @return The calculated RPE target for custom lift sets.
  */
-private fun getRpeTargetForConversionToCustom(setIndex: Int, setCount: Int, progressionScheme: ProgressionScheme, standardSetRpeTarget: Float) =
+fun getRpeTarget(setIndex: Int, setCount: Int, progressionScheme: ProgressionScheme, topSetRpeTarget: Float) =
     if (progressionScheme == ProgressionScheme.DOUBLE_PROGRESSION) {
-        when {
-            setIndex == 0 -> standardSetRpeTarget
-            setIndex < (setCount - 1) -> 9f
-            else -> 10f
-        }
-    } else standardSetRpeTarget
+        getDoubleProgressionRpeTarget(
+            setIndex = setIndex,
+            setCount = setCount,
+            topSetRpeTarget = topSetRpeTarget
+        )
+    } else topSetRpeTarget
