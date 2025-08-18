@@ -393,11 +393,11 @@ fun LiftRemoteDto.toEntity(): LiftEntity = LiftEntity(
     restTimerEnabled = this.restTimerEnabled,
     incrementOverride = this.incrementOverride,
     isBodyweight = this.isBodyweight,
-    note = this.note
+    note = this.note,
 ).apply {
     this.remoteId = this@toEntity.remoteId
     this.remoteLastUpdated = this@toEntity.lastUpdated
-    this.deleted = this@toEntity.deleted
+    this.deleted = this@toEntity.isHidden
     this.synced = true
 }
 fun LiftEntity.toRemoteDto(): LiftRemoteDto = LiftRemoteDto(
@@ -410,10 +410,10 @@ fun LiftEntity.toRemoteDto(): LiftRemoteDto = LiftRemoteDto(
     restTimerEnabled = this.restTimerEnabled,
     incrementOverride = this.incrementOverride,
     isBodyweight = this.isBodyweight,
-    note = this.note
+    note = this.note,
+    isHidden = this.deleted,
 ).apply {
     this.remoteId = this@toRemoteDto.remoteId
     this.lastUpdated = this@toRemoteDto.remoteLastUpdated
-    this.deleted = this@toRemoteDto.deleted
     this.synced = this@toRemoteDto.synced
 }

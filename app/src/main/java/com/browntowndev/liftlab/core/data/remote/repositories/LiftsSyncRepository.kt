@@ -1,12 +1,12 @@
 package com.browntowndev.liftlab.core.data.remote.repositories
 
+import android.util.Log
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.remote.dto.LiftRemoteDto
-import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
 import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.mapping.toRemoteDto
-import kotlin.collections.map
+import com.browntowndev.liftlab.core.data.remote.dto.LiftRemoteDto
+import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import kotlin.reflect.KClass
 
 class LiftsSyncRepository(
@@ -33,14 +33,13 @@ class LiftsSyncRepository(
                 }
             }
 
+    // Lifts are not hard deleted
     override suspend fun deleteByRemoteId(remoteId: String): Int {
-        val toDelete = liftsDao.getByRemoteId(remoteId) ?: return 0
-        return liftsDao.delete(toDelete)
+        Log.e("LiftsSyncRepository", "Attempted to delete lift: $remoteId")
+        return 0
     }
-
     override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
-        val toDelete = liftsDao.getManyByRemoteId(remoteIds)
-        if (toDelete.isEmpty()) return 0
-        return liftsDao.deleteMany(toDelete)
+        Log.e("LiftsSyncRepository", "Attempted to delete lifts: $remoteIds")
+        return 0
     }
 }
