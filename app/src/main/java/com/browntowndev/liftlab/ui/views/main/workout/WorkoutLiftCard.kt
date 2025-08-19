@@ -33,6 +33,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,6 +58,7 @@ fun WorkoutLiftCard(
     workoutLift: LoggingWorkoutLiftUiModel,
     isEdit: Boolean,
     lazyListState: LazyListState,
+    animationEnabled: Boolean = true, // For tests
     onUpdatePickerSpacer: (padding: Dp) -> Unit,
     onShowRpePicker: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, currentRpe: Float?) -> Unit,
     onHideRpePicker: () -> Unit,
@@ -70,9 +72,10 @@ fun WorkoutLiftCard(
     onAddSet: () -> Unit,
 ) {
     ElevatedCard(
-        modifier = Modifier
+        modifier = modifier.then(
+            other = Modifier
             .fillMaxWidth()
-            .padding(bottom = 5.dp),
+            .padding(bottom = 5.dp)),
         shape = RectangleShape,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 16.dp,
@@ -185,8 +188,10 @@ fun WorkoutLiftCard(
 
             workoutLift.sets.fastForEach { set ->
                 LoggableSet(
+                    modifier = Modifier.testTag("loggable-set-${workoutLift.id}-${set.position}_${(set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition}"),
                     lazyListState = lazyListState,
                     animateVisibility = set.isNew,
+                    animationEnabled = animationEnabled,
                     isEdit = isEdit,
                     position = set.position,
                     myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,

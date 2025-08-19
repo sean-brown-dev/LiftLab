@@ -32,10 +32,15 @@ import androidx.compose.ui.util.fastForEach
 fun RpeKeyboard(
     modifier: Modifier = Modifier,
     visible: Boolean,
+    animationEnabled: Boolean = true, // for tests
     selectedRpe: Float?,
     onRpeSelected: (rpe: Float) -> Unit,
 ) {
-    CustomKeyboard(modifier = modifier, visible = visible) {
+    CustomKeyboard(
+        modifier = modifier,
+        visible = visible,
+        animationEnabled = animationEnabled,
+    ) {
         var selectedRpeOption: Float? by remember(selectedRpe) { mutableStateOf(selectedRpe) }
         Box(modifier = Modifier.weight(.6f), contentAlignment = Alignment.BottomCenter) {
             if (selectedRpeOption != null) {

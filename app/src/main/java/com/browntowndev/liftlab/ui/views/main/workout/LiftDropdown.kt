@@ -21,6 +21,7 @@ import kotlin.time.Duration
 
 @Composable
 fun LiftDropdown(
+    modifier: Modifier = Modifier,
     restTime: Duration,
     restTimerEnabled: Boolean,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
@@ -29,6 +30,7 @@ fun LiftDropdown(
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     IconDropdown(
+        modifier = modifier,
         iconTint = MaterialTheme.colorScheme.primary,
         isExpanded = dropdownExpanded,
         onToggleExpansion = { dropdownExpanded = !dropdownExpanded }

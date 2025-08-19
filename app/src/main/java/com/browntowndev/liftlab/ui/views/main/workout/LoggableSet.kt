@@ -40,6 +40,7 @@ fun LoggableSet(
     modifier: Modifier = Modifier,
     lazyListState: LazyListState,
     animateVisibility: Boolean,
+    animationEnabled: Boolean = true, // For tests
     isEdit: Boolean,
     position: Int,
     myoRepSetPosition: Int?,
@@ -61,11 +62,11 @@ fun LoggableSet(
 ) {
     var hasAnimated by remember(position, myoRepSetPosition) { mutableStateOf(false) }
     val transitionState = remember(position, myoRepSetPosition, animateVisibility) {
-        MutableTransitionState(!animateVisibility).apply { targetState = true }
+        MutableTransitionState(!animateVisibility || !animationEnabled).apply { targetState = true }
     }
 
     // Only animate the first time the set becomes visible
-    val enterTransition = if (!hasAnimated && animateVisibility) {
+    val enterTransition = if (!hasAnimated && animateVisibility && animationEnabled) {
         expandVertically(
             expandFrom = Alignment.Top,
             animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
@@ -84,6 +85,7 @@ fun LoggableSet(
         exit = ExitTransition.None,
     ) {
         SetRow(
+            modifier = modifier,
             lazyListState = lazyListState,
             isEdit = isEdit,
             setNumberLabel = setNumberLabel,
@@ -106,7 +108,8 @@ fun LoggableSet(
 }
 
 @Composable
-private fun SetRow(
+internal fun SetRow(
+    modifier: Modifier = Modifier,
     lazyListState: LazyListState,
     isEdit: Boolean,
     setNumberLabel: String,
@@ -126,10 +129,10 @@ private fun SetRow(
     onAddSpacer: (height: Dp) -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier.then(Modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.secondaryContainer)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 10.dp)),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {

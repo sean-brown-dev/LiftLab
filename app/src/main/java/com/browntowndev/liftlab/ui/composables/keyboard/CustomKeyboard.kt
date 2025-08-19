@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.composables.keyboard
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -35,20 +37,26 @@ import com.browntowndev.liftlab.ui.composables.utils.rememberWindowHeight
 fun CustomKeyboard(
     modifier: Modifier = Modifier,
     visible: Boolean,
+    animationEnabled: Boolean = true, // for tests
     content: @Composable (ColumnScope.() -> Unit),
 ) {
     val focusManager = LocalFocusManager.current
 
-    AnimatedVisibility(
-        visible = visible,
-        enter = slideInVertically(
+    val enterTransition =
+        slideInVertically(
             initialOffsetY = { it },
             animationSpec = tween(durationMillis = 100)
-        ) + fadeIn(),
-        exit = slideOutVertically(
+        ) + fadeIn()
+    val exitTransition =
+        slideOutVertically(
             targetOffsetY = { it },
             animationSpec = tween(durationMillis = 100)
-        ) + fadeOut(),
+        ) + fadeOut()
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = if (animationEnabled) enterTransition else EnterTransition.None,
+        exit = if (animationEnabled) exitTransition else ExitTransition.None,
     ) {
         val windowHeightDp: Dp = rememberWindowHeight()
 

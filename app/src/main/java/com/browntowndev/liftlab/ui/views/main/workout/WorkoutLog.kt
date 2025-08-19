@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -36,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -60,6 +63,8 @@ fun WorkoutLog(
     visible: Boolean,
     isEdit: Boolean = false,
     lifts: List<LoggingWorkoutLiftUiModel>,
+    animationEnabled: Boolean = true, // For tests
+    pickerViewModel: PickerViewModel = koinViewModel(),
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
@@ -75,21 +80,23 @@ fun WorkoutLog(
     onReorderLiftsClicked: () -> Unit,
     onAddSet: (workoutLiftId: Long) -> Unit,
 ) {
+    val enterTransition = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn()
+    val exitTransition = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut()
+
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = visible,
-        enter = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn(),
-        exit = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut(),
+        enter = if (animationEnabled) enterTransition else EnterTransition.None,
+        exit = if (animationEnabled) exitTransition else ExitTransition.None,
     ) {
         val lazyListState = rememberLazyListState()
-        val pickerViewModel: PickerViewModel = koinViewModel()
         val pickerState by pickerViewModel.state.collectAsState()
         Box(contentAlignment = Alignment.BottomCenter) {
             var pickerSpacer: Dp by remember { mutableStateOf(0.dp) }
             LazyColumn(
-                modifier = Modifier
+                modifier = modifier.then(Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)),
                 state = lazyListState,
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,9 +135,11 @@ fun WorkoutLog(
                 }
                 items(lifts, key = { it.id }) { lift ->
                     WorkoutLiftCard(
+                        modifier = Modifier.testTag("workout-lift-card-${lift.id}"),
                         workoutLift = lift,
                         isEdit = isEdit,
                         lazyListState = lazyListState,
+                        animationEnabled = animationEnabled,
                         onUndoSetCompletion = onUndoSetCompletion,
                         onChangeRestTime = onChangeRestTime,
                         onWeightChanged = onWeightChanged,
@@ -180,7 +189,9 @@ fun WorkoutLog(
                 }
             }
             RpeKeyboard(
+                modifier = Modifier.testTag("rpe-keyboard"),
                 visible = pickerState.type == PickerType.Rpe,
+                animationEnabled = animationEnabled,
                 selectedRpe = pickerState.currentRpe,
                 onRpeSelected = {
                     onRpeSelected(pickerState.workoutLiftId!!, pickerState.setPosition!!, pickerState.myoRepSetPosition, it)

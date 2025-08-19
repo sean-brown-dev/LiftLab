@@ -235,16 +235,17 @@ fun NavigationGraph(
                     onNavigateToWorkoutHistory = {
                         navHostController.navigate(WorkoutHistoryScreen.navigation.route)
                     },
-                ) { workoutId, workoutLiftId, movementPattern ->
-                    navHostController.navigate(
-                        Route.LiftLibrary(
-                            callerRouteId = Route.Workout.id,
-                            workoutId = workoutId,
-                            workoutLiftId = workoutLiftId,
-                            movementPattern = movementPattern.displayName()
+                    onNavigateToLiftLibrary = { workoutId, workoutLiftId, movementPattern ->
+                        navHostController.navigate(
+                            Route.LiftLibrary(
+                                callerRouteId = Route.Workout.id,
+                                workoutId = workoutId,
+                                workoutLiftId = workoutLiftId,
+                                movementPattern = movementPattern.displayName()
+                            )
                         )
-                    )
-                }
+                    }
+                )
             }
         }
 

@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -39,8 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.insertSuperscript
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.composables.icon.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.icon.CircledTextIcon
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 
@@ -50,6 +52,7 @@ fun WorkoutPreview(
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues,
     visible: Boolean,
+    animationEnabled: Boolean = true, // for testing
     workoutInProgress: Boolean,
     workoutName: String,
     timeInProgress: String,
@@ -60,11 +63,14 @@ fun WorkoutPreview(
     showWorkoutLog: () -> Unit,
     startWorkout: () -> Unit,
 ) {
+    val enterTransition = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn()
+    val exitTransition = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut()
+
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = visible,
-        enter = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn(),
-        exit = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut(),
+        enter = if (animationEnabled) enterTransition else EnterTransition.None,
+        exit = if (animationEnabled) exitTransition else ExitTransition.None,
     ) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
@@ -74,10 +80,10 @@ fun WorkoutPreview(
             secondaryVolumeChipLabels = secondaryVolumeTypes,
         ) {
             LazyColumn(
-                modifier = Modifier
+                modifier = modifier.then(Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background),
+                    .background(color = MaterialTheme.colorScheme.background)),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top,
             ) {

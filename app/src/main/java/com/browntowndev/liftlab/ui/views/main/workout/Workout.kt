@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,8 @@ fun Workout(
     paddingValues: PaddingValues,
     screenId: String?,
     snackbarHostState: SnackbarHostState,
+    enableDurationTimer: Boolean = true, // For tests
+    animationEnabled: Boolean = true,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<Either<String?, Triple<Long, Long, Boolean>>>) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setBottomNavBarVisibility: (visible: Boolean) -> Unit,
@@ -117,7 +120,7 @@ fun Workout(
     }
 
     LaunchedEffect(key1 = state.startTime, key2 = timerState.running) {
-        if (state.startTime != null && !timerState.running) {
+        if (enableDurationTimer && state.startTime != null && !timerState.running) {
             durationTimerViewModel.startFrom(state.startTime!!) // This is smart and won't restart from 0
         }
     }
@@ -149,8 +152,10 @@ fun Workout(
             SettingsManager.getSetting(PROMPT_FOR_DELOAD_WEEK, DEFAULT_PROMPT_FOR_DELOAD_WEEK)
         }
         WorkoutPreview(
+            modifier = Modifier.testTag("workout-preview"),
             paddingValues = paddingValues,
             visible = !state.workoutLogVisible && !state.isReordering && !state.isCompletionSummaryVisible,
+            animationEnabled = animationEnabled,
             workoutInProgress = state.inProgress,
             workoutName = state.workout!!.name,
             timeInProgress = timerState.time,
@@ -168,8 +173,10 @@ fun Workout(
             showWorkoutLog = { workoutViewModel.setWorkoutLogVisibility(true) }
         )
         WorkoutLog(
+            modifier = Modifier.testTag("workout-log"),
             paddingValues = paddingValues,
             visible = state.workoutLogVisible && !state.isReordering && !state.isCompletionSummaryVisible,
+            animationEnabled = animationEnabled,
             lifts = state.workout!!.lifts,
             duration = timerState.time,
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
