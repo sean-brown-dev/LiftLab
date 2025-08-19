@@ -52,7 +52,7 @@ class BaseWorkoutViewModelTest {
         completeSetUseCase: CompleteSetUseCase,
         undoSetCompletionUseCase: UndoSetCompletionUseCase,
         eventBus: EventBus
-    ) : BaseWorkoutViewModel(completeSetUseCase, undoSetCompletionUseCase, eventBus) {
+    ) : BaseWorkoutViewModel(completeSetUseCase, undoSetCompletionUseCase, eventBus, false) {
 
         var lastUpsertManyCount: Int? = null
         var lastUpsertOne: SetResult? = null

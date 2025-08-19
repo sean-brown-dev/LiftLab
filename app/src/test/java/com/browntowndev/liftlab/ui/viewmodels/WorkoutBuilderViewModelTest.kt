@@ -5,8 +5,10 @@ import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLiftSet
+import com.browntowndev.liftlab.core.domain.models.interfaces.GenericWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.DropSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.AddSetUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ConvertWorkoutLiftTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.DeleteCustomSetUseCase
@@ -390,55 +392,33 @@ class WorkoutBuilderViewModelTest {
     // ---------- Rep range editing ----------
 
     @Test
-    fun setLiftRepRangeBottom_updatesStateOnly() = runTest {
-        viewModel.setLiftRepRangeBottom(workoutLiftId = standardLift.id, newRepRangeBottom = 9)
-        testDispatcher.scheduler.advanceUntilIdle()
-        val updated = viewModel.state.value.workout!!.lifts.first { it.id == standardLift.id } as StandardWorkoutLiftUiModel
-        assertEquals(9, updated.repRangeBottom)
-    }
-
-    @Test
-    fun setLiftRepRangeTop_updatesStateOnly() = runTest {
-        viewModel.setLiftRepRangeTop(workoutLiftId = standardLift.id, newRepRangeTop = 12)
-        testDispatcher.scheduler.advanceUntilIdle()
-        val updated = viewModel.state.value.workout!!.lifts.first { it.id == standardLift.id } as StandardWorkoutLiftUiModel
-        assertEquals(12, updated.repRangeTop)
-    }
-
-    @Test
     fun updateWorkoutLiftRepRangeBottom_validatesAndSaves() = runTest {
         // make bottom invalid (>= top) to exercise validation path
-        injectWorkout(
-            workout.copy(
-                lifts = workout.lifts.map {
-                    if (it.id == standardLift.id) (it as StandardWorkoutLiftUiModel).copy(repRangeBottom = it.repRangeTop)
-                    else it
-                }
-            ),
-            programDeloadWeek = 4
-        )
-        viewModel.updateWorkoutLiftRepRangeBottom(workoutLiftId = standardLift.id)
+        val repRangeBottom: Int = Int.MAX_VALUE
+        val workoutLiftSlot = slot<GenericWorkoutLift>()
+        viewModel.updateWorkoutLiftRepRangeBottom(workoutLiftId = standardLift.id, repRangeBottom)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftUseCase(workout.programId, any()) }
-    }
 
+        coVerify(exactly = 1) { updateWorkoutLiftUseCase(workout.programId, capture(workoutLiftSlot)) }
+
+        val capturedWorkoutLift = workoutLiftSlot.captured
+        assertTrue(capturedWorkoutLift is StandardWorkoutLift)
+        assertEquals(standardLift.repRangeTop - 1, (capturedWorkoutLift as StandardWorkoutLift).repRangeBottom)
+    }
     @Test
     fun updateWorkoutLiftRepRangeTop_validatesAndSaves() = runTest {
         // make top invalid (<= bottom) to exercise validation path
-        injectWorkout(
-            workout.copy(
-                lifts = workout.lifts.map {
-                    if (it.id == standardLift.id) (it as StandardWorkoutLiftUiModel).copy(repRangeTop = it.repRangeBottom)
-                    else it
-                }
-            ),
-            programDeloadWeek = 4
-        )
-        viewModel.updateWorkoutLiftRepRangeTop(workoutLiftId = standardLift.id)
+        val repRangeTop: Int = -1
+        val workoutLiftSlot = slot<GenericWorkoutLift>()
+        viewModel.updateWorkoutLiftRepRangeTop(workoutLiftId = standardLift.id, repRangeTop)
         testDispatcher.scheduler.advanceUntilIdle()
-        coVerify(exactly = 1) { updateWorkoutLiftUseCase(workout.programId, any()) }
-    }
 
+        coVerify(exactly = 1) { updateWorkoutLiftUseCase(workout.programId, capture(workoutLiftSlot)) }
+
+        val capturedWorkoutLift = workoutLiftSlot.captured
+        assertTrue(capturedWorkoutLift is StandardWorkoutLift)
+        assertEquals(standardLift.repRangeBottom + 1, (capturedWorkoutLift as StandardWorkoutLift).repRangeTop)
+    }
     @Test
     fun guardedActions_doNotCallUseCases_whenWorkoutNotLoaded() = runTest {
         // Clear workout from state
