@@ -41,7 +41,8 @@ class HydrateLoggingWorkoutWithPartiallyCompletedSetsUseCaseTest {
             incrementOverride = null,
             restTime = 90.seconds,
             restTimerEnabled = true,
-            sets = sets
+            sets = sets,
+            isCustom = false
         )
     }
 

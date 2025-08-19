@@ -1,10 +1,11 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
-import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
@@ -17,22 +18,29 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandar
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import io.mockk.every
-import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class DoubleProgressionCalculatorTests {
 
-    private val calculator = DoubleProgressionCalculator()
+    private lateinit var calculator: DoubleProgressionCalculator
 
     @BeforeEach
     fun setup() {
-        val sharedPrefs = mockk<SharedPreferences>()
-        every { sharedPrefs.getBoolean(any(), any()) } returns true
-        every { sharedPrefs.getLong(any(), any()) } returns DEFAULT_REST_TIME
-        every { sharedPrefs.getFloat(any(), any()) } returns DEFAULT_INCREMENT_AMOUNT
-        SettingsManager.initialize(sharedPrefs)
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
+        every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
+
+        calculator = DoubleProgressionCalculator()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(SettingsManager)
     }
 
     // -------------------- STANDARD (DEFAULT RULES) --------------------
@@ -498,5 +506,70 @@ class DoubleProgressionCalculatorTests {
         val data = emptyList<StandardSetResult>()
         val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
         result.fastForEach { p -> assertEquals(null, p.weightRecommendation) }
+    }
+
+    // -------------- Recalculation ------------------ //
+    @Test
+    fun `standard - recalc when bottom set exceeds rep range top within allowed RPEs across the scheme`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
+                workoutId = 0, liftId = 0, progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                position = 0, setCount = 3, rpeTarget = 8f, repRangeBottom = 6, repRangeTop = 8
+            ),
+            liftEntity = LiftEntity(name = "Bench", movementPattern = MovementPattern.HORIZONTAL_PUSH, volumeTypesBitmask = 1)
+        )
+        // Exceed on top set at RPE 8, others meet their caps (9, 10)
+        val data = listOf(
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 100f, reps = 8, rpe = 6f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 1, weight = 100f, reps = 8, rpe = 7f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 100f, reps = 8, rpe = 7.5f, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
+
+        // Expect a recalculated value greater than 105
+        result.fastForEach { p ->
+            assert(p.weightRecommendation!! > 105f)
+        }
+    }
+
+    @Test
+    fun `standard - no recalc when intermediate exceeds top but violates RPE cap`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
+                workoutId = 0, liftId = 0, progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                position = 0, setCount = 3, rpeTarget = 8f, repRangeBottom = 6, repRangeTop = 8
+            ),
+            liftEntity = LiftEntity(name = "Row", movementPattern = MovementPattern.HORIZONTAL_PULL, volumeTypesBitmask = 1)
+        )
+        val data = listOf(
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 75f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
+            // Exceeds reps but RPE 9.5 breaks the intermediate cap => should NOT trigger recalc
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 1, weight = 75f, reps = 9, rpe = 9.5f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 75f, reps = 8, rpe = 10f, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
+        // Should remain the usual increment when goals are otherwise met
+        result.fastForEach { p -> assertEquals(80f, p.weightRecommendation) }
+    }
+
+    @Test
+    fun `single-set - exceeding top within cap triggers recalculation`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
+                workoutId = 0, liftId = 0, progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+                position = 0, setCount = 1, rpeTarget = 8f, repRangeBottom = 6, repRangeTop = 8
+            ),
+            liftEntity = LiftEntity(name = "Curl", movementPattern = MovementPattern.BICEP_ISO, volumeTypesBitmask = 1)
+        )
+        val data = listOf(
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 50f, reps = 20, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
+        result.fastForEach { p ->
+            assert(p.weightRecommendation!! > 55f)
+        }
     }
 }

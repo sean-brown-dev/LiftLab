@@ -121,6 +121,7 @@ class BaseWorkoutViewModelTest {
                 incrementOverride = null,
                 sets = emptyList(),
                 restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
+                isCustom = false,
             ),
             LoggingWorkoutLiftUiModel(
                 id = 2L,
@@ -131,6 +132,7 @@ class BaseWorkoutViewModelTest {
                 incrementOverride = null,
                 sets = emptyList(),
                 restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
+                isCustom = false,
             ),
         )
         return LoggingWorkoutUiModel(id = 10L, name = "W", lifts = lifts)

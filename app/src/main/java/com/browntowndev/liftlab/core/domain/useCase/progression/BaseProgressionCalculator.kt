@@ -21,7 +21,7 @@ import com.browntowndev.liftlab.core.domain.utils.exceededRepRangeTop
 import com.browntowndev.liftlab.core.domain.utils.missedRepRangeBottom
 
 abstract class BaseProgressionCalculator: ProgressionCalculator {
-    private val defaultIncrement = SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
+    protected val defaultIncrement = SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
 
     protected fun getDropSetRecommendation(
         lift: CalculationWorkoutLift,

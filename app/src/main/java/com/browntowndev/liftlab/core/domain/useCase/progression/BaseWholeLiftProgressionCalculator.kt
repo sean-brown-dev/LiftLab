@@ -43,9 +43,15 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                     val result = nonMyoRepSetResults[index]
                     val displayResult = displayResults["${index}-null"]
 
+                    val rpeTarget = getRpeTarget(
+                        setIndex = index,
+                        setCount = setCount,
+                        progressionScheme = workoutLift.progressionScheme,
+                        topSetRpeTarget = workoutLift.rpeTarget
+                    )
                     val weightRecommendation = getWeightRecommendation(
                         workoutLift = workoutLift,
-                        rpeTarget = workoutLift.rpeTarget,
+                        rpeTarget = rpeTarget,
                         repRangeTop = workoutLift.repRangeTop,
                         repRangeBottom = workoutLift.repRangeBottom,
                         previousSetResults = previousSetResults,

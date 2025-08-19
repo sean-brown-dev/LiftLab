@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.domain.useCase.progression
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
@@ -63,6 +64,7 @@ class CalculateLoggingWorkoutUseCase {
                                 position = workoutLift.position,
                                 progressionScheme = workoutLift.progressionScheme,
                                 sets = sets,
+                                isCustom = workoutLift is CalculationCustomWorkoutLift
                             )
                         )
                     }

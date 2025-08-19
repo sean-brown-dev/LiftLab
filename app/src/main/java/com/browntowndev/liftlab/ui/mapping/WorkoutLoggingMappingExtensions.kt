@@ -56,7 +56,9 @@ fun LoggingWorkoutLift.toUiModel(defaultRestTime: Duration): LoggingWorkoutLiftU
         incrementOverride = incrementOverride,
         restTime = restTime ?: defaultRestTime,
         restTimerEnabled = restTimerEnabled,
-        sets = sets.fastMap { it.toUiModel(progressionScheme) }.sortedWith(
+        isCustom = isCustom,
+        sets = sets.fastMap { it.toUiModel(progressionScheme, isCustom) }
+            .sortedWith(
             compareBy(
                 { it.position },
                 { (it as? LoggingMyoRepSetUiModel)?.myoRepSetPosition ?: 0 }
@@ -80,15 +82,16 @@ fun LoggingWorkoutLiftUiModel.toDomainModel(): LoggingWorkoutLift {
         incrementOverride = incrementOverride,
         restTime = restTime,
         restTimerEnabled = restTimerEnabled,
+        isCustom = isCustom,
         sets = sets.fastMap { it.toDomainModel() }
     )
 }
 
-fun GenericLoggingSet.toUiModel(progressionScheme: ProgressionScheme): LoggingSetUiModel {
+fun GenericLoggingSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean): LoggingSetUiModel {
     return when (this) {
-        is LoggingStandardSet -> toUiModel(progressionScheme)
-        is LoggingDropSet -> toUiModel(progressionScheme)
-        is LoggingMyoRepSet -> toUiModel(progressionScheme)
+        is LoggingStandardSet -> toUiModel(progressionScheme, isCustom)
+        is LoggingDropSet -> toUiModel(progressionScheme, isCustom)
+        is LoggingMyoRepSet -> toUiModel(progressionScheme, isCustom)
         else -> throw IllegalArgumentException("Unknown type of GenericLoggingSet")
     }
 }
@@ -102,11 +105,11 @@ fun LoggingSetUiModel.toDomainModel(): GenericLoggingSet {
     }
 }
 
-fun LoggingStandardSet.toUiModel(progressionScheme: ProgressionScheme): LoggingStandardSetUiModel {
+fun LoggingStandardSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean): LoggingStandardSetUiModel {
     return LoggingStandardSetUiModel(
         position = position,
         rpeTarget = rpeTarget,
-        rpeTargetPlaceholder = getRpeTargetPlaceholder(rpeTarget, position, progressionScheme),
+        rpeTargetPlaceholder = getRpeTargetPlaceholder(rpeTarget, position, progressionScheme, isCustom),
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,
         weightRecommendation = weightRecommendation,
@@ -140,11 +143,11 @@ fun LoggingStandardSetUiModel.toDomainModel(): LoggingStandardSet {
     )
 }
 
-fun LoggingDropSet.toUiModel(progressionScheme: ProgressionScheme): LoggingDropSetUiModel {
+fun LoggingDropSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean): LoggingDropSetUiModel {
     return LoggingDropSetUiModel(
         position = position,
         rpeTarget = rpeTarget,
-        rpeTargetPlaceholder = getRpeTargetPlaceholder(rpeTarget, position, progressionScheme),
+        rpeTargetPlaceholder = getRpeTargetPlaceholder(rpeTarget, position, progressionScheme, isCustom),
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,
         weightRecommendation = weightRecommendation,
@@ -180,11 +183,11 @@ fun LoggingDropSetUiModel.toDomainModel(): LoggingDropSet {
     )
 }
 
-fun LoggingMyoRepSet.toUiModel(progressionScheme: ProgressionScheme): LoggingMyoRepSetUiModel {
+fun LoggingMyoRepSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean): LoggingMyoRepSetUiModel {
     return LoggingMyoRepSetUiModel(
         position = position,
         rpeTarget = rpeTarget,
-        rpeTargetPlaceholder = getRpeTargetPlaceholder(rpeTarget, position, progressionScheme),
+        rpeTargetPlaceholder = getRpeTargetPlaceholder(rpeTarget, position, progressionScheme, isCustom),
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,
         weightRecommendation = weightRecommendation,

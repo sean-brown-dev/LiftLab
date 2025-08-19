@@ -20,6 +20,7 @@ data class LoggingWorkoutLift(
     val restTime: Duration? = null,
     val restTimerEnabled: Boolean = false,
     val sets: List<GenericLoggingSet>,
+    val isCustom: Boolean,
 ) {
-    val setCount = sets.size
+    val setCount get() = sets.size
 }

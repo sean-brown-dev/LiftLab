@@ -1,34 +1,44 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
-import android.content.SharedPreferences
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
 import com.browntowndev.liftlab.core.data.mapping.toCalculationDomainModel
-import io.mockk.*
-import org.junit.jupiter.api.*
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class LinearProgressionCalculatorTests {
-    private val calculator = LinearProgressionCalculator()
+    private lateinit var calculator: LinearProgressionCalculator
 
     @BeforeEach
     fun setup() {
-        // Set the main dispatcher to the test dispatcher
-        val sharedPrefs = mockk<SharedPreferences>()
-        every { sharedPrefs.getBoolean(any(), any()) } returns true
-        every { sharedPrefs.getLong(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_REST_TIME
-        every { sharedPrefs.getFloat(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
+        every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
 
-        SettingsManager.initialize(sharedPrefs)
+        calculator = LinearProgressionCalculator()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(SettingsManager)
     }
 
     @Test

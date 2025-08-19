@@ -111,6 +111,7 @@ class ReorderLiftsUseCaseTest {
                 incrementOverride = it.incrementOverride,
                 restTime = it.restTime,
                 restTimerEnabled = it.restTimerEnabled,
+                isCustom = false,
                 sets = emptyList()
             )
         }
@@ -228,6 +229,7 @@ class ReorderLiftsUseCaseTest {
                 incrementOverride = it.incrementOverride,
                 restTime = it.restTime,
                 restTimerEnabled = it.restTimerEnabled,
+                isCustom = false,
                 sets = emptyList()
             )
         }
@@ -310,6 +312,7 @@ class ReorderLiftsUseCaseTest {
                 incrementOverride = it.incrementOverride,
                 restTime = it.restTime,
                 restTimerEnabled = it.restTimerEnabled,
+                isCustom = false,
                 sets = emptyList()
             )
         }

@@ -19,6 +19,7 @@ data class LoggingWorkoutLiftUiModel(
     val restTime: Duration,
     val restTimerEnabled: Boolean = false,
     val sets: List<LoggingSetUiModel>,
+    val isCustom: Boolean,
 ) {
-    val setCount = sets.size
+    val setCount get() = sets.size
 }

@@ -3,7 +3,9 @@ package com.browntowndev.liftlab.core.domain.utils
 import android.util.Log
 import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.roundDownToNearestFactor
+import com.browntowndev.liftlab.core.common.roundToNearestFactor
 import com.browntowndev.liftlab.core.common.roundToOneDecimal
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.exp
 import kotlin.math.floor
@@ -136,8 +138,11 @@ class WeightCalculationUtils {
             val targetPercentage = getNscaPercentageForAdjustedReps(repGoalConsideringRpe) ?:
                 getExponentialDecayPercentageForReps(repGoalConsideringRpe)
 
-            // Calculate the recommendation
-            val recommendation = (oneRepMax * targetPercentage).roundDownToNearestFactor(roundingFactor)
+            // Calculate the recommendation. Prefer rounding down, but if rounding to nearest is within 1 use it.
+            val rawRecommendation = oneRepMax * targetPercentage
+            val roundedToNearest = rawRecommendation.roundToNearestFactor(roundingFactor)
+            val roundedDownToNearest = rawRecommendation.roundDownToNearestFactor(roundingFactor)
+            val recommendation = if (abs(roundedToNearest - rawRecommendation) < 1f) roundedToNearest else roundedDownToNearest
             Log.d("WeightCalculationUtils", "recommendation: $recommendation")
 
             return recommendation

@@ -131,7 +131,8 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCaseTest {
         incrementOverride = null,
         deloadWeek = null,
         restTime = null,
-        restTimerEnabled = true
+        restTimerEnabled = true,
+        isCustom = false
     )
 
     private fun createLoggingStandardSet(

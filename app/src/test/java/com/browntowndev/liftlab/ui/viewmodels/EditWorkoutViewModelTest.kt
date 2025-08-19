@@ -124,6 +124,7 @@ class EditWorkoutViewModelTest {
                 progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                 deloadWeek = null,
                 incrementOverride = null,
+                isCustom = false,
                 sets = buildList {
                     repeat(withSetCount) { index ->
                         add(LoggingStandardSetUiModel(

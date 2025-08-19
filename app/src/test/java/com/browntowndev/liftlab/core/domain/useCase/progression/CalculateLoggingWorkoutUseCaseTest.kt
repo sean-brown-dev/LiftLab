@@ -1,13 +1,20 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
+import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
-import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
-import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 
 class CalculateLoggingWorkoutUseCaseTest {
 
@@ -41,6 +48,13 @@ class CalculateLoggingWorkoutUseCaseTest {
     @BeforeEach
     fun setUp() {
         useCase = CalculateLoggingWorkoutUseCase()
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(SettingsManager)
     }
 
     @Test

@@ -48,7 +48,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             LoggingStandardSet(position = 0, weightRecommendation = 100f, repRangeBottom = 5, rpeTarget = 8f, complete = false, repRangeTop = 8, repRangePlaceholder = "5-8", hadInitialWeightRecommendation = false, previousSetResultLabel = "")
         )
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null)
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false)
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
         val inProgressResults = listOf<SetResult>(
@@ -76,7 +76,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             LoggingStandardSet(position = 0, weightRecommendation = 100f, repRangeBottom = 5, rpeTarget = 8f, complete = true, completedWeight = 100f, completedReps = 5, completedRpe = 8f, repRangeTop = 8, repRangePlaceholder = "5-8", hadInitialWeightRecommendation = false, previousSetResultLabel = "")
         )
         val lifts = listOf(
-            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null)
+            LoggingWorkoutLift(id = 1, liftId = 101, liftName = "Squat", position = 0, sets = sets, liftMovementPattern = MovementPattern.LEG_PUSH, liftVolumeTypes = 1, liftSecondaryVolumeTypes = null, progressionScheme = ProgressionScheme.LINEAR_PROGRESSION, incrementOverride = null, restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false)
         )
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
 
@@ -139,7 +139,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         // When: no new set results; hydrator should calculate next-set recommendation
@@ -191,7 +191,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 120.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 120.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         // Expected: repGoal should be repRangeTop (10) for conservative lighter suggestion
@@ -253,7 +253,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         // Expected: repGoal should be repRangeBottom (6) to push weight up
@@ -319,7 +319,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         // Expected: aim at the (new) top conservatively
@@ -390,7 +390,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = 0,
             liftSecondaryVolumeTypes = null,
-            note = null
+            note = null,
+            isCustom = false
         )
 
         // Provide matching MyoRepSetResults so hydration will KEEP them complete
@@ -473,7 +474,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = 0,
             liftSecondaryVolumeTypes = null,
-            note = null
+            note = null,
+            isCustom = false
         )
 
         val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
@@ -516,7 +518,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             deloadWeek = null,
             incrementOverride = 2.5f,
-            sets = listOf(activation) // <-- activation-only
+            sets = listOf(activation), // <-- activation-only
+            isCustom = false
         )
         // Results include the activation and two continuation minis
         val results = listOf(
@@ -569,6 +572,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             deloadWeek = null,
             incrementOverride = 2.5f,
+            isCustom = false,
             sets = listOf(act0, act1) // <-- activation-only for each sequence
         )
 
@@ -630,7 +634,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             deloadWeek = null,
             incrementOverride = 2.5f,
-            sets = listOf(activation)
+            sets = listOf(activation),
+            isCustom = false
         )
 
         // Results include ONLY the activation result (no myo minis yet)
@@ -700,7 +705,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null,
+            note = null, isCustom = false
         )
         val results = listOf<SetResult>(
             StandardSetResult(
@@ -759,7 +765,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         // No new results needed; previous completed is already embedded
@@ -810,7 +816,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 0, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null
+            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null, isCustom = false
         )
 
         // Provide only the activation result; no mini results yet
@@ -877,7 +883,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 0, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = 2.5f,
-            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null
+            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null, isCustom = false
         )
 
         // Activation result within range
@@ -926,7 +932,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         // Persist previous completion
@@ -975,7 +981,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf<SetResult>(
@@ -1023,7 +1029,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf<SetResult>(
@@ -1074,7 +1080,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf<SetResult>(
@@ -1127,7 +1133,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf<SetResult>(
@@ -1180,7 +1186,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null
+            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf(
@@ -1241,7 +1247,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null
+            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf(
@@ -1289,7 +1295,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
             progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
             incrementOverride = incrementOverride,
-            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null
+            restTime = 90.seconds, restTimerEnabled = true, deloadWeek = null, note = null, isCustom = false
         )
 
         val results = listOf<SetResult>(
@@ -1332,7 +1338,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             restTime = 90.seconds,
             restTimerEnabled = true,
             deloadWeek = null,
-            note = null
+            note = null,
+            isCustom = false
         )
 
         // When: hydrate with NO set results; the set should be "un-completed"
@@ -1398,7 +1405,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             liftMovementPattern = MovementPattern.HORIZONTAL_PUSH,
             liftVolumeTypes = 0,
             liftSecondaryVolumeTypes = null,
-            note = null
+            note = null,
+            isCustom = false
         )
 
         // Matching results for activation + mini0 so hydration sees them as completed

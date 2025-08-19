@@ -141,6 +141,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                     restTime = null,
                     restTimerEnabled = false,
                     note = null,
+                    isCustom = false, // No way to determine this without trying to pull the workout lift, which may have been changed
                     sets = groupedResults.value
                         .sortedWith(
                             compareBy<SetLogEntry> { it.setPosition }

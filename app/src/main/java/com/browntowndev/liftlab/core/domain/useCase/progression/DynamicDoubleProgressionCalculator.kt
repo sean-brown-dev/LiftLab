@@ -22,6 +22,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepS
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.utils.exceededRepRangeTop
+import com.browntowndev.liftlab.core.domain.utils.missedRepRangeBottom
 
 class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
@@ -131,7 +132,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
             workoutLift.customLiftSets.flatMap { set ->
                 when (set) {
                     is CalculationMyoRepSet -> {
-                        val allMyoRepSets = myoRepSetResults[set.position]
+                        val allMyoRepSetResults = myoRepSetResults[set.position]
                         val weightRecommendation =
                             getWeightRecommendation(
                                 lift = workoutLift,
@@ -139,7 +140,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 setData = myoRepSetResults[set.position],
                                 lastCompletedStandardSetResult = lastStandardSetResult)
 
-                        (allMyoRepSets?.fastMap {
+                        (allMyoRepSetResults?.fastMap {
                             val displayResult = displayResultsMap["${it.setPosition}-${it.myoRepSetPosition}"]
                             LoggingMyoRepSet(
                                 position = set.position,
@@ -285,6 +286,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     ): Float? {
         val activationSet = setData?.firstOrNull()
         return when {
+            // Activation set exceeded top of rep range, recalculate
             customSetExceededRepRangeTop(set, activationSet) ->
                 getCalculatedWeightRecommendation(
                     increment = lift.incrementOverride,
@@ -292,15 +294,35 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     rpeTarget = set.rpeTarget,
                     result = activationSet!!
                 )
+
+            // Met all criterion, increment weight
             customSetMeetsCriterion(set, setData) -> incrementWeight(lift, activationSet!!)
-            activationSet?.weight != null ->
-                if (lastCompletedStandardSetResult != null)
-                    getCalculatedWeightRecommendation(
-                        increment = lift.incrementOverride,
-                        repGoal = set.repRangeBottom,
-                        rpeTarget = set.rpeTarget,
-                        lastCompletedStandardSetResult)
-                else null
+
+            // Recalculate weight if missed bottom of rep range
+            activationSet != null && missedRepRangeBottom(
+                repRangeBottom = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                completedReps = activationSet.reps,
+                completedRpe = activationSet.rpe,
+            ) -> getCalculatedWeightRecommendation(
+                increment = lift.incrementOverride,
+                repGoal = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                result = activationSet)
+
+            // Activation set has a weight, return it
+            activationSet != null -> activationSet.weight
+
+            // Get a weight recommendation if there was no activation set but we have a previous
+            // standard set weight recommendation to base it on
+            lastCompletedStandardSetResult != null ->
+                getCalculatedWeightRecommendation(
+                    increment = lift.incrementOverride,
+                    repGoal = set.repRangeBottom,
+                    rpeTarget = set.rpeTarget,
+                    result = lastCompletedStandardSetResult)
+
+            // Nothing to do, return null
             else -> null
         }
     }

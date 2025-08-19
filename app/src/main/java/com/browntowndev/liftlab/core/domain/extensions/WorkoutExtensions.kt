@@ -151,7 +151,7 @@ fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
     return customSets
 }
 
-private fun getDoubleProgressionRpeTarget(setIndex: Int, setCount: Int, topSetRpeTarget: Float) =
+private fun getStraightSetsRpeTarget(setIndex: Int, setCount: Int, topSetRpeTarget: Float) =
     when {
         setIndex == 0 -> topSetRpeTarget
         setIndex < (setCount - 1) -> 9f
@@ -168,8 +168,8 @@ private fun getDoubleProgressionRpeTarget(setIndex: Int, setCount: Int, topSetRp
  * @return The calculated RPE target for custom lift sets.
  */
 fun getRpeTarget(setIndex: Int, setCount: Int, progressionScheme: ProgressionScheme, topSetRpeTarget: Float) =
-    if (progressionScheme == ProgressionScheme.DOUBLE_PROGRESSION) {
-        getDoubleProgressionRpeTarget(
+    if (progressionScheme == ProgressionScheme.DOUBLE_PROGRESSION || progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
+        getStraightSetsRpeTarget(
             setIndex = setIndex,
             setCount = setCount,
             topSetRpeTarget = topSetRpeTarget

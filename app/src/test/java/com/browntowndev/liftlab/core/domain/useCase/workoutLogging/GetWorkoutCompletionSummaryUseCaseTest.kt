@@ -169,6 +169,7 @@ class GetWorkoutCompletionSummaryUseCaseTest {
             incrementOverride = null,
             restTime = null,
             restTimerEnabled = false,
+            isCustom = false,
             sets = List(setCount) { mockk(relaxed = true) }
         )
 

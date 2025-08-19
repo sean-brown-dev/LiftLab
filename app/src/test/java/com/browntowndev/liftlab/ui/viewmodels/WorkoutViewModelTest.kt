@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.viewmodels
 
+import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReorderWorkoutLiftsUseCase
@@ -30,9 +32,11 @@ import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.spyk
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -86,6 +90,9 @@ class WorkoutViewModelTest {
         Dispatchers.setMain(testDispatcher)
         MockKAnnotations.init(this, relaxUnitFun = true)
 
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
+
         // No active workout emissions for these interaction tests
         every { getActiveWorkoutStateFlowUseCase.invoke() } returns emptyFlow()
 
@@ -123,6 +130,7 @@ class WorkoutViewModelTest {
     @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkObject(SettingsManager)
     }
 
     @Test
@@ -228,13 +236,13 @@ class WorkoutViewModelTest {
             com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel(
                 id = 10L, liftId = 1000L, position = 0,
                 progressionScheme = com.browntowndev.liftlab.core.domain.enums.ProgressionScheme.LINEAR_PROGRESSION,
-                deloadWeek = null, incrementOverride = null, sets = emptyList(),
+                deloadWeek = null, incrementOverride = null, sets = emptyList(), isCustom = false,
                 restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             ),
             com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel(
                 id = 20L, liftId = 2000L, position = 1,
                 progressionScheme = com.browntowndev.liftlab.core.domain.enums.ProgressionScheme.LINEAR_PROGRESSION,
-                deloadWeek = null, incrementOverride = null, sets = emptyList(),
+                deloadWeek = null, incrementOverride = null, sets = emptyList(), isCustom = false,
                 restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             ),
         )

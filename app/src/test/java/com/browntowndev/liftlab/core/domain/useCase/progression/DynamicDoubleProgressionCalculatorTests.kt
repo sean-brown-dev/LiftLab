@@ -1,8 +1,11 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
-import android.content.SharedPreferences
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutLiftWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
@@ -14,24 +17,29 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
 import io.mockk.every
-import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 
 class DynamicDoubleProgressionCalculatorTests {
-    private val calculator = DynamicDoubleProgressionCalculator()
+    private lateinit var calculator: DynamicDoubleProgressionCalculator
 
     @BeforeEach
     fun setup() {
-        // Set the main dispatcher to the test dispatcher
-        val sharedPrefs = mockk<SharedPreferences>()
-        every { sharedPrefs.getBoolean(any(), any()) } returns true
-        every { sharedPrefs.getLong(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_REST_TIME
-        every { sharedPrefs.getFloat(any(), any()) } returns SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
+        every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
 
-        SettingsManager.initialize(sharedPrefs)
+        calculator = DynamicDoubleProgressionCalculator()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        unmockkObject(SettingsManager)
     }
 
     @Test
@@ -557,7 +565,7 @@ class DynamicDoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
                 weight = 75f,
                 setType = SetType.STANDARD, isDeload = false),
-            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 1,
+            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 12, rpe = 8f, liftPosition = 0, setPosition = 1,
                 weight = 75f,
                 isDeload = false),
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0,
@@ -611,7 +619,7 @@ class DynamicDoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 8, rpe = 8f, liftPosition = 0, setPosition = 0,
                 weight = 75f,
                 setType = SetType.STANDARD, isDeload = false),
-            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, liftPosition = 0, setPosition = 1,
+            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 12, rpe = 8f, liftPosition = 0, setPosition = 1,
                 weight = 75f,
                 isDeload = false),
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 7, rpe = 8f, liftPosition = 0, setPosition = 1, myoRepSetPosition = 0,
@@ -734,7 +742,7 @@ class DynamicDoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 0,
                 weight = 75f,
                 setType = SetType.STANDARD, isDeload = false),
-            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, liftPosition = 0, setPosition = 0,
+            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 12, rpe = 8f, liftPosition = 0, setPosition = 0,
                 weight = 75f,
                 isDeload = false),
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 1, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1,
@@ -782,7 +790,7 @@ class DynamicDoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, reps = 15, rpe = 8f, liftPosition = 0, setPosition = 0,
                 weight = 75f,
                 setType = SetType.STANDARD, isDeload = false),
-            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 10, rpe = 8f, liftPosition = 0, setPosition = 0,
+            MyoRepSetResult(workoutId = 0, liftId = 0, reps = 12, rpe = 8f, liftPosition = 0, setPosition = 0,
                 weight = 75f,
                 isDeload = false),
             MyoRepSetResult(workoutId = 0, liftId = 0, reps = 4, rpe = 8f, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1,
@@ -1088,6 +1096,52 @@ class DynamicDoubleProgressionCalculatorTests {
                 0 -> assertEquals(90f, p.weightRecommendation)
                 1 -> assertEquals(90f, p.weightRecommendation)
                 2 -> assertEquals(80f, p.weightRecommendation)
+            }
+        }
+    }
+
+    @Test
+    fun `standard - recalc when any set exceeds top within allowed cap`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
+                workoutId = 0, liftId = 0, progressionScheme = ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
+                position = 0, setCount = 3, rpeTarget = 8f, repRangeBottom = 6, repRangeTop = 8
+            ),
+            liftEntity = LiftEntity(name = "OHP", movementPattern = MovementPattern.VERTICAL_PUSH, volumeTypesBitmask = 1)
+        )
+        val data = listOf(
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 95f, reps = 8, rpe = 6f, setType = SetType.STANDARD, isDeload = false), // exceed within cap
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 1, weight = 95f, reps = 8, rpe = 7f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 95f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
+        // DynamicDoubleProgression explicitly triggers recalc when exceededRepRangeTop(...) OR missed bottom
+        assert(95f < result[0].weightRecommendation!!)
+    }
+
+    @Test
+    fun `standard - do NOT recalc when exceed happens for intermediate that violates RPE cap`() {
+        val lift = WorkoutLiftWithRelationships(
+            workoutLiftEntity = WorkoutLiftEntity(
+                workoutId = 0, liftId = 0, progressionScheme = ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
+                position = 0, setCount = 3, rpeTarget = 8f, repRangeBottom = 6, repRangeTop = 8
+            ),
+            liftEntity = LiftEntity(name = "Lat Pulldown", movementPattern = MovementPattern.VERTICAL_PULL, volumeTypesBitmask = 1)
+        )
+        val data = listOf(
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 70f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 1, weight = 70f, reps = 9, rpe = 10f, setType = SetType.STANDARD, isDeload = false), // exceed but >9 cap
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 70f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
+        )
+
+        val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
+        // Should follow the "goals met -> increment" path since the exceed didn't count (cap violated)
+        result.fastForEach { p ->
+            when (p.position) {
+                0 -> assertEquals(75f, p.weightRecommendation)
+                1 -> assertEquals(70f, p.weightRecommendation)
+                2 -> assertEquals(75f, p.weightRecommendation)
             }
         }
     }
