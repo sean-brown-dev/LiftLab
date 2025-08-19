@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -452,36 +453,6 @@ fun WorkoutBuilder(
                         Spacer(modifier = modifier.height(scrollSpacerSize))
                     }
                 }
-
-                RpeKeyboard(
-                    visible = state.pickerState?.type == PickerType.Rpe,
-                    selectedRpe = state.pickerState?.currentRpe,
-                    onRpeSelected = {
-                        if (state.pickerState!!.setPosition == null) {
-                            workoutBuilderViewModel.setLiftRpeTarget(
-                                workoutLiftId = state.pickerState!!.workoutLiftId!!,
-                                it,
-                            )
-                        } else {
-                            workoutBuilderViewModel.setCustomSetRpeTarget(
-                                workoutLiftId = state.pickerState!!.workoutLiftId!!,
-                                position = state.pickerState!!.setPosition!!,
-                                newRpeTarget = it,
-                            )
-                        }
-                    },
-                )
-                PercentagePicker(
-                    visible = state.pickerState?.type == PickerType.Percentage,
-                    selectedPercentage = state.pickerState?.currentPercentage,
-                    onPercentageSelected = {
-                        workoutBuilderViewModel.setCustomSetDropPercentage(
-                            workoutLiftId = state.pickerState!!.workoutLiftId!!,
-                            position = state.pickerState!!.setPosition!!,
-                            newDropPercentage = percentageStringToFloat(it),
-                        )
-                    }
-                )
             }
         }
     } else {
@@ -511,6 +482,41 @@ fun WorkoutBuilder(
             },
             onCancel = {
                 workoutBuilderViewModel.toggleMovementPatternDeletionModal()
+            }
+        )
+    }
+
+    Column (modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+        RpeKeyboard(
+            visible = state.pickerState?.type == PickerType.Rpe,
+            selectedRpe = state.pickerState?.currentRpe,
+            onRpeSelected = {
+                if (state.pickerState!!.setPosition == null) {
+                    workoutBuilderViewModel.setLiftRpeTarget(
+                        workoutLiftId = state.pickerState!!.workoutLiftId!!,
+                        it,
+                    )
+                } else {
+                    workoutBuilderViewModel.setCustomSetRpeTarget(
+                        workoutLiftId = state.pickerState!!.workoutLiftId!!,
+                        position = state.pickerState!!.setPosition!!,
+                        newRpeTarget = it,
+                    )
+                }
+            },
+        )
+    }
+
+    Column (modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+        PercentagePicker(
+            visible = state.pickerState?.type == PickerType.Percentage,
+            selectedPercentage = state.pickerState?.currentPercentage,
+            onPercentageSelected = {
+                workoutBuilderViewModel.setCustomSetDropPercentage(
+                    workoutLiftId = state.pickerState!!.workoutLiftId!!,
+                    position = state.pickerState!!.setPosition!!,
+                    newDropPercentage = percentageStringToFloat(it),
+                )
             }
         )
     }

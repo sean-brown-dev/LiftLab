@@ -31,11 +31,12 @@ import com.browntowndev.liftlab.core.domain.enums.toDropPercentageString
 
 @Composable
 fun PercentagePicker(
+    modifier: Modifier = Modifier,
     visible: Boolean,
     selectedPercentage: Float?,
     onPercentageSelected: (percentage: String) -> Unit,
 ) {
-    CustomKeyboard(visible = visible) {
+    CustomKeyboard(modifier = modifier, visible = visible) {
         var selectedPercentageStr by remember(selectedPercentage) {
             mutableStateOf(selectedPercentage?.toDropPercentageString() ?: "")
         }
