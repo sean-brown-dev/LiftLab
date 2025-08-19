@@ -1,7 +1,9 @@
 
 package com.browntowndev.liftlab.ui.viewmodels
 
+import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_REST_TIME
+import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.REST_TIME
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
@@ -14,6 +16,7 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistin
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
 import com.browntowndev.liftlab.ui.models.controls.TopAppBarEvent
 import com.browntowndev.liftlab.ui.models.workoutLogging.ActiveProgramMetadataUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutUiModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.BaseWorkoutViewModel
@@ -28,7 +31,9 @@ import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.unmockkObject
 import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -75,12 +80,16 @@ class EditWorkoutViewModelTest {
         // Quiet init
         every { getCompletedWorkoutStateFlowUseCase(any()) } returns flowOf()
 
+        mockkObject(SettingsManager)
+        every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
+
         navigatedBack = false
     }
 
     @AfterEach
     fun tearDown() {
         unmockkStatic(FirebaseCrashlytics::class)
+        unmockkObject(SettingsManager)
         Dispatchers.resetMain()
     }
 
@@ -106,7 +115,7 @@ class EditWorkoutViewModelTest {
         flow.update { it.copy(workout = workout, programMetadata = program) }
     }
 
-    private fun sampleWorkout(withLiftCount: Int = 1): LoggingWorkoutUiModel {
+    private fun sampleWorkout(withLiftCount: Int = 1, withSetCount: Int = 1): LoggingWorkoutUiModel {
         val lifts = (0 until withLiftCount).map { idx ->
             LoggingWorkoutLiftUiModel(
                 id = 1000L + idx,
@@ -115,7 +124,27 @@ class EditWorkoutViewModelTest {
                 progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
                 deloadWeek = null,
                 incrementOverride = null,
-                sets = emptyList(),
+                sets = buildList {
+                    repeat(withSetCount) { index ->
+                        add(LoggingStandardSetUiModel(
+                            position = index,
+                            complete = true,
+                            completedWeight = 100f,
+                            completedReps = 5,
+                            completedRpe = 8f,
+                            rpeTarget = 8f,
+                            repRangeTop = 12,
+                            repRangeBottom = 4,
+                            rpeTargetPlaceholder = "RPE",
+                            weightRecommendation = 100f,
+                            hadInitialWeightRecommendation = true,
+                            previousSetResultLabel = "Previous",
+                            repRangePlaceholder = "Reps",
+                            setNumberLabel = "Set 1",
+                            isNew = false,
+                        ))
+                    }
+                },
                 restTime = DEFAULT_REST_TIME.toDuration(DurationUnit.MILLISECONDS),
             )
         }
@@ -181,7 +210,7 @@ class EditWorkoutViewModelTest {
     @Test
     fun undoSetCompletion_invokesDeleteSetLogEntry_viaCallback() = runTest {
         val vm = newViewModel()
-        injectWorkoutState(vm, sampleWorkout(2), sampleProgram())
+        injectWorkoutState(vm, sampleWorkout(2, 3), sampleProgram())
 
         // When undoSetCompletionUseCase is called, immediately call provided onDeleteSetResult lambda
         coEvery {

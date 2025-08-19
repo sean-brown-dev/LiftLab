@@ -51,7 +51,7 @@ abstract class BaseWorkoutViewModel(
     /**
      * Persists the set if it has already been completed
      */
-    private fun updateSetIfAlreadyCompleted(workoutLiftId: Long, setToUpdate: LoggingSetUiModel) {
+    private suspend fun updateSetIfAlreadyCompleted(workoutLiftId: Long, setToUpdate: LoggingSetUiModel) {
         if (setToUpdate.complete &&
             setToUpdate.completedWeight != null &&
             setToUpdate.completedReps != null &&
@@ -83,14 +83,11 @@ abstract class BaseWorkoutViewModel(
             }
             completeSet(0L, false, { updatedResult })
         } else if (setToUpdate.complete) {
-            // Update state so that re-hydrate can fill in the remaining modified values.
-            updateSetInWorkout(workoutLiftId, setToUpdate.copyGeneric(complete = false))
-
             val workoutLift = mutableWorkoutState.value.workout!!.lifts.find { it.id == workoutLiftId }!!
             undoSetCompletion(
+                workoutLiftId = workoutLift.id,
                 liftPosition = workoutLift.position,
-                setPosition = setToUpdate.position,
-                myoRepSetPosition = (setToUpdate as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
+                set = setToUpdate
             )
         } else {
             // Simply update state since we are not persisting any changes
@@ -305,21 +302,46 @@ abstract class BaseWorkoutViewModel(
             }
         }
 
-    fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) =
-        executeWithErrorHandling("Failed to undo completion") {
-            Log.d(
-                "WorkoutViewModel",
-                "undoSetCompletion ${mutableWorkoutState.value.completedSets}"
-            )
+    fun undoSetCompletion(liftPosition: Int, setPosition: Int, myoRepSetPosition: Int?) = executeWithErrorHandling("Failed to undo completion") {
+        Log.d(
+            "WorkoutViewModel",
+            "undoSetCompletion ${mutableWorkoutState.value.completedSets}"
+        )
+        val workoutLift = mutableWorkoutState.value.workout?.lifts?.get(liftPosition) ?: error("Workout lift not found. Lift position: $liftPosition")
+        val setToMarkIncomplete = findSet(
+            workoutLiftId = workoutLift.id,
+            setPosition = setPosition,
+            myoRepSetPosition = myoRepSetPosition,
+        ) ?: error("Set not found")
 
+        undoSetCompletion(
+            workoutLiftId = workoutLift.id,
+            liftPosition = liftPosition,
+            set = setToMarkIncomplete
+        )
+    }
+
+    private suspend fun undoSetCompletion(workoutLiftId: Long, liftPosition: Int, set: LoggingSetUiModel) {
+
+        // Optimistically update UI so that re-hydration of the weight, reps, & rpe can happen
+        val originalWorkout = mutableWorkoutState.value.workout
+        updateSetInWorkout(workoutLiftId, set.copyGeneric(complete = false))
+
+        try {
             undoSetCompletionUseCase(
                 liftPosition = liftPosition,
-                setPosition = setPosition,
-                myoRepSetPosition = myoRepSetPosition,
+                setPosition = set.position,
+                myoRepSetPosition = (set as? LoggingMyoRepSetUiModel)?.myoRepSetPosition,
                 setResults = mutableWorkoutState.value.completedSets.fastMap { it.toDomainModel() },
                 onDeleteSetResult = { deleteSetResult(it) }
             )
+        } catch (e: Exception) {
+            mutableWorkoutState.update {
+                it.copy(workout = originalWorkout)
+            }
+            throw e
         }
+    }
 
     protected open suspend fun updateLinearProgressionFailures() {
         val resultsByLift = mutableWorkoutState.value.completedSets.associateBy {
