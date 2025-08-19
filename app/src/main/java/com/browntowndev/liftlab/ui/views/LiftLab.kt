@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.compose.rememberNavController
 import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
-import com.browntowndev.liftlab.ui.composables.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.LiftLabSnackbar
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme

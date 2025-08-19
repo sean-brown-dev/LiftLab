@@ -18,9 +18,9 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.core.domain.enums.displayNameShort
 import com.browntowndev.liftlab.core.domain.enums.toDropPercentageString
-import com.browntowndev.liftlab.ui.composables.FloatTextField
-import com.browntowndev.liftlab.ui.composables.IntegerTextField
-import com.browntowndev.liftlab.ui.composables.ScrollableTextField
+import com.browntowndev.liftlab.ui.composables.text.FloatTextField
+import com.browntowndev.liftlab.ui.composables.text.IntegerTextField
+import com.browntowndev.liftlab.ui.composables.text.ScrollableTextField
 
 
 @Composable

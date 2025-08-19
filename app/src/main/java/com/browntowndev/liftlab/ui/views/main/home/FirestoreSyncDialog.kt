@@ -27,8 +27,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.composables.LiftLabDialog
-import com.browntowndev.liftlab.ui.composables.SignIntoFirebaseWithGoogleButton
+import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.button.SignIntoFirebaseWithGoogleButton
 import dev.gitlive.firebase.auth.FirebaseUser
 
 @Composable

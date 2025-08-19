@@ -30,11 +30,11 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.PROMPT_FOR_DELOAD_WEEK
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.composables.ShimmerSkeletonList
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.component.ShimmerSkeletonList
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
@@ -50,6 +50,7 @@ import org.koin.core.parameter.parametersOf
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Workout(
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues,
     screenId: String?,
     snackbarHostState: SnackbarHostState,
@@ -59,13 +60,13 @@ fun Workout(
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
     onNavigateToWorkoutHistory: () -> Unit,
     onNavigateToLiftLibrary: (workoutId: Long, workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
-) {
-    val durationTimerViewModel: DurationTimerViewModel = koinViewModel()
-    val workoutViewModel: WorkoutViewModel = koinViewModel {
+    durationTimerViewModel: DurationTimerViewModel = koinViewModel(),
+    workoutViewModel: WorkoutViewModel = koinViewModel {
         parametersOf(
             onNavigateToWorkoutHistory
         )
-    }
+    },
+) {
     val state by workoutViewModel.workoutState.collectAsState()
     val timerState by durationTimerViewModel.state.collectAsState()
 

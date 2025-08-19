@@ -39,14 +39,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.insertSuperscript
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.composables.CircledTextIcon
-import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.icon.CircledTextIcon
+import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 
 
 @Composable
 fun WorkoutPreview(
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues,
     visible: Boolean,
     workoutInProgress: Boolean,

@@ -15,8 +15,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.ui.composables.IconDropdown
-import com.browntowndev.liftlab.ui.composables.RestTimePicker
+import com.browntowndev.liftlab.ui.composables.dropdown.IconDropdown
+import com.browntowndev.liftlab.ui.composables.spinner.RestTimePicker
 import kotlin.time.Duration
 
 @Composable

@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
-import com.browntowndev.liftlab.ui.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.text.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.composables.text.SectionLabel
 
 @Composable
 fun DetailsTab(

@@ -29,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,13 +41,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.ui.composables.RpeKeyboard
-import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.composables.keyboard.RpeKeyboard
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.viewmodels.picker.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
@@ -58,6 +55,7 @@ import kotlin.time.Duration
 
 @Composable
 fun WorkoutLog(
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues,
     visible: Boolean,
     isEdit: Boolean = false,
@@ -167,7 +165,7 @@ fun WorkoutLog(
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
-                            onClick = cancelWorkout
+                            onClick = cancelWorkout,
                         ) {
                             Text(
                                 text = "Cancel Workout",

@@ -23,9 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.FilterSelector
-import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.chips.FilterSelector
+import com.browntowndev.liftlab.ui.composables.chips.InputChipFlowRow
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.androidx.compose.koinViewModel

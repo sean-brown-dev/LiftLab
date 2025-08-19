@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.views.main.home
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.composables.MultiLineChart
+import com.browntowndev.liftlab.ui.composables.chart.MultiLineChart
 import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 

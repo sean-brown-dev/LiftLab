@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.ui.composables.CustomAnchorDropdown
+import com.browntowndev.liftlab.ui.composables.dropdown.CustomAnchorDropdown
 
 @Composable
 fun WavePatternDropdown(

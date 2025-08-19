@@ -33,12 +33,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.ui.composables.LabeledChips
+import com.browntowndev.liftlab.ui.composables.chips.LabeledChips
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLabBottomSheet(
+    modifier: Modifier = Modifier,
     sheetPeekHeight: Dp,
     bottomSpacerHeight: Dp,
     topSpacerHeight: Dp = 0.dp,

@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.ui.composables.TextDropdown
-import com.browntowndev.liftlab.ui.composables.TextDropdownTextAnchor
+import com.browntowndev.liftlab.ui.composables.dropdown.TextDropdown
+import com.browntowndev.liftlab.ui.composables.dropdown.TextDropdownTextAnchor
 import com.browntowndev.liftlab.ui.extensions.displayName
 import com.browntowndev.liftlab.ui.extensions.shortDisplayName
 

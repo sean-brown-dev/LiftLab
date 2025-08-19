@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.NULLABLE_DELOAD_WEEK_OPTIONS
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.ui.composables.IconDropdown
-import com.browntowndev.liftlab.ui.composables.NullableNumberPickerMenuItem
-import com.browntowndev.liftlab.ui.composables.RestTimePicker
+import com.browntowndev.liftlab.ui.composables.dropdown.IconDropdown
+import com.browntowndev.liftlab.ui.composables.spinner.NullableNumberPickerMenuItem
+import com.browntowndev.liftlab.ui.composables.spinner.RestTimePicker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

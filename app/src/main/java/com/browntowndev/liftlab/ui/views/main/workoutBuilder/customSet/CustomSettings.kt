@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.ui.composables.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.composables.component.DeleteableOnSwipeLeft
 import com.browntowndev.liftlab.ui.models.workout.CustomLiftSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.DropSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.MyoRepSetUiModel

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.composables.ProgressCountdownTimer
+import com.browntowndev.liftlab.ui.composables.component.ProgressCountdownTimer
 import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
 import org.koin.androidx.compose.koinViewModel

@@ -44,7 +44,7 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.ui.composables.LiftLabOutlinedTextField
+import com.browntowndev.liftlab.ui.composables.text.LiftLabOutlinedTextField
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingDropSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
@@ -53,6 +53,7 @@ import kotlin.time.Duration
 
 @Composable
 fun WorkoutLiftCard(
+    modifier: Modifier = Modifier,
     workoutLift: LoggingWorkoutLiftUiModel,
     isEdit: Boolean,
     lazyListState: LazyListState,

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.composables.TextDropdown
+import com.browntowndev.liftlab.ui.composables.dropdown.TextDropdown
 
 @Composable
 fun MovementPatternDropdown(
