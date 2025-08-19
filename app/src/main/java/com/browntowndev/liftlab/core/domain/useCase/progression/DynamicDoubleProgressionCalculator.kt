@@ -6,12 +6,8 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.INCREMENT_AMOUNT
-import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
@@ -21,6 +17,11 @@ import com.browntowndev.liftlab.core.domain.models.workoutCalculation.Calculatio
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.utils.exceededRepRangeTop
 
 class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
@@ -65,16 +66,24 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         return List(setCount) { setPosition ->
             val result = resultsMap[setPosition]
             val displayResult = displayResultsMap[setPosition]
-            val weightRecommendation = if (setMetCriterion(result, workoutLift)) {
-                incrementWeight(workoutLift, result!!)
-            } else if (missedBottomRepRange(result, workoutLift)) {
-                getCalculatedWeightRecommendation(
-                    workoutLift.incrementOverride,
-                    workoutLift.repRangeBottom,
-                    workoutLift.rpeTarget,
-                    result!!
+
+            val exceededRepRangeTop = result != null && exceededRepRangeTop(
+                repRangeTop = workoutLift.repRangeTop,
+                rpeTarget = workoutLift.rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
+            val recalculateWeight = exceededRepRangeTop || missedBottomRepRange(result, workoutLift)
+            val weightRecommendation = when {
+                recalculateWeight -> getCalculatedWeightRecommendation(
+                    increment = workoutLift.incrementOverride,
+                    repGoal = workoutLift.repRangeBottom,
+                    rpeTarget = workoutLift.rpeTarget,
+                    result = result!!,
                 )
-            } else result?.weight
+                setMetCriterion(result, workoutLift) -> incrementWeight(workoutLift, result!!)
+                else -> result?.weight
+            }
 
             LoggingStandardSet(
                 position = setPosition,
@@ -246,14 +255,26 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         setData: SetResult?,
         lastCompletedStandardSetResult: SetResult?,
     ): Float? {
-        return if (customSetMeetsCriterion(set, setData)) {
-            incrementWeight(lift, setData!!)
-        } else if (customSetShouldDecreaseWeight(set, setData)) {
-            getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, setData!!)
-        } else setData?.weight
-            ?: if (lastCompletedStandardSetResult != null)
+        return when {
+            customSetExceededRepRangeTop(set, setData) ->
+                getCalculatedWeightRecommendation(
+                    increment = lift.incrementOverride,
+                    repGoal = set.repRangeTop,
+                    rpeTarget = set.rpeTarget,
+                    result = setData!!
+                )
+            customSetMeetsCriterion(set, setData) -> incrementWeight(lift, setData!!)
+            customSetShouldDecreaseWeight(set, setData) ->
+                getCalculatedWeightRecommendation(
+                    increment = lift.incrementOverride,
+                    repGoal = set.repRangeBottom,
+                    rpeTarget = set.rpeTarget,
+                    result = setData!!)
+            setData?.weight != null -> setData.weight
+            lastCompletedStandardSetResult != null ->
                 getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, lastCompletedStandardSetResult)
-            else null
+            else -> null
+        }
     }
 
     private fun getWeightRecommendation(
@@ -263,12 +284,25 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         lastCompletedStandardSetResult: SetResult?,
     ): Float? {
         val activationSet = setData?.firstOrNull()
-        return if (customSetMeetsCriterion(set, setData))
-            incrementWeight(lift, activationSet!!)
-        else activationSet?.weight
-            ?: if (lastCompletedStandardSetResult != null)
-                getCalculatedWeightRecommendation(lift.incrementOverride, set.repRangeBottom, set.rpeTarget, lastCompletedStandardSetResult)
-            else null
+        return when {
+            customSetExceededRepRangeTop(set, activationSet) ->
+                getCalculatedWeightRecommendation(
+                    increment = lift.incrementOverride,
+                    repGoal = set.repRangeTop,
+                    rpeTarget = set.rpeTarget,
+                    result = activationSet!!
+                )
+            customSetMeetsCriterion(set, setData) -> incrementWeight(lift, activationSet!!)
+            activationSet?.weight != null ->
+                if (lastCompletedStandardSetResult != null)
+                    getCalculatedWeightRecommendation(
+                        increment = lift.incrementOverride,
+                        repGoal = set.repRangeBottom,
+                        rpeTarget = set.rpeTarget,
+                        lastCompletedStandardSetResult)
+                else null
+            else -> null
+        }
     }
 
     private fun buildDropSetWeightRecommendationsMap(

@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.utils
+package com.browntowndev.liftlab.core.domain.utils
 
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult

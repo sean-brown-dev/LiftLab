@@ -8,7 +8,7 @@ import com.browntowndev.liftlab.core.domain.models.metrics.WorkoutLogId
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

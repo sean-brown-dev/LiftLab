@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.ui.models.metrics
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.SetLogEntryUiModel
 import com.browntowndev.liftlab.ui.models.workoutLogging.WorkoutLogEntryUiModel

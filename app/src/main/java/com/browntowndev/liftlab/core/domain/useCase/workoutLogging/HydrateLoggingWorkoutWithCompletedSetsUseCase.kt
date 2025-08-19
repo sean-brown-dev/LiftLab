@@ -6,10 +6,8 @@ import androidx.compose.ui.util.fastFilter
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.SET_TOO_EASY_REPS_THRESHOLD
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
@@ -18,10 +16,11 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepS
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepContinuationResult
-import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
-import com.browntowndev.liftlab.core.domain.useCase.utils.SetResultKey
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.MyoRepContinuationResult
+import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
+import com.browntowndev.liftlab.core.domain.utils.SetResultKey
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.calculateMissedGoalResult
 import kotlin.math.roundToInt
 
 /**
@@ -226,11 +225,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 val exceededRepRangeTop = missedGoalResult.exceededRepRangeTop
                 val missedRepRangeBottom = missedGoalResult.missedRepRangeBottom
 
-                val lastGoalDiffered =
-                    lastCompletedSet.repRangeBottom != set.repRangeBottom ||
-                            lastCompletedSet.rpeTarget.roundToOneDecimal() != set.rpeTarget.roundToOneDecimal()
-
-                val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || lastGoalDiffered
+                val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || set.weightRecommendation == null
 
                 val weightRecommendation = if (shouldRecalculate) {
                     WeightCalculationUtils.calculateSuggestedWeight(
@@ -241,7 +236,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                         rpeGoal = set.rpeTarget,
                         roundingFactor = increment,
                     )
-                } else set.weightRecommendation ?: lastCompletedSet.completedWeight
+                } else set.weightRecommendation
                 set.copy(weightRecommendation = weightRecommendation)
             }
 
@@ -274,7 +269,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     )
                     val exceededRepRangeTop = missedGoalResult.exceededRepRangeTop
                     val missedRepRangeBottom = missedGoalResult.missedRepRangeBottom
-                    val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom
+                    val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || set.weightRecommendation == null
 
                     val weightRecommendation = if (shouldRecalculate) {
                         // Guess ~30% drop from activation reps. Set minimum to rep floor or 10 (sane goal)
@@ -290,7 +285,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                             rpeGoal = set.rpeTarget,
                             roundingFactor = increment,
                         )
-                    } else set.weightRecommendation ?: lastCompletedSet.completedWeight
+                    } else set.weightRecommendation
 
                     set.copy(weightRecommendation = weightRecommendation)
                 } else {
@@ -301,41 +296,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
 
             else -> throw Exception("${set::class.simpleName} is not defined.")
         }
-    }
-
-    private data class MissedGoalResult(
-        val missedRepRangeBottom: Boolean,
-        val exceededRepRangeTop: Boolean,
-    )
-
-    /**
-     * Calculates whether the goal was exceeded, missed or neither.
-     *
-     * @param completedReps The completed reps.
-     * @param completedRpe The completed RPE.
-     * @param repRangeTop The rep range top.
-     * @param repRangeBottom The rep range bottom.
-     * @param rpeTarget The RPE target.
-     * @return The missed goal result.
-     */
-    private fun calculateMissedGoalResult(
-        completedReps: Int,
-        completedRpe: Float,
-        repRangeTop: Int,
-        repRangeBottom: Int,
-        rpeTarget: Float,
-    ): MissedGoalResult {
-        val rpeAdjustedCompletedReps = (completedReps + (10f - completedRpe)).roundToOneDecimal()
-        val rpeAdjustedRepRangeTop = (repRangeTop + (10f - rpeTarget)).roundToOneDecimal()
-        val rpeAdjustedRepRangeBottom = (repRangeBottom + (10f - rpeTarget)).roundToOneDecimal()
-
-        val exceededRepRangeTop = (rpeAdjustedCompletedReps - rpeAdjustedRepRangeTop) >= SET_TOO_EASY_REPS_THRESHOLD
-        val missedRepRangeBottom = rpeAdjustedCompletedReps < rpeAdjustedRepRangeBottom
-
-        return MissedGoalResult(
-            missedRepRangeBottom = missedRepRangeBottom,
-            exceededRepRangeTop = exceededRepRangeTop,
-        )
     }
 
     /**

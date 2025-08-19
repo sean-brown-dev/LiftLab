@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.local.migrations
 import androidx.room.DeleteColumn
 import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 
 @DeleteColumn.Entries(
     DeleteColumn(

@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.utils
 
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.math.exp

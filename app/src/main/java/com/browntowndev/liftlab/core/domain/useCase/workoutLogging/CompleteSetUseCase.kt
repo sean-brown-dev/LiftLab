@@ -4,8 +4,8 @@ import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
-import com.browntowndev.liftlab.core.domain.useCase.utils.SetResultKey
-import com.browntowndev.liftlab.core.domain.useCase.utils.matchesResult
+import com.browntowndev.liftlab.core.domain.utils.SetResultKey
+import com.browntowndev.liftlab.core.domain.utils.matchesResult
 
 class CompleteSetUseCase(
     private val restTimerInProgressRepository: RestTimerInProgressRepository,

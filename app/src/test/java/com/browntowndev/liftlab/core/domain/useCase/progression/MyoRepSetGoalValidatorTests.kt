@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
+import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

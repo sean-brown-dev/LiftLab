@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.utils
+package com.browntowndev.liftlab.core.domain.utils
 
 import android.util.Log
 import com.browntowndev.liftlab.core.common.isWholeNumber

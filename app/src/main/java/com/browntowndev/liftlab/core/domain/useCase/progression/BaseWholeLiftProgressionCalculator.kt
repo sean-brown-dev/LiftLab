@@ -15,6 +15,8 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingMyoRepSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
+import com.browntowndev.liftlab.core.domain.utils.exceededRepRangeTop
+import com.browntowndev.liftlab.core.domain.utils.missedRepRangeBottom
 
 abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     override fun calculate(
@@ -40,15 +42,17 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                 List(setCount) { index ->
                     val result = nonMyoRepSetResults[index]
                     val displayResult = displayResults["${index}-null"]
-                    val weightRecommendation = if (criterionMet) {
-                        incrementWeight(workoutLift, result ?: previousSetResults.last())
-                    } else if (previousSetResults.isNotEmpty()) {
-                        getFailureWeight(
-                            workoutLift = workoutLift,
-                            previousSetResults = previousSetResults,
-                            position = index,
-                        )
-                    } else null
+
+                    val weightRecommendation = getWeightRecommendation(
+                        workoutLift = workoutLift,
+                        rpeTarget = workoutLift.rpeTarget,
+                        repRangeTop = workoutLift.repRangeTop,
+                        repRangeBottom = workoutLift.repRangeBottom,
+                        previousSetResults = previousSetResults,
+                        index = index,
+                        criterionMet = criterionMet,
+                        result = result
+                    )
 
                     LoggingStandardSet(
                         position = index,
@@ -79,21 +83,17 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         val currSetMyoRepResults = myoRepSetResults[set.position]
                         when (set) {
                             is CalculationStandardSet -> {
-                                val weightRecommendation =
-                                    if (criterionMet) {
-                                        lastWeightRecommendation = incrementWeight(
-                                            workoutLift,
-                                            result ?: previousSetResults.last()
-                                        )
-                                        lastWeightRecommendation
-                                    } else if (previousSetResults.isNotEmpty()) {
-                                        lastWeightRecommendation = getFailureWeight(
-                                            workoutLift = workoutLift,
-                                            previousSetResults = previousSetResults,
-                                            position = set.position,
-                                        )
-                                        lastWeightRecommendation
-                                    } else null
+                                val weightRecommendation = getWeightRecommendation(
+                                    workoutLift = workoutLift,
+                                    rpeTarget = set.rpeTarget,
+                                    repRangeTop = set.repRangeTop,
+                                    repRangeBottom = set.repRangeBottom,
+                                    previousSetResults = previousSetResults,
+                                    index = set.position,
+                                    criterionMet = criterionMet,
+                                    result = result,
+                                )
+                                lastWeightRecommendation = weightRecommendation
 
                                 listOf(
                                     LoggingStandardSet(
@@ -110,24 +110,16 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                             }
 
                             is CalculationDropSet -> {
-                                val weightRecommendation = if (criterionMet) {
-                                    lastWeightRecommendation = getDropSetRecommendation(
-                                        workoutLift,
-                                        set,
-                                        previousSetWeight = lastWeightRecommendation
-                                    )
-                                    lastWeightRecommendation
-                                } else {
-                                    getDropSetFailureWeight(
-                                        incrementOverride = workoutLift.incrementOverride,
-                                        repRangeBottom = set.repRangeBottom,
-                                        rpeTarget = set.rpeTarget,
-                                        dropPercentage = set.dropPercentage,
-                                        result = result,
-                                        droppedFromSetResult = nonMyoRepSetResults
-                                            .getOrDefault(set.position - 1, null),
-                                    )
-                                }
+                                val weightRecommendation = getDropSetWeightRecommendation(
+                                    workoutLift = workoutLift,
+                                    set = set,
+                                    result = result,
+                                    criterionMet = criterionMet,
+                                    lastWeightRecommendation = lastWeightRecommendation,
+                                    nonMyoRepSetResults = nonMyoRepSetResults
+                                )
+                                lastWeightRecommendation = weightRecommendation
+
                                 listOf(
                                     LoggingDropSet(
                                         position = set.position,
@@ -146,14 +138,17 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                             is CalculationMyoRepSet -> {
                                 (currSetMyoRepResults?.fastMap {
                                     val myoRepDisplayResult = displayResults["${it.setPosition}-${it.myoRepSetPosition}"]
-                                    val weightRecommendation = if (criterionMet) {
-                                        incrementWeight(workoutLift, it)
-                                    } else {
-                                        getFailureWeight(
-                                            workoutLift = workoutLift,
-                                            previousSetResults = previousSetResults
-                                        )
-                                    }
+                                    val weightRecommendation = getWeightRecommendation(
+                                        workoutLift = workoutLift,
+                                        rpeTarget = set.rpeTarget,
+                                        repRangeTop = set.repRangeTop,
+                                        repRangeBottom = set.repRangeBottom,
+                                        previousSetResults = previousSetResults,
+                                        index = set.position,
+                                        criterionMet = criterionMet,
+                                        result = it
+                                    )
+
                                     LoggingMyoRepSet(
                                         position = set.position,
                                         myoRepSetPosition = it.myoRepSetPosition,
@@ -226,6 +221,85 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         }.flattenWeightRecommendationsGeneric()
     }
 
+    protected fun getDropSetWeightRecommendation(
+        workoutLift: CalculationWorkoutLift,
+        set: CalculationDropSet,
+        result: SetResult?,
+        criterionMet: Boolean,
+        lastWeightRecommendation: Float?,
+        nonMyoRepSetResults: Map<Int, SetResult?>
+    ): Float? {
+
+        val exceededRepRangeTop = if (result != null) {
+            exceededRepRangeTop(
+                repRangeTop = set.repRangeTop,
+                rpeTarget = set.rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
+        } else false
+
+        return when {
+            exceededRepRangeTop -> getCalculatedWeightRecommendation(
+                increment = workoutLift.incrementOverride,
+                repGoal = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                result = result!!
+            )
+            criterionMet -> getDropSetRecommendation(
+                workoutLift,
+                set,
+                previousSetWeight = lastWeightRecommendation
+            )
+            else -> getDropSetFailureWeight(
+                incrementOverride = workoutLift.incrementOverride,
+                repRangeBottom = set.repRangeBottom,
+                rpeTarget = set.rpeTarget,
+                dropPercentage = set.dropPercentage,
+                result = result,
+                droppedFromSetResult = nonMyoRepSetResults.getOrDefault(set.position - 1, null),
+            )
+        }
+    }
+
+    protected fun getWeightRecommendation(
+        workoutLift: CalculationWorkoutLift,
+        rpeTarget: Float,
+        repRangeTop: Int,
+        repRangeBottom: Int,
+        previousSetResults: List<SetResult>,
+        index: Int,
+        criterionMet: Boolean,
+        result: SetResult?
+    ): Float? {
+        val exceededRepRangeTop = if (result != null) {
+            exceededRepRangeTop(
+                repRangeTop = repRangeTop,
+                rpeTarget = rpeTarget,
+                completedReps = result.reps,
+                completedRpe = result.rpe,
+            )
+        } else false
+
+        val weightRecommendation = when {
+            exceededRepRangeTop -> getCalculatedWeightRecommendation(
+                increment = workoutLift.incrementOverride,
+                repGoal = repRangeBottom,
+                rpeTarget = rpeTarget,
+                result = result!!
+            )
+            criterionMet -> incrementWeight(workoutLift, result ?: previousSetResults.last())
+            previousSetResults.isNotEmpty() -> getFailureWeight(
+                workoutLift = workoutLift,
+                previousSetResults = previousSetResults,
+                position = index,
+            )
+            else -> null
+        }
+
+        return weightRecommendation
+    }
+
     protected open fun getFailureWeight(
         workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
@@ -272,7 +346,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         result: SetResult,
     ): Float {
         return if (
-            missedBottomRepRange(
+            missedRepRangeBottom(
                 repRangeBottom = set.repRangeBottom,
                 rpeTarget = set.rpeTarget,
                 completedReps = result.reps,

@@ -14,9 +14,9 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
-import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepContinuationResult
-import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.MyoRepContinuationResult
+import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject

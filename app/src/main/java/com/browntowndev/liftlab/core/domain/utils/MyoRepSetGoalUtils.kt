@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.core.domain.useCase.utils
+package com.browntowndev.liftlab.core.domain.utils
 
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.roundToOneDecimal

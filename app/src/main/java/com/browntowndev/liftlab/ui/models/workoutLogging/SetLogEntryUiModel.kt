@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.ui.models.workoutLogging
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 
 data class SetLogEntryUiModel(
     val id: Long,

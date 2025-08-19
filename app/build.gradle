@@ -41,6 +41,12 @@ android {
             keyAlias RELEASE_KEY_ALIAS
             keyPassword RELEASE_KEY_ALIAS_PASSWORD
         }
+        debug {
+            storeFile file(RELEASE_KEYSTORE_FILE)
+            storePassword RELEASE_KEYSTORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_ALIAS_PASSWORD
+        }
     }
 
     buildTypes {
@@ -53,6 +59,7 @@ android {
         }
 
         debug {
+            signingConfig = signingConfigs.debug
             buildConfigField("boolean", "LOCAL_DEV_BUILD", "true")
             buildConfigField("boolean", "USE_SCRATCH_DB", "true")
         }

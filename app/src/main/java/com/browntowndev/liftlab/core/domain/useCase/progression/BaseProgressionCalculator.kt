@@ -15,10 +15,14 @@ import com.browntowndev.liftlab.core.domain.models.workoutCalculation.Calculatio
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
-import com.browntowndev.liftlab.core.domain.useCase.utils.MyoRepSetGoalUtils
-import com.browntowndev.liftlab.core.domain.useCase.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
+import com.browntowndev.liftlab.core.domain.utils.exceededRepRangeTop
+import com.browntowndev.liftlab.core.domain.utils.missedRepRangeBottom
 
 abstract class BaseProgressionCalculator: ProgressionCalculator {
+    private val defaultIncrement = SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
+
     protected fun getDropSetRecommendation(
         lift: CalculationWorkoutLift,
         set: CalculationDropSet,
@@ -34,20 +38,19 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         previousSetWeight: Float,
         dropPercentage: Float,
     ): Float {
-        val incrementAmount = incrementOverride
-            ?: SettingsManager.getSetting(
-                INCREMENT_AMOUNT,
-                DEFAULT_INCREMENT_AMOUNT
-            )
-
+        val incrementAmount = incrementOverride ?: defaultIncrement
         return (previousSetWeight * (1 - dropPercentage)).roundToNearestFactor(
             incrementAmount
         )
     }
 
     protected fun List<LoggingStandardSet>.flattenWeightRecommendationsStandard(): List<LoggingStandardSet> {
-        // Flattens out weight recommendations for all sets that use the same rep range and RPE target
-        return if (this.distinctBy { it.weightRecommendation }.size > 1) {
+        // Flattens out weight recommendations for all sets that use the same rep range. Not using
+        // RPE because straight sets can have different RPE goals per set
+        val allSameRepRange = this.distinctBy { it.repRangeBottom to it.repRangeTop }.size == 1
+        val hasVaryingWeightRecommendations = this.distinctBy { it.weightRecommendation }.size > 1
+
+        return if (allSameRepRange && hasVaryingWeightRecommendations) {
             // Typically when there's a difference it's because you either added weight or dropped weight by the last set, so use
             // whatever the last weight recommendation is
             val lastSetWithRecommendation = this.filter { it.weightRecommendation != null }.maxByOrNull { it.position }
@@ -73,7 +76,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun missedBottomRepRange(result: SetResult?, goals: CalculationStandardWorkoutLift): Boolean {
         return if (result != null) {
-            missedBottomRepRange(
+            missedRepRangeBottom(
                 repRangeBottom = goals.repRangeBottom,
                 rpeTarget = goals.rpeTarget,
                 completedReps = result.reps,
@@ -84,7 +87,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     private fun missedBottomRepRange(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
         return if (result != null) {
-            missedBottomRepRange(
+            missedRepRangeBottom(
                 repRangeBottom = repRangeBottom,
                 rpeTarget = rpeTarget,
                 completedReps = result.reps,
@@ -93,20 +96,8 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         } else false
     }
 
-    protected fun missedBottomRepRange(
-        repRangeBottom: Int,
-        rpeTarget: Float,
-        completedReps: Int,
-        completedRpe: Float,
-    ): Boolean {
-        val minRepsRequiredConsideringRpe = (repRangeBottom + (10f - rpeTarget).roundToOneDecimal()) - 1
-        val repsConsideringRpe = completedReps + (10f - completedRpe).roundToOneDecimal()
-        return repsConsideringRpe < minRepsRequiredConsideringRpe
-    }
-
     protected fun incrementWeight(lift: CalculationWorkoutLift, prevSet: SetResult): Float {
-        return prevSet.weight + (lift.incrementOverride
-            ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)).toInt()
+        return prevSet.weight + (lift.incrementOverride ?: defaultIncrement).toInt()
     }
 
     protected fun getCalculatedWeightRecommendation(
@@ -115,9 +106,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         rpeTarget: Float,
         result: SetResult
     ): Float {
-        val roundingFactor = (increment
-            ?: SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT))
-
+        val roundingFactor = increment ?: defaultIncrement
         return WeightCalculationUtils.calculateSuggestedWeight(
             completedWeight = result.weight,
             completedReps = result.reps,
@@ -155,6 +144,18 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
             }
     }
 
+    protected fun customSetExceededRepRangeTop(
+        set: CalculationCustomLiftSet,
+        result: SetResult?
+    ): Boolean {
+        return result != null && exceededRepRangeTop(
+            repRangeTop = set.repRangeTop,
+            rpeTarget = set.rpeTarget,
+            completedReps = result.reps,
+            completedRpe = result.rpe,
+        )
+    }
+
     protected fun customSetMeetsCriterion(set: CalculationCustomLiftSet, result: SetResult?, rpeTargetOverride: Float? = null): Boolean {
         if (result == null) return false
         val rpeAdjustedResult = result.reps + (10f - result.rpe).roundToOneDecimal()
@@ -165,7 +166,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
 
     protected fun customSetShouldDecreaseWeight(set: CalculationCustomLiftSet, previousSet: SetResult?): Boolean {
         return if (previousSet != null) {
-            missedBottomRepRange(
+            missedRepRangeBottom(
                 repRangeBottom = set.repRangeBottom,
                 rpeTarget = set.rpeTarget,
                 completedReps = previousSet.reps,
