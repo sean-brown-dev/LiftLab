@@ -18,9 +18,9 @@ import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.core.domain.enums.displayNameShort
+import com.browntowndev.liftlab.ui.composables.button.LabeledCheckBox
 import com.browntowndev.liftlab.ui.composables.text.FloatTextField
 import com.browntowndev.liftlab.ui.composables.text.IntegerTextField
-import com.browntowndev.liftlab.ui.composables.button.LabeledCheckBox
 
 
 @Composable
@@ -143,7 +143,7 @@ fun MyoRepSet(
                 disableSystemKeyboard = true,
                 hideCursor = true,
                 value = rpeTarget,
-                emitOnlyOnLostFocus = true,
+                updateValueWhileFocused = true,
                 label = "RPE Target",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,

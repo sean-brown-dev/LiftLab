@@ -109,8 +109,23 @@ fun IntegerTextField(
                 }
             }
 
-            text = newValue?.toString() ?: raw
+            text = getValidatedIntegerString(
+                raw = raw,
+                rawAsInt = newValue,
+            )
         },
         onPixelOverflowChanged = onPixelOverflowChanged,
     )
+}
+
+private fun getValidatedIntegerString(raw: String, rawAsInt: Int?): String {
+    // If raw is empty, just return it
+    if (raw.isEmpty()) return raw
+
+    // Raw is not empty, but as an integer it is null. Raw is an invalid integer, so drop
+    // the last character added
+    if (rawAsInt == null)  return raw.dropLast(1)
+
+    // Raw had a real integer value, so return the string version
+    return rawAsInt.toString()
 }

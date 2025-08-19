@@ -121,6 +121,7 @@ private fun StandardSettingRow(
             listState = listState,
             disableSystemKeyboard = true,
             hideCursor = true,
+            updateValueWhileFocused = true,
             label = progressionScheme.rpeLabel(),
             onFocusChanged = onToggleRpePicker,
             onValueChanged = onRpeTargetChanged,

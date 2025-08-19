@@ -180,6 +180,7 @@ internal fun SetRow(
             placeholder = rpeTargetPlaceholder,
             disableSystemKeyboard = true,
             hideCursor = true,
+            updateValueWhileFocused = true,
             errorOnEmpty = isEdit,
             onFocusChanged = { toggleRpePicker(it) },
             onPixelOverflowChanged = onAddSpacer,

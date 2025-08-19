@@ -101,6 +101,7 @@ fun DropSet(
                 listState = listState,
                 disableSystemKeyboard = true,
                 hideCursor = true,
+                updateValueWhileFocused = true,
                 value = rpeTarget,
                 label = "RPE Target",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,

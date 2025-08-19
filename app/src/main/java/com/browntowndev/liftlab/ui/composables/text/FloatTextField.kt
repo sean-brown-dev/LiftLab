@@ -30,6 +30,7 @@ fun FloatTextField(
     fontSize: TextUnit = 18.sp,
     value: Float?,
     emitOnlyOnLostFocus: Boolean = false,
+    updateValueWhileFocused: Boolean = false,
     errorOnEmpty: Boolean = true,
     hideCursor: Boolean = false,
     placeholder: String = "",
@@ -60,7 +61,7 @@ fun FloatTextField(
     }
 
     LaunchedEffect(value) {
-        if (!isFocused) {
+        if (!isFocused || updateValueWhileFocused) {
             text = latestValue?.toString()?.removeSuffix(".0") ?: ""
         }
     }

@@ -79,7 +79,7 @@ fun StandardSet(
                 disableSystemKeyboard = true,
                 hideCursor = true,
                 value = rpeTarget,
-                emitOnlyOnLostFocus = true,
+                updateValueWhileFocused = true,
                 label = "RPE Target",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
