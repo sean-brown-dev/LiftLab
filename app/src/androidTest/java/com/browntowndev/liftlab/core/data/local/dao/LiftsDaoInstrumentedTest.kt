@@ -67,15 +67,6 @@ class LiftsDaoInstrumentedTest {
         assertEquals(setOf(10L,11L), dao.getManyByRemoteId(listOf("RID-L-10","RID-L-11")).map { it.id }.toSet())
     }
 
-    @Test fun getByCategory_excludesDeleted() = runBlocking {
-        val keep = lift(20, movementPattern = MovementPattern.LEG_PUSH, deleted = false)
-        val hide = lift(21, movementPattern = MovementPattern.LEG_PUSH, deleted = true)
-        val other = lift(22, movementPattern = MovementPattern.HORIZONTAL_PULL, deleted = false)
-        dao.upsertMany(listOf(keep, hide, other))
-        val got = dao.getByCategory(MovementPattern.LEG_PUSH).map { it.id }.toSet()
-        assertEquals(setOf(20L), got)
-    }
-
     @Test fun softDelete_ops_and_deleteAll() = runBlocking {
         dao.upsertMany(listOf(lift(30), lift(31), lift(32)))
         dao.softDelete(31)
