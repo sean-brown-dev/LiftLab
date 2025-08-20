@@ -267,7 +267,10 @@ fun WorkoutLiftCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    TextButton(onClick = onAddSet) {
+                    TextButton(
+                        modifier = Modifier.testTag("add-set-button-${workoutLift.id}"),
+                        onClick = onAddSet
+                    ) {
                         Text(text = "Add Set", color = MaterialTheme.colorScheme.primary)
                     }
                 }

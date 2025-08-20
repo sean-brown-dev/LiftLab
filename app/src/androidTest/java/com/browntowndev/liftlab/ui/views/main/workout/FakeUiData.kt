@@ -1,8 +1,11 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
-import com.browntowndev.liftlab.ui.models.workoutLogging.*
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingStandardSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 import kotlin.time.Duration.Companion.seconds
 
 object FakeUiData {
@@ -61,6 +64,7 @@ object FakeUiData {
             incrementOverride = null,
             restTime = 90.seconds,
             restTimerEnabled = false,
+            isCustom = false,
             sets = sets
         )
 

@@ -2,12 +2,9 @@ package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithTag
 import org.junit.Rule
 import org.junit.Test
 

@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
