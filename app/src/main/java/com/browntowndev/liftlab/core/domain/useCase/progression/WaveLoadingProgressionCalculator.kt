@@ -79,7 +79,7 @@ class WaveLoadingProgressionCalculator(
             decrementForNewMicrocycle(workoutLift, result)
         } else if (!recalculateWeight) {
             incrementWeight(workoutLift, result)
-        } else if (reps != null) {
+        } else {
             val rpeTarget = getRpeTarget(
                 setIndex = result.setPosition,
                 setCount = workoutLift.setCount,
@@ -92,7 +92,7 @@ class WaveLoadingProgressionCalculator(
                 rpeTarget = rpeTarget,
                 result = result,
             )
-        } else null
+        }
     }
 
     private fun getRepsForMicrocycle(repRangeBottom: Int, repRangeTop: Int, microCycle: Int, deloadWeek: Int, stepSize: Int?): Int {

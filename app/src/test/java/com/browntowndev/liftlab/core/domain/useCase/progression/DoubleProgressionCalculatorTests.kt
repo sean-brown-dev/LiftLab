@@ -17,6 +17,7 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
@@ -32,6 +33,7 @@ class DoubleProgressionCalculatorTests {
     @BeforeEach
     fun setup() {
         mockkObject(SettingsManager)
+        mockkObject(WeightCalculationUtils)
         every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
         every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
 
@@ -41,6 +43,7 @@ class DoubleProgressionCalculatorTests {
     @AfterEach
     fun tearDown() {
         unmockkObject(SettingsManager)
+        unmockkObject(WeightCalculationUtils)
     }
 
     // -------------------- STANDARD (DEFAULT RULES) --------------------
@@ -520,17 +523,21 @@ class DoubleProgressionCalculatorTests {
         )
         // Exceed on top set at RPE 8, others meet their caps (9, 10)
         val data = listOf(
-            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 100f, reps = 8, rpe = 6f, setType = SetType.STANDARD, isDeload = false),
-            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 1, weight = 100f, reps = 8, rpe = 7f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 100f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
+            StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 1, weight = 100f, reps = 8, rpe = 9f, setType = SetType.STANDARD, isDeload = false),
             StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 100f, reps = 8, rpe = 7.5f, setType = SetType.STANDARD, isDeload = false),
         )
+
+        val calls = mutableListOf<CalcCall>()
+        stubWeightCalcReturns(listOf(200f), calls)
 
         val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
 
         // Expect a recalculated value greater than 105
         result.fastForEach { p ->
-            assert(p.weightRecommendation!! > 105f)
+            assertEquals(200f, p.weightRecommendation)
         }
+        assertEquals(1, calls.size)
     }
 
     @Test
@@ -549,9 +556,13 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 75f, reps = 8, rpe = 10f, setType = SetType.STANDARD, isDeload = false),
         )
 
+        val calls = mutableListOf<CalcCall>()
+        stubWeightCalcReturns(listOf(100f, 100f, 100f), calls)
+
         val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
         // Should remain the usual increment when goals are otherwise met
         result.fastForEach { p -> assertEquals(80f, p.weightRecommendation) }
+        assertEquals(0, calls.size)
     }
 
     @Test
@@ -567,9 +578,13 @@ class DoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 0, weight = 50f, reps = 20, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
         )
 
+        val calls = mutableListOf<CalcCall>()
+        stubWeightCalcReturns(listOf(100f), calls)
+
         val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
         result.fastForEach { p ->
-            assert(p.weightRecommendation!! > 55f)
+            assertEquals(100f, p.weightRecommendation)
         }
+        assertEquals(1, calls.size)
     }
 }

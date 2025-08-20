@@ -16,6 +16,7 @@ import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.SetType
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.StandardSetResult
+import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
@@ -31,6 +32,7 @@ class DynamicDoubleProgressionCalculatorTests {
     @BeforeEach
     fun setup() {
         mockkObject(SettingsManager)
+        mockkObject(WeightCalculationUtils)
         every { SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT) } returns DEFAULT_INCREMENT_AMOUNT
         every { SettingsManager.getSetting(REST_TIME, DEFAULT_REST_TIME) } returns DEFAULT_REST_TIME
 
@@ -40,6 +42,7 @@ class DynamicDoubleProgressionCalculatorTests {
     @AfterEach
     fun tearDown() {
         unmockkObject(SettingsManager)
+        unmockkObject(WeightCalculationUtils)
     }
 
     @Test
@@ -1115,9 +1118,15 @@ class DynamicDoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 95f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
         )
 
+        val calls = mutableListOf<CalcCall>()
+        stubWeightCalcReturns(listOf(200f, 300f, 400f), calls)
+
         val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
         // DynamicDoubleProgression explicitly triggers recalc when exceededRepRangeTop(...) OR missed bottom
-        assert(95f < result[0].weightRecommendation!!)
+        assertEquals(200f, result[0].weightRecommendation)
+        assertEquals(100f, result[1].weightRecommendation)
+        assertEquals(100f, result[2].weightRecommendation)
+        assertEquals(1, calls.size)
     }
 
     @Test
@@ -1135,6 +1144,9 @@ class DynamicDoubleProgressionCalculatorTests {
             StandardSetResult(workoutId = 0, liftId = 0, liftPosition = 0, setPosition = 2, weight = 70f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false),
         )
 
+        val calls = mutableListOf<CalcCall>()
+        stubWeightCalcReturns(listOf(200f, 200f, 200f), calls)
+
         val result = calculator.calculate(lift.toCalculationDomainModel(), data, data, false)
         // Should follow the "goals met -> increment" path since the exceed didn't count (cap violated)
         result.fastForEach { p ->
@@ -1144,5 +1156,6 @@ class DynamicDoubleProgressionCalculatorTests {
                 2 -> assertEquals(75f, p.weightRecommendation)
             }
         }
+        assertEquals(0, calls.size)
     }
 }
