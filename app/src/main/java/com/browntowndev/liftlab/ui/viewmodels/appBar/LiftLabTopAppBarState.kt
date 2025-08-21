@@ -9,8 +9,6 @@ import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 data class LiftLabTopAppBarState(
     val currentScreen: Screen? = null,
     val isCollapsed: Boolean = false,
-    val timeStartedInMillis: Long? = null,
-    val totalRestTime: Long? = null,
 ) {
     val isOverflowMenuIconVisible: Boolean
         get() = currentScreen?.isOverflowMenuIconVisible == true

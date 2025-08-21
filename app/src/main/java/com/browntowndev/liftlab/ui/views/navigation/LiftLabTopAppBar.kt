@@ -29,17 +29,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.composables.component.ProgressCountdownTimer
-import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.appBar.CountdownTimerState
 import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
-import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLabTopAppBar(
     state: LiftLabTopAppBarState,
+    timerState: CountdownTimerState,
     modifier: Modifier = Modifier,
-    topAppBarViewModel: TopAppBarViewModel = koinViewModel(),
     scrollBehavior: TopAppBarScrollBehavior,
+    onCancelRestTimer: () -> Unit,
+    onSetControlVisibility: (String, Boolean) -> Unit,
+    onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit
 ) {
     val transition = updateTransition(targetState = state.isCollapsed, label = "appBarTransition")
 
@@ -56,16 +59,23 @@ fun LiftLabTopAppBar(
     if (state.isCollapsed) {
         LiftLabSmallTopAppBar(
             modifier = modifier.alpha(appBarAlpha),
-            topAppBarViewModel = topAppBarViewModel,
             state = state,
+            timerState = timerState,
+            scrollBehavior = scrollBehavior,
+            onCancelRestTimer = onCancelRestTimer,
+            onSetControlVisibility = onSetControlVisibility,
+            onMutateControlValue = onMutateControlValue,
         )
     }
     else {
         LiftLabLargeTopAppBar(
             modifier = modifier.alpha(1f - appBarAlpha),
             scrollBehavior = scrollBehavior,
-            topAppBarViewModel = topAppBarViewModel,
             state = state,
+            timerState = timerState,
+            onCancelRestTimer = onCancelRestTimer,
+            onSetControlVisibility = onSetControlVisibility,
+            onMutateControlValue = onMutateControlValue,
         )
     }
 
@@ -78,9 +88,12 @@ fun LiftLabTopAppBar(
 @Composable
 private fun LiftLabLargeTopAppBar(
     state: LiftLabTopAppBarState,
+    timerState: CountdownTimerState,
     modifier: Modifier = Modifier,
-    topAppBarViewModel: TopAppBarViewModel = koinViewModel(),
-    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
+    onCancelRestTimer: () -> Unit,
+    onSetControlVisibility: (String, Boolean) -> Unit,
+    onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit
 ) {
     LargeTopAppBar(
         modifier = modifier,
@@ -93,17 +106,19 @@ private fun LiftLabLargeTopAppBar(
         },
         title = {
             Title(
-                topAppBarViewModel = topAppBarViewModel,
                 state = state,
+                timerState = timerState,
                 titleFontSize = 32.sp,
                 subtitleFontSize = 18.sp,
+                onCancelRestTimer = onCancelRestTimer,
             )
         },
         actions = {
             ActionsMenu(
                 topAppBarState = state,
-                topAppBarViewModel = topAppBarViewModel,
                 maxVisibleItems = 3,
+                onSetControlVisibility = onSetControlVisibility,
+                onMutateControlValue = onMutateControlValue
             )
         },
         scrollBehavior = scrollBehavior
@@ -114,9 +129,12 @@ private fun LiftLabLargeTopAppBar(
 @Composable
 private fun LiftLabSmallTopAppBar(
     state: LiftLabTopAppBarState,
+    timerState: CountdownTimerState,
     modifier: Modifier = Modifier,
-    topAppBarViewModel: TopAppBarViewModel = koinViewModel(),
     scrollBehavior: TopAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior { false },
+    onCancelRestTimer: () -> Unit,
+    onSetControlVisibility: (String, Boolean) -> Unit,
+    onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit
 ) {
     TopAppBar(
         modifier = modifier,
@@ -130,15 +148,17 @@ private fun LiftLabSmallTopAppBar(
         },
         title = {
             Title(
-                topAppBarViewModel = topAppBarViewModel,
                 state = state,
+                timerState = timerState,
+                onCancelRestTimer = onCancelRestTimer,
             )
         },
         actions = {
             ActionsMenu(
                 topAppBarState = state,
-                topAppBarViewModel = topAppBarViewModel,
                 maxVisibleItems = 3,
+                onSetControlVisibility = onSetControlVisibility,
+                onMutateControlValue = onMutateControlValue,
             )
         },
     )
@@ -169,10 +189,11 @@ private fun NavigationIcon(state: LiftLabTopAppBarState) {
 
 @Composable
 private fun Title(
-    topAppBarViewModel: TopAppBarViewModel,
     state: LiftLabTopAppBarState,
+    timerState: CountdownTimerState,
     titleFontSize: TextUnit = 25.sp,
     subtitleFontSize: TextUnit = 14.sp,
+    onCancelRestTimer: () -> Unit,
 ) {
     if (state.title.isNotEmpty()) {
         Column {
@@ -194,11 +215,13 @@ private fun Title(
             contentAlignment = Alignment.CenterStart,
         ) {
             ProgressCountdownTimer(
-                timeStartedInMillis = state.timeStartedInMillis,
-                countDownFrom = state.totalRestTime,
-            ) {
-                topAppBarViewModel.completeRestTimer()
-            }
+                running = timerState.running,
+                progress = timerState.progress,
+                timeRemaining = timerState.timeRemaining,
+                onCancel = {
+                    onCancelRestTimer()
+                }
+            )
             Icon(
                 modifier = Modifier.size(25.dp),
                 painter = painterResource(id = R.drawable.stopwatch_icon),

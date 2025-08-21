@@ -14,7 +14,6 @@ import com.browntowndev.liftlab.ui.viewmodels.picker.PickerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.remoteSync.RemoteSyncViewModel
 import com.browntowndev.liftlab.ui.viewmodels.settings.SettingsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.startup.StartupViewModel
-import com.browntowndev.liftlab.ui.viewmodels.timer.CountdownTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.timer.DurationTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
@@ -112,11 +111,6 @@ val viewModelModule = module {
             eventBus = get()
         )
     }
-    factory { params ->
-        CountdownTimerViewModel(
-            liftLabTimer = get(CountdownTimer),
-            onComplete = params.get())
-    }
     factory {
         DurationTimerViewModel(liftLabTimer = get(DurationTimer))
     }
@@ -161,9 +155,17 @@ val viewModelModule = module {
         )
     }
 
+    factory {
+        TopAppBarViewModel(
+            context = get(),
+            getRestTimerInProgressFlowUseCase = get(),
+            restTimerCompletedUseCase = get(),
+            liftLabTimer = get(CountdownTimer)
+        )
+    }
+
     viewModelOf(::DonationViewModel)
     viewModelOf(::LabViewModel)
-    viewModelOf(::TopAppBarViewModel)
     viewModelOf(::BottomNavBarViewModel)
     viewModelOf(::PickerViewModel)
     viewModelOf(::StartupViewModel)

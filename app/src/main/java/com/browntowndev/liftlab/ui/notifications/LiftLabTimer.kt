@@ -32,8 +32,7 @@ class LiftLabTimer {
         Log.d("LiftLabTimer", "start: Started on main thread.")
         // Kill any existing timer first
         timer?.let {
-            it.cancel()
-            _isRunning.value = false
+            cancel()
             Log.d("LiftLabTimer", "start: Timer cancelled.")
         }
 

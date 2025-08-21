@@ -20,15 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import arrow.core.Either
 import com.android.billingclient.api.ProductDetails
-import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
 import com.browntowndev.liftlab.ui.composables.LiftLabSnackbar
+import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.theme.LiftLabTheme
-import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.donation.DonationState
 import com.browntowndev.liftlab.ui.views.navigation.BottomNavigation
 import com.browntowndev.liftlab.ui.views.navigation.LiftLabTopAppBar
@@ -71,10 +72,12 @@ fun LiftLab(
             val bottomNavBarViewModel: BottomNavBarViewModel = koinViewModel()
             val topAppBarViewModel: TopAppBarViewModel = koinViewModel()
             val liftLabTopAppBarState by topAppBarViewModel.state.collectAsState()
+            val timerState by topAppBarViewModel.timerState.collectAsStateWithLifecycle()
             val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
             val topAppBarState = rememberTopAppBarState()
             val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
             val snackbarHostState = remember { SnackbarHostState() }
+
             Scaffold(
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 bottomBar = {
@@ -86,7 +89,11 @@ fun LiftLab(
                 topBar = {
                     LiftLabTopAppBar(
                         state = liftLabTopAppBarState,
+                        timerState = timerState,
                         scrollBehavior = scrollBehavior,
+                        onCancelRestTimer = topAppBarViewModel::cancelRestTimer,
+                        onSetControlVisibility = topAppBarViewModel::setControlVisibility,
+                        onMutateControlValue = topAppBarViewModel::mutateControlValue,
                     )
                 },
                 snackbarHost = {

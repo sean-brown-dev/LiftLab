@@ -22,50 +22,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.viewmodels.timer.CountdownTimerViewModel
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
 fun ProgressCountdownTimer(
-    timeStartedInMillis: Long? = null,
-    countDownFrom: Long? = null,
-    onComplete: () -> Unit,
+    running: Boolean,
+    progress: Float,
+    timeRemaining: String,
+    onCancel: () -> Unit,
 ) {
-    val viewModel: CountdownTimerViewModel = koinViewModel {
-        parametersOf(
-            onComplete,
-        )
-    }
-    val state by viewModel.state.collectAsState()
     val animatedProgress by animateFloatAsState(
-        targetValue = state.progress,
+        targetValue = progress,
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
         label = "Rest Timer Progress"
     )
 
-    val context = LocalContext.current
-    LaunchedEffect(key1 = timeStartedInMillis, key2 = countDownFrom, key3 = state.running) {
-        if (countDownFrom != null && timeStartedInMillis != null) {
-            viewModel.start(context, timeStartedInMillis, countDownFrom)
-        } else {
-            viewModel.cancel()
-        }
-    }
-
     AnimatedVisibility(
-        visible = state.running,
+        visible = running,
         enter = expandHorizontally(
             expandFrom = Alignment.Start,
             animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
@@ -95,13 +75,13 @@ fun ProgressCountdownTimer(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(modifier = Modifier.width(30.dp))
-                Text(text = state.timeRemaining)
+                Text(text = timeRemaining)
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
                     modifier = Modifier
                         .size(28.dp)
                         .clickable {
-                            viewModel.cancel()
+                            onCancel()
                         },
                     painter = painterResource(id = R.drawable.skip_icon),
                     contentDescription = null,

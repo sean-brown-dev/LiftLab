@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.viewmodels.timer
+package com.browntowndev.liftlab.ui.viewmodels.appBar
 
 import androidx.compose.runtime.Stable
 import com.browntowndev.liftlab.core.common.toTimeString
@@ -6,19 +6,19 @@ import kotlin.math.absoluteValue
 
 @Stable
 data class CountdownTimerState(
+    val startDurationInMillis: Long? = null,
+    val millisRemaining: Long? = null,
+    val startTimeInMillis: Long? = null,
     val running: Boolean = false,
-    val startDurationInMillis: Long = 0L,
-    val millisRemaining: Long = 0L,
-    val startTimeInMillis: Long = 0L,
 ) {
     val timeRemaining: String by lazy {
-        millisRemaining.toTimeString()
+        millisRemaining?.toTimeString() ?: ""
     }
+
     val progress: Float by lazy {
-        if(startDurationInMillis > 0L) {
+        if (millisRemaining == null || startDurationInMillis == null) 0f
+        else {
             ((millisRemaining.toFloat() / startDurationInMillis) - 1).absoluteValue
-        } else {
-            0f
         }
     }
 }

@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.ui.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.browntowndev.liftlab.core.common.executeInCoroutineScope
 import com.browntowndev.liftlab.core.domain.repositories.RestTimerInProgressRepository
 import org.koin.core.context.GlobalContext.get
@@ -13,11 +14,14 @@ class RestTimerCompletedReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d("RestTimerCompletedReceiver", "onReceive() action=${intent.action}")
         if (intent.action != ACTION) return
 
         executeInCoroutineScope {
             val repo: RestTimerInProgressRepository = get().get()
             repo.deleteAll()
+            Log.d("RestTimerCompletedReceiver", "Rest timers all deleted")
+
         }
     }
 }
