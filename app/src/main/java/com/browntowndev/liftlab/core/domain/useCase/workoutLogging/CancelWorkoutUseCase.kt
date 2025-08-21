@@ -16,7 +16,7 @@ class CancelWorkoutUseCase(
         workout: LoggingWorkout,
     ) = transactionScope.execute {
         // Remove the workoutEntity from in progress
-        workoutInProgressRepository.deleteAll()
+        workoutInProgressRepository.delete()
 
         // Delete all set results from the workoutEntity
         liveWorkoutCompletedSetsRepository.deleteAll()

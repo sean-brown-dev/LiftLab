@@ -26,9 +26,8 @@ import java.util.Date
     ]
 )
 data class WorkoutInProgressEntity(
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo("workout_in_progress_id")
-    val id: Long = 0,
+    @PrimaryKey @ColumnInfo("workout_in_progress_id")
+    val id: Long = 1,
     val workoutId: Long,
     val startTime: Date,
 ) : BaseEntity()

@@ -181,7 +181,7 @@ class BaseWorkoutViewModelTest {
         // Cause the onUpsertSetResult callback to be invoked
         coEvery {
             completeSetUseCase(
-                restTime = any(),
+                restTimeInMillis = any(),
                 restTimerEnabled = any(),
                 result = any(),
                 existingSetResults = any(),

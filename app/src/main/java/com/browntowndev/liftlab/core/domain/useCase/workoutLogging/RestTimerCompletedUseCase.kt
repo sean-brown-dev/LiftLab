@@ -8,6 +8,6 @@ class RestTimerCompletedUseCase(
     private val transactionScope: TransactionScope,
 ) {
     suspend operator fun invoke() = transactionScope.execute {
-        restTimerInProgressRepository.deleteAll()
+        restTimerInProgressRepository.delete()
     }
 }

@@ -19,7 +19,7 @@ class RestTimerCompletedReceiver : BroadcastReceiver() {
 
         executeInCoroutineScope {
             val repo: RestTimerInProgressRepository = get().get()
-            repo.deleteAll()
+            repo.delete()
             Log.d("RestTimerCompletedReceiver", "Rest timers all deleted")
 
         }

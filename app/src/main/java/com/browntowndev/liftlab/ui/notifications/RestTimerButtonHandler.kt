@@ -30,7 +30,7 @@ class RestTimerButtonHandler: BroadcastReceiver() {
                         val notificationHelper: NotificationHelper = koin.get()
                         val restTimerRepository: RestTimerInProgressRepository = koin.get()
 
-                        restTimerRepository.deleteAll()
+                        restTimerRepository.delete()
 
                         val restTimerIntent = Intent(appContext, RestTimerNotificationService::class.java)
                         appContext.stopService(restTimerIntent)

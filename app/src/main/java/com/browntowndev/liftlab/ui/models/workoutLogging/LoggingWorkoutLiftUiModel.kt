@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.models.workoutLogging
 
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.displayName
 import kotlin.time.Duration
 
 data class LoggingWorkoutLiftUiModel(
@@ -22,4 +23,5 @@ data class LoggingWorkoutLiftUiModel(
     val isCustom: Boolean,
 ) {
     val setCount get() = sets.size
+    val movementPatternDisplayName: String get() = liftMovementPattern.displayName()
 }

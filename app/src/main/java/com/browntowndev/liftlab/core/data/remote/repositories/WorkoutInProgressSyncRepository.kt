@@ -1,12 +1,11 @@
 package com.browntowndev.liftlab.core.data.remote.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.remote.dto.WorkoutInProgressRemoteDto
-import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
 import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.mapping.toRemoteDto
-import kotlin.collections.map
+import com.browntowndev.liftlab.core.data.remote.dto.WorkoutInProgressRemoteDto
+import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import kotlin.reflect.KClass
 
 class WorkoutInProgressSyncRepository(
@@ -16,7 +15,9 @@ class WorkoutInProgressSyncRepository(
     override val remoteDtoClass: KClass<WorkoutInProgressRemoteDto> = WorkoutInProgressRemoteDto::class
 
     override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<WorkoutInProgressRemoteDto> =
-        workoutInProgressDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
+        workoutInProgressDao.get().let {
+            if (it != null) listOf(it.toRemoteDto()) else emptyList()
+        }
 
     override suspend fun getAllUnsyncedTyped(): List<WorkoutInProgressRemoteDto> =
         workoutInProgressDao.getAllUnsynced().map { it.toRemoteDto() }
@@ -34,13 +35,10 @@ class WorkoutInProgressSyncRepository(
             }
 
     override suspend fun deleteByRemoteId(remoteId: String): Int {
-        val toDelete = workoutInProgressDao.getByRemoteId(remoteId) ?: return 0
-        return workoutInProgressDao.delete(toDelete)
+        return workoutInProgressDao.delete()
     }
 
     override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
-        val toDelete = workoutInProgressDao.getManyByRemoteId(remoteIds)
-        if (toDelete.isEmpty()) return 0
-        return workoutInProgressDao.deleteMany(toDelete)
+        return workoutInProgressDao.delete()
     }
 }

@@ -4,7 +4,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 
-class LiftNoteMigration: Migration(11, 12) {
+val LiftNoteMigration = object: Migration(11, 12) {
     override fun migrate(db: SupportSQLiteDatabase) {
         if (!columnExists(db)) {
             db.execSQL("ALTER TABLE lifts ADD COLUMN note TEXT")

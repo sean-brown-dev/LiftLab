@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.local.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-class RemoteSyncMigration: Migration(15, 16) {
+val RemoteSyncMigration = object: Migration(15, 16) {
     override fun migrate(db: SupportSQLiteDatabase) {
         val tablesToUpdate = listOf(
             "sets", "historicalWorkoutNames", "liftMetricCharts",

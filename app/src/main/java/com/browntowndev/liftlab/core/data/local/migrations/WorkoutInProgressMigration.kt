@@ -3,7 +3,7 @@ package com.browntowndev.liftlab.core.data.local.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-class WorkoutInProgressMigration: Migration(14,15) {
+val WorkoutInProgressMigration = object: Migration(14,15) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // 1. Create new table with FK + index
         db.execSQL(

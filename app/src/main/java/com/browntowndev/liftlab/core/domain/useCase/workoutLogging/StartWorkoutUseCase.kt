@@ -14,7 +14,7 @@ class StartWorkoutUseCase(
         val inProgressWorkout = WorkoutInProgressUiModel(
             startTime = getCurrentDate(),
         )
-        workoutInProgressRepository.insert(
+        workoutInProgressRepository.upsert(
             inProgressWorkout.toDomainModel(
                 workoutId
             )

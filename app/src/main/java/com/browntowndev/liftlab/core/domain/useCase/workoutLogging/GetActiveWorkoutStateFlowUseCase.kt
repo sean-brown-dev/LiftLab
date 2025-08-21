@@ -20,10 +20,7 @@ class GetActiveWorkoutStateFlowUseCase(
             .flatMapLatest { programMetadata ->
                 if (programMetadata == null) flowOf(ActiveWorkoutState())
                 else {
-                    val workoutInProgressFlow = workoutInProgressRepository.getFlow(
-                        programMetadata.currentMesocycle,
-                        programMetadata.currentMicrocycle
-                    )
+                    val workoutInProgressFlow = workoutInProgressRepository.getFlow()
                     combine(
                         workoutInProgressFlow,
                         getWorkoutStateFlowUseCase(programMetadata),

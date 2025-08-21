@@ -26,7 +26,7 @@ class UndoSetCompletionUseCase(
             } ?: return@execute
 
         if (workoutInProgressRepository.isWorkoutInProgress(setResultToDelete.workoutId)) {
-            restTimerInProgressRepository.deleteAll()
+            restTimerInProgressRepository.delete()
         }
 
         onDeleteSetResult(setResultToDelete.id)

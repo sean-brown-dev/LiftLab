@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,7 +41,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.core.common.insertSuperscript
-import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
 import com.browntowndev.liftlab.ui.composables.icon.CircledTextIcon
 import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
@@ -81,9 +81,10 @@ fun WorkoutPreview(
         ) {
             LazyColumn(
                 modifier = modifier.then(Modifier
-                    .padding(paddingValues)
+                    .consumeWindowInsets(paddingValues)
                     .fillMaxSize()
                     .background(color = MaterialTheme.colorScheme.background)),
+                contentPadding = paddingValues,
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top,
             ) {
@@ -155,10 +156,7 @@ fun WorkoutPreview(
                         color = MaterialTheme.colorScheme.tertiary
                     )
                 }
-                items(lifts) { lift ->
-                    val movementPatternDisplayName =remember(lift.liftMovementPattern) {
-                        lift.liftMovementPattern.displayName()
-                    }
+                items(lifts, key = { it.id }) { lift ->
                     val liftFirstLetter = remember(lift.liftName) { lift.liftName[0].toString() }
                     val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSetUiModel } }
                     val liftNameWithSetCount = remember(key1 = lift.setCount, key2 = lift.liftName) {
@@ -170,7 +168,7 @@ fun WorkoutPreview(
                         else setCountAndName
                     }
                     ListItem(
-                        headlineContent = { Text(movementPatternDisplayName, fontSize = 20.sp) },
+                        headlineContent = { Text(text = lift.movementPatternDisplayName, fontSize = 20.sp) },
                         supportingContent = {
                             if (liftNameWithSetCount is AnnotatedString)
                                 Text(liftNameWithSetCount, fontSize = 15.sp)

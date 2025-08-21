@@ -10,11 +10,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -96,8 +98,10 @@ fun WorkoutLog(
             LazyColumn(
                 modifier = modifier.then(Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)),
+                    .consumeWindowInsets(paddingValues)
+                    .background(MaterialTheme.colorScheme.background)),
                 state = lazyListState,
+                contentPadding = paddingValues,
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {

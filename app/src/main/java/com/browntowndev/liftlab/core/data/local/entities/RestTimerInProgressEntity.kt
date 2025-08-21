@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName="restTimerInProgress")
 data class RestTimerInProgressEntity(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("rest_timer_in_progress_id")
-    val id: Long = 0,
+    @PrimaryKey @ColumnInfo("rest_timer_in_progress_id")
+    val id: Long = 1,
     val timeStartedInMillis: Long,
     val restTime: Long,
 )

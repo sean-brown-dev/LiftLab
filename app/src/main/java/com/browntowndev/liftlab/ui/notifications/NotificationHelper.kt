@@ -32,7 +32,6 @@ import com.browntowndev.liftlab.ui.utils.RestTimerNotification.ALERT_CHANNEL_NAM
 import com.browntowndev.liftlab.ui.utils.RestTimerNotification.ALERT_NOTIFICATION_ID
 import com.browntowndev.liftlab.ui.utils.RestTimerNotification.ALERT_TEXT
 import com.browntowndev.liftlab.ui.utils.RestTimerNotification.ALERT_TITLE
-import kotlinx.coroutines.flow.firstOrNull
 
 class NotificationHelper(
     private val programRepository: ProgramsRepository,
@@ -102,10 +101,7 @@ class NotificationHelper(
 
     suspend fun getActiveWorkoutMetadata(): ActiveWorkoutNotificationMetadata? {
         return programRepository.getActive()?.let { activeProgramMetadata ->
-            val workoutInProgress = workoutInProgressRepository.getFlow(
-                mesoCycle = activeProgramMetadata.currentMesocycle,
-                microCycle = activeProgramMetadata.currentMicrocycle,
-            ).firstOrNull()
+            val workoutInProgress = workoutInProgressRepository.get()
 
             if (workoutInProgress != null) {
                 val workout = workoutsRepository.getById(workoutInProgress.workoutId) ?: return null
@@ -217,7 +213,7 @@ class NotificationHelper(
     suspend fun stopActiveNotifications(context: Context) {
         if (isActive(context, RestTimerNotificationService.NOTIFICATION_ID)) {
             if (getRestTimeRemaining() <= 0L) {
-                restTimerInProgressRepository.deleteAll()
+                restTimerInProgressRepository.delete()
             }
 
             val restTimerIntent = Intent(context, RestTimerNotificationService::class.java)

@@ -290,7 +290,7 @@ abstract class BaseWorkoutViewModel(
     fun completeSet(restTime: Long, restTimerEnabled: Boolean, onBuildSetResult: () -> SetResultUiModel, onError: () -> Unit = {}) = executeWithErrorHandling("Failed to complete set") {
             try {
                 completeSetUseCase(
-                    restTime = restTime,
+                    restTimeInMillis = restTime,
                     restTimerEnabled = restTimerEnabled,
                     result = onBuildSetResult().toDomainModel(),
                     existingSetResults = mutableWorkoutState.value.completedSets.fastMap { it.toDomainModel() },

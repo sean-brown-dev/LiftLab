@@ -43,7 +43,7 @@ class CompleteWorkoutUseCase(
         completedSets: List<SetResult>,
         isDeloadWeek: Boolean,
     ) = transactionScope.execute {
-        restTimerInProgressRepository.deleteAll()
+        restTimerInProgressRepository.delete()
 
         val startTimeInMillis = inProgressWorkout.startTime.time
         val durationInMillis = (getCurrentDate().time - startTimeInMillis)
@@ -116,7 +116,7 @@ class CompleteWorkoutUseCase(
             workout = workout,
         )
 
-        workoutInProgressRepository.deleteAll()
+        workoutInProgressRepository.delete()
     }
 
     private suspend fun moveSetResultsToLogHistory(

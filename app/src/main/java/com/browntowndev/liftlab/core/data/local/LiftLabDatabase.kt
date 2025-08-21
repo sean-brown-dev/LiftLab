@@ -41,6 +41,7 @@ import com.browntowndev.liftlab.core.data.local.migrations.LiftNoteMigration
 import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxAutoMigration
 import com.browntowndev.liftlab.core.data.local.migrations.RemoteSyncMigration
 import com.browntowndev.liftlab.core.data.local.migrations.SetResultsMigration
+import com.browntowndev.liftlab.core.data.local.migrations.StablePrimaryKeyMigration
 import com.browntowndev.liftlab.core.data.local.migrations.StepSizeAutoMigration
 import com.browntowndev.liftlab.core.data.local.migrations.ViewsAutoMigration
 import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigration
@@ -75,7 +76,7 @@ import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
         LiveCustomLiftSetView::class,
         LiveLiftView::class,
     ],
-    version = 18,
+    version = 19,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -139,11 +140,13 @@ abstract class LiftLabDatabase : RoomDatabase() {
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, dbName)
                 .addMigrations(
-                    LiftNoteMigration(),
-                    WorkoutInProgressMigration(),
-                    RemoteSyncMigration(),
-                    ViewsAutoMigration(),
-                    SetResultsMigration())
+                    LiftNoteMigration,
+                    WorkoutInProgressMigration,
+                    RemoteSyncMigration,
+                    ViewsAutoMigration,
+                    SetResultsMigration,
+                    StablePrimaryKeyMigration
+                )
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {
                         it.addCallback(populateInitialData)

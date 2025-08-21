@@ -172,7 +172,7 @@ class EditWorkoutViewModelTest {
         // When completeSetUseCase is called, immediately call the provided onUpsertSetResult lambda
         coEvery {
             completeSetUseCase(
-                restTime = any(),
+                restTimeInMillis = any(),
                 restTimerEnabled = any(),
                 result = any(),
                 existingSetResults = any(),
