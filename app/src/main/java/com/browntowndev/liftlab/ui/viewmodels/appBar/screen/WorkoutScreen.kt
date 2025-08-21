@@ -114,7 +114,7 @@ data class WorkoutScreen(
     override val actions: List<ActionMenuItem> by derivedStateOf {
         listOf(
             ActionMenuItem.TimerMenuItem.AlwaysShown(
-                isVisible = true,//restTimerControlVisible,
+                isVisible = restTimerControlVisible,
                 controlName = REST_TIMER,
                 started = restTimerRunning,
                 countDownStartedFrom = restTime,

@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.viewmodels.appBar
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.util.fastAny
 import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 
@@ -44,5 +45,5 @@ data class LiftLabTopAppBarState(
         get() = currentScreen?.actions ?: listOf()
 
     val screenHasRestTimer: Boolean
-        get() = currentScreen?.actions?.filterIsInstance<ActionMenuItem.TimerMenuItem>()?.isNotEmpty() == true
+        get() = currentScreen?.actions?.filterIsInstance<ActionMenuItem.TimerMenuItem.AlwaysShown>()?.fastAny { it.isVisible } == true
 }

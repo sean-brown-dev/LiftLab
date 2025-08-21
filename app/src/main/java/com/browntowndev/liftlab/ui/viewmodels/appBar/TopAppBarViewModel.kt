@@ -163,6 +163,7 @@ class TopAppBarViewModel(
     }
 
     fun setControlVisibility(controlName: String, isVisible: Boolean) {
+        Log.d("TopAppBarViewModel", "screen=${_state.value.currentScreen?.route}, setControlVisibility: $controlName, $isVisible")
         _state.update { it.copy(currentScreen = it.currentScreen?.setControlVisibility(controlName, isVisible = isVisible)) }
     }
 }
