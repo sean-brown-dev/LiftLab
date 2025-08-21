@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,22 +11,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.DELOAD_WEEK_OPTIONS
-import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
-import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
-import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
-import com.browntowndev.liftlab.ui.composables.spinner.NumberPickerSpinner
-import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
-import com.browntowndev.liftlab.ui.composables.dialog.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.dialog.TextFieldDialog
+import com.browntowndev.liftlab.ui.composables.spinner.NumberPickerSpinner
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
@@ -34,6 +35,7 @@ fun Lab(
     paddingValues: PaddingValues,
     screenId: String?,
     snackbarHostState: SnackbarHostState,
+    lazyListState: LazyListState,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
@@ -119,6 +121,7 @@ fun Lab(
         ) {
             WorkoutCardList(
                 paddingValues = paddingValues,
+                listState = lazyListState,
                 workouts = state.program!!.workouts,
                 showEditWorkoutNameModal = { workout ->
                     labViewModel.showEditWorkoutNameModal(

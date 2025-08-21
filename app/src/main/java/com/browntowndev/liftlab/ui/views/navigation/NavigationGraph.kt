@@ -2,6 +2,7 @@ package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +60,7 @@ fun NavigationGraph(
     NavHost(navHostController, startDestination = Route.Workout()) {
         composable<Route.Home> { backstackEntry ->
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
+            val homeLazyListState = rememberLazyListState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 LaunchedEffect(key1 = backstackEntry.id) {
@@ -70,6 +72,7 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
                     snackbarHostState = snackbarHostState,
+                    lazyListState = homeLazyListState,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateToSettingsMenu = { navHostController.navigate(Route.Settings) },
                     onNavigateToLiftLibrary = { chartIds ->
@@ -119,6 +122,7 @@ fun NavigationGraph(
 
         composable<Route.LiftLibrary> { backstackEntry ->
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
+            val liftLazyListState = rememberLazyListState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 val liftLibraryParams = backstackEntry.toRoute<Route.LiftLibrary>()
@@ -140,6 +144,7 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
                     snackbarHostState = snackbarHostState,
+                    lazyListState = liftLazyListState,
                     callerRouteId = liftLibraryParams.callerRouteId,
                     workoutId = liftLibraryParams.workoutId,
                     workoutLiftId = liftLibraryParams.workoutLiftId,
@@ -303,6 +308,7 @@ fun NavigationGraph(
 
         composable<Route.Lab> { backstackEntry ->
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
+            val labLazyListState = rememberLazyListState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 LaunchedEffect(key1 = backstackEntry.id) {
@@ -311,7 +317,8 @@ fun NavigationGraph(
                 }
 
                 Lab(
-                    paddingValues,
+                    paddingValues = paddingValues,
+                    lazyListState = labLazyListState,
                     screenId = backstackEntry.id,
                     snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = {

@@ -45,9 +45,12 @@ fun BottomNavigation(navController: NavController, isVisible: Boolean) {
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ) {
             val currentBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = remember(currentBackStackEntry?.id) {
-                currentBackStackEntry?.destination?.route?.split("?", "/")?.first()
-            }
+            val currentRoute = currentBackStackEntry
+                ?.destination
+                ?.route
+                ?.substringBefore("?")
+                ?.substringBefore("/")
+
             val screens: List<BottomNavItem> = remember {
                 listOf(
                     HomeScreen.navigation,

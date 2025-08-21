@@ -76,16 +76,15 @@ fun LiftLab(
             val bottomNavBarState by bottomNavBarViewModel.state.collectAsState()
             val snackbarHostState = remember { SnackbarHostState() }
 
-            val allowsCollapse = !liftLabTopAppBarState.isCollapsed
-            val topAppBarState =
-                if (allowsCollapse) rememberTopAppBarState()
-                else rememberTopAppBarState()
-            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+            val allowsExpansion = !liftLabTopAppBarState.isCollapsed
+            val collapsedTopAppBarState = rememberTopAppBarState()
+            val expandableTopAppBarState = rememberTopAppBarState()
+            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+                if (allowsExpansion) expandableTopAppBarState else collapsedTopAppBarState
+            )
 
             Scaffold(
-                modifier = if(allowsCollapse) {
-                    Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-                } else Modifier,
+                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                 bottomBar = {
                     BottomNavigation(
                         navController = navController,
@@ -96,7 +95,7 @@ fun LiftLab(
                     LiftLabTopAppBar(
                         state = liftLabTopAppBarState,
                         timerState = timerState,
-                        allowCollapse = allowsCollapse,
+                        allowExpansion = allowsExpansion,
                         scrollBehavior = scrollBehavior,
                         onCancelRestTimer = topAppBarViewModel::cancelRestTimer,
                         onSetControlVisibility = topAppBarViewModel::setControlVisibility,

@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,12 +25,12 @@ import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
 @Composable
 fun WorkoutCardList(
     paddingValues: PaddingValues,
+    listState: LazyListState,
     workouts: List<WorkoutUiModel>,
     showEditWorkoutNameModal: (WorkoutUiModel) -> Unit,
     beginDeleteWorkout: (WorkoutUiModel) -> Unit,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
 ) {
-    val listState = rememberLazyListState()
     val workoutsState = remember(workouts) { workouts }
     val workoutCount by remember(workouts) { mutableIntStateOf(workouts.size) }
     var prevWorkoutCount by remember { mutableIntStateOf(workoutCount) }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -35,10 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.composables.chart.EmptyChartPlaceholder
-import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.keyboard.RowMultiSelect
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.chart.EmptyChartPlaceholder
+import com.browntowndev.liftlab.ui.composables.keyboard.RowMultiSelect
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
@@ -55,6 +56,7 @@ fun Home(
     paddingValues: PaddingValues,
     screenId: String?,
     snackbarHostState: SnackbarHostState,
+    lazyListState: LazyListState,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     onNavigateToSettingsMenu: () -> Unit,
     onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
@@ -82,6 +84,7 @@ fun Home(
 
     Box(contentAlignment = Alignment.BottomCenter) {
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
                 .fillMaxSize()

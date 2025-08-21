@@ -79,7 +79,6 @@ data class HomeScreen(
                 icon = syncIcon,
                 color = syncIconColor,
                 isVisible = true,
-                placeAtStart = true,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.OpenProfileMenu))
                     listOf()

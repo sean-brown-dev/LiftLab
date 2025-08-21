@@ -15,7 +15,6 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,14 +27,13 @@ import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.appBar.CountdownTimerState
 import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
 import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLabTopAppBar(
     state: LiftLabTopAppBarState,
     timerState: CountdownTimerState,
-    allowCollapse: Boolean,
+    allowExpansion: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     onCancelRestTimer: () -> Unit,
     onSetControlVisibility: (String, Boolean) -> Unit,
@@ -44,7 +42,7 @@ fun LiftLabTopAppBar(
     LiftLabLargeTopAppBar(
         scrollBehavior = scrollBehavior,
         state = state,
-        allowCollapse = allowCollapse,
+        allowExpansion = allowExpansion,
         timerState = timerState,
         onCancelRestTimer = onCancelRestTimer,
         onSetControlVisibility = onSetControlVisibility,
@@ -61,37 +59,25 @@ fun LiftLabTopAppBar(
 private fun LiftLabLargeTopAppBar(
     state: LiftLabTopAppBarState,
     timerState: CountdownTimerState,
-    allowCollapse: Boolean,
+    allowExpansion: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     onCancelRestTimer: () -> Unit,
     onSetControlVisibility: (String, Boolean) -> Unit,
     onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit
 ) {
     // Tiny non-zero range when not collapsible so Title renders
-    val expandedHeight  = if (allowCollapse)
+    val expandedHeight  = if (allowExpansion)
         TopAppBarDefaults.LargeAppBarExpandedHeight
     else
         TopAppBarDefaults.LargeAppBarCollapsedHeight + 1.dp
 
     // After first measure, pin to fully-collapsed when not collapsible
-    LaunchedEffect(allowCollapse) {
-        val scrollBehaviorState = scrollBehavior.state
-        if (!allowCollapse) {
+    LaunchedEffect(allowExpansion) {
+        if (!allowExpansion) {
             awaitFrame()                 // wait for heightOffsetLimit to be set
+            val scrollBehaviorState = scrollBehavior.state
             scrollBehaviorState.heightOffset = scrollBehaviorState.heightOffsetLimit   // -> collapsedFraction == 1f
             scrollBehaviorState.contentOffset = 0f
-        } else {
-            scrollBehaviorState.heightOffset = 0f
-            scrollBehaviorState.contentOffset = 0f
-        }
-    }
-
-    // Clamp to avoid measurement errors when switching collapsible/non-collapsible
-    LaunchedEffect(scrollBehavior) {
-        val scrollBehaviorState = scrollBehavior.state
-        snapshotFlow { scrollBehaviorState.heightOffsetLimit }.collectLatest { limit ->
-            val clamped = scrollBehaviorState.heightOffset.coerceIn(limit, 0f)
-            if (clamped != scrollBehaviorState.heightOffset) scrollBehaviorState.heightOffset = clamped
         }
     }
 
@@ -108,8 +94,8 @@ private fun LiftLabLargeTopAppBar(
             Title(
                 state = state,
                 timerState = timerState,
-                titleFontSize = if (allowCollapse) 32.sp else 25.sp,
-                subtitleFontSize = if (allowCollapse) 18.sp else 14.sp,
+                titleFontSize = if (allowExpansion) 32.sp else 25.sp,
+                subtitleFontSize = if (allowExpansion) 18.sp else 14.sp,
                 onCancelRestTimer = onCancelRestTimer,
             )
         },
