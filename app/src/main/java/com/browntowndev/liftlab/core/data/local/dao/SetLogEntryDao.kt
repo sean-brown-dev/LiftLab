@@ -167,15 +167,12 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     INNER JOIN workoutLifts wl ON wl.liftId = sr.liftId AND wl.position = sr.liftPosition
     LEFT JOIN sets s ON s.workoutLiftId = wl.workout_lift_id AND s.position = sr.setPosition
     INNER JOIN lifts l ON l.lift_id = wl.liftId
-    WHERE
-        sr.workoutId = :workoutId AND
-        wl.workoutId = :workoutId AND
-        sr.live_workout_completed_set_id NOT IN (:excludeFromCopy)
+    WHERE (:excludeFromCopySize = 0 OR sr.live_workout_completed_set_id NOT IN (:excludeFromCopy))
     """)
     suspend fun insertFromLiveWorkoutCompletedSets(
         workoutLogEntryId: Long,
-        workoutId: Long,
-        excludeFromCopy: List<Long>
+        excludeFromCopy: List<Long>,
+        excludeFromCopySize: Int = excludeFromCopy.size,
     )
 
     @Transaction

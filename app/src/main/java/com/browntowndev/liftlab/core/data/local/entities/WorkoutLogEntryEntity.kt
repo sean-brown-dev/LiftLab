@@ -13,7 +13,8 @@ import java.util.Date
     indices = [
         Index("historicalWorkoutNameId"),
         Index("synced"),
-        Index("remoteId", unique = true),
+        Index(value = ["remoteId"], unique = true),
+        Index(value = ["deleted","date"], name = "idx_wle_deleted_date"),
     ],
     foreignKeys = [
         ForeignKey(

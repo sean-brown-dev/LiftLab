@@ -5,10 +5,10 @@ import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -121,14 +121,9 @@ class SetLogEntryRepositoryImpl(
         return entityIds
     }
 
-    override suspend fun insertFromLiveWorkoutCompletedSets(
-        workoutLogEntryId: Long,
-        workoutId: Long,
-        excludeFromCopy: List<Long>
-    ) {
+    override suspend fun insertFromLiveWorkoutCompletedSets(workoutLogEntryId: Long, excludeFromCopy: List<Long>) {
         setLogEntryDao.insertFromLiveWorkoutCompletedSets(
             workoutLogEntryId = workoutLogEntryId,
-            workoutId = workoutId,
             excludeFromCopy = excludeFromCopy,
         )
 

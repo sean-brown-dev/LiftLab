@@ -13,10 +13,10 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 @GenerateFirestoreMetadataExtensions
 @Entity("setLogEntries",
     indices = [
-        Index("liftId"),
+        Index(value = ["liftId","setPosition","deleted","isDeload","workoutLogEntryId"], name = "idx_sle_lift_pos_flags_entry"),
         Index("workoutLogEntryId"),
         Index("synced"),
-        Index("remoteId", unique = true),
+        Index(value = ["remoteId"], unique = true),
     ],
     foreignKeys = [
         ForeignKey(

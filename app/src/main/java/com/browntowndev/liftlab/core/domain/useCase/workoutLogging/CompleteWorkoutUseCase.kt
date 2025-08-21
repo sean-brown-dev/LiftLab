@@ -139,7 +139,6 @@ class CompleteWorkoutUseCase(
         // Copy all of the set results from this workout into the set history table
         setLogEntryRepository.insertFromLiveWorkoutCompletedSets(
             workoutLogEntryId = workoutLogEntryId,
-            workoutId = workout.id,
             excludeFromCopy = excludeFromCopy.toList(),
         )
 

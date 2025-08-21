@@ -5,11 +5,7 @@ import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import kotlinx.coroutines.flow.Flow
 
 interface SetLogEntryRepository: Repository<SetLogEntry, Long> {
-    suspend fun insertFromLiveWorkoutCompletedSets(
-        workoutLogEntryId: Long,
-        workoutId: Long,
-        excludeFromCopy: List<Long>
-    )
+    suspend fun insertFromLiveWorkoutCompletedSets(workoutLogEntryId: Long, excludeFromCopy: List<Long>)
 
     suspend fun getPersonalRecordsForLifts(liftIds: List<Long>): List<PersonalRecord>
 
