@@ -42,14 +42,14 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SP
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.displayName
-import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
-import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.keyboard.PercentagePicker
-import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.composables.keyboard.RpeKeyboard
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
-import com.browntowndev.liftlab.ui.composables.dialog.TextFieldDialog
 import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.dialog.TextFieldDialog
+import com.browntowndev.liftlab.ui.composables.keyboard.PercentagePicker
+import com.browntowndev.liftlab.ui.composables.keyboard.RpeKeyboard
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.extensions.displayName
 import com.browntowndev.liftlab.ui.extensions.sortedByDisplayName
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
@@ -426,7 +426,7 @@ fun WorkoutBuilder(
                             }
                         }
                     }
-                    item {
+                    item (key = "add_movement_pattern_button") {
                         Spacer(modifier = Modifier.height(40.dp))
                         Box(
                             modifier = Modifier.fillMaxWidth(),

@@ -91,7 +91,7 @@ fun Home(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            item {
+            item (key = "workout_summary_charts") {
                 val coroutineScope = rememberCoroutineScope()
                 val pagerState = rememberPagerState { 2 }
                 HorizontalPager(
@@ -154,7 +154,7 @@ fun Home(
                     }
                 }
             }
-            item {
+            item (key = "add_metric_charts_button") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -169,7 +169,7 @@ fun Home(
                     }
                 }
             }
-            items(state.volumeMetricChartModels, key = { it.id }) { chart ->
+            items(state.volumeMetricChartModels, key = { it.id to "volume_chart" }) { chart ->
                 val label = remember(chart.volumeType, chart.volumeTypeImpact) {
                     "${chart.volumeType} - ${chart.volumeTypeImpact}"
                 }
@@ -184,7 +184,7 @@ fun Home(
                     else -> throw Exception("Unrecognized volume chart type: ${chartModel::class.simpleName}")
                 }
             }
-            items(state.liftMetricChartModels, key = { it.id }) { chart ->
+            items(state.liftMetricChartModels, key = { it.id to "lift_chart" }) { chart ->
                 val label = remember(chart.liftName, chart.type) {
                     "${chart.liftName} - ${chart.type.displayName()}"
                 }

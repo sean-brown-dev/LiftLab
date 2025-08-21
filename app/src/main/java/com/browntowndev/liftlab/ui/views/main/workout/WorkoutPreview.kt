@@ -88,7 +88,7 @@ fun WorkoutPreview(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top,
             ) {
-                item {
+                item (key = "start_workout_button") {
                     val primaryColor = MaterialTheme.colorScheme.primary
                     val secondaryColor = MaterialTheme.colorScheme.secondary
                     var buttonColor by remember {
@@ -186,7 +186,7 @@ fun WorkoutPreview(
                         )
                     )
                 }
-                item {
+                item (key = "bottom_divider") {
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp),
                         thickness = 1.dp,

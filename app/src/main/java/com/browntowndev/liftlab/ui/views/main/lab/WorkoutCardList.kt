@@ -50,10 +50,10 @@ fun WorkoutCardList(
             .padding(paddingValues),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
+        item (key = "top_spacer") {
+            Spacer(modifier = Modifier.height(5.dp))
+        }
         items(workoutsState, { it.id }) { workout ->
-            if (workout.position == 0) {
-                Spacer(modifier = Modifier.height(5.dp))
-            }
             WorkoutCard(
                 workoutName = workout.name,
                 workoutId = workout.id,
@@ -63,7 +63,7 @@ fun WorkoutCardList(
                 beginDeleteWorkout = { beginDeleteWorkout(workout) },
             )
         }
-        item {
+        item (key = "final_spacer") {
             Spacer(modifier = Modifier.height(65.dp))
         }
     }

@@ -23,10 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.chips.FilterSelector
 import com.browntowndev.liftlab.ui.composables.chips.InputChipFlowRow
-import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -108,7 +108,7 @@ fun WorkoutHistory(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            item {
+            item (key = "filter-chips") {
                 InputChipFlowRow(
                     filters = state.filterChips,
                     onRemove = {
@@ -116,7 +116,7 @@ fun WorkoutHistory(
                     }
                 )
             }
-            items(state.filteredWorkoutLogs) { workoutLog ->
+            items(state.filteredWorkoutLogs, { it.id }) { workoutLog ->
                 WorkoutHistoryCard(
                     workoutName = workoutLog.workoutName,
                     workoutDate = workoutLog.date,
