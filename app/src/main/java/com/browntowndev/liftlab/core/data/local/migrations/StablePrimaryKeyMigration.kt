@@ -27,10 +27,6 @@ val StablePrimaryKeyMigration = object: Migration(18, 19) {
 
         db.execSQL("DROP TABLE restTimerInProgress")
         db.execSQL("ALTER TABLE restTimerInProgress_new RENAME TO restTimerInProgress")
-        db.execSQL("""
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_rest_timer_single
-            ON restTimerInProgress(rest_timer_in_progress_id)
-        """.trimIndent())
 
         // ===============================
         // 2) workoutsInProgress -> stable PK (id=1)
@@ -41,11 +37,10 @@ val StablePrimaryKeyMigration = object: Migration(18, 19) {
                 workout_in_progress_id INTEGER NOT NULL PRIMARY KEY,
                 workoutId INTEGER NOT NULL,
                 startTime INTEGER NOT NULL,
-                -- BaseEntity columns (keep names you already index on)
-                createdAt INTEGER,
-                updatedAt INTEGER,
-                synced INTEGER,
-                remoteId TEXT,
+                remoteId TEXT DEFAULT NULL,
+                remoteLastUpdated INTEGER DEFAULT NULL,
+                synced INTEGER NOT NULL DEFAULT false,
+                deleted INTEGER NOT NULL DEFAULT false,
                 FOREIGN KEY(workoutId) REFERENCES workouts(workout_id) ON DELETE CASCADE
             )
         """.trimIndent())
@@ -53,16 +48,16 @@ val StablePrimaryKeyMigration = object: Migration(18, 19) {
         // Carry over the most recent in-progress workout (if any) into id=1
         db.execSQL("""
             INSERT INTO workoutsInProgress_new (
-                workout_in_progress_id, workoutId, startTime, createdAt, updatedAt, synced, remoteId
+                workout_in_progress_id, workoutId, startTime, remoteId, remoteLastUpdated, synced, deleted
             )
             SELECT
                 1,
                 workoutId,
                 startTime,
-                createdAt,
-                updatedAt,
+                remoteId,
+                remoteLastUpdated,
                 synced,
-                remoteId
+                deleted
             FROM workoutsInProgress
             ORDER BY COALESCE(startTime, 0) DESC
             LIMIT 1
