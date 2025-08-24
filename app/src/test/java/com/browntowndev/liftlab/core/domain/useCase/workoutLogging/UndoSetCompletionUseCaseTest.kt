@@ -69,7 +69,7 @@ class UndoSetCompletionUseCaseTest {
 
         // Then
         coVerify(exactly = 1) { workoutRepo.isWorkoutInProgress(5L) }
-        coVerify(exactly = 0) { restTimerRepo.deleteAll() }
+        coVerify(exactly = 0) { restTimerRepo.delete() }
         assertEquals(listOf(10L), deletedIds)
     }
 
@@ -94,7 +94,7 @@ class UndoSetCompletionUseCaseTest {
         )
 
         coVerify(exactly = 1) { workoutRepo.isWorkoutInProgress(6L) }
-        coVerify(exactly = 1) { restTimerRepo.deleteAll() }
+        coVerify(exactly = 1) { restTimerRepo.delete() }
         assertEquals(listOf(11L), deletedIds)
     }
 
@@ -126,7 +126,7 @@ class UndoSetCompletionUseCaseTest {
         )
 
         coVerify(exactly = 1) { workoutRepo.isWorkoutInProgress(9L) }
-        coVerify(exactly = 0) { restTimerRepo.deleteAll() }
+        coVerify(exactly = 0) { restTimerRepo.delete() }
         assertEquals(listOf(22L), deletedIds) // normal set deleted, not the myo set
     }
 
@@ -157,7 +157,7 @@ class UndoSetCompletionUseCaseTest {
         )
 
         coVerify(exactly = 1) { workoutRepo.isWorkoutInProgress(7L) }
-        coVerify(exactly = 0) { restTimerRepo.deleteAll() }
+        coVerify(exactly = 0) { restTimerRepo.delete() }
         assertEquals(listOf(31L), deletedIds) // myo set deleted
     }
 
@@ -181,7 +181,7 @@ class UndoSetCompletionUseCaseTest {
 
         // No match -> should not check workout state or delete timers, and should not delete any set
         coVerify(exactly = 0) { workoutRepo.isWorkoutInProgress(any()) }
-        coVerify(exactly = 0) { restTimerRepo.deleteAll() }
+        coVerify(exactly = 0) { restTimerRepo.delete() }
         assertEquals(emptyList(), deletedIds)
     }
 

@@ -63,7 +63,7 @@ class RestTimerButtonHandlerTest {
         receiver.onReceive(app, null)
 
         runMainLooperToEnd()
-        coVerify(exactly = 0) { repo.deleteAll() }
+        coVerify(exactly = 0) { repo.delete() }
         coVerify(exactly = 0) { helper.startActiveWorkoutNotification(any()) }
     }
 
@@ -71,7 +71,7 @@ class RestTimerButtonHandlerTest {
     fun `onReceive - other action - ignored`() {
         receiver.onReceive(app, Intent("not.skip"))
         runMainLooperToEnd()
-        coVerify(exactly = 0) { repo.deleteAll() }
+        coVerify(exactly = 0) { repo.delete() }
         coVerify(exactly = 0) { helper.startActiveWorkoutNotification(any()) }
     }
 
@@ -82,7 +82,7 @@ class RestTimerButtonHandlerTest {
 
         // Work runs via goAsync + coroutine -> wait eagerly for side-effects
         awaitUntil(1500) {
-            val repoOk = try { coVerify(exactly = 1) { repo.deleteAll() }; true } catch (_: AssertionError) { false }
+            val repoOk = try { coVerify(exactly = 1) { repo.delete() }; true } catch (_: AssertionError) { false }
             val helperOk = try { coVerify(exactly = 1) { helper.startActiveWorkoutNotification(app) }; true } catch (_: AssertionError) { false }
             repoOk && helperOk
         }

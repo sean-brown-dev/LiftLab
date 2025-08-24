@@ -10,11 +10,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -26,7 +25,6 @@ import com.browntowndev.liftlab.ui.composables.component.ProgressCountdownTimer
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.viewmodels.appBar.CountdownTimerState
 import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
-import kotlinx.coroutines.android.awaitFrame
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,76 +37,67 @@ fun LiftLabTopAppBar(
     onSetControlVisibility: (String, Boolean) -> Unit,
     onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit
 ) {
-    LiftLabLargeTopAppBar(
-        scrollBehavior = scrollBehavior,
-        state = state,
-        allowExpansion = allowExpansion,
-        timerState = timerState,
-        onCancelRestTimer = onCancelRestTimer,
-        onSetControlVisibility = onSetControlVisibility,
-        onMutateControlValue = onMutateControlValue,
-    )
+    if (allowExpansion) {
+        LargeTopAppBar(
+            colors = topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
+            navigationIcon = {
+                NavigationIcon(state = state)
+            },
+            title = {
+                Title(
+                    state = state,
+                    timerState = timerState,
+                    titleFontSize = 32.sp ,
+                    subtitleFontSize = 18.sp,
+                    onCancelRestTimer = onCancelRestTimer,
+                )
+            },
+            actions = {
+                ActionsMenu(
+                    topAppBarState = state,
+                    maxVisibleItems = 3,
+                    onSetControlVisibility = onSetControlVisibility,
+                    onMutateControlValue = onMutateControlValue
+                )
+            },
+            scrollBehavior = scrollBehavior
+        )
+    } else {
+        TopAppBar(
+            colors = topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
+            ),
+            navigationIcon = {
+                NavigationIcon(state = state)
+            },
+            title = {
+                Title(
+                    state = state,
+                    timerState = timerState,
+                    titleFontSize = 25.sp,
+                    subtitleFontSize = 14.sp,
+                    onCancelRestTimer = onCancelRestTimer,
+                )
+            },
+            actions = {
+                ActionsMenu(
+                    topAppBarState = state,
+                    maxVisibleItems = 3,
+                    onSetControlVisibility = onSetControlVisibility,
+                    onMutateControlValue = onMutateControlValue
+                )
+            },
+            scrollBehavior = scrollBehavior
+        )
+    }
 
     BackHandler(state.navigationIconVisible == true) {
         state.onNavigationIconClick?.invoke()
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LiftLabLargeTopAppBar(
-    state: LiftLabTopAppBarState,
-    timerState: CountdownTimerState,
-    allowExpansion: Boolean,
-    scrollBehavior: TopAppBarScrollBehavior,
-    onCancelRestTimer: () -> Unit,
-    onSetControlVisibility: (String, Boolean) -> Unit,
-    onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit
-) {
-    // Tiny non-zero range when not collapsible so Title renders
-    val expandedHeight  = if (allowExpansion)
-        TopAppBarDefaults.LargeAppBarExpandedHeight
-    else
-        TopAppBarDefaults.LargeAppBarCollapsedHeight + 1.dp
-
-    // After first measure, pin to fully-collapsed when not collapsible
-    LaunchedEffect(allowExpansion) {
-        if (!allowExpansion) {
-            awaitFrame()                 // wait for heightOffsetLimit to be set
-            val scrollBehaviorState = scrollBehavior.state
-            scrollBehaviorState.heightOffset = scrollBehaviorState.heightOffsetLimit   // -> collapsedFraction == 1f
-            scrollBehaviorState.contentOffset = 0f
-        }
-    }
-
-    LargeTopAppBar(
-        expandedHeight = expandedHeight,
-        colors = topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        navigationIcon = {
-            NavigationIcon(state = state)
-        },
-        title = {
-            Title(
-                state = state,
-                timerState = timerState,
-                titleFontSize = if (allowExpansion) 32.sp else 25.sp,
-                subtitleFontSize = if (allowExpansion) 18.sp else 14.sp,
-                onCancelRestTimer = onCancelRestTimer,
-            )
-        },
-        actions = {
-            ActionsMenu(
-                topAppBarState = state,
-                maxVisibleItems = 3,
-                onSetControlVisibility = onSetControlVisibility,
-                onMutateControlValue = onMutateControlValue
-            )
-        },
-        scrollBehavior = scrollBehavior
-    )
 }
 
 @Composable

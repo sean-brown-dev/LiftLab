@@ -17,6 +17,8 @@ data class MissedGoalResult(
  * @param repRangeTop The rep range top.
  * @param repRangeBottom The rep range bottom.
  * @param rpeTarget The RPE target.
+ * @param repRangeTopFatigueOffset The rep range top fatigue offset. A positive number reduces fatigue, a negative number increases it.
+ * @param repRangeBottomFatigueOffset The rep range bottom fatigue offset. A positive number reduces fatigue, a negative number increases it.
  * @return The missed goal result.
  */
 fun calculateMissedGoalResult(
@@ -25,13 +27,15 @@ fun calculateMissedGoalResult(
     repRangeTop: Int,
     repRangeBottom: Int,
     rpeTarget: Float,
+    repRangeTopFatigueOffset: Float = SET_TOO_EASY_REPS_THRESHOLD,
+    repRangeBottomFatigueOffset: Float = SET_TOO_HARD_REPS_THRESHOLD,
 ): MissedGoalResult {
     val rpeAdjustedRepsCompleted = getRpeAdjustedReps(completedReps, completedRpe)
     val rpeAdjustedRepRangeTop = getRpeAdjustedReps(repRangeTop, rpeTarget)
     val rpeAdjustedRepRangeBottom = getRpeAdjustedReps(repRangeBottom, rpeTarget)
 
-    val exceededRepRangeTop = exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted)
-    val missedRepRangeBottom = missedRepRangeBottom(rpeAdjustedRepRangeBottom, rpeAdjustedRepsCompleted)
+    val exceededRepRangeTop = exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted, repRangeTopFatigueOffset)
+    val missedRepRangeBottom = missedRepRangeBottom(rpeAdjustedRepRangeBottom, rpeAdjustedRepsCompleted, repRangeBottomFatigueOffset)
 
     return MissedGoalResult(
         missedRepRangeBottom = missedRepRangeBottom,
@@ -46,6 +50,7 @@ fun calculateMissedGoalResult(
  * @param rpeTarget The RPE target.
  * @param completedReps The completed reps.
  * @param completedRpe The completed RPE.
+ * @param fatigueOffset The fatigue offset. A positive number reduces fatigue, a negative number increases it.
  * @return Whether the reps completed exceed the rep range top by more than `SET_TOO_EASY_REPS_THRESHOLD`.
  */
 fun exceededRepRangeTop(
@@ -53,11 +58,12 @@ fun exceededRepRangeTop(
     rpeTarget: Float,
     completedReps: Int,
     completedRpe: Float,
+    fatigueOffset: Float = SET_TOO_EASY_REPS_THRESHOLD,
 ): Boolean {
     val rpeAdjustedRepRangeTop = getRpeAdjustedReps(repRangeTop, rpeTarget)
     val rpeAdjustedRepsCompleted = getRpeAdjustedReps(completedReps, completedRpe)
 
-    return exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted)
+    return exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted, fatigueOffset)
 }
 
 /**
@@ -67,6 +73,7 @@ fun exceededRepRangeTop(
  * @param rpeTarget The RPE target.
  * @param completedReps The completed reps.
  * @param completedRpe The completed RPE.
+ * @param fatigueOffset The fatigue offset. A positive number reduces fatigue, a negative number increases it.
  * @return Whether the reps completed missed the rep range bottom by more than `SET_TOO_HARD_REPS_THRESHOLD`.
  */
 fun missedRepRangeBottom(
@@ -74,18 +81,19 @@ fun missedRepRangeBottom(
     rpeTarget: Float,
     completedReps: Int,
     completedRpe: Float,
+    fatigueOffset: Float = SET_TOO_HARD_REPS_THRESHOLD,
 ): Boolean {
     val rpeAdjustedRepRangeBottom = getRpeAdjustedReps(repRangeBottom, rpeTarget)
     val repsConsideringRpe = getRpeAdjustedReps(completedReps, completedRpe)
 
-    return missedRepRangeBottom(rpeAdjustedRepRangeBottom, repsConsideringRpe)
+    return missedRepRangeBottom(rpeAdjustedRepRangeBottom, repsConsideringRpe, fatigueOffset)
 }
 
 private fun getRpeAdjustedReps(reps: Int, rpe: Float) =
     (reps + (10f - rpe)).roundToOneDecimal()
 
-private fun exceededRepRangeTop(rpeAdjustedRepRangeTop: Float, rpeAdjustedRepsCompleted: Float) =
-    rpeAdjustedRepsCompleted >= (rpeAdjustedRepRangeTop + SET_TOO_EASY_REPS_THRESHOLD).roundToOneDecimal()
+private fun exceededRepRangeTop(rpeAdjustedRepRangeTop: Float, rpeAdjustedRepsCompleted: Float, fatigueOffset: Float) =
+    rpeAdjustedRepsCompleted >= (rpeAdjustedRepRangeTop + fatigueOffset).roundToOneDecimal()
 
-private fun missedRepRangeBottom(rpeAdjustedRepRangeBottom: Float, rpeAdjustedRepsCompleted: Float) =
-    rpeAdjustedRepsCompleted <= (rpeAdjustedRepRangeBottom - SET_TOO_HARD_REPS_THRESHOLD).roundToOneDecimal()
+private fun missedRepRangeBottom(rpeAdjustedRepRangeBottom: Float, rpeAdjustedRepsCompleted: Float, fatigueOffset: Float) =
+    rpeAdjustedRepsCompleted <= (rpeAdjustedRepRangeBottom - fatigueOffset).roundToOneDecimal()

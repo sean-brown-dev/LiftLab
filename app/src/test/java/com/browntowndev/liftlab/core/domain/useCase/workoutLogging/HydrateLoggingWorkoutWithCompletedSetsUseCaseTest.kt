@@ -58,7 +58,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, inProgressResults, 1)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, inProgressResults, 1, any())
 
         // Then
         val resultLift = result.first()

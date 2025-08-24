@@ -34,4 +34,4 @@ const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"
 
 // Workout Calculation
 const val SET_TOO_EASY_REPS_THRESHOLD = 1.5f
-const val SET_TOO_HARD_REPS_THRESHOLD = 1.5f
+const val SET_TOO_HARD_REPS_THRESHOLD = 1f

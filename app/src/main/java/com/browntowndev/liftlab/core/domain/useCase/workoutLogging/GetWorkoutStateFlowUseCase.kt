@@ -12,9 +12,9 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.ONLY_US
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS
 import com.browntowndev.liftlab.core.data.mapping.toSetResult
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculatedWorkoutData
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculatedWorkoutData
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkoutLift
@@ -155,6 +155,7 @@ class GetWorkoutStateFlowUseCase(
                         liftsToHydrate = liftsToHydrate,
                         setResults = inProgressResults,
                         microCycle = programMetadata.currentMicrocycle,
+                        programDeloadWeek = programMetadata.deloadWeek,
                     ).associateBy { it.id }
                     val finalPlan = partiallyHydratedPlan.copy(
                         lifts = partiallyHydratedPlan.lifts.fastMap { lift ->

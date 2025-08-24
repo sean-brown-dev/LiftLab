@@ -99,13 +99,13 @@ class CompleteWorkoutUseCaseTest {
         completeWorkoutUseCase(inProgressWorkout, programMetadata, workout, completedSets, isDeloadWeek)
 
         // Then
-        coVerify { workoutInProgressRepository.deleteAll() }
-        coVerify { restTimerInProgressRepository.deleteAll() }
+        coVerify { workoutInProgressRepository.delete() }
+        coVerify { restTimerInProgressRepository.delete() }
         coVerify { programsRepository.applyDelta(1L, any()) }
         coVerify { historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(programMetadata.programId, workout.id) }
         coVerify(exactly = 0) { historicalWorkoutNamesRepository.insert(any()) }
         coVerify { workoutLogRepository.insertWorkoutLogEntry(any(), any(), any(), any(), any(), any(), any(), any()) }
-        coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any(), any()) }
+        coVerify { setLogEntryRepository.insertFromLiveWorkoutCompletedSets(any(), any()) }
         coVerify { setResultsRepository.deleteAll() }
         coVerify(exactly = 0) { setResultsRepository.upsertMany(any()) }
     }

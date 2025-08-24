@@ -57,7 +57,7 @@ class RestTimerCompletedReceiverTest {
         receiver.onReceive(app, Intent("not.the.action"))
         // idle main, though work should not be scheduled
         runMainLooperToEnd()
-        coVerify(exactly = 0) { repo.deleteAll() }
+        coVerify(exactly = 0) { repo.delete() }
     }
 
     @Test
@@ -67,7 +67,7 @@ class RestTimerCompletedReceiverTest {
 
         // The work is launched via goAsync + coroutine -> wait briefly/eagerly
         awaitUntil(1000) {
-            try { coVerify(exactly = 1) { repo.deleteAll() }; true } catch (_: AssertionError) { false }
+            try { coVerify(exactly = 1) { repo.delete() }; true } catch (_: AssertionError) { false }
         }
     }
 

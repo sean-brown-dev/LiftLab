@@ -52,7 +52,7 @@ class CancelWorkoutUseCaseTest {
         cancelWorkoutUseCase(programMetadata, workout)
 
         // Then
-        coVerify { workoutInProgressRepository.deleteAll() }
+        coVerify { workoutInProgressRepository.delete() }
         coVerify {
             setResultsRepository.deleteAll()
         }

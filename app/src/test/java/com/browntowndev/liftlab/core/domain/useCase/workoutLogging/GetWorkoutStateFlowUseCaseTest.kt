@@ -2,12 +2,12 @@ package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
 import app.cash.turbine.test
 import com.browntowndev.liftlab.core.common.SettingsManager
-import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.metadata.WorkoutMetadata
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingWorkout
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.PersonalRecord
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
 import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
@@ -107,7 +107,7 @@ class GetWorkoutStateFlowUseCaseTest {
         every { liveWorkoutCompletedSetsRepository.getAllFlow() } returns flowOf(emptyList())
         coEvery { workoutLogRepository.getMostRecentSetResultsForLiftIds(any(), any()) } returns emptyList()
         coEvery { calculateLoggingWorkoutUseCase(any(), any(), any(), any(), any(), any(), any()) } returns calculatedWorkout
-        every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any()) } returns emptyList()
+        every { hydrateLoggingWorkoutWithCompletedSetsUseCase(any(), any(), any(), any()) } returns emptyList()
         every { hydrateLoggingWorkoutWithExistingLiftDataUseCase(any(), any()) } returns hydratedWorkout
         every { workoutsRepository.getMetadataFlow(any()) } returns flowOf(WorkoutMetadata(id = 1L, name = "Final Workout"))
         every { liftsRepository.getManyMetadataFlow(any()) } returns flowOf(emptyList())

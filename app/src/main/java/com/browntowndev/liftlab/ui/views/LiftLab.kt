@@ -79,9 +79,9 @@ fun LiftLab(
             val allowsExpansion = !liftLabTopAppBarState.isCollapsed
             val collapsedTopAppBarState = rememberTopAppBarState()
             val expandableTopAppBarState = rememberTopAppBarState()
-            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-                if (allowsExpansion) expandableTopAppBarState else collapsedTopAppBarState
-            )
+            val scrollBehavior =
+                if (allowsExpansion) TopAppBarDefaults.exitUntilCollapsedScrollBehavior(expandableTopAppBarState)
+                else TopAppBarDefaults.pinnedScrollBehavior(collapsedTopAppBarState)
 
             Scaffold(
                 modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),

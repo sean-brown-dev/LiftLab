@@ -6,10 +6,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.util.Date
 
 class StartWorkoutUseCaseTest {
@@ -39,7 +39,7 @@ class StartWorkoutUseCaseTest {
 
         // Then
         coVerify {
-            workoutInProgressRepository.insert(withArg { workoutInProgress ->
+            workoutInProgressRepository.upsert(withArg { workoutInProgress ->
                 assertEquals(workoutId, workoutInProgress.workoutId)
                 assertTrue(workoutInProgress.startTime.time >= startTime.time)
             })
