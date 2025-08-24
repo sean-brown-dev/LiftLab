@@ -224,10 +224,11 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 val sameRepRangeAsPrevious = lastCompletedSet.repRangeTop == set.repRangeTop &&
                         lastCompletedSet.repRangeBottom == set.repRangeBottom
 
-                // Last set use RR bottom, otherwise shoot for middle
+                val setsFromBottom = (setCount - 1) - set.position
                 val repRangeToRecalculateFor =
-                    if (setCount - 1 == set.position) set.repRangeBottom
-                    else ((set.repRangeTop + set.repRangeBottom) / 2.0).roundToInt()
+                    if (set.repRangeTop != set.repRangeBottom) set.repRangeBottom + setsFromBottom
+                    else set.repRangeBottom
+                
                 val weightRecommendation = when {
 
                     // Same rep range as previous, see if it missed its goals, given current RPE goal and minus 1 rep,
