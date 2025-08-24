@@ -231,16 +231,16 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 
                 val weightRecommendation = when {
 
-                    // Same rep range as previous, see if it missed its goals, given current RPE goal and minus 1 rep,
-                    // and if so recalculate (see if this set could hit same weight at repRangeToRecalculateFor)
-                    sameRepRangeAsPrevious -> {
+                    // Same rep range as previous, see if it missed its goals, and if so recalculate.
+                    // Otherwise, prefer current recommendation
+                    sameRepRangeAsPrevious && set.weightRecommendation != null -> {
                         val result = calculateMissedGoalResult(
                             completedReps = lastCompletedSet.completedReps!!,
                             completedRpe = lastCompletedSet.completedRpe!!,
                             repRangeTop = lastCompletedSet.repRangeTop,
-                            repRangeBottom = repRangeToRecalculateFor,
-                            rpeTarget = set.rpeTarget,
-                            repRangeBottomFatigueOffset = -1f,
+                            repRangeBottom = lastCompletedSet.repRangeBottom,
+                            rpeTarget = lastCompletedSet.rpeTarget,
+                            repRangeBottomFatigueOffset = 0f,
                         )
                         if (result.exceededRepRangeTop || result.missedRepRangeBottom) {
                             WeightCalculationUtils.calculateSuggestedWeight(
@@ -251,10 +251,10 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                                 rpeGoal = set.rpeTarget,
                                 roundingFactor = increment,
                             )
-                        } else set.weightRecommendation ?: lastCompletedSet.completedWeight
+                        } else set.weightRecommendation
                     }
 
-                    // No weight recommendation, different rep range, just calculate from previous set
+                    // No weight recommendation, just calculate from previous set
                     set.weightRecommendation == null -> WeightCalculationUtils.calculateSuggestedWeight(
                         completedWeight = lastCompletedSet.completedWeight!!,
                         completedReps = lastCompletedSet.completedReps!! - 1,
