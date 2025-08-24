@@ -232,13 +232,13 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 val weightRecommendation = when {
 
                     // Same rep range as previous, see if it missed its goals, given current RPE goal and minus 1 rep,
-                    // and if so recalculate (see if this set could hit same weight at rep range bottom)
+                    // and if so recalculate (see if this set could hit same weight at repRangeToRecalculateFor)
                     sameRepRangeAsPrevious -> {
                         val result = calculateMissedGoalResult(
                             completedReps = lastCompletedSet.completedReps!!,
                             completedRpe = lastCompletedSet.completedRpe!!,
                             repRangeTop = lastCompletedSet.repRangeTop,
-                            repRangeBottom = set.repRangeBottom,
+                            repRangeBottom = repRangeToRecalculateFor,
                             rpeTarget = set.rpeTarget,
                             repRangeBottomFatigueOffset = -1f,
                         )
