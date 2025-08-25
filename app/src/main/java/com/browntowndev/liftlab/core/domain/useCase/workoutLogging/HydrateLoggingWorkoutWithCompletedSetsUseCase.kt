@@ -149,7 +149,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                         set = set,
                         lastCompletedSet = previousSet,
                         increment = increment,
-                        setCount = workoutLift.setCount
                     )
                 }
 
@@ -194,7 +193,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
         set: GenericLoggingSet,
         lastCompletedSet: GenericLoggingSet,
         increment: Float,
-        setCount: Int,
     ): GenericLoggingSet {
         if (!lastCompletedSet.complete || lastCompletedSet.completedWeight == null || lastCompletedSet.completedReps == null || lastCompletedSet.completedRpe == null) {
             Log.e(TAG, "lastCompletedSet is incomplete")

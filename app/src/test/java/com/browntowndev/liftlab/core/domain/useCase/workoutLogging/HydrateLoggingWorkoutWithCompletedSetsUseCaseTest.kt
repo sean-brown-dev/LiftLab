@@ -197,9 +197,9 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         // Expected: repGoal should be repRangeTop (10) for conservative lighter suggestion
         val expected = WeightCalculationUtils.calculateSuggestedWeight(
             completedWeight = 100f,
-            completedReps = 5,
+            completedReps = 4,
             completedRpe = 10f,
-            repGoal = 10,
+            repGoal = 8,
             rpeGoal = 8f,
             roundingFactor = incrementOverride
         )
@@ -259,7 +259,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         // Expected: repGoal should be repRangeBottom (6) to push weight up
         val expected = WeightCalculationUtils.calculateSuggestedWeight(
             completedWeight = 80f,
-            completedReps = 9,
+            completedReps = 8,
             completedRpe = 6f,
             repGoal = 6,
             rpeGoal = 8f,
@@ -1197,67 +1197,13 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         mockkObject(WeightCalculationUtils)
-        io.mockk.every { WeightCalculationUtils.calculateSuggestedWeight(any(), any(), any(), any(), any(), any()) } returns 80f
+        every { WeightCalculationUtils.calculateSuggestedWeight(any(), any(), any(), any(), any(), any()) } returns 80f
 
         val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updatedMini0 = hydrated.sets[1] as LoggingMyoRepSet
         assertEquals(80f, updatedMini0.weightRecommendation)
 
-        io.mockk.unmockkObject(WeightCalculationUtils)
-    }
-
-    @Test
-    fun `myo later mini copies previous mini completed weight`() {
-        val incrementOverride = 2.5f
-        val activation = LoggingMyoRepSet(
-            position = 0,
-            rpeTarget = 8f,
-            repRangeBottom = 12, repRangeTop = 15,
-            weightRecommendation = 100f,
-            hadInitialWeightRecommendation = true,
-            previousSetResultLabel = "",
-            repRangePlaceholder = "12–15",
-            myoRepSetPosition = null,
-            complete = true,
-            completedWeight = 100f,
-            completedReps = 12,
-            completedRpe = 8f,
-            repFloor = 6,
-            isNew = false
-        )
-        val mini0 = activation.copy(
-            myoRepSetPosition = 0,
-            complete = true,
-            completedWeight = 90f,
-            completedReps = 4,
-            completedRpe = 9f
-        )
-        val mini1 = activation.copy(
-            myoRepSetPosition = 1,
-            complete = false,
-            completedWeight = null,
-            completedReps = null,
-            completedRpe = null
-        )
-
-        val lift = LoggingWorkoutLift(
-            id = 1L, liftId = 991L, liftName = "Myo Later Mini", position = 0,
-            sets = listOf(activation, mini0, mini1),
-            liftMovementPattern = MovementPattern.VERTICAL_PULL,
-            liftVolumeTypes = 1, liftSecondaryVolumeTypes = null,
-            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
-            incrementOverride = incrementOverride,
-            restTime = null, restTimerEnabled = false, deloadWeek = null, note = null, isCustom = false
-        )
-
-        val results = listOf(
-            MyoRepSetResult(workoutId = 1L, liftId = 991L, liftPosition = 0, setPosition = 0, myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false),
-            MyoRepSetResult(workoutId = 1L, liftId = 991L, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0,    weight = 90f,  reps = 4,  rpe = 9f, isDeload = false)
-        )
-
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
-        val updatedMini1 = hydrated.sets[2] as LoggingMyoRepSet
-        assertEquals(90f, updatedMini1.weightRecommendation)
+        unmockkObject(WeightCalculationUtils)
     }
 
     @Test
@@ -1482,5 +1428,280 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         // Clean up mocks
         unmockkObject(MyoRepSetGoalUtils)
         unmockkObject(WeightCalculationUtils)
+    }
+
+    // ====================== Additional coverage for getWithWeightRecommendation ======================
+
+    @Test
+    fun `standard next set leaves recommendation unchanged when previous set is incomplete`() {
+        // Previous set exists but is NOT complete -> early return (no calc)
+        val prev = LoggingStandardSet(
+            position = 0,
+            weightRecommendation = 100f,
+            repRangeBottom = 8, repRangeTop = 10, rpeTarget = 8f,
+            complete = false, // <-- incomplete triggers guard
+            repRangePlaceholder = "8-10",
+            hadInitialWeightRecommendation = false,
+            previousSetResultLabel = ""
+        )
+        val next = LoggingStandardSet(
+            position = 1,
+            weightRecommendation = null,
+            repRangeBottom = 8, repRangeTop = 10, rpeTarget = 8f,
+            complete = false,
+            repRangePlaceholder = "8-10",
+            hadInitialWeightRecommendation = false,
+            previousSetResultLabel = ""
+        )
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9001, liftName = "Guard Standard", position = 0,
+            sets = listOf(prev, next),
+            progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0, 4).first()
+        val updated = hydrated.sets[1] as LoggingStandardSet
+        assertEquals(null, updated.weightRecommendation, "Should not calculate when previous set is incomplete")
+    }
+
+    @Test
+    fun `standard with same rep range uses last completed weight when previous succeeded AND this set had no recommendation`() {
+        val prev = LoggingStandardSet(
+            position = 0,
+            weightRecommendation = 92.5f, // previous recommendation (doesn't matter, we look at completedWeight)
+            repRangeBottom = 6, repRangeTop = 8, rpeTarget = 8f,
+            complete = true,
+            completedWeight = 100f,
+            completedReps = 8,
+            completedRpe = 8f,
+            repRangePlaceholder = "6-8",
+            hadInitialWeightRecommendation = false,
+            previousSetResultLabel = ""
+        )
+        val next = LoggingStandardSet(
+            position = 1,
+            weightRecommendation = null, // <- null triggers the "use last completed weight" branch when prior succeeded
+            repRangeBottom = 6, repRangeTop = 8, rpeTarget = 8f,
+            complete = false,
+            repRangePlaceholder = "6-8",
+            hadInitialWeightRecommendation = false,
+            previousSetResultLabel = ""
+        )
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9002, liftName = "Same Range Use Last Completed", position = 0,
+            sets = listOf(prev, next),
+            progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+
+        // Persist prev as completed
+        val results = listOf<SetResult>(
+            StandardSetResult(
+                id = 1, workoutId = 1, liftId = 9002, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 8, rpe = 8f, setType = SetType.STANDARD, isDeload = false
+            )
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
+        val updated = hydrated.sets[1] as LoggingStandardSet
+        assertEquals(100f, updated.weightRecommendation, "Should use last completed weight when rep range same and prev succeeded")
+    }
+
+    @Test
+    fun `standard with same rep range keeps current recommendation when previous succeeded and rec matches previous`() {
+        val prev = LoggingStandardSet(
+            position = 0,
+            weightRecommendation = 95f,
+            repRangeBottom = 5, repRangeTop = 7, rpeTarget = 8f,
+            complete = true, completedWeight = 100f, completedReps = 6, completedRpe = 8f,
+            repRangePlaceholder = "5-7", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val next = LoggingStandardSet(
+            position = 1,
+            weightRecommendation = 95f, // same as prev's recommendation -> keep it
+            repRangeBottom = 5, repRangeTop = 7, rpeTarget = 8f,
+            complete = false,
+            repRangePlaceholder = "5-7", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9003, liftName = "Keep Current Rec", position = 0,
+            sets = listOf(prev, next),
+            progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+        val results = listOf<SetResult>(
+            StandardSetResult(
+                id = 1, workoutId = 1, liftId = 9003, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 6, rpe = 8f, setType = SetType.STANDARD, isDeload = false
+            )
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
+        val updated = hydrated.sets[1] as LoggingStandardSet
+        assertEquals(95f, updated.weightRecommendation, "Should keep current recommendation when rep range same and prior succeeded with same rec")
+    }
+
+    @Test
+    fun `standard with different rep range and successful previous keeps existing recommendation (no recalc)`() {
+        val prev = LoggingStandardSet(
+            position = 0,
+            weightRecommendation = 100f,
+            repRangeBottom = 8, repRangeTop = 10, rpeTarget = 8f,
+            complete = true, completedWeight = 100f, completedReps = 9, completedRpe = 8f,
+            repRangePlaceholder = "8-10", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val next = LoggingStandardSet(
+            position = 1,
+            weightRecommendation = 125f, // already has a rec -> keep it since prev succeeded and range changed
+            repRangeBottom = 5, repRangeTop = 6, rpeTarget = 9f,
+            complete = false,
+            repRangePlaceholder = "5-6", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9004, liftName = "Different Range Keep", position = 0,
+            sets = listOf(prev, next),
+            progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+        val results = listOf<SetResult>(
+            StandardSetResult(
+                id = 1, workoutId = 1, liftId = 9004, liftPosition = 0, setPosition = 0,
+                weight = 100f, reps = 9, rpe = 8f, setType = SetType.STANDARD, isDeload = false
+            )
+        )
+
+        mockkObject(WeightCalculationUtils)
+        io.mockk.every { WeightCalculationUtils.calculateSuggestedWeight(any(), any(), any(), any(), any(), any()) } returns 999f
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
+        val updated = hydrated.sets[1] as LoggingStandardSet
+        assertEquals(125f, updated.weightRecommendation, "Should keep existing recommendation when ranges differ and prior succeeded")
+        verify(exactly = 0) { WeightCalculationUtils.calculateSuggestedWeight(any(), any(), any(), any(), any(), any()) }
+        unmockkObject(WeightCalculationUtils)
+    }
+
+    @Test
+    fun `drop set after myo previous does nothing (type guard)`() {
+        val prevMyo = LoggingMyoRepSet(
+            position = 0, rpeTarget = 8f,
+            repRangeBottom = 12, repRangeTop = 15, weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true, previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            complete = true, completedWeight = 100f, completedReps = 12, completedRpe = 8f,
+            myoRepSetPosition = null, isNew = false
+        )
+        val nextDrop = LoggingDropSet(
+            position = 1, dropPercentage = 0.25f,
+            weightRecommendation = null, complete = false,
+            repRangeBottom = 6, repRangeTop = 8, rpeTarget = 8f,
+            repRangePlaceholder = "6-8", hadInitialWeightRecommendation = false, previousSetResultLabel = ""
+        )
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9005, liftName = "Drop After Myo", position = 0,
+            sets = listOf(prevMyo, nextDrop),
+            progressionScheme = ProgressionScheme.LINEAR_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0, 4).first()
+        val updated = hydrated.sets[1] as LoggingDropSet
+        assertEquals(null, updated.weightRecommendation, "Drop set should not compute from a myo previous")
+    }
+
+    @Test
+    fun `myo later mini copies previous mini completed weight`() {
+        val activation = LoggingMyoRepSet(
+            position = 0, rpeTarget = 8f,
+            repRangeBottom = 12, repRangeTop = 15, weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true, previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,
+            complete = true, completedWeight = 100f, completedReps = 12, completedRpe = 8f,
+            isNew = false
+        )
+        val mini0 = activation.copy(myoRepSetPosition = 0, complete = true, completedWeight = 110f, completedReps = 6, completedRpe = 9f)
+        val mini1 = activation.copy(myoRepSetPosition = 1, complete = false, completedWeight = null, completedReps = null, completedRpe = null)
+
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9006, liftName = "Myo Minis", position = 0,
+            sets = listOf(activation, mini0, mini1),
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+        val results = listOf<SetResult>(
+            MyoRepSetResult(workoutId = 1, liftId = 9006, liftPosition = 0, setPosition = 0, myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false),
+            MyoRepSetResult(workoutId = 1, liftId = 9006, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0, weight = 110f, reps = 6, rpe = 9f, isDeload = false),
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
+        val mini1Updated = hydrated.sets[2] as LoggingMyoRepSet
+        assertEquals(110f, mini1Updated.weightRecommendation, "Later myo mini should copy previous mini's completed weight")
+    }
+
+    @Test
+    fun `myo second mini copies previous mini completed weight`() {
+        val activation = LoggingMyoRepSet(
+            position = 0, rpeTarget = 8f,
+            repRangeBottom = 12, repRangeTop = 15, weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true, previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,
+            complete = true, completedWeight = 100f, completedReps = 12, completedRpe = 8f,
+            isNew = false
+        )
+        val mini0Completed = activation.copy(
+            myoRepSetPosition = 0, complete = true,
+            completedWeight = 105f, completedReps = 6, completedRpe = 9f
+        )
+        val mini1Next = activation.copy(
+            myoRepSetPosition = 1, complete = false,
+            completedWeight = null, completedReps = null, completedRpe = null,
+            weightRecommendation = null
+        )
+
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9007, liftName = "Myo later mini", position = 0,
+            sets = listOf(activation, mini0Completed, mini1Next),
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+        val results = listOf<SetResult>(
+            MyoRepSetResult(workoutId = 1, liftId = 9007, liftPosition = 0, setPosition = 0, myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false),
+            MyoRepSetResult(workoutId = 1, liftId = 9007, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0,    weight = 105f, reps = 6,  rpe = 9f, isDeload = false),
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, programDeloadWeek = 4).first()
+        val mini1 = hydrated.sets[2] as LoggingMyoRepSet
+        assertEquals(105f, mini1.weightRecommendation)
+    }
+
+    @Test
+    fun `myo first mini does nothing when activation is not completed`() {
+        val activation = LoggingMyoRepSet(
+            position = 0, rpeTarget = 8f,
+            repRangeBottom = 12, repRangeTop = 15, weightRecommendation = 100f,
+            hadInitialWeightRecommendation = true, previousSetResultLabel = "",
+            repRangePlaceholder = "12–15",
+            myoRepSetPosition = null,
+            complete = false, completedWeight = null, completedReps = null, completedRpe = null,
+            isNew = false
+        )
+        val mini0Next = activation.copy(
+            myoRepSetPosition = 0, complete = false,
+            completedWeight = null, completedReps = null, completedRpe = null,
+            weightRecommendation = null
+        )
+
+        val lift = LoggingWorkoutLift(
+            id = 1, liftId = 9007, liftName = "Myo first mini guard - not completed", position = 0,
+            sets = listOf(activation, mini0Next),
+            progressionScheme = ProgressionScheme.DOUBLE_PROGRESSION,
+            deloadWeek = null, incrementOverride = 2.5f, isCustom = false
+        )
+
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), emptyList(), microCycle = 0, programDeloadWeek = 4).first()
+        val mini0 = hydrated.sets[1] as LoggingMyoRepSet
+        assertEquals(null, mini0.weightRecommendation)
     }
 }
