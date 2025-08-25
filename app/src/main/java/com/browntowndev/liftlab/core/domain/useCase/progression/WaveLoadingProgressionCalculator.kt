@@ -125,13 +125,6 @@ class WaveLoadingProgressionCalculator(
     }
 
     private fun shouldRecalculateWeight(result: SetResult, workoutLift: CalculationStandardWorkoutLift, deloadWeek: Int): Boolean {
-        val rpeTarget = getRpeTarget(
-            setIndex = result.setPosition,
-            setCount = workoutLift.setCount,
-            progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
-            topSetRpeTarget = workoutLift.rpeTarget
-        )
-
         val previousMicroCycle = if (microCycle > 0) microCycle - 1 else deloadWeek - 1
         val repsForPreviousMicroBasedOnCurrentSettings = getRepsForMicrocycle(
             repRangeBottom = workoutLift.repRangeBottom,
@@ -141,10 +134,16 @@ class WaveLoadingProgressionCalculator(
             stepSize = workoutLift.stepSize,
         )
 
+        val rpeTarget = getRpeTarget(
+            setIndex = result.setPosition,
+            setCount = workoutLift.setCount,
+            progressionScheme = ProgressionScheme.WAVE_LOADING_PROGRESSION,
+            topSetRpeTarget = workoutLift.rpeTarget
+        )
         val missedRepRangeResult = calculateMissedGoalResult(
             repRangeBottom = repsForPreviousMicroBasedOnCurrentSettings,
             repRangeTop = repsForPreviousMicroBasedOnCurrentSettings,
-            rpeTarget = 10f, // Go purely on rep range
+            rpeTarget = rpeTarget,
             completedReps = result.reps,
             completedRpe = result.rpe,
         )

@@ -39,7 +39,6 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
         workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         position: Int?,
-        useWorkoutLiftRpeTargetForMissedRepRangeBottom: Boolean,
     ): Float? {
         val previouslyFailedSet = previousSetResults.firstOrNull {
             (it as LinearProgressionSetResult).missedLpGoals > 1 // cast validated already by allSetsMetCriteria()
@@ -52,6 +51,6 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
                     SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                 )
             (previouslyFailedSet.weight * .9).roundToNearestFactor(factor)
-        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null, useWorkoutLiftRpeTargetForMissedRepRangeBottom = true)
+        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null)
     }
 }

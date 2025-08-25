@@ -180,9 +180,7 @@ fun getStraightSetsRpeTarget(
     roundingStep: Double = 0.5,
     maxPreFinalRpe: Double = 9.5
 ): List<Float> {
-    require(setCount >= 2) {
-        "setCount must be >= 2 (top set + final AMRAP set). Received: $setCount"
-    }
+    if (setCount == 1) return listOf(topSetRpeTarget)
 
     val numberOfIncrements = setCount - 1                       // steps from top → final(10)
     val topRpeAsDouble = topSetRpeTarget.toDouble()
