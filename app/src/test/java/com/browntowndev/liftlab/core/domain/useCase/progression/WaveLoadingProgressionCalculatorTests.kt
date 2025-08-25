@@ -411,10 +411,10 @@ class WaveLoadingProgressionCalculatorTests {
         val result = WaveLoadingProgressionCalculator(programDeloadWeek = 4, microCycle = 1)
             .calculate(liftEntity.toCalculationDomainModel(), previous, previous, false)
 
-        assertEquals(0, calls.size)
-
         // With no valid-recalc trigger, Wave Loading should fall back to normal increment behavior (flattened to +5)
         result.forEach { set -> assertEquals(80f, set.weightRecommendation) }
+
+        assertEquals(0, calls.size)
     }
 
     @Test

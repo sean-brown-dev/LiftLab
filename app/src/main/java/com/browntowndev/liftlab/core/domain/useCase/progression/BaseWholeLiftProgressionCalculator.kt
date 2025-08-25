@@ -50,7 +50,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         topSetRpeTarget = workoutLift.rpeTarget
                     )
                     val weightRecommendation = getWeightRecommendation(
-                        workoutLift = workoutLift,
+                        workoutLift = workoutLift.copy(rpeTarget = rpeTarget),
                         rpeTarget = rpeTarget,
                         repRangeTop = workoutLift.repRangeTop,
                         repRangeBottom = workoutLift.repRangeBottom,

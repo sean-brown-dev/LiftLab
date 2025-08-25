@@ -147,7 +147,6 @@ class WaveLoadingProgressionCalculator(
             rpeTarget = rpeTarget,
             completedReps = result.reps,
             completedRpe = result.rpe,
-            repRangeTopFatigueOffset = .5f
         )
 
         return when {
