@@ -12,7 +12,6 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
@@ -74,18 +73,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         }
     }
 
-    protected fun missedBottomRepRange(result: SetResult?, goals: CalculationStandardWorkoutLift): Boolean {
-        return if (result != null) {
-            missedRepRangeBottom(
-                repRangeBottom = goals.repRangeBottom,
-                rpeTarget = goals.rpeTarget,
-                completedReps = result.reps,
-                completedRpe = result.rpe,
-            )
-        } else false
-    }
-
-    private fun missedBottomRepRange(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
+    protected fun missedBottomRepRange(result: SetResult?, repRangeBottom: Int, rpeTarget: Float): Boolean {
         return if (result != null) {
             missedRepRangeBottom(
                 repRangeBottom = repRangeBottom,

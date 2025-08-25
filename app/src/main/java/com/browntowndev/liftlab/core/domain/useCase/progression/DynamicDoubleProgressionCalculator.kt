@@ -74,7 +74,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 completedReps = result.reps,
                 completedRpe = result.rpe,
             )
-            val recalculateWeight = exceededRepRangeTop || missedBottomRepRange(result, workoutLift)
+            val recalculateWeight = exceededRepRangeTop || missedBottomRepRange(result, workoutLift.repRangeBottom, workoutLift.rpeTarget)
             val weightRecommendation = when {
                 recalculateWeight -> getCalculatedWeightRecommendation(
                     increment = workoutLift.incrementOverride,

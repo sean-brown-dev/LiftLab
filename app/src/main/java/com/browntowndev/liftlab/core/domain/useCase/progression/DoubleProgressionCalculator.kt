@@ -3,7 +3,6 @@ package com.browntowndev.liftlab.core.domain.useCase.progression
 import android.util.Log
 import androidx.compose.ui.util.fastAll
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
@@ -31,23 +30,19 @@ class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
         val firstSetResult = distinctResults.minByOrNull { it.setPosition }
         if (firstSetResult == null) return false
 
-        // See if the first set met the RPE adjusted goal, if it failed return early
-        val rpeAdjustedCompletedSets = firstSetResult.reps + (10f - firstSetResult.rpe).roundToOneDecimal()
-        val topSetRpeAdjustedGoal = lift.repRangeTop + (10f - lift.rpeTarget).roundToOneDecimal()
-        val firstSetPassed = rpeAdjustedCompletedSets >= topSetRpeAdjustedGoal
+        // See if the first set hit the top of the rep range, if it failed return early
+        val firstSetPassed = firstSetResult.reps >= lift.repRangeTop
         if (!firstSetPassed) return false
 
         // Get the last set result, and if there isn't one, return early
         val lastSetResult = distinctResults.firstOrNull { it.setPosition == (lift.setCount - 1) }
         if (lastSetResult == null || (lastSetResult.setPosition == firstSetResult.setPosition)) return true
 
-        // See if all the intermediate sets met the RPE adjusted goal (9 RPE for intermediate sets)
-        val intermediateSetRpeAdjustedGoal = lift.repRangeTop + (10f - 9f).roundToOneDecimal()
+        // See if all the intermediate set hit the top of the rep range
         val intermediateSetsPassed = distinctResults
             .filter { it.setPosition > firstSetResult.setPosition && it.setPosition <  lastSetResult.setPosition }
             .fastAll { result ->
-                val rpeAdjustedCompletedSets = result.reps + (10f - result.rpe).roundToOneDecimal()
-                rpeAdjustedCompletedSets >= intermediateSetRpeAdjustedGoal
+                result.reps >= lift.repRangeTop
             }
 
         // Finally, see if the last set hit the top of the rep range

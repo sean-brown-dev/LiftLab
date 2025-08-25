@@ -3,12 +3,12 @@ package com.browntowndev.liftlab.core.domain.useCase.progression
 import androidx.compose.ui.util.fastAny
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
-import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationCustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.LinearProgressionSetResult
 
 class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
     override fun allSetsMetCriterion(
@@ -39,6 +39,7 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
         workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         position: Int?,
+        useWorkoutLiftRpeTargetForMissedRepRangeBottom: Boolean,
     ): Float? {
         val previouslyFailedSet = previousSetResults.firstOrNull {
             (it as LinearProgressionSetResult).missedLpGoals > 1 // cast validated already by allSetsMetCriteria()
@@ -51,6 +52,6 @@ class LinearProgressionCalculator: BaseWholeLiftProgressionCalculator() {
                     SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
                 )
             (previouslyFailedSet.weight * .9).roundToNearestFactor(factor)
-        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null)
+        } else super.getFailureWeight(workoutLift = workoutLift, previousSetResults = previousSetResults, position = null, useWorkoutLiftRpeTargetForMissedRepRangeBottom = true)
     }
 }

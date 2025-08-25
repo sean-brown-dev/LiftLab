@@ -144,7 +144,7 @@ class WaveLoadingProgressionCalculator(
         val missedRepRangeResult = calculateMissedGoalResult(
             repRangeBottom = repsForPreviousMicroBasedOnCurrentSettings,
             repRangeTop = repsForPreviousMicroBasedOnCurrentSettings,
-            rpeTarget = rpeTarget,
+            rpeTarget = 10f, // Go purely on rep range
             completedReps = result.reps,
             completedRpe = result.rpe,
         )

@@ -310,6 +310,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         workoutLift: CalculationWorkoutLift,
         previousSetResults: List<SetResult>,
         position: Int? = null,
+        useWorkoutLiftRpeTargetForMissedRepRangeBottom: Boolean = false,
     ): Float? {
         val result = previousSetResults.getOrNull(position ?: -1)
         return if (result == null) {
@@ -319,6 +320,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                 is CalculationStandardWorkoutLift -> getStandardWorkoutLiftFailureWeight(
                     workoutLift = workoutLift,
                     result = result,
+                    useWorkoutLiftRpeTargetForMissedRepRangeBottom = useWorkoutLiftRpeTargetForMissedRepRangeBottom,
                 )
                 is CalculationCustomWorkoutLift -> getCustomWorkoutLiftFailureWeight(
                     incrementOverride = workoutLift.incrementOverride,
@@ -333,8 +335,10 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
     private fun getStandardWorkoutLiftFailureWeight(
         workoutLift: CalculationStandardWorkoutLift,
         result: SetResult,
+        useWorkoutLiftRpeTargetForMissedRepRangeBottom: Boolean = false,
     ): Float {
-        return if (missedBottomRepRange(result, workoutLift)) {
+        val rpeTarget = if (useWorkoutLiftRpeTargetForMissedRepRangeBottom) workoutLift.rpeTarget else 10f
+        return if (missedBottomRepRange(result, workoutLift.repRangeBottom, rpeTarget)) {
             getCalculatedWeightRecommendation(
                 increment = workoutLift.incrementOverride,
                 repGoal = workoutLift.repRangeBottom,
