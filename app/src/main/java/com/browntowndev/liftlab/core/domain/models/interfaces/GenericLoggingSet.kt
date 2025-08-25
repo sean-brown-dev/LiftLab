@@ -21,6 +21,7 @@ interface GenericLoggingSet {
         completedWeight: Float?,
         completedReps: Int?,
         completedRpe: Float?,
+        weightRecommendation: Float? = this.weightRecommendation,
     ): GenericLoggingSet
 }
 

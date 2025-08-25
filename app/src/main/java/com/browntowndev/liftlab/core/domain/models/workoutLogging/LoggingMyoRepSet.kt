@@ -29,11 +29,13 @@ data class LoggingMyoRepSet(
         completedWeight: Float?,
         completedReps: Int?,
         completedRpe: Float?,
+        weightRecommendation: Float?,
     ): GenericLoggingSet =
         this.copy(
             complete = complete,
             completedWeight = completedWeight,
             completedReps = completedReps,
             completedRpe = completedRpe,
+            weightRecommendation = weightRecommendation,
         )
 }

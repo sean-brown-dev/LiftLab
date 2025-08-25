@@ -30,7 +30,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -97,7 +96,7 @@ class NotificationHelperTest {
     @Test
     fun `getActiveWorkoutMetadata returns null when no workout in progress`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(1, 0, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(null)
+        coEvery { workoutInProgressRepository.get() } returns null
 
         val result = helper.getActiveWorkoutMetadata()
 
@@ -107,7 +106,7 @@ class NotificationHelperTest {
     @Test
     fun `getActiveWorkoutMetadata returns null when workout not found`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(2, 1, 4)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(42L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(42L)
         coEvery { workoutsRepository.getById(42L) } returns null
 
         val result = helper.getActiveWorkoutMetadata()
@@ -118,7 +117,7 @@ class NotificationHelperTest {
     @Test
     fun `first set of standard lift shows rep range with RPE`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(0, 0, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(1L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(1L)
 
         val lift = standardLift(
             position = 0,
@@ -145,7 +144,7 @@ class NotificationHelperTest {
     @Test
     fun `wave loading - first set includes RPE`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(1, 0, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(2L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(2L)
 
         val lift = standardLift(
             position = 0,
@@ -173,7 +172,7 @@ class NotificationHelperTest {
     @Test
     fun `wave loading - intra-lift next set omits RPE`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(1, 1, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(2L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(2L)
 
         val lift = standardLift(
             position = 0,
@@ -202,7 +201,7 @@ class NotificationHelperTest {
     @Test
     fun `moves to next lift after finishing previous`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(0, 0, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(3L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(3L)
 
         val liftA = standardLift(
             position = 0,
@@ -239,7 +238,7 @@ class NotificationHelperTest {
     @Test
     fun `workout complete when last set of last lift done`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(0, 0, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(4L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(4L)
 
         val lift = standardLift(
             position = 0,
@@ -264,7 +263,7 @@ class NotificationHelperTest {
     @Test
     fun `custom lift uses per-set rep range and RPE`() = runTest {
         coEvery { programsRepository.getActive() } returns mockProgram(0, 0, 3)
-        every { workoutInProgressRepository.getFlow() } returns flowOf(mockWorkoutInProgress(5L))
+        coEvery { workoutInProgressRepository.get() } returns mockWorkoutInProgress(5L)
 
         val customLift = customLift(
             position = 0,
@@ -367,7 +366,6 @@ class NotificationHelperTest {
         every { workout.lifts } returns lifts
         return workout
     }
-
 
     private fun standardLift(
         position: Int,

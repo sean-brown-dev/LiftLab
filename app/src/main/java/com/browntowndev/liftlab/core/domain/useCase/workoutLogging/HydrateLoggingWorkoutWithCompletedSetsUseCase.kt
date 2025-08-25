@@ -21,7 +21,6 @@ import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.utils.calculateMissedGoalResult
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -224,67 +223,59 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 val sameRepRangeAsPrevious = lastCompletedSet.repRangeTop == set.repRangeTop &&
                         lastCompletedSet.repRangeBottom == set.repRangeBottom
 
-                val setsFromBottom = (setCount - 1) - set.position
-                val repRangeToRecalculateFor =
-                    if (set.repRangeTop != set.repRangeBottom) set.repRangeBottom + setsFromBottom
-                    else set.repRangeBottom
-                
+                val sameWeightRecommendationAsPrevious = lastCompletedSet.weightRecommendation == set.weightRecommendation
+                val lastSetGoalResult = calculateMissedGoalResult(
+                    completedReps = lastCompletedSet.completedReps!!,
+                    completedRpe = lastCompletedSet.completedRpe!!,
+                    repRangeTop = lastCompletedSet.repRangeTop,
+                    repRangeBottom = lastCompletedSet.repRangeBottom,
+                    rpeTarget = lastCompletedSet.rpeTarget,
+                    repRangeBottomFatigueOffset = 0f,
+                )
+
                 val weightRecommendation = when {
 
-                    // Same rep range as previous, see if it missed its goals, and if so recalculate.
-                    // Otherwise, prefer current recommendation
-                    sameRepRangeAsPrevious && set.weightRecommendation != null -> {
-                        val result = calculateMissedGoalResult(
-                            completedReps = lastCompletedSet.completedReps!!,
-                            completedRpe = lastCompletedSet.completedRpe!!,
-                            repRangeTop = lastCompletedSet.repRangeTop,
-                            repRangeBottom = lastCompletedSet.repRangeBottom,
-                            rpeTarget = lastCompletedSet.rpeTarget,
-                            repRangeBottomFatigueOffset = 0f,
-                        )
-                        if (result.exceededRepRangeTop || result.missedRepRangeBottom) {
-                            WeightCalculationUtils.calculateSuggestedWeight(
-                                completedWeight = lastCompletedSet.completedWeight!!,
-                                completedReps = lastCompletedSet.completedReps - 1,
-                                completedRpe = lastCompletedSet.completedRpe,
-                                repGoal = repRangeToRecalculateFor,
-                                rpeGoal = set.rpeTarget,
-                                roundingFactor = increment,
-                            )
-                        } else set.weightRecommendation
+                    // Same rep range as previous
+                    sameRepRangeAsPrevious -> {
+
+                        when {
+                            // Previous missed goal, recalculate
+                            lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom ->
+                                WeightCalculationUtils.calculateSuggestedWeight(
+                                    completedWeight = lastCompletedSet.completedWeight!!,
+                                    completedReps = lastCompletedSet.completedReps - 1,
+                                    completedRpe = lastCompletedSet.completedRpe,
+                                    repGoal = set.repRangeBottom,
+                                    rpeGoal = set.rpeTarget,
+                                    roundingFactor = increment,
+                                )
+
+                            // Previous weight was changed and set succeeded, or there's no weight recommendation. Use last completed weight
+                            !sameWeightRecommendationAsPrevious || set.weightRecommendation == null -> lastCompletedSet.completedWeight!!
+
+                            // Previous weight was not changed, use current recommendation
+                            else -> set.weightRecommendation
+                        }
                     }
 
-                    // No weight recommendation, just calculate from previous set
-                    set.weightRecommendation == null -> WeightCalculationUtils.calculateSuggestedWeight(
-                        completedWeight = lastCompletedSet.completedWeight!!,
-                        completedReps = lastCompletedSet.completedReps!! - 1,
-                        completedRpe = lastCompletedSet.completedRpe!!,
-                        repGoal = repRangeToRecalculateFor,
-                        rpeGoal = set.rpeTarget,
-                        roundingFactor = increment,
-                    )
-
-                    // Different rep range. See if previous set's completion data
-                    // results in +/- 5 different weight recommendation than the current one
+                    // Different rep range.
                     else -> {
-                        val prevSetRecommendation = WeightCalculationUtils.calculateSuggestedWeight(
-                            completedWeight = lastCompletedSet.completedWeight!!,
-                            completedReps = lastCompletedSet.completedReps!!,
-                            completedRpe = lastCompletedSet.completedRpe!!,
-                            repGoal = repRangeToRecalculateFor,
-                            rpeGoal = set.rpeTarget,
-                            roundingFactor = increment,
-                        )
-                        if (abs(prevSetRecommendation - set.weightRecommendation) >= 5) {
-                            WeightCalculationUtils.calculateSuggestedWeight(
-                                completedWeight = lastCompletedSet.completedWeight,
-                                completedReps = lastCompletedSet.completedReps - 1,
-                                completedRpe = lastCompletedSet.completedRpe,
-                                repGoal = repRangeToRecalculateFor,
-                                rpeGoal = set.rpeTarget,
-                                roundingFactor = increment,
-                            )
-                        } else set.weightRecommendation
+                        when {
+                            
+                            // Previous missed goal or there is no recommendation, recalculate
+                            set.weightRecommendation  == null || lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom ->
+                                WeightCalculationUtils.calculateSuggestedWeight(
+                                    completedWeight = lastCompletedSet.completedWeight!!,
+                                    completedReps = lastCompletedSet.completedReps - 1,
+                                    completedRpe = lastCompletedSet.completedRpe,
+                                    repGoal = set.repRangeBottom,
+                                    rpeGoal = set.rpeTarget,
+                                    roundingFactor = increment,
+                                )
+
+                            // Previous set succeeded, keep current recommendation
+                            else -> set.weightRecommendation
+                        }
                     }
                 }
 

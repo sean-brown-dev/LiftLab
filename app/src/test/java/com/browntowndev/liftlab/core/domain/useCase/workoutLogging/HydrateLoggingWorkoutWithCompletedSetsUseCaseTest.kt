@@ -58,7 +58,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, inProgressResults, 1, any())
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, inProgressResults, 1, 4)
 
         // Then
         val resultLift = result.first()
@@ -81,7 +81,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         val loggingWorkout = LoggingWorkout(id = 1, name = "Test Workout", lifts = lifts)
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, emptyList(), 1)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(loggingWorkout.lifts, emptyList(), 1, 4)
 
         // Then
         val resultLift = result.first()
@@ -143,7 +143,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When: no new set results; hydrator should calculate next-set recommendation
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0, 4)
         val next = result.first().sets[1] as LoggingDropSet
 
         // Then: (100 * (1 - 0.2)) rounded to 2.5 → 80.0
@@ -205,7 +205,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0, 4)
         val updated = result.first().sets[1] as LoggingStandardSet
 
         // Then
@@ -267,7 +267,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0, 4)
         val updated = result.first().sets[1] as LoggingStandardSet
 
         // Then
@@ -333,7 +333,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0)
+        val result = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), listOf(setResultForLastCompleted), microCycle = 0, 4)
         val updated = result.first().sets[1] as LoggingStandardSet
 
         // Then
@@ -414,7 +414,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
-        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0, 4).first()
 
         // Assert: the ORIGINAL sets (first three) are still complete and now isNew == false
         hydrated.sets.take(3).forEach { set ->
@@ -479,7 +479,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
-        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = emptyList(), microCycle = 0).first()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = emptyList(), microCycle = 0, 4).first()
 
         // Assert: since no results were provided, previously-complete myo sets are un-completed
         hydrated.sets.take(2).forEach { set ->
@@ -528,7 +528,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             MyoRepSetResult(workoutId = 1L, liftId = 201L, liftPosition = 0, setPosition = 0, myoRepSetPosition = 1, weight = 100f, reps = 4, rpe = 9.5f, isDeload = false),
         )
         val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
-        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0, 4).first()
 
         // Assert we started with activation-only
         val inputWasActivationOnly = lift.sets.filterIsInstance<LoggingMyoRepSet>().all { it.myoRepSetPosition == null }
@@ -586,7 +586,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
-        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0, 4).first()
 
         // Assert activation-only precondition
         val allActivationOnly = lift.sets.filterIsInstance<LoggingMyoRepSet>().all { it.myoRepSetPosition == null }
@@ -655,7 +655,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
 
         // Act
         val sut = HydrateLoggingWorkoutWithCompletedSetsUseCase()
-        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0).first()
+        val hydrated = sut(liftsToHydrate = listOf(lift), setResults = results, microCycle = 0, 4).first()
 
         // Assert precondition: input was activation-only
         val inputActivationOnly = lift.sets.filterIsInstance<LoggingMyoRepSet>().all { it.myoRepSetPosition == null }
@@ -721,7 +721,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         io.mockk.every { WeightCalculationUtils.calculateSuggestedWeight(any(), any(), any(), any(), any(), any()) } returns 999f
 
         // When
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updatedStandard = hydrated.sets[1] as LoggingStandardSet
 
         // Then: no recompute, recommendation remains null
@@ -775,7 +775,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
                 weight = 170f, reps = 8, rpe = 9f, setType = SetType.DROP_SET, isDeload = false
             )
         )
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updatedDrop1 = hydrated.sets[1] as LoggingDropSet
 
         // Expect: 170 * (1 - 0.20) = 136 → rounded to 2.5 = 135.0
@@ -841,7 +841,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             )
         } returns 135.0f
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val mini0 = hydrated.sets[1] as LoggingMyoRepSet
 
         // RepGoal should be max(floor, round(activationReps*0.3)) -> max(7, round(2.4)=2) = 7
@@ -892,7 +892,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         )
 
         // When
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val mini0 = hydrated.sets[1] as LoggingMyoRepSet
 
         // Then: no recalc -> recommendation defaults to activation completedWeight
@@ -943,7 +943,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             )
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updated = hydrated.sets[1] as LoggingStandardSet
 
         assertNotNull(updated.weightRecommendation)
@@ -991,7 +991,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             )
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updated = hydrated.sets[1] as LoggingStandardSet
 
         assertNotNull(updated.weightRecommendation)
@@ -1039,7 +1039,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             )
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updated = hydrated.sets[1] as LoggingStandardSet
 
         assertNotNull(updated.weightRecommendation)
@@ -1090,7 +1090,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             )
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updated = hydrated.sets[1] as LoggingDropSet
 
         // 200 * 0.8 = 160 -> multiple of 2.5
@@ -1143,7 +1143,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             )
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updated = hydrated.sets[2] as LoggingDropSet // myo success, so 2nd index is now another myo
 
         // Gate blocks myo -> drop recalc; recommendation remains null
@@ -1199,7 +1199,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         mockkObject(WeightCalculationUtils)
         io.mockk.every { WeightCalculationUtils.calculateSuggestedWeight(any(), any(), any(), any(), any(), any()) } returns 80f
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updatedMini0 = hydrated.sets[1] as LoggingMyoRepSet
         assertEquals(80f, updatedMini0.weightRecommendation)
 
@@ -1255,7 +1255,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             MyoRepSetResult(workoutId = 1L, liftId = 991L, liftPosition = 0, setPosition = 0, myoRepSetPosition = 0,    weight = 90f,  reps = 4,  rpe = 9f, isDeload = false)
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updatedMini1 = hydrated.sets[2] as LoggingMyoRepSet
         assertEquals(90f, updatedMini1.weightRecommendation)
     }
@@ -1302,7 +1302,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
             MyoRepSetResult(workoutId = 1L, liftId = 992L, liftPosition = 0, setPosition = 0, myoRepSetPosition = null, weight = 100f, reps = 12, rpe = 8f, isDeload = false)
         )
 
-        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0).first()
+        val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(listOf(lift), results, microCycle = 0, 4).first()
         val updatedStd = hydrated.sets[2] as LoggingStandardSet // myo success, so 2nd index is now another myo
 
         // Gate blocks; recommendation remains null
@@ -1346,7 +1346,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(
             liftsToHydrate = listOf(lift),
             setResults = emptyList(),
-            microCycle = 0
+            microCycle = 0,
+            4
         ).first()
 
         // Then: complete -> false AND completedWeight/Reps/Rpe -> null
@@ -1450,7 +1451,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCaseTest {
         val hydrated = hydrateLoggingWorkoutWithCompletedSetsUseCase(
             liftsToHydrate = listOf(lift),
             setResults = results,
-            microCycle = 0
+            microCycle = 0,
+            4
         ).first()
 
         // Find the newly appended placeholder mini set (should be position 0, myoRepSetPosition = 1, incomplete, isNew = true)

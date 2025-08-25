@@ -39,7 +39,8 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCase {
             val modifiedSetsForLift = lift.sets.filter { set ->
                 (set.completedRpe != null ||
                         set.completedReps != null ||
-                        set.completedWeight != null)
+                        set.completedWeight != null ||
+                        set.weightRecommendation != null)
             }
             if (modifiedSetsForLift.isNotEmpty()) {
                 val liftKey = ModifiedLiftKey(
@@ -80,6 +81,7 @@ class HydrateLoggingWorkoutWithExistingLiftDataUseCase {
                                 completedWeight = modifiedSet.completedWeight,
                                 completedReps = modifiedSet.completedReps,
                                 completedRpe = modifiedSet.completedRpe,
+                                weightRecommendation = modifiedSet.weightRecommendation,
                             )
                         }
                     )
