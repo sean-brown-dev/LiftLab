@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import android.util.Log
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.common.Patch
 import com.browntowndev.liftlab.core.common.SettingsManager
@@ -22,6 +23,8 @@ import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
+import com.google.common.base.Stopwatch
+import java.util.concurrent.TimeUnit
 
 private data class LiftAndPositionKey(val liftId: Long, val liftPosition: Int)
 private fun SetResult.toLiftAndPositionKey() = LiftAndPositionKey(liftId, liftPosition)
@@ -36,6 +39,10 @@ class CompleteWorkoutUseCase(
     private val setLogEntryRepository: SetLogEntryRepository,
     private val transactionScope: TransactionScope,
 ) {
+    companion object {
+        private const val TAG = "CompleteWorkoutUseCase"
+    }
+
     suspend operator fun invoke(
         inProgressWorkout: WorkoutInProgressUiModel,
         programMetadata: ActiveProgramMetadata,
@@ -71,15 +78,23 @@ class CompleteWorkoutUseCase(
                 currentMicrocyclePosition = Patch.Set(newMicroCyclePosition),
             )
         }
+        val stopwatch = Stopwatch.createStarted()
         programsRepository.applyDelta(programMetadata.programId, delta)
+        Log.d(TAG, "programsRepository.applyDelta ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
 
+        stopwatch.start()
         // Get/create the historical workoutEntity name entry then use it to insert a workoutEntity log entry
         var historicalWorkoutNameId =
             historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId(
                 programId = programMetadata.programId,
                 workoutId = workout.id,
             )
+        Log.d(TAG, "historicalWorkoutNamesRepository.getIdByProgramAndWorkoutId ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
+
         if (historicalWorkoutNameId == null) {
+            stopwatch.start()
             historicalWorkoutNameId = historicalWorkoutNamesRepository.insert(
                 HistoricalWorkoutName(
                     programId = programMetadata.programId,
@@ -88,7 +103,11 @@ class CompleteWorkoutUseCase(
                     workoutName = workout.name,
                 )
             )
+            Log.d(TAG, "historicalWorkoutNamesRepository.insert ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+            stopwatch.reset()
         }
+
+        stopwatch.start()
         val workoutLogEntryId = workoutLogRepository.insertWorkoutLogEntry(
             historicalWorkoutNameId = historicalWorkoutNameId,
             programDeloadWeek = programMetadata.deloadWeek,
@@ -99,13 +118,19 @@ class CompleteWorkoutUseCase(
             date = getCurrentDate(),
             durationInMillis = durationInMillis,
         )
+        Log.d(TAG, "workoutLogRepository.insertWorkoutLogEntry ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
 
+        stopwatch.start()
         moveSetResultsToLogHistory(
             workoutLogEntryId = workoutLogEntryId,
             workout = workout,
             completedSets = completedSets,
         )
+        Log.d(TAG, "moveSetResultsToLogHistory ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
 
+        stopwatch.start()
         // Update any Linear Progression failures
         // The reason this is done when the workout is completed is because if it were done on the fly
         // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
@@ -115,8 +140,13 @@ class CompleteWorkoutUseCase(
             completedSets = completedSets,
             workout = workout,
         )
+        Log.d(TAG, "updateLinearProgressionFailures ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
 
+        stopwatch.start()
         workoutInProgressRepository.delete()
+        Log.d(TAG, "workoutInProgressRepository.delete ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
     }
 
     private suspend fun moveSetResultsToLogHistory(

@@ -24,6 +24,7 @@ import com.browntowndev.liftlab.core.domain.repositories.SetLogEntryRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
 import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
+import com.google.common.base.Stopwatch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.scan
+import java.util.concurrent.TimeUnit
 
 /**
  * Use case responsible for orchestrating all data flows to build the current
@@ -49,6 +51,10 @@ class GetWorkoutStateFlowUseCase(
     private val hydrateLoggingWorkoutWithExistingLiftDataUseCase: HydrateLoggingWorkoutWithExistingLiftDataUseCase,
     private val getPersonalRecordsUseCase: GetPersonalRecordsUseCase,
 ) {
+    companion object {
+        private const val TAG = "GetWorkoutStateFlowUseCase"
+    }
+
     private data class WorkoutLiftKey(
         val liftId: Long,
         val liftPosition: Int,
@@ -72,15 +78,19 @@ class GetWorkoutStateFlowUseCase(
             DEFAULT_LIFT_SPECIFIC_DELOADING
         )
 
+        val timer = Stopwatch.createStarted()
         val baseCalculatedDataFlow = workoutsRepository.getByMicrocyclePositionForCalculation(
             programId = programMetadata.programId,
             microcyclePosition = programMetadata.currentMicrocyclePosition
         ).distinctUntilChanged().flatMapLatest { nullableWorkout ->
-            Log.d("GetWorkoutStateFlowUseCase", "Workout: $nullableWorkout")
             if (nullableWorkout == null) {
                 // If no workout is found for the current position, emit a default empty state
                 flowOf(CalculatedWorkoutData())
             } else {
+                Log.d(TAG, "getByMicrocyclePositionForCalculation time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
+
+                timer.start()
                 // Personal records are fetched once, as they typically don't change reactively
                 // based on workout progression, but rather represent historical bests.
                 val personalRecords = getPersonalRecordsUseCase(
@@ -89,7 +99,10 @@ class GetWorkoutStateFlowUseCase(
                     mesoCycle = programMetadata.currentMesocycle,
                     microCycle = programMetadata.currentMicrocycle,
                 )
+                Log.d(TAG, "getPersonalRecords time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
 
+                timer.start()
                 // Flow for previous set results, potentially including all past workout data
                 val previousResultsFlow = useAllWorkoutDataFlow.flatMapLatest { useAllData ->
                     getSetResultsFlowInternal( // Call internal helper function
@@ -97,10 +110,16 @@ class GetWorkoutStateFlowUseCase(
                         useAllData = useAllData,
                     ).distinctUntilChanged()
                 }
+                Log.d(TAG, "getSetResultsFlowInternal time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
 
+                timer.start()
                 // Flow for in-progress set results for the current workout
                 val inProgressResultsFlow = liveWorkoutCompletedSetsRepository.getAllFlow().distinctUntilChanged()
+                Log.d(TAG, "liveWorkoutCompletedSetsRepository.getAllFlow() time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
 
+                timer.start()
                 // Previous results needed for display (e.g., in UI hints)
                 val previousResultsForDisplay = getResultsFromAllPreviousWorkouts(
                     liftIdsToSearchFor = nullableWorkout.lifts.fastMap { it.liftId },
@@ -108,6 +127,8 @@ class GetWorkoutStateFlowUseCase(
                     existingResultsForOtherLifts = emptyList(),
                     includeDeload = true // Include deloaded results for display purposes
                 )
+                Log.d(TAG, "getResultsFromAllPreviousWorkouts time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
 
                 // Combine settings and previous results to calculate the base logging workout
                 val calculatedWorkoutDataFlow = combine(
@@ -115,8 +136,9 @@ class GetWorkoutStateFlowUseCase(
                     useLiftSpecificDeloadingFlow,
                     previousResultsFlow
                 ) { onlySamePos, liftDeloadEnabled, previousResults ->
-                    Log.d("GetWorkoutStateFlowUseCase", "Calculating workout")
-                    calculateLoggingWorkoutUseCase(
+                    timer.reset()
+                    timer.start()
+                    val newWorkoutPlan = calculateLoggingWorkoutUseCase(
                         workout = nullableWorkout,
                         previousSetResults = previousResults,
                         previousResultsForDisplay = previousResultsForDisplay,
@@ -125,6 +147,10 @@ class GetWorkoutStateFlowUseCase(
                         microCycle = programMetadata.currentMicrocycle,
                         onlyUseResultsForLiftsInSamePosition = onlySamePos
                     )
+                    Log.d(TAG, "calculateLoggingWorkoutUseCase time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                    timer.reset()
+
+                    newWorkoutPlan
                 }
 
                 combine(
@@ -138,18 +164,19 @@ class GetWorkoutStateFlowUseCase(
                     // previousState: The last CalculatedWorkoutData we emitted.
                     // newBasePlan: The latest workout plan, fresh from settings.
                     // inProgressResults: The latest list of completed sets.
-                    Log.d(
-                        "GetWorkoutStateFlowUseCase",
-                        "Reducing state. Has new base plan? ${newCalculatedWorkoutData !== previousState.calculatedWorkoutPlan}"
-                    )
 
+                    timer.reset()
+                    timer.start()
                     val partiallyHydratedPlan =
                         hydrateLoggingWorkoutWithExistingLiftDataUseCase(
                             loggingWorkout = newCalculatedWorkoutData, // Hydrate the NEW plan...
                             liftsToUpdateFrom = previousState.calculatedWorkoutPlan?.lifts
                                 ?: emptyList() // ...with the previous plan
                         )
+                    Log.d(TAG, "hydrateLoggingWorkoutWithExistingLiftDataUseCase time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                    timer.reset()
 
+                    timer.start()
                     val liftsToHydrate = getLiftsToHydrate(previousState, inProgressResults, partiallyHydratedPlan)
                     val hydratedLiftsById = hydrateLoggingWorkoutWithCompletedSetsUseCase(
                         liftsToHydrate = liftsToHydrate,
@@ -157,6 +184,9 @@ class GetWorkoutStateFlowUseCase(
                         microCycle = programMetadata.currentMicrocycle,
                         programDeloadWeek = programMetadata.deloadWeek,
                     ).associateBy { it.id }
+                    Log.d(TAG, "hydrateLoggingWorkoutWithCompletedSetsUseCase time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                    timer.reset()
+
                     val finalPlan = partiallyHydratedPlan.copy(
                         lifts = partiallyHydratedPlan.lifts.fastMap { lift ->
                             hydratedLiftsById[lift.id] ?: lift
@@ -178,9 +208,18 @@ class GetWorkoutStateFlowUseCase(
             if (plan == null) {
                 flowOf(calculatedWorkoutData)
             } else {
+                timer.reset()
+                timer.start()
                 val workoutMetadataFlow = workoutsRepository.getMetadataFlow(plan.id).distinctUntilChanged()
+                Log.d(TAG, "workoutsRepository.getMetadataFlow time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
+
                 val liftIds = plan.lifts.fastMap { it.liftId }
+
+                timer.start()
                 val liftsMetadataFlow = liftsRepository.getManyMetadataFlow(liftIds).distinctUntilChanged()
+                Log.d(TAG, "liftsRepository.getManyMetadataFlow time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
+                timer.reset()
 
                 combine(
                     workoutMetadataFlow,

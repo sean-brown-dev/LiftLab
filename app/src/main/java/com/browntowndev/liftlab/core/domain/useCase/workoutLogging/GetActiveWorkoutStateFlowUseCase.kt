@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
@@ -17,10 +18,14 @@ class GetActiveWorkoutStateFlowUseCase(
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<ActiveWorkoutState> {
         return programsRepository.getActiveProgramMetadataFlow()
+            .distinctUntilChanged()
             .flatMapLatest { programMetadata ->
                 if (programMetadata == null) flowOf(ActiveWorkoutState())
                 else {
-                    val workoutInProgressFlow = workoutInProgressRepository.getFlow()
+                    val workoutInProgressFlow = workoutInProgressRepository
+                        .getFlow()
+                        .distinctUntilChanged()
+
                     combine(
                         workoutInProgressFlow,
                         getWorkoutStateFlowUseCase(programMetadata),

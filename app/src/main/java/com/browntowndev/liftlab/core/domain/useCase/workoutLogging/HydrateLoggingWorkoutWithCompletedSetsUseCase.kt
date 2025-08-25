@@ -8,6 +8,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
+import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
@@ -221,7 +222,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 val sameRepRangeAsPrevious = lastCompletedSet.repRangeTop == set.repRangeTop &&
                         lastCompletedSet.repRangeBottom == set.repRangeBottom
 
-                val sameWeightRecommendationAsPrevious = lastCompletedSet.weightRecommendation == set.weightRecommendation
+                val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation?.roundToOneDecimal() != lastCompletedSet.completedWeight?.roundToOneDecimal()
                 val lastSetGoalResult = calculateMissedGoalResult(
                     completedReps = lastCompletedSet.completedReps!!,
                     completedRpe = lastCompletedSet.completedRpe!!,
@@ -235,10 +236,11 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
 
                     // Same rep range as previous
                     sameRepRangeAsPrevious -> {
-
+                        Log.d(TAG, "sameRepRangeAsPrevious")
                         when {
                             // Previous missed goal, recalculate
-                            lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom ->
+                            lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom -> {
+                                Log.d(TAG, "exceededRepRangeTop=${lastSetGoalResult.exceededRepRangeTop}, missedRepRangeBottom=${lastSetGoalResult.missedRepRangeBottom}")
                                 WeightCalculationUtils.calculateSuggestedWeight(
                                     completedWeight = lastCompletedSet.completedWeight!!,
                                     completedReps = lastCompletedSet.completedReps - 1,
@@ -247,21 +249,30 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                                     rpeGoal = set.rpeTarget,
                                     roundingFactor = increment,
                                 )
+                            }
 
                             // Previous weight was changed and set succeeded, or there's no weight recommendation. Use last completed weight
-                            !sameWeightRecommendationAsPrevious || set.weightRecommendation == null -> lastCompletedSet.completedWeight!!
+                            differentWeightUsedThanRecommended || set.weightRecommendation == null -> {
+                                Log.d(TAG, "sameWeightRecommendationAsPrevious=$differentWeightUsedThanRecommended set.weightRecommendation=${set.weightRecommendation}")
+                                lastCompletedSet.completedWeight!!
+                            }
 
                             // Previous weight was not changed, use current recommendation
-                            else -> set.weightRecommendation
+                            else -> {
+                                Log.d(TAG, "Previous weight was not changed, using current recommendation")
+                                set.weightRecommendation
+                            }
                         }
                     }
 
                     // Different rep range.
                     else -> {
+                        Log.d(TAG, "different rep range")
                         when {
                             
                             // Previous missed goal or there is no recommendation, recalculate
-                            set.weightRecommendation  == null || lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom ->
+                            set.weightRecommendation  == null || lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom -> {
+                                Log.d(TAG, "exceededRepRangeTop=${lastSetGoalResult.exceededRepRangeTop}, missedRepRangeBottom=${lastSetGoalResult.missedRepRangeBottom}")
                                 WeightCalculationUtils.calculateSuggestedWeight(
                                     completedWeight = lastCompletedSet.completedWeight!!,
                                     completedReps = lastCompletedSet.completedReps - 1,
@@ -270,9 +281,13 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                                     rpeGoal = set.rpeTarget,
                                     roundingFactor = increment,
                                 )
+                            }
 
                             // Previous set succeeded, keep current recommendation
-                            else -> set.weightRecommendation
+                            else -> {
+                                Log.d(TAG, "Previous set succeeded, keeping current recommendation")
+                                set.weightRecommendation
+                            }
                         }
                     }
                 }

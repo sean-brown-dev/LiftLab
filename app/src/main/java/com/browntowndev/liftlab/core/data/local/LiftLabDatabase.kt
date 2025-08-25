@@ -40,6 +40,7 @@ import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.migrations.LiftNoteMigration
 import com.browntowndev.liftlab.core.data.local.migrations.LogIndicesMigration
 import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxAutoMigration
+import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxIndexMigration
 import com.browntowndev.liftlab.core.data.local.migrations.RemoteSyncMigration
 import com.browntowndev.liftlab.core.data.local.migrations.SetResultsMigration
 import com.browntowndev.liftlab.core.data.local.migrations.StablePrimaryKeyMigration
@@ -147,7 +148,8 @@ abstract class LiftLabDatabase : RoomDatabase() {
                     ViewsAutoMigration,
                     SetResultsMigration,
                     StablePrimaryKeyMigration,
-                    LogIndicesMigration
+                    LogIndicesMigration,
+                    OneRepMaxIndexMigration
                 )
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {

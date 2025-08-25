@@ -9,6 +9,11 @@ import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.utils.generateFirstCompleteStepSequence
 import com.browntowndev.liftlab.core.domain.utils.getPossibleStepSizes
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.round
 
 /**
  * Calculates all possible step size options for wave-loading lifts within a workout.
@@ -151,27 +156,154 @@ fun StandardWorkoutLift.generateCustomSets(): List<GenericLiftSet> {
     return customSets
 }
 
-private fun getStraightSetsRpeTarget(setIndex: Int, setCount: Int, topSetRpeTarget: Float) =
-    when {
-        setIndex == 0 -> topSetRpeTarget
-        setIndex < (setCount - 1) -> 9f
-        else -> 10f
+/**
+ * Build all RPE targets for a lift, given:
+ * - top set RPE (first set),
+ * - total number of sets including the final AMRAP (which is fixed at RPE 10),
+ * - rounding step (default 0.5),
+ * - and a maximum pre-final RPE cap (default 9.5).
+ *
+ * Indexing & counting:
+ * - Set indices are 0-based: 0 == top set, (setCount - 1) == final set.
+ * - setCount is the total number of sets (includes the final AMRAP).
+ *
+ * Progression design (no hardcoding of scenarios):
+ * - We treat the jump from the top set to 10 RPE as `numberOfIncrements = setCount - 1`.
+ * - We choose a target for the penultimate set (usually 9.0; allow 9.5 when small equal steps are natural).
+ * - We find a geometric ratio r (via binary search) so that the cumulative share of the total RPE gap
+ *   allocated by the first (k-1) increments lands at that penultimate target.
+ * - Rounds intermediate sets to the nearest `roundingStep` and caps them at `maxPreFinalRpe`.
+ */
+fun getStraightSetsRpeTarget(
+    topSetRpeTarget: Float,
+    setCount: Int,
+    roundingStep: Double = 0.5,
+    maxPreFinalRpe: Double = 9.5
+): List<Float> {
+    require(setCount >= 2) {
+        "setCount must be >= 2 (top set + final AMRAP set). Received: $setCount"
     }
+
+    val numberOfIncrements = setCount - 1                       // steps from top → final(10)
+    val topRpeAsDouble = topSetRpeTarget.toDouble()
+    val totalRpeGapToTen = (10.0 - topRpeAsDouble).coerceAtLeast(0.0)
+
+    // Trivial case: only two sets (top + final). No intermediate to compute.
+    if (numberOfIncrements == 1) {
+        return listOf(topSetRpeTarget, 10f)
+    }
+
+    // Helper rounding utilities
+    fun roundToNearestStep(value: Double, step: Double): Double =
+        round(value / step) * step
+
+    fun ceilToNearestStep(value: Double, step: Double): Double =
+        ceil(value / step) * step
+
+    // If top set is already at 10 (should be unusual), just return 10s.
+    if (totalRpeGapToTen == 0.0) {
+        return List(setCount) { 10f }
+    }
+
+    // Average increment if we split the total gap linearly.
+    val averageIncrementIfLinear = totalRpeGapToTen / numberOfIncrements
+
+    // Pick a principled penultimate target:
+    // - Prefer 9.0 for most cases (gives room for a final push).
+    // - If equal, tiny steps are natural (<= roundingStep), allow 9.5.
+    //   Generalized using ceil to the configured rounding step.
+    val penultimateCandidateDrop = ceilToNearestStep(averageIncrementIfLinear, roundingStep)
+    val penultimateSetTarget = max(9.0, 10.0 - penultimateCandidateDrop)
+
+    // The fraction of the total gap we want consumed by the first (k-1) increments.
+    val desiredPenultimateFraction =
+        ((penultimateSetTarget - topRpeAsDouble) / totalRpeGapToTen).coerceIn(0.0, 1.0)
+
+    // For a geometric series with ratio r and k increments, the fraction of the
+    // total k-weight summed by the first (k-1) increments is:
+    //   f(r, k) = (1 - r^(k-1)) / (1 - r^k),   with the r→1 limit = (k-1)/k
+    fun fractionOfGapAtPenultimate(geometricRatio: Double, increments: Int): Double {
+        if (increments <= 1) return 0.0
+        return if (abs(geometricRatio - 1.0) < 1e-9) {
+            (increments - 1).toDouble() / increments.toDouble()
+        } else {
+            val rPowKm1 = geometricRatio.pow(increments - 1)
+            val rPowK = rPowKm1 * geometricRatio
+            (1 - rPowKm1) / (1 - rPowK)
+        }
+    }
+
+    val fractionIfEqualSteps = (numberOfIncrements - 1).toDouble() / numberOfIncrements.toDouble()
+
+    // Solve for r (strictly decreasing mapping → binary search is fine).
+    val geometricRatio = if (abs(desiredPenultimateFraction - fractionIfEqualSteps) < 1e-6) {
+        1.0 // linear steps
+    } else {
+        var lowRatio = 1e-6
+        var highRatio = 100.0
+        repeat(60) {
+            val mid = (lowRatio + highRatio) / 2.0
+            val fractionAtMid = fractionOfGapAtPenultimate(mid, numberOfIncrements)
+            if (fractionAtMid > desiredPenultimateFraction) {
+                // Need to push more of the gap into later sets → increase r
+                lowRatio = mid
+            } else {
+                highRatio = mid
+            }
+        }
+        (lowRatio + highRatio) / 2.0
+    }
+
+    // Sum of the first N terms of a geometric series with ratio r.
+    fun geometricSeriesSum(ratio: Double, terms: Int): Double =
+        if (abs(ratio - 1.0) < 1e-9) {
+            terms.toDouble()
+        } else {
+            (1 - ratio.pow(terms)) / (1 - ratio)
+        }
+
+    // Base increment so that all geometric increments sum to totalRpeGapToTen.
+    val totalGeometricWeights = geometricSeriesSum(geometricRatio, numberOfIncrements)
+    val baseIncrementSize = totalRpeGapToTen / totalGeometricWeights
+
+    // Cumulative increase after i increments (i == setIndex for intermediate sets).
+    fun cumulativeIncreaseAfter(incrementsCompleted: Int): Double {
+        return if (abs(geometricRatio - 1.0) < 1e-9) {
+            baseIncrementSize * incrementsCompleted
+        } else {
+            baseIncrementSize * (1 - geometricRatio.pow(incrementsCompleted)) / (1 - geometricRatio)
+        }
+    }
+
+    // Build the full sequence once (index 0 through setCount-1).
+    return (0 until setCount).map { setIndex ->
+        when (setIndex) {
+            0 -> topRpeAsDouble
+            setCount - 1 -> 10.0
+            else -> {
+                val rawTarget = topRpeAsDouble + cumulativeIncreaseAfter(setIndex)
+                val roundedTarget = roundToNearestStep(rawTarget, roundingStep)
+                roundedTarget.coerceAtMost(maxPreFinalRpe)
+            }
+        }.toFloat()
+    }
+}
 
 /**
  * Calculates the RPE target based on the current set index, set count, progression scheme, and top set RPE target.
  *
  * @param setIndex The index of the current set.
- * @param setCount The total number of sets in the workout.
- * @param progressionScheme The progression scheme of the workout.
+ * @param setCount The total number of sets in the lift.
+ * @param progressionScheme The progression scheme of the lift.
  * @param topSetRpeTarget The RPE target of the top set.
  * @return The calculated RPE target for custom lift sets.
  */
 fun getRpeTarget(setIndex: Int, setCount: Int, progressionScheme: ProgressionScheme, topSetRpeTarget: Float) =
     if (progressionScheme == ProgressionScheme.DOUBLE_PROGRESSION || progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-        getStraightSetsRpeTarget(
-            setIndex = setIndex,
+        val rpeSeries = getStraightSetsRpeTarget(
             setCount = setCount,
             topSetRpeTarget = topSetRpeTarget
         )
+        val safeIndex = setIndex.coerceIn(0, setCount - 1)
+        rpeSeries[safeIndex]
     } else topSetRpeTarget
