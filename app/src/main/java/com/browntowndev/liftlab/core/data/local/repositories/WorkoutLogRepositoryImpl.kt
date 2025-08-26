@@ -7,10 +7,10 @@ import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.SetLogEntry
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutLogEntry
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -30,6 +30,9 @@ class WorkoutLogRepositoryImpl(
             it.toDomainModel()
         }
     }
+
+    override suspend fun getProgramId(workoutLogEntryId: Long): Long? =
+        workoutLogEntryDao.getProgramId(workoutLogEntryId)
 
     override suspend fun getById(id: Long): WorkoutLogEntry? =
         workoutLogEntryDao.get(id)?.toDomainModel()

@@ -122,15 +122,6 @@ class CompleteWorkoutUseCase(
         stopwatch.reset()
 
         stopwatch.start()
-        moveSetResultsToLogHistory(
-            workoutLogEntryId = workoutLogEntryId,
-            workout = workout,
-            completedSets = completedSets,
-        )
-        Log.d(TAG, "moveSetResultsToLogHistory ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
-        stopwatch.reset()
-
-        stopwatch.start()
         // Update any Linear Progression failures
         // The reason this is done when the workout is completed is because if it were done on the fly
         // you'd have no easy way of knowing if someone failed (increment), changed result (still failure)
@@ -141,6 +132,15 @@ class CompleteWorkoutUseCase(
             workout = workout,
         )
         Log.d(TAG, "updateLinearProgressionFailures ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
+        stopwatch.reset()
+
+        stopwatch.start()
+        moveSetResultsToLogHistory(
+            workoutLogEntryId = workoutLogEntryId,
+            workout = workout,
+            completedSets = completedSets,
+        )
+        Log.d(TAG, "moveSetResultsToLogHistory ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
         stopwatch.reset()
 
         stopwatch.start()

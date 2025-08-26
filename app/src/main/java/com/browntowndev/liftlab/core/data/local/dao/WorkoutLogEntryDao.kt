@@ -142,7 +142,6 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
             "FROM workoutLogEntries log " +
             "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
             "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
-            "INNER JOIN lifts liftEntity ON setResult.liftId = liftEntity.lift_id " +
             "WHERE log.workout_log_entry_id = :workoutLogEntryId AND " +
             "log.deleted = 0 AND " +
             "setResult.deleted = 0")
@@ -162,4 +161,12 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
 
     @Query("SELECT * FROM workoutLogEntries WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<WorkoutLogEntryEntity>
+
+    @Query("""
+        SELECT programId 
+        FROM workoutLogEntries wle
+        INNER JOIN historicalWorkoutNames hwn ON hwn.historical_workout_name_id = wle.historicalWorkoutNameId
+        WHERE workout_log_entry_id = :workoutLogEntryId
+    """)
+    fun getProgramId(workoutLogEntryId: Long): Long?
 }

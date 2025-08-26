@@ -34,6 +34,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
     WHERE hwn.workoutId = :workoutId
       AND sle.deleted = 0
+      AND wle.deleted = 0
       AND (sle.isDeload = 0 OR :includeDeload)
       AND wle.mesoCycle = (
             SELECT MAX(wle2.mesoCycle)
@@ -42,6 +43,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
             INNER JOIN historicalWorkoutNames hwn2 ON wle2.historicalWorkoutNameId = hwn2.historical_workout_name_id
             WHERE hwn2.workoutId = :workoutId
               AND sle2.deleted = 0
+              AND wle2.deleted = 0
               AND (sle2.isDeload = 0 OR :includeDeload)
       )
       AND wle.microCycle = (
@@ -51,6 +53,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
             INNER JOIN historicalWorkoutNames hwn3 ON wle3.historicalWorkoutNameId = hwn3.historical_workout_name_id
             WHERE hwn3.workoutId = :workoutId
               AND sle3.deleted = 0
+              AND wle3.deleted = 0
               AND (sle3.isDeload = 0 OR :includeDeload)
               AND wle3.mesoCycle = wle.mesoCycle
       )
@@ -68,7 +71,8 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         WHERE workoutId = :workoutId AND 
         mesoCycle = :mesoCycle AND 
         microCycle = :microCycle AND 
-        sle.deleted = 0
+        sle.deleted = 0 AND
+        wle.deleted = 0
         """)
     fun getForSpecificWorkoutCompletionFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetLogEntryEntity>>
 
@@ -76,7 +80,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         SELECT sle.* FROM setLogEntries sle
         INNER JOIN workoutLogEntries wle ON wle.workout_log_entry_id = sle.workoutLogEntryId
         INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
-        WHERE workoutId = :workoutId AND sle.deleted = 0
+        WHERE workoutId = :workoutId AND sle.deleted = 0 AND wle.deleted = 0
         """)
     suspend fun getForAllWorkoutCompletions(workoutId: Long): List<SetLogEntryEntity>
 
@@ -95,7 +99,8 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
         WHERE liftId IN (:liftIds) AND 
         (workoutId != :workoutId OR mesoCycle != :mesoCycle OR microCycle != :microCycle) 
-        AND sle.deleted = 0 
+        AND sle.deleted = 0
+        AND wle.deleted = 0
         GROUP BY liftId
         """)
     suspend fun getPersonalRecordsForLiftsExcludingWorkout(
@@ -167,7 +172,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     INNER JOIN workoutLifts wl ON wl.liftId = sr.liftId AND wl.position = sr.liftPosition
     LEFT JOIN sets s ON s.workoutLiftId = wl.workout_lift_id AND s.position = sr.setPosition
     INNER JOIN lifts l ON l.lift_id = wl.liftId
-    WHERE (:excludeFromCopySize = 0 OR sr.live_workout_completed_set_id NOT IN (:excludeFromCopy))
+    WHERE sr.deleted = 0 AND (:excludeFromCopySize = 0 OR sr.live_workout_completed_set_id NOT IN (:excludeFromCopy))
     """)
     suspend fun insertFromLiveWorkoutCompletedSets(
         workoutLogEntryId: Long,
@@ -184,6 +189,7 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
       AND mesoCycle = :mesocycle
       AND microCycle = :microcycle 
       AND sle.deleted = 0
+      AND wle.deleted = 0
 """)
     suspend fun getForWorkoutLogEntryMesoAndMicro(
         workoutLogEntryId: Long,

@@ -75,7 +75,8 @@ val SetResultsMigration = object: Migration(17, 18) {
                 deleted,
                 remoteId,
                 remoteLastUpdated
-            FROM previousSetResults
+            FROM previousSetResults sr
+            INNER JOIN workoutsInProgress wip ON sr.workoutId = wip.workoutId
         """.trimIndent())
 
         // 4. Drop old table

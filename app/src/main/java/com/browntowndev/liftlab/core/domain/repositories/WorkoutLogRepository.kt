@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 interface WorkoutLogRepository: Repository<WorkoutLogEntry, Long> {
+    suspend fun getProgramId(workoutLogEntryId: Long): Long?
     override suspend fun getAll(): List<WorkoutLogEntry>
     override fun getAllFlow(): Flow<List<WorkoutLogEntry>>
     fun getFlow(workoutLogEntryId: Long): Flow<WorkoutLogEntry>

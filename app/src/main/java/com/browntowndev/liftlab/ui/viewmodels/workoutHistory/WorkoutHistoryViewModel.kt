@@ -10,6 +10,7 @@ import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.DeleteWorkoutLogEntryUseCase
 import com.browntowndev.liftlab.ui.factory.createProgramAndWorkoutFilterChipOptions
+import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.toUiModel
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption.Companion.DATE_RANGE
@@ -199,6 +200,9 @@ class WorkoutHistoryViewModel(
     }
 
     fun delete(id: Long) = executeWithErrorHandling("Failed to delete workout log") {
-        deleteWorkoutLogEntryUseCase(id)
+        deleteWorkoutLogEntryUseCase(
+            workoutLogEntry = _state.value.filteredWorkoutLogs.first { it.id == id }.toDomainModel(),
+            isMostRecentWorkout = _state.value.dateOrderedWorkoutLogs.first().id == id
+        )
     }
 }
