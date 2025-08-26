@@ -100,23 +100,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 )
                 previousCompletedSetsByKey[key]
             }
-        fun didPreviousChangeCompletedWeight(set: GenericLoggingSet): Boolean {
-            val setKey = if (set is LoggingMyoRepSet && set.myoRepSetPosition != null) {
-                // Mini sets share the same position as the activation set.
-                val previousMyoRepSetPosition = if (set.myoRepSetPosition == 0) null else set.myoRepSetPosition - 1
-                SetKey(
-                    setPosition = set.position,
-                    myoRepSetPosition = previousMyoRepSetPosition,
-                )
-            } else {
-                SetKey(
-                    setPosition = set.position - 1,
-                    myoRepSetPosition = null
-                )
-            }
-
-            return setsThatChangedCompletedWeight.contains(setKey)
-        }
 
         val increment = workoutLift.incrementOverride
             ?: SettingsManager.getSetting(
@@ -133,7 +116,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             )
             val completedSetResult = setResultsByKey[currSetKey]
             val previousSet = getPreviousSet(set)
-            val previousChangedCompletedWeight = didPreviousChangeCompletedWeight(set)
 
             val updatedSet = when {
                 // Case 1: A result exists for this set
@@ -169,7 +151,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     getWithWeightRecommendation(
                         set = set,
                         lastCompletedSet = previousSet,
-                        lastCompletedChangedCompletedWeight = previousChangedCompletedWeight,
                         increment = increment,
                     )
                 }
@@ -218,7 +199,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     private fun getWithWeightRecommendation(
         set: GenericLoggingSet,
         lastCompletedSet: GenericLoggingSet,
-        lastCompletedChangedCompletedWeight: Boolean,
         increment: Float,
     ): GenericLoggingSet {
         if (!lastCompletedSet.complete || lastCompletedSet.completedWeight == null || lastCompletedSet.completedReps == null || lastCompletedSet.completedRpe == null) {
@@ -245,11 +225,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     return set
                 }
 
-                val straightSets = lastCompletedSet.repRangeTop == set.repRangeTop &&
-                        lastCompletedSet.repRangeBottom == set.repRangeBottom &&
-                        lastCompletedSet.rpeTarget < set.rpeTarget
-
-                val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation?.roundToOneDecimal() != lastCompletedSet.completedWeight?.roundToOneDecimal()
                 val lastSetGoalResult = calculateMissedGoalResult(
                     completedReps = lastCompletedSet.completedReps!!,
                     completedRpe = lastCompletedSet.completedRpe!!,
@@ -258,83 +233,22 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     rpeTarget = lastCompletedSet.rpeTarget,
                     repRangeBottomFatigueOffset = 0f,
                 )
+                val missedGoal = lastSetGoalResult.missedRepRangeBottom || lastSetGoalResult.exceededRepRangeTop
+                val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation != lastCompletedSet.initialWeightRecommendation
 
                 val weightRecommendation = when {
 
-                    // Straight sets
-                    straightSets -> {
-                        Log.d(TAG, "sameRepRangeAsPrevious")
-                        when {
-                            // Previous missed goal, recalculate
-                            lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom -> {
-                                Log.d(TAG, "exceededRepRangeTop=${lastSetGoalResult.exceededRepRangeTop}, missedRepRangeBottom=${lastSetGoalResult.missedRepRangeBottom}")
-                                WeightCalculationUtils.calculateSuggestedWeight(
-                                    completedWeight = lastCompletedSet.completedWeight!!,
-                                    completedReps = lastCompletedSet.completedReps - 1,
-                                    completedRpe = lastCompletedSet.completedRpe,
-                                    repGoal = set.repRangeBottom,
-                                    rpeGoal = set.rpeTarget,
-                                    roundingFactor = increment,
-                                )
-                            }
+                    set.weightRecommendation == null || missedGoal || differentWeightUsedThanRecommended ->
+                        WeightCalculationUtils.calculateSuggestedWeight(
+                            completedWeight = lastCompletedSet.completedWeight!!,
+                            completedReps = lastCompletedSet.completedReps - 1,
+                            completedRpe = lastCompletedSet.completedRpe,
+                            repGoal = set.repRangeBottom,
+                            rpeGoal = set.rpeTarget,
+                            roundingFactor = increment,
+                        )
 
-                            // Previous weight was changed and set succeeded, or there's no weight recommendation. Use last completed weight
-                            lastCompletedChangedCompletedWeight || differentWeightUsedThanRecommended || set.weightRecommendation == null -> {
-                                Log.d(TAG, "sameWeightRecommendationAsPrevious=$differentWeightUsedThanRecommended set.weightRecommendation=${set.weightRecommendation}")
-                                lastCompletedSet.completedWeight!!
-                            }
-
-                            // Previous weight was not changed, use current recommendation
-                            else -> {
-                                Log.d(TAG, "Previous weight was not changed, using current recommendation")
-                                set.weightRecommendation
-                            }
-                        }
-                    }
-
-                    // Non-straight sets
-                    else -> {
-                        Log.d(TAG, "different rep range")
-                        when {
-                            
-                            // Previous missed goal or there is no recommendation, recalculate
-                            set.weightRecommendation == null || lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom -> {
-                                Log.d(TAG, "exceededRepRangeTop=${lastSetGoalResult.exceededRepRangeTop}, missedRepRangeBottom=${lastSetGoalResult.missedRepRangeBottom}")
-                                WeightCalculationUtils.calculateSuggestedWeight(
-                                    completedWeight = lastCompletedSet.completedWeight!!,
-                                    completedReps = lastCompletedSet.completedReps - 1,
-                                    completedRpe = lastCompletedSet.completedRpe,
-                                    repGoal = set.repRangeBottom,
-                                    rpeGoal = set.rpeTarget,
-                                    roundingFactor = increment,
-                                )
-                            }
-
-                            // If the last set changed its weight or used a different one than recommended,
-                            // test it and see if it's significantly different than the current recommendation
-                            lastCompletedChangedCompletedWeight || differentWeightUsedThanRecommended -> {
-                                Log.d(TAG, "lastCompletedChangedCompletedWeight=$lastCompletedChangedCompletedWeight, differentWeightUsedThanRecommended=$differentWeightUsedThanRecommended")
-                                val recBasedOnPrevResult = WeightCalculationUtils.calculateSuggestedWeight(
-                                    completedWeight = lastCompletedSet.completedWeight!!,
-                                    completedReps = lastCompletedSet.completedReps - 1,
-                                    completedRpe = lastCompletedSet.completedRpe,
-                                    rpeGoal = set.rpeTarget,
-                                    repGoal = set.repRangeBottom,
-                                    roundingFactor = increment,
-                                )
-                                if (abs(recBasedOnPrevResult - set.weightRecommendation) > increment) {
-                                    Log.d(TAG, "recBasedOnPrevResult=$recBasedOnPrevResult, set.weightRecommendation=${set.weightRecommendation}")
-                                    recBasedOnPrevResult
-                                } else set.weightRecommendation
-                            }
-
-                            // Previous set succeeded, keep current recommendation
-                            else -> {
-                                Log.d(TAG, "Previous set succeeded, keeping current recommendation")
-                                set.weightRecommendation
-                            }
-                        }
-                    }
+                    else -> set.initialWeightRecommendation
                 }
 
                 set.copy(weightRecommendation = weightRecommendation)
@@ -369,7 +283,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     )
                     val exceededRepRangeTop = missedGoalResult.exceededRepRangeTop
                     val missedRepRangeBottom = missedGoalResult.missedRepRangeBottom
-                    val shouldRecalculate = exceededRepRangeTop || missedRepRangeBottom || set.weightRecommendation == null
+                    val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation != lastCompletedSet.initialWeightRecommendation
+                    val shouldRecalculate = differentWeightUsedThanRecommended || exceededRepRangeTop || missedRepRangeBottom || set.weightRecommendation == null
 
                     val weightRecommendation = if (shouldRecalculate) {
                         // Guess ~30% drop from activation reps. Set minimum to rep floor or 10 (sane goal)
