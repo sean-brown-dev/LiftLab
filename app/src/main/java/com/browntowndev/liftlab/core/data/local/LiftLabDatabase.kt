@@ -139,6 +139,15 @@ abstract class LiftLabDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context, populateInitialData: PopulateInitialDataCallback? = null): LiftLabDatabase {
             val dbName = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DATABASE_NAME" else DATABASE_NAME
+
+            val pragmas = object : Callback() {
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
+                    db.query("PRAGMA synchronous=NORMAL").use { /* ignore result */ }
+                    db.query("PRAGMA wal_autocheckpoint=5000").use { /* ignore result */ }
+                }
+            }
+
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, dbName)
                 .addMigrations(
@@ -151,6 +160,7 @@ abstract class LiftLabDatabase : RoomDatabase() {
                     LogIndicesMigration,
                     OneRepMaxIndexMigration
                 )
+                .addCallback(pragmas)
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {
                         it.addCallback(populateInitialData)
