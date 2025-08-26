@@ -22,6 +22,7 @@ import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.utils.calculateMissedGoalResult
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -81,6 +82,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             )
         }
 
+        val setsThatChangedCompletedWeight = mutableSetOf<SetKey>()
         val previousCompletedSetsByKey = mutableMapOf<SetKey, GenericLoggingSet>()
         fun getPreviousSet(set: GenericLoggingSet): GenericLoggingSet? =
             if (set is LoggingMyoRepSet && set.myoRepSetPosition != null) {
@@ -98,6 +100,23 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 )
                 previousCompletedSetsByKey[key]
             }
+        fun didPreviousChangeCompletedWeight(set: GenericLoggingSet): Boolean {
+            val setKey = if (set is LoggingMyoRepSet && set.myoRepSetPosition != null) {
+                // Mini sets share the same position as the activation set.
+                val previousMyoRepSetPosition = if (set.myoRepSetPosition == 0) null else set.myoRepSetPosition - 1
+                SetKey(
+                    setPosition = set.position,
+                    myoRepSetPosition = previousMyoRepSetPosition,
+                )
+            } else {
+                SetKey(
+                    setPosition = set.position - 1,
+                    myoRepSetPosition = null
+                )
+            }
+
+            return setsThatChangedCompletedWeight.contains(setKey)
+        }
 
         val increment = workoutLift.incrementOverride
             ?: SettingsManager.getSetting(
@@ -114,6 +133,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             )
             val completedSetResult = setResultsByKey[currSetKey]
             val previousSet = getPreviousSet(set)
+            val previousChangedCompletedWeight = didPreviousChangeCompletedWeight(set)
 
             val updatedSet = when {
                 // Case 1: A result exists for this set
@@ -149,6 +169,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     getWithWeightRecommendation(
                         set = set,
                         lastCompletedSet = previousSet,
+                        lastCompletedChangedCompletedWeight = previousChangedCompletedWeight,
                         increment = increment,
                     )
                 }
@@ -163,6 +184,10 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     myoRepSetPosition = (updatedSet as? LoggingMyoRepSet)?.myoRepSetPosition,
                 )
                 previousCompletedSetsByKey[setKey] = updatedSet
+
+                if (updatedSet.completedWeight != set.completedWeight) {
+                    setsThatChangedCompletedWeight.add(setKey)
+                }
             }
             updatedSet
         }
@@ -193,6 +218,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     private fun getWithWeightRecommendation(
         set: GenericLoggingSet,
         lastCompletedSet: GenericLoggingSet,
+        lastCompletedChangedCompletedWeight: Boolean,
         increment: Float,
     ): GenericLoggingSet {
         if (!lastCompletedSet.complete || lastCompletedSet.completedWeight == null || lastCompletedSet.completedReps == null || lastCompletedSet.completedRpe == null) {
@@ -219,8 +245,9 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     return set
                 }
 
-                val sameRepRangeAsPrevious = lastCompletedSet.repRangeTop == set.repRangeTop &&
-                        lastCompletedSet.repRangeBottom == set.repRangeBottom
+                val straightSets = lastCompletedSet.repRangeTop == set.repRangeTop &&
+                        lastCompletedSet.repRangeBottom == set.repRangeBottom &&
+                        lastCompletedSet.rpeTarget < set.rpeTarget
 
                 val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation?.roundToOneDecimal() != lastCompletedSet.completedWeight?.roundToOneDecimal()
                 val lastSetGoalResult = calculateMissedGoalResult(
@@ -234,8 +261,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
 
                 val weightRecommendation = when {
 
-                    // Same rep range as previous
-                    sameRepRangeAsPrevious -> {
+                    // Straight sets
+                    straightSets -> {
                         Log.d(TAG, "sameRepRangeAsPrevious")
                         when {
                             // Previous missed goal, recalculate
@@ -252,7 +279,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                             }
 
                             // Previous weight was changed and set succeeded, or there's no weight recommendation. Use last completed weight
-                            differentWeightUsedThanRecommended || set.weightRecommendation == null -> {
+                            lastCompletedChangedCompletedWeight || differentWeightUsedThanRecommended || set.weightRecommendation == null -> {
                                 Log.d(TAG, "sameWeightRecommendationAsPrevious=$differentWeightUsedThanRecommended set.weightRecommendation=${set.weightRecommendation}")
                                 lastCompletedSet.completedWeight!!
                             }
@@ -265,13 +292,13 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                         }
                     }
 
-                    // Different rep range.
+                    // Non-straight sets
                     else -> {
                         Log.d(TAG, "different rep range")
                         when {
                             
                             // Previous missed goal or there is no recommendation, recalculate
-                            set.weightRecommendation  == null || lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom -> {
+                            set.weightRecommendation == null || lastSetGoalResult.exceededRepRangeTop || lastSetGoalResult.missedRepRangeBottom -> {
                                 Log.d(TAG, "exceededRepRangeTop=${lastSetGoalResult.exceededRepRangeTop}, missedRepRangeBottom=${lastSetGoalResult.missedRepRangeBottom}")
                                 WeightCalculationUtils.calculateSuggestedWeight(
                                     completedWeight = lastCompletedSet.completedWeight!!,
@@ -281,6 +308,22 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                                     rpeGoal = set.rpeTarget,
                                     roundingFactor = increment,
                                 )
+                            }
+
+                            // If the last set changed its weight or used a different one than recommended,
+                            // test it and see if it's significantly different than the current recommendation
+                            lastCompletedChangedCompletedWeight || differentWeightUsedThanRecommended -> {
+                                val recBasedOnPrevResult = WeightCalculationUtils.calculateSuggestedWeight(
+                                    completedWeight = lastCompletedSet.completedWeight!!,
+                                    completedReps = lastCompletedSet.completedReps - 1,
+                                    completedRpe = lastCompletedSet.completedRpe,
+                                    rpeGoal = set.rpeTarget,
+                                    repGoal = set.repRangeBottom,
+                                    roundingFactor = increment,
+                                )
+                                if (abs(recBasedOnPrevResult - set.weightRecommendation) > increment) {
+                                    recBasedOnPrevResult
+                                } else set.weightRecommendation
                             }
 
                             // Previous set succeeded, keep current recommendation
