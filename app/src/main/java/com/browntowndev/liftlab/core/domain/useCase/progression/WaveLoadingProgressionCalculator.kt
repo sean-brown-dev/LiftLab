@@ -59,8 +59,7 @@ class WaveLoadingProgressionCalculator(
                } else {
                       workoutLift.repRangeBottom.toString()
                 },
-                weightRecommendation = weightRecommendation,
-                hadInitialWeightRecommendation = weightRecommendation != null,
+                initialWeightRecommendation = weightRecommendation,
             )
         }.flattenWeightRecommendationsStandard()
     }

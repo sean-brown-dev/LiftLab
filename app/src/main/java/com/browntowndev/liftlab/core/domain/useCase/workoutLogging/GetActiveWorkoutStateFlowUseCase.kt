@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 class GetActiveWorkoutStateFlowUseCase(
     private val programsRepository: ProgramsRepository,
@@ -17,29 +18,31 @@ class GetActiveWorkoutStateFlowUseCase(
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<ActiveWorkoutState> {
-        return programsRepository.getActiveProgramMetadataFlow()
-            .distinctUntilChanged()
-            .flatMapLatest { programMetadata ->
-                if (programMetadata == null) flowOf(ActiveWorkoutState())
-                else {
-                    val workoutInProgressFlow = workoutInProgressRepository
-                        .getFlow()
-                        .distinctUntilChanged()
+        val workoutInProgressFlow =
+            workoutInProgressRepository.getFlow().distinctUntilChanged()
 
-                    combine(
-                        workoutInProgressFlow,
-                        getWorkoutStateFlowUseCase(programMetadata),
-                    ) { inProgressWorkout, calculatedWorkoutData ->
-                        val workoutStateFromCalculatedData = calculatedWorkoutData
-                        ActiveWorkoutState(
-                            programMetadata = programMetadata,
-                            inProgressWorkout = inProgressWorkout,
-                            workout = workoutStateFromCalculatedData.calculatedWorkoutPlan,
-                            completedSets = workoutStateFromCalculatedData.completedSetsForSession,
-                            personalRecords = calculatedWorkoutData.personalRecords,
-                        )
-                    }
+        val activeProgramMetadataFlow =
+            programsRepository.getActiveProgramMetadataFlow().distinctUntilChanged()
+
+        return combine(
+            workoutInProgressFlow,
+            activeProgramMetadataFlow
+        ) { inProgressWorkout, programMetadata ->
+            inProgressWorkout to programMetadata
+        }.flatMapLatest { (inProgressWorkout, programMetadata) ->
+            if (programMetadata == null) {
+                flowOf(ActiveWorkoutState())
+            } else {
+                getWorkoutStateFlowUseCase(programMetadata).map { calculated ->
+                    ActiveWorkoutState(
+                        programMetadata = programMetadata,
+                        inProgressWorkout = inProgressWorkout,
+                        workout = calculated.calculatedWorkoutPlan,
+                        completedSets = calculated.completedSetsForSession,
+                        personalRecords = calculated.personalRecords,
+                    )
                 }
             }
+        }.distinctUntilChanged()
     }
 }

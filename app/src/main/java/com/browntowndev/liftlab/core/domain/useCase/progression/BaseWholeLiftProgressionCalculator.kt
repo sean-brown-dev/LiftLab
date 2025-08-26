@@ -74,8 +74,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         repRangePlaceholder = if (!isDeloadWeek) {
                             "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
                         } else workoutLift.repRangeBottom.toString(),
-                        weightRecommendation = weightRecommendation,
-                        hadInitialWeightRecommendation = weightRecommendation != null,
+                        initialWeightRecommendation = weightRecommendation,
                     )
                 }
             }
@@ -109,8 +108,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         repRangeTop = set.repRangeTop,
                                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                                         repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
-                                        weightRecommendation = weightRecommendation,
-                                        hadInitialWeightRecommendation = weightRecommendation != null,
+                                        initialWeightRecommendation = weightRecommendation,
                                     )
                                 )
                             }
@@ -135,8 +133,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         dropPercentage = set.dropPercentage,
                                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                                         repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
-                                        weightRecommendation = weightRecommendation,
-                                        hadInitialWeightRecommendation = weightRecommendation != null,
+                                        initialWeightRecommendation = weightRecommendation,
                                     )
                                 )
                             }
@@ -172,8 +169,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         } else {
                                             "—"
                                         },
-                                        weightRecommendation = weightRecommendation,
-                                        hadInitialWeightRecommendation = weightRecommendation != null,
+                                        initialWeightRecommendation = weightRecommendation,
                                     )
                                 }?.toMutableList() ?: mutableListOf()).apply {
                                     if (isEmpty()) {
@@ -190,8 +186,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                                     result = null
                                                 ),
                                                 repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
-                                                weightRecommendation = null,
-                                                hadInitialWeightRecommendation = false,
+                                                initialWeightRecommendation = null,
                                             )
                                         )
                                     }

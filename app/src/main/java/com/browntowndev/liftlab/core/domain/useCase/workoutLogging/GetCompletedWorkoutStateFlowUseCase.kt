@@ -154,8 +154,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                                         repRangeTop = setLogEntry.repRangeTop!!,
                                         repRangeBottom = setLogEntry.repRangeBottom!!,
                                         rpeTarget = setLogEntry.rpeTarget,
-                                        weightRecommendation = setLogEntry.weightRecommendation,
-                                        hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
+                                        initialWeightRecommendation = setLogEntry.weightRecommendation,
                                         previousSetResultLabel = getPreviousSetResultLabel(
                                             previousSetResults = previousSetResults,
                                             liftId = setLogEntry.liftId,
@@ -176,8 +175,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                                         repRangeTop = setLogEntry.repRangeTop,
                                         repRangeBottom = setLogEntry.repRangeBottom,
                                         rpeTarget = setLogEntry.rpeTarget,
-                                        weightRecommendation = setLogEntry.weightRecommendation,
-                                        hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
+                                        initialWeightRecommendation = setLogEntry.weightRecommendation,
                                         previousSetResultLabel = getPreviousSetResultLabel(
                                             previousSetResults = previousSetResults,
                                             liftId = setLogEntry.liftId,
@@ -202,8 +200,7 @@ class GetCompletedWorkoutStateFlowUseCase(
                                         repRangeTop = setLogEntry.repRangeTop!!,
                                         repRangeBottom = setLogEntry.repRangeBottom!!,
                                         rpeTarget = setLogEntry.rpeTarget,
-                                        weightRecommendation = setLogEntry.weightRecommendation,
-                                        hadInitialWeightRecommendation = setLogEntry.weightRecommendation != null,
+                                        initialWeightRecommendation = setLogEntry.weightRecommendation,
                                         previousSetResultLabel = getPreviousSetResultLabel(
                                             previousSetResults = previousSetResults,
                                             liftId = setLogEntry.liftId,

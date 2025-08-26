@@ -8,7 +8,6 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.roundToNearestFactor
-import com.browntowndev.liftlab.core.common.roundToOneDecimal
 import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.interfaces.isCompleteWithSameDataAs
@@ -22,7 +21,6 @@ import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
 import com.browntowndev.liftlab.core.domain.utils.SetResultKey
 import com.browntowndev.liftlab.core.domain.utils.WeightCalculationUtils
 import com.browntowndev.liftlab.core.domain.utils.calculateMissedGoalResult
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -300,7 +298,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                             rpeGoal = set.rpeTarget,
                             roundingFactor = increment,
                         )
-                    } else set.weightRecommendation
+                    } else set.initialWeightRecommendation
 
                     set.copy(weightRecommendation = weightRecommendation)
                 } else {
