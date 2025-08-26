@@ -185,7 +185,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                 )
                 previousCompletedSetsByKey[setKey] = updatedSet
 
-                if (updatedSet.completedWeight != set.completedWeight) {
+                if (set.completedWeight != null && updatedSet.completedWeight != set.completedWeight) {
                     setsThatChangedCompletedWeight.add(setKey)
                 }
             }
@@ -313,6 +313,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                             // If the last set changed its weight or used a different one than recommended,
                             // test it and see if it's significantly different than the current recommendation
                             lastCompletedChangedCompletedWeight || differentWeightUsedThanRecommended -> {
+                                Log.d(TAG, "lastCompletedChangedCompletedWeight=$lastCompletedChangedCompletedWeight, differentWeightUsedThanRecommended=$differentWeightUsedThanRecommended")
                                 val recBasedOnPrevResult = WeightCalculationUtils.calculateSuggestedWeight(
                                     completedWeight = lastCompletedSet.completedWeight!!,
                                     completedReps = lastCompletedSet.completedReps - 1,
@@ -322,6 +323,7 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                                     roundingFactor = increment,
                                 )
                                 if (abs(recBasedOnPrevResult - set.weightRecommendation) > increment) {
+                                    Log.d(TAG, "recBasedOnPrevResult=$recBasedOnPrevResult, set.weightRecommendation=${set.weightRecommendation}")
                                     recBasedOnPrevResult
                                 } else set.weightRecommendation
                             }
