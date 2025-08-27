@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.domain.useCase.workoutLogging
 
+import android.util.Log
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.ActiveWorkoutState
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressRepository
@@ -16,6 +17,10 @@ class GetActiveWorkoutStateFlowUseCase(
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val getWorkoutStateFlowUseCase: GetWorkoutStateFlowUseCase
 ) {
+    companion object {
+        private const val TAG = "GetActiveWorkoutStateFlowUseCase"
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<ActiveWorkoutState> {
         val workoutInProgressFlow =
@@ -30,10 +35,12 @@ class GetActiveWorkoutStateFlowUseCase(
         ) { inProgressWorkout, programMetadata ->
             inProgressWorkout to programMetadata
         }.flatMapLatest { (inProgressWorkout, programMetadata) ->
-            if (programMetadata == null) {
+            Log.d(TAG, "inProgressWorkout=$inProgressWorkout, programMetadata=$programMetadata")
+            if (programMetadata == null || programMetadata.workoutCount == 0) {
                 flowOf(ActiveWorkoutState())
             } else {
                 getWorkoutStateFlowUseCase(programMetadata).map { calculated ->
+                    Log.d(TAG, "calculated=$calculated")
                     ActiveWorkoutState(
                         programMetadata = programMetadata,
                         inProgressWorkout = inProgressWorkout,

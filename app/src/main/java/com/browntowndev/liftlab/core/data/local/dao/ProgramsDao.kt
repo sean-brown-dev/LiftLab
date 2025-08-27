@@ -60,7 +60,7 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
 
     @Transaction
     @Query("SELECT program_id AS programId, name, deloadWeek, currentMesocycle, currentMicrocycle, currentMicrocyclePosition, " +
-            "(SELECT COUNT(*) FROM workouts WHERE programId = program_id) AS workoutCount " +
+            "(SELECT COUNT(*) FROM workouts w WHERE w.programId = program_id AND w.deleted = 0) AS workoutCount " +
             "FROM programs " +
             "WHERE isActive = 1 AND deleted = 0")
     fun getActiveProgramMetadata(): Flow<ProgramMetadataDto?>

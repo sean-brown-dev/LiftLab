@@ -29,6 +29,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
@@ -84,8 +86,7 @@ class GetWorkoutStateFlowUseCase(
             microcyclePosition = programMetadata.currentMicrocyclePosition
         ).distinctUntilChanged().flatMapLatest { nullableWorkout ->
             if (nullableWorkout == null) {
-                // If no workout is found for the current position, emit a default empty state
-                flowOf(CalculatedWorkoutData())
+                emptyFlow()
             } else {
                 Log.d(TAG, "getByMicrocyclePositionForCalculation time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
                 timer.reset()
@@ -198,7 +199,7 @@ class GetWorkoutStateFlowUseCase(
                         personalRecords = personalRecords,
                         calculatedWorkoutPlan = finalPlan
                     )
-                }.distinctUntilChanged()
+                }.drop(1).distinctUntilChanged()
             }
         }
 
