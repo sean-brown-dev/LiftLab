@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.common.NetworkMonitor
 import com.browntowndev.liftlab.core.data.remote.client.FirestoreClient
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.donation.DonationViewModel

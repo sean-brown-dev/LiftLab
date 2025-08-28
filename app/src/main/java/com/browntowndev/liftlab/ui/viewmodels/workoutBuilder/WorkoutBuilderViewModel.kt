@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.viewmodels
+package com.browntowndev.liftlab.ui.viewmodels.workoutBuilder
 
 import android.util.Log
 import androidx.compose.ui.util.fastMap
@@ -19,7 +19,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateR
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.UpdateWorkoutNameUseCase
-import com.browntowndev.liftlab.ui.extensions.getRecalculatedStepSizeForLift
 import com.browntowndev.liftlab.ui.extensions.transformToType
 import com.browntowndev.liftlab.ui.mapping.toDomainModel
 import com.browntowndev.liftlab.ui.mapping.toUiModel
@@ -33,9 +32,8 @@ import com.browntowndev.liftlab.ui.models.workout.StandardSetUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.WorkoutUiModel
+import com.browntowndev.liftlab.ui.viewmodels.BaseViewModel
 import com.browntowndev.liftlab.ui.viewmodels.picker.PickerState
-import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
-import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderState
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -223,21 +221,6 @@ class WorkoutBuilderViewModel(
             newWorkoutLiftIndices = newWorkoutLiftIndices)
     }
 
-    private fun updateLiftProperty(
-        workoutLiftId: Long, 
-        copyLift: (WorkoutLiftUiModel) -> WorkoutLiftUiModel
-    ): WorkoutUiModel {
-        val workout = getCurrentWorkoutAndLogIfNull() ?: throw Exception("Workout not found")
-        val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return workout
-        val indexOfWorkoutLift = workout.lifts.indexOf(workoutLift)
-        if (indexOfWorkoutLift == -1) throw Exception("Workout lift not found")
-        return workout.copy(
-            lifts = workout.lifts.toMutableList().apply {
-                set(indexOfWorkoutLift, copyLift(workoutLift))
-            }
-        )
-    }
-
     fun updateDeloadWeek(workoutLiftId: Long, newDeloadWeek: Int?) = executeWithErrorHandling("Failed to update deload week") {
         val workoutLift = getWorkoutLiftAndLogIfNull<WorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
         updateWorkoutLiftDeloadWeekUseCase(
@@ -260,7 +243,8 @@ class WorkoutBuilderViewModel(
         }
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
-            updatedWorkoutLift.toDomainModel())
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
+            workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
     fun setLiftRpeTarget(workoutLiftId: Long, newRpeTarget: Float) = executeWithErrorHandling("Failed to update RPE target") {
@@ -268,6 +252,7 @@ class WorkoutBuilderViewModel(
         val updatedWorkoutLift = workoutLift.copy(rpeTarget = newRpeTarget)
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
             workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
@@ -280,6 +265,7 @@ class WorkoutBuilderViewModel(
         }
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
             workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
@@ -288,6 +274,7 @@ class WorkoutBuilderViewModel(
             ?: return@executeWithErrorHandling
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
             workoutLift = updatedWorkoutLift.toDomainModel())
     }
 
@@ -434,16 +421,11 @@ class WorkoutBuilderViewModel(
 
         val workoutLift = originalWorkoutLift.copy(
             repRangeBottom = validatedRepRangeBottom
-        ).apply {
-            copy(
-                stepSize = getRecalculatedStepSizeForLift(
-                    deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
-                )
-            )
-        }
+        )
 
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
             workoutLift = workoutLift.toDomainModel())
     }
 
@@ -459,16 +441,11 @@ class WorkoutBuilderViewModel(
 
         val workoutLift = originalWorkoutLift.copy(
             repRangeTop = validatedRepRangeTop
-        ).apply {
-            copy(
-                stepSize = getRecalculatedStepSizeForLift(
-                    deloadToUseInsteadOfLiftLevel = originalWorkoutLift.deloadWeek ?: getProgramDeloadWeekAndLogIfNull()
-                )
-            )
-        }
+        )
 
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
             workoutLift = workoutLift.toDomainModel())
     }
 

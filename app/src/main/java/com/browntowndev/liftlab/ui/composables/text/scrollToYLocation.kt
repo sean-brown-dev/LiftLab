@@ -1,4 +1,4 @@
-package com.browntowndev.liftlab.ui.composables
+package com.browntowndev.liftlab.ui.composables.text
 
 import android.util.Log
 import androidx.compose.foundation.MutatePriority

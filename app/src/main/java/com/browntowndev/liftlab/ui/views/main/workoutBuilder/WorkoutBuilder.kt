@@ -57,9 +57,9 @@ import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.models.controls.Route
 import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
 import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown

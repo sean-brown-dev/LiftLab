@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.ui.composables.utils.rememberWindowHeight
-import com.browntowndev.liftlab.ui.composables.scrollToYLocation
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 
