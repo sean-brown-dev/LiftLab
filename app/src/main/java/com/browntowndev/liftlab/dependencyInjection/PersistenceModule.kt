@@ -5,6 +5,8 @@ import com.browntowndev.liftlab.core.data.billing.BillingManager
 import com.browntowndev.liftlab.core.data.billing.BillingManagerImpl
 import com.browntowndev.liftlab.core.data.common.TransactionScope
 import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
+import com.browntowndev.liftlab.core.data.local.maintenance.DatabaseMaintenance
+import com.browntowndev.liftlab.core.data.local.maintenance.RoomDatabaseMaintenance
 import com.browntowndev.liftlab.core.data.local.repositories.CustomLiftSetsRepositoryImpl
 import com.browntowndev.liftlab.core.data.local.repositories.HistoricalWorkoutNamesRepositoryImpl
 import com.browntowndev.liftlab.core.data.local.repositories.LiftMetricChartsRepositoryImpl
@@ -36,6 +38,7 @@ import com.browntowndev.liftlab.core.domain.repositories.WorkoutInProgressReposi
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLiftsRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutLogRepository
 import com.browntowndev.liftlab.core.domain.repositories.WorkoutsRepository
+import com.browntowndev.liftlab.ui.infrastructure.WalCaretaker
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
 
@@ -52,6 +55,8 @@ val persistenceModule = module {
         )
     }
     single { TransactionScope(get()) }
+    single<DatabaseMaintenance> { RoomDatabaseMaintenance(get()) }
+    single<WalCaretaker> { WalCaretaker(get(), get(AppScope)) }
 
     // Repositories (resolve DAOs directly from the DB, no DAO singletons exported)
     single<ProgramsRepository> {
