@@ -9,7 +9,6 @@ data class LoggingMyoRepSetUiModel(
     override val weightRecommendation: Float?,
     override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
-    override val repRangePlaceholder: String,
     override val setNumberLabel: String,
     override val complete: Boolean = false,
     override  val completedWeight: Float? = null,
@@ -20,4 +19,13 @@ data class LoggingMyoRepSetUiModel(
     val setMatching: Boolean = false,
     val maxSets: Int? = null,
     val repFloor: Int? = null,
-): LoggingSetUiModel
+): LoggingSetUiModel {
+    override val repRangePlaceholder: String
+        get() = if (myoRepSetPosition == null) {
+            "${repRangeBottom}-${repRangeTop}"
+        } else if (repFloor != null) {
+            ">${repFloor}"
+        } else {
+            "—"
+        }
+}

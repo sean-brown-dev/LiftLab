@@ -191,7 +191,6 @@ fun LoggingMyoRepSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: B
         weightRecommendation = weightRecommendation,
         hadInitialWeightRecommendation = hadInitialWeightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
         setNumberLabel = setNumberLabel,
         complete = complete,
         completedWeight = completedWeight,
