@@ -50,9 +50,6 @@ fun WorkoutCardList(
             .padding(paddingValues),
         verticalArrangement = Arrangement.spacedBy(5.dp),
     ) {
-        item (key = "top_spacer") {
-            Spacer(modifier = Modifier.height(5.dp))
-        }
         items(workoutsState, { it.id }) { workout ->
             WorkoutCard(
                 workoutName = workout.name,
