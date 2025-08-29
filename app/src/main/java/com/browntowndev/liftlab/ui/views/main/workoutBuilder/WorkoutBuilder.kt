@@ -63,7 +63,6 @@ import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewM
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
-import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.DurationUnit
@@ -89,7 +88,6 @@ fun WorkoutBuilder(
         )
     }
     val state by workoutBuilderViewModel.state.collectAsState()
-    val listState = rememberLazyListState()
 
     LaunchedEffect(state.workout) {
         if (state.workout != null) {
@@ -106,7 +104,7 @@ fun WorkoutBuilder(
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutBuilderViewModel)
     SnackbarProvider(snackbarHostState, workoutBuilderViewModel.userMessages)
 
-    if(!state.isReordering) {
+    if(!state.isReordering && state.workout != null) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = false,
             title = "Workout Volume",
@@ -116,6 +114,7 @@ fun WorkoutBuilder(
         ) {
             Box(contentAlignment = Alignment.BottomCenter) {
                 var scrollSpacerSize by remember { mutableStateOf(0.dp) }
+                val listState = rememberLazyListState()
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -125,7 +124,7 @@ fun WorkoutBuilder(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    items(state.workout?.lifts ?: listOf(), { it.id }) { workoutLift ->
+                    items(state.workout!!.lifts, { it.id }) { workoutLift ->
                         val standardLift = workoutLift as? StandardWorkoutLiftUiModel
                         val customLift = workoutLift as? CustomWorkoutLiftUiModel
                         val incrementOverride = remember(
@@ -309,14 +308,10 @@ fun WorkoutBuilder(
                                 // Save this here and then update it after the custom lifts are rendered
                                 // so the lifts don't disappear until after animation}
                                 var nonDisappearCustomLifts by remember {
-                                    mutableStateOf(
-                                        customLift?.customLiftSets
-                                            ?: listOf()
-                                    )
+                                    mutableStateOf(customLift?.customLiftSets ?: listOf())
                                 }
                                 val customLifts = remember(customLift?.customLiftSets) {
-                                    customLift?.customLiftSets
-                                        ?: nonDisappearCustomLifts
+                                    customLift?.customLiftSets ?: nonDisappearCustomLifts
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 CustomSettings(
@@ -418,9 +413,6 @@ fun WorkoutBuilder(
                                     }
                                 )
                                 LaunchedEffect(customLift?.customLiftSets) {
-                                    if (customLift?.customLiftSets == null) {
-                                        delay(600)
-                                    }
                                     nonDisappearCustomLifts = customLift?.customLiftSets ?: listOf()
                                 }
                             }
@@ -455,7 +447,7 @@ fun WorkoutBuilder(
                 }
             }
         }
-    } else {
+    } else if (state.isReordering) {
         ReorderableLazyColumn(
             paddingValues = paddingValues,
             items = remember(state.workout!!.lifts) { state.workout!!.lifts.fastMap { ReorderableListItem(it.liftName, it.id) } },
