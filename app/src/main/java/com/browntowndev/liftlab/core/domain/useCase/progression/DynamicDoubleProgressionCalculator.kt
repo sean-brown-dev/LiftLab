@@ -92,9 +92,6 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 repRangeBottom = workoutLift.repRangeBottom,
                 repRangeTop = workoutLift.repRangeTop,
                 previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                repRangePlaceholder = if (!isDeloadWeek) {
-                    "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
-                } else workoutLift.repRangeBottom.toString(),
                 initialWeightRecommendation = weightRecommendation,
             )
         }
@@ -152,13 +149,6 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 maxSets = set.maxSets,
                                 previousSetResultLabel = getPreviousSetResultLabel(result = displayResult),
                                 initialWeightRecommendation = weightRecommendation,
-                                repRangePlaceholder = if (it.myoRepSetPosition == null) {
-                                    "${set.repRangeBottom}-${set.repRangeTop}"
-                                } else if (set.repFloor != null) {
-                                    ">${set.repFloor}"
-                                } else {
-                                    "—"
-                                },
                             )
                         }?.toMutableList() ?: mutableListOf()).apply {
                             if (isEmpty()) {
@@ -172,7 +162,6 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                         maxSets = set.maxSets,
                                         repFloor = set.repFloor,
                                         previousSetResultLabel = getPreviousSetResultLabel(result = null),
-                                        repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
                                         initialWeightRecommendation = weightRecommendation,
                                     )
                                 )
@@ -191,7 +180,6 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 repRangeBottom = set.repRangeBottom,
                                 repRangeTop = set.repRangeTop,
                                 previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                                repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
                                 initialWeightRecommendation = weightRecommendation,
                             )
                         )
@@ -214,7 +202,6 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                                 repRangeBottom = set.repRangeBottom,
                                 repRangeTop = set.repRangeTop,
                                 previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                                repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
                                 initialWeightRecommendation = weightRecommendation,
                             )
                         )

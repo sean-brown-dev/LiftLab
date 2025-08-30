@@ -458,13 +458,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
 
         val newMyoRepSet = lastMyoRepSet.copy(
             myoRepSetPosition = (lastMyoRepSet.myoRepSetPosition ?: -1) + 1,
-            repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
-                ">${lastMyoRepSet.repFloor}"
-            } else if (!isDeloadWeek) {
-                "—"
-            } else {
-                lastMyoRepSet.repRangeBottom.toString()
-            },
             weightRecommendation = weightRecommendation,
             complete = false,
             completedWeight = null,
@@ -495,13 +488,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     ): LoggingMyoRepSet {
         val newMyoRepSet = lastMyoRepSet.copy(
             myoRepSetPosition = (lastMyoRepSet.myoRepSetPosition ?: -1) + 1,
-            repRangePlaceholder = if (!isDeloadWeek && lastMyoRepSet.repFloor != null) {
-                ">${lastMyoRepSet.repFloor}"
-            } else if (!isDeloadWeek) {
-                "—"
-            } else {
-                lastMyoRepSet.repRangeBottom.toString()
-            },
             weightRecommendation = lastMyoRepSet.completedWeight,
             complete = true,
             completedWeight = setResult.weight,

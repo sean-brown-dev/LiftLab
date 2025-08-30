@@ -235,7 +235,6 @@ fun LoggingSetUiModel.copyGeneric(
         weightRecommendation = weightRecommendation,
         hadInitialWeightRecommendation = hadInitialWeightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
         setNumberLabel = setNumberLabel,
         completedWeight = completedWeight,
         completedReps = completedReps,

@@ -12,7 +12,6 @@ data class LoggingDropSet(
     override val initialWeightRecommendation: Float?,
     override val weightRecommendation: Float? = initialWeightRecommendation,
     override val previousSetResultLabel: String,
-    override val repRangePlaceholder: String,
     override val setNumberLabel: String = SetType.DROP_SET.displayNameShort(),
     override val complete: Boolean = false,
     override val completedWeight: Float? = null,

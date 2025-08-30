@@ -54,11 +54,6 @@ class WaveLoadingProgressionCalculator(
                 repRangeBottom = repsForMicro,
                 repRangeTop = repsForMicro,
                 previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                repRangePlaceholder = if (!isDeloadWeek) {
-                    repsForMicro.toString()
-               } else {
-                      workoutLift.repRangeBottom.toString()
-                },
                 initialWeightRecommendation = weightRecommendation,
             )
         }.flattenWeightRecommendationsStandard()

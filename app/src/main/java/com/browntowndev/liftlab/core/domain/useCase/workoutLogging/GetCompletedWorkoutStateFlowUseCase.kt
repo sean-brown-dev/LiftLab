@@ -161,7 +161,6 @@ class GetCompletedWorkoutStateFlowUseCase(
                                             setPosition = setLogEntry.setPosition,
                                             myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                         ),
-                                        repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                         complete = true,
                                         completedWeight = setLogEntry.weight,
                                         completedReps = setLogEntry.reps,
@@ -182,9 +181,6 @@ class GetCompletedWorkoutStateFlowUseCase(
                                             setPosition = setLogEntry.setPosition,
                                             myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                         ),
-                                        repRangePlaceholder = if (setLogEntry.repRangeBottom != null && setLogEntry.repRangeTop != null) {
-                                            "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}"
-                                        } else "",
                                         setMatching = setLogEntry.setMatching!!,
                                         maxSets = setLogEntry.maxSets,
                                         repFloor = setLogEntry.repFloor,
@@ -207,7 +203,6 @@ class GetCompletedWorkoutStateFlowUseCase(
                                             setPosition = setLogEntry.setPosition,
                                             myoRepSetPosition = setLogEntry.myoRepSetPosition,
                                         ),
-                                        repRangePlaceholder = "${setLogEntry.repRangeBottom}-${setLogEntry.repRangeTop}",
                                         dropPercentage = setLogEntry.dropPercentage!!,
                                         complete = true,
                                         completedWeight = setLogEntry.weight,

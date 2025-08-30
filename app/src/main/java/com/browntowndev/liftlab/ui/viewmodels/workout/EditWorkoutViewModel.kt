@@ -57,11 +57,16 @@ class EditWorkoutViewModel(
         getCompletedWorkoutStateFlowUseCase(workoutLogEntryId = workoutLogEntryId)
             .distinctUntilChanged()
             .map { completedWorkoutState ->
+                val programDeloadWeek = completedWorkoutState.programMetadata?.deloadWeek
+                val microCycle = completedWorkoutState.programMetadata?.currentMicrocycle
+                val workout = if (programDeloadWeek != null && microCycle != null) {
+                    completedWorkoutState.workout?.toUiModel(defaultRestTime, programDeloadWeek, microCycle)
+                } else null
                 EditWorkoutState(
                     duration = completedWorkoutState.duration ?: "00:00:00",
                 ) to
                 WorkoutState(
-                    workout = completedWorkoutState.workout?.toUiModel(defaultRestTime),
+                    workout = workout,
                     programMetadata = completedWorkoutState.programMetadata?.toUiModel(),
                     completedSets = completedWorkoutState.completedSetsFromLog.fastMap { it.toUiModel() },
                 )

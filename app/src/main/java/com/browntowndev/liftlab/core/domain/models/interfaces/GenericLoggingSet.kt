@@ -9,7 +9,6 @@ interface GenericLoggingSet {
     val weightRecommendation: Float?
     val hadInitialWeightRecommendation: Boolean get() = initialWeightRecommendation != null
     val previousSetResultLabel: String
-    val repRangePlaceholder: String
     val setNumberLabel: String
     val completedWeight: Float?
     val completedReps: Int?

@@ -9,7 +9,6 @@ data class LoggingDropSetUiModel(
     override  val weightRecommendation: Float?,
     override val hadInitialWeightRecommendation: Boolean,
     override val previousSetResultLabel: String,
-    override val repRangePlaceholder: String,
     override val setNumberLabel: String,
     override val complete: Boolean = false,
     override val completedWeight: Float? = null,
@@ -17,4 +16,7 @@ data class LoggingDropSetUiModel(
     override  val completedRpe: Float? = null,
     override val isNew: Boolean = false,
     val dropPercentage: Float,
-): LoggingSetUiModel
+): LoggingSetUiModel {
+    override val repRangePlaceholder: String
+        get() = "${repRangeBottom}-${repRangeTop}"
+}

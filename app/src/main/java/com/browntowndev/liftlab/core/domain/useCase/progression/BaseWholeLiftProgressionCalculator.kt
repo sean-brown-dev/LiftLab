@@ -71,9 +71,6 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         repRangeBottom = workoutLift.repRangeBottom,
                         repRangeTop = workoutLift.repRangeTop,
                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                        repRangePlaceholder = if (!isDeloadWeek) {
-                            "${workoutLift.repRangeBottom}-${workoutLift.repRangeTop}"
-                        } else workoutLift.repRangeBottom.toString(),
                         initialWeightRecommendation = weightRecommendation,
                     )
                 }
@@ -107,7 +104,6 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         repRangeBottom = set.repRangeBottom,
                                         repRangeTop = set.repRangeTop,
                                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                                        repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
                                         initialWeightRecommendation = weightRecommendation,
                                     )
                                 )
@@ -132,7 +128,6 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         repRangeTop = set.repRangeTop,
                                         dropPercentage = set.dropPercentage,
                                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
-                                        repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
                                         initialWeightRecommendation = weightRecommendation,
                                     )
                                 )
@@ -162,13 +157,6 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                         repFloor = set.repFloor,
                                         maxSets = set.maxSets,
                                         previousSetResultLabel = getPreviousSetResultLabel(result = myoRepDisplayResult),
-                                        repRangePlaceholder = if (it.myoRepSetPosition == null) {
-                                            "${set.repRangeBottom}-${set.repRangeTop}"
-                                        } else if (set.repFloor != null) {
-                                            ">${set.repFloor}"
-                                        } else {
-                                            "—"
-                                        },
                                         initialWeightRecommendation = weightRecommendation,
                                     )
                                 }?.toMutableList() ?: mutableListOf()).apply {
@@ -185,7 +173,6 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                                 previousSetResultLabel = getPreviousSetResultLabel(
                                                     result = null
                                                 ),
-                                                repRangePlaceholder = "${set.repRangeBottom}-${set.repRangeTop}",
                                                 initialWeightRecommendation = null,
                                             )
                                         )

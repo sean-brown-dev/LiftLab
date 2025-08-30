@@ -110,21 +110,36 @@ class WorkoutViewModel(
 
         combine(workoutCountFlow, activeWorkoutStateFlow) { workoutCount, activeWorkoutState ->
             val hasWorkouts = workoutCount > 0
+            val programDeloadWeek = activeWorkoutState.programMetadata?.deloadWeek
+            val microCycle = activeWorkoutState.programMetadata?.currentMicrocycle
+            val workout = if (programDeloadWeek != null && microCycle != null) {
+                activeWorkoutState.workout?.toUiModel(defaultRestTime, programDeloadWeek, microCycle)
+            } else {
+                null
+            }
             WorkoutState(
                 inProgressWorkout = activeWorkoutState.inProgressWorkout?.toUiModel(),
                 completedSets = activeWorkoutState.completedSets.fastMap { it.toUiModel() },
                 programMetadata = activeWorkoutState.programMetadata?.toUiModel(),
-                workout = activeWorkoutState.workout?.toUiModel(defaultRestTime),
+                workout = workout,
                 personalRecords = activeWorkoutState.personalRecords
                     .map { it.key to it.value.toUiModel() }
                     .toMap(),
                 initialized = !hasWorkouts || activeWorkoutState.workout != null,
             )
         }.onEach { newUiState ->
-            val newWorkout = if (mutableWorkoutState.value.workout == null || newUiState.workout == null || newUiState.inProgressWorkout == null) {
+            val newWorkout = if (
+                newUiState.programMetadata == null ||
+                mutableWorkoutState.value.workout == null ||
+                newUiState.workout == null ||
+                newUiState.inProgressWorkout == null
+            ) {
                 Log.d("WorkoutViewModel", "Using new workout -- no hydration")
                 newUiState.workout
             } else {
+                val programDeloadWeek = newUiState.programMetadata.deloadWeek
+                val microCycle = newUiState.programMetadata.currentMicrocycle
+
                 Log.d("WorkoutViewModel", "Hydrating workout with existing lifts")
                 // Hydrate workout with any sets that have been started but not marked completed.
                 // These only exist in-memory in our state, so the state flow use case knows nothing
@@ -147,7 +162,7 @@ class WorkoutViewModel(
                             it.hasIncompleteModifiedSets()
                         }
                         .fastMap { it.toDomainModel() },
-                ).toUiModel(defaultRestTime)
+                ).toUiModel(defaultRestTime, programDeloadWeek, microCycle)
             }
 
             // Multiple emissions can happen and we don't want to actually close the log/summary

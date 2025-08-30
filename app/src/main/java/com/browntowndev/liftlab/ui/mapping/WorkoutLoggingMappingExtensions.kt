@@ -25,11 +25,16 @@ import com.browntowndev.liftlab.ui.models.workoutLogging.StandardSetResultUiMode
 import com.browntowndev.liftlab.ui.utils.getRpeTargetPlaceholder
 import kotlin.time.Duration
 
-fun LoggingWorkout.toUiModel(defaultRestTime: Duration): LoggingWorkoutUiModel {
+fun LoggingWorkout.toUiModel(defaultRestTime: Duration, programDeloadWeek: Int, microCycle: Int): LoggingWorkoutUiModel {
     return LoggingWorkoutUiModel(
         id = this.id,
         name = this.name,
-        lifts = this.lifts.fastMap { it.toUiModel(defaultRestTime) }.sortedBy { it.position }
+        lifts = this.lifts.fastMap {
+            it.toUiModel(
+                defaultRestTime,
+                isDeloadWeek = (it.deloadWeek ?: programDeloadWeek) == microCycle + 1
+            )
+        }.sortedBy { it.position }
     )
 }
 
@@ -41,7 +46,7 @@ fun LoggingWorkoutUiModel.toDomainModel(): LoggingWorkout {
     )
 }
 
-fun LoggingWorkoutLift.toUiModel(defaultRestTime: Duration): LoggingWorkoutLiftUiModel {
+fun LoggingWorkoutLift.toUiModel(defaultRestTime: Duration, isDeloadWeek: Boolean): LoggingWorkoutLiftUiModel {
     return LoggingWorkoutLiftUiModel(
         id = id,
         liftId = liftId,
@@ -57,8 +62,9 @@ fun LoggingWorkoutLift.toUiModel(defaultRestTime: Duration): LoggingWorkoutLiftU
         restTime = restTime ?: defaultRestTime,
         restTimerEnabled = restTimerEnabled,
         isCustom = isCustom,
-        sets = sets.fastMap { it.toUiModel(progressionScheme, isCustom) }
-            .sortedWith(
+        sets = sets.fastMap {
+            it.toUiModel(progressionScheme, isCustom, isDeloadWeek)
+        }.sortedWith(
             compareBy(
                 { it.position },
                 { (it as? LoggingMyoRepSetUiModel)?.myoRepSetPosition ?: 0 }
@@ -87,9 +93,9 @@ fun LoggingWorkoutLiftUiModel.toDomainModel(): LoggingWorkoutLift {
     )
 }
 
-fun GenericLoggingSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean): LoggingSetUiModel {
+fun GenericLoggingSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean, isDeloadWeek: Boolean): LoggingSetUiModel {
     return when (this) {
-        is LoggingStandardSet -> toUiModel(progressionScheme, isCustom)
+        is LoggingStandardSet -> toUiModel(progressionScheme, isCustom, isDeloadWeek)
         is LoggingDropSet -> toUiModel(progressionScheme, isCustom)
         is LoggingMyoRepSet -> toUiModel(progressionScheme, isCustom)
         else -> throw IllegalArgumentException("Unknown type of GenericLoggingSet")
@@ -105,7 +111,7 @@ fun LoggingSetUiModel.toDomainModel(): GenericLoggingSet {
     }
 }
 
-fun LoggingStandardSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean): LoggingStandardSetUiModel {
+fun LoggingStandardSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boolean, isDeloadWeek: Boolean): LoggingStandardSetUiModel {
     return LoggingStandardSetUiModel(
         position = position,
         rpeTarget = rpeTarget,
@@ -115,7 +121,10 @@ fun LoggingStandardSet.toUiModel(progressionScheme: ProgressionScheme, isCustom:
         weightRecommendation = weightRecommendation,
         hadInitialWeightRecommendation = hadInitialWeightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
+        repRangePlaceholder = if (!isDeloadWeek) {
+            if (repRangeBottom != repRangeTop) "${repRangeBottom}-${repRangeTop}"
+            else repRangeBottom.toString() // Wave loading rep ranges are equal
+        } else repRangeBottom.toString(),
         setNumberLabel = setNumberLabel,
         complete = complete,
         completedWeight = completedWeight,
@@ -133,7 +142,6 @@ fun LoggingStandardSetUiModel.toDomainModel(): LoggingStandardSet {
         repRangeTop = repRangeTop,
         initialWeightRecommendation = weightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
         setNumberLabel = setNumberLabel,
         complete = complete,
         completedWeight = completedWeight,
@@ -152,7 +160,6 @@ fun LoggingDropSet.toUiModel(progressionScheme: ProgressionScheme, isCustom: Boo
         weightRecommendation = weightRecommendation,
         hadInitialWeightRecommendation = hadInitialWeightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
         setNumberLabel = setNumberLabel,
         complete = complete,
         completedWeight = completedWeight,
@@ -171,7 +178,6 @@ fun LoggingDropSetUiModel.toDomainModel(): LoggingDropSet {
         repRangeTop = repRangeTop,
         initialWeightRecommendation = weightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
         setNumberLabel = setNumberLabel,
         complete = complete,
         completedWeight = completedWeight,
@@ -212,7 +218,6 @@ fun LoggingMyoRepSetUiModel.toDomainModel(): LoggingMyoRepSet {
         repRangeTop = repRangeTop,
         initialWeightRecommendation = weightRecommendation,
         previousSetResultLabel = previousSetResultLabel,
-        repRangePlaceholder = repRangePlaceholder,
         setNumberLabel = setNumberLabel,
         complete = complete,
         completedWeight = completedWeight,
