@@ -182,8 +182,6 @@ class GetWorkoutStateFlowUseCase(
                     val hydratedLiftsById = hydrateLoggingWorkoutWithCompletedSetsUseCase(
                         liftsToHydrate = liftsToHydrate,
                         setResults = inProgressResults,
-                        microCycle = programMetadata.currentMicrocycle,
-                        programDeloadWeek = programMetadata.deloadWeek,
                     ).associateBy { it.id }
                     Log.d(TAG, "hydrateLoggingWorkoutWithCompletedSetsUseCase time=${timer.elapsed(TimeUnit.MILLISECONDS)}")
                     timer.reset()

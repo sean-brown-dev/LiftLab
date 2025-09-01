@@ -34,8 +34,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     operator fun invoke(
         liftsToHydrate: List<LoggingWorkoutLift>,
         setResults: List<SetResult>,
-        microCycle: Int,
-        programDeloadWeek: Int,
     ): List<LoggingWorkoutLift> {
         return if (setResults.isNotEmpty() || liftsToHydrate.any { it.sets.any { set -> set.complete } }) {
             liftsToHydrate.fastMap { workoutLift ->
@@ -44,8 +42,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                         getSetsWithUpdatedCompletionData(
                             workoutLift = workoutLift,
                             allSetResults = setResults,
-                            deloadWeek = workoutLift.deloadWeek ?: programDeloadWeek,
-                            microCycle = microCycle,
                         )
                 )
             }
@@ -62,14 +58,11 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
      *
      * @param workoutLift The workout lift to hydrate.
      * @param allSetResults The list of all set results.
-     * @param deloadWeek The deload week.
      * @return The hydrated workout lift.
      */
     private fun getSetsWithUpdatedCompletionData(
         workoutLift: LoggingWorkoutLift,
         allSetResults: List<SetResult>,
-        deloadWeek: Int,
-        microCycle: Int,
     ): List<GenericLoggingSet> {
         val setResultsByKey = allSetResults.associateBy { setResult ->
             SetResultKey(
@@ -176,7 +169,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             addMyoRepSequence(
                 liftId = workoutLift.liftId,
                 liftPosition = workoutLift.position,
-                isDeloadWeek = (microCycle - 1) == deloadWeek,
                 incrementOverride = workoutLift.incrementOverride?: SettingsManager.getSetting(
                     SettingsManager.SettingNames.INCREMENT_AMOUNT,
                     SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT,
@@ -229,11 +221,12 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     repRangeTop = lastCompletedSet.repRangeTop,
                     repRangeBottom = lastCompletedSet.repRangeBottom,
                     rpeTarget = lastCompletedSet.rpeTarget,
-                    repRangeBottomFatigueOffset = 0f,
+                    repRangeBottomMissThreshold = 0.5f, // If you miss by half rep or more
                 )
                 val missedGoal = lastSetGoalResult.missedRepRangeBottom || lastSetGoalResult.exceededRepRangeTop
                 val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation != lastCompletedSet.initialWeightRecommendation
 
+                Log.d(TAG, "missedGoal: $missedGoal, differentWeightUsedThanRecommended: $differentWeightUsedThanRecommended")
                 val weightRecommendation = when {
 
                     set.weightRecommendation == null || missedGoal || differentWeightUsedThanRecommended ->
@@ -277,7 +270,8 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                         completedRpe = lastCompletedSet.completedRpe!!,
                         repRangeTop = lastCompletedSet.repRangeTop,
                         repRangeBottom = lastCompletedSet.repRangeBottom,
-                        rpeTarget = lastCompletedSet.rpeTarget
+                        rpeTarget = lastCompletedSet.rpeTarget,
+                        repRangeBottomMissThreshold = 0.5f, // If you miss by half rep or more
                     )
                     val exceededRepRangeTop = missedGoalResult.exceededRepRangeTop
                     val missedRepRangeBottom = missedGoalResult.missedRepRangeBottom
@@ -321,7 +315,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
      *
      * @param liftId The lift id.
      * @param liftPosition The lift position.
-     * @param isDeloadWeek Whether the deload week is currently active.
      * @param incrementOverride The increment override to use when calculating the weight recommendation.
      * @param allSetResults The list of all set results.
      * @return The list of sets with the myo rep sequence(s) added.
@@ -329,7 +322,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
     private fun MutableList<GenericLoggingSet>.addMyoRepSequence(
         liftId: Long,
         liftPosition: Int,
-        isDeloadWeek: Boolean,
         incrementOverride: Float,
         allSetResults: List<SetResult>,
     ) {
@@ -389,7 +381,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     )
                     addMyoRepSet(
                         lastMyoRepSet = previousMyoRepSet,
-                        isDeloadWeek = isDeloadWeek,
                         incrementOverride = incrementOverride,
                         result = myoRepSetResult,
                     )?.let { newSet ->
@@ -402,7 +393,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     previousMyoRepSet = addMyoRepSet(
                         lastMyoRepSet = lastMyoRepSetForCurrentSequence,
                         setResult = setResult,
-                        isDeloadWeek = isDeloadWeek,
                     )
                     addNewMyoRepSetToSetsByPositionMap(previousMyoRepSet)
                 } else {
@@ -420,7 +410,6 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
             )
             addMyoRepSet(
                 lastMyoRepSet = last,
-                isDeloadWeek = isDeloadWeek,
                 incrementOverride = incrementOverride,
                 result = decision
             )
@@ -431,13 +420,11 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
      * Conditionally adds a new myo rep set to the list of sets based on [MyoRepContinuationResult] and returns the set that was added.
      *
      * @param lastMyoRepSet The last myo rep set in the sequence.
-     * @param isDeloadWeek Whether the deload week is currently active.
      * @param incrementOverride The increment override to use when calculating the weight recommendation.
      * @param result The added myo rep set.
      */
     private fun MutableList<GenericLoggingSet>.addMyoRepSet(
         lastMyoRepSet: LoggingMyoRepSet,
-        isDeloadWeek: Boolean,
         incrementOverride: Float,
         result: MyoRepContinuationResult,
     ): LoggingMyoRepSet? {
@@ -479,12 +466,10 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
      *
      * @param lastMyoRepSet The last myo rep set in the sequence.
      * @param setResult The result of the set.
-     * @param isDeloadWeek Whether the deload week is currently active.
      */
     private fun MutableList<GenericLoggingSet>.addMyoRepSet(
         lastMyoRepSet: LoggingMyoRepSet,
         setResult: SetResult,
-        isDeloadWeek: Boolean,
     ): LoggingMyoRepSet {
         val newMyoRepSet = lastMyoRepSet.copy(
             myoRepSetPosition = (lastMyoRepSet.myoRepSetPosition ?: -1) + 1,

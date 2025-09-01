@@ -17,8 +17,8 @@ data class MissedGoalResult(
  * @param repRangeTop The rep range top.
  * @param repRangeBottom The rep range bottom.
  * @param rpeTarget The RPE target.
- * @param repRangeTopFatigueOffset The rep range top fatigue offset. A positive number reduces fatigue, a negative number increases it.
- * @param repRangeBottomFatigueOffset The rep range bottom fatigue offset. A positive number reduces fatigue, a negative number increases it.
+ * @param repRangeTopExceedThreshold The threshold for when it's considered exceeded. Ex: .5 means if you exceed by half a rep or more.
+ * @param repRangeBottomMissThreshold The threshold for when it's considered missed. Ex: .5 means if you miss by half a rep or more.
  * @return The missed goal result.
  */
 fun calculateMissedGoalResult(
@@ -27,15 +27,15 @@ fun calculateMissedGoalResult(
     repRangeTop: Int,
     repRangeBottom: Int,
     rpeTarget: Float,
-    repRangeTopFatigueOffset: Float = SET_TOO_EASY_REPS_THRESHOLD,
-    repRangeBottomFatigueOffset: Float = SET_TOO_HARD_REPS_THRESHOLD,
+    repRangeTopExceedThreshold: Float = SET_TOO_EASY_REPS_THRESHOLD,
+    repRangeBottomMissThreshold: Float = SET_TOO_HARD_REPS_THRESHOLD,
 ): MissedGoalResult {
     val rpeAdjustedRepsCompleted = getRpeAdjustedReps(completedReps, completedRpe)
     val rpeAdjustedRepRangeTop = getRpeAdjustedReps(repRangeTop, rpeTarget)
     val rpeAdjustedRepRangeBottom = getRpeAdjustedReps(repRangeBottom, rpeTarget)
 
-    val exceededRepRangeTop = exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted, repRangeTopFatigueOffset)
-    val missedRepRangeBottom = missedRepRangeBottom(rpeAdjustedRepRangeBottom, rpeAdjustedRepsCompleted, repRangeBottomFatigueOffset)
+    val exceededRepRangeTop = exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted, repRangeTopExceedThreshold)
+    val missedRepRangeBottom = missedRepRangeBottom(rpeAdjustedRepRangeBottom, rpeAdjustedRepsCompleted, repRangeBottomMissThreshold)
 
     return MissedGoalResult(
         missedRepRangeBottom = missedRepRangeBottom,
@@ -50,7 +50,7 @@ fun calculateMissedGoalResult(
  * @param rpeTarget The RPE target.
  * @param completedReps The completed reps.
  * @param completedRpe The completed RPE.
- * @param fatigueOffset The fatigue offset. A positive number reduces fatigue, a negative number increases it.
+ * @param exceedThreshold The threshold for when it's considered exceeded. Ex: .5 means if you exceed by half a rep or more.
  * @return Whether the reps completed exceed the rep range top by more than `SET_TOO_EASY_REPS_THRESHOLD`.
  */
 fun exceededRepRangeTop(
@@ -58,12 +58,12 @@ fun exceededRepRangeTop(
     rpeTarget: Float,
     completedReps: Int,
     completedRpe: Float,
-    fatigueOffset: Float = SET_TOO_EASY_REPS_THRESHOLD,
+    exceedThreshold: Float = SET_TOO_EASY_REPS_THRESHOLD,
 ): Boolean {
     val rpeAdjustedRepRangeTop = getRpeAdjustedReps(repRangeTop, rpeTarget)
     val rpeAdjustedRepsCompleted = getRpeAdjustedReps(completedReps, completedRpe)
 
-    return exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted, fatigueOffset)
+    return exceededRepRangeTop(rpeAdjustedRepRangeTop, rpeAdjustedRepsCompleted, exceedThreshold)
 }
 
 /**
@@ -73,7 +73,7 @@ fun exceededRepRangeTop(
  * @param rpeTarget The RPE target.
  * @param completedReps The completed reps.
  * @param completedRpe The completed RPE.
- * @param fatigueOffset The fatigue offset. A positive number reduces fatigue, a negative number increases it.
+ * @param missThreshold The threshold for when it's considered missed. Ex: .5 means if you miss by half a rep or more.
  * @return Whether the reps completed missed the rep range bottom by more than `SET_TOO_HARD_REPS_THRESHOLD`.
  */
 fun missedRepRangeBottom(
@@ -81,12 +81,12 @@ fun missedRepRangeBottom(
     rpeTarget: Float,
     completedReps: Int,
     completedRpe: Float,
-    fatigueOffset: Float = SET_TOO_HARD_REPS_THRESHOLD,
+    missThreshold: Float = SET_TOO_HARD_REPS_THRESHOLD,
 ): Boolean {
     val rpeAdjustedRepRangeBottom = getRpeAdjustedReps(repRangeBottom, rpeTarget)
     val repsConsideringRpe = getRpeAdjustedReps(completedReps, completedRpe)
 
-    return missedRepRangeBottom(rpeAdjustedRepRangeBottom, repsConsideringRpe, fatigueOffset)
+    return missedRepRangeBottom(rpeAdjustedRepRangeBottom, repsConsideringRpe, missThreshold)
 }
 
 private fun getRpeAdjustedReps(reps: Int, rpe: Float) =
