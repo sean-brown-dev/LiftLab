@@ -106,14 +106,6 @@ android {
         }
     }
 }
-configurations.configureEach {
-    resolutionStrategy.dependencySubstitution {
-        substitute(module("com.google.firebase:firebase-auth-ktx"))
-                .using(module("com.google.firebase:firebase-auth:12.0.0"))
-        substitute(module("com.google.firebase:firebase-common-ktx"))
-                .using(module("com.google.firebase:firebase-common:12.0.0"))
-    }
-}
 dependencies {
     // =================== MODULE PROJECTS ======================
     implementation(project(":annotations"))
@@ -136,7 +128,7 @@ dependencies {
 
     // =================== FIREBASE (BOM Managed) & GOOGLE SERVICES ======================
     def feature_delivery_version = '2.1.0'
-    implementation platform('com.google.firebase:firebase-bom:34.1.0')
+    implementation platform('com.google.firebase:firebase-bom:34.2.0')
     implementation "com.google.firebase:firebase-appcheck-playintegrity"
     implementation "com.google.firebase:firebase-auth"
     implementation "com.google.firebase:firebase-firestore"
@@ -150,7 +142,7 @@ dependencies {
     implementation 'androidx.security:security-crypto-ktx:1.1.0'
 
     // ---- Firebase Auth helpers ----
-    def firebase_auth_helper_version = '2.4.0-alpha03'
+    def firebase_auth_helper_version = '2.4.0-alpha05'
     implementation("io.github.mirzemehdi:kmpauth-google:$firebase_auth_helper_version")
     implementation("io.github.mirzemehdi:kmpauth-firebase:$firebase_auth_helper_version")
     implementation("io.github.mirzemehdi:kmpauth-uihelper:$firebase_auth_helper_version")
@@ -203,7 +195,7 @@ dependencies {
     implementation "androidx.work:work-runtime:$work_version"
 
     // =================== KOIN ======================
-    def koin_version = '4.1.0'
+    def koin_version = '4.1.1'
     implementation "io.insert-koin:koin-core:$koin_version"
     implementation "io.insert-koin:koin-android:$koin_version"
     implementation "io.insert-koin:koin-androidx-compose:$koin_version"
@@ -238,7 +230,7 @@ dependencies {
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     testImplementation("app.cash.turbine:turbine:1.2.1")
-    testImplementation("org.robolectric:robolectric:4.15.1")
+    testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("androidx.test:core:1.7.0") // ApplicationProvider
 
     // JUnit 5 for instrumented tests

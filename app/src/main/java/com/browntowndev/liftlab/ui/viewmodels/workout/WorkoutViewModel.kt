@@ -145,7 +145,7 @@ class WorkoutViewModel(
                 // These only exist in-memory in our state, so the state flow use case knows nothing
                 // about them and we have to hydrate the updated workout from the state flow with
                 // that data.
-                val updatedLiftsById = newUiState.workout.lifts.associateBy { it.id }
+                val updatedLiftsById = newUiState.workout.lifts.associateBy { it.id to it.liftId }
                 hydrateLoggingWorkoutWithExistingLiftDataUseCase(
                     loggingWorkout = newUiState.workout.toDomainModel(),
                     liftsToUpdateFrom = mutableWorkoutState.value.workout!!.lifts
@@ -154,7 +154,8 @@ class WorkoutViewModel(
                             // the in-memory modified lifts which were never completed. So, we need to merge
                             // the new lifts into the current in-memory lifts to get the holistic state
                             // of the lift
-                            updatedLiftsById[uiStateLift.id]?.mergeModifiedIncompleteSets(uiStateLift)
+                            val liftKey = uiStateLift.id to uiStateLift.liftId
+                            updatedLiftsById[liftKey]?.mergeModifiedIncompleteSets(uiStateLift)
                         }
                         .filter {
                             // Now that we have fully updated the lifts, we can filter out any

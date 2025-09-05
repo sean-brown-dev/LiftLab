@@ -224,12 +224,12 @@ class HydrateLoggingWorkoutWithCompletedSetsUseCase {
                     repRangeBottomMissThreshold = 0.5f, // If you miss by half rep or more
                 )
                 val missedGoal = lastSetGoalResult.missedRepRangeBottom || lastSetGoalResult.exceededRepRangeTop
-                val differentWeightUsedThanRecommended = lastCompletedSet.weightRecommendation != lastCompletedSet.initialWeightRecommendation
+                val differentWeightUsedThanRecommended = lastCompletedSet.completedWeight != lastCompletedSet.initialWeightRecommendation
 
                 Log.d(TAG, "missedGoal: $missedGoal, differentWeightUsedThanRecommended: $differentWeightUsedThanRecommended")
                 val weightRecommendation = when {
 
-                    set.weightRecommendation == null || missedGoal || differentWeightUsedThanRecommended ->
+                    set.initialWeightRecommendation == null || missedGoal || differentWeightUsedThanRecommended ->
                         WeightCalculationUtils.calculateSuggestedWeight(
                             completedWeight = lastCompletedSet.completedWeight!!,
                             completedReps = lastCompletedSet.completedReps - 1,
