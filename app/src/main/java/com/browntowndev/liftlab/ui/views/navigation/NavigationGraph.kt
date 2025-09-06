@@ -204,6 +204,10 @@ fun NavigationGraph(
                     paddingValues = paddingValues,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onNavigateBack = { navHostController.popBackStack() },
+                    onMergeLift = {
+                        navHostController.previousBackStackEntry?.savedStateHandle?.set("mergeLift", true)
+                        navHostController.popBackStack()
+                    },
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(

@@ -6,6 +6,7 @@ import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.CreateLift
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetLiftWithHistoryStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.MergeLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.RemoveVolumeTypeUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateLiftNameUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.UpdateMovementPatternUseCase
@@ -29,6 +30,7 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.Reorder
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SetProgramAsActiveUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramNameUseCase
+import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.GetSettingConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateLiftSpecificDeloadSettingUseCase
 import com.browntowndev.liftlab.core.domain.useCase.settings.UpdateSettingUseCase
@@ -73,7 +75,6 @@ import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertExistin
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertManySetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetLogEntriesFromSetResultsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutLogging.UpsertSetResultUseCase
-import com.browntowndev.liftlab.core.domain.useCase.progression.CalculateLoggingWorkoutUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -147,6 +148,7 @@ val useCaseModule = module {
     singleOf(::UpdateVolumeTypeUseCase)
     singleOf(::AddVolumeTypeUseCase)
     singleOf(::RemoveVolumeTypeUseCase)
+    singleOf(::MergeLiftsUseCase)
 
     // Metrics
     singleOf(::GetGroupedLiftMetricChartDataUseCase)

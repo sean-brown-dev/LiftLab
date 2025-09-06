@@ -76,4 +76,11 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
 
     @Query("UPDATE workoutLifts SET deleted = 1, synced = 0 WHERE workoutId IN (:workoutIds)")
     suspend fun softDeleteByWorkoutIds(workoutIds: List<Long>)
+
+    @Query("""
+        UPDATE workoutLifts 
+        SET liftId = :newLiftId, synced = 0 
+        WHERE liftId IN (:existingLiftIds)
+    """)
+    suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>)
 }

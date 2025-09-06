@@ -144,6 +144,11 @@ class SetLogEntryRepositoryImpl(
         return insertIds
     }
 
+    override suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>) {
+        setLogEntryDao.changeFromLiftsToNewLift(newLiftId, existingLiftIds)
+        syncScheduler.scheduleSync()
+    }
+
     override suspend fun delete(model: SetLogEntry): Int =
         deleteById(model.id)
 

@@ -2,7 +2,6 @@ package com.browntowndev.liftlab.dependencyInjection
 
 import com.browntowndev.liftlab.core.common.NetworkMonitor
 import com.browntowndev.liftlab.core.data.remote.client.FirestoreClient
-import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
 import com.browntowndev.liftlab.ui.viewmodels.donation.DonationViewModel
@@ -17,6 +16,7 @@ import com.browntowndev.liftlab.ui.viewmodels.startup.StartupViewModel
 import com.browntowndev.liftlab.ui.viewmodels.timer.DurationTimerViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -25,7 +25,8 @@ val viewModelModule = module {
     factory { params ->
         LiftDetailsViewModel(
             liftId = params.getOrNull(),
-            onNavigateBack = params.get(),
+            onNavigateBack = params[1],
+            onMergeLift = params[2],
             getLiftWithHistoryStateFlowUseCase = get(),
             updateLiftNameUseCase = get(),
             updateMovementPatternUseCase = get(),

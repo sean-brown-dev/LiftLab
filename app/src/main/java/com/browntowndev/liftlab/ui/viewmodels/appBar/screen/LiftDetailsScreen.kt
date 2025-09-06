@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.right
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
 import com.browntowndev.liftlab.ui.models.controls.NavItem
@@ -26,6 +28,7 @@ data class LiftDetailsScreen(
     companion object {
         val navigation = NavItem("Lift Metrics", "", Route.LiftDetails())
         const val CONFIRM_CREATE_LIFT_ICON = "confirmCreateLiftIcon"
+        const val MERGE_LIFT = "mergeLiftIcon"
     }
 
     private val _eventBus: EventBus by inject()
@@ -82,6 +85,17 @@ data class LiftDetailsScreen(
                 icon = Icons.Filled.Check.left(),
                 contentDescriptionResourceId = null,
             ),
+            ActionMenuItem.IconMenuItem.AlwaysShown(
+                controlName = MERGE_LIFT,
+                title = "Merge Lift",
+                isVisible = !isConfirmCreateLiftVisible,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.MergeLift))
+                    listOf()
+                },
+                icon = R.drawable.merge.right(),
+                contentDescriptionResourceId = null,
+            )
         )
     }
 }

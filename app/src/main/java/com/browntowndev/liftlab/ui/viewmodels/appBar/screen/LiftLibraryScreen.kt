@@ -30,7 +30,7 @@ data class LiftLibraryScreen(
     val isSearchBarVisible: Boolean = false,
     val isSearchIconVisible: Boolean = true,
     val isFilterIconVisible: Boolean = true,
-    val isConfirmAddLiftVisible: Boolean = false,
+    val isConfirmCheckboxVisible: Boolean = false,
     val isCreateNewLiftIconVisible: Boolean = true,
 ) : BaseScreen() {
     companion object {
@@ -75,7 +75,7 @@ data class LiftLibraryScreen(
                 copy(isFilterIconVisible = isVisible)
             }
             CONFIRM_ADD_LIFT_ICON -> {
-                copy(isConfirmAddLiftVisible = isVisible)
+                copy(isConfirmCheckboxVisible = isVisible)
             }
             CREATE_NEW_LIFT_ICON -> {
                 copy(isCreateNewLiftIconVisible = isVisible)
@@ -157,7 +157,7 @@ data class LiftLibraryScreen(
             ActionMenuItem.IconMenuItem.AlwaysShown(
                 controlName = CONFIRM_ADD_LIFT_ICON,
                 title = "Confirm Add Lift",
-                isVisible = isConfirmAddLiftVisible,
+                isVisible = isConfirmCheckboxVisible,
                 onClick = {
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
                     listOf()

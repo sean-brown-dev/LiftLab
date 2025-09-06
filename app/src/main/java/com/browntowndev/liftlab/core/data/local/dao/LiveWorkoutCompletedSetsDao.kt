@@ -67,4 +67,11 @@ interface LiveWorkoutCompletedSetsDao: BaseDao<LiveWorkoutCompletedSetEntity> {
         )
     """)
     suspend fun softDeleteByProgramId(programId: Long)
+
+    @Query("""
+        UPDATE liveWorkoutCompletedSets
+        SET liftId = :newLiftId, synced = 0
+        WHERE liftId IN (:existingLiftIds)
+    """)
+    fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>)
 }

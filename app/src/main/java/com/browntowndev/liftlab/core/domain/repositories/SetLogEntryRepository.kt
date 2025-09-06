@@ -14,4 +14,5 @@ interface SetLogEntryRepository: Repository<SetLogEntry, Long> {
     fun getForSpecificWorkoutCompletionFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetLogEntry>>
 
     suspend fun getAllCompletionDataForWorkout(workoutId: Long): List<SetLogEntry>
+    suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>)
 }

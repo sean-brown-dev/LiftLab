@@ -21,12 +21,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.browntowndev.liftlab.core.domain.enums.MovementPattern
-import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.liftDetails.LiftDetailsViewModel
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftDetailsScreen
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.liftDetails.LiftDetailsViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -39,10 +39,14 @@ fun LiftDetails(
     screenId: String?,
     snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
+    onMergeLift: () -> Unit,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
 ) {
-    val liftDetailsViewModel: LiftDetailsViewModel = koinViewModel { parametersOf(id, onNavigateBack) }
+
+    val liftDetailsViewModel: LiftDetailsViewModel = koinViewModel {
+        parametersOf(id, onNavigateBack, onMergeLift)
+    }
     val state by liftDetailsViewModel.state.collectAsState()
 
     liftDetailsViewModel.registerEventBus()

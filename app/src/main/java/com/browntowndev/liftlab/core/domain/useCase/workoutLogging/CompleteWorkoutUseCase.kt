@@ -26,9 +26,6 @@ import com.browntowndev.liftlab.ui.models.workout.WorkoutInProgressUiModel
 import com.google.common.base.Stopwatch
 import java.util.concurrent.TimeUnit
 
-private data class LiftAndPositionKey(val liftId: Long, val liftPosition: Int)
-private fun SetResult.toLiftAndPositionKey() = LiftAndPositionKey(liftId, liftPosition)
-
 class CompleteWorkoutUseCase(
     private val workoutInProgressRepository: WorkoutInProgressRepository,
     private val restTimerInProgressRepository: RestTimerInProgressRepository,
@@ -50,6 +47,7 @@ class CompleteWorkoutUseCase(
         completedSets: List<SetResult>,
         isDeloadWeek: Boolean,
     ) = transactionScope.execute {
+        workoutInProgressRepository.delete()
         restTimerInProgressRepository.delete()
 
         val startTimeInMillis = inProgressWorkout.startTime.time
@@ -141,11 +139,6 @@ class CompleteWorkoutUseCase(
             completedSets = completedSets,
         )
         Log.d(TAG, "moveSetResultsToLogHistory ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
-        stopwatch.reset()
-
-        stopwatch.start()
-        workoutInProgressRepository.delete()
-        Log.d(TAG, "workoutInProgressRepository.delete ${stopwatch.elapsed(TimeUnit.MILLISECONDS)}ms")
         stopwatch.reset()
     }
 

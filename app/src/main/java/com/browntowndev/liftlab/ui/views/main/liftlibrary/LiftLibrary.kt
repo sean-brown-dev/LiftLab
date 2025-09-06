@@ -142,18 +142,18 @@ fun LiftLibrary(
                             ListItem(
                                 modifier = Modifier.clickable {
                                     val multiselectEnabled = isAddingToWorkout || isCreatingLiftMetricCharts
-                                    if(multiselectEnabled && selected) {
-                                        liftLibraryViewModel.removeSelectedLift(lift.id)
-                                    } else if (multiselectEnabled) {
-                                        liftLibraryViewModel.addSelectedLift(lift.id)
-                                    } else if (isReplacingLiftInWorkoutBuilder || isReplacingLiftInWorkout) {
-                                        liftLibraryViewModel.replaceWorkoutLift(
-                                            workoutLiftId = workoutLiftId!!,
-                                            replacementLiftId = lift.id,
-                                            callerRouteId = callerRouteId!!
-                                        )
-                                    } else {
-                                        onNavigateToLiftDetails(lift.id)
+                                    val isReplacingLift = isReplacingLiftInWorkoutBuilder || isReplacingLiftInWorkout
+                                    when {
+                                        state.mergingLifts -> liftLibraryViewModel.changeLiftToMergeInto(lift.id)
+                                        multiselectEnabled && selected -> liftLibraryViewModel.removeSelectedLift(lift.id)
+                                        multiselectEnabled -> liftLibraryViewModel.addSelectedLift(lift.id)
+                                        isReplacingLift ->
+                                            liftLibraryViewModel.replaceWorkoutLift(
+                                                workoutLiftId = workoutLiftId!!,
+                                                replacementLiftId = lift.id,
+                                                callerRouteId = callerRouteId!!
+                                            )
+                                        else -> onNavigateToLiftDetails(lift.id)
                                     }
                                 },
                                 headlineContent = { Text(lift.name) },

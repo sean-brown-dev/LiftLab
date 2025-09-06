@@ -6,9 +6,9 @@ import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toEntity
 import com.browntowndev.liftlab.core.data.mapping.toSetResult
-import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -115,6 +115,11 @@ class LiveWorkoutCompletedSetsRepositoryImpl(
         syncScheduler.scheduleSync()
 
         return ids
+    }
+
+    override suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>) {
+        liveWorkoutCompletedSetsDao.changeFromLiftsToNewLift(newLiftId, existingLiftIds)
+        syncScheduler.scheduleSync()
     }
 
     override suspend fun deleteAll() =

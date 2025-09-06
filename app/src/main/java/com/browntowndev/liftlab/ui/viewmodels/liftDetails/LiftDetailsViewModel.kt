@@ -49,6 +49,7 @@ class LiftDetailsViewModel(
     private val createLiftUseCase: CreateLiftUseCase,
     getLiftWithHistoryStateFlowUseCase: GetLiftWithHistoryStateFlowUseCase,
     private val onNavigateBack: () -> Unit,
+    private val onMergeLift: () -> Unit,
     eventBus: EventBus
 ) : BaseViewModel(eventBus) {
     private var _state = MutableStateFlow(LiftDetailsState())
@@ -102,6 +103,7 @@ class LiftDetailsViewModel(
         when (event.action) {
             TopAppBarAction.NavigatedBack -> onNavigateBack()
             TopAppBarAction.ConfirmCreateNewLift -> createNewLift()
+            TopAppBarAction.MergeLift -> onMergeLift()
             else -> {}
         }
     }

@@ -6,10 +6,10 @@ import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.models.metadata.LiftMetadata
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.repositories.LiftsRepository
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration
@@ -186,6 +186,14 @@ class LiftsRepositoryImpl(
 
     override suspend fun deleteById(id: Long): Int {
         val count = liftsDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
+    }
+
+    override suspend fun deleteManyById(ids: List<Long>): Int {
+        val count = liftsDao.softDeleteMany(ids)
         if (count > 0) {
             syncScheduler.scheduleSync()
         }

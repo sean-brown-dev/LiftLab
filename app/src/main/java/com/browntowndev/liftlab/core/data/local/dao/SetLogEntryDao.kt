@@ -229,4 +229,19 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
 
     @Query("SELECT * FROM setLogEntries WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<SetLogEntryEntity>
+
+    @Query("""
+        WITH src AS (
+          SELECT name AS newName, movementPattern AS newPattern
+          FROM lifts
+          WHERE lift_id = :newLiftId
+        )
+        UPDATE setLogEntries
+        SET liftId = :newLiftId,
+            liftName = (SELECT newName FROM src),
+            liftMovementPattern = (SELECT newPattern FROM src),
+            synced = 0
+        WHERE liftId IN (:existingLiftIds)
+    """)
+    suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>)
 }
