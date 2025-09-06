@@ -95,7 +95,7 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, confirmAddVisible)
     }
 
-    BackHandler(enabled = mergeLiftId != null) {
+    BackHandler(enabled = isMergingLifts) {
         onNavigateToLiftDetails(mergeLiftId)
     }
 
