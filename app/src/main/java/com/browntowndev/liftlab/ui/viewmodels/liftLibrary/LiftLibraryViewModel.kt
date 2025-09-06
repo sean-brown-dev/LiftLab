@@ -71,7 +71,9 @@ class LiftLibraryViewModel(
                     val sortedLifts = liftConfigurationState.lifts.sortedBy { it.name }
                     LiftLibraryState(
                         allLifts = sortedLifts.fastMap { it.toUiModel() },
-                        liftsToFilterOut = liftConfigurationState.liftIdsForWorkout,
+                        liftsToFilterOut = liftConfigurationState.liftIdsForWorkout.apply {
+                            if (mergeLiftId != null) add(mergeLiftId)
+                        },
                     )
                 }.onEach { state ->
                     _state.update {
