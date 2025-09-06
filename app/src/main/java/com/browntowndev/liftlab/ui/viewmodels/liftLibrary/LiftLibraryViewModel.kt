@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.DeleteLiftUseCase
 import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.GetFilterableLiftsStateFlowUseCase
+import com.browntowndev.liftlab.core.domain.useCase.liftConfiguration.MergeLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.CreateLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.CreateWorkoutLiftsFromLiftsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.workoutConfiguration.ReplaceWorkoutLiftUseCase
@@ -31,12 +32,14 @@ class LiftLibraryViewModel(
     private val replaceWorkoutLiftUseCase: ReplaceWorkoutLiftUseCase,
     private val createLiftMetricChartsUseCase: CreateLiftMetricChartsUseCase,
     private val createWorkoutLiftsFromLiftsUseCase: CreateWorkoutLiftsFromLiftsUseCase,
+    private val mergeLiftsUseCase: MergeLiftsUseCase,
     private val onNavigateHome: () -> Unit,
     private val onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     private val onNavigateToActiveWorkout: () -> Unit,
     private val onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     getFilterableLiftsStateFlowUseCase: GetFilterableLiftsStateFlowUseCase,
     workoutId: Long?,
+    private val mergeLiftId: Long?,
     addAtPosition: Int?,
     initialMovementPatternFilter: String,
     newLiftMetricChartIds: List<Long>,
@@ -94,7 +97,7 @@ class LiftLibraryViewModel(
         when (event.action) {
             TopAppBarAction.FilterStarted -> toggleFilterSelection()
             TopAppBarAction.NavigatedBack -> if (_state.value.showFilterSelection) applyFilters()
-            TopAppBarAction.ConfirmAddLift -> if (_state.value.newLiftMetricChartIds.isEmpty()) addWorkoutLifts() else updateLiftMetricChartsWithSelectedLiftIds()
+            TopAppBarAction.Confirm -> onConfirmationClicked()
             TopAppBarAction.CreateNewLift -> onNavigateToLiftDetails(null)
             else -> {}
         }
@@ -106,6 +109,18 @@ class LiftLibraryViewModel(
             TopAppBarAction.SearchTextChanged -> setNameFilter(payloadEvent.payload)
             else -> {}
         }
+    }
+
+    private fun onConfirmationClicked() = executeWithErrorHandling("Failed to confirm") {
+        when {
+            _state.value.newLiftMetricChartIds.isNotEmpty() -> updateLiftMetricChartsWithSelectedLiftIds()
+            mergeLiftId != null -> confirmMerge()
+            else -> addWorkoutLifts()
+        }
+    }
+
+    private suspend fun confirmMerge() {
+        mergeLiftsUseCase(mergeLiftId!!, _state.value.selectedNewLifts)
     }
 
     fun addSelectedLift(id: Long) = executeWithErrorHandling("Failed to select lift") {

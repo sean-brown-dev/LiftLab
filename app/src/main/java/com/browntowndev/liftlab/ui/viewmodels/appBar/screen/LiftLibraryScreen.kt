@@ -159,7 +159,7 @@ data class LiftLibraryScreen(
                 title = "Confirm Add Lift",
                 isVisible = isConfirmCheckboxVisible,
                 onClick = {
-                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.Confirm))
                     listOf()
                 },
                 icon = Icons.Filled.Check.left(),

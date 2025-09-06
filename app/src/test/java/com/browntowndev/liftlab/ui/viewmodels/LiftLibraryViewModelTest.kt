@@ -162,7 +162,7 @@ class LiftLibraryViewModelTest {
             )
         }
 
-        viewModel.handleTopAppBarActionEvent(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
+        viewModel.handleTopAppBarActionEvent(TopAppBarEvent.ActionEvent(TopAppBarAction.Confirm))
         mainDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 1) { createLiftMetricChartsUseCase(chartIds = listOf(1L, 2L), liftIds = match { it.containsAll(listOf(10L, 20L)) }) }
@@ -184,7 +184,7 @@ class LiftLibraryViewModelTest {
             )
         }
 
-        viewModel.handleTopAppBarActionEvent(TopAppBarEvent.ActionEvent(TopAppBarAction.ConfirmAddLift))
+        viewModel.handleTopAppBarActionEvent(TopAppBarEvent.ActionEvent(TopAppBarAction.Confirm))
         mainDispatcher.scheduler.advanceUntilIdle()
 
         coVerify(exactly = 1) { createWorkoutLiftsFromLiftsUseCase(workoutId = 777L, firstPosition = 5, lifts = any()) }

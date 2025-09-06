@@ -57,6 +57,7 @@ fun LiftLibrary(
     onNavigateToLiftDetails: (liftId: Long?) -> Unit,
     workoutId: Long? = null,
     workoutLiftId: Long? = null,
+    mergeLiftId: Long? = null,
     movementPattern: String = "",
     liftMetricChartIds: List<Long>,
     addAtPosition: Int? = null,
@@ -67,20 +68,15 @@ fun LiftLibrary(
 ) {
     val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel {
         parametersOf(onNavigateHome, onNavigateToWorkoutBuilder, onNavigateToActiveWorkout, onNavigateToLiftDetails,
-            workoutId, addAtPosition, movementPattern, liftMetricChartIds)
+            workoutId, addAtPosition, movementPattern, liftMetricChartIds, mergeLiftId)
     }
     val state by liftLibraryViewModel.state.collectAsState()
 
-    val isReplacingLiftInWorkoutBuilder = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRouteId) {
-        workoutId != null && workoutLiftId != null && callerRouteId == Route.WorkoutBuilder.id
-    }
-    val isReplacingLiftInWorkout = remember(key1 = workoutId, key2 = workoutLiftId, key3 = callerRouteId) {
-        workoutId != null && workoutLiftId != null && callerRouteId == Route.Workout.id
-    }
-    val isAddingToWorkout = remember(key1 = workoutId, key2 = addAtPosition) {
-        workoutId != null && addAtPosition != null
-    }
-    val isCreatingLiftMetricCharts = remember(liftMetricChartIds) { liftMetricChartIds.isNotEmpty() }
+    val isMergingLifts = mergeLiftId != null
+    val isReplacingLiftInWorkoutBuilder = workoutId != null && workoutLiftId != null && callerRouteId == Route.WorkoutBuilder.id
+    val isReplacingLiftInWorkout = workoutId != null && workoutLiftId != null && callerRouteId == Route.Workout.id
+    val isAddingToWorkout = workoutId != null && addAtPosition != null
+    val isCreatingLiftMetricCharts = liftMetricChartIds.isNotEmpty()
 
     liftLibraryViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = liftLibraryViewModel)
@@ -141,17 +137,16 @@ fun LiftLibrary(
                         ) {
                             ListItem(
                                 modifier = Modifier.clickable {
-                                    val multiselectEnabled = isAddingToWorkout || isCreatingLiftMetricCharts
+                                    val multiselectEnabled = isAddingToWorkout || isCreatingLiftMetricCharts || isMergingLifts
                                     val isReplacingLift = isReplacingLiftInWorkoutBuilder || isReplacingLiftInWorkout
                                     when {
-                                        state.mergingLifts -> liftLibraryViewModel.changeLiftToMergeInto(lift.id)
                                         multiselectEnabled && selected -> liftLibraryViewModel.removeSelectedLift(lift.id)
                                         multiselectEnabled -> liftLibraryViewModel.addSelectedLift(lift.id)
                                         isReplacingLift ->
                                             liftLibraryViewModel.replaceWorkoutLift(
-                                                workoutLiftId = workoutLiftId!!,
+                                                workoutLiftId = workoutLiftId,
                                                 replacementLiftId = lift.id,
-                                                callerRouteId = callerRouteId!!
+                                                callerRouteId = callerRouteId
                                             )
                                         else -> onNavigateToLiftDetails(lift.id)
                                     }

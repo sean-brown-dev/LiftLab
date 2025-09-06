@@ -14,7 +14,7 @@ enum class TopAppBarAction {
     FilterStarted,
     EditDeloadWeek,
     FinishWorkout,
-    ConfirmAddLift,
+    Confirm,
     CreateNewLift,
     ConfirmCreateNewLift,
     OpenSettingsMenu,
