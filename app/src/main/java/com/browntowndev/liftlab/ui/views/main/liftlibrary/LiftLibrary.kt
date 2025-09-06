@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
@@ -26,12 +27,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.enums.MovementPatternFilterSection
 import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import com.browntowndev.liftlab.ui.composables.chips.FilterSelector
 import com.browntowndev.liftlab.ui.composables.chips.InputChipFlowRow
 import com.browntowndev.liftlab.ui.composables.component.DeleteableOnSwipeLeft
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
 import com.browntowndev.liftlab.ui.composables.icon.CircledTextIcon
 import com.browntowndev.liftlab.ui.composables.icon.CircularIcon
 import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
@@ -43,7 +50,6 @@ import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 import com.browntowndev.liftlab.ui.viewmodels.liftLibrary.LiftLibraryViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
-
 
 @Composable
 fun LiftLibrary(
@@ -90,8 +96,8 @@ fun LiftLibrary(
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.LIFT_MOVEMENT_PATTERN_FILTER_ICON, !state.showFilterSelection)
     }
 
-    LaunchedEffect(key1 = state.selectedNewLifts, key2 = state.showFilterSelection) {
-        val confirmAddVisible = state.selectedNewLifts.isNotEmpty() && !state.showFilterSelection
+    LaunchedEffect(key1 = state.selectedLifts, key2 = state.showFilterSelection) {
+        val confirmAddVisible = state.selectedLifts.isNotEmpty() && !state.showFilterSelection
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, confirmAddVisible)
     }
 
@@ -133,7 +139,7 @@ fun LiftLibrary(
                         ),
                 ) {
                     items(state.filteredLifts, { it.id }) { lift ->
-                        val selected = state.selectedNewLiftsHashSet.contains(lift.id)
+                        val selected = state.selectedLiftsSet.contains(lift.id)
                         DeleteableOnSwipeLeft(
                             confirmationDialogHeader = "Delete Lift?",
                             confirmationDialogBody = "Deleting this lift will hide it from the Lifts menu. It can be restored from the Settings menu.",
@@ -201,5 +207,43 @@ fun LiftLibrary(
                 liftLibraryViewModel.applyFilters()
             },
         )
+    }
+
+    if (state.confirmMergeDialogVisible) {
+        val mergeExplanation = buildAnnotatedString {
+            append("Are you sure you want to merge these lifts? All completion data for the selected lifts will be combined with ")
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(state.mergeLiftName)
+            }
+            append(". Additionally, any workouts currently using the selected lifts will be updated to use ")
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(state.mergeLiftName)
+            }
+            append(" instead.")
+        }
+
+        ConfirmationDialog(
+            header = "Confirm Merge",
+            textAboveContent = "",
+            onConfirm = { liftLibraryViewModel.confirmMerge() },
+            onCancel = { liftLibraryViewModel.toggleConfirmMergeDialog() },
+        ) {
+            Column {
+                Text(text = mergeExplanation, modifier = Modifier.padding(bottom = 16.dp))
+
+                state.selectedLiftNames.fastForEach { name ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "\u2022",
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(text = name)
+                    }
+                }
+            }
+        }
     }
 }

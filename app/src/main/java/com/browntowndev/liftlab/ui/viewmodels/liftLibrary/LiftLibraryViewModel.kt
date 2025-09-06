@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.viewmodels.liftLibrary
 
+import androidx.compose.ui.util.fastFirstOrNull
 import androidx.compose.ui.util.fastMap
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
@@ -79,6 +80,7 @@ class LiftLibraryViewModel(
                     _state.update {
                         it.copy(
                             allLifts = state.allLifts,
+                            mergeLiftName = state.allLifts.fastFirstOrNull { lift -> lift.id == mergeLiftId }?.name ?: "",
                             filteredLifts = getFilteredLifts(
                                 liftsToFilter = state.allLifts,
                                 nameFilter = _state.value.nameFilter,
@@ -116,19 +118,26 @@ class LiftLibraryViewModel(
     private fun onConfirmationClicked() = executeWithErrorHandling("Failed to confirm") {
         when {
             _state.value.newLiftMetricChartIds.isNotEmpty() -> updateLiftMetricChartsWithSelectedLiftIds()
-            mergeLiftId != null -> confirmMerge()
+            mergeLiftId != null -> toggleConfirmMergeDialog()
             else -> addWorkoutLifts()
         }
     }
 
-    private fun confirmMerge() = executeWithErrorHandling("Failed to merge lifts") {
-        mergeLiftsUseCase(mergeLiftId!!, _state.value.selectedNewLifts)
+    fun toggleConfirmMergeDialog() = executeWithErrorHandling("Failed to toggle confirm merge dialog") {
+        _state.update {
+            it.copy(confirmMergeDialogVisible = !_state.value.confirmMergeDialogVisible)
+        }
+    }
+
+    fun confirmMerge() = executeWithErrorHandling("Failed to merge lifts") {
+        toggleConfirmMergeDialog()
+        mergeLiftsUseCase(mergeLiftId!!, _state.value.selectedLifts)
         onNavigateToLiftDetails(mergeLiftId)
     }
 
     fun addSelectedLift(id: Long) = executeWithErrorHandling("Failed to select lift") {
         _state.update {
-            it.copy(selectedNewLifts = it.selectedNewLifts.toMutableList().apply {
+            it.copy(selectedLifts = it.selectedLifts.toMutableList().apply {
                 add(id)
             })
         }
@@ -136,14 +145,14 @@ class LiftLibraryViewModel(
 
     fun removeSelectedLift(id: Long) = executeWithErrorHandling("Failed to deselect lift") {
         _state.update {
-            it.copy(selectedNewLifts = it.selectedNewLifts.toMutableList().apply {
+            it.copy(selectedLifts = it.selectedLifts.toMutableList().apply {
                 remove(id)
             })
         }
     }
 
     private fun updateLiftMetricChartsWithSelectedLiftIds() = executeWithErrorHandling("Failed to create lift metric chart(s)") {
-        val newLiftIds = _state.value.selectedNewLiftsHashSet
+        val newLiftIds = _state.value.selectedLiftsSet
         createLiftMetricChartsUseCase(
             chartIds = _state.value.newLiftMetricChartIds,
             liftIds = newLiftIds.toList()
@@ -152,7 +161,7 @@ class LiftLibraryViewModel(
     }
 
     private fun addWorkoutLifts() = executeWithErrorHandling("Failed to add lift(s)") {
-        val newLiftHashSet = _state.value.selectedNewLiftsHashSet
+        val newLiftHashSet = _state.value.selectedLiftsSet
         val newLifts = _state.value.filteredLifts.filter { it.id in newLiftHashSet }
         createWorkoutLiftsFromLiftsUseCase(
             workoutId = _state.value.workoutId!!,

@@ -158,7 +158,7 @@ class LiftLibraryViewModelTest {
             it.copy(
                 // No workout context; we want the metric-charts branch
                 newLiftMetricChartIds = listOf(1L, 2L),
-                selectedNewLifts = listOf(10L, 20L)
+                selectedLifts = listOf(10L, 20L)
             )
         }
 
@@ -175,7 +175,7 @@ class LiftLibraryViewModelTest {
             it.copy(
                 // Ensure we take the addWorkoutLifts path
                 newLiftMetricChartIds = emptyList(),
-                selectedNewLifts = listOf(10L, 20L),
+                selectedLifts = listOf(10L, 20L),
                 // Provide required navigation context
                 workoutId = 777L,
                 addAtPosition = 5,
@@ -213,15 +213,15 @@ class LiftLibraryViewModelTest {
 
     @Test
     fun addAndRemoveSelectedLift_updatesSelection() = runTest {
-        assertTrue(viewModel.state.value.selectedNewLifts.isEmpty())
+        assertTrue(viewModel.state.value.selectedLifts.isEmpty())
 
         viewModel.addSelectedLift(42L)
         mainDispatcher.scheduler.advanceUntilIdle()
-        assertTrue(42L in viewModel.state.value.selectedNewLifts)
+        assertTrue(42L in viewModel.state.value.selectedLifts)
 
         viewModel.removeSelectedLift(42L)
         mainDispatcher.scheduler.advanceUntilIdle()
-        assertFalse(42L in viewModel.state.value.selectedNewLifts)
+        assertFalse(42L in viewModel.state.value.selectedLifts)
     }
 
     @Test
