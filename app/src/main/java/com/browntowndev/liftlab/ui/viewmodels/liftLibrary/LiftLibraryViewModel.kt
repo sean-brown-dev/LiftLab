@@ -119,8 +119,9 @@ class LiftLibraryViewModel(
         }
     }
 
-    private suspend fun confirmMerge() {
+    private fun confirmMerge() = executeWithErrorHandling("Failed to merge lifts") {
         mergeLiftsUseCase(mergeLiftId!!, _state.value.selectedNewLifts)
+        onNavigateToLiftDetails(mergeLiftId)
     }
 
     fun addSelectedLift(id: Long) = executeWithErrorHandling("Failed to select lift") {

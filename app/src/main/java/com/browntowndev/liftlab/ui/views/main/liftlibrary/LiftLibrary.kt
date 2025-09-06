@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.views.main.liftlibrary
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -66,9 +67,9 @@ fun LiftLibrary(
     onToggleTopAppBarControlVisibility: (controlName: String, visible: Boolean) -> Unit,
     onChangeTopAppBarTitle: (title: String) -> Unit,
 ) {
-    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel {
+    val liftLibraryViewModel: LiftLibraryViewModel = koinViewModel(key = mergeLiftId?.toString()) {
         parametersOf(onNavigateHome, onNavigateToWorkoutBuilder, onNavigateToActiveWorkout, onNavigateToLiftDetails,
-            workoutId, addAtPosition, movementPattern, liftMetricChartIds, mergeLiftId)
+            workoutId, mergeLiftId, addAtPosition, movementPattern, liftMetricChartIds)
     }
     val state by liftLibraryViewModel.state.collectAsState()
 
@@ -92,6 +93,10 @@ fun LiftLibrary(
     LaunchedEffect(key1 = state.selectedNewLifts, key2 = state.showFilterSelection) {
         val confirmAddVisible = state.selectedNewLifts.isNotEmpty() && !state.showFilterSelection
         onToggleTopAppBarControlVisibility(LiftLibraryScreen.CONFIRM_ADD_LIFT_ICON, confirmAddVisible)
+    }
+
+    BackHandler(enabled = mergeLiftId != null) {
+        onNavigateToLiftDetails(mergeLiftId)
     }
 
     if (!state.showFilterSelection && !state.replacingLift) {

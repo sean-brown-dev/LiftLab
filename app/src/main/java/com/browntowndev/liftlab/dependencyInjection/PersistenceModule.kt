@@ -74,6 +74,7 @@ val persistenceModule = module {
     single<WorkoutLiftsRepository> {
         WorkoutLiftsRepositoryImpl(
             workoutLiftsDao = get<LiftLabDatabase>().workoutLiftsDao(),
+            syncScheduler = get(),
         )
     }
     single<WorkoutsRepository> {

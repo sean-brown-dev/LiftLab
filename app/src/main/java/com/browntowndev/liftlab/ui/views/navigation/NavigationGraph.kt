@@ -15,6 +15,7 @@ import androidx.navigation.toRoute
 import arrow.core.left
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
+import com.browntowndev.liftlab.core.common.MERGE_LIFT_ID
 import com.browntowndev.liftlab.core.domain.enums.displayName
 import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
 import com.browntowndev.liftlab.ui.models.controls.Route
@@ -126,6 +127,7 @@ fun NavigationGraph(
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 val liftLibraryParams = backstackEntry.toRoute<Route.LiftLibrary>()
+                val mergeLiftId = backstackEntry.savedStateHandle.get<Long>(MERGE_LIFT_ID)
                 val liftMetricChartIds = navHostController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<List<Long>>(LIFT_METRIC_CHART_IDS) ?: listOf()
@@ -133,7 +135,7 @@ fun NavigationGraph(
                 LaunchedEffect(key1 = backstackEntry.id) {
                     onSetScreen(LiftLibraryScreen())
 
-                    if (liftLibraryParams.workoutId != null || liftMetricChartIds.isNotEmpty()) {
+                    if (liftLibraryParams.workoutId != null || liftMetricChartIds.isNotEmpty() || mergeLiftId != null) {
                         setBottomNavBarVisibility(false)
                     } else {
                         setBottomNavBarVisibility(true)
@@ -148,6 +150,7 @@ fun NavigationGraph(
                     callerRouteId = liftLibraryParams.callerRouteId,
                     workoutId = liftLibraryParams.workoutId,
                     workoutLiftId = liftLibraryParams.workoutLiftId,
+                    mergeLiftId = mergeLiftId,
                     movementPattern = liftLibraryParams.movementPattern ?: "",
                     addAtPosition = liftLibraryParams.addAtPosition,
                     liftMetricChartIds = liftMetricChartIds,
@@ -170,6 +173,7 @@ fun NavigationGraph(
                         navHostController.popBackStack()
                     },
                     onNavigateToLiftDetails = { liftId ->
+                        backstackEntry.savedStateHandle.remove<Long>(MERGE_LIFT_ID)
                         val liftDetailsRoute = if (liftId != null)
                             Route.LiftDetails(liftId = liftId)
                         else
@@ -197,15 +201,16 @@ fun NavigationGraph(
                     setTopAppBarCollapsed(true)
                 }
 
+                val liftId = backstackEntry.toRoute<Route.LiftDetails>().liftId
                 LiftDetails(
-                    id = backstackEntry.toRoute<Route.LiftDetails>().liftId,
+                    id = liftId,
                     screenId = backstackEntry.id,
                     snackbarHostState = snackbarHostState,
                     paddingValues = paddingValues,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onNavigateBack = { navHostController.popBackStack() },
                     onMergeLift = {
-                        navHostController.previousBackStackEntry?.savedStateHandle?.set("mergeLift", true)
+                        navHostController.previousBackStackEntry?.savedStateHandle?.set(MERGE_LIFT_ID, liftId)
                         navHostController.popBackStack()
                     },
                     mutateTopAppBarControlValue = { request ->

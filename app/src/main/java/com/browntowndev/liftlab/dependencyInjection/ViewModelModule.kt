@@ -71,10 +71,10 @@ val viewModelModule = module {
             onNavigateToActiveWorkout = params[2],
             onNavigateToLiftDetails = params[3],
             workoutId = params[4],
-            addAtPosition = params[5],
-            mergeLiftId = params[6],
-            initialMovementPatternFilter = params.get(),
-            newLiftMetricChartIds = params.get(),
+            mergeLiftId = params[5],
+            addAtPosition = params[6],
+            initialMovementPatternFilter = params[7],
+            newLiftMetricChartIds = params[8],
             eventBus = get()
         )
     }
