@@ -28,7 +28,7 @@ abstract class BaseProgressionCalculator: ProgressionCalculator {
         isDeloadWeek: Boolean,
         microCycle: Int,
     ): Int = when {
-        isDeloadWeek -> 2
+        isDeloadWeek -> (workoutLift.setCount - 1).coerceIn(1, 2)
         (workoutLift as? CalculationStandardWorkoutLift)?.volumeCyclingSetCeiling == null -> workoutLift.setCount
         else -> (workoutLift.setCount + microCycle).coerceAtMost(workoutLift.volumeCyclingSetCeiling!!)
     }
