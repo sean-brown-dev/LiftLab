@@ -264,7 +264,8 @@ fun WorkoutLiftRemoteDto.toEntity(): WorkoutLiftEntity = WorkoutLiftEntity(
     rpeTarget = this.rpeTarget,
     repRangeBottom = this.repRangeBottom,
     repRangeTop = this.repRangeTop,
-    stepSize = this.stepSize
+    stepSize = this.stepSize,
+    volumeCyclingSetCeiling = this.volumeCyclingSetCeiling,
 ).apply {
     this.remoteId = this@toEntity.remoteId
     this.remoteLastUpdated = this@toEntity.lastUpdated
@@ -282,7 +283,8 @@ fun WorkoutLiftEntity.toRemoteDto(): WorkoutLiftRemoteDto = WorkoutLiftRemoteDto
     rpeTarget = this.rpeTarget,
     repRangeBottom = this.repRangeBottom,
     repRangeTop = this.repRangeTop,
-    stepSize = this.stepSize
+    stepSize = this.stepSize,
+    volumeCyclingSetCeiling = this.volumeCyclingSetCeiling,
 ).apply {
     this.remoteId = this@toRemoteDto.remoteId
     this.lastUpdated = this@toRemoteDto.remoteLastUpdated

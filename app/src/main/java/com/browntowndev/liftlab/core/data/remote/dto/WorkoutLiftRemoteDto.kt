@@ -15,7 +15,8 @@ data class WorkoutLiftRemoteDto(
     var rpeTarget: Float? = null,
     var repRangeBottom: Int? = null,
     var repRangeTop: Int? = null,
-    var stepSize: Int? = null
+    var stepSize: Int? = null,
+    var volumeCyclingSetCeiling: Int? = null,
 ): BaseRemoteDto() {
     override fun copyWithBase(): BaseRemoteDto {
         return this.copy().apply {
