@@ -11,7 +11,7 @@ import com.browntowndev.liftlab.core.domain.models.workout.StandardSet
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
 
-class CloneProgramUseCase(
+class SaveAsNewProgramUseCase(
     private val programsRepository: ProgramsRepository
 ) {
     /**

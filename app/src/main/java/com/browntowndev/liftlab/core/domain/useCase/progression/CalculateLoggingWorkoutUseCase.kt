@@ -53,6 +53,7 @@ class CalculateLoggingWorkoutUseCase {
                             previousSetResults = resultsForLift,
                             previousResultsForDisplay = displayResultsForLift,
                             isDeloadWeek = isDeloadWeek,
+                            microCycle = microCycle,
                         )
 
                         add(

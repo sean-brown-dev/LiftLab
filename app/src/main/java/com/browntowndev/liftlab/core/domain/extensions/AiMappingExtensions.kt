@@ -4,6 +4,8 @@ import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.ProgramPayload
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.WorkoutCore
+import com.browntowndev.liftlab.core.domain.models.programConfiguration.WorkoutLiftCore
 import com.browntowndev.liftlab.core.domain.models.workout.Lift
 import com.browntowndev.liftlab.core.domain.models.workout.StandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
@@ -19,7 +21,7 @@ fun ProgramPayload.toProgramDomainModel(lifts: List<Lift>): Program {
     )
 }
 
-fun ProgramPayload.WorkoutCore.toWorkoutDomainModel(liftsById: Map<Long, Lift>): Workout =
+fun WorkoutCore.toWorkoutDomainModel(liftsById: Map<Long, Lift>): Workout =
     Workout(
         programId = 0L,
         name = name,
@@ -30,7 +32,7 @@ fun ProgramPayload.WorkoutCore.toWorkoutDomainModel(liftsById: Map<Long, Lift>):
         }
     )
 
-fun ProgramPayload.WorkoutCore.WorkoutLiftCore.toWorkoutLiftDomainModel(lift: Lift): StandardWorkoutLift =
+fun WorkoutLiftCore.toWorkoutLiftDomainModel(lift: Lift): StandardWorkoutLift =
     StandardWorkoutLift(
         workoutId = 0L,
         liftId = liftId,
@@ -46,7 +48,7 @@ fun ProgramPayload.WorkoutCore.WorkoutLiftCore.toWorkoutLiftDomainModel(lift: Li
         position = position,
         setCount = setCount,
         deloadWeek = deloadWeek,
-        rpeTarget = rpeTarget,
+        rpeTarget = rpeTarget.toFloat(),
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,
         stepSize = stepSize,

@@ -22,9 +22,12 @@ class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
         if (distinctResults.isEmpty() || distinctResults.size < lift.setCount) return false
 
         // If there are missing set results (sequence not contiguous from 0 to set count - 1), return false
-        val setPositions = distinctResults.fastMap { it.setPosition }.toSet()
-        val liftSetPositions = (0..lift.setCount - 1).toSet()
-        if (!setPositions.containsAll(liftSetPositions)) return false
+        // Volume cycling should not do this because prev week results will be fewer until ceiling is hit.
+        if (lift.volumeCyclingSetCeiling == null) {
+            val setPositions = distinctResults.fastMap { it.setPosition }.toSet()
+            val liftSetPositions = (0..lift.setCount - 1).toSet()
+            if (!setPositions.containsAll(liftSetPositions)) return false
+        }
 
         // See if there's a first set result, if not return false
         val firstSetResult = distinctResults.minByOrNull { it.setPosition }
@@ -38,7 +41,7 @@ class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
         val lastSetResult = distinctResults.firstOrNull { it.setPosition == (lift.setCount - 1) }
         if (lastSetResult == null || (lastSetResult.setPosition == firstSetResult.setPosition)) return true
 
-        // See if all the intermediate set hit the top of the rep range
+        // See if all the intermediate sets hit the top of the rep range
         val intermediateSetsPassed = distinctResults
             .filter { it.setPosition > firstSetResult.setPosition && it.setPosition <  lastSetResult.setPosition }
             .fastAll { result ->

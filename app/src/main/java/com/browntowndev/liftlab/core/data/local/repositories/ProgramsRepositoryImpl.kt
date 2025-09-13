@@ -18,7 +18,6 @@ import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
 import com.browntowndev.liftlab.core.data.mapping.toDomainModel
 import com.browntowndev.liftlab.core.data.mapping.toEntity
-import com.browntowndev.liftlab.core.sync.SyncScheduler
 import com.browntowndev.liftlab.core.domain.delta.LiftChange
 import com.browntowndev.liftlab.core.domain.delta.ProgramDelta
 import com.browntowndev.liftlab.core.domain.delta.ProgramUpdate
@@ -29,6 +28,7 @@ import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.workout.CustomWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workout.Workout
 import com.browntowndev.liftlab.core.domain.repositories.ProgramsRepository
+import com.browntowndev.liftlab.core.sync.SyncScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -398,6 +398,7 @@ class ProgramsRepositoryImpl(
                     repRangeBottom = liftUpdate.repRangeBottom.valueOrDefault(existing.repRangeBottom),
                     rpeTarget = liftUpdate.rpeTarget.valueOrDefault(existing.rpeTarget),
                     stepSize = liftUpdate.stepSize.valueOrDefault(existing.stepSize),
+                    volumeCyclingSetCeiling = liftUpdate.volumeCyclingSetCeiling.valueOrDefault(existing.volumeCyclingSetCeiling),
                 ).applyRemoteStorageMetadata(
                     remoteId = existing.remoteId,
                     remoteLastUpdated = existing.remoteLastUpdated,

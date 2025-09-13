@@ -1,5 +1,7 @@
 package com.browntowndev.liftlab.core.domain.ai
 
+import android.util.Log
+import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.enums.toVolumeTypes
@@ -48,6 +50,10 @@ suspend fun ProgramPayload.validateAndTryCorrect(
     val initial = validateAgainst(request, expectedDays, maxDayClusterRatio)
     if (initial.isValid) {
         return this
+    }
+
+    initial.issues.fastForEach {
+        Log.w("ProgramGenerationValidation", "Validation issue: ${it.kind}: ${it.message}")
     }
 
     // Build a surgical correction prompt for the small model
@@ -107,21 +113,21 @@ fun ProgramPayload.validateAgainst(
             val rpe = wl.rpeTarget
 
             if (cat.movementPattern.isBigCompound()) {
-                if (low < 6 || high > 10) {
+                if (low < 6 || high > 12) {
                     issues += ValidationIssue("REPS", "Compound id=${wl.liftId} has reps $low–$high; expected 6–10.")
                 }
-                if ((low <= 5 || high <= 5) && rpe != 7f) {
+                if ((low <= 5 || high <= 5) && rpe < 7) {
                     issues += ValidationIssue("RPE", "Compound id=${wl.liftId} has ≤5 reps but RPE=$rpe; expected ~7.")
                 }
             } else {
-                if (low < 8 || high > 15) {
-                    issues += ValidationIssue("REPS", "Accessory id=${wl.liftId} has reps $low–$high; expected 8–15.")
+                if (low < 8 || high > 20) {
+                    issues += ValidationIssue("REPS", "Accessory id=${wl.liftId} has reps $low–$high; expected 8–20.")
                 }
                 when (ProgressionScheme.valueOf(wl.progressionScheme)) {
                     ProgressionScheme.DOUBLE_PROGRESSION ->
-                        if (rpe.toDouble() !in 7.5..8.5) issues += ValidationIssue("RPE", "Accessory + DOUBLE_PROGRESSION id=${wl.liftId} should be ~RPE 8; got $rpe.")
+                        if (rpe !in 7.5..8.5) issues += ValidationIssue("RPE", "Accessory + DOUBLE_PROGRESSION id=${wl.liftId} should be ~RPE 8; got $rpe.")
                     ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION ->
-                        if (rpe.toDouble() !in 8.5..9.5) issues += ValidationIssue("RPE", "Accessory + DYNAMIC_DOUBLE_PROGRESSION id=${wl.liftId} should be ~RPE 9; got $rpe.")
+                        if (rpe !in 8.5..9.5) issues += ValidationIssue("RPE", "Accessory + DYNAMIC_DOUBLE_PROGRESSION id=${wl.liftId} should be ~RPE 9; got $rpe.")
                     else -> { /* Wave on accessories is rare but allowed */ }
                 }
             }
@@ -152,10 +158,10 @@ fun ProgramPayload.validateAgainst(
     }
 
     // 4) Volume rules
-    val canLag = setOf("FOREARM", "LOWER_BACK", "AB")
+    val canLag = setOf("FOREARM", "LOWER_BACK", "AB", "TRAP")
     val specializedGroups = req.specializationMuscles.toSpecializedGroupLabels()
 
-    fun within10to20(x: Double) = x in 10.0..20.0
+    fun atLeast10(x: Double) = x >= 10
     fun atLeast18(x: Double) = x >= 18.0
 
     volumesByGroup.forEach { (group, sets) ->
@@ -163,8 +169,8 @@ fun ProgramPayload.validateAgainst(
         if (group in specializedGroups) {
             if (!atLeast18(sets)) issues += ValidationIssue("VOLUME_SPECIALIZE", "Specialized group $group is $sets; expected ≥18 (≈20 target).")
         } else {
-            if (!isLagOk && !within10to20(sets)) {
-                issues += ValidationIssue("VOLUME_BASELINE", "Group $group is $sets; expected 10–20.")
+            if (!isLagOk && !atLeast10(sets)) {
+                issues += ValidationIssue("VOLUME_BASELINE", "Group $group is $sets; expected 10+.")
             }
             if (isLagOk && sets < 5.0) {
                 issues += ValidationIssue("VOLUME_LAG_LOW", "Group $group is very low at $sets; allowed to lag but consider ≥5.")
@@ -183,6 +189,7 @@ fun ProgramPayload.validateAgainst(
             }
         }
         perGroupPerDay.forEach { (group, byDay) ->
+            if (group in canLag) return@forEach
             val total = volumesByGroup[group] ?: 0.0
             if (total <= 0.0) return@forEach
             val maxDay = byDay.values.maxOrNull() ?: 0.0

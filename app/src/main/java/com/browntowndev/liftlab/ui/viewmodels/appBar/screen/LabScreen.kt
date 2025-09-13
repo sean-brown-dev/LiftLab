@@ -48,6 +48,7 @@ data class LabScreen(
         const val REORDER_WORKOUTS_ICON = "reorderWorkoutsIcon"
         const val RENAME_PROGRAM_ICON = "renameProgramIcon"
         const val CREATE_NEW_PROGRAM_ICON = "createNewProgramIcon"
+        const val GENERATE_PROGRAM_ICON = "generateProgramIcon"
         const val MANAGE_PROGRAMS_ICON = "manageProgramsIcon"
         const val DELETE_PROGRAM_ICON = "deleteProgramIcon"
         const val CREATE_NEW_WORKOUT_ICON = "createNewWorkoutIcon"
@@ -157,6 +158,16 @@ data class LabScreen(
                     _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.CreateNewProgram))
                     listOf()
                 },
+            ),
+            ActionMenuItem.IconMenuItem.NeverShown(
+                controlName = GENERATE_PROGRAM_ICON,
+                title = "Generate Program",
+                icon = R.drawable.wand.right(),
+                isVisible = true,
+                onClick = {
+                    _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.GenerateProgram))
+                    listOf()
+                }
             ),
             ActionMenuItem.IconMenuItem.NeverShown(
                 controlName = RENAME_PROGRAM_ICON,

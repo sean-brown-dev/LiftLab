@@ -208,6 +208,7 @@ fun buildProgramPrompt(
           • For 5 workouts, favor upper/lower/push/pull/legs split
           • For 6 workouts, favor push/pull/legs split
           • For any other workout count, do what you think is best.
+        - Maximum of 8 sets for any given muscle group in a single workout
         - Weekly volume targets (no explicit dictionary provided):
           • Baseline: each muscle group, except for FOREARM, LOWER_BACK and AB, should receive 10–20 fractional sets per week.
           • FOREARM, LOWER_BACK and AB can go below 10 fractional sets per week.

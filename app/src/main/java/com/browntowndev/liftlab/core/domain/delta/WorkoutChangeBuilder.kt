@@ -81,6 +81,7 @@ class WorkoutChangeBuilder {
         repRangeBottom: Patch<Int?> = Patch.Unset,
         rpeTarget: Patch<Float?> = Patch.Unset,
         stepSize: Patch<Int?> = Patch.Unset,
+        volumeCyclingSetCeiling: Patch<Int?> = Patch.Unset,
         build: LiftChangeBuilder.() -> Unit = { }
     ) {
         val liftUpdate = LiftUpdate(
@@ -95,7 +96,8 @@ class WorkoutChangeBuilder {
             repRangeTop = repRangeTop,
             repRangeBottom = repRangeBottom,
             rpeTarget = rpeTarget,
-            stepSize = stepSize
+            stepSize = stepSize,
+            volumeCyclingSetCeiling = volumeCyclingSetCeiling,
         )
         liftChanges += LiftChangeBuilder(workoutLiftId, liftUpdate).apply(build).build()
     }

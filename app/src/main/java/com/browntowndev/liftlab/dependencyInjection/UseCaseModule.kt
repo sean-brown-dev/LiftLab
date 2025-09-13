@@ -20,10 +20,12 @@ import com.browntowndev.liftlab.core.domain.useCase.metrics.GetGroupedVolumeMetr
 import com.browntowndev.liftlab.core.domain.useCase.metrics.GetSummarizedWorkoutMetricsStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.InsertManyLiftMetricChartsUseCase
 import com.browntowndev.liftlab.core.domain.useCase.metrics.UpsertManyVolumeMetricChartsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SaveAsNewProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GenerateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetActiveProgramWorkoutCountFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetProgramConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.ReorderWorkoutsUseCase
@@ -137,6 +139,8 @@ val useCaseModule = module {
     singleOf(::UpdateProgramDeloadWeekUseCase)
     singleOf(::UpdateProgramNameUseCase)
     singleOf(::GetActiveProgramWorkoutCountFlowUseCase)
+    singleOf(::SaveAsNewProgramUseCase)
+    singleOf(::GenerateProgramUseCase)
 
     // Lift Configuration
     singleOf(::GetFilterableLiftsStateFlowUseCase)

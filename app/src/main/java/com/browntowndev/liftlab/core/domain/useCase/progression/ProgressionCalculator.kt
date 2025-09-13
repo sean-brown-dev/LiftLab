@@ -10,5 +10,6 @@ interface ProgressionCalculator {
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
+        microCycle: Int,
     ): List<GenericLoggingSet>
 }

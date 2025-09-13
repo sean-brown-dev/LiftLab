@@ -19,6 +19,7 @@ class WaveLoadingProgressionCalculator(
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
+        microCycle: Int,
     ): List<GenericLoggingSet> {
         if (workoutLift !is CalculationStandardWorkoutLift) throw Exception ("Wave Loading progression cannot have custom sets")
         val groupedSetData = previousSetResults.associateBy { it.setPosition }

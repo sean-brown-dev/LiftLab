@@ -2,6 +2,7 @@ package com.browntowndev.liftlab
 
 import android.app.Application
 import android.util.Log
+import com.browntowndev.liftlab.dependencyInjection.aiModule
 import com.browntowndev.liftlab.dependencyInjection.appModule
 import com.browntowndev.liftlab.dependencyInjection.eventBusModule
 import com.browntowndev.liftlab.dependencyInjection.notificationModule
@@ -38,6 +39,7 @@ class LiftLabApp() : Application() {
             workManagerFactory()
             modules(
                 appModule,
+                aiModule,
                 useCaseModule,
                 persistenceModule,
                 syncModule,

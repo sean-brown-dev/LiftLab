@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.core.data.remote.client
 
+import android.util.Log
 import com.browntowndev.liftlab.core.domain.ai.AiClient
 import com.browntowndev.liftlab.core.domain.ai.buildProgramPrompt
 import com.browntowndev.liftlab.core.domain.ai.programResponseSchema
@@ -10,14 +11,12 @@ import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
 import com.google.firebase.ai.type.content
 import com.google.firebase.ai.type.generationConfig
-import com.google.gson.Gson
+import kotlinx.serialization.json.Json
 
-class ProgramGenerationAiClient(
-    private val gson: Gson = Gson(),
-): AiClient {
+class ProgramGenerationAiClient: AiClient {
     companion object {
-        private const val GEMINI_PRO = "gemini-2.5-pro"
-        private const val GEMINI_FLASH = "gemini-2.5-flash"
+        private const val GEMINI_PRO = "gemini-2.5-flash"
+        private const val GEMINI_FLASH = "gemini-2.5-flash-lite"
     }
 
     override suspend fun generateProgram(
@@ -43,7 +42,7 @@ class ProgramGenerationAiClient(
                 generationConfig = generationConfig {
                     responseMimeType = "application/json"
                     responseSchema = programResponseSchema()
-                    temperature = 0.7f
+                    temperature = 0.3f
                 }
             )
 
@@ -51,8 +50,17 @@ class ProgramGenerationAiClient(
             text(prompt)
         }
 
+        Log.d("ProgramGenerationAiClient", "Sending Prompt=$prompt")
         val response = model.generateContent(full)
-        val json = response.text ?: error("Firebase AI returned an empty response")
-        return runCatching { gson.fromJson(json, ProgramPayload::class.java) }.getOrElse { error("Firebase AI returned invalid JSON") }
+        val programJson = response.text ?: error("Firebase AI returned an empty response")
+        Log.d("ProgramGenerationAiClient", "Response=$programJson")
+
+        return runCatching {
+            val json = Json { ignoreUnknownKeys = true }
+            json.decodeFromString<ProgramPayload>(programJson)
+        }.getOrElse {
+            Log.e("ProgramGenerationAiClient", "Firebase AI returned invalid JSON", it)
+            error("Firebase AI returned invalid JSON")
+        }
     }
 }

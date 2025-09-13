@@ -31,7 +31,7 @@ import kotlin.time.Duration
 class CloneProgramUseCaseTest {
     @MockK lateinit var programsRepository: ProgramsRepository
 
-    private lateinit var useCase: CloneProgramUseCase
+    private lateinit var useCase: SaveAsNewProgramUseCase
 
     // Minimal concrete set for the "unknown set type" scenario
     private data class TestSet(
@@ -46,7 +46,7 @@ class CloneProgramUseCaseTest {
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this, relaxUnitFun = true)
-        useCase = CloneProgramUseCase(programsRepository)
+        useCase = SaveAsNewProgramUseCase(programsRepository)
     }
 
     @AfterEach

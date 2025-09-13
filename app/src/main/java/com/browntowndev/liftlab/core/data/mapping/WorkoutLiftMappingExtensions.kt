@@ -63,6 +63,7 @@ private fun WorkoutLiftWithRelationships.toCalculationStandardWorkoutLift(): Cal
         deloadWeek = this.workoutLiftEntity.deloadWeek,
         incrementOverride = this.liftEntity.incrementOverride,
         stepSize = this.workoutLiftEntity.stepSize,
+        volumeCyclingSetCeiling = this.workoutLiftEntity.volumeCyclingSetCeiling,
     )
 }
 
@@ -101,6 +102,7 @@ private fun WorkoutLiftWithRelationships.toStandardWorkoutLift(): StandardWorkou
         progressionScheme = this.workoutLiftEntity.progressionScheme,
         liftNote = this.liftEntity.note,
         stepSize = this.workoutLiftEntity.stepSize,
+        volumeCyclingSetCeiling = this.workoutLiftEntity.volumeCyclingSetCeiling,
     )
 }
 
@@ -147,6 +149,7 @@ private fun WorkoutLiftEntity.toStandardWorkoutLift(): StandardWorkoutLift {
         progressionScheme = this.progressionScheme,
         liftNote = "LIFT NOT LOADED",
         stepSize = this.stepSize,
+        volumeCyclingSetCeiling = this.volumeCyclingSetCeiling,
     )
 }
 
@@ -183,10 +186,11 @@ private fun StandardWorkoutLift.toEntity(): WorkoutLiftEntity {
         repRangeTop = this.repRangeTop,
         progressionScheme = this.progressionScheme,
         stepSize = this.stepSize,
+        volumeCyclingSetCeiling = this.volumeCyclingSetCeiling,
     )
 }
 
-        private fun CustomWorkoutLift.toEntity(): WorkoutLiftEntity {
+private fun CustomWorkoutLift.toEntity(): WorkoutLiftEntity {
     return WorkoutLiftEntity(
         id = this.id,
         liftId = this.liftId,

@@ -34,6 +34,7 @@ fun LiftCard(
     restTimerEnabled: Boolean,
     movementPattern: MovementPattern,
     hasCustomLiftSets: Boolean,
+    volumeCyclingEnabled: Boolean,
     showCustomSetsOption: Boolean,
     currentDeloadWeek: Int?,
     showDeloadWeekOption: Boolean,
@@ -43,6 +44,7 @@ fun LiftCard(
     onChangeDeloadWeek: (Int?) -> Unit,
     onChangeIncrement: (newIncrement: Float) -> Unit,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
+    onVolumeCyclingToggled: () -> Unit,
     content: @Composable (ColumnScope.() -> Unit),
 ) {
     Column (
@@ -67,6 +69,7 @@ fun LiftCard(
                 restTime = restTime,
                 restTimerEnabled = restTimerEnabled,
                 hasCustomLiftSets = hasCustomLiftSets,
+                volumeCyclingEnabled = volumeCyclingEnabled,
                 showCustomSetsOption = showCustomSetsOption,
                 currentDeloadWeek = currentDeloadWeek,
                 showDeloadWeekOption = showDeloadWeekOption,
@@ -76,6 +79,7 @@ fun LiftCard(
                 onChangeIncrement = onChangeIncrement,
                 onChangeRestTime = onChangeRestTime,
                 onChangeDeloadWeek = onChangeDeloadWeek,
+                onVolumeCyclingToggled = onVolumeCyclingToggled,
             )
             Spacer(modifier = Modifier.height(15.dp))
             content()
@@ -92,6 +96,7 @@ fun LiftCardHeader(
     increment: Float,
     restTimerEnabled: Boolean,
     hasCustomLiftSets: Boolean,
+    volumeCyclingEnabled: Boolean,
     showCustomSetsOption: Boolean,
     currentDeloadWeek: Int?,
     showDeloadWeekOption: Boolean,
@@ -101,6 +106,7 @@ fun LiftCardHeader(
     onChangeIncrement: (newIncrement: Float) -> Unit,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
     onChangeDeloadWeek: (Int?) -> Unit,
+    onVolumeCyclingToggled: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -128,7 +134,8 @@ fun LiftCardHeader(
             restTime = restTime,
             increment = increment,
             restTimerEnabled = restTimerEnabled,
-            hasCustomLiftSets = hasCustomLiftSets,
+            customSetsEnabled = hasCustomLiftSets,
+            volumeCyclingEnabled = volumeCyclingEnabled,
             showCustomSetsOption = showCustomSetsOption,
             currentDeloadWeek = currentDeloadWeek,
             showDeloadWeekOption = showDeloadWeekOption,
@@ -138,6 +145,7 @@ fun LiftCardHeader(
             onChangeIncrement = onChangeIncrement,
             onChangeRestTime = onChangeRestTime,
             onChangeDeloadWeek = onChangeDeloadWeek,
+            onVolumeCyclingToggled = onVolumeCyclingToggled,
         )
     }
 }

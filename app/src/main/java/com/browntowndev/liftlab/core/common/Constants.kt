@@ -21,6 +21,10 @@ val REST_TIME_RANGE = 0..6L
 
 // Deload
 val DELOAD_WEEK_OPTIONS = listOf(3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f)
+
+// Program Gen
+val MICROCYCLE_SIZE_OPTIONS = listOf(3f, 4f, 5f, 6f)
+
 val NULLABLE_DELOAD_WEEK_OPTIONS =
     DELOAD_WEEK_OPTIONS
         .toMutableList<Float?>()

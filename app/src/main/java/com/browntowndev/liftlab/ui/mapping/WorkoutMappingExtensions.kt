@@ -78,6 +78,7 @@ fun StandardWorkoutLift.toUiModel(): StandardWorkoutLiftUiModel =
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,
         stepSize = stepSize,
+        volumeCyclingSetCeiling = volumeCyclingSetCeiling,
     )
 
 fun StandardWorkoutLiftUiModel.toDomainModel(): StandardWorkoutLift =
@@ -101,6 +102,7 @@ fun StandardWorkoutLiftUiModel.toDomainModel(): StandardWorkoutLift =
         repRangeBottom = repRangeBottom,
         repRangeTop = repRangeTop,
         stepSize = stepSize,
+        volumeCyclingSetCeiling = volumeCyclingSetCeiling,
     )
 
 fun CustomWorkoutLift.toUiModel(): CustomWorkoutLiftUiModel =

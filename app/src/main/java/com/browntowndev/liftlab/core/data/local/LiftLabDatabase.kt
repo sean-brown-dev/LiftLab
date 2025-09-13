@@ -78,7 +78,7 @@ import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
         LiveCustomLiftSetView::class,
         LiveLiftView::class,
     ],
-    version = 20,
+    version = 22,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -93,6 +93,7 @@ import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
         AutoMigration(from = 12, to = 13),
         AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 21, to = 22),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao

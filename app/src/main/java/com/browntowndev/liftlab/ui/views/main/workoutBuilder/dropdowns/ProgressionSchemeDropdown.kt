@@ -33,6 +33,7 @@ fun ProgressionSchemeDropdown(
     modifier: Modifier = Modifier,
     text: String,
     hasCustomSets: Boolean,
+    volumeCyclingEnabled: Boolean,
     progressionSchemes: List<ProgressionScheme>,
     onChangeProgressionScheme: (ProgressionScheme) -> Unit,
 ) {
@@ -58,8 +59,8 @@ fun ProgressionSchemeDropdown(
         ) {
             progressionSchemes
                 .filter {
-                    // Show all if no custom sets, otherwise only show if it can have custom sets
-                    !hasCustomSets || it.canHaveCustomSets
+                    (!hasCustomSets || it.canHaveCustomSets) &&
+                            (!volumeCyclingEnabled || it.canVolumeCycle)
                 }.fastForEach { progressionScheme ->
                     DropdownMenuItem(
                         text = { Text(progressionScheme.displayName()) },

@@ -4,13 +4,18 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.DELOAD_WEEK_OPTIONS
+import com.browntowndev.liftlab.core.common.MICROCYCLE_SIZE_OPTIONS
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
@@ -27,6 +32,7 @@ import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
 import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
@@ -200,5 +206,40 @@ fun Lab(
             onConfirm = { labViewModel.deleteWorkout(state.workoutToDelete!!) },
             onCancel = { labViewModel.cancelDeleteWorkout() }
         )
+    }
+
+    if (state.isGeneratingProgram) {
+        var workoutCount by remember { mutableIntStateOf(4) }
+        var generating by remember { mutableStateOf(false) }
+        ConfirmationDialog(
+            header = "Generate Program",
+            textAboveContent = "Select the number of days you would like to work out per microcycle.",
+            onConfirm = {
+                generating = true
+                labViewModel.generateProgram(workoutCount)
+            },
+            onCancel = { labViewModel.toggleGenerateProgramModal() }
+        ) {
+            if (generating) {
+                var dotCount by remember { mutableIntStateOf(0) }
+                val text = "Generating${".".repeat(dotCount)}"
+
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        delay(500)
+                        dotCount = (dotCount + 1) % 4
+                    }
+                }
+                Text(text)
+            } else {
+                NumberPickerSpinner(
+                    options = MICROCYCLE_SIZE_OPTIONS,
+                    initialValue = workoutCount.toFloat(),
+                    onChanged = {
+                        workoutCount = it.toInt()
+                    },
+                )
+            }
+        }
     }
 }

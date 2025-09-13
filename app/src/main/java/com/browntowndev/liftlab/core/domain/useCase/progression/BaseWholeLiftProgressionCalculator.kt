@@ -24,6 +24,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
+        microCycle: Int,
     ): List<GenericLoggingSet> {
         val criterionMet = allSetsMetCriterion(workoutLift, previousSetResults)
         val displayResults = previousResultsForDisplay
@@ -38,7 +39,12 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
         // TODO: Unit tests
         return when (workoutLift) {
             is CalculationStandardWorkoutLift -> {
-                val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
+                val setCount = getSetCount(
+                    workoutLift = workoutLift,
+                    isDeloadWeek = isDeloadWeek,
+                    microCycle = microCycle,
+                )
+
                 List(setCount) { index ->
                     val result = nonMyoRepSetResults[index]
                     val displayResult = displayResults["${index}-null"]
@@ -201,6 +207,7 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                         previousSetResults = previousSetResults,
                         previousResultsForDisplay = previousResultsForDisplay,
                         isDeloadWeek =  true,
+                        microCycle = microCycle,
                     )
                 }
             }

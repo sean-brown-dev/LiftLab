@@ -210,6 +210,31 @@ class WorkoutBuilderViewModel(
         )
     }
 
+    fun toggleVolumeCycling(workoutLiftId: Long) = executeWithErrorHandling("Failed to toggle volume cycling") {
+        val workoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId)
+            ?: return@executeWithErrorHandling
+        val programDeloadWeek = getProgramDeloadWeekAndLogIfNull()
+        val volumeCyclingSetCeiling =
+            if (workoutLift.volumeCyclingEnabled) null
+            else (workoutLift.setCount + programDeloadWeek - 2)
+        Log.d(TAG, "workoutLift.setCount: $workoutLift.setCount")
+        Log.d(TAG, "programDeloadWeek: $programDeloadWeek")
+        Log.d(TAG, "volumeCyclingSetCeiling: $volumeCyclingSetCeiling")
+
+        val progressionScheme =
+            if (!workoutLift.volumeCyclingEnabled && !workoutLift.progressionScheme.canVolumeCycle)
+                ProgressionScheme.DOUBLE_PROGRESSION
+            else workoutLift.progressionScheme
+
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            programDeloadWeek = programDeloadWeek,
+            workoutLift = workoutLift.copy(
+                volumeCyclingSetCeiling = volumeCyclingSetCeiling,
+                progressionScheme = progressionScheme,
+            ).toDomainModel())
+    }
+
     fun reorderLifts(newLiftOrder: List<ReorderableListItem>) = executeWithErrorHandling("Failed to reorder lifts") {
         val newWorkoutLiftIndices = newLiftOrder
             .mapIndexed { index, item -> item.key to index }
@@ -241,6 +266,17 @@ class WorkoutBuilderViewModel(
             is StandardWorkoutLiftUiModel -> workoutLift.copy(setCount = newSetCount)
             else -> throw Exception("${workoutLift::class.simpleName} cannot explicitly set set count.")
         }
+        updateWorkoutLiftUseCase(
+            programId = _state.value.workout!!.programId,
+            programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),
+            workoutLift = updatedWorkoutLift.toDomainModel())
+    }
+
+    fun setVolumeCyclingSetCeiling(workoutLiftId: Long, newSetCeiling: Int?) = executeWithErrorHandling("Failed to update volume cycling set ceiling") {
+        val workoutLift = getWorkoutLiftAndLogIfNull<StandardWorkoutLiftUiModel>(workoutLiftId) ?: return@executeWithErrorHandling
+        val programDeloadWeek = getProgramDeloadWeekAndLogIfNull()
+        val coercedSetCeiling = newSetCeiling?.coerceAtMost(maximumValue = workoutLift.setCount + (programDeloadWeek - 2))
+        val updatedWorkoutLift = workoutLift.copy(volumeCyclingSetCeiling = coercedSetCeiling)
         updateWorkoutLiftUseCase(
             programId = _state.value.workout!!.programId,
             programDeloadWeek = getProgramDeloadWeekAndLogIfNull(),

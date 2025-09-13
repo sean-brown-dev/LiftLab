@@ -122,6 +122,7 @@ data class ProgramDelta(
                 val repRangeBottom: Patch<Int?> = Patch.Unset,
                 val rpeTarget: Patch<Float?> = Patch.Unset,
                 val stepSize: Patch<Int?> = Patch.Unset,
+                val volumeCyclingSetCeiling: Patch<Int?> = Patch.Unset,
             )
 
             /** A single set upsert (id==0L => insert, id>0L => update). */

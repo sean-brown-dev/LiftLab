@@ -24,4 +24,8 @@ data class StandardWorkoutLiftUiModel(
     val repRangeBottom: Int,
     val repRangeTop: Int,
     val stepSize: Int? = null, // Only used for Wave Loading (and block in future)
-): WorkoutLiftUiModel
+    val volumeCyclingSetCeiling: Int? = null,
+): WorkoutLiftUiModel {
+    val volumeCyclingEnabled
+        get() = volumeCyclingSetCeiling != null
+}

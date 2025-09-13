@@ -156,6 +156,7 @@ fun WorkoutBuilder(
                             restTimerEnabled = workoutLift.restTimerEnabled,
                             movementPattern = workoutLift.liftMovementPattern,
                             hasCustomLiftSets = customLiftsVisible,
+                            volumeCyclingEnabled = (workoutLift as? StandardWorkoutLiftUiModel)?.volumeCyclingEnabled ?: false,
                             showCustomSetsOption = workoutLift.progressionScheme.canHaveCustomSets,
                             currentDeloadWeek = workoutLift.deloadWeek,
                             showDeloadWeekOption = showDeloadWeekOption,
@@ -201,12 +202,16 @@ fun WorkoutBuilder(
                                     newIncrement = newIncrement,
                                 )
                             },
+                            onVolumeCyclingToggled = {
+                                workoutBuilderViewModel.toggleVolumeCycling(workoutLift.id)
+                            }
                         ) {
                             val progressionSchemes = remember { ProgressionScheme.entries.sortedByDisplayName() }
                             ProgressionSchemeDropdown(
                                 modifier = Modifier.padding(start = 20.dp),
                                 text = workoutLift.progressionScheme.displayName(),
                                 hasCustomSets = customLiftsVisible,
+                                volumeCyclingEnabled = (workoutLift as? StandardWorkoutLiftUiModel)?.volumeCyclingEnabled ?: false,
                                 progressionSchemes = progressionSchemes,
                                 onChangeProgressionScheme = {
                                     workoutBuilderViewModel.setLiftProgressionScheme(
@@ -266,10 +271,17 @@ fun WorkoutBuilder(
                                     progressionScheme = workoutLift.progressionScheme,
                                     setCount = workoutLift.setCount,
                                     rpeTarget = rpeTarget,
+                                    volumeCyclingSetCeiling = standardLift?.volumeCyclingSetCeiling,
                                     onSetCountChanged = {
                                         workoutBuilderViewModel.setLiftSetCount(
                                             workoutLiftId = workoutLift.id,
                                             newSetCount = it,
+                                        )
+                                    },
+                                    onVolumeCyclingSetCeilingChanged = {
+                                        workoutBuilderViewModel.setVolumeCyclingSetCeiling(
+                                            workoutLiftId = workoutLift.id,
+                                            newSetCeiling = it,
                                         )
                                     },
                                     onRepRangeBottomChanged = {

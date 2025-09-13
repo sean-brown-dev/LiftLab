@@ -3,6 +3,7 @@ package com.browntowndev.liftlab.core.domain.useCase.programConfiguration
 import android.util.Log
 import com.browntowndev.liftlab.core.domain.ai.AiClient
 import com.browntowndev.liftlab.core.domain.ai.validateAndTryCorrect
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
 import com.browntowndev.liftlab.core.domain.extensions.toProgramDomainModel
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.ProgramGenerationRequest
@@ -13,8 +14,18 @@ class GenerateProgramUseCase(
     private val aiClient: AiClient,
     private val liftsRepository: LiftsRepository,
 ) {
-    suspend operator fun invoke(request: ProgramGenerationRequest): Program? {
+    suspend operator fun invoke(
+        workoutCount: Int,
+        muscleGroupsToSpecialize: Set<VolumeType>,
+        deloadWeek: Int
+    ): Program? {
         val lifts = liftsRepository.getAll()
+        val request = ProgramGenerationRequest(
+            microcycleWorkoutCount = workoutCount,
+            specializationMuscles = muscleGroupsToSpecialize,
+            deloadEvery = deloadWeek,
+            liftCatalog = lifts,
+        )
 
         var retries = 0
         var program: Program? = null
@@ -28,6 +39,7 @@ class GenerateProgramUseCase(
                 FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("GenerateProgramUseCase", "Error generating program", e)
                 retries++
+                program = null
             }
         }
 

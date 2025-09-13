@@ -5,7 +5,10 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -29,8 +32,10 @@ fun StandardSettings(
     repRangeBottom: Int,
     repRangeTop: Int,
     rpeTarget: Float,
+    volumeCyclingSetCeiling: Int?,
     progressionScheme: ProgressionScheme,
     onSetCountChanged: (Int) -> Unit,
+    onVolumeCyclingSetCeilingChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onRpeTargetChanged: (Float?) -> Unit,
@@ -54,8 +59,10 @@ fun StandardSettings(
             repRangeBottom = repRangeBottom,
             repRangeTop = repRangeTop,
             rpeTarget = rpeTarget,
+            volumeCyclingSetCeiling = volumeCyclingSetCeiling,
             progressionScheme = progressionScheme,
             onSetCountChanged = onSetCountChanged,
+            onVolumeCyclingSetCeilingChanged = onVolumeCyclingSetCeilingChanged,
             onRepRangeBottomChanged = onRepRangeBottomChanged,
             onRepRangeTopChanged = onRepRangeTopChanged,
             onRpeTargetChanged = onRpeTargetChanged,
@@ -72,61 +79,99 @@ private fun StandardSettingRow(
     repRangeBottom: Int,
     repRangeTop: Int,
     rpeTarget: Float,
+    volumeCyclingSetCeiling: Int?,
     progressionScheme: ProgressionScheme,
     onSetCountChanged: (Int) -> Unit,
+    onVolumeCyclingSetCeilingChanged: (Int) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
     onRpeTargetChanged: (Float?) -> Unit,
     onToggleRpePicker: (Boolean) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IntegerTextField(
-            modifier = Modifier.weight(1f),
-            listState = listState,
-            minValue = 1,
-            maxValue = 10,
-            value = setCount,
-            emitOnlyOnLostFocus = true,
-            label = "Sets",
-            onNonNullValueChanged = onSetCountChanged,
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        IntegerTextField(
-            modifier = Modifier.weight(1f),
-            listState = listState,
-            value = repRangeBottom,
-            emitOnlyOnLostFocus = true,
-            minValue = 1,
-            label = "Rep Range Bottom",
-            onNonNullValueChanged = onRepRangeBottomChanged,
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        IntegerTextField(
-            modifier = Modifier.weight(1f),
-            listState = listState,
-            value = repRangeTop,
-            emitOnlyOnLostFocus = true,
-            minValue = 1,
-            label = "Rep Range Top",
-            onNonNullValueChanged = onRepRangeTopChanged,
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        FloatTextField(
-            modifier = Modifier.weight(1f),
-            value = rpeTarget,
-            listState = listState,
-            disableSystemKeyboard = true,
-            hideCursor = true,
-            updateValueWhileFocused = true,
-            label = progressionScheme.rpeLabel(),
-            onFocusChanged = onToggleRpePicker,
-            onValueChanged = onRpeTargetChanged,
-            onPixelOverflowChanged = onPixelOverflowChanged,
-        )
-        Spacer(modifier = Modifier.width(10.dp))
+    Column (verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val setLabel =
+                if (volumeCyclingSetCeiling != null) "Start Sets"
+                else "Sets"
+
+            IntegerTextField(
+                modifier = Modifier.weight(1f),
+                listState = listState,
+                minValue = 1,
+                maxValue = 10,
+                value = setCount,
+                emitOnlyOnLostFocus = true,
+                label = setLabel,
+                onNonNullValueChanged = onSetCountChanged,
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            IntegerTextField(
+                modifier = Modifier.weight(1f),
+                listState = listState,
+                value = repRangeBottom,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
+                label = "Rep Range Bottom",
+                onNonNullValueChanged = onRepRangeBottomChanged,
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            IntegerTextField(
+                modifier = Modifier.weight(1f),
+                listState = listState,
+                value = repRangeTop,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
+                label = "Rep Range Top",
+                onNonNullValueChanged = onRepRangeTopChanged,
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            FloatTextField(
+                modifier = Modifier.weight(1f),
+                value = rpeTarget,
+                listState = listState,
+                disableSystemKeyboard = true,
+                hideCursor = true,
+                updateValueWhileFocused = true,
+                label = progressionScheme.rpeLabel(),
+                onFocusChanged = onToggleRpePicker,
+                onValueChanged = onRpeTargetChanged,
+                onPixelOverflowChanged = onPixelOverflowChanged,
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+        }
+
+        val volumeCyclingEnabled = volumeCyclingSetCeiling != null
+        AnimatedVisibility(
+            visible = volumeCyclingEnabled,
+            enter = slideInVertically(
+                initialOffsetY = { -it }, // Slide in from top
+                animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+            ) + expandVertically(expandFrom = Alignment.Top),
+            exit = slideOutVertically(
+                targetOffsetY = { -it }, // Slide out to top
+                animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing)
+            ) + shrinkVertically(shrinkTowards = Alignment.Top)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IntegerTextField(
+                    modifier = Modifier.weight(1f),
+                    listState = listState,
+                    minValue = 1,
+                    maxValue = 10,
+                    value = volumeCyclingSetCeiling,
+                    emitOnlyOnLostFocus = true,
+                    label = "End Sets",
+                    onNonNullValueChanged = onVolumeCyclingSetCeilingChanged,
+                )
+                Spacer(modifier = Modifier.weight(3f)) // Add spacer to push the TextField to the left
+            }
+        }
     }
 }

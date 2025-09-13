@@ -12,6 +12,7 @@ import com.browntowndev.liftlab.core.domain.models.interfaces.GenericLoggingSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationDropSet
 import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationMyoRepSet
+import com.browntowndev.liftlab.core.domain.models.workoutCalculation.CalculationStandardWorkoutLift
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LoggingStandardSet
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.MyoRepSetResult
 import com.browntowndev.liftlab.core.domain.utils.MyoRepSetGoalUtils
@@ -21,6 +22,16 @@ import com.browntowndev.liftlab.core.domain.utils.missedRepRangeBottom
 
 abstract class BaseProgressionCalculator: ProgressionCalculator {
     protected val defaultIncrement = SettingsManager.getSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
+
+    protected fun getSetCount(
+        workoutLift: CalculationWorkoutLift,
+        isDeloadWeek: Boolean,
+        microCycle: Int,
+    ): Int = when {
+        isDeloadWeek -> 2
+        (workoutLift as? CalculationStandardWorkoutLift)?.volumeCyclingSetCeiling == null -> workoutLift.setCount
+        else -> (workoutLift.setCount + microCycle).coerceAtMost(workoutLift.volumeCyclingSetCeiling!!)
+    }
 
     protected fun getDropSetRecommendation(
         lift: CalculationWorkoutLift,

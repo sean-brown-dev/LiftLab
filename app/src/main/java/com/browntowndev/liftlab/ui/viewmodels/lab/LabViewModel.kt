@@ -10,8 +10,10 @@ import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateP
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.CreateWorkoutUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.DeleteWorkoutUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GenerateProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.GetProgramConfigurationStateFlowUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.ReorderWorkoutsUseCase
+import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SaveAsNewProgramUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.SetProgramAsActiveUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramDeloadWeekUseCase
 import com.browntowndev.liftlab.core.domain.useCase.programConfiguration.UpdateProgramNameUseCase
@@ -33,8 +35,10 @@ import org.greenrobot.eventbus.Subscribe
 
 class LabViewModel(
     private val updateProgramDeloadWeekUseCase: UpdateProgramDeloadWeekUseCase,
+    private val generateProgramUseCase: GenerateProgramUseCase,
     private val createProgramUseCase: CreateProgramUseCase,
     private val createWorkoutUseCase: CreateWorkoutUseCase,
+    private val saveAsNewProgramUseCase: SaveAsNewProgramUseCase,
     private val updateWorkoutNameUseCase: UpdateWorkoutNameUseCase,
     private val updateProgramNameUseCase: UpdateProgramNameUseCase,
     private val deleteWorkoutUseCase: DeleteWorkoutUseCase,
@@ -76,6 +80,7 @@ class LabViewModel(
     @Subscribe
     fun handleTopAppBarActionEvent(actionEvent: TopAppBarEvent.ActionEvent) {
         when (actionEvent.action) {
+            TopAppBarAction.GenerateProgram -> toggleGenerateProgramModal()
             TopAppBarAction.CreateNewProgram -> toggleCreateProgramModal()
             TopAppBarAction.CreateNewWorkout -> createNewWorkout()
             TopAppBarAction.DeleteProgram -> beginDeleteProgram(_state.value.program?.id)
@@ -99,6 +104,31 @@ class LabViewModel(
             program = _state.value.program!!.toDomainModel(),
             deloadWeek = deloadWeek,
             useLiftSpecificDeload = SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING))
+    }
+
+    fun generateProgram(workoutCount: Int) = executeWithErrorHandling("Error generating program") {
+        try {
+            val program = generateProgramUseCase(
+                workoutCount = workoutCount,
+                muscleGroupsToSpecialize = setOf(),
+                deloadWeek = 4
+            )
+
+            if (program == null) error("Error generating program")
+            saveAsNewProgramUseCase(
+                sourceProgram = program,
+                newName = program.name,
+            )
+            emitUserMessage("Program generated successfully. View it in Manage Programs.")
+        } finally {
+            toggleGenerateProgramModal()
+        }
+    }
+
+    fun toggleGenerateProgramModal() {
+        _state.update {
+            it.copy(isGeneratingProgram = !_state.value.isGeneratingProgram)
+        }
     }
 
     fun toggleCreateProgramModal() {

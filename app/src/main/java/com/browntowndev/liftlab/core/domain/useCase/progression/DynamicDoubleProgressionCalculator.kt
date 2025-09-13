@@ -30,6 +30,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         previousSetResults: List<SetResult>,
         previousResultsForDisplay: List<SetResult>,
         isDeloadWeek: Boolean,
+        microCycle: Int,
     ): List<GenericLoggingSet> {
         return when (workoutLift) {
             is CalculationStandardWorkoutLift -> {
@@ -37,7 +38,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     workoutLift,
                     previousSetResults,
                     previousResultsForDisplay,
-                    isDeloadWeek
+                    isDeloadWeek,
+                    microCycle
                 )
             }
 
@@ -46,7 +48,8 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                     workoutLift,
                     previousSetResults,
                     previousResultsForDisplay,
-                    isDeloadWeek
+                    isDeloadWeek,
+                    microCycle,
                 )
             }
 
@@ -59,10 +62,15 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         setResults: List<SetResult>,
         displayResults: List<SetResult>,
         isDeloadWeek: Boolean,
+        microCycle: Int,
     ): List<LoggingStandardSet> {
         val resultsMap = setResults.associateBy { it.setPosition }
         val displayResultsMap = displayResults.associateBy { it.setPosition }
-        val setCount = if (isDeloadWeek) 2 else workoutLift.setCount
+        val setCount = getSetCount(
+            workoutLift = workoutLift,
+            isDeloadWeek = isDeloadWeek,
+            microCycle = microCycle,
+        )
 
         return List(setCount) { setPosition ->
             val result = resultsMap[setPosition]
@@ -108,6 +116,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
         setResults: List<SetResult>,
         displayResults: List<SetResult>,
         isDeloadWeek: Boolean,
+        microCycle: Int,
     ): List<GenericLoggingSet> {
         val displayResultsMap = displayResults.associateBy { "${it.setPosition}-${(it as? MyoRepSetResult)?.myoRepSetPosition}" }
         val standardSetResults = setResults
@@ -228,6 +237,7 @@ class DynamicDoubleProgressionCalculator: BaseProgressionCalculator() {
                 setResults = setResults,
                 displayResults = displayResults,
                 isDeloadWeek =  true,
+                microCycle = microCycle,
             )
         }
     }

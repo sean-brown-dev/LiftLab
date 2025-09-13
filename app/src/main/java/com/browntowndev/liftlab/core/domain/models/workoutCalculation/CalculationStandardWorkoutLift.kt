@@ -15,4 +15,5 @@ data class CalculationStandardWorkoutLift(
     val repRangeBottom: Int,
     val rpeTarget: Float,
     val stepSize: Int? = null, // Only used for Wave Loading (and block in future)
+    val volumeCyclingSetCeiling: Int? = null,
 ): CalculationWorkoutLift

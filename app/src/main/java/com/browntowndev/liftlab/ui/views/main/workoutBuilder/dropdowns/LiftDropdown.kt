@@ -35,7 +35,8 @@ import kotlin.time.Duration
 
 @Composable
 fun LiftDropdown(
-    hasCustomLiftSets: Boolean,
+    customSetsEnabled: Boolean,
+    volumeCyclingEnabled: Boolean,
     showCustomSetsOption: Boolean,
     currentDeloadWeek: Int?,
     showDeloadWeekOption: Boolean,
@@ -48,10 +49,10 @@ fun LiftDropdown(
     onChangeDeloadWeek: (Int?) -> Unit,
     onChangeRestTime: (newRestTime: Duration, enabled: Boolean) -> Unit,
     onChangeIncrement: (newIncrement: Float) -> Unit,
+    onVolumeCyclingToggled: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var dropdownExpanded by remember { mutableStateOf(false) }
-    var customLiftsEnabled by remember { mutableStateOf(hasCustomLiftSets) }
 
     IconDropdown(
         iconTint = MaterialTheme.colorScheme.primary,
@@ -189,29 +190,54 @@ fun LiftDropdown(
                     Text(text = incrementDisplay, color = MaterialTheme.colorScheme.tertiary)
                 }
             )
-            if (showCustomSetsOption) {
+            if (showCustomSetsOption && !volumeCyclingEnabled) {
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
                 DropdownMenuItem(
                     text = { Text("Custom Sets") },
                     onClick = {
-                        customLiftsEnabled = !customLiftsEnabled
                         coroutineScope.launch {
                             delay(100)
-                            dropdownExpanded = false
-                            onCustomLiftSetsToggled(customLiftsEnabled)
+                            onCustomLiftSetsToggled(!customSetsEnabled)
                         }
                     },
                     leadingIcon = {
                         Switch(
                             enabled = true,
-                            checked = customLiftsEnabled,
+                            checked = customSetsEnabled,
                             onCheckedChange = {
-                                customLiftsEnabled = it
                                 coroutineScope.launch {
                                     delay(100)
-                                    dropdownExpanded = false
                                     onCustomLiftSetsToggled(it)
                                 }
+                            },
+                            colors = SwitchDefaults.colors(
+                                checkedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                uncheckedIconColor = MaterialTheme.colorScheme.onTertiary,
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.tertiary,
+                                checkedTrackColor = MaterialTheme.colorScheme.onPrimary,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                                checkedBorderColor = MaterialTheme.colorScheme.primary,
+                                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                            )
+                        )
+                    }
+                )
+            }
+
+            if (!customSetsEnabled) {
+                if (volumeCyclingEnabled) HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline)
+                DropdownMenuItem(
+                    text = { Text("Volume Cycling") },
+                    onClick = {
+                        onVolumeCyclingToggled()
+                    },
+                    leadingIcon = {
+                        Switch(
+                            enabled = true,
+                            checked = volumeCyclingEnabled,
+                            onCheckedChange = {
+                                onVolumeCyclingToggled()
                             },
                             colors = SwitchDefaults.colors(
                                 checkedIconColor = MaterialTheme.colorScheme.onPrimary,

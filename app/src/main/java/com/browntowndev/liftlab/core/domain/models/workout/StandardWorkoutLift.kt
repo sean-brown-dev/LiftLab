@@ -25,4 +25,5 @@ data class StandardWorkoutLift(
     val repRangeBottom: Int,
     val repRangeTop: Int,
     val stepSize: Int? = null, // Only used for Wave Loading (and block in future)
+    val volumeCyclingSetCeiling: Int? = null,
 ) : GenericWorkoutLift

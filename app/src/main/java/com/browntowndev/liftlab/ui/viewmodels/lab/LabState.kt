@@ -11,6 +11,7 @@ data class LabState(
     val allPrograms: List<ProgramUiModel> = listOf(),
     val program: ProgramUiModel? = null,
     val idOfProgramToDelete: Long? = null,
+    val isGeneratingProgram: Boolean = false,
     val isCreatingProgram: Boolean = false,
     val isEditingProgramName: Boolean = false,
     val isDeletingProgram: Boolean = false,

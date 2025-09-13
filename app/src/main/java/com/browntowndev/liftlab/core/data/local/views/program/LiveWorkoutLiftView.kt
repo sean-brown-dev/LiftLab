@@ -18,4 +18,5 @@ data class LiveWorkoutLiftView(
     val repRangeBottom: Int?,
     val repRangeTop: Int?,
     val stepSize: Int?,
+    val volumeCyclingSetCeiling: Int?
 )

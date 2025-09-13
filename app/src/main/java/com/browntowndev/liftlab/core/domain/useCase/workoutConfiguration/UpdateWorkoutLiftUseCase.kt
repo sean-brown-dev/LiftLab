@@ -51,6 +51,7 @@ class UpdateWorkoutLiftUseCase(
                     repRangeBottom = Patch.Set(stdWorkoutLift?.repRangeBottom),
                     rpeTarget = Patch.Set(stdWorkoutLift?.rpeTarget),
                     stepSize = Patch.Set(stdWorkoutLift?.stepSize),
+                    volumeCyclingSetCeiling = Patch.Set(stdWorkoutLift?.volumeCyclingSetCeiling),
                 ) {
                     customWorkoutLift?.customLiftSets?.forEach { set ->
                         set(set)
