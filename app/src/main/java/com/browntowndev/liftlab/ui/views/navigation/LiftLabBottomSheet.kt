@@ -54,9 +54,10 @@ fun LiftLabBottomSheet(
     val bottomSheetState = remember {
         SheetState(
             skipPartiallyExpanded = false,
-            density = density,
             initialValue = SheetValue.PartiallyExpanded,
-            skipHiddenState = true
+            skipHiddenState = true,
+            positionalThreshold = { with(density) { 56.dp.toPx() } },
+            velocityThreshold = { with(density) { 125.dp.toPx() } },
         )
     }
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -64,6 +65,7 @@ fun LiftLabBottomSheet(
     )
 
     BottomSheetScaffold(
+        modifier = modifier,
         sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetContentColor = MaterialTheme.colorScheme.background,
         scaffoldState = scaffoldState,
