@@ -128,19 +128,21 @@ private fun StandardSettingRow(
                 label = "Rep Range Top",
                 onNonNullValueChanged = onRepRangeTopChanged,
             )
-            Spacer(modifier = Modifier.width(2.dp))
-            FloatTextField(
-                modifier = Modifier.weight(1f),
-                value = rpeTarget,
-                listState = listState,
-                disableSystemKeyboard = true,
-                hideCursor = true,
-                updateValueWhileFocused = true,
-                label = progressionScheme.rpeLabel(),
-                onFocusChanged = onToggleRpePicker,
-                onValueChanged = onRpeTargetChanged,
-                onPixelOverflowChanged = onPixelOverflowChanged,
-            )
+            if (progressionScheme != ProgressionScheme.TOP_SET_PROGRESSION) {
+                Spacer(modifier = Modifier.width(2.dp))
+                FloatTextField(
+                    modifier = Modifier.weight(1f),
+                    value = rpeTarget,
+                    listState = listState,
+                    disableSystemKeyboard = true,
+                    hideCursor = true,
+                    updateValueWhileFocused = true,
+                    label = progressionScheme.rpeLabel(),
+                    onFocusChanged = onToggleRpePicker,
+                    onValueChanged = onRpeTargetChanged,
+                    onPixelOverflowChanged = onPixelOverflowChanged,
+                )
+            }
             Spacer(modifier = Modifier.width(10.dp))
         }
 

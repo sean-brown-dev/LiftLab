@@ -25,7 +25,7 @@ class DoubleProgressionCalculator: BaseWholeLiftProgressionCalculator() {
         // Volume cycling should not do this because prev week results will be fewer until ceiling is hit.
         if (lift.volumeCyclingSetCeiling == null) {
             val setPositions = distinctResults.fastMap { it.setPosition }.toSet()
-            val liftSetPositions = (0..lift.setCount - 1).toSet()
+            val liftSetPositions = (0..<lift.setCount).toSet()
             if (!setPositions.containsAll(liftSetPositions)) return false
         }
 

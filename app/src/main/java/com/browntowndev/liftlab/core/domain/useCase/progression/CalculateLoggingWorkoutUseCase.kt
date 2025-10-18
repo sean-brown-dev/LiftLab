@@ -44,6 +44,7 @@ class CalculateLoggingWorkoutUseCase {
                             ProgressionScheme.DOUBLE_PROGRESSION -> DoubleProgressionCalculator()
                             ProgressionScheme.LINEAR_PROGRESSION -> LinearProgressionCalculator()
                             ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> DynamicDoubleProgressionCalculator()
+                            ProgressionScheme.TOP_SET_PROGRESSION -> TopSetProgressionCalculator()
                             ProgressionScheme.WAVE_LOADING_PROGRESSION -> WaveLoadingProgressionCalculator(
                                 programDeloadWeek,
                                 microCycle

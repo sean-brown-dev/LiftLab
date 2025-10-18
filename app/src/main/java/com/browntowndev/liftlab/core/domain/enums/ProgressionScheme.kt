@@ -25,5 +25,9 @@ enum class ProgressionScheme(
     DYNAMIC_DOUBLE_PROGRESSION(
         canHaveCustomSets = true,
         canVolumeCycle = true,
+    ),
+    TOP_SET_PROGRESSION(
+        canHaveCustomSets = true,
+        canVolumeCycle = true,
     );
 }

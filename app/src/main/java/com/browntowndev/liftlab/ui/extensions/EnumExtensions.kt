@@ -49,6 +49,7 @@ fun ProgressionScheme.displayName(): String {
         ProgressionScheme.WAVE_LOADING_PROGRESSION -> "Wave Loading"
         ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "Dynamic Double Progression"
         ProgressionScheme.LINEAR_PROGRESSION -> "Linear Progression"
+        ProgressionScheme.TOP_SET_PROGRESSION -> "Top Set Progression"
     }
 }
 
@@ -58,13 +59,15 @@ fun ProgressionScheme.shortDisplayName(): String {
         ProgressionScheme.WAVE_LOADING_PROGRESSION -> "WL"
         ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "DDP"
         ProgressionScheme.LINEAR_PROGRESSION -> "LP"
+        ProgressionScheme.TOP_SET_PROGRESSION -> "TS"
     }
 }
 
 fun ProgressionScheme.rpeLabel(): String =
     when (this) {
-        ProgressionScheme.DOUBLE_PROGRESSION -> "Top Set RPE"
-        ProgressionScheme.WAVE_LOADING_PROGRESSION -> "Top Set RPE"
+        ProgressionScheme.DOUBLE_PROGRESSION,
+        ProgressionScheme.WAVE_LOADING_PROGRESSION,
+        ProgressionScheme.TOP_SET_PROGRESSION -> "Top Set RPE"
         ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION -> "RPE"
         ProgressionScheme.LINEAR_PROGRESSION -> "Max RPE"
     }

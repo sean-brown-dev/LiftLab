@@ -1,6 +1,7 @@
 package com.browntowndev.liftlab.core.domain.useCase.progression
 
 import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import com.browntowndev.liftlab.core.domain.extensions.getRpeTarget
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationCustomLiftSet
 import com.browntowndev.liftlab.core.domain.models.interfaces.CalculationWorkoutLift
@@ -74,7 +75,8 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                             progressionScheme = workoutLift.progressionScheme,
                             topSetRpeTarget = workoutLift.rpeTarget
                         ),
-                        repRangeBottom = workoutLift.repRangeBottom,
+                        repRangeBottom = if (workoutLift.progressionScheme != ProgressionScheme.TOP_SET_PROGRESSION || index == 0) workoutLift.repRangeBottom
+                            else 5.coerceAtMost(workoutLift.repRangeBottom - 1),
                         repRangeTop = workoutLift.repRangeTop,
                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                         initialWeightRecommendation = weightRecommendation,
@@ -107,7 +109,8 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                     LoggingStandardSet(
                                         position = set.position,
                                         rpeTarget = set.rpeTarget,
-                                        repRangeBottom = set.repRangeBottom,
+                                        repRangeBottom = if (workoutLift.progressionScheme != ProgressionScheme.TOP_SET_PROGRESSION || set.position == 0) set.repRangeBottom
+                                            else 5.coerceAtMost(set.repRangeBottom - 1),
                                         repRangeTop = set.repRangeTop,
                                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),
                                         initialWeightRecommendation = weightRecommendation,
@@ -130,7 +133,8 @@ abstract class BaseWholeLiftProgressionCalculator: BaseProgressionCalculator() {
                                     LoggingDropSet(
                                         position = set.position,
                                         rpeTarget = set.rpeTarget,
-                                        repRangeBottom = set.repRangeBottom,
+                                        repRangeBottom = if (workoutLift.progressionScheme != ProgressionScheme.TOP_SET_PROGRESSION || set.position == 0) set.repRangeBottom
+                                            else 5.coerceAtMost(set.repRangeBottom - 1),
                                         repRangeTop = set.repRangeTop,
                                         dropPercentage = set.dropPercentage,
                                         previousSetResultLabel = getPreviousSetResultLabel(displayResult),

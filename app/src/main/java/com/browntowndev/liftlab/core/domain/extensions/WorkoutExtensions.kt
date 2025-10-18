@@ -297,11 +297,15 @@ fun getStraightSetsRpeTarget(
  * @return The calculated RPE target for custom lift sets.
  */
 fun getRpeTarget(setIndex: Int, setCount: Int, progressionScheme: ProgressionScheme, topSetRpeTarget: Float) =
-    if (progressionScheme == ProgressionScheme.DOUBLE_PROGRESSION || progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-        val rpeSeries = getStraightSetsRpeTarget(
-            setCount = setCount,
-            topSetRpeTarget = topSetRpeTarget
-        )
-        val safeIndex = setIndex.coerceIn(0, setCount - 1)
-        rpeSeries[safeIndex]
-    } else topSetRpeTarget
+    when (progressionScheme) {
+        ProgressionScheme.DOUBLE_PROGRESSION, ProgressionScheme.WAVE_LOADING_PROGRESSION -> {
+            val rpeSeries = getStraightSetsRpeTarget(
+                setCount = setCount,
+                topSetRpeTarget = topSetRpeTarget
+            )
+            val safeIndex = setIndex.coerceIn(0, setCount - 1)
+            rpeSeries[safeIndex]
+        }
+        ProgressionScheme.TOP_SET_PROGRESSION -> 10f
+        else -> topSetRpeTarget
+    }
