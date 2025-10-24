@@ -36,9 +36,9 @@ class RemoveVolumeTypeUseCase(
                     lift.copy(volumeTypesBitmask = newVolumeType)
                 }
                 else {
-                    val currentVolumeTypes = lift.volumeTypesBitmask.toVolumeTypes()
+                    val currentVolumeTypes = lift.secondaryVolumeTypesBitmask?.toVolumeTypes() ?: throw IllegalArgumentException("No secondary volume types found")
                     if (!currentVolumeTypes.contains(volumeTypeToRemove)) throw IllegalArgumentException("Volume type not present")
-                    val newVolumeType = (lift.secondaryVolumeTypesBitmask ?: 0) - volumeTypeToRemove.bitMask
+                    val newVolumeType = lift.secondaryVolumeTypesBitmask - volumeTypeToRemove.bitMask
 
                     lift.copy(secondaryVolumeTypesBitmask = newVolumeType)
                 }

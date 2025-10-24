@@ -27,7 +27,10 @@ class UpdateVolumeTypeUseCase(
         newVolumeType: VolumeType,
         volumeTypeCategory: VolumeTypeCategory
     ): Lift = transactionScope.execute {
-        val newVolumeTypeBitmask = lift.volumeTypesBitmask.toVolumeTypes()
+        val existingVolumeTypeBitmask = if (volumeTypeCategory == VolumeTypeCategory.PRIMARY) lift.volumeTypesBitmask
+            else lift.secondaryVolumeTypesBitmask ?: throw IllegalArgumentException("No secondary volume types found")
+
+        val newVolumeTypeBitmask = existingVolumeTypeBitmask.toVolumeTypes()
             .toMutableList()
             .apply {
                 if (index >= size) throw IllegalArgumentException("Index for updating volume type is out of bounds")
