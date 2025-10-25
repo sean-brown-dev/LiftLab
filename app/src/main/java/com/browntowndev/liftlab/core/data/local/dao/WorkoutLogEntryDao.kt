@@ -52,6 +52,20 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
 
     @Transaction
     @Query("""
+    WITH latest AS (
+      SELECT
+          s.liftId,
+          s.setPosition,
+          MAX(w.date) AS maxDate
+      FROM setLogEntries s
+      JOIN workoutLogEntries w
+        ON w.workout_log_entry_id = s.workoutLogEntryId
+      WHERE s.liftId IN (:liftIds)
+        AND w.deleted = 0
+        AND s.deleted = 0
+        AND (s.isDeload = 0 OR :includeDeloads)
+      GROUP BY s.liftId, s.setPosition
+    )
     SELECT 
         log.workout_log_entry_id as 'id',
         log.historicalWorkoutNameId,
@@ -89,49 +103,90 @@ interface WorkoutLogEntryDao: BaseDao<WorkoutLogEntryEntity> {
         log.microcyclePosition,
         setResult.isDeload
     FROM workoutLogEntries log
-    INNER JOIN historicalWorkoutNames histWorkoutName
-        ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId
-    INNER JOIN setLogEntries setResult
-        ON setResult.workoutLogEntryId = log.workout_log_entry_id
-    WHERE setResult.liftId IN (:liftIds)
-      AND log.deleted = 0
+    JOIN historicalWorkoutNames histWorkoutName
+      ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId
+    JOIN setLogEntries setResult
+      ON setResult.workoutLogEntryId = log.workout_log_entry_id
+    JOIN latest L
+      ON L.liftId = setResult.liftId
+     AND L.setPosition = setResult.setPosition
+     AND L.maxDate = log.date
+    WHERE log.deleted = 0
       AND setResult.deleted = 0
-      AND log.date = (
-            SELECT MAX(log2.date)
-            FROM workoutLogEntries log2
-            INNER JOIN setLogEntries setResult2
-                ON setResult2.workoutLogEntryId = log2.workout_log_entry_id
-            WHERE setResult2.liftId = setResult.liftId
-              AND setResult2.setPosition = setResult.setPosition
-              AND (setResult2.isDeload = 0 OR :includeDeloads)
-              AND log2.deleted = 0
-              AND setResult2.deleted = 0
-        )
 """)
     suspend fun getMostRecentLogsForLiftIds(
         liftIds: List<Long>,
         includeDeloads: Boolean
     ): List<FlattenedWorkoutLogEntryDto>
 
-
     @Transaction
-    @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +
-            "histWorkoutName.workoutId, log.programDeloadWeek, log.programWorkoutCount, log.durationInMillis, setResult.liftId, setResult.liftName, setResult.setType, " +
-            "setResult.liftPosition, setResult.setPosition, setResult.myoRepSetPosition, setResult.weight, setResult.reps, setResult.rpe, setResult.oneRepMax, log.mesoCycle, log.microCycle, " +
-            "setResult.progressionScheme, setResult.liftMovementPattern, setResult.repRangeBottom, setResult.repRangeTop, setResult.weightRecommendation, setResult.setMatching, " +
-            "setResult.rpeTarget, setResult.maxSets, setResult.repFloor, setResult.dropPercentage, log.microcyclePosition, setResult.isDeload " +
-            "FROM workoutLogEntries log " +
-            "INNER JOIN historicalWorkoutNames histWorkoutName ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId " +
-            "INNER JOIN setLogEntries setResult ON setResult.workoutLogEntryId = log.workout_log_entry_id " +
-            "WHERE setResult.liftId IN (:liftIds) AND log.deleted = 0 AND setResult.deleted = 0 AND " +
-            "log.date = " +
-            "(SELECT MAX(log2.date) " +
-            "FROM workoutLogEntries log2 " +
-            "INNER JOIN setLogEntries setResult2 ON setResult2.workoutLogEntryId = log2.workout_log_entry_id " +
-            "WHERE setResult2.liftId = setResult.liftId AND " +
-            "setResult2.setPosition = setResult.setPosition AND " +
-            "log2.date < :date AND log2.deleted = 0 AND setResult2.deleted = 0)")
-    suspend fun getMostRecentLogsForLiftIdsPriorToDate(liftIds: List<Long>, date: Date): List<FlattenedWorkoutLogEntryDto>
+    @Query("""
+    SELECT 
+        log.workout_log_entry_id AS 'id',
+        log.historicalWorkoutNameId,
+        setResult.set_log_entry_id AS 'setLogEntryId',
+        histWorkoutName.programId,
+        histWorkoutName.programName,
+        histWorkoutName.workoutName,
+        log.date,
+        histWorkoutName.workoutId,
+        log.programDeloadWeek,
+        log.programWorkoutCount,
+        log.durationInMillis,
+        setResult.liftId,
+        setResult.liftName,
+        setResult.setType,
+        setResult.liftPosition,
+        setResult.setPosition,
+        setResult.myoRepSetPosition,
+        setResult.weight,
+        setResult.reps,
+        setResult.rpe,
+        setResult.oneRepMax,
+        log.mesoCycle,
+        log.microCycle,
+        setResult.progressionScheme,
+        setResult.liftMovementPattern,
+        setResult.repRangeBottom,
+        setResult.repRangeTop,
+        setResult.weightRecommendation,
+        setResult.setMatching,
+        setResult.rpeTarget,
+        setResult.maxSets,
+        setResult.repFloor,
+        setResult.dropPercentage,
+        log.microcyclePosition,
+        setResult.isDeload
+    FROM workoutLogEntries AS log
+    JOIN historicalWorkoutNames AS histWorkoutName
+      ON histWorkoutName.historical_workout_name_id = log.historicalWorkoutNameId
+    JOIN setLogEntries AS setResult
+      ON setResult.workoutLogEntryId = log.workout_log_entry_id
+    -- latest date prior to :date per (liftId, setPosition)
+    JOIN (
+      SELECT
+          s.liftId,
+          s.setPosition,
+          MAX(w.date) AS maxDate
+      FROM setLogEntries AS s
+      JOIN workoutLogEntries AS w
+        ON w.workout_log_entry_id = s.workoutLogEntryId
+      WHERE s.liftId IN (:liftIds)
+        AND w.date < :date
+        AND w.deleted = 0
+        AND s.deleted = 0
+      GROUP BY s.liftId, s.setPosition
+    ) AS L
+      ON L.liftId      = setResult.liftId
+     AND L.setPosition = setResult.setPosition
+     AND L.maxDate     = log.date
+    WHERE log.deleted = 0
+      AND setResult.deleted = 0
+""")
+    suspend fun getMostRecentLogsForLiftIdsPriorToDate(
+        liftIds: List<Long>,
+        date: Date
+    ): List<FlattenedWorkoutLogEntryDto>
 
     @Transaction
     @Query("SELECT log.workout_log_entry_id as 'id', log.historicalWorkoutNameId, setResult.set_log_entry_id as 'setLogEntryId', histWorkoutName.programId, histWorkoutName.programName, histWorkoutName.workoutName, log.date, " +

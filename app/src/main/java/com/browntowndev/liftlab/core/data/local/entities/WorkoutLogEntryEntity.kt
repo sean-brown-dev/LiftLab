@@ -15,6 +15,9 @@ import java.util.Date
         Index("synced"),
         Index(value = ["remoteId"], unique = true),
         Index(value = ["deleted","date"], name = "idx_wle_deleted_date"),
+
+        // supports filters that key off meso/micro on non-deleted rows
+        Index(value = ["deleted", "mesoCycle", "microCycle"], name = "idx_wle_deleted_meso_micro")
     ],
     foreignKeys = [
         ForeignKey(

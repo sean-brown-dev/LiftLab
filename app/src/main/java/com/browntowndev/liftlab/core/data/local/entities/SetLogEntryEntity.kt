@@ -13,10 +13,18 @@ import com.browntowndev.liftlab.core.domain.enums.SetType
 @GenerateFirestoreMetadataExtensions
 @Entity("setLogEntries",
     indices = [
-        Index(value = ["liftId","setPosition","deleted","isDeload","workoutLogEntryId"], name = "idx_sle_lift_pos_flags_entry"),
         Index("workoutLogEntryId"),
         Index("synced"),
         Index(value = ["remoteId"], unique = true),
+
+        // fast path for flows keyed by workout entry
+        Index(value = ["workoutLogEntryId", "deleted"], name = "idx_sle_wle_deleted"),
+
+        // most-recent-per-(liftId, setPosition) lookups with optional deload flag
+        Index(value = ["liftId", "setPosition", "deleted", "isDeload"], name = "idx_sle_lift_pos_flags"),
+
+        // PR-style aggregations (MAX(oneRepMax) BY liftId) and per-lift reads
+        Index(value = ["liftId", "deleted", "oneRepMax"], name = "idx_sle_lift_deleted_orm"),
     ],
     foreignKeys = [
         ForeignKey(

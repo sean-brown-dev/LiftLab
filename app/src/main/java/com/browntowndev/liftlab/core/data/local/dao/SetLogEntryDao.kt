@@ -29,34 +29,52 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
 
     @Transaction
     @Query("""
-    SELECT sle.* FROM setLogEntries sle
-    INNER JOIN workoutLogEntries wle ON wle.workout_log_entry_id = sle.workoutLogEntryId
-    INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
-    WHERE hwn.workoutId = :workoutId
-      AND sle.deleted = 0
+    WITH latest_meso AS (
+      SELECT
+          hwn.workoutId,
+          MAX(wle.mesoCycle) AS maxMeso
+      FROM workoutLogEntries wle
+      JOIN historicalWorkoutNames hwn
+        ON hwn.historical_workout_name_id = wle.historicalWorkoutNameId
+      JOIN setLogEntries sle
+        ON sle.workoutLogEntryId = wle.workout_log_entry_id
+      WHERE hwn.workoutId = :workoutId
+        AND wle.deleted = 0
+        AND sle.deleted = 0
+        AND (sle.isDeload = 0 OR :includeDeload)
+      GROUP BY hwn.workoutId
+    ),
+    latest_micro AS (
+      SELECT
+          hwn.workoutId,
+          lm.maxMeso,
+          MAX(wle.microCycle) AS maxMicro
+      FROM workoutLogEntries wle
+      JOIN historicalWorkoutNames hwn
+        ON hwn.historical_workout_name_id = wle.historicalWorkoutNameId
+      JOIN setLogEntries sle
+        ON sle.workoutLogEntryId = wle.workout_log_entry_id
+      JOIN latest_meso lm
+        ON lm.workoutId = hwn.workoutId
+       AND wle.mesoCycle = lm.maxMeso
+      WHERE wle.deleted = 0
+        AND sle.deleted = 0
+        AND (sle.isDeload = 0 OR :includeDeload)
+      GROUP BY hwn.workoutId, lm.maxMeso
+    )
+    SELECT sle.*
+    FROM setLogEntries sle
+    JOIN workoutLogEntries wle
+      ON wle.workout_log_entry_id = sle.workoutLogEntryId
+    JOIN historicalWorkoutNames hwn
+      ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
+    JOIN latest_micro lt
+      ON lt.workoutId = hwn.workoutId
+     AND wle.mesoCycle = lt.maxMeso
+     AND wle.microCycle = lt.maxMicro
+    WHERE sle.deleted = 0
       AND wle.deleted = 0
       AND (sle.isDeload = 0 OR :includeDeload)
-      AND wle.mesoCycle = (
-            SELECT MAX(wle2.mesoCycle)
-            FROM setLogEntries sle2
-            INNER JOIN workoutLogEntries wle2 ON wle2.workout_log_entry_id = sle2.workoutLogEntryId
-            INNER JOIN historicalWorkoutNames hwn2 ON wle2.historicalWorkoutNameId = hwn2.historical_workout_name_id
-            WHERE hwn2.workoutId = :workoutId
-              AND sle2.deleted = 0
-              AND wle2.deleted = 0
-              AND (sle2.isDeload = 0 OR :includeDeload)
-      )
-      AND wle.microCycle = (
-            SELECT MAX(wle3.microCycle)
-            FROM setLogEntries sle3
-            INNER JOIN workoutLogEntries wle3 ON wle3.workout_log_entry_id = sle3.workoutLogEntryId
-            INNER JOIN historicalWorkoutNames hwn3 ON wle3.historicalWorkoutNameId = hwn3.historical_workout_name_id
-            WHERE hwn3.workoutId = :workoutId
-              AND sle3.deleted = 0
-              AND wle3.deleted = 0
-              AND (sle3.isDeload = 0 OR :includeDeload)
-              AND wle3.mesoCycle = wle.mesoCycle
-      )
 """)
     fun getLatestForWorkout(
         workoutId: Long,
