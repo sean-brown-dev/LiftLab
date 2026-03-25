@@ -33,14 +33,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.ui.composables.LabeledChips
+import com.browntowndev.liftlab.ui.composables.chips.LabeledChips
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiftLabBottomSheet(
+    modifier: Modifier = Modifier,
     sheetPeekHeight: Dp,
     bottomSpacerHeight: Dp,
+    topSpacerHeight: Dp = 0.dp,
     label: String,
     combinedVolumeChipLabels: List<CharSequence> = listOf(),
     primaryVolumeChipLabels: List<CharSequence> = listOf(),
@@ -52,9 +54,10 @@ fun LiftLabBottomSheet(
     val bottomSheetState = remember {
         SheetState(
             skipPartiallyExpanded = false,
-            density = density,
             initialValue = SheetValue.PartiallyExpanded,
-            skipHiddenState = true
+            skipHiddenState = true,
+            positionalThreshold = { with(density) { 56.dp.toPx() } },
+            velocityThreshold = { with(density) { 125.dp.toPx() } },
         )
     }
     val scaffoldState = rememberBottomSheetScaffoldState(
@@ -62,6 +65,7 @@ fun LiftLabBottomSheet(
     )
 
     BottomSheetScaffold(
+        modifier = modifier,
         sheetContainerColor = MaterialTheme.colorScheme.surface,
         sheetContentColor = MaterialTheme.colorScheme.background,
         scaffoldState = scaffoldState,
@@ -91,6 +95,7 @@ fun LiftLabBottomSheet(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Spacer(modifier = Modifier.height(topSpacerHeight))
                 Text(text = rememberedLabel, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(10.dp))
 

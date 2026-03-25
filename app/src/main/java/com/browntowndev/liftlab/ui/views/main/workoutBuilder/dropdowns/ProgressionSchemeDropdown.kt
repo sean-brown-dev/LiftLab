@@ -21,11 +21,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.ui.composables.TextDropdown
-import com.browntowndev.liftlab.ui.composables.TextDropdownTextAnchor
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.ui.composables.dropdown.TextDropdown
+import com.browntowndev.liftlab.ui.composables.dropdown.TextDropdownTextAnchor
+import com.browntowndev.liftlab.ui.extensions.displayName
+import com.browntowndev.liftlab.ui.extensions.shortDisplayName
 
 
 @Composable
@@ -33,10 +33,11 @@ fun ProgressionSchemeDropdown(
     modifier: Modifier = Modifier,
     text: String,
     hasCustomSets: Boolean,
+    volumeCyclingEnabled: Boolean,
+    progressionSchemes: List<ProgressionScheme>,
     onChangeProgressionScheme: (ProgressionScheme) -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    val progressionSchemes by remember { mutableStateOf(ProgressionScheme.entries.sortedBy { it.displayName() }) }
 
     Row(
         modifier = modifier.then(Modifier.animateContentSize()),
@@ -58,23 +59,23 @@ fun ProgressionSchemeDropdown(
         ) {
             progressionSchemes
                 .filter {
-                    !hasCustomSets ||
-                    (it != ProgressionScheme.WAVE_LOADING_PROGRESSION && it != ProgressionScheme.LINEAR_PROGRESSION)
+                    (!hasCustomSets || it.canHaveCustomSets) &&
+                            (!volumeCyclingEnabled || it.canVolumeCycle)
                 }.fastForEach { progressionScheme ->
-                DropdownMenuItem(
-                    text = { Text(progressionScheme.displayName()) },
-                    onClick = {
-                        isExpanded = false
-                        onChangeProgressionScheme(progressionScheme)
-                    },
-                    leadingIcon = {
-                        TextDropdownTextAnchor(
-                            text = progressionScheme.displayNameShort(),
-                            fontSize = 14.sp
-                        )
-                    }
-                )
-            }
+                    DropdownMenuItem(
+                        text = { Text(progressionScheme.displayName()) },
+                        onClick = {
+                            isExpanded = false
+                            onChangeProgressionScheme(progressionScheme)
+                        },
+                        leadingIcon = {
+                            TextDropdownTextAnchor(
+                                text = progressionScheme.shortDisplayName(),
+                                fontSize = 14.sp
+                            )
+                        }
+                    )
+                }
         }
     }
 }

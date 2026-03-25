@@ -5,7 +5,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
 
 @Dao
 interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
@@ -48,4 +47,53 @@ interface CustomSetsDao: BaseDao<CustomLiftSetEntity> {
 
     @Query("UPDATE sets SET deleted = 1, synced = 0 WHERE set_id IN (:ids)")
     suspend fun softDeleteMany(ids: List<Long>): Int
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (
+            SELECT workout_lift_id
+            FROM workoutLifts wl
+            INNER JOIN workouts w ON w.workout_id = wl.workoutId
+            WHERE w.programId = :programId
+        )
+    """)
+    suspend fun softDeleteByProgramId(programId: Long)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (
+            SELECT workout_lift_id
+            FROM workoutLifts wl
+            INNER JOIN workouts w ON w.workout_id = wl.workoutId
+            WHERE w.workout_id = :workoutId
+        )
+    """)
+    suspend fun softDeleteByWorkoutId(workoutId: Long)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId = :workoutLiftId
+    """)
+    suspend fun softDeleteByWorkoutLiftId(workoutLiftId: Long)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (:workoutLiftIds)
+    """)
+    suspend fun softDeleteByWorkoutLiftIds(workoutLiftIds: List<Long>)
+
+    @Query("""
+        UPDATE sets
+        SET deleted = 1, synced = 0
+        WHERE workoutLiftId IN (
+            SELECT workout_lift_id
+            FROM workoutLifts
+            WHERE workoutId IN (:workoutIds)
+        )
+    """)
+    suspend fun softDeleteByWorkoutIds(workoutIds: List<Long>)
 }

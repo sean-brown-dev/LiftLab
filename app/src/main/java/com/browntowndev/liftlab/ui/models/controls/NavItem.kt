@@ -1,0 +1,9 @@
+package com.browntowndev.liftlab.ui.models.controls
+
+open class NavItem(open val title: String, open val subtitle: String = "", open val route: Route)
+class BottomNavItem(
+    override val title: String,
+    override val subtitle: String = "",
+    val bottomNavIconResourceId: Int,
+    override val route: Route
+):  NavItem(title, subtitle, route)

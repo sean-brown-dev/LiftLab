@@ -1,12 +1,14 @@
 package com.browntowndev.liftlab.core.data.remote.dto
 
 import androidx.annotation.Keep
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
 
 @Keep
+@IgnoreExtraProperties
 data class SetLogEntryRemoteDto(
     var id: Long = 0L,
     var workoutLogEntryId: Long = 0L,
@@ -27,8 +29,6 @@ data class SetLogEntryRemoteDto(
     var reps: Int = 0,
     var rpe: Float = 0f,
     var oneRepMax: Int = 0,
-    var mesoCycle: Int = 0,
-    var microCycle: Int = 0,
     var setMatching: Boolean? = null,
     var maxSets: Int? = null,
     var repFloor: Int? = null,

@@ -1,10 +1,10 @@
 package com.browntowndev.liftlab.ui.views.main.workoutBuilder
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,37 +31,38 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.ReorderableListItem
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.Utils.General.Companion.percentageStringToFloat
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.domain.models.CustomWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.PercentagePicker
-import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.composables.RpeKeyboard
-import com.browntowndev.liftlab.ui.composables.TextFieldDialog
-import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.dialog.TextFieldDialog
+import com.browntowndev.liftlab.ui.composables.keyboard.PercentagePicker
+import com.browntowndev.liftlab.ui.composables.keyboard.RpeKeyboard
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.extensions.displayName
+import com.browntowndev.liftlab.ui.extensions.sortedByDisplayName
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
+import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.models.workout.CustomWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.models.workout.StandardWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewModel
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.customSet.CustomSettings
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.ProgressionSchemeDropdown
 import com.browntowndev.liftlab.ui.views.main.workoutBuilder.dropdowns.WavePatternDropdown
-import com.browntowndev.liftlab.ui.views.navigation.Route
-import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import kotlin.time.DurationUnit
@@ -72,12 +74,12 @@ fun WorkoutBuilder(
     paddingValues: PaddingValues,
     modifier: Modifier = Modifier,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNavigateToLiftLibrary: (route: Route.LiftLibrary) -> Unit,
     workoutId: Long,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String?>) -> Unit,
 ) {
-    val context = LocalContext.current
     val workoutBuilderViewModel: WorkoutBuilderViewModel = koinViewModel {
         parametersOf(
             workoutId,
@@ -86,7 +88,6 @@ fun WorkoutBuilder(
         )
     }
     val state by workoutBuilderViewModel.state.collectAsState()
-    val listState = rememberLazyListState()
 
     LaunchedEffect(state.workout) {
         if (state.workout != null) {
@@ -99,25 +100,21 @@ fun WorkoutBuilder(
         }
     }
 
-    LaunchedEffect(Unit) {
-        workoutBuilderViewModel.toastEvents.collect { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
-    }
-
     workoutBuilderViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutBuilderViewModel)
+    SnackbarProvider(snackbarHostState, workoutBuilderViewModel.userMessages)
 
-    if(!state.isReordering) {
+    if(!state.isReordering && state.workout != null) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = false,
-            title = "WorkoutEntity Volume",
+            title = "Workout Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
             primaryVolumeChipLabels = state.primaryVolumeTypes,
             secondaryVolumeChipLabels = state.secondaryVolumeTypes,
         ) {
             Box(contentAlignment = Alignment.BottomCenter) {
                 var scrollSpacerSize by remember { mutableStateOf(0.dp) }
+                val listState = rememberLazyListState()
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -127,9 +124,9 @@ fun WorkoutBuilder(
                     verticalArrangement = Arrangement.Top,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    items(state.workout?.lifts ?: listOf(), { it.id }) { workoutLift ->
-                        val standardLift = workoutLift as? StandardWorkoutLift
-                        val customLift = workoutLift as? CustomWorkoutLift
+                    items(state.workout!!.lifts, { it.id }) { workoutLift ->
+                        val standardLift = workoutLift as? StandardWorkoutLiftUiModel
+                        val customLift = workoutLift as? CustomWorkoutLiftUiModel
                         val incrementOverride = remember(
                             key1 = workoutLift.incrementOverride,
                         ) {
@@ -147,10 +144,6 @@ fun WorkoutBuilder(
                             ).toDuration(DurationUnit.MILLISECONDS)
                         }
                         val customLiftsVisible = remember(customLift) { customLift != null }
-                        val showCustomSetsOption = remember(workoutLift.progressionScheme) {
-                            workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION &&
-                                    workoutLift.progressionScheme != ProgressionScheme.WAVE_LOADING_PROGRESSION
-                        }
                         val showDeloadWeekOption = remember(workoutLift.progressionScheme) {
                             workoutLift.progressionScheme != ProgressionScheme.LINEAR_PROGRESSION &&
                                     SettingsManager.getSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
@@ -163,7 +156,8 @@ fun WorkoutBuilder(
                             restTimerEnabled = workoutLift.restTimerEnabled,
                             movementPattern = workoutLift.liftMovementPattern,
                             hasCustomLiftSets = customLiftsVisible,
-                            showCustomSetsOption = showCustomSetsOption,
+                            volumeCyclingEnabled = (workoutLift as? StandardWorkoutLiftUiModel)?.volumeCyclingEnabled ?: false,
+                            showCustomSetsOption = workoutLift.progressionScheme.canHaveCustomSets,
                             currentDeloadWeek = workoutLift.deloadWeek,
                             showDeloadWeekOption = showDeloadWeekOption,
                             onCustomLiftSetsToggled = {
@@ -208,11 +202,17 @@ fun WorkoutBuilder(
                                     newIncrement = newIncrement,
                                 )
                             },
+                            onVolumeCyclingToggled = {
+                                workoutBuilderViewModel.toggleVolumeCycling(workoutLift.id)
+                            }
                         ) {
+                            val progressionSchemes = remember { ProgressionScheme.entries.sortedByDisplayName() }
                             ProgressionSchemeDropdown(
                                 modifier = Modifier.padding(start = 20.dp),
                                 text = workoutLift.progressionScheme.displayName(),
                                 hasCustomSets = customLiftsVisible,
+                                volumeCyclingEnabled = (workoutLift as? StandardWorkoutLiftUiModel)?.volumeCyclingEnabled ?: false,
+                                progressionSchemes = progressionSchemes,
                                 onChangeProgressionScheme = {
                                     workoutBuilderViewModel.setLiftProgressionScheme(
                                         workoutLift.id,
@@ -222,7 +222,7 @@ fun WorkoutBuilder(
                             )
                             WavePatternDropdown(
                                 workoutLiftId = workoutLift.id,
-                                stepSize = (workoutLift as? StandardWorkoutLift)?.stepSize,
+                                stepSize = (workoutLift as? StandardWorkoutLiftUiModel)?.stepSize,
                                 progressionScheme = workoutLift.progressionScheme,
                                 workoutLiftStepSizeOptions = state.workoutLiftStepSizeOptions,
                                 onUpdateStepSize = { workoutLiftId, newStepSize ->
@@ -271,32 +271,29 @@ fun WorkoutBuilder(
                                     progressionScheme = workoutLift.progressionScheme,
                                     setCount = workoutLift.setCount,
                                     rpeTarget = rpeTarget,
+                                    volumeCyclingSetCeiling = standardLift?.volumeCyclingSetCeiling,
                                     onSetCountChanged = {
                                         workoutBuilderViewModel.setLiftSetCount(
                                             workoutLiftId = workoutLift.id,
                                             newSetCount = it,
                                         )
                                     },
+                                    onVolumeCyclingSetCeilingChanged = {
+                                        workoutBuilderViewModel.setVolumeCyclingSetCeiling(
+                                            workoutLiftId = workoutLift.id,
+                                            newSetCeiling = it,
+                                        )
+                                    },
                                     onRepRangeBottomChanged = {
-                                        workoutBuilderViewModel.setLiftRepRangeBottom(
+                                        workoutBuilderViewModel.updateWorkoutLiftRepRangeBottom(
                                             workoutLiftId = workoutLift.id,
                                             newRepRangeBottom = it
                                         )
                                     },
                                     onRepRangeTopChanged = {
-                                        workoutBuilderViewModel.setLiftRepRangeTop(
+                                        workoutBuilderViewModel.updateWorkoutLiftRepRangeTop(
                                             workoutLiftId = workoutLift.id,
                                             newRepRangeTop = it
-                                        )
-                                    },
-                                    onConfirmRepRangeBottom = {
-                                        workoutBuilderViewModel.confirmStandardSetRepRangeBottom(
-                                            workoutLiftId = workoutLift.id,
-                                        )
-                                    },
-                                    onConfirmRepRangeTop = {
-                                        workoutBuilderViewModel.confirmStandardSetRepRangeTop(
-                                            workoutLiftId = workoutLift.id,
                                         )
                                     },
                                     onRpeTargetChanged = {
@@ -307,7 +304,7 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     onToggleRpePicker = {
-                                        workoutBuilderViewModel.togglePicker(
+                                        workoutBuilderViewModel.toggleRpePicker(
                                             workoutLiftId = workoutLift.id,
                                             visible = it,
                                             currentRpe = rpeTarget,
@@ -323,14 +320,10 @@ fun WorkoutBuilder(
                                 // Save this here and then update it after the custom lifts are rendered
                                 // so the lifts don't disappear until after animation}
                                 var nonDisappearCustomLifts by remember {
-                                    mutableStateOf(
-                                        customLift?.customLiftSets
-                                            ?: listOf()
-                                    )
+                                    mutableStateOf(customLift?.customLiftSets ?: listOf())
                                 }
                                 val customLifts = remember(customLift?.customLiftSets) {
-                                    customLift?.customLiftSets
-                                        ?: nonDisappearCustomLifts
+                                    customLift?.customLiftSets ?: nonDisappearCustomLifts
                                 }
                                 Spacer(modifier = Modifier.width(10.dp))
                                 CustomSettings(
@@ -347,29 +340,17 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     onRepRangeBottomChanged = { position, newRepRangeBottom ->
-                                        workoutBuilderViewModel.setCustomSetRepRangeBottom(
+                                        workoutBuilderViewModel.updateCustomSetRepRangeBottom(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             newRepRangeBottom = newRepRangeBottom,
                                         )
                                     },
                                     onRepRangeTopChanged = { position, newRepRangeTop ->
-                                        workoutBuilderViewModel.setCustomSetRepRangeTop(
+                                        workoutBuilderViewModel.updateCustomSetRepRangeTop(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
-                                            newRepRangeTop = newRepRangeTop
-                                        )
-                                    },
-                                    onConfirmRepRangeBottom = { position ->
-                                        workoutBuilderViewModel.confirmCustomSetRepRangeBottom(
-                                            workoutLiftId = workoutLift.id,
-                                            position = position,
-                                        )
-                                    },
-                                    onConfirmRepRangeTop = { position ->
-                                        workoutBuilderViewModel.confirmCustomSetRepRangeTop(
-                                            workoutLiftId = workoutLift.id,
-                                            position = position,
+                                            newRepRangeTop = newRepRangeTop,
                                         )
                                     },
                                     onRepFloorChanged = { position, newRepFloor ->
@@ -396,7 +377,7 @@ fun WorkoutBuilder(
                                     onCustomSetTypeChanged = { position, newSetType ->
                                         workoutBuilderViewModel.changeCustomSetType(
                                             workoutLiftId = workoutLift.id,
-                                            setPosition = position,
+                                            position = position,
                                             newSetType = newSetType,
                                         )
                                     },
@@ -408,7 +389,7 @@ fun WorkoutBuilder(
                                         )
                                     },
                                     toggleRpePicker = { position, visible, currentRpe ->
-                                        workoutBuilderViewModel.togglePicker(
+                                        workoutBuilderViewModel.toggleRpePicker(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             visible = visible,
@@ -421,7 +402,7 @@ fun WorkoutBuilder(
                                         }
                                     },
                                     togglePercentagePicker = { position, visible, currentPercentage ->
-                                        workoutBuilderViewModel.togglePicker(
+                                        workoutBuilderViewModel.toggleRpePicker(
                                             workoutLiftId = workoutLift.id,
                                             position = position,
                                             visible = visible,
@@ -444,15 +425,12 @@ fun WorkoutBuilder(
                                     }
                                 )
                                 LaunchedEffect(customLift?.customLiftSets) {
-                                    if (customLift?.customLiftSets == null) {
-                                        delay(600)
-                                    }
                                     nonDisappearCustomLifts = customLift?.customLiftSets ?: listOf()
                                 }
                             }
                         }
                     }
-                    item {
+                    item (key = "add_movement_pattern_button") {
                         Spacer(modifier = Modifier.height(40.dp))
                         Box(
                             modifier = Modifier.fillMaxWidth(),
@@ -479,39 +457,9 @@ fun WorkoutBuilder(
                         Spacer(modifier = modifier.height(scrollSpacerSize))
                     }
                 }
-
-                RpeKeyboard(
-                    visible = state.pickerState?.type == PickerType.Rpe,
-                    selectedRpe = state.pickerState?.currentRpe,
-                    onRpeSelected = {
-                        if (state.pickerState!!.setPosition == null) {
-                            workoutBuilderViewModel.setLiftRpeTarget(
-                                workoutLiftId = state.pickerState!!.workoutLiftId!!,
-                                it,
-                            )
-                        } else {
-                            workoutBuilderViewModel.setCustomSetRpeTarget(
-                                workoutLiftId = state.pickerState!!.workoutLiftId!!,
-                                position = state.pickerState!!.setPosition!!,
-                                newRpeTarget = it,
-                            )
-                        }
-                    },
-                )
-                PercentagePicker(
-                    visible = state.pickerState?.type == PickerType.Percentage,
-                    selectedPercentage = state.pickerState?.currentPercentage,
-                    onPercentageSelected = {
-                        workoutBuilderViewModel.setCustomSetDropPercentage(
-                            workoutLiftId = state.pickerState!!.workoutLiftId!!,
-                            position = state.pickerState!!.setPosition!!,
-                            newDropPercentage = percentageStringToFloat(it),
-                        )
-                    }
-                )
             }
         }
-    } else {
+    } else if (state.isReordering) {
         ReorderableLazyColumn(
             paddingValues = paddingValues,
             items = remember(state.workout!!.lifts) { state.workout!!.lifts.fastMap { ReorderableListItem(it.liftName, it.id) } },
@@ -538,6 +486,41 @@ fun WorkoutBuilder(
             },
             onCancel = {
                 workoutBuilderViewModel.toggleMovementPatternDeletionModal()
+            }
+        )
+    }
+
+    Column (modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+        RpeKeyboard(
+            visible = state.pickerState?.type == PickerType.Rpe,
+            selectedRpe = state.pickerState?.currentRpe,
+            onRpeSelected = {
+                if (state.pickerState!!.setPosition == null) {
+                    workoutBuilderViewModel.setLiftRpeTarget(
+                        workoutLiftId = state.pickerState!!.workoutLiftId!!,
+                        it,
+                    )
+                } else {
+                    workoutBuilderViewModel.setCustomSetRpeTarget(
+                        workoutLiftId = state.pickerState!!.workoutLiftId!!,
+                        position = state.pickerState!!.setPosition!!,
+                        newRpeTarget = it,
+                    )
+                }
+            },
+        )
+    }
+
+    Column (modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Bottom) {
+        PercentagePicker(
+            visible = state.pickerState?.type == PickerType.Percentage,
+            selectedPercentage = state.pickerState?.currentPercentage,
+            onPercentageSelected = {
+                workoutBuilderViewModel.setCustomSetDropPercentage(
+                    workoutLiftId = state.pickerState!!.workoutLiftId!!,
+                    position = state.pickerState!!.setPosition!!,
+                    newDropPercentage = percentageStringToFloat(it),
+                )
             }
         )
     }

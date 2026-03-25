@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -28,8 +27,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.composables.LiftLabDialog
-import com.browntowndev.liftlab.ui.composables.SignIntoFirebaseWithGoogleButton
+import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.button.SignIntoFirebaseWithGoogleButton
 import dev.gitlive.firebase.auth.FirebaseUser
 
 @Composable
@@ -58,18 +57,7 @@ fun FirestoreSyncDialog(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.cloud_done),
-                        contentDescription = "Logged In",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    firebaseUsername?.let { Text(text = it) }
-                }
+                firebaseUsername?.let { Text(text = it) }
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     verticalAlignment = Alignment.CenterVertically,

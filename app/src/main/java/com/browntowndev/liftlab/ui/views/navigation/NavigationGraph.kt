@@ -2,12 +2,11 @@ package com.browntowndev.liftlab.ui.views.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,19 +15,21 @@ import androidx.navigation.toRoute
 import arrow.core.left
 import com.android.billingclient.api.ProductDetails
 import com.browntowndev.liftlab.core.common.LIFT_METRIC_CHART_IDS
-import com.browntowndev.liftlab.core.common.SHOW_WORKOUT_LOG
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.states.DonationState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.EditWorkoutScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftDetailsScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LiftLibraryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.SettingsScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutBuilderScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutHistoryScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.WorkoutScreen
+import com.browntowndev.liftlab.core.common.MERGE_LIFT_ID
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.Route
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.EditWorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftDetailsScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LiftLibraryScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.SettingsScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutBuilderScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutHistoryScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.WorkoutScreen
+import com.browntowndev.liftlab.ui.viewmodels.donation.DonationState
 import com.browntowndev.liftlab.ui.views.main.home.Home
 import com.browntowndev.liftlab.ui.views.main.home.Settings
 import com.browntowndev.liftlab.ui.views.main.lab.Lab
@@ -46,6 +47,7 @@ fun NavigationGraph(
     navHostController: NavHostController,
     paddingValues: PaddingValues,
     donationState: DonationState,
+    snackbarHostState: SnackbarHostState,
     onClearBillingError: () -> Unit,
     onUpdateDonationProduct: (donationProduct: ProductDetails?) -> Unit,
     onProcessDonation: () -> Unit,
@@ -59,6 +61,7 @@ fun NavigationGraph(
     NavHost(navHostController, startDestination = Route.Workout()) {
         composable<Route.Home> { backstackEntry ->
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
+            val homeLazyListState = rememberLazyListState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 LaunchedEffect(key1 = backstackEntry.id) {
@@ -69,6 +72,8 @@ fun NavigationGraph(
                 Home(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
+                    lazyListState = homeLazyListState,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateToSettingsMenu = { navHostController.navigate(Route.Settings) },
                     onNavigateToLiftLibrary = { chartIds ->
@@ -100,6 +105,7 @@ fun NavigationGraph(
                 Settings(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     initialized = donationState.initialized,
                     isProcessingDonation = donationState.isProcessingDonation,
                     activeSubscription = donationState.activeSubscription,
@@ -117,9 +123,11 @@ fun NavigationGraph(
 
         composable<Route.LiftLibrary> { backstackEntry ->
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
+            val liftLazyListState = rememberLazyListState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 val liftLibraryParams = backstackEntry.toRoute<Route.LiftLibrary>()
+                val mergeLiftId = backstackEntry.savedStateHandle.get<Long>(MERGE_LIFT_ID)
                 val liftMetricChartIds = navHostController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.get<List<Long>>(LIFT_METRIC_CHART_IDS) ?: listOf()
@@ -127,7 +135,7 @@ fun NavigationGraph(
                 LaunchedEffect(key1 = backstackEntry.id) {
                     onSetScreen(LiftLibraryScreen())
 
-                    if (liftLibraryParams.workoutId != null || liftMetricChartIds.isNotEmpty()) {
+                    if (liftLibraryParams.workoutId != null || liftMetricChartIds.isNotEmpty() || mergeLiftId != null) {
                         setBottomNavBarVisibility(false)
                     } else {
                         setBottomNavBarVisibility(true)
@@ -137,9 +145,12 @@ fun NavigationGraph(
                 LiftLibrary(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
+                    lazyListState = liftLazyListState,
                     callerRouteId = liftLibraryParams.callerRouteId,
                     workoutId = liftLibraryParams.workoutId,
                     workoutLiftId = liftLibraryParams.workoutLiftId,
+                    mergeLiftId = mergeLiftId,
                     movementPattern = liftLibraryParams.movementPattern ?: "",
                     addAtPosition = liftLibraryParams.addAtPosition,
                     liftMetricChartIds = liftMetricChartIds,
@@ -159,17 +170,10 @@ fun NavigationGraph(
                         )
                     },
                     onNavigateHome = {
-                        // Pop back to the start destination
-                        navHostController.navigate(navHostController.graph.startDestinationRoute!!) {
-                            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                                inclusive = true
-                            }
-                        }
-
-                        // Go back to Home
-                        navHostController.navigate(Route.Home)
+                        navHostController.popBackStack()
                     },
                     onNavigateToLiftDetails = { liftId ->
+                        backstackEntry.savedStateHandle.remove<Long>(MERGE_LIFT_ID)
                         val liftDetailsRoute = if (liftId != null)
                             Route.LiftDetails(liftId = liftId)
                         else
@@ -178,21 +182,10 @@ fun NavigationGraph(
                         navHostController.navigate(liftDetailsRoute)
                     },
                     onNavigateToWorkoutBuilder = { workoutBuilderWorkoutId ->
-                        // Pop back to lab
-                        navHostController.navigate(Route.Lab) {
-                            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                                inclusive = false
-                            }
-                        }
-                        navHostController.navigate(Route.WorkoutBuilder(workoutId = workoutBuilderWorkoutId))
+                        navHostController.popBackStack()
                     },
                     onNavigateToActiveWorkout = {
-                        // Pop back to lab
-                        navHostController.navigate(Route.Workout(showLog = true)) {
-                            popUpTo(navHostController.graph.startDestinationRoute!!) {
-                                inclusive = true
-                            }
-                        }
+                        navHostController.popBackStack()
                     },
                 )
             }
@@ -208,12 +201,18 @@ fun NavigationGraph(
                     setTopAppBarCollapsed(true)
                 }
 
+                val liftId = backstackEntry.toRoute<Route.LiftDetails>().liftId
                 LiftDetails(
-                    id = backstackEntry.toRoute<Route.LiftDetails>().liftId,
+                    id = liftId,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     paddingValues = paddingValues,
                     setTopAppBarControlVisibility = setTopAppBarControlVisibility,
                     onNavigateBack = { navHostController.popBackStack() },
+                    onMergeLift = {
+                        navHostController.previousBackStackEntry?.savedStateHandle?.set(MERGE_LIFT_ID, liftId)
+                        navHostController.popBackStack()
+                    },
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -230,29 +229,14 @@ fun NavigationGraph(
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
-                var showLog by remember(backstackEntry.id) {
-                    mutableStateOf(
-                        value = navHostController.currentBackStackEntry?.savedStateHandle?.get(
-                            SHOW_WORKOUT_LOG
-                        ) ?: backstackEntry.toRoute<Route.Workout>().showLog ?: false
-                    )
-                }
-                navHostController.currentBackStackEntry?.savedStateHandle?.set(
-                    SHOW_WORKOUT_LOG,
-                    false
-                )
-
                 LaunchedEffect(key1 = navHostController.currentBackStackEntry) {
                     onSetScreen(WorkoutScreen())
-                    if (navHostController.currentBackStackEntry?.id != backstackEntry.id) {
-                        showLog = false
-                    }
                 }
 
                 Workout(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
-                    showLog = showLog,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -265,9 +249,17 @@ fun NavigationGraph(
                     onNavigateToWorkoutHistory = {
                         navHostController.navigate(WorkoutHistoryScreen.navigation.route)
                     },
-                ) { route ->
-                    navHostController.navigate(route)
-                }
+                    onNavigateToLiftLibrary = { workoutId, workoutLiftId, movementPattern ->
+                        navHostController.navigate(
+                            Route.LiftLibrary(
+                                callerRouteId = Route.Workout.id,
+                                workoutId = workoutId,
+                                workoutLiftId = workoutLiftId,
+                                movementPattern = movementPattern.displayName()
+                            )
+                        )
+                    }
+                )
             }
         }
 
@@ -283,6 +275,7 @@ fun NavigationGraph(
                 WorkoutHistory(
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     setTopAppBarCollapsed = setTopAppBarCollapsed,
                     onNavigateBack = {
                         navHostController.popBackStack()
@@ -308,6 +301,7 @@ fun NavigationGraph(
                     workoutLogEntryId = backstackEntry.toRoute<Route.EditWorkout>().workoutLogEntryId,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -323,6 +317,7 @@ fun NavigationGraph(
 
         composable<Route.Lab> { backstackEntry ->
             val currentBackstackEntry by navHostController.currentBackStackEntryAsState()
+            val labLazyListState = rememberLazyListState()
 
             if (currentBackstackEntry?.id == backstackEntry.id) {
                 LaunchedEffect(key1 = backstackEntry.id) {
@@ -331,8 +326,10 @@ fun NavigationGraph(
                 }
 
                 Lab(
-                    paddingValues,
+                    paddingValues = paddingValues,
+                    lazyListState = labLazyListState,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = {
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(
@@ -364,6 +361,7 @@ fun NavigationGraph(
                     workoutId = backstackEntry.toRoute<Route.WorkoutBuilder>().workoutId,
                     paddingValues = paddingValues,
                     screenId = backstackEntry.id,
+                    snackbarHostState = snackbarHostState,
                     mutateTopAppBarControlValue = { request ->
                         mutateTopAppBarControlValue(
                             AppBarMutateControlRequest(

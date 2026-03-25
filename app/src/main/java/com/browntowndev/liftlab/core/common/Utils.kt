@@ -1,11 +1,13 @@
 package com.browntowndev.liftlab.core.common
 
-import androidx.compose.ui.util.fastFlatMap
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.domain.models.StandardWorkoutLift
-import com.browntowndev.liftlab.core.domain.models.Workout
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.temporal.TemporalAdjusters
 import java.util.Date
 
 class Utils {
@@ -20,106 +22,21 @@ class Utils {
                 val zoneId = ZoneId.systemDefault()
                 return Date.from(localDateTime.atZone(zoneId).toInstant())
             }
-        }
-    }
 
-    sealed class StepSize {
-        companion object {
-            fun getAllLiftsWithRecalculatedStepSize(workouts: List<Workout>, deloadToUseInsteadOfLiftLevel: Int?): Map<Long, StandardWorkoutLift> {
-                return workouts
-                    .fastFlatMap { workout ->
-                        workout.lifts
-                    }
-                    .filterIsInstance<StandardWorkoutLift>()
-                    .mapNotNull { workoutLift ->
-                        getRecalculatedStepSizeForLift(
-                            currStepSize = workoutLift.stepSize,
-                            progressionScheme = workoutLift.progressionScheme,
-                            repRangeTop = workoutLift.repRangeTop,
-                            repRangeBottom = workoutLift.repRangeBottom,
-                            deloadWeek = deloadToUseInsteadOfLiftLevel ?: workoutLift.deloadWeek,
-                        ).let { newStepSize ->
-                            if (workoutLift.stepSize != newStepSize) {
-                                workoutLift.id to workoutLift.copy(stepSize = newStepSize)
-                            } else null
-                        }
-                    }.associate { it.first to it.second }
+            fun getSevenWeeksDateRange(): Pair<Date, Date> {
+                val today = LocalDate.now()
+                val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                return monday.minusWeeks(7).toStartOfDate() to today.toEndOfDate()
             }
 
-            fun getRecalculatedStepSizeForLift(
-                currStepSize: Int?,
-                progressionScheme: ProgressionScheme,
-                repRangeTop: Int,
-                repRangeBottom: Int,
-                deloadWeek: Int?
-            ): Int? {
-                return if (progressionScheme == ProgressionScheme.WAVE_LOADING_PROGRESSION) {
-                    getPossibleStepSizes(
-                        repRangeTop = repRangeTop,
-                        repRangeBottom = repRangeBottom,
-                        stepCount = deloadWeek?.let { deloadWeek - 2 },
-                    ).let { availableStepSizes ->
-                        if (availableStepSizes.contains(currStepSize)) {
-                            currStepSize
-                        } else {
-                            availableStepSizes.firstOrNull()
-                        }
-                    }
-                } else null
-            }
-
-            fun getPossibleStepSizes(
-                repRangeTop: Int,
-                repRangeBottom: Int,
-                stepCount: Int?
-            ): List<Int> {
-                val rangeSize = repRangeTop - repRangeBottom
-                val stepSizes = mutableListOf<Int>()
-
-                // Calculate possible step sizes
-                for (i in 1..rangeSize) {
-                    val canBeReachedInSteps =
-                        stepCount == null || (stepCount + 1) % ((rangeSize / i) + 1) == 0
-                    if (rangeSize % i == 0 && canBeReachedInSteps) {
-                        stepSizes.add(i)
-                    }
-                }
-
-                return stepSizes
-            }
-
-            fun generateFirstCompleteStepSequence(
-                repRangeTop: Int,
-                repRangeBottom: Int,
-                stepSize: Int
-            ): List<Int> {
-                val steps = mutableListOf<Int>()
-                val stepsToRepRangeBottom = (repRangeTop - repRangeBottom) / stepSize
-
-                for (i in 0..stepsToRepRangeBottom) {
-                    val currStepSizeFromTop = i * stepSize
-                    steps.add(repRangeTop - currStepSizeFromTop)
-                }
-
-                return steps
-            }
-
-            fun generateCompleteStepSequence(
-                repRangeTop: Int,
-                repRangeBottom: Int,
-                stepSize: Int,
-                totalStepsToTake: Int
-            ): List<Int> {
-                val steps = mutableListOf<Int>()
-                val stepsToRepRangeBottom = (repRangeTop - repRangeBottom) / stepSize
-
-                for (i in 0..stepsToRepRangeBottom) {
-                    val currStepSizeFromTop = i * stepSize
-                    steps.add(repRangeTop - currStepSizeFromTop)
-                }
-
-                return List(size = totalStepsToTake) { steps[it % steps.size] }
+            fun isOnlineNow(context: Context): Boolean {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val network = cm.activeNetwork ?: return false
+                val caps = cm.getNetworkCapabilities(network) ?: return false
+                return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             }
         }
     }
+
 }

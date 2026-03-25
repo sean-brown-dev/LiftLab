@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.composables.SectionLabel
-import com.browntowndev.liftlab.ui.composables.SingleLineChart
-import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.composables.text.SectionLabel
+import com.browntowndev.liftlab.ui.composables.chart.SingleLineChart
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 
 

@@ -1,0 +1,26 @@
+package com.browntowndev.liftlab.core.domain.enums
+
+enum class TopAppBarAction {
+    ReorderWorkouts,
+    ReorderLifts,
+    CreateNewWorkout,
+    GenerateProgram,
+    CreateNewProgram,
+    ManagePrograms,
+    RenameProgram,
+    RenameWorkout,
+    DeleteProgram,
+    NavigatedBack,
+    SearchTextChanged,
+    FilterStarted,
+    EditDeloadWeek,
+    FinishWorkout,
+    Confirm,
+    CreateNewLift,
+    ConfirmCreateNewLift,
+    OpenSettingsMenu,
+    OpenWorkoutHistory,
+    EditDateRange,
+    OpenProfileMenu,
+    MergeLift,
+}

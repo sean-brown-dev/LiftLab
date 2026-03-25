@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.common
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DB_INITIALIZED
+import androidx.core.content.edit
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
@@ -18,12 +18,9 @@ import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.USE_ALL
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import java.time.LocalTime
-import androidx.core.content.edit
 
 object SettingsManager {
     object SettingNames {
-        const val DB_INITIALIZED = "database_initialized"
         const val REST_TIME = "rest_time"
         const val USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = "useAllWorkoutDataForRecommendations"
         const val ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = "onlyUseResultsForLiftsInSamePosition"
@@ -34,19 +31,19 @@ object SettingsManager {
         const val DEFAULT_PROMPT_FOR_DELOAD_WEEK = true
         const val DEFAULT_REST_TIME = 120000L
         const val DEFAULT_INCREMENT_AMOUNT = 5f
-        const val DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = false
-        const val DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = true
+        const val DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS = true
+        const val DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION = false
         const val DEFAULT_LIFT_SPECIFIC_DELOADING = false
     }
 
     private const val PREFERENCES_NAME = "LiftLabPreferences"
     private lateinit var sharedPreferences: SharedPreferences
 
+    @Synchronized
     fun initialize(context: Context) {
         sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
         if (!sharedPreferences.getBoolean("settings_initialized", false)) {
-            setDefaultSetting(DB_INITIALIZED, false)
             setDefaultSetting(REST_TIME, DEFAULT_REST_TIME)
             setDefaultSetting(INCREMENT_AMOUNT, DEFAULT_INCREMENT_AMOUNT)
             setDefaultSetting(USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS, DEFAULT_USE_ALL_WORKOUT_DATA_FOR_RECOMMENDATIONS)

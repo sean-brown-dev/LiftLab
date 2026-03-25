@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.browntowndev.liftlab.ui.composables.IconDropdown
+import com.browntowndev.liftlab.ui.composables.dropdown.IconDropdown
 
 
 @Composable

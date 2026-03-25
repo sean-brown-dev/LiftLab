@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 
 @GenerateFirestoreMetadataExtensions
 @Entity("workoutLifts",
@@ -39,4 +39,5 @@ data class WorkoutLiftEntity(
     val repRangeBottom: Int? = null,
     val repRangeTop: Int? = null,
     val stepSize: Int? = null,
+    val volumeCyclingSetCeiling: Int? = null,
 ): BaseEntity()

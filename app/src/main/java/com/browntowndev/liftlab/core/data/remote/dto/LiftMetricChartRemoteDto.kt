@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.remote.dto
 
 import androidx.annotation.Keep
-import com.browntowndev.liftlab.core.common.enums.LiftMetricChartType
+import com.browntowndev.liftlab.core.domain.enums.LiftMetricChartType
 
 @Keep
 data class LiftMetricChartRemoteDto(

@@ -1,34 +1,39 @@
 package com.browntowndev.liftlab.dependencyInjection
 
-import com.browntowndev.liftlab.core.domain.progression.StandardProgressionFactory
-import com.browntowndev.liftlab.ui.viewmodels.BottomNavBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.BottomSheetViewModel
-import com.browntowndev.liftlab.ui.viewmodels.CountdownTimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
-import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
-import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
-import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
-import com.browntowndev.liftlab.ui.viewmodels.LiftDetailsViewModel
-import com.browntowndev.liftlab.ui.viewmodels.LiftLibraryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.SettingsViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TimerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutBuilderViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutViewModel
+import com.browntowndev.liftlab.core.common.NetworkMonitor
+import com.browntowndev.liftlab.core.data.remote.client.FirestoreClient
+import com.browntowndev.liftlab.ui.viewmodels.appBar.TopAppBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.bottomNav.BottomNavBarViewModel
+import com.browntowndev.liftlab.ui.viewmodels.donation.DonationViewModel
+import com.browntowndev.liftlab.ui.viewmodels.home.HomeViewModel
+import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
+import com.browntowndev.liftlab.ui.viewmodels.liftDetails.LiftDetailsViewModel
+import com.browntowndev.liftlab.ui.viewmodels.liftLibrary.LiftLibraryViewModel
+import com.browntowndev.liftlab.ui.viewmodels.picker.PickerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.remoteSync.RemoteSyncViewModel
+import com.browntowndev.liftlab.ui.viewmodels.settings.SettingsViewModel
+import com.browntowndev.liftlab.ui.viewmodels.startup.StartupViewModel
+import com.browntowndev.liftlab.ui.viewmodels.timer.DurationTimerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workout.WorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.WorkoutBuilderViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val viewModelModule = module {
     factory { params ->
         LiftDetailsViewModel(
-            onNavigateBack = params.get(),
-            liftId = params.get(),
-            liftsRepository = get(),
-            workoutLogRepository = get(),
-            transactionScope = get(),
+            liftId = params.getOrNull(),
+            onNavigateBack = params[1],
+            onMergeLift = params[2],
+            getLiftWithHistoryStateFlowUseCase = get(),
+            updateLiftNameUseCase = get(),
+            updateMovementPatternUseCase = get(),
+            updateVolumeTypeUseCase = get(),
+            addVolumeTypeUseCase = get(),
+            removeVolumeTypeUseCase = get(),
+            createLiftUseCase = get(),
             eventBus = get()
         )
     }
@@ -36,113 +41,135 @@ val viewModelModule = module {
         WorkoutBuilderViewModel(
             workoutId = params.get(),
             onNavigateBack = params.get(),
-            programsRepository = get(),
-            workoutsRepositoryImpl = get(),
-            workoutLiftsRepositoryImpl = get(),
-            customLiftSetsRepositoryImpl = get(),
-            liftsRepository = get(),
+            convertWorkoutLiftTypeUseCase = get(),
+            reorderWorkoutBuilderLiftsUseCase = get(),
+            getWorkoutConfigurationStateFlowUseCase = get(),
+            deleteWorkoutLiftUseCase = get(),
+            updateWorkoutNameUseCase = get(),
+            updateRestTimeUseCase = get(),
+            updateLiftIncrementOverrideUseCase = get(),
+            updateWorkoutLiftUseCase = get(),
+            deleteCustomSetUseCase = get(),
+            updateCustomLiftSetUseCase = get(),
+            updateManyCustomLiftSetsUseCase = get(),
+            addSetUseCase = get(),
+            updateWorkoutLiftDeloadWeekUseCase = get(),
             liftLevelDeloadsEnabled = params.get(),
-            workoutInProgressRepositoryImpl = get(),
-            setResultsRepository = get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
     factory { params ->
         LiftLibraryViewModel(
-            liftsRepository = get(),
-            workoutLiftsRepositoryImpl = get(),
-            liftMetricChartsRepository = get(),
+            deleteLiftUseCase = get(),
+            replaceWorkoutLiftUseCase = get(),
+            createLiftMetricChartsUseCase = get(),
+            createWorkoutLiftsFromLiftsUseCase = get(),
+            getFilterableLiftsStateFlowUseCase = get(),
+            mergeLiftsUseCase = get(),
             onNavigateHome = params[0],
             onNavigateToWorkoutBuilder = params[1],
             onNavigateToActiveWorkout = params[2],
             onNavigateToLiftDetails = params[3],
             workoutId = params[4],
-            addAtPosition = params[5],
-            initialMovementPatternFilter = params.get(),
-            newLiftMetricChartIds = params.get(),
-            transactionScope = get(),
+            mergeLiftId = params[5],
+            addAtPosition = params[6],
+            initialMovementPatternFilter = params[7],
+            newLiftMetricChartIds = params[8],
             eventBus = get()
         )
     }
     factory { params ->
         WorkoutViewModel(
-            progressionFactory = StandardProgressionFactory(),
-            programsRepository = get(),
-            workoutsRepository = get(),
-            workoutLiftsRepository = get(),
-            setResultsRepository = get(),
-            workoutInProgressRepository = get(),
-            historicalWorkoutNamesRepository = get(),
-            workoutLogRepository = get(),
-            setLogEntryRepository = get(),
-            restTimerInProgressRepository = get(),
-            liftsRepository = get(),
-            navigateToWorkoutHistory = params[0],
-            cancelRestTimer = params[1],
-            transactionScope = get(),
-            eventBus = get()
+            getWorkoutCompletionSummaryUseCase = get(),
+            getActiveProgramWorkoutCountFlowUseCase = get(),
+            hydrateLoggingWorkoutWithExistingLiftDataUseCase = get(),
+            reorderWorkoutLiftsUseCase = get(),
+            startWorkoutUseCase = get(),
+            skipDeloadAndStartWorkoutUseCase = get(),
+            completeWorkoutUseCase = get(),
+            cancelWorkoutUseCase = get(),
+            getActiveWorkoutStateFlowUseCase = get(),
+            upsertManySetResultsUseCase = get(),
+            upsertSetResultUseCase = get(),
+            deleteSetResultByIdUseCase = get(),
+            insertRestTimerInProgressUseCase = get(),
+            updateRestTimeUseCase = get(),
+            updateLiftNoteUseCase = get(),
+            completeSetUseCase = get(),
+            undoSetCompletionUseCase = get(),
+            navigateToWorkoutHistory = params.get(),
+            eventBus = get(),
         )
     }
     factory { params ->
         EditWorkoutViewModel(
             workoutLogEntryId = params.get(),
-            workoutLogRepository = get(),
-            setResultsRepository = get(),
-            setLogEntryRepository = get(),
+            upsertSetLogEntriesFromSetResultsUseCase = get(),
+            upsertExistingSetResultUseCase = get(),
+            deleteSetLogEntryByIdUseCase = get(),
             onNavigateBack = params.get(),
-            transactionScope = get(),
+            completeSetUseCase = get(),
+            undoSetCompletionUseCase = get(),
+            getCompletedWorkoutStateFlowUseCase = get(),
             eventBus = get()
         )
     }
-    factory { params ->
-        CountdownTimerViewModel(onComplete = params.get())
+    factory {
+        DurationTimerViewModel(liftLabTimer = get(DurationTimer))
     }
     factory { params ->
         HomeViewModel(
-            programsRepository = get(),
-            workoutLogRepository = get(),
-            liftMetricChartsRepository = get(),
-            volumeMetricChartsRepository = get(),
-            liftsRepository = get(),
+            getConfiguredMetricsStateFlowUseCase = get(),
+            upsertManyVolumeMetricChartsUseCase = get(),
+            insertManyLiftMetricChartsUseCase = get(),
+            deleteVolumeMetricChartByIdUseCase = get(),
+            deleteLiftMetricChartByIdUseCase = get(),
             onNavigateToSettingsMenu = params[0],
             onNavigateToLiftLibrary = params[1],
             onUserLoggedIn = params[2],
             firebaseAuth = get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
     factory { params ->
         SettingsViewModel(
-            programsRepository = get(),
-            workoutLiftsRepository = get(),
+            getSettingConfigurationStateFlowUseCase = get(),
+            updateLiftSpecificDeloadSettingUseCase = get(),
+            updateSettingUseCase = get(),
             onNavigateBack = params.get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
     factory { params ->
         WorkoutHistoryViewModel(
-            workoutLogRepository = get(),
+            getSummarizedWorkoutMetricsStateFlowUseCase = get(),
+            deleteWorkoutLogEntryUseCase = get(),
             onNavigateBack = params.get(),
-            transactionScope = get(),
             eventBus = get()
         )
     }
-    factory { params ->
-        DonationViewModel(
-            billingClientBuilder = params.get(),
-            transactionScope = get(),
-            eventBus = get()
+    factory {
+        val isLoggedInFlow = get<FirestoreClient>().isUserLoggedInFlow
+        val isOnlineFlow = get<NetworkMonitor>().isOnlineFlow
+        RemoteSyncViewModel(
+            syncOrchestrator = get(),
+            isOnlineFlow = isOnlineFlow,
+            isLoggedInFlow = isLoggedInFlow,
         )
     }
 
+    factory {
+        TopAppBarViewModel(
+            context = get(),
+            getRestTimerInProgressFlowUseCase = get(),
+            restTimerCompletedUseCase = get(),
+            liftLabTimer = get(CountdownTimer)
+        )
+    }
+
+    viewModelOf(::DonationViewModel)
     viewModelOf(::LabViewModel)
-    viewModelOf(::TopAppBarViewModel)
     viewModelOf(::BottomNavBarViewModel)
-    viewModelOf(::BottomSheetViewModel)
-    viewModelOf(::TimerViewModel)
     viewModelOf(::PickerViewModel)
-    viewModelOf(::RemoteSyncViewModel)
+    viewModelOf(::StartupViewModel)
 }

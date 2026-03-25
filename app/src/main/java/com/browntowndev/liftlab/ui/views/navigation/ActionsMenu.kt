@@ -28,18 +28,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
-import com.browntowndev.liftlab.ui.models.ActionMenuItem
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.TopAppBarViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.LiftLabTopAppBarState
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.composables.text.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.models.controls.ActionMenuItem
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
 
 @Composable
 fun RowScope.ActionsMenu(
     topAppBarState: LiftLabTopAppBarState,
-    topAppBarViewModel: TopAppBarViewModel,
     maxVisibleItems: Int,
+    onSetControlVisibility: (controlName: String, visible: Boolean) -> Unit,
+    onMutateControlValue: (AppBarMutateControlRequest<String>) -> Unit,
 ) {
     if (topAppBarState.actions.isEmpty()) return
 
@@ -52,7 +52,7 @@ fun RowScope.ActionsMenu(
 
     menuItems.alwaysShownItems.filterIsInstance<ActionMenuItem.TextInputMenuItem>().fastForEach { item ->
         if (item.isVisible) {
-            FocusedOutlinedTextField(item, topAppBarViewModel = topAppBarViewModel)
+            FocusedOutlinedTextField(item, onSetControlVisibility, onMutateControlValue)
 
             BackHandler {
                 topAppBarState.onNavigationIconClick?.invoke()
@@ -73,7 +73,7 @@ fun RowScope.ActionsMenu(
                 IconButton(
                     onClick = {
                         item.onClick().fastForEach {
-                            topAppBarViewModel.setControlVisibility(it.first, it.second)
+                            onSetControlVisibility(it.first, it.second)
                         }
                     }
                 ) {
@@ -112,7 +112,7 @@ fun RowScope.ActionsMenu(
     }
 
     if (menuItems.overflowItems.isNotEmpty() && topAppBarState.isOverflowMenuIconVisible) {
-        IconButton(onClick = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, true) }) {
+        IconButton(onClick = { onSetControlVisibility(Screen.OVERFLOW_MENU, true) }) {
             Icon(
                 modifier = Modifier.size(24.dp),
                 imageVector = Icons.Filled.MoreVert,
@@ -122,7 +122,7 @@ fun RowScope.ActionsMenu(
         }
         DropdownMenu(
             expanded = topAppBarState.isOverflowMenuExpanded,
-            onDismissRequest = { topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false) },
+            onDismissRequest = { onSetControlVisibility(Screen.OVERFLOW_MENU, false) },
         ) {
             menuItems.overflowItems.fastForEach { item ->
                 DropdownMenuItem(
@@ -151,9 +151,9 @@ fun RowScope.ActionsMenu(
                         }
                     },
                     onClick = {
-                        topAppBarViewModel.setControlVisibility(Screen.OVERFLOW_MENU, false)
+                        onSetControlVisibility(Screen.OVERFLOW_MENU, false)
                         item.onClick().fastForEach {
-                            topAppBarViewModel.setControlVisibility(it.first, it.second)
+                            onSetControlVisibility(it.first, it.second)
                         }
                     }
                 )
@@ -172,7 +172,8 @@ fun RowScope.ActionsMenu(
 @Composable
 fun FocusedOutlinedTextField(
     item: ActionMenuItem.TextInputMenuItem,
-    topAppBarViewModel: TopAppBarViewModel,
+    onSetControlVisibility: (controlName: String, visible: Boolean) -> Unit,
+    onMutateControlValue: (request: AppBarMutateControlRequest<String>) -> Unit,
 ) {
     FocusableRoundTextField(
         modifier = Modifier.padding(end = 15.dp),
@@ -204,7 +205,7 @@ fun FocusedOutlinedTextField(
         trailingIcon = {
             IconButton(onClick = {
                 item.onClickTrailingIcon().fastForEach {
-                    topAppBarViewModel.setControlVisibility(it.first, it.second)
+                    onSetControlVisibility(it.first, it.second)
                 }
             }) {
                 Icon(
@@ -216,7 +217,7 @@ fun FocusedOutlinedTextField(
        },
         onValueChange = {
             item.onValueChange(it)
-            topAppBarViewModel.mutateControlValue(AppBarMutateControlRequest(item.controlName, it))
+            onMutateControlValue(AppBarMutateControlRequest(item.controlName, it))
         }
     )
 }

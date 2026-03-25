@@ -3,12 +3,16 @@ package com.browntowndev.liftlab.core.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
+import com.browntowndev.liftlab.core.data.local.dtos.WorkoutMetadataDto
 import com.browntowndev.liftlab.core.data.local.dtos.WorkoutWithRelationships
 import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutsDao: BaseDao<WorkoutEntity> {
+    @Query("SELECT workout_id as id, name FROM workouts WHERE workout_id = :id AND deleted = 0")
+    fun getMetadataFlow(id: Long): Flow<WorkoutMetadataDto>
+
     @Query("SELECT * FROM workouts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<WorkoutEntity>
 
@@ -19,11 +23,13 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Query("SELECT * FROM workouts WHERE workout_id = :id AND deleted = 0")
     suspend fun getWithoutRelationships(id: Long): WorkoutEntity?
 
+    @Query("SELECT * FROM workouts WHERE workout_id = :id and programId = :programId AND deleted = 0")
+    suspend fun getWithoutRelationshipsWithProgramValidation(id: Long, programId: Long): WorkoutEntity?
+
     @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<WorkoutWithRelationships>
 
-    @Transaction
     @Query("SELECT * FROM workouts WHERE workout_id IN (:ids) AND deleted = 0")
     suspend fun getManyWithoutRelationships(ids: List<Long>): List<WorkoutEntity>
 
@@ -51,7 +57,8 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
     @Transaction
     @Query("SELECT * FROM workouts " +
             "WHERE position = :microcyclePosition AND " +
-            "programId = :programId AND deleted = 0")
+            "programId = :programId AND " +
+            "deleted = 0")
     fun getByMicrocyclePosition(programId: Long, microcyclePosition: Int): Flow<WorkoutWithRelationships?>
 
     @Transaction
@@ -75,4 +82,7 @@ interface WorkoutsDao: BaseDao<WorkoutEntity> {
 
     @Query("SELECT * FROM workouts WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<WorkoutEntity>
+
+    @Query("UPDATE workouts SET synced = 0, deleted = 1 WHERE programId = :programId")
+    fun softDeleteByProgramId(programId: Long)
 }

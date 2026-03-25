@@ -14,13 +14,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.core.common.enums.toDropPercentageString
-import com.browntowndev.liftlab.ui.composables.FloatTextField
-import com.browntowndev.liftlab.ui.composables.IntegerTextField
-import com.browntowndev.liftlab.ui.composables.ScrollableTextField
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.displayNameShort
+import com.browntowndev.liftlab.core.domain.enums.toDropPercentageString
+import com.browntowndev.liftlab.ui.composables.text.FloatTextField
+import com.browntowndev.liftlab.ui.composables.text.IntegerTextField
+import com.browntowndev.liftlab.ui.composables.text.ScrollableTextField
 
 
 @Composable
@@ -30,13 +30,10 @@ fun DropSet(
     position: Int,
     dropPercentage: Float,
     rpeTarget: Float,
-    repRangeBottom: Int?,
-    repRangeTop: Int?,
-    isPreviousSetMyoRep: Boolean,
+    repRangeBottom: Int,
+    repRangeTop: Int,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onConfirmRepRangeBottom: () -> Unit,
-    onConfirmRepRangeTop: () -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
     toggleRpePicker: (Boolean) -> Unit,
     togglePercentagePicker: (Boolean) -> Unit,
@@ -52,15 +49,11 @@ fun DropSet(
         collapsedSetTypeDropdownText = dropSetDisplayNameShort,
         expandedSetTypeDropdownText = dropSetDisplayName,
         standardShortDisplayName = standardSetDisplayNameShort,
-        leftSideSummaryText =
-        if (repRangeTop != null && repRangeBottom != null) "$repRangeBottom - $repRangeTop reps @$rpeTarget"
-        else if (rpeTarget != 10f) "@$rpeTarget"
-        else "AMRAP",
+        leftSideSummaryText = "$repRangeBottom - $repRangeTop reps @$rpeTarget",
         centerIconResourceId = R.drawable.descend_icon,
         rightSideSummaryText = dropPercentage.toDropPercentageString(),
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
-        isPreviousSetMyoRep = isPreviousSetMyoRep,
         isFirstSet = position == 0
     ) {
         Column {
@@ -80,29 +73,27 @@ fun DropSet(
             IntegerTextField(
                 vertical = false,
                 listState = listState,
-                value = repRangeBottom!!,
+                value = repRangeBottom,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
                 label = "Rep Range Bottom",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
                 onNonNullValueChanged = onRepRangeBottomChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
-                onFocusChanged = {
-                    if (!it) onConfirmRepRangeBottom()
-                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
                 vertical = false,
                 listState = listState,
-                value = repRangeTop!!,
+                value = repRangeTop,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
                 label = "Rep Range Top",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
                 onNonNullValueChanged = onRepRangeTopChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
-                onFocusChanged = {
-                    if (!it) onConfirmRepRangeTop()
-                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             FloatTextField(
@@ -110,6 +101,7 @@ fun DropSet(
                 listState = listState,
                 disableSystemKeyboard = true,
                 hideCursor = true,
+                updateValueWhileFocused = true,
                 value = rpeTarget,
                 label = "RPE Target",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,

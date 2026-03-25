@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -12,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,50 +40,55 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.core.common.enums.displayName
 import com.browntowndev.liftlab.core.common.insertSuperscript
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
-import com.browntowndev.liftlab.ui.composables.CircledTextIcon
-import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.icon.CircledTextIcon
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingMyoRepSetUiModel
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
 
 
 @Composable
 fun WorkoutPreview(
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues,
     visible: Boolean,
+    animationEnabled: Boolean = true, // for testing
     workoutInProgress: Boolean,
     workoutName: String,
     timeInProgress: String,
-    lifts: List<LoggingWorkoutLift>,
+    lifts: List<LoggingWorkoutLiftUiModel>,
     combinedVolumeTypes: List<CharSequence>,
     primaryVolumeTypes: List<CharSequence>,
     secondaryVolumeTypes: List<CharSequence>,
     showWorkoutLog: () -> Unit,
     startWorkout: () -> Unit,
 ) {
+    val enterTransition = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn()
+    val exitTransition = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut()
+
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = visible,
-        enter = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn(),
-        exit = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut(),
+        enter = if (animationEnabled) enterTransition else EnterTransition.None,
+        exit = if (animationEnabled) exitTransition else ExitTransition.None,
     ) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
-            title = "WorkoutEntity Volume",
+            title = "Workout Volume",
             combinedVolumeChipLabels = combinedVolumeTypes,
             primaryVolumeChipLabels = primaryVolumeTypes,
             secondaryVolumeChipLabels = secondaryVolumeTypes,
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .padding(paddingValues)
+                modifier = modifier.then(Modifier
+                    .consumeWindowInsets(paddingValues)
                     .fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background),
+                    .background(color = MaterialTheme.colorScheme.background)),
+                contentPadding = paddingValues,
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top,
             ) {
-                item {
+                item (key = "start_workout_button") {
                     val primaryColor = MaterialTheme.colorScheme.primary
                     val secondaryColor = MaterialTheme.colorScheme.secondary
                     var buttonColor by remember {
@@ -148,12 +156,9 @@ fun WorkoutPreview(
                         color = MaterialTheme.colorScheme.tertiary
                     )
                 }
-                items(lifts) { lift ->
-                    val movementPatternDisplayName =remember(lift.liftMovementPattern) {
-                        lift.liftMovementPattern.displayName()
-                    }
+                items(lifts, key = { it.id }) { lift ->
                     val liftFirstLetter = remember(lift.liftName) { lift.liftName[0].toString() }
-                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSet } }
+                    val hasMyoRepSets = remember(lift.sets) { lift.sets.any { it is LoggingMyoRepSetUiModel } }
                     val liftNameWithSetCount = remember(key1 = lift.setCount, key2 = lift.liftName) {
                         val setCountAndName = "${lift.setCount} x ${lift.liftName}"
                         if (hasMyoRepSets) setCountAndName.insertSuperscript(
@@ -163,7 +168,7 @@ fun WorkoutPreview(
                         else setCountAndName
                     }
                     ListItem(
-                        headlineContent = { Text(movementPatternDisplayName, fontSize = 20.sp) },
+                        headlineContent = { Text(text = lift.movementPatternDisplayName, fontSize = 20.sp) },
                         supportingContent = {
                             if (liftNameWithSetCount is AnnotatedString)
                                 Text(liftNameWithSetCount, fontSize = 15.sp)
@@ -181,7 +186,7 @@ fun WorkoutPreview(
                         )
                     )
                 }
-                item {
+                item (key = "bottom_divider") {
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp),
                         thickness = 1.dp,

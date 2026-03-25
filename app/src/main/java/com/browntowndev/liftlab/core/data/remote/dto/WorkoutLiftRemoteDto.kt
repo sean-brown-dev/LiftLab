@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.data.remote.dto
 
 import androidx.annotation.Keep
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 
 @Keep
 data class WorkoutLiftRemoteDto(
@@ -15,7 +15,8 @@ data class WorkoutLiftRemoteDto(
     var rpeTarget: Float? = null,
     var repRangeBottom: Int? = null,
     var repRangeTop: Int? = null,
-    var stepSize: Int? = null
+    var stepSize: Int? = null,
+    var volumeCyclingSetCeiling: Int? = null,
 ): BaseRemoteDto() {
     override fun copyWithBase(): BaseRemoteDto {
         return this.copy().apply {

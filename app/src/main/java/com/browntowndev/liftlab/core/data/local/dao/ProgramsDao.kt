@@ -3,15 +3,16 @@ package com.browntowndev.liftlab.core.data.local.dao
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
+import com.browntowndev.liftlab.core.data.local.dtos.ProgramMetadataDto
 import com.browntowndev.liftlab.core.data.local.dtos.ProgramWithRelationshipsDto
 import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
-import com.browntowndev.liftlab.core.data.local.dtos.ProgramMetadataDto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProgramsDao: BaseDao<ProgramEntity> {
+    @Transaction
     @Query("SELECT * FROM programs WHERE synced = 0")
-    suspend fun getAllUnsynced(): List<ProgramEntity>
+    suspend fun getAllUnsynced(): List<ProgramWithRelationshipsDto>
 
     @Query("DELETE FROM programs")
     suspend fun deleteAll()
@@ -21,30 +22,31 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1 AND deleted = 0")
-    fun getActiveWithRelationshipsFlow(): Flow<ProgramWithRelationshipsDto?>
+    fun getActiveFlow(): Flow<ProgramWithRelationshipsDto?>
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1 AND deleted = 0")
-    suspend fun getActiveWithRelationships(): ProgramWithRelationshipsDto?
+    suspend fun getActive(): ProgramWithRelationshipsDto?
 
     @Transaction
     @Query("SELECT * FROM programs WHERE isActive = 1 AND deleted = 0")
-    suspend fun getAllActive(): List<ProgramEntity>
+    suspend fun getAllActive(): List<ProgramWithRelationshipsDto>
 
     @Transaction
     @Query("SELECT * FROM programs WHERE deleted = 0")
-    suspend fun getAll(): List<ProgramEntity>
+    suspend fun getAll(): List<ProgramWithRelationshipsDto>
 
     @Transaction
     @Query("SELECT * FROM programs WHERE deleted = 0")
-    fun getAllWithRelationshipsFlow(): Flow<List<ProgramWithRelationshipsDto>>
+    fun getAllFlow(): Flow<List<ProgramWithRelationshipsDto>>
 
+    @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id AND deleted = 0")
-    suspend fun get(id: Long) : ProgramEntity?
+    suspend fun get(id: Long) : ProgramWithRelationshipsDto?
 
     @Transaction
     @Query("SELECT * FROM programs WHERE program_id IN (:ids) AND deleted = 0")
-    suspend fun getMany(ids: List<Long>) : List<ProgramEntity>
+    suspend fun getMany(ids: List<Long>) : List<ProgramWithRelationshipsDto>
 
     @Transaction
     @Query("SELECT * FROM programs WHERE program_id = :id AND deleted = 0")
@@ -58,7 +60,7 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
 
     @Transaction
     @Query("SELECT program_id AS programId, name, deloadWeek, currentMesocycle, currentMicrocycle, currentMicrocyclePosition, " +
-            "(SELECT COUNT(*) FROM workouts WHERE programId = program_id) AS workoutCount " +
+            "(SELECT COUNT(*) FROM workouts w WHERE w.programId = program_id AND w.deleted = 0) AS workoutCount " +
             "FROM programs " +
             "WHERE isActive = 1 AND deleted = 0")
     fun getActiveProgramMetadata(): Flow<ProgramMetadataDto?>
@@ -69,9 +71,43 @@ interface ProgramsDao: BaseDao<ProgramEntity> {
     @Query("UPDATE programs SET deleted = 1, synced = 0 WHERE program_id IN (:ids)")
     suspend fun softDeleteMany(ids: List<Long>): Int
 
+    @Transaction
     @Query("SELECT * FROM programs WHERE remoteId = :remoteId")
-    suspend fun getByRemoteId(remoteId: String): ProgramEntity?
+    suspend fun getByRemoteId(remoteId: String): ProgramWithRelationshipsDto?
 
-    @Query("SELECT * FROM programs WHERE remoteId IN (:remoteIds)")
-    suspend fun getManyByRemoteId(remoteIds: List<String>): List<ProgramEntity>
+    @Transaction
+    @Query("""
+        SELECT * FROM programs 
+        WHERE remoteId IN (:remoteIds)
+        AND (deleted = 0 OR :includeDeleted)
+    """)
+    suspend fun getManyByRemoteId(remoteIds: List<String>, includeDeleted: Boolean = true): List<ProgramWithRelationshipsDto>
+
+    @Transaction
+    @Query("""
+        SELECT * FROM programs
+        WHERE deleted = 0
+        ORDER BY program_id DESC
+        LIMIT 1
+    """)
+    fun getNewest(): ProgramWithRelationshipsDto?
+
+    @Transaction
+    @Query("""
+        SELECT * FROM programs
+        WHERE deleted = 0 AND 
+        program_id IN (
+            SELECT programId FROM workouts WHERE workout_id = :workoutId
+        )
+    """)
+    fun getForWorkout(workoutId: Long): ProgramWithRelationshipsDto?
+
+    @Query("""
+        SELECT COUNT(*) FROM workouts
+        WHERE deleted = 0 AND 
+        programId IN (
+            SELECT programId FROM programs WHERE isActive = 1 AND deleted = 0
+        )
+    """)
+    fun getActiveProgramWorkoutCountFlow(): Flow<Int>
 }

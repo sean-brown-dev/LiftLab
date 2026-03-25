@@ -1,0 +1,1684 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 21,
+    "identityHash": "6298660681580cc565f2e2e44c79ca67",
+    "entities": [
+      {
+        "tableName": "lifts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `movementPattern` TEXT NOT NULL, `volumeTypesBitmask` INTEGER NOT NULL, `secondaryVolumeTypesBitmask` INTEGER, `restTime` INTEGER, `restTimerEnabled` INTEGER NOT NULL DEFAULT true, `incrementOverride` REAL, `isBodyweight` INTEGER NOT NULL DEFAULT false, `note` TEXT, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "lift_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "movementPattern",
+            "columnName": "movementPattern",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumeTypesBitmask",
+            "columnName": "volumeTypesBitmask",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "secondaryVolumeTypesBitmask",
+            "columnName": "secondaryVolumeTypesBitmask",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "restTime",
+            "columnName": "restTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "restTimerEnabled",
+            "columnName": "restTimerEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "true"
+          },
+          {
+            "fieldPath": "incrementOverride",
+            "columnName": "incrementOverride",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "isBodyweight",
+            "columnName": "isBodyweight",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "lift_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_lifts_movementPattern",
+            "unique": false,
+            "columnNames": [
+              "movementPattern"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_lifts_movementPattern` ON `${TABLE_NAME}` (`movementPattern`)"
+          },
+          {
+            "name": "index_lifts_lift_id_restTime",
+            "unique": false,
+            "columnNames": [
+              "lift_id",
+              "restTime"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_lifts_lift_id_restTime` ON `${TABLE_NAME}` (`lift_id`, `restTime`)"
+          },
+          {
+            "name": "index_lifts_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_lifts_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_lifts_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_lifts_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "sets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`set_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutLiftId` INTEGER NOT NULL, `type` TEXT NOT NULL, `position` INTEGER NOT NULL, `rpeTarget` REAL NOT NULL, `repRangeBottom` INTEGER NOT NULL, `repRangeTop` INTEGER NOT NULL, `setGoal` INTEGER, `repFloor` INTEGER, `dropPercentage` REAL, `maxSets` INTEGER, `setMatching` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutLiftId`) REFERENCES `workoutLifts`(`workout_lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "set_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutLiftId",
+            "columnName": "workoutLiftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpeTarget",
+            "columnName": "rpeTarget",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repRangeBottom",
+            "columnName": "repRangeBottom",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repRangeTop",
+            "columnName": "repRangeTop",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setGoal",
+            "columnName": "setGoal",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "repFloor",
+            "columnName": "repFloor",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "dropPercentage",
+            "columnName": "dropPercentage",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "maxSets",
+            "columnName": "maxSets",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "setMatching",
+            "columnName": "setMatching",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "set_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sets_workoutLiftId",
+            "unique": false,
+            "columnNames": [
+              "workoutLiftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sets_workoutLiftId` ON `${TABLE_NAME}` (`workoutLiftId`)"
+          },
+          {
+            "name": "index_sets_workoutLiftId_position",
+            "unique": false,
+            "columnNames": [
+              "workoutLiftId",
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sets_workoutLiftId_position` ON `${TABLE_NAME}` (`workoutLiftId`, `position`)"
+          },
+          {
+            "name": "index_sets_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sets_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_sets_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_sets_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workoutLifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutLiftId"
+            ],
+            "referencedColumns": [
+              "workout_lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "historicalWorkoutNames",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`historical_workout_name_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `programId` INTEGER NOT NULL, `workoutId` INTEGER NOT NULL, `programName` TEXT NOT NULL, `workoutName` TEXT NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "historical_workout_name_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programId",
+            "columnName": "programId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programName",
+            "columnName": "programName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutName",
+            "columnName": "workoutName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "historical_workout_name_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_historicalWorkoutNames_programName_workoutName",
+            "unique": false,
+            "columnNames": [
+              "programName",
+              "workoutName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_historicalWorkoutNames_programName_workoutName` ON `${TABLE_NAME}` (`programName`, `workoutName`)"
+          },
+          {
+            "name": "index_historicalWorkoutNames_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_historicalWorkoutNames_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_historicalWorkoutNames_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_historicalWorkoutNames_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "liveWorkoutCompletedSets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`live_workout_completed_set_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `oneRepMax` INTEGER NOT NULL, `missedLpGoals` INTEGER, `isDeload` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "live_workout_completed_set_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setType",
+            "columnName": "setType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftPosition",
+            "columnName": "liftPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setPosition",
+            "columnName": "setPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "myoRepSetPosition",
+            "columnName": "myoRepSetPosition",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reps",
+            "columnName": "reps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpe",
+            "columnName": "rpe",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oneRepMax",
+            "columnName": "oneRepMax",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "missedLpGoals",
+            "columnName": "missedLpGoals",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isDeload",
+            "columnName": "isDeload",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "live_workout_completed_set_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_liveWorkoutCompletedSets_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liveWorkoutCompletedSets_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          },
+          {
+            "name": "index_liveWorkoutCompletedSets_workoutId",
+            "unique": false,
+            "columnNames": [
+              "workoutId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liveWorkoutCompletedSets_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
+          },
+          {
+            "name": "index_liveWorkoutCompletedSets_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liveWorkoutCompletedSets_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_liveWorkoutCompletedSets_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_liveWorkoutCompletedSets_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workouts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutId"
+            ],
+            "referencedColumns": [
+              "workout_id"
+            ]
+          },
+          {
+            "table": "lifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "programs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`program_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `deloadWeek` INTEGER NOT NULL, `isActive` INTEGER NOT NULL, `currentMicrocycle` INTEGER NOT NULL, `currentMicrocyclePosition` INTEGER NOT NULL, `currentMesocycle` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "program_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deloadWeek",
+            "columnName": "deloadWeek",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isActive",
+            "columnName": "isActive",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentMicrocycle",
+            "columnName": "currentMicrocycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentMicrocyclePosition",
+            "columnName": "currentMicrocyclePosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentMesocycle",
+            "columnName": "currentMesocycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "program_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_programs_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_programs_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_programs_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_programs_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "workoutLogEntries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `historicalWorkoutNameId` INTEGER NOT NULL, `programWorkoutCount` INTEGER NOT NULL, `programDeloadWeek` INTEGER NOT NULL, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `microcyclePosition` INTEGER NOT NULL, `date` INTEGER NOT NULL, `durationInMillis` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`historicalWorkoutNameId`) REFERENCES `historicalWorkoutNames`(`historical_workout_name_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_log_entry_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "historicalWorkoutNameId",
+            "columnName": "historicalWorkoutNameId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programWorkoutCount",
+            "columnName": "programWorkoutCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programDeloadWeek",
+            "columnName": "programDeloadWeek",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mesoCycle",
+            "columnName": "mesoCycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "microCycle",
+            "columnName": "microCycle",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "microcyclePosition",
+            "columnName": "microcyclePosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationInMillis",
+            "columnName": "durationInMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_log_entry_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workoutLogEntries_historicalWorkoutNameId",
+            "unique": false,
+            "columnNames": [
+              "historicalWorkoutNameId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLogEntries_historicalWorkoutNameId` ON `${TABLE_NAME}` (`historicalWorkoutNameId`)"
+          },
+          {
+            "name": "index_workoutLogEntries_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLogEntries_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_workoutLogEntries_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_workoutLogEntries_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          },
+          {
+            "name": "idx_wle_deleted_date",
+            "unique": false,
+            "columnNames": [
+              "deleted",
+              "date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_wle_deleted_date` ON `${TABLE_NAME}` (`deleted`, `date`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "historicalWorkoutNames",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "historicalWorkoutNameId"
+            ],
+            "referencedColumns": [
+              "historical_workout_name_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "setLogEntries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`set_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutLogEntryId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `workoutLiftDeloadWeek` INTEGER, `liftName` TEXT NOT NULL, `liftMovementPattern` TEXT NOT NULL, `progressionScheme` TEXT NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `repRangeTop` INTEGER, `repRangeBottom` INTEGER, `rpeTarget` REAL NOT NULL, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `oneRepMax` INTEGER NOT NULL, `setMatching` INTEGER, `maxSets` INTEGER, `repFloor` INTEGER, `dropPercentage` REAL, `isDeload` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutLogEntryId`) REFERENCES `workoutLogEntries`(`workout_log_entry_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "set_log_entry_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutLogEntryId",
+            "columnName": "workoutLogEntryId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutLiftDeloadWeek",
+            "columnName": "workoutLiftDeloadWeek",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "liftName",
+            "columnName": "liftName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftMovementPattern",
+            "columnName": "liftMovementPattern",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressionScheme",
+            "columnName": "progressionScheme",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setType",
+            "columnName": "setType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftPosition",
+            "columnName": "liftPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setPosition",
+            "columnName": "setPosition",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "myoRepSetPosition",
+            "columnName": "myoRepSetPosition",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "repRangeTop",
+            "columnName": "repRangeTop",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "repRangeBottom",
+            "columnName": "repRangeBottom",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rpeTarget",
+            "columnName": "rpeTarget",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weightRecommendation",
+            "columnName": "weightRecommendation",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "weight",
+            "columnName": "weight",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reps",
+            "columnName": "reps",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rpe",
+            "columnName": "rpe",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "oneRepMax",
+            "columnName": "oneRepMax",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setMatching",
+            "columnName": "setMatching",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "maxSets",
+            "columnName": "maxSets",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "repFloor",
+            "columnName": "repFloor",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "dropPercentage",
+            "columnName": "dropPercentage",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "isDeload",
+            "columnName": "isDeload",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "set_log_entry_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_sle_lift_pos_flags_entry",
+            "unique": false,
+            "columnNames": [
+              "liftId",
+              "setPosition",
+              "deleted",
+              "isDeload",
+              "workoutLogEntryId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_sle_lift_pos_flags_entry` ON `${TABLE_NAME}` (`liftId`, `setPosition`, `deleted`, `isDeload`, `workoutLogEntryId`)"
+          },
+          {
+            "name": "index_setLogEntries_workoutLogEntryId",
+            "unique": false,
+            "columnNames": [
+              "workoutLogEntryId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_setLogEntries_workoutLogEntryId` ON `${TABLE_NAME}` (`workoutLogEntryId`)"
+          },
+          {
+            "name": "index_setLogEntries_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_setLogEntries_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_setLogEntries_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_setLogEntries_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workoutLogEntries",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutLogEntryId"
+            ],
+            "referencedColumns": [
+              "workout_log_entry_id"
+            ]
+          },
+          {
+            "table": "lifts",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workouts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `programId` INTEGER NOT NULL, `name` TEXT NOT NULL, `position` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`programId`) REFERENCES `programs`(`program_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "programId",
+            "columnName": "programId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workouts_programId",
+            "unique": false,
+            "columnNames": [
+              "programId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workouts_programId` ON `${TABLE_NAME}` (`programId`)"
+          },
+          {
+            "name": "index_workouts_position",
+            "unique": false,
+            "columnNames": [
+              "position"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workouts_position` ON `${TABLE_NAME}` (`position`)"
+          },
+          {
+            "name": "index_workouts_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workouts_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_workouts_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_workouts_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "programs",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "programId"
+            ],
+            "referencedColumns": [
+              "program_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workoutLifts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_lift_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `progressionScheme` TEXT NOT NULL, `position` INTEGER NOT NULL, `setCount` INTEGER NOT NULL, `deloadWeek` INTEGER, `rpeTarget` REAL, `repRangeBottom` INTEGER, `repRangeTop` INTEGER, `stepSize` INTEGER, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_lift_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "progressionScheme",
+            "columnName": "progressionScheme",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setCount",
+            "columnName": "setCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deloadWeek",
+            "columnName": "deloadWeek",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rpeTarget",
+            "columnName": "rpeTarget",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "repRangeBottom",
+            "columnName": "repRangeBottom",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "repRangeTop",
+            "columnName": "repRangeTop",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stepSize",
+            "columnName": "stepSize",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "workout_lift_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workoutLifts_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLifts_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          },
+          {
+            "name": "index_workoutLifts_workoutId",
+            "unique": false,
+            "columnNames": [
+              "workoutId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLifts_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
+          },
+          {
+            "name": "index_workoutLifts_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutLifts_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_workoutLifts_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_workoutLifts_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workouts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutId"
+            ],
+            "referencedColumns": [
+              "workout_id"
+            ]
+          },
+          {
+            "table": "lifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "workoutsInProgress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_in_progress_id` INTEGER NOT NULL, `workoutId` INTEGER NOT NULL, `startTime` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`workout_in_progress_id`), FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "workout_in_progress_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workoutId",
+            "columnName": "workoutId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTime",
+            "columnName": "startTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "workout_in_progress_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_workoutsInProgress_workoutId",
+            "unique": false,
+            "columnNames": [
+              "workoutId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutsInProgress_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
+          },
+          {
+            "name": "index_workoutsInProgress_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_workoutsInProgress_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_workoutsInProgress_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_workoutsInProgress_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "workouts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "workoutId"
+            ],
+            "referencedColumns": [
+              "workout_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "restTimerInProgress",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rest_timer_in_progress_id` INTEGER NOT NULL, `timeStartedInMillis` INTEGER NOT NULL, `restTime` INTEGER NOT NULL, PRIMARY KEY(`rest_timer_in_progress_id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "rest_timer_in_progress_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timeStartedInMillis",
+            "columnName": "timeStartedInMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restTime",
+            "columnName": "restTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "rest_timer_in_progress_id"
+          ]
+        }
+      },
+      {
+        "tableName": "liftMetricCharts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_metric_chart_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `liftId` INTEGER, `chartType` TEXT NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "lift_metric_chart_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "liftId",
+            "columnName": "liftId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "chartType",
+            "columnName": "chartType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "lift_metric_chart_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_liftMetricCharts_liftId",
+            "unique": false,
+            "columnNames": [
+              "liftId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liftMetricCharts_liftId` ON `${TABLE_NAME}` (`liftId`)"
+          },
+          {
+            "name": "index_liftMetricCharts_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liftMetricCharts_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_liftMetricCharts_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_liftMetricCharts_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "lifts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "liftId"
+            ],
+            "referencedColumns": [
+              "lift_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "volumeMetricCharts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`lift_volume_chart_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `volumeType` TEXT NOT NULL, `volumeTypeImpact` TEXT NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "lift_volume_chart_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumeType",
+            "columnName": "volumeType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumeTypeImpact",
+            "columnName": "volumeTypeImpact",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remoteId",
+            "columnName": "remoteId",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "remoteLastUpdated",
+            "columnName": "remoteLastUpdated",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "synced",
+            "columnName": "synced",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          },
+          {
+            "fieldPath": "deleted",
+            "columnName": "deleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "lift_volume_chart_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_volumeMetricCharts_synced",
+            "unique": false,
+            "columnNames": [
+              "synced"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_volumeMetricCharts_synced` ON `${TABLE_NAME}` (`synced`)"
+          },
+          {
+            "name": "index_volumeMetricCharts_remoteId",
+            "unique": true,
+            "columnNames": [
+              "remoteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_volumeMetricCharts_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "syncMetadata",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`collectionName` TEXT NOT NULL, `lastSyncTimestamp` INTEGER NOT NULL, PRIMARY KEY(`collectionName`))",
+        "fields": [
+          {
+            "fieldPath": "collectionName",
+            "columnName": "collectionName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncTimestamp",
+            "columnName": "lastSyncTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "collectionName"
+          ]
+        }
+      }
+    ],
+    "views": [
+      {
+        "viewName": "LiveProgramView",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT * FROM programs WHERE deleted = 0"
+      },
+      {
+        "viewName": "LiveWorkoutView",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT * FROM workouts WHERE deleted = 0"
+      },
+      {
+        "viewName": "LiveWorkoutLiftView",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT * FROM workoutLifts WHERE deleted = 0"
+      },
+      {
+        "viewName": "LiveCustomLiftSetView",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT * FROM sets WHERE deleted = 0"
+      },
+      {
+        "viewName": "LiveLiftView",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT * FROM lifts WHERE deleted = 0"
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6298660681580cc565f2e2e44c79ca67')"
+    ]
+  }
+}

@@ -2,20 +2,20 @@ package com.browntowndev.liftlab
 
 import android.app.Application
 import android.util.Log
-import androidx.work.Configuration
+import com.browntowndev.liftlab.dependencyInjection.aiModule
+import com.browntowndev.liftlab.dependencyInjection.appModule
 import com.browntowndev.liftlab.dependencyInjection.eventBusModule
-import com.browntowndev.liftlab.dependencyInjection.syncModule
-import com.browntowndev.liftlab.dependencyInjection.useCaseModule
-import com.browntowndev.liftlab.dependencyInjection.repositoryModule
-import com.browntowndev.liftlab.dependencyInjection.liftLabScopeModule
 import com.browntowndev.liftlab.dependencyInjection.notificationModule
+import com.browntowndev.liftlab.dependencyInjection.persistenceModule
+import com.browntowndev.liftlab.dependencyInjection.syncModule
+import com.browntowndev.liftlab.dependencyInjection.timerModule
+import com.browntowndev.liftlab.dependencyInjection.useCaseModule
 import com.browntowndev.liftlab.dependencyInjection.viewModelModule
 import com.google.firebase.Firebase
 import com.google.firebase.appcheck.AppCheckProviderFactory
 import com.google.firebase.appcheck.appCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
-import com.google.firebase.initialize
 import com.mmk.kmpauth.google.GoogleAuthCredentials
 import com.mmk.kmpauth.google.GoogleAuthProvider
 import org.koin.android.ext.koin.androidContext
@@ -27,7 +27,6 @@ class LiftLabApp() : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        Firebase.initialize(context = this)
         Firebase.appCheck.installAppCheckProviderFactory(
             getAppCheckProviderFactory(),
         )
@@ -39,10 +38,12 @@ class LiftLabApp() : Application() {
             androidContext(this@LiftLabApp)
             workManagerFactory()
             modules(
-                liftLabScopeModule,
+                appModule,
+                aiModule,
                 useCaseModule,
-                repositoryModule,
+                persistenceModule,
                 syncModule,
+                timerModule,
                 viewModelModule,
                 eventBusModule,
                 notificationModule

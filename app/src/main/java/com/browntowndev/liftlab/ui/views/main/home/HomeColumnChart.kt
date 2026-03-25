@@ -8,8 +8,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.ui.composables.ColumnChart
-import com.browntowndev.liftlab.ui.models.ChartModel
+import com.browntowndev.liftlab.ui.composables.chart.ColumnChart
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel

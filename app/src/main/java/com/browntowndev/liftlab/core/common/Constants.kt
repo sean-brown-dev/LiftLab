@@ -21,6 +21,10 @@ val REST_TIME_RANGE = 0..6L
 
 // Deload
 val DELOAD_WEEK_OPTIONS = listOf(3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f)
+
+// Program Gen
+val MICROCYCLE_SIZE_OPTIONS = listOf(3f, 4f, 5f, 6f)
+
 val NULLABLE_DELOAD_WEEK_OPTIONS =
     DELOAD_WEEK_OPTIONS
         .toMutableList<Float?>()
@@ -28,7 +32,11 @@ val NULLABLE_DELOAD_WEEK_OPTIONS =
 
 // Navigation
 const val LIFT_METRIC_CHART_IDS = "liftMetricChartIds"
-const val SHOW_WORKOUT_LOG = "showWorkoutLog"
+const val MERGE_LIFT_ID = "mergeLiftId"
 
 // Donation
 const val THANK_YOU_DIALOG_BODY = "Thank you for your support!"
+
+// Workout Calculation
+const val SET_TOO_EASY_REPS_THRESHOLD = 1.5f
+const val SET_TOO_HARD_REPS_THRESHOLD = 1f

@@ -3,8 +3,6 @@ package com.browntowndev.liftlab.ui.views.main.home
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -29,8 +27,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.ui.composables.IconDropdown
-import com.browntowndev.liftlab.ui.composables.SectionLabel
+import com.browntowndev.liftlab.ui.composables.dropdown.IconDropdown
+import com.browntowndev.liftlab.ui.composables.text.SectionLabel
 
 @Composable
 fun ChartCard(
@@ -47,10 +45,10 @@ fun ChartCard(
         colors = CardDefaults.cardColors(containerColor = color),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column {
+            Column (modifier = Modifier.weight(1f)) {
                 if (subHeaderLabel.isNotEmpty()) {
                     Text(
-                        modifier = Modifier.fillMaxWidth(.9f).padding(top = 4.dp, start = 10.dp),
+                        modifier = Modifier.padding(top = 4.dp, start = 10.dp),
                         text = subHeaderLabel,
                         color = MaterialTheme.colorScheme.tertiary,
                         style = MaterialTheme.typography.bodyLarge,
@@ -60,8 +58,7 @@ fun ChartCard(
                     )
                 }
                 SectionLabel(
-                    modifier = Modifier.fillMaxWidth(.9f).then(
-                        if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp)),
+                    modifier = if (subHeaderLabel.isEmpty()) Modifier.padding(labelPadding) else Modifier.padding(bottom = 10.dp),
                     text = label,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     fontSize = labelFontSize,
@@ -69,8 +66,6 @@ fun ChartCard(
             }
 
             if (onDelete != null) {
-                Spacer(modifier = Modifier.weight(1f))
-
                 var isExpanded by remember { mutableStateOf(false) }
                 IconDropdown(
                     isExpanded = isExpanded,

@@ -12,7 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * This migration explicitly creates all the new views that were added in version 17,
  * using `IF NOT EXISTS` to ensure the process is safe and robust.
  */
-class ViewsAutoMigration : Migration(16, 17) {
+val ViewsAutoMigration = object: Migration(16, 17) {
     override fun migrate(db: SupportSQLiteDatabase) {
         // Create LiveProgramView
         db.execSQL(

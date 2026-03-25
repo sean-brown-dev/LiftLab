@@ -22,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.ui.composables.CustomAnchorDropdown
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.ui.composables.dropdown.CustomAnchorDropdown
 
 @Composable
 fun WavePatternDropdown(
@@ -33,16 +33,11 @@ fun WavePatternDropdown(
     workoutLiftStepSizeOptions: Map<Long, Map<Int, List<Int>>>,
     onUpdateStepSize: (workoutLiftId: Long, stepSize: Int) -> Unit,
 ) {
-    val stepSizeOptions = remember(key1 = workoutLiftId, key2 = workoutLiftStepSizeOptions) {
-        workoutLiftStepSizeOptions[workoutLiftId] ?: mapOf()
-    }
-
+    val stepSizeOptions = workoutLiftStepSizeOptions[workoutLiftId] ?: mapOf()
     if (stepSizeOptions.isNotEmpty()) {
         Row(modifier = Modifier.padding(top = 5.dp, start = 20.dp)) {
             var isExpanded by remember { mutableStateOf(false) }
-            val stepsToBeTaken = remember(key1 = stepSize, key2 = stepSizeOptions) {
-                stepSizeOptions[stepSize] ?: listOf()
-            }
+            val stepsToBeTaken = stepSizeOptions[stepSize] ?: listOf()
             Text(
                 modifier = Modifier.padding(end = 5.dp),
                 text = "Wave Pattern:",

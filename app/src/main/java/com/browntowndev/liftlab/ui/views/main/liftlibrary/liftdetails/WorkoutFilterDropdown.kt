@@ -75,15 +75,15 @@ fun WorkoutFilterDropdown(
                         )
                     }
                 }
-                items(filterOptions.keys.toList(), { it }) { id ->
-                    val currentWorkoutName = remember(id) {
-                        filterOptions[id]!!
+                items(items = filterOptions.toList(), { it.first }) { filterOption ->
+                    val currentWorkoutName = remember(filterOption) {
+                        filterOption.second
                     }
                     var isSelected by remember(
-                        key1 = id,
+                        key1 = filterOption.first,
                         key2 = selectedFilters
                     ) {
-                        mutableStateOf(selectedFilters.contains(id))
+                        mutableStateOf(filterOption.first in selectedFilters)
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -95,9 +95,9 @@ fun WorkoutFilterDropdown(
                             onCheckedChange = { checked ->
                                 isSelected = checked
                                 if (isSelected) {
-                                    workoutFilters.add(id)
+                                    workoutFilters.add(filterOption.first)
                                 } else {
-                                    workoutFilters.remove(id)
+                                    workoutFilters.remove(filterOption.first)
                                 }
                             }
                         )

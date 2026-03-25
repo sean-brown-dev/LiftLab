@@ -46,11 +46,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.toShortTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
 import com.browntowndev.liftlab.core.common.toWholeNumberOrOneDecimalString
-import com.browntowndev.liftlab.ui.models.WorkoutCompletionSummary
+import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiModel
 import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.CaptureController
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
@@ -63,7 +65,7 @@ import java.util.Date
 @Composable
 fun CompletionSummary(
     paddingValues: PaddingValues,
-    workoutCompletionSummary: WorkoutCompletionSummary,
+    workoutCompletionSummary: WorkoutCompletionSummaryUiModel,
     startTime: Date,
     onShare: (workoutSummaryImage: Bitmap) -> Unit,
     onCancel: () -> Unit,
@@ -307,11 +309,8 @@ private suspend fun shareWorkoutSummary(
                     .copy(Bitmap.Config.ARGB_8888, true)
 
                 // Create a new bitmap with the same dimensions as the original
-                val cardWithQrCodeBitmap = Bitmap.createBitmap(
-                    liftSummaryCardBitmap.width,
-                    liftSummaryCardBitmap.height,
-                    Bitmap.Config.ARGB_8888,
-                )
+                val cardWithQrCodeBitmap =
+                    createBitmap(liftSummaryCardBitmap.width, liftSummaryCardBitmap.height)
 
                 // Switch to the Main dispatcher to perform UI operations
                 withContext(Dispatchers.Main) {
@@ -328,14 +327,9 @@ private suspend fun shareWorkoutSummary(
                         val scaleFactor = scaledHeight / qrCodeBitmap.height
                         val scaledWidth = qrCodeBitmap.width * scaleFactor
 
-                        val scaledBitmap = Bitmap.createScaledBitmap(
-                            qrCodeBitmap,
-                            scaledWidth.toInt(),
-                            scaledHeight.toInt(),
-                            true
-                        )
-                        canvas.drawBitmap(
-                            scaledBitmap,
+                        val scaledBitmap = qrCodeBitmap.scale(scaledWidth.toInt(), scaledHeight.toInt())
+                            canvas.drawBitmap(
+                                scaledBitmap,
                             liftSummaryCardBitmap.width - (scaledWidth + 20),
                             20f,
                             null

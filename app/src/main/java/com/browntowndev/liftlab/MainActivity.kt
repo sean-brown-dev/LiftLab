@@ -2,8 +2,8 @@ package com.browntowndev.liftlab
 
 import android.app.Activity
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -12,51 +12,60 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.android.billingclient.api.BillingClient
 import com.browntowndev.liftlab.core.common.SettingsManager
+import com.browntowndev.liftlab.core.data.local.LiftLabDatabase
+import com.browntowndev.liftlab.ui.infrastructure.WalCaretaker
 import com.browntowndev.liftlab.ui.notifications.NotificationHelper
-import com.browntowndev.liftlab.ui.viewmodels.DonationViewModel
-import com.browntowndev.liftlab.ui.viewmodels.RemoteSyncViewModel
+import com.browntowndev.liftlab.ui.viewmodels.donation.DonationViewModel
+import com.browntowndev.liftlab.ui.viewmodels.remoteSync.RemoteSyncViewModel
+import com.browntowndev.liftlab.ui.viewmodels.startup.StartupViewModel
 import com.browntowndev.liftlab.ui.views.LiftLab
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.koin.androidx.viewmodel.ext.android.getViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import org.koin.core.parameter.parametersOf
 
 @ExperimentalFoundationApi
 class MainActivity : ComponentActivity(), KoinComponent {
+    val startupViewModel: StartupViewModel by inject()
     val remoteSyncViewModel: RemoteSyncViewModel by inject()
+    val donationViewModel: DonationViewModel by inject()
+    val notificationHelper: NotificationHelper by inject()
+    val db: LiftLabDatabase by inject()
 
     @OptIn(KoinExperimentalAPI::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            getKoin().get<WalCaretaker>()
+        )
 
         installSplashScreen().setKeepOnScreenCondition {
-            remoteSyncViewModel.syncState.value.syncing
+            !startupViewModel.initialized.value ||
+                remoteSyncViewModel.syncState.value.syncing
         }
 
-        remoteSyncViewModel.syncAll()
         requestNotificationPermission(this)
         SettingsManager.initialize(this@MainActivity)
+        startupViewModel.beginInitializationCheck {
+            remoteSyncViewModel.syncAllSuspending()
+        }
 
         setContent {
+            val initialized by startupViewModel.initialized.collectAsState()
             val syncState by remoteSyncViewModel.syncState.collectAsState()
-            val donationViewModel: DonationViewModel = remember {
-                getViewModel(parameters = { parametersOf(BillingClient.newBuilder(this)) })
-            }
             val donationState by donationViewModel.state.collectAsState()
+
             LiftLab(
-                initializing = syncState.syncing,
+                initializing = syncState.syncing || !initialized,
                 showSyncFailedDialog = syncState.showSyncFailedDialog,
                 donationState = donationState,
                 onClearBillingError = donationViewModel::clearBillingError,
@@ -74,12 +83,17 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
     override fun onStop() {
         super.onStop()
-        val context = super.getApplicationContext()
+        if (isChangingConfigurations) return  // don't run during rotation, split-screen toggles, etc.
 
-        lifecycleScope.launch {
-            val notificationHelper: NotificationHelper by inject()
-            if (!notificationHelper.startRestTimerNotification(context)) {
-                notificationHelper.startActiveWorkoutNotification(context)
+        val appCtx = applicationContext
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            runCatching {
+                if (!notificationHelper.startRestTimerNotification(appCtx)) {
+                    notificationHelper.startActiveWorkoutNotification(appCtx)
+                }
+            }.onFailure { e ->
+                Log.w("MainActivity", "Failed to start workout/rest notifications", e)
             }
         }
     }
@@ -95,8 +109,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
     }
 
     private fun requestNotificationPermission(context: Activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(
+        if (ContextCompat.checkSelfPermission(
                 context,
                 android.Manifest.permission.POST_NOTIFICATIONS
             ) != PackageManager.PERMISSION_GRANTED

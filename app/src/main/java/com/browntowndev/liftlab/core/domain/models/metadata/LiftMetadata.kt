@@ -1,0 +1,15 @@
+package com.browntowndev.liftlab.core.domain.models.metadata
+
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import kotlin.time.Duration
+
+data class LiftMetadata(
+    val id: Long,
+    val name: String,
+    val note: String?,
+    val movementPattern: MovementPattern,
+    val volumeTypesBitmask: Int,
+    val secondaryVolumeTypesBitmask: Int?,
+    val restTime: Duration?,
+    val restTimerEnabled: Boolean,
+)

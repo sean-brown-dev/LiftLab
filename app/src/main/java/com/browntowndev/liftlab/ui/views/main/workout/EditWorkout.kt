@@ -2,17 +2,17 @@ package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import arrow.core.Either
-import arrow.core.left
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.EditWorkoutViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.viewmodels.workout.EditWorkoutViewModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -22,6 +22,7 @@ fun EditWorkout(
     workoutLogEntryId: Long,
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     mutateTopAppBarControlValue: (AppBarMutateControlRequest<String>) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
@@ -33,6 +34,7 @@ fun EditWorkout(
 
     editWorkoutViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = editWorkoutViewModel)
+    SnackbarProvider(snackbarHostState, editWorkoutViewModel.userMessages)
 
     LaunchedEffect(key1 = workoutState.workout) {
         if (workoutState.workout != null) {
@@ -52,6 +54,7 @@ fun EditWorkout(
         }
         onNavigateBack()
     }
+
 
     if (workoutState.workout != null) {
         WorkoutLog(
@@ -88,17 +91,19 @@ fun EditWorkout(
                 editWorkoutViewModel.completeSet(
                     restTime = restTime,
                     restTimerEnabled = restTimerEnabled,
-                    result = editWorkoutViewModel.buildSetResult(
-                        liftId = liftId,
-                        setType = setType,
-                        progressionScheme = progressionScheme,
-                        liftPosition = liftPosition,
-                        setPosition = setPosition,
-                        myoRepSetPosition = myoRepSetPosition,
-                        weight = weight,
-                        reps = reps,
-                        rpe = rpe,
-                    )
+                    onBuildSetResult = {
+                        editWorkoutViewModel.buildSetResult(
+                            liftId = liftId,
+                            setType = setType,
+                            progressionScheme = progressionScheme,
+                            liftPosition = liftPosition,
+                            setPosition = setPosition,
+                            myoRepSetPosition = myoRepSetPosition,
+                            weight = weight,
+                            reps = reps,
+                            rpe = rpe,
+                        )
+                    }
                 )
             },
             onUndoSetCompletion = { liftPosition, setPosition, myoRepSetPosition ->
@@ -106,13 +111,6 @@ fun EditWorkout(
                     liftPosition = liftPosition,
                     setPosition = setPosition,
                     myoRepSetPosition = myoRepSetPosition
-                )
-            },
-            onDeleteMyoRepSet = { workoutLiftId, setPosition, myoRepSetPosition ->
-                editWorkoutViewModel.deleteMyoRepSet(
-                    workoutLiftId = workoutLiftId,
-                    setPosition = setPosition,
-                    myoRepSetPosition = myoRepSetPosition,
                 )
             },
             onAddSet = { workoutLiftId ->

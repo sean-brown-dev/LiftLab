@@ -1,11 +1,11 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.RestTimerInProgress
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.RestTimerInProgress
 import kotlinx.coroutines.flow.Flow
 
-interface RestTimerInProgressRepository : Repository<RestTimerInProgress, Long> {
+interface RestTimerInProgressRepository {
     suspend fun get(): RestTimerInProgress?
     fun getFlow(): Flow<RestTimerInProgress?>
-    suspend fun insert(restTime: Long)
-    suspend fun deleteAll()
+    suspend fun upsert(startTimeInMillis: Long, restTimeInMillis: Long)
+    suspend fun delete()
 }

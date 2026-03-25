@@ -12,25 +12,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.ui.composables.FocusableRoundTextField
-import com.browntowndev.liftlab.ui.composables.SectionLabel
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.ui.composables.text.FocusableRoundTextField
+import com.browntowndev.liftlab.ui.composables.text.SectionLabel
 
 @Composable
 fun DetailsTab(
     liftName: String,
     liftNamePlaceholder: String = "",
     movementPattern: MovementPattern,
-    volumeTypes: List<String>,
-    secondaryVolumeTypes: List<String>,
+    volumeTypeOptions: List<VolumeType>,
+    volumeTypes: List<VolumeType>,
+    secondaryVolumeTypes: List<VolumeType>,
     onLiftNameChanged: (newName: String) -> Unit,
     onAddVolumeType: (newVolumeType: VolumeType) -> Unit,
     onAddSecondaryVolumeType: (newVolumeType: VolumeType) -> Unit,
@@ -40,25 +39,6 @@ fun DetailsTab(
     onUpdateSecondaryVolumeType: (index: Int, newVolumeType: VolumeType) -> Unit,
     onUpdateMovementPattern: (MovementPattern) -> Unit,
 ) {
-    val volumeTypeOptions: Map<String, VolumeType> = remember {
-        val sortedVolumeTypeOptions = VolumeType.entries.sortedBy { it.displayName() }
-        sortedVolumeTypeOptions.associateBy { it.displayName() }
-    }
-
-    val unselectedVolumeTypeOptions: List<VolumeType> = remember(key1 = volumeTypes, key2 = secondaryVolumeTypes) {
-        val unselectedTypes = volumeTypeOptions.keys
-            .filterNot {
-                volumeTypes
-                    .toMutableList()
-                    .apply { addAll(secondaryVolumeTypes) }
-                    .contains(it)
-            }
-
-        unselectedTypes.fastMap {
-            volumeTypeOptions[it]!!
-        }
-    }
-
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,7 +99,6 @@ fun DetailsTab(
             allowDeleteAll = false,
             volumeTypes = volumeTypes,
             volumeTypeOptions = volumeTypeOptions,
-            unselectedVolumeTypeOptions = unselectedVolumeTypeOptions,
             onUpdateVolumeType = onUpdateVolumeType,
             onAddVolumeType = onAddVolumeType,
             onRemoveVolumeType = onRemoveVolumeType,
@@ -130,7 +109,6 @@ fun DetailsTab(
             allowDeleteAll = true,
             volumeTypes = secondaryVolumeTypes,
             volumeTypeOptions = volumeTypeOptions,
-            unselectedVolumeTypeOptions = unselectedVolumeTypeOptions,
             onUpdateVolumeType = onUpdateSecondaryVolumeType,
             onAddVolumeType = onAddSecondaryVolumeType,
             onRemoveVolumeType = onRemoveSecondaryVolumeType,

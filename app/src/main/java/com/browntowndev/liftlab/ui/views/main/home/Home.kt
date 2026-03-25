@@ -13,14 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,14 +35,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.RowMultiSelect
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.models.ChartModel
-import com.browntowndev.liftlab.ui.models.ComposedChartModel
-import com.browntowndev.liftlab.ui.viewmodels.HomeViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.HomeScreen
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.chart.EmptyChartPlaceholder
+import com.browntowndev.liftlab.ui.composables.keyboard.RowMultiSelect
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.metrics.ChartModel
+import com.browntowndev.liftlab.ui.models.metrics.ComposedChartModel
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.HomeScreen
+import com.browntowndev.liftlab.ui.viewmodels.home.HomeViewModel
 import com.patrykandpatrick.vico.core.cartesian.data.LineCartesianLayerModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -52,6 +55,8 @@ import org.koin.core.parameter.parametersOf
 fun Home(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
+    lazyListState: LazyListState,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     onNavigateToSettingsMenu: () -> Unit,
     onNavigateToLiftLibrary: (chartIds: List<Long>) -> Unit,
@@ -68,6 +73,7 @@ fun Home(
         screenId = screenId,
         viewModelToUnregister = homeViewModel
     )
+    SnackbarProvider(snackbarHostState, homeViewModel.userMessages)
 
     LaunchedEffect(state.loggedIn) {
         mutateTopAppBarControlValue(
@@ -78,13 +84,14 @@ fun Home(
 
     Box(contentAlignment = Alignment.BottomCenter) {
         LazyColumn(
+            state = lazyListState,
             modifier = Modifier
                 .background(color = MaterialTheme.colorScheme.background)
                 .fillMaxSize()
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            item {
+            item (key = "workout_summary_charts") {
                 val coroutineScope = rememberCoroutineScope()
                 val pagerState = rememberPagerState { 2 }
                 HorizontalPager(
@@ -99,7 +106,7 @@ fun Home(
                                 label = "Workouts Completed",
                                 chartModel = state.workoutCompletionChart!!
                             )
-                        }
+                        } else EmptyChartPlaceholder("Once a workout is completed, workout completions by week will be here.")
 
                         1 -> if (state.microCycleCompletionChart != null) {
                             HomeColumnChart(
@@ -110,7 +117,7 @@ fun Home(
                                 subHeaderLabel = state.activeProgramName,
                                 chartModel = state.microCycleCompletionChart!!,
                             )
-                        }
+                        } else EmptyChartPlaceholder("Once a workout is completed, current microcycle completion percentages for the mesocycle will be here.")
                     }
                 }
                 Row(
@@ -147,23 +154,22 @@ fun Home(
                     }
                 }
             }
-            item {
+            item (key = "add_metric_charts_button") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 15.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    IconButton(onClick = { homeViewModel.toggleLiftChartPicker() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = stringResource(R.string.add_lift_chart),
+                    TextButton(onClick = { homeViewModel.toggleLiftChartPicker() }) {
+                        Text(
+                            text = "Add Metric Charts",
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
             }
-            items(state.volumeMetricChartModels, key = { it.id }) { chart ->
+            items(state.volumeMetricChartModels, key = { it.id to "volume_chart" }) { chart ->
                 val label = remember(chart.volumeType, chart.volumeTypeImpact) {
                     "${chart.volumeType} - ${chart.volumeTypeImpact}"
                 }
@@ -178,7 +184,7 @@ fun Home(
                     else -> throw Exception("Unrecognized volume chart type: ${chartModel::class.simpleName}")
                 }
             }
-            items(state.liftMetricChartModels, key = { it.id }) { chart ->
+            items(state.liftMetricChartModels, key = { it.id to "lift_chart" }) { chart ->
                 val label = remember(chart.liftName, chart.type) {
                     "${chart.liftName} - ${chart.type.displayName()}"
                 }

@@ -6,17 +6,25 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.SetType
 
 @GenerateFirestoreMetadataExtensions
 @Entity("setLogEntries",
     indices = [
-        Index("liftId"),
         Index("workoutLogEntryId"),
         Index("synced"),
-        Index("remoteId", unique = true),
+        Index(value = ["remoteId"], unique = true),
+
+        // fast path for flows keyed by workout entry
+        Index(value = ["workoutLogEntryId", "deleted"], name = "idx_sle_wle_deleted"),
+
+        // most-recent-per-(liftId, setPosition) lookups with optional deload flag
+        Index(value = ["liftId", "setPosition", "deleted", "isDeload"], name = "idx_sle_lift_pos_flags"),
+
+        // PR-style aggregations (MAX(oneRepMax) BY liftId) and per-lift reads
+        Index(value = ["liftId", "deleted", "oneRepMax"], name = "idx_sle_lift_deleted_orm"),
     ],
     foreignKeys = [
         ForeignKey(
@@ -51,14 +59,10 @@ data class SetLogEntryEntity(
     val weight: Float,
     val reps: Int,
     val rpe: Float,
-    @ColumnInfo(defaultValue = 0.toString())
     val oneRepMax: Int,
-    val mesoCycle: Int,
-    val microCycle: Int,
     val setMatching: Boolean? = null,
     val maxSets: Int? = null,
     val repFloor: Int? = null,
     val dropPercentage: Float? = null,
-    @ColumnInfo(defaultValue = false.toString())
     val isDeload: Boolean = false,
 ): BaseEntity()

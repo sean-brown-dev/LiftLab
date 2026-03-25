@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -8,11 +10,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,31 +40,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.domain.models.LoggingMyoRepSet
-import com.browntowndev.liftlab.core.domain.models.LoggingWorkoutLift
-import com.browntowndev.liftlab.ui.composables.RpeKeyboard
-import com.browntowndev.liftlab.ui.viewmodels.PickerViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.PickerType
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.ui.composables.keyboard.RpeKeyboard
+import com.browntowndev.liftlab.ui.models.workoutLogging.LoggingWorkoutLiftUiModel
+import com.browntowndev.liftlab.ui.viewmodels.picker.PickerViewModel
+import com.browntowndev.liftlab.ui.viewmodels.workoutBuilder.PickerType
 import org.koin.androidx.compose.koinViewModel
 import kotlin.time.Duration
 
 
 @Composable
 fun WorkoutLog(
+    modifier: Modifier = Modifier,
     paddingValues: PaddingValues,
     visible: Boolean,
     isEdit: Boolean = false,
-    lifts: List<LoggingWorkoutLift>,
+    lifts: List<LoggingWorkoutLiftUiModel>,
+    animationEnabled: Boolean = true, // For tests
+    pickerViewModel: PickerViewModel = koinViewModel(),
     duration: String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
@@ -73,41 +78,30 @@ fun WorkoutLog(
     cancelWorkout: () -> Unit,
     onChangeRestTime: (workoutLiftId: Long, newRestTime: Duration, enabled: Boolean) -> Unit,
     onReplaceLift: (workoutLiftId: Long, movementPattern: MovementPattern) -> Unit,
-    onDeleteMyoRepSet: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int) -> Unit,
     onNoteChanged: (liftId: Long, note: String) -> Unit,
     onReorderLiftsClicked: () -> Unit,
     onAddSet: (workoutLiftId: Long) -> Unit,
 ) {
-    // Remember the myo rep set indices from the previous composition. Below they will
-    // animate if they're not found in this set (they are new)
-    var indicesOfExistingMyoRepSets by remember {
-        mutableStateOf(
-            lifts.flatMap { workoutLift ->
-                workoutLift.sets
-                    .filterIsInstance<LoggingMyoRepSet>()
-                    .fastMap { set ->
-                        "${workoutLift.id}-${set.myoRepSetPosition}"
-                    }
-            }.toSet()
-        )
-    }
+    val enterTransition = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn()
+    val exitTransition = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut()
 
     AnimatedVisibility(
         modifier = Modifier.animateContentSize(),
         visible = visible,
-        enter = scaleIn(initialScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeIn(),
-        exit = scaleOut(targetScale = .6f, animationSpec = tween(durationMillis = 250, easing = LinearEasing)) + fadeOut(),
+        enter = if (animationEnabled) enterTransition else EnterTransition.None,
+        exit = if (animationEnabled) exitTransition else ExitTransition.None,
     ) {
         val lazyListState = rememberLazyListState()
-        val pickerViewModel: PickerViewModel = koinViewModel()
         val pickerState by pickerViewModel.state.collectAsState()
         Box(contentAlignment = Alignment.BottomCenter) {
             var pickerSpacer: Dp by remember { mutableStateOf(0.dp) }
             LazyColumn(
-                modifier = Modifier
+                modifier = modifier.then(Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .consumeWindowInsets(paddingValues)
+                    .background(MaterialTheme.colorScheme.background)),
                 state = lazyListState,
+                contentPadding = paddingValues,
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -145,10 +139,11 @@ fun WorkoutLog(
                 }
                 items(lifts, key = { it.id }) { lift ->
                     WorkoutLiftCard(
+                        modifier = Modifier.testTag("workout-lift-card-${lift.id}"),
                         workoutLift = lift,
                         isEdit = isEdit,
-                        indicesOfExistingMyoRepSets = indicesOfExistingMyoRepSets,
                         lazyListState = lazyListState,
+                        animationEnabled = animationEnabled,
                         onUndoSetCompletion = onUndoSetCompletion,
                         onChangeRestTime = onChangeRestTime,
                         onWeightChanged = onWeightChanged,
@@ -156,7 +151,6 @@ fun WorkoutLog(
                         onReplaceLift = onReplaceLift,
                         onNoteChanged = onNoteChanged,
                         onSetCompleted = onSetCompleted,
-                        onDeleteMyoRepSet = onDeleteMyoRepSet,
                         onHideRpePicker = {
                             pickerViewModel.hideRpePicker()
                             pickerSpacer = 0.dp
@@ -184,7 +178,7 @@ fun WorkoutLog(
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             ),
-                            onClick = cancelWorkout
+                            onClick = cancelWorkout,
                         ) {
                             Text(
                                 text = "Cancel Workout",
@@ -199,25 +193,14 @@ fun WorkoutLog(
                 }
             }
             RpeKeyboard(
+                modifier = Modifier.testTag("rpe-keyboard"),
                 visible = pickerState.type == PickerType.Rpe,
+                animationEnabled = animationEnabled,
                 selectedRpe = pickerState.currentRpe,
                 onRpeSelected = {
                     onRpeSelected(pickerState.workoutLiftId!!, pickerState.setPosition!!, pickerState.myoRepSetPosition, it)
                 },
             )
         }
-    }
-
-    // After everything is rendered update this map to include any new
-    // myo rep sets that were added so they don't animate next time they
-    // come into view
-    LaunchedEffect(lifts) {
-        indicesOfExistingMyoRepSets = lifts.flatMap { workoutLift ->
-            workoutLift.sets
-                .filterIsInstance<LoggingMyoRepSet>()
-                .fastMap { set ->
-                    "${workoutLift.id}-${(set as? LoggingMyoRepSet)?.myoRepSetPosition}"
-                }
-        }.toSet()
     }
 }

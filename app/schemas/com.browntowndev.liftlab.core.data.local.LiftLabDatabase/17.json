@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 17,
-    "identityHash": "b6e5c2233d0a04aa645fd2bb3cdf1a25",
+    "identityHash": "e4eb75a827d2bf463b832babd7ae327c",
     "entities": [
       {
         "tableName": "lifts",
@@ -396,12 +396,12 @@
         ]
       },
       {
-        "tableName": "previousSetResults",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`previously_completed_set_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `oneRepMax` INTEGER NOT NULL DEFAULT 0, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `missedLpGoals` INTEGER, `isDeload` INTEGER NOT NULL DEFAULT false, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "tableName": "liveWorkoutCompletedSets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`live_workout_completed_set_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `oneRepMax` INTEGER NOT NULL, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `missedLpGoals` INTEGER, `isDeload` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`workout_id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
-            "columnName": "previously_completed_set_id",
+            "columnName": "live_workout_completed_set_id",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -467,8 +467,7 @@
             "fieldPath": "oneRepMax",
             "columnName": "oneRepMax",
             "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "0"
+            "notNull": true
           },
           {
             "fieldPath": "mesoCycle",
@@ -491,8 +490,7 @@
             "fieldPath": "isDeload",
             "columnName": "isDeload",
             "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
+            "notNull": true
           },
           {
             "fieldPath": "remoteId",
@@ -524,68 +522,27 @@
         "primaryKey": {
           "autoGenerate": true,
           "columnNames": [
-            "previously_completed_set_id"
+            "live_workout_completed_set_id"
           ]
         },
         "indices": [
           {
-            "name": "index_previousSetResults_workoutId",
-            "unique": false,
-            "columnNames": [
-              "workoutId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
-          },
-          {
-            "name": "index_previousSetResults_liftId",
-            "unique": false,
-            "columnNames": [
-              "liftId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_liftId` ON `${TABLE_NAME}` (`liftId`)"
-          },
-          {
-            "name": "index_previousSetResults_workoutId_liftId_setPosition",
-            "unique": false,
-            "columnNames": [
-              "workoutId",
-              "liftId",
-              "setPosition"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_workoutId_liftId_setPosition` ON `${TABLE_NAME}` (`workoutId`, `liftId`, `setPosition`)"
-          },
-          {
-            "name": "index_previousSetResults_workoutId_liftId_setPosition_myoRepSetPosition",
-            "unique": false,
-            "columnNames": [
-              "workoutId",
-              "liftId",
-              "setPosition",
-              "myoRepSetPosition"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_workoutId_liftId_setPosition_myoRepSetPosition` ON `${TABLE_NAME}` (`workoutId`, `liftId`, `setPosition`, `myoRepSetPosition`)"
-          },
-          {
-            "name": "index_previousSetResults_synced",
+            "name": "index_liveWorkoutCompletedSets_synced",
             "unique": false,
             "columnNames": [
               "synced"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_previousSetResults_synced` ON `${TABLE_NAME}` (`synced`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_liveWorkoutCompletedSets_synced` ON `${TABLE_NAME}` (`synced`)"
           },
           {
-            "name": "index_previousSetResults_remoteId",
+            "name": "index_liveWorkoutCompletedSets_remoteId",
             "unique": true,
             "columnNames": [
               "remoteId"
             ],
             "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_previousSetResults_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_liveWorkoutCompletedSets_remoteId` ON `${TABLE_NAME}` (`remoteId`)"
           }
         ],
         "foreignKeys": [
@@ -715,7 +672,7 @@
       },
       {
         "tableName": "workoutLogEntries",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `historicalWorkoutNameId` INTEGER NOT NULL, `programWorkoutCount` INTEGER NOT NULL, `programDeloadWeek` INTEGER NOT NULL, `mesocycle` INTEGER NOT NULL, `microcycle` INTEGER NOT NULL, `microcyclePosition` INTEGER NOT NULL, `date` INTEGER NOT NULL, `durationInMillis` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`historicalWorkoutNameId`) REFERENCES `historicalWorkoutNames`(`historical_workout_name_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workout_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `historicalWorkoutNameId` INTEGER NOT NULL, `programWorkoutCount` INTEGER NOT NULL, `programDeloadWeek` INTEGER NOT NULL, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `microcyclePosition` INTEGER NOT NULL, `date` INTEGER NOT NULL, `durationInMillis` INTEGER NOT NULL, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`historicalWorkoutNameId`) REFERENCES `historicalWorkoutNames`(`historical_workout_name_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
         "fields": [
           {
             "fieldPath": "id",
@@ -742,14 +699,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "mesocycle",
-            "columnName": "mesocycle",
+            "fieldPath": "mesoCycle",
+            "columnName": "mesoCycle",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "microcycle",
-            "columnName": "microcycle",
+            "fieldPath": "microCycle",
+            "columnName": "microCycle",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -849,7 +806,7 @@
       },
       {
         "tableName": "setLogEntries",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`set_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutLogEntryId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `workoutLiftDeloadWeek` INTEGER, `liftName` TEXT NOT NULL, `liftMovementPattern` TEXT NOT NULL, `progressionScheme` TEXT NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `repRangeTop` INTEGER, `repRangeBottom` INTEGER, `rpeTarget` REAL NOT NULL, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `oneRepMax` INTEGER NOT NULL DEFAULT 0, `mesoCycle` INTEGER NOT NULL, `microCycle` INTEGER NOT NULL, `setMatching` INTEGER, `maxSets` INTEGER, `repFloor` INTEGER, `dropPercentage` REAL, `isDeload` INTEGER NOT NULL DEFAULT false, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutLogEntryId`) REFERENCES `workoutLogEntries`(`workout_log_entry_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`set_log_entry_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutLogEntryId` INTEGER NOT NULL, `liftId` INTEGER NOT NULL, `workoutLiftDeloadWeek` INTEGER, `liftName` TEXT NOT NULL, `liftMovementPattern` TEXT NOT NULL, `progressionScheme` TEXT NOT NULL, `setType` TEXT NOT NULL, `liftPosition` INTEGER NOT NULL, `setPosition` INTEGER NOT NULL, `myoRepSetPosition` INTEGER, `repRangeTop` INTEGER, `repRangeBottom` INTEGER, `rpeTarget` REAL NOT NULL, `weightRecommendation` REAL, `weight` REAL NOT NULL, `reps` INTEGER NOT NULL, `rpe` REAL NOT NULL, `oneRepMax` INTEGER NOT NULL DEFAULT 0, `setMatching` INTEGER, `maxSets` INTEGER, `repFloor` INTEGER, `dropPercentage` REAL, `isDeload` INTEGER NOT NULL DEFAULT false, `remoteId` TEXT DEFAULT NULL, `remoteLastUpdated` INTEGER DEFAULT NULL, `synced` INTEGER NOT NULL DEFAULT false, `deleted` INTEGER NOT NULL DEFAULT false, FOREIGN KEY(`workoutLogEntryId`) REFERENCES `workoutLogEntries`(`workout_log_entry_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`liftId`) REFERENCES `lifts`(`lift_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
         "fields": [
           {
             "fieldPath": "id",
@@ -960,18 +917,6 @@
             "affinity": "INTEGER",
             "notNull": true,
             "defaultValue": "0"
-          },
-          {
-            "fieldPath": "mesoCycle",
-            "columnName": "mesoCycle",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "microCycle",
-            "columnName": "microCycle",
-            "affinity": "INTEGER",
-            "notNull": true
           },
           {
             "fieldPath": "setMatching",
@@ -1720,7 +1665,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b6e5c2233d0a04aa645fd2bb3cdf1a25')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e4eb75a827d2bf463b832babd7ae327c')"
     ]
   }
 }

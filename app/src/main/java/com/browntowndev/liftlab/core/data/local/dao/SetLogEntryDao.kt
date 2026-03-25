@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.browntowndev.liftlab.core.data.local.dtos.PersonalRecordDto
 import com.browntowndev.liftlab.core.data.local.entities.SetLogEntryEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
@@ -22,6 +23,111 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     @Query("SELECT * FROM setLogEntries WHERE deleted = 0")
     suspend fun getAll(): List<SetLogEntryEntity>
 
+    @Transaction
+    @Query("SELECT * FROM setLogEntries WHERE deleted = 0")
+    fun getAllFlow(): Flow<List<SetLogEntryEntity>>
+
+    @Transaction
+    @Query("""
+    WITH latest_meso AS (
+      SELECT
+          hwn.workoutId,
+          MAX(wle.mesoCycle) AS maxMeso
+      FROM workoutLogEntries wle
+      JOIN historicalWorkoutNames hwn
+        ON hwn.historical_workout_name_id = wle.historicalWorkoutNameId
+      JOIN setLogEntries sle
+        ON sle.workoutLogEntryId = wle.workout_log_entry_id
+      WHERE hwn.workoutId = :workoutId
+        AND wle.deleted = 0
+        AND sle.deleted = 0
+        AND (sle.isDeload = 0 OR :includeDeload)
+      GROUP BY hwn.workoutId
+    ),
+    latest_micro AS (
+      SELECT
+          hwn.workoutId,
+          lm.maxMeso,
+          MAX(wle.microCycle) AS maxMicro
+      FROM workoutLogEntries wle
+      JOIN historicalWorkoutNames hwn
+        ON hwn.historical_workout_name_id = wle.historicalWorkoutNameId
+      JOIN setLogEntries sle
+        ON sle.workoutLogEntryId = wle.workout_log_entry_id
+      JOIN latest_meso lm
+        ON lm.workoutId = hwn.workoutId
+       AND wle.mesoCycle = lm.maxMeso
+      WHERE wle.deleted = 0
+        AND sle.deleted = 0
+        AND (sle.isDeload = 0 OR :includeDeload)
+      GROUP BY hwn.workoutId, lm.maxMeso
+    )
+    SELECT sle.*
+    FROM setLogEntries sle
+    JOIN workoutLogEntries wle
+      ON wle.workout_log_entry_id = sle.workoutLogEntryId
+    JOIN historicalWorkoutNames hwn
+      ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
+    JOIN latest_micro lt
+      ON lt.workoutId = hwn.workoutId
+     AND wle.mesoCycle = lt.maxMeso
+     AND wle.microCycle = lt.maxMicro
+    WHERE sle.deleted = 0
+      AND wle.deleted = 0
+      AND (sle.isDeload = 0 OR :includeDeload)
+""")
+    fun getLatestForWorkout(
+        workoutId: Long,
+        includeDeload: Boolean,
+    ): Flow<List<SetLogEntryEntity>>
+
+    @Transaction
+    @Query("""
+        SELECT sle.* FROM setLogEntries sle
+        INNER JOIN workoutLogEntries wle ON wle.workout_log_entry_id = sle.workoutLogEntryId
+        INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
+        WHERE workoutId = :workoutId AND 
+        mesoCycle = :mesoCycle AND 
+        microCycle = :microCycle AND 
+        sle.deleted = 0 AND
+        wle.deleted = 0
+        """)
+    fun getForSpecificWorkoutCompletionFlow(workoutId: Long, mesoCycle: Int, microCycle: Int): Flow<List<SetLogEntryEntity>>
+
+    @Query("""
+        SELECT sle.* FROM setLogEntries sle
+        INNER JOIN workoutLogEntries wle ON wle.workout_log_entry_id = sle.workoutLogEntryId
+        INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
+        WHERE workoutId = :workoutId AND sle.deleted = 0 AND wle.deleted = 0
+        """)
+    suspend fun getForAllWorkoutCompletions(workoutId: Long): List<SetLogEntryEntity>
+
+    @Transaction
+    @Query("""
+        SELECT * FROM setLogEntries 
+        WHERE liftId = :liftId AND deleted = 0
+        """)
+    suspend fun getForLift(liftId: Long): List<SetLogEntryEntity>
+
+    @Transaction
+    @Query("""
+        SELECT liftId, MAX(oneRepMax) as 'personalRecord' 
+        FROM setLogEntries sle
+        INNER JOIN workoutLogEntries wle ON wle.workout_log_entry_id = sle.workoutLogEntryId
+        INNER JOIN historicalWorkoutNames hwn ON wle.historicalWorkoutNameId = hwn.historical_workout_name_id
+        WHERE liftId IN (:liftIds) AND 
+        (workoutId != :workoutId OR mesoCycle != :mesoCycle OR microCycle != :microCycle) 
+        AND sle.deleted = 0
+        AND wle.deleted = 0
+        GROUP BY liftId
+        """)
+    suspend fun getPersonalRecordsForLiftsExcludingWorkout(
+        workoutId: Long,
+        mesoCycle: Int,
+        microCycle: Int,
+        liftIds: List<Long>,
+    ): List<PersonalRecordDto>
+
     @Query("DELETE FROM setLogEntries")
     suspend fun deleteAll()
 
@@ -38,12 +144,9 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         weight,
         liftName,
         liftMovementPattern,
-        weightRecommendation,
         reps,
         rpe,
         oneRepMax,
-        mesoCycle,
-        microCycle,
         repRangeBottom,
         repRangeTop,
         rpeTarget,
@@ -65,12 +168,9 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         sr.weight,
         l.name,
         l.movementPattern,
-        sr.weightRecommendation,
         sr.reps,
         sr.rpe,
         sr.oneRepMax,
-        sr.mesoCycle,
-        sr.microCycle,
         wl.repRangeBottom,
         wl.repRangeTop,
         COALESCE(
@@ -86,32 +186,28 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
         s.repFloor,
         s.dropPercentage,
         sr.isDeload
-    FROM previousSetResults sr
+    FROM liveWorkoutCompletedSets sr
     INNER JOIN workoutLifts wl ON wl.liftId = sr.liftId AND wl.position = sr.liftPosition
     LEFT JOIN sets s ON s.workoutLiftId = wl.workout_lift_id AND s.position = sr.setPosition
     INNER JOIN lifts l ON l.lift_id = wl.liftId
-    WHERE
-        sr.workoutId = :workoutId AND
-        wl.workoutId = :workoutId AND
-        sr.mesoCycle = :mesocycle AND
-        sr.microCycle = :microcycle AND
-        sr.previously_completed_set_id NOT IN (:excludeFromCopy)
+    WHERE sr.deleted = 0 AND (:excludeFromCopySize = 0 OR sr.live_workout_completed_set_id NOT IN (:excludeFromCopy))
     """)
-    suspend fun insertFromPreviousSetResults(
+    suspend fun insertFromLiveWorkoutCompletedSets(
         workoutLogEntryId: Long,
-        workoutId: Long,
-        mesocycle: Int,
-        microcycle: Int,
-        excludeFromCopy: List<Long>
+        excludeFromCopy: List<Long>,
+        excludeFromCopySize: Int = excludeFromCopy.size,
     )
 
     @Transaction
     @Query("""
-    SELECT *
-    FROM setLogEntries
+    SELECT sle.*
+    FROM setLogEntries sle
+    INNER JOIN workoutLogEntries wle ON wle.workout_log_entry_id = sle.workoutLogEntryId
     WHERE workoutLogEntryId = :workoutLogEntryId
       AND mesoCycle = :mesocycle
-      AND microCycle = :microcycle AND deleted = 0
+      AND microCycle = :microcycle 
+      AND sle.deleted = 0
+      AND wle.deleted = 0
 """)
     suspend fun getForWorkoutLogEntryMesoAndMicro(
         workoutLogEntryId: Long,
@@ -143,9 +239,27 @@ interface SetLogEntryDao: BaseDao<SetLogEntryEntity> {
     @Query("UPDATE setLogEntries SET deleted = 1, synced = 0 WHERE set_log_entry_id IN (:ids)")
     suspend fun softDeleteMany(ids: List<Long>): Int
 
+    @Query("UPDATE setLogEntries SET deleted = 1, synced = 0 WHERE workoutLogEntryId = :workoutLogEntryId")
+    suspend fun softDeleteByWorkoutLogEntryId(workoutLogEntryId: Long): Int
+
     @Query("SELECT * FROM setLogEntries WHERE remoteId = :remoteId")
     suspend fun getByRemoteId(remoteId: String): SetLogEntryEntity?
 
     @Query("SELECT * FROM setLogEntries WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<SetLogEntryEntity>
+
+    @Query("""
+        WITH src AS (
+          SELECT name AS newName, movementPattern AS newPattern
+          FROM lifts
+          WHERE lift_id = :newLiftId
+        )
+        UPDATE setLogEntries
+        SET liftId = :newLiftId,
+            liftName = (SELECT newName FROM src),
+            liftMovementPattern = (SELECT newPattern FROM src),
+            synced = 0
+        WHERE liftId IN (:existingLiftIds)
+    """)
+    suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>)
 }

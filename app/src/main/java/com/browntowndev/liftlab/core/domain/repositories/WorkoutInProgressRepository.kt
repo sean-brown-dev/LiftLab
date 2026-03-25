@@ -1,10 +1,16 @@
 package com.browntowndev.liftlab.core.domain.repositories
 
-import com.browntowndev.liftlab.core.domain.models.WorkoutInProgress
+import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutInProgress
 import kotlinx.coroutines.flow.Flow
 
-interface WorkoutInProgressRepository : Repository<WorkoutInProgress, Long> {
-    suspend fun getWithoutCompletedSets(): WorkoutInProgress?
-    fun getFlow(mesoCycle: Int, microCycle: Int): Flow<WorkoutInProgress?>
-    suspend fun deleteAll(): Int
+interface WorkoutInProgressRepository {
+    fun getFlow(): Flow<WorkoutInProgress?>
+
+    suspend fun get(): WorkoutInProgress?
+
+    suspend fun delete(): Int
+
+    suspend fun upsert(model: WorkoutInProgress): Long
+    
+    suspend fun isWorkoutInProgress(workoutId: Long): Boolean
 }

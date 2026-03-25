@@ -13,7 +13,11 @@ import java.util.Date
     indices = [
         Index("historicalWorkoutNameId"),
         Index("synced"),
-        Index("remoteId", unique = true),
+        Index(value = ["remoteId"], unique = true),
+        Index(value = ["deleted","date"], name = "idx_wle_deleted_date"),
+
+        // supports filters that key off meso/micro on non-deleted rows
+        Index(value = ["deleted", "mesoCycle", "microCycle"], name = "idx_wle_deleted_meso_micro")
     ],
     foreignKeys = [
         ForeignKey(
@@ -28,8 +32,8 @@ data class WorkoutLogEntryEntity(
     val historicalWorkoutNameId: Long,
     val programWorkoutCount: Int,
     val programDeloadWeek: Int,
-    val mesocycle: Int,
-    val microcycle: Int,
+    val mesoCycle: Int,
+    val microCycle: Int,
     val microcyclePosition: Int,
     val date: Date,
     val durationInMillis: Long,

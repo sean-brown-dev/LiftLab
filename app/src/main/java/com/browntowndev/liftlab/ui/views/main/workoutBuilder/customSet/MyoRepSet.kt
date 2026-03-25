@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.enums.SetType
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.core.common.enums.displayNameShort
-import com.browntowndev.liftlab.ui.composables.FloatTextField
-import com.browntowndev.liftlab.ui.composables.IntegerTextField
-import com.browntowndev.liftlab.ui.composables.LabeledCheckBox
+import com.browntowndev.liftlab.core.domain.enums.SetType
+import com.browntowndev.liftlab.core.domain.enums.displayName
+import com.browntowndev.liftlab.core.domain.enums.displayNameShort
+import com.browntowndev.liftlab.ui.composables.button.LabeledCheckBox
+import com.browntowndev.liftlab.ui.composables.text.FloatTextField
+import com.browntowndev.liftlab.ui.composables.text.IntegerTextField
 
 
 @Composable
@@ -32,18 +32,15 @@ fun MyoRepSet(
     repRangeBottom: Int,
     repRangeTop: Int,
     setMatching: Boolean,
-    setGoal: Int?,
+    setGoal: Int,
     repFloor: Int?,
     maxSets: Int?,
-    isPreviousSetMyoRep: Boolean,
     onSetMatchingChanged: (enabled: Boolean) -> Unit,
     onMatchSetGoalChanged: (Int) -> Unit,
     onMaxSetsChanged: (Int?) -> Unit,
     toggleRpePicker: (Boolean) -> Unit,
     onRepRangeBottomChanged: (Int) -> Unit,
     onRepRangeTopChanged: (Int) -> Unit,
-    onConfirmRepRangeBottom: () -> Unit,
-    onConfirmRepRangeTop: () -> Unit,
     onRepFloorChanged: (Int) -> Unit,
     onCustomSetTypeChanged: (SetType) -> Unit,
     onPixelOverflowChanged: (Dp) -> Unit,
@@ -61,10 +58,9 @@ fun MyoRepSet(
         standardShortDisplayName = standardSetDisplayNameShort,
         leftSideSummaryText = "$repRangeBottom - $repRangeTop reps @$rpeTarget",
         centerIconResourceId = R.drawable.descend_icon,
-        rightSideSummaryText = if(setMatching) "matched within ${setGoal ?: "?"} sets" else "until ${repFloor ?: "?"} reps",
+        rightSideSummaryText = if(setMatching) "matched within $setGoal sets" else "until ${repFloor ?: "?"} reps",
         onCustomSetTypeChanged = onCustomSetTypeChanged,
         toggleExpansion = toggleDetailsExpansion,
-        isPreviousSetMyoRep = isPreviousSetMyoRep,
         isFirstSet = position == 0
     ) {
         Column {
@@ -91,34 +87,34 @@ fun MyoRepSet(
                 vertical = false,
                 listState = listState,
                 value = repRangeBottom,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
                 label = "Activation Set Rep Range Bottom",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
                 onNonNullValueChanged = onRepRangeBottomChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
-                onFocusChanged = {
-                    if(!it) onConfirmRepRangeBottom()
-                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
                 vertical = false,
                 listState = listState,
                 value = repRangeTop,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
                 label = "Activation Set Rep Range Top",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
                 onNonNullValueChanged = onRepRangeTopChanged,
                 onPixelOverflowChanged = onPixelOverflowChanged,
-                onFocusChanged = {
-                    if(!it) onConfirmRepRangeTop()
-                }
             )
             Spacer(modifier = Modifier.width(2.dp))
             IntegerTextField(
                 vertical = false,
                 listState = listState,
                 value = setGoal,
+                emitOnlyOnLostFocus = true,
+                minValue = 1,
                 label = "Set Goal",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
@@ -131,6 +127,8 @@ fun MyoRepSet(
                     vertical = false,
                     listState = listState,
                     value = repFloor,
+                    emitOnlyOnLostFocus = true,
+                    minValue = 1,
                     label = "Rep Floor",
                     labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     labelFontSize = 14.sp,
@@ -145,6 +143,7 @@ fun MyoRepSet(
                 disableSystemKeyboard = true,
                 hideCursor = true,
                 value = rpeTarget,
+                updateValueWhileFocused = true,
                 label = "RPE Target",
                 labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 labelFontSize = 14.sp,
@@ -156,10 +155,12 @@ fun MyoRepSet(
                     vertical = false,
                     listState = listState,
                     value = maxSets,
+                    emitOnlyOnLostFocus = true,
+                    minValue = 1,
                     label = "Max Sets to Perform",
                     labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     labelFontSize = 14.sp,
-                    onValueChanged = onMaxSetsChanged,
+                    onNonNullValueChanged = onMaxSetsChanged,
                     onPixelOverflowChanged = onPixelOverflowChanged,
                 )
             }

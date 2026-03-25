@@ -7,13 +7,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -24,13 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import com.browntowndev.liftlab.R
-import com.browntowndev.liftlab.core.common.isWholeNumber
 import com.browntowndev.liftlab.core.common.toSimpleDateTimeString
 import com.browntowndev.liftlab.core.common.toTimeString
-import com.browntowndev.liftlab.core.domain.models.SetLogEntry
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
+import com.browntowndev.liftlab.ui.models.metrics.AllWorkoutTopSetsUiModel
 import java.util.Date
-import java.util.Locale
-import kotlin.math.roundToInt
 
 @Composable
 fun WorkoutHistoryCard(
@@ -39,11 +43,12 @@ fun WorkoutHistoryCard(
     workoutDuration: Long,
     mesoCycle: Int,
     microCycle: Int,
-    setResults: List<SetLogEntry>,
-    topSets: Map<Long, Pair<Int, SetLogEntry>>?,
+    topSets: AllWorkoutTopSetsUiModel.WorkoutTopSetsUiModel?,
     onEditWorkout: () -> Unit,
     onDeleteWorkout: () -> Unit,
 ) {
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxSize(),
         shape = RectangleShape,
@@ -52,14 +57,39 @@ fun WorkoutHistoryCard(
         ),
         onClick = onEditWorkout,
     ) {
-        val totalPersonalRecords = remember(topSets) { topSets?.values?.count { it.second.isPersonalRecord } ?: 0 }
-        Text(
-            text = workoutName,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(start = 15.dp, top = 10.dp)
-        )
+        val totalPersonalRecords = remember(topSets) { topSets?.personalRecordCount ?: 0 }
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = workoutName,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(start = 15.dp, top = 10.dp)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(onClick = {
+                showDeleteConfirmation = true
+            }) {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = "Delete Workout",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            if (showDeleteConfirmation) {
+                ConfirmationDialog(
+                    header = "Delete Workout History",
+                    textAboveContent = "Are you sure you want to delete this workout's completion data?",
+                    onConfirm = onDeleteWorkout,
+                    onCancel = { showDeleteConfirmation = false }
+                )
+            }
+        }
+
         Row(
             modifier = Modifier.padding(start = 15.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -134,38 +164,28 @@ fun WorkoutHistoryCard(
                 fontWeight = FontWeight.Bold,
             )
         }
-        val liftIds = remember(setResults) { setResults.distinctBy { it.liftId }.map { it.liftId } }
-        liftIds.fastForEach { liftId ->
-            val topSet = remember(topSets) { topSets?.get(liftId) }
-            if (topSet != null) {
-                val weight = remember(topSet) {
-                    if (topSet.second.weight.isWholeNumber()) {
-                        topSet.second.weight.roundToInt().toString()
+        topSets?.topSets?.fastForEach { topSet ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "${topSet.setCount} x ${topSet.liftName}",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .padding(start = 15.dp)
+                        .weight(1f),
+                    softWrap = true,
+                )
+                Text(
+                    text = "${topSet.weight} x ${topSet.reps} @${topSet.rpe}",
+                    color = if (topSet.isPersonalRecord) {
+                        MaterialTheme.colorScheme.tertiary
                     } else {
-                        String.format(Locale.US, "%.2f", topSet.second.weight)
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${topSet.first} x ${topSet.second.liftName}",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 15.dp)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = "$weight x ${topSet.second.reps} @${topSet.second.rpe}",
-                        color = if (topSet.second.isPersonalRecord) {
-                            MaterialTheme.colorScheme.tertiary
-                        } else {
-                            MaterialTheme.colorScheme.onBackground
-                        },
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(end = 15.dp)
-                    )
-                }
+                        MaterialTheme.colorScheme.onBackground
+                    },
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(horizontal = 15.dp),
+                    softWrap = false,
+                )
             }
         }
         Spacer(modifier = Modifier.height(15.dp))

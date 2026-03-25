@@ -9,10 +9,50 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.browntowndev.liftlab.BuildConfig
-import com.browntowndev.liftlab.core.data.local.dao.*
-import com.browntowndev.liftlab.core.data.local.entities.*
-import com.browntowndev.liftlab.core.data.local.migrations.*
-import com.browntowndev.liftlab.core.data.local.views.*
+import com.browntowndev.liftlab.core.data.local.dao.CustomSetsDao
+import com.browntowndev.liftlab.core.data.local.dao.HistoricalWorkoutNamesDao
+import com.browntowndev.liftlab.core.data.local.dao.LiftMetricChartsDao
+import com.browntowndev.liftlab.core.data.local.dao.LiftsDao
+import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
+import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
+import com.browntowndev.liftlab.core.data.local.dao.RestTimerInProgressDao
+import com.browntowndev.liftlab.core.data.local.dao.SetLogEntryDao
+import com.browntowndev.liftlab.core.data.local.dao.SyncMetadataDao
+import com.browntowndev.liftlab.core.data.local.dao.VolumeMetricChartsDao
+import com.browntowndev.liftlab.core.data.local.dao.WorkoutInProgressDao
+import com.browntowndev.liftlab.core.data.local.dao.WorkoutLiftsDao
+import com.browntowndev.liftlab.core.data.local.dao.WorkoutLogEntryDao
+import com.browntowndev.liftlab.core.data.local.dao.WorkoutsDao
+import com.browntowndev.liftlab.core.data.local.entities.CustomLiftSetEntity
+import com.browntowndev.liftlab.core.data.local.entities.HistoricalWorkoutNameEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiftMetricChartEntity
+import com.browntowndev.liftlab.core.data.local.entities.LiveWorkoutCompletedSetEntity
+import com.browntowndev.liftlab.core.data.local.entities.ProgramEntity
+import com.browntowndev.liftlab.core.data.local.entities.RestTimerInProgressEntity
+import com.browntowndev.liftlab.core.data.local.entities.SetLogEntryEntity
+import com.browntowndev.liftlab.core.data.local.entities.SyncMetadataEntity
+import com.browntowndev.liftlab.core.data.local.entities.VolumeMetricChartEntity
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutEntity
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutInProgressEntity
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutLiftEntity
+import com.browntowndev.liftlab.core.data.local.entities.WorkoutLogEntryEntity
+import com.browntowndev.liftlab.core.data.local.migrations.IndexAlignmentMigration
+import com.browntowndev.liftlab.core.data.local.migrations.LiftNoteMigration
+import com.browntowndev.liftlab.core.data.local.migrations.LogIndicesMigration
+import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxAutoMigration
+import com.browntowndev.liftlab.core.data.local.migrations.OneRepMaxIndexMigration
+import com.browntowndev.liftlab.core.data.local.migrations.RemoteSyncMigration
+import com.browntowndev.liftlab.core.data.local.migrations.SetResultsMigration
+import com.browntowndev.liftlab.core.data.local.migrations.StablePrimaryKeyMigration
+import com.browntowndev.liftlab.core.data.local.migrations.StepSizeAutoMigration
+import com.browntowndev.liftlab.core.data.local.migrations.ViewsAutoMigration
+import com.browntowndev.liftlab.core.data.local.migrations.WorkoutInProgressMigration
+import com.browntowndev.liftlab.core.data.local.views.LiveLiftView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveCustomLiftSetView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveProgramView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutLiftView
+import com.browntowndev.liftlab.core.data.local.views.program.LiveWorkoutView
 
 @TypeConverters(Converters::class)
 @Database(
@@ -20,7 +60,7 @@ import com.browntowndev.liftlab.core.data.local.views.*
         LiftEntity::class,
         CustomLiftSetEntity::class,
         HistoricalWorkoutNameEntity::class,
-        PreviousSetResultEntity::class,
+        LiveWorkoutCompletedSetEntity::class,
         ProgramEntity::class,
         WorkoutLogEntryEntity::class,
         SetLogEntryEntity::class,
@@ -39,7 +79,7 @@ import com.browntowndev.liftlab.core.data.local.views.*
         LiveCustomLiftSetView::class,
         LiveLiftView::class,
     ],
-    version = 17,
+    version = 23,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
@@ -54,6 +94,7 @@ import com.browntowndev.liftlab.core.data.local.views.*
         AutoMigration(from = 10, to = 11, spec = OneRepMaxAutoMigration::class),
         AutoMigration(from = 12, to = 13),
         AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 21, to = 22),
     ])
 abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun liftsDao(): LiftsDao
@@ -61,11 +102,11 @@ abstract class LiftLabDatabase : RoomDatabase() {
     abstract fun workoutsDao(): WorkoutsDao
     abstract fun workoutLiftsDao(): WorkoutLiftsDao
     abstract fun customSetsDao(): CustomSetsDao
-    abstract fun previousSetResultsDao(): PreviousSetResultDao
+    abstract fun liveWorkoutCompletedSetsDao(): LiveWorkoutCompletedSetsDao
     abstract fun workoutInProgressDao(): WorkoutInProgressDao
     abstract fun historicalWorkoutNamesDao(): HistoricalWorkoutNamesDao
-    abstract fun workoutLogEntryDao(): WorkoutLogEntryDao
-    abstract fun setLogEntryDao(): SetLogEntryDao
+    abstract fun workoutLogEntriesDao(): WorkoutLogEntryDao
+    abstract fun setLogEntriesDao(): SetLogEntryDao
     abstract fun restTimerInProgressDao(): RestTimerInProgressDao
     abstract fun liftMetricChartsDao(): LiftMetricChartsDao
     abstract fun volumeMetricChartsDao(): VolumeMetricChartsDao
@@ -100,13 +141,29 @@ abstract class LiftLabDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context, populateInitialData: PopulateInitialDataCallback? = null): LiftLabDatabase {
             val dbName = if (BuildConfig.USE_SCRATCH_DB) "scratch_$DATABASE_NAME" else DATABASE_NAME
+
+            val pragmas = object : Callback() {
+                override fun onOpen(db: SupportSQLiteDatabase) {
+                    super.onOpen(db)
+                    db.query("PRAGMA synchronous=NORMAL").use { /* ignore result */ }
+                    db.query("PRAGMA wal_autocheckpoint=5000").use { /* ignore result */ }
+                }
+            }
+
             val db: LiftLabDatabase = Room
                 .databaseBuilder(context, LiftLabDatabase::class.java, dbName)
                 .addMigrations(
-                    LiftNoteMigration(),
-                    WorkoutInProgressMigration(),
-                    RemoteSyncMigration(),
-                    ViewsAutoMigration())
+                    LiftNoteMigration,
+                    WorkoutInProgressMigration,
+                    RemoteSyncMigration,
+                    ViewsAutoMigration,
+                    SetResultsMigration,
+                    StablePrimaryKeyMigration,
+                    LogIndicesMigration,
+                    OneRepMaxIndexMigration,
+                    IndexAlignmentMigration,
+                )
+                .addCallback(pragmas)
                 .fallbackToDestructiveMigration(false).let {
                     if (populateInitialData != null) {
                         it.addCallback(populateInitialData)

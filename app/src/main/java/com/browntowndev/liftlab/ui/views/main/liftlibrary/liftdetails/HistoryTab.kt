@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.browntowndev.liftlab.ui.models.OneRepMaxEntry
+import com.browntowndev.liftlab.ui.models.workout.OneRepMaxEntry
 
 @Composable
 fun HistoryTab(

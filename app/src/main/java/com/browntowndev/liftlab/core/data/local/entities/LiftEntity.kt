@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.browntowndev.liftlab.annotations.GenerateFirestoreMetadataExtensions
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import kotlin.time.Duration
 
 @GenerateFirestoreMetadataExtensions

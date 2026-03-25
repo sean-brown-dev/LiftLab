@@ -61,4 +61,26 @@ interface WorkoutLiftsDao: BaseDao<WorkoutLiftEntity> {
 
     @Query("SELECT * FROM workoutLifts WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<WorkoutLiftEntity>
+
+    @Query("""
+        UPDATE workoutLifts
+        SET deleted = 1, synced = 0
+        WHERE workoutId IN (
+            SELECT workout_id FROM workouts WHERE programId = :programId
+        )
+    """)
+    suspend fun softDeleteByProgramId(programId: Long)
+
+    @Query("UPDATE workoutLifts SET deleted = 1, synced = 0 WHERE workoutId = :workoutId")
+    suspend fun softDeleteByWorkoutId(workoutId: Long)
+
+    @Query("UPDATE workoutLifts SET deleted = 1, synced = 0 WHERE workoutId IN (:workoutIds)")
+    suspend fun softDeleteByWorkoutIds(workoutIds: List<Long>)
+
+    @Query("""
+        UPDATE workoutLifts 
+        SET liftId = :newLiftId, synced = 0 
+        WHERE liftId IN (:existingLiftIds)
+    """)
+    suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>)
 }

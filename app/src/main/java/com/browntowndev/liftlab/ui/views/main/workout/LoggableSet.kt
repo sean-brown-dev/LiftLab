@@ -1,6 +1,8 @@
 package com.browntowndev.liftlab.ui.views.main.workout
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -22,32 +24,35 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
-import com.browntowndev.liftlab.ui.composables.FloatTextField
-import com.browntowndev.liftlab.ui.composables.IntegerTextField
+import com.browntowndev.liftlab.ui.composables.text.FloatTextField
+import com.browntowndev.liftlab.ui.composables.text.IntegerTextField
 
 
 @Composable
 fun LoggableSet(
+    modifier: Modifier = Modifier,
     lazyListState: LazyListState,
     animateVisibility: Boolean,
+    animationEnabled: Boolean = true, // For tests
+    isEdit: Boolean,
     position: Int,
-    progressionScheme: ProgressionScheme,
+    myoRepSetPosition: Int?,
     setNumberLabel: String,
     previousSetResultLabel: String,
     weightRecommendation: Float?,
     repRangePlaceholder: String,
+    rpeTargetPlaceholder: String,
     complete: Boolean,
     completedWeight: Float?,
     completedReps: Int?,
     completedRpe: Float?,
-    rpeTarget: Float,
     onWeightChanged: (weight: Float?) -> Unit,
     onRepsChanged: (reps: Int?) -> Unit,
     onCompleted: (weight: Float, reps: Int, rpe: Float) -> Unit,
@@ -55,27 +60,43 @@ fun LoggableSet(
     toggleRpePicker: (visible: Boolean) -> Unit,
     onAddSpacer: (height: Dp) -> Unit,
 ) {
-    val transitionState = remember(animateVisibility) { MutableTransitionState(!animateVisibility) }
-    AnimatedVisibility(
-        visibleState = transitionState,
-        enter = expandVertically(
+    var hasAnimated by remember(position, myoRepSetPosition) { mutableStateOf(false) }
+    val transitionState = remember(position, myoRepSetPosition, animateVisibility) {
+        MutableTransitionState(!animateVisibility || !animationEnabled).apply { targetState = true }
+    }
+
+    // Only animate the first time the set becomes visible
+    val enterTransition = if (!hasAnimated && animateVisibility && animationEnabled) {
+        expandVertically(
             expandFrom = Alignment.Top,
             animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
         )
+    } else {
+        EnterTransition.None
+    }
+
+    LaunchedEffect(transitionState) {
+        if (transitionState.currentState) hasAnimated = true
+    }
+
+    AnimatedVisibility(
+        visibleState = transitionState,
+        enter = enterTransition,
+        exit = ExitTransition.None,
     ) {
         SetRow(
+            modifier = modifier,
             lazyListState = lazyListState,
-            position = position,
-            progressionScheme = progressionScheme,
+            isEdit = isEdit,
             setNumberLabel = setNumberLabel,
             previousSetResultLabel = previousSetResultLabel,
             weightRecommendation = weightRecommendation,
             repRangePlaceholder = repRangePlaceholder,
+            rpeTargetPlaceholder = rpeTargetPlaceholder,
             complete = complete,
             completedReps = completedReps,
             completedWeight = completedWeight,
             completedRpe = completedRpe,
-            rpeTarget = rpeTarget,
             onWeightChanged = onWeightChanged,
             onRepsChanged = onRepsChanged,
             onCompleted = onCompleted,
@@ -84,28 +105,22 @@ fun LoggableSet(
             onAddSpacer = onAddSpacer,
         )
     }
-
-    LaunchedEffect(animateVisibility) {
-        if (animateVisibility) {
-            transitionState.targetState = true
-        }
-    }
 }
 
 @Composable
-private fun SetRow(
+internal fun SetRow(
+    modifier: Modifier = Modifier,
     lazyListState: LazyListState,
-    position: Int,
-    progressionScheme: ProgressionScheme,
+    isEdit: Boolean,
     setNumberLabel: String,
     previousSetResultLabel: String,
     weightRecommendation: Float?,
     repRangePlaceholder: String,
+    rpeTargetPlaceholder: String,
     complete: Boolean,
     completedReps: Int?,
     completedWeight: Float?,
     completedRpe: Float?,
-    rpeTarget: Float,
     onWeightChanged: (weight: Float?) -> Unit,
     onRepsChanged: (reps: Int?) -> Unit,
     onCompleted: (weight: Float, reps: Int, rpe: Float) -> Unit,
@@ -114,10 +129,10 @@ private fun SetRow(
     onAddSpacer: (height: Dp) -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier.then(Modifier
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.secondaryContainer)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 10.dp)),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -143,7 +158,8 @@ private fun SetRow(
             listState = lazyListState,
             value = completedWeight,
             placeholder = weightRecommendation?.toString()?.removeSuffix(".0") ?: "",
-            errorOnEmpty = false,
+            errorOnEmpty = isEdit,
+            emitOnlyOnLostFocus = true,
             maxValue = 2000f,
             onValueChanged = onWeightChanged,
         )
@@ -152,30 +168,20 @@ private fun SetRow(
             modifier = Modifier.weight(1f),
             value = completedReps,
             placeholder = repRangePlaceholder,
-            errorOnEmpty = false,
+            errorOnEmpty = isEdit,
+            emitOnlyOnLostFocus = true,
             onValueChanged = onRepsChanged,
         )
         Spacer(modifier = Modifier.width(8.dp))
-        val rpePlaceholder = remember(rpeTarget) {
-            if (position == 0) {
-                rpeTarget.toString().removeSuffix(".0")
-            } else {
-                when (progressionScheme) {
-                    ProgressionScheme.WAVE_LOADING_PROGRESSION -> ""
-                    ProgressionScheme.DYNAMIC_DOUBLE_PROGRESSION,
-                    ProgressionScheme.DOUBLE_PROGRESSION -> rpeTarget.toString().removeSuffix(".0")
-                    ProgressionScheme.LINEAR_PROGRESSION -> "≤${rpeTarget.toString().removeSuffix(".0")}"
-                }
-            }
-        }
         FloatTextField(
             modifier = Modifier.weight(1f),
             listState = lazyListState,
             value = completedRpe,
-            placeholder = rpePlaceholder,
+            placeholder = rpeTargetPlaceholder,
             disableSystemKeyboard = true,
             hideCursor = true,
-            errorOnEmpty = false,
+            updateValueWhileFocused = true,
+            errorOnEmpty = isEdit,
             onFocusChanged = { toggleRpePicker(it) },
             onPixelOverflowChanged = onAddSpacer,
         )

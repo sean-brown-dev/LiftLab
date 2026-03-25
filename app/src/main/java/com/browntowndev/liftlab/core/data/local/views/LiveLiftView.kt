@@ -2,7 +2,7 @@ package com.browntowndev.liftlab.core.data.local.views
 
 import androidx.room.ColumnInfo
 import androidx.room.DatabaseView
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
 import kotlin.time.Duration
 
 @DatabaseView("SELECT * FROM lifts WHERE deleted = 0")

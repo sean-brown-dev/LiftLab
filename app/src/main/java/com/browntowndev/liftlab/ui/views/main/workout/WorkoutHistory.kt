@@ -12,6 +12,7 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
@@ -22,10 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.core.common.toLocalDate
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.FilterSelector
-import com.browntowndev.liftlab.ui.composables.InputChipFlowRow
-import com.browntowndev.liftlab.ui.viewmodels.WorkoutHistoryViewModel
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.chips.FilterSelector
+import com.browntowndev.liftlab.ui.composables.chips.InputChipFlowRow
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.viewmodels.workoutHistory.WorkoutHistoryViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -34,6 +36,7 @@ import org.koin.core.parameter.parametersOf
 fun WorkoutHistory(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNavigateToEditWorkoutScreen: (workoutLogEntryId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
@@ -44,6 +47,7 @@ fun WorkoutHistory(
     val state by workoutHistoryViewModel.state.collectAsState()
     workoutHistoryViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutHistoryViewModel)
+    SnackbarProvider(snackbarHostState, workoutHistoryViewModel.userMessages)
 
     BackHandler(state.isDatePickerVisible) {
         workoutHistoryViewModel.toggleDateRangePicker()
@@ -104,7 +108,7 @@ fun WorkoutHistory(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
-            item {
+            item (key = "filter-chips") {
                 InputChipFlowRow(
                     filters = state.filterChips,
                     onRemove = {
@@ -112,14 +116,13 @@ fun WorkoutHistory(
                     }
                 )
             }
-            items(state.filteredWorkoutLogs) { workoutLog ->
+            items(state.filteredWorkoutLogs, { it.id }) { workoutLog ->
                 WorkoutHistoryCard(
                     workoutName = workoutLog.workoutName,
                     workoutDate = workoutLog.date,
                     workoutDuration = workoutLog.durationInMillis,
                     mesoCycle = workoutLog.mesocycle,
                     microCycle = workoutLog.microcycle,
-                    setResults = workoutLog.setResults,
                     topSets = state.topSets[workoutLog.id],
                     onEditWorkout = {
                         onNavigateToEditWorkoutScreen(workoutLog.id)

@@ -1,7 +1,7 @@
 package com.browntowndev.liftlab.core.domain.models.interfaces
 
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
-import com.browntowndev.liftlab.core.common.enums.ProgressionScheme
+import com.browntowndev.liftlab.core.domain.enums.MovementPattern
+import com.browntowndev.liftlab.core.domain.enums.ProgressionScheme
 import kotlin.time.Duration
 
 interface GenericWorkoutLift {

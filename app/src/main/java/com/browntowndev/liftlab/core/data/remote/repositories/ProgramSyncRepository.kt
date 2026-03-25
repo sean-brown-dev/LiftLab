@@ -1,12 +1,11 @@
 package com.browntowndev.liftlab.core.data.remote.repositories
 
 import androidx.compose.ui.util.fastMap
-import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
-import com.browntowndev.liftlab.core.data.common.RemoteCollectionNames
 import com.browntowndev.liftlab.core.data.local.dao.ProgramsDao
-import com.browntowndev.liftlab.core.data.mapping.RemoteMappingExtensions.toEntity
-import com.browntowndev.liftlab.core.data.mapping.RemoteMappingExtensions.toRemoteDto
-import kotlin.collections.map
+import com.browntowndev.liftlab.core.data.mapping.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toRemoteDto
+import com.browntowndev.liftlab.core.data.remote.dto.ProgramRemoteDto
+import com.browntowndev.liftlab.core.sync.RemoteCollectionNames
 import kotlin.reflect.KClass
 
 class ProgramSyncRepository(
@@ -16,13 +15,13 @@ class ProgramSyncRepository(
     override val remoteDtoClass: KClass<ProgramRemoteDto> = ProgramRemoteDto::class
 
     override suspend fun getManyByRemoteIdTyped(remoteIds: List<String>): List<ProgramRemoteDto> =
-        programsDao.getManyByRemoteId(remoteIds).map { it.toRemoteDto() }
+        programsDao.getManyByRemoteId(remoteIds).map { it.programEntity.toRemoteDto() }
 
     override suspend fun getAllUnsyncedTyped(): List<ProgramRemoteDto> =
-        programsDao.getAllUnsynced().map { it.toRemoteDto() }
+        programsDao.getAllUnsynced().map { it.programEntity.toRemoteDto() }
 
-    override suspend fun upsertManyTyped(entities: List<ProgramRemoteDto>): List<Long> =
-        programsDao.upsertMany(entities.fastMap { it.toEntity() })
+    override suspend fun upsertManyTyped(entities: List<ProgramRemoteDto>): List<Long> {
+        return programsDao.upsertMany(entities.fastMap { it.toEntity() })
             .let { upsertIds ->
                 entities.zip(upsertIds).fastMap { (entity, id) ->
                     if (id == -1L) {
@@ -32,15 +31,16 @@ class ProgramSyncRepository(
                     }
                 }
             }
+    }
 
     override suspend fun deleteByRemoteId(remoteId: String): Int {
         val toDelete = programsDao.getByRemoteId(remoteId) ?: return 0
-        return programsDao.delete(toDelete)
+        return programsDao.delete(toDelete.programEntity)
     }
 
     override suspend fun deleteManyByRemoteId(remoteIds: List<String>): Int {
         val toDelete = programsDao.getManyByRemoteId(remoteIds)
         if (toDelete.isEmpty()) return 0
-        return programsDao.deleteMany(toDelete)
+        return programsDao.deleteMany(toDelete.fastMap { it.programEntity })
     }
 }

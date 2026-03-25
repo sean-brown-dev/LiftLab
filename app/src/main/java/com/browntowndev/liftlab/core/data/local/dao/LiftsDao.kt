@@ -1,14 +1,16 @@
 package com.browntowndev.liftlab.core.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import com.browntowndev.liftlab.core.common.enums.MovementPattern
+import androidx.room.Update
+import androidx.room.Upsert
 import com.browntowndev.liftlab.core.data.local.entities.LiftEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface LiftsDao: BaseDao<LiftEntity> {
+interface LiftsDao {
     @Query("SELECT * FROM lifts WHERE synced = 0")
     suspend fun getAllUnsynced(): List<LiftEntity>
 
@@ -19,8 +21,16 @@ interface LiftsDao: BaseDao<LiftEntity> {
     suspend fun get(id: Long): LiftEntity?
 
     @Transaction
+    @Query("SELECT * FROM lifts WHERE lift_id = :id AND deleted = 0")
+    fun getByIdFlow(id: Long): Flow<LiftEntity?>
+
+    @Transaction
     @Query("SELECT * FROM lifts WHERE lift_id IN (:ids) AND deleted = 0")
     suspend fun getMany(ids: List<Long>): List<LiftEntity>
+
+    @Transaction
+    @Query("SELECT * FROM lifts WHERE lift_id IN (:ids) AND deleted = 0")
+    fun getManyFlow(ids: List<Long>): Flow<List<LiftEntity>>
 
     @Transaction
     @Query("SELECT * FROM lifts WHERE deleted = 0")
@@ -29,10 +39,6 @@ interface LiftsDao: BaseDao<LiftEntity> {
     @Transaction
     @Query("SELECT * FROM lifts WHERE deleted = 0")
     suspend fun getAll(): List<LiftEntity>
-
-    @Transaction
-    @Query("SELECT * FROM lifts WHERE movementPattern = :movementPattern AND deleted = 0")
-    suspend fun getByCategory(movementPattern: MovementPattern): List<LiftEntity>
 
     @Query("UPDATE lifts SET deleted = 1, synced = 0 WHERE lift_id = :id")
     suspend fun softDelete(id: Long): Int
@@ -45,4 +51,22 @@ interface LiftsDao: BaseDao<LiftEntity> {
 
     @Query("SELECT * FROM lifts WHERE remoteId IN (:remoteIds)")
     suspend fun getManyByRemoteId(remoteIds: List<String>): List<LiftEntity>
+
+    @Insert
+    suspend fun insertMany(items: List<LiftEntity>): List<Long>
+
+    @Insert
+    suspend fun insert(item: LiftEntity): Long
+
+    @Upsert
+    suspend fun upsert(item: LiftEntity): Long
+
+    @Upsert
+    suspend fun upsertMany(items: List<LiftEntity>): List<Long>
+
+    @Update
+    suspend fun update(item: LiftEntity)
+
+    @Update
+    suspend fun updateMany(items: List<LiftEntity>)
 }

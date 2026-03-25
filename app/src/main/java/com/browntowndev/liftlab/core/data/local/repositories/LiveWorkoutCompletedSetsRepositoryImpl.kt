@@ -1,0 +1,154 @@
+package com.browntowndev.liftlab.core.data.local.repositories
+
+import android.util.Log
+import androidx.compose.ui.util.fastMap
+import com.browntowndev.liftlab.core.data.local.dao.LiveWorkoutCompletedSetsDao
+import com.browntowndev.liftlab.core.data.local.entities.applyRemoteStorageMetadata
+import com.browntowndev.liftlab.core.data.mapping.toEntity
+import com.browntowndev.liftlab.core.data.mapping.toSetResult
+import com.browntowndev.liftlab.core.domain.models.interfaces.SetResult
+import com.browntowndev.liftlab.core.domain.repositories.LiveWorkoutCompletedSetsRepository
+import com.browntowndev.liftlab.core.sync.SyncScheduler
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+class LiveWorkoutCompletedSetsRepositoryImpl(
+    private val liveWorkoutCompletedSetsDao: LiveWorkoutCompletedSetsDao,
+    private val syncScheduler: SyncScheduler,
+): LiveWorkoutCompletedSetsRepository {
+    override suspend fun getAllForLiftAtPosition(liftId: Long, liftPosition: Int, position: Int): List<SetResult> {
+        return liveWorkoutCompletedSetsDao.getAllForLiftAtPosition(liftId, liftPosition, position).fastMap {
+            it.toSetResult()
+        }
+    }
+
+    override suspend fun getAll(): List<SetResult> {
+        return liveWorkoutCompletedSetsDao.getAll().map { it.toSetResult() }
+    }
+
+    override fun getAllFlow(): Flow<List<SetResult>> {
+        return liveWorkoutCompletedSetsDao.getAllFlow().map { setResults -> setResults.fastMap { it.toSetResult() } }
+    }
+
+    override suspend fun getById(id: Long): SetResult? {
+        return liveWorkoutCompletedSetsDao.get(id)?.toSetResult()
+    }
+
+    override suspend fun getMany(ids: List<Long>): List<SetResult> {
+        return liveWorkoutCompletedSetsDao.getMany(ids).map { it.toSetResult() }
+    }
+
+    override suspend fun update(model: SetResult) {
+        val current = liveWorkoutCompletedSetsDao.get(model.id) ?: return
+        val toUpdate = model.toEntity().applyRemoteStorageMetadata(
+            remoteId = current.remoteId,
+            remoteLastUpdated = current.remoteLastUpdated,
+            synced = false
+        )
+        liveWorkoutCompletedSetsDao.update(toUpdate)
+        syncScheduler.scheduleSync()
+    }
+
+    override suspend fun updateMany(models: List<SetResult>) {
+        val existingById = liveWorkoutCompletedSetsDao.getMany(models.map { it.id }).associateBy { it.id }
+        val toUpdate = models.map {
+            it.toEntity().applyRemoteStorageMetadata(
+                remoteId = existingById[it.id]?.remoteId,
+                remoteLastUpdated = existingById[it.id]?.remoteLastUpdated,
+                synced = false
+            )
+        }
+        liveWorkoutCompletedSetsDao.updateMany(toUpdate)
+        syncScheduler.scheduleSync()
+    }
+
+    override suspend fun upsert(model: SetResult): Long {
+        val current = liveWorkoutCompletedSetsDao.get(model.id)
+        val toUpsert = model.toEntity()
+            .applyRemoteStorageMetadata(
+                remoteId = current?.remoteId,
+                remoteLastUpdated = current?.remoteLastUpdated,
+                synced = false
+            )
+        val id = liveWorkoutCompletedSetsDao.upsert(toUpsert).let {
+            if (it == -1L) toUpsert.id else it
+        }
+
+        syncScheduler.scheduleSync()
+
+        return if (id == -1L) toUpsert.id else id
+    }
+
+    override suspend fun upsertMany(models: List<SetResult>): List<Long> {
+        if (models.isEmpty()) return emptyList()
+        val currentEntities = liveWorkoutCompletedSetsDao.getMany(models.map { it.id }).associateBy { it.id }
+        val toUpsert =
+            models.fastMap { setResult ->
+                val current = currentEntities[setResult.id]
+                setResult.toEntity().applyRemoteStorageMetadata(
+                    remoteId = current?.remoteId,
+                    remoteLastUpdated = current?.remoteLastUpdated,
+                    synced = false
+                )
+            }
+        val ids = liveWorkoutCompletedSetsDao.upsertMany(toUpsert)
+        val entityIds = toUpsert.zip(ids).map { (entity, id) ->
+            if (id == -1L) entity else entity.copy(id = id)
+        }.fastMap { it.id }
+
+        syncScheduler.scheduleSync()
+
+        return entityIds
+    }
+
+    override suspend fun insert(model: SetResult): Long {
+        val toInsert = model.toEntity()
+        val id = liveWorkoutCompletedSetsDao.insert(toInsert)
+        syncScheduler.scheduleSync()
+
+        return id
+    }
+
+    override suspend fun insertMany(models: List<SetResult>): List<Long> {
+        val toInsert = models.map { it.toEntity() }
+        val ids = liveWorkoutCompletedSetsDao.insertMany(toInsert)
+        syncScheduler.scheduleSync()
+
+        return ids
+    }
+
+    override suspend fun changeFromLiftsToNewLift(newLiftId: Long, existingLiftIds: List<Long>) {
+        liveWorkoutCompletedSetsDao.changeFromLiftsToNewLift(newLiftId, existingLiftIds)
+        syncScheduler.scheduleSync()
+    }
+
+    override suspend fun deleteAll() =
+        liveWorkoutCompletedSetsDao.softDeleteAll()
+
+    override suspend fun delete(model: SetResult): Int {
+        val count = liveWorkoutCompletedSetsDao.softDelete(model.id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
+    }
+
+    override suspend fun deleteMany(models: List<SetResult>): Int {
+        val ids = models.map { it.id }
+        if (ids.isEmpty()) return 0
+        val count = liveWorkoutCompletedSetsDao.softDeleteMany(ids)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
+    }
+
+    override suspend fun deleteById(id: Long): Int {
+        Log.d("PreviousSetResultsRepositoryImpl", "deleteById: $id")
+        val count = liveWorkoutCompletedSetsDao.softDelete(id)
+        if (count > 0) {
+            syncScheduler.scheduleSync()
+        }
+        return count
+    }
+}

@@ -2,28 +2,37 @@ package com.browntowndev.liftlab.ui.views.main.lab
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.common.DELOAD_WEEK_OPTIONS
-import com.browntowndev.liftlab.core.common.ReorderableListItem
+import com.browntowndev.liftlab.core.common.MICROCYCLE_SIZE_OPTIONS
 import com.browntowndev.liftlab.core.common.SettingsManager
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.LIFT_SPECIFIC_DELOADING
-import com.browntowndev.liftlab.ui.composables.ConfirmationDialog
-import com.browntowndev.liftlab.ui.composables.EventBusDisposalEffect
-import com.browntowndev.liftlab.ui.composables.LiftLabDialog
-import com.browntowndev.liftlab.ui.composables.NumberPickerSpinner
-import com.browntowndev.liftlab.ui.composables.ReorderableLazyColumn
-import com.browntowndev.liftlab.ui.composables.TextFieldDialog
-import com.browntowndev.liftlab.ui.composables.VolumeChipBottomSheet
-import com.browntowndev.liftlab.ui.models.AppBarMutateControlRequest
-import com.browntowndev.liftlab.ui.viewmodels.LabViewModel
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.LabScreen
-import com.browntowndev.liftlab.ui.viewmodels.states.screens.Screen
+import com.browntowndev.liftlab.ui.composables.SnackbarProvider
+import com.browntowndev.liftlab.ui.composables.chips.VolumeChipBottomSheet
+import com.browntowndev.liftlab.ui.composables.component.ReorderableLazyColumn
+import com.browntowndev.liftlab.ui.composables.dialog.ConfirmationDialog
+import com.browntowndev.liftlab.ui.composables.dialog.LiftLabDialog
+import com.browntowndev.liftlab.ui.composables.dialog.TextFieldDialog
+import com.browntowndev.liftlab.ui.composables.spinner.NumberPickerSpinner
+import com.browntowndev.liftlab.ui.composables.utils.EventBusDisposalEffect
+import com.browntowndev.liftlab.ui.models.controls.AppBarMutateControlRequest
+import com.browntowndev.liftlab.ui.models.controls.ReorderableListItem
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.LabScreen
+import com.browntowndev.liftlab.ui.viewmodels.appBar.screen.Screen
+import com.browntowndev.liftlab.ui.viewmodels.lab.LabViewModel
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 @ExperimentalFoundationApi
@@ -31,6 +40,8 @@ import org.koin.androidx.compose.koinViewModel
 fun Lab(
     paddingValues: PaddingValues,
     screenId: String?,
+    snackbarHostState: SnackbarHostState,
+    lazyListState: LazyListState,
     onNavigateToWorkoutBuilder: (workoutId: Long) -> Unit,
     setTopAppBarCollapsed: (Boolean) -> Unit,
     setTopAppBarControlVisibility: (String, Boolean) -> Unit,
@@ -77,7 +88,7 @@ fun Lab(
 
     LaunchedEffect(key1 = state.isManagingPrograms) {
         if (state.isManagingPrograms) {
-            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "ProgramEntity Management"))
+            mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, "Program Management"))
         } else {
             mutateTopAppBarControlValue(AppBarMutateControlRequest(Screen.SUBTITLE, state.originalProgramName))
         }
@@ -87,6 +98,7 @@ fun Lab(
 
     labViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = labViewModel)
+    SnackbarProvider(snackbarHostState, labViewModel.userMessages)
 
     if (state.isReordering) {
         ReorderableLazyColumn(
@@ -108,13 +120,14 @@ fun Lab(
     else if (state.program?.workouts?.isEmpty() == false) {
         VolumeChipBottomSheet(
             placeAboveBottomNavBar = true,
-            title = "ProgramEntity Volume",
+            title = "Program Volume",
             combinedVolumeChipLabels = state.combinedVolumeTypes,
             primaryVolumeChipLabels = state.primaryVolumeTypes,
             secondaryVolumeChipLabels = state.secondaryVolumeTypes,
         ) {
             WorkoutCardList(
                 paddingValues = paddingValues,
+                listState = lazyListState,
                 workouts = state.program!!.workouts,
                 showEditWorkoutNameModal = { workout ->
                     labViewModel.showEditWorkoutNameModal(
@@ -193,5 +206,40 @@ fun Lab(
             onConfirm = { labViewModel.deleteWorkout(state.workoutToDelete!!) },
             onCancel = { labViewModel.cancelDeleteWorkout() }
         )
+    }
+
+    if (state.isGeneratingProgram) {
+        var workoutCount by remember { mutableIntStateOf(4) }
+        var generating by remember { mutableStateOf(false) }
+        ConfirmationDialog(
+            header = "Generate Program",
+            textAboveContent = "Select the number of days you would like to work out per microcycle.",
+            onConfirm = {
+                generating = true
+                labViewModel.generateProgram(workoutCount)
+            },
+            onCancel = { labViewModel.toggleGenerateProgramModal() }
+        ) {
+            if (generating) {
+                var dotCount by remember { mutableIntStateOf(0) }
+                val text = "Generating${".".repeat(dotCount)}"
+
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        delay(500)
+                        dotCount = (dotCount + 1) % 4
+                    }
+                }
+                Text(text)
+            } else {
+                NumberPickerSpinner(
+                    options = MICROCYCLE_SIZE_OPTIONS,
+                    initialValue = workoutCount.toFloat(),
+                    onChanged = {
+                        workoutCount = it.toInt()
+                    },
+                )
+            }
+        }
     }
 }

@@ -25,19 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
-import com.browntowndev.liftlab.core.common.enums.VolumeType
-import com.browntowndev.liftlab.core.common.enums.displayName
-import com.browntowndev.liftlab.ui.composables.TextDropdown
+import com.browntowndev.liftlab.core.domain.enums.VolumeType
+import com.browntowndev.liftlab.ui.composables.dropdown.TextDropdown
+import com.browntowndev.liftlab.ui.extensions.displayName
 
 
 @Composable
 fun VolumeTypeDropdown(
-    volumeTypeDisplay: String,
+    volumeTypeDisplay: VolumeType,
     unselectedVolumeTypeOptions: List<VolumeType>,
     onUpdateVolumeType: (newVolumeType: VolumeType) -> Unit,
 ) {
     var isExpanded by remember(volumeTypeDisplay) { mutableStateOf(false) }
-    var selectedOption by remember(volumeTypeDisplay) { mutableStateOf(volumeTypeDisplay) }
 
     Row(
         modifier = Modifier
@@ -54,22 +53,19 @@ fun VolumeTypeDropdown(
         TextDropdown(
             isExpanded = isExpanded,
             onToggleExpansion = { isExpanded = !isExpanded },
-            text = volumeTypeDisplay,
+            text = volumeTypeDisplay.displayName(),
             fontSize = 18.sp
         ) {
             unselectedVolumeTypeOptions.fastForEach { option ->
-                val volumeTypeOption by remember(unselectedVolumeTypeOptions) { mutableStateOf(option.displayName()) }
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = volumeTypeOption,
+                            text = option.displayName(),
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                     },
                     onClick = {
-                        selectedOption = volumeTypeOption
                         isExpanded = false
-
                         onUpdateVolumeType(option)
                     })
             }
