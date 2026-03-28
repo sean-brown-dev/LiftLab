@@ -36,16 +36,16 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file(findProperty("RELEASE_KEYSTORE_FILE") ?: "debug.keystore")
-            storePassword findProperty("RELEASE_KEYSTORE_PASSWORD") ?: "android"
-            keyAlias findProperty("RELEASE_KEY_ALIAS") ?: "androiddebugkey"
-            keyPassword findProperty("RELEASE_KEY_ALIAS_PASSWORD") ?: "android"
+            storeFile file(RELEASE_KEYSTORE_FILE)
+            storePassword RELEASE_KEYSTORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_ALIAS_PASSWORD
         }
         debug {
-            storeFile file(findProperty("RELEASE_KEYSTORE_FILE") ?: "debug.keystore")
-            storePassword findProperty("RELEASE_KEYSTORE_PASSWORD") ?: "android"
-            keyAlias findProperty("RELEASE_KEY_ALIAS") ?: "androiddebugkey"
-            keyPassword findProperty("RELEASE_KEY_ALIAS_PASSWORD") ?: "android"
+            storeFile file(RELEASE_KEYSTORE_FILE)
+            storePassword RELEASE_KEYSTORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_ALIAS_PASSWORD
         }
     }
 
@@ -112,150 +112,164 @@ dependencies {
     ksp(project(":annotation_generator"))
 
     // =================== KSP ======================
-    implementation libs.ksp.api
+    implementation 'com.google.devtools.ksp:symbol-processing-api:2.2.20-2.0.3'
 
     // =================== ANDROIDX CORE & ACTIVITY ======================
-    implementation libs.androidx.activity.ktx
-    implementation libs.androidx.core.ktx
-    implementation libs.androidx.core.splashscreen
+    def activity_version = '1.11.0'
+    implementation "androidx.activity:activity-ktx:$activity_version"
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
 
     // =================== KOTLIN ======================
-    implementation libs.kotlin.reflect
-    implementation libs.kotlinx.coroutines.core
-    implementation libs.kotlinx.serialization.json
+    def kotlin_coroutines_version = '1.10.2'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect:2.2.20'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
 
     // =================== FIREBASE (BOM Managed) & GOOGLE SERVICES ======================
-    implementation platform(libs.firebase.bom)
-    implementation libs.firebase.appcheck.playintegrity
-    implementation libs.firebase.auth
-    implementation libs.firebase.firestore
-    implementation libs.firebase.crashlytics
-    implementation libs.firebase.ai
-    implementation libs.firebase.appcheck.debug
-    implementation libs.play.feature.delivery
-    implementation libs.play.feature.delivery.ktx
-    implementation libs.billing.ktx
-    implementation libs.guava
-    implementation libs.androidx.security.crypto.ktx
+    def feature_delivery_version = '2.1.0'
+    implementation platform('com.google.firebase:firebase-bom:34.4.0')
+    implementation "com.google.firebase:firebase-appcheck-playintegrity"
+    implementation "com.google.firebase:firebase-auth"
+    implementation "com.google.firebase:firebase-firestore"
+    implementation "com.google.firebase:firebase-crashlytics"
+    implementation "com.google.firebase:firebase-ai"
+    implementation "com.google.firebase:firebase-appcheck-debug"
+    implementation "com.google.android.play:feature-delivery:$feature_delivery_version"
+    implementation "com.google.android.play:feature-delivery-ktx:$feature_delivery_version"
+    implementation "com.android.billingclient:billing-ktx:8.0.0"
+    implementation 'com.google.guava:guava:33.5.0-jre'
+    implementation 'androidx.security:security-crypto-ktx:1.1.0'
 
     // ---- Firebase Auth helpers ----
-    implementation libs.kmpauth.google
-    implementation libs.kmpauth.firebase
-    implementation libs.kmpauth.uihelper
+    def firebase_auth_helper_version = '2.4.0-alpha05'
+    implementation("io.github.mirzemehdi:kmpauth-google:$firebase_auth_helper_version")
+    implementation("io.github.mirzemehdi:kmpauth-firebase:$firebase_auth_helper_version")
+    implementation("io.github.mirzemehdi:kmpauth-uihelper:$firebase_auth_helper_version")
 
     // =================== EVENTBUS ======================
-    implementation libs.eventbus
-    ksp libs.eventbus.compiler
+    def eventbus_version = '3.3.1'
+    implementation "org.greenrobot:eventbus:$eventbus_version"
+    ksp "org.greenrobot:eventbus-annotation-processor:$eventbus_version"
 
     // =================== ANNOTATIONS ======================
-    implementation libs.javax.annotation.api
-    implementation libs.j2objc.annotations
+    implementation "javax.annotation:javax.annotation-api:1.3.2"
+    implementation 'com.google.j2objc:j2objc-annotations:3.1'
 
     // =================== COMPOSE (BOM Managed) ======================
-    implementation platform(libs.compose.bom)
-    implementation libs.androidx.activity.compose
-    implementation libs.compose.ui
-    implementation libs.compose.ui.graphics
-    implementation libs.compose.ui.tooling.preview
-    implementation libs.compose.foundation
-    implementation libs.compose.ui.util
-    implementation libs.compose.material
-    implementation libs.compose.material3
-    implementation libs.compose.material.icons.extended
+    implementation platform('androidx.compose:compose-bom:2025.10.01')
+    implementation "androidx.activity:activity-compose:1.11.0"
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-graphics"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.foundation:foundation"
+    implementation "androidx.compose.ui:ui-util"
+    implementation "androidx.compose.material:material"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.compose.material:material-icons-extended"
 
     // =================== NAVIGATION ======================
-    implementation libs.navigation.fragment.ktx
-    implementation libs.navigation.ui.ktx
-    implementation libs.navigation.dynamic.features.fragment
-    implementation libs.navigation.compose
-    androidTestImplementation libs.navigation.testing
+    def nav_version = '2.9.5'
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-dynamic-features-fragment:$nav_version"
+    implementation "androidx.navigation:navigation-compose:$nav_version"
+    androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
 
     // =================== ROOM ======================
-    implementation libs.room.ktx
-    implementation libs.room.runtime
-    implementation libs.room.common
-    ksp libs.room.compiler
+    def room_version = '2.8.3'
+    implementation "androidx.room:room-ktx:$room_version"
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-common:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
 
     // =================== LIFECYCLE ======================
-    implementation libs.lifecycle.viewmodel.compose
-    implementation libs.lifecycle.runtime.ktx
-    implementation libs.lifecycle.livedata.ktx
-    implementation libs.lifecycle.process
+    def lifecycle_version = '2.9.4'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-process:$lifecycle_version"
 
     // =================== WORK ======================
-    implementation libs.work.runtime.ktx
-    implementation libs.work.runtime
+    def work_version = '2.11.0'
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+    implementation "androidx.work:work-runtime:$work_version"
 
     // =================== KOIN ======================
-    implementation libs.koin.core
-    implementation libs.koin.android
-    implementation libs.koin.androidx.compose
-    implementation libs.koin.androidx.workmanager
+    def koin_version = '4.1.1'
+    implementation "io.insert-koin:koin-core:$koin_version"
+    implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
+    implementation("io.insert-koin:koin-androidx-workmanager:$koin_version")
 
     // =================== THIRD PARTY UI ======================
-    implementation libs.reorderable
-    implementation libs.compose.shimmer
-    implementation libs.capturable
+    implementation 'sh.calvin.reorderable:reorderable:3.0.0'
+    implementation 'com.valentinilk.shimmer:compose-shimmer:1.3.3'
+    implementation 'dev.shreyaspatil:capturable:3.0.1'
 
     // =================== VICO CHARTS ======================
-    implementation libs.vico.compose
-    implementation libs.vico.compose.m3
-    implementation libs.vico.core
-    implementation libs.vico.views
+    def vico_version = '2.2.1'
+    implementation("com.patrykandpatrick.vico:compose:$vico_version")
+    implementation("com.patrykandpatrick.vico:compose-m3:$vico_version")
+    implementation("com.patrykandpatrick.vico:core:$vico_version")
+    implementation("com.patrykandpatrick.vico:views:$vico_version")
 
     // =================== ARROW ======================
-    implementation libs.arrow.core
-    implementation libs.arrow.fx.coroutines
+    def arrow_version = '2.1.2'
+    implementation "io.arrow-kt:arrow-core:$arrow_version"
+    implementation "io.arrow-kt:arrow-fx-coroutines:$arrow_version"
 
     // =================== GSON ======================
-    implementation libs.gson
+    implementation 'com.google.code.gson:gson:2.13.2'
 
     // =================== TESTING (UNIT/INSTRUMENTATION) ======================
     // JUnit 5 (BOM Managed)
-    testImplementation platform(libs.junit.bom)
-    testImplementation libs.junit.jupiter
-    testImplementation libs.junit.jupiter.params
-    testRuntimeOnly libs.junit.jupiter.engine
-    testRuntimeOnly libs.junit.platform.launcher
-    testImplementation libs.turbine
-    testImplementation libs.robolectric
-    testImplementation libs.androidx.test.core // ApplicationProvider
+    def junit_jupiter_version = '6.0.0'
+    testImplementation platform("org.junit:junit-bom:$junit_jupiter_version")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testImplementation "org.junit.jupiter:junit-jupiter-params"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation("app.cash.turbine:turbine:1.2.1")
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("androidx.test:core:1.7.0") // ApplicationProvider
 
     // JUnit 5 for instrumented tests
-    androidTestImplementation platform(libs.junit.bom)
-    androidTestImplementation libs.junit.jupiter.api
-    androidTestRuntimeOnly libs.junit.jupiter.engine
+    androidTestImplementation platform('org.junit:junit-bom:6.0.0')
+    androidTestImplementation "org.junit.jupiter:junit-jupiter-api"
+    androidTestRuntimeOnly  "org.junit.jupiter:junit-jupiter-engine"
 
     // AndroidX instrumentation helpers
-    androidTestImplementation libs.androidx.test.core.ktx
-    androidTestImplementation libs.androidx.test.runner
-    androidTestImplementation libs.androidx.test.ext.junit.ktx // keep if you also run JUnit4-based instrumented tests (e.g., Compose ui-test-junit4)
+    def androidx_test_version = '1.7.0'
+    androidTestImplementation "androidx.test:core-ktx:$androidx_test_version"
+    androidTestImplementation "androidx.test:runner:$androidx_test_version"
+    androidTestImplementation "androidx.test.ext:junit-ktx:1.3.0" // keep if you also run JUnit4-based instrumented tests (e.g., Compose ui-test-junit4)
 
     // Room testing (optional but handy for migrations)
-    androidTestImplementation libs.room.testing
+    androidTestImplementation 'androidx.room:room-testing:2.8.3'
 
     // Coroutines testing on device
-    androidTestImplementation libs.kotlinx.coroutines.test
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2"
 
     // --- To run old JUnit 4 tests temporarily, uncomment below: ---
     // testImplementation 'junit:junit:4.13.2'
     // testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 
     // Kotlin & coroutine test helpers
-    testImplementation libs.mockk
-    testImplementation libs.kotlinx.coroutines.test
-    testImplementation libs.arch.core.testing
-    testImplementation libs.kotlin.test // Use for kotlin assertions, fine w/ JUnit5
+    testImplementation 'io.mockk:mockk:1.14.6'
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_coroutines_version"
+    testImplementation "androidx.arch.core:core-testing:2.2.0"
+    testImplementation('org.jetbrains.kotlin:kotlin-test:2.2.20') // Use for kotlin assertions, fine w/ JUnit5
 
     // AndroidX Instrumentation/Compose Test
-    androidTestImplementation libs.androidx.test.ext.junit
-    androidTestImplementation libs.espresso.core
-    androidTestImplementation platform(libs.compose.bom)
-    androidTestImplementation libs.compose.ui.test.junit4
+    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
+    androidTestImplementation platform('androidx.compose:compose-bom:2025.10.01')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.9.4'
 
     // Compose debug/test utilities (BOM Managed)
-    debugImplementation libs.compose.ui.tooling
-    debugImplementation libs.compose.ui.test.manifest
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 }
 
 ksp {
