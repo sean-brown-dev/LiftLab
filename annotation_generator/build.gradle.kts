@@ -13,5 +13,5 @@ kotlin {
 }
 dependencies {
     implementation(project(":annotations"))
-    implementation("com.google.devtools.ksp:symbol-processing-api:2.2.0-2.0.2")
+    implementation(libs.ksp.api.annotation.generator)
 }
