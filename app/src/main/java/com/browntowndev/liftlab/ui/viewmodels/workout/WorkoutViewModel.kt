@@ -287,7 +287,12 @@ class WorkoutViewModel(
     }
 
     private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
-        val file = File(context.cacheDir, fileName)
+        val sharedImagesDir = File(context.cacheDir, "shared_images")
+        if (!sharedImagesDir.exists()) {
+            sharedImagesDir.mkdirs()
+        }
+
+        val file = File(sharedImagesDir, fileName)
         val fileOutputStream = FileOutputStream(file)
 
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
