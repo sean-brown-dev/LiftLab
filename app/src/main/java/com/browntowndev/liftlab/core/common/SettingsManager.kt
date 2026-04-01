@@ -3,6 +3,8 @@ package com.browntowndev.liftlab.core.common
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_INCREMENT_AMOUNT
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_LIFT_SPECIFIC_DELOADING
 import com.browntowndev.liftlab.core.common.SettingsManager.SettingNames.DEFAULT_ONLY_USE_RESULTS_FOR_LIFTS_IN_SAME_POSITION
@@ -37,11 +39,24 @@ object SettingsManager {
     }
 
     private const val PREFERENCES_NAME = "LiftLabPreferences"
+    private const val ENCRYPTED_PREFERENCES_NAME = "LiftLabPreferencesEncrypted"
     private lateinit var sharedPreferences: SharedPreferences
 
     @Synchronized
     fun initialize(context: Context) {
-        sharedPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        sharedPreferences = EncryptedSharedPreferences.create(
+            context,
+            ENCRYPTED_PREFERENCES_NAME,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+
+        migrateLegacyPreferences(context)
 
         if (!sharedPreferences.getBoolean("settings_initialized", false)) {
             setDefaultSetting(REST_TIME, DEFAULT_REST_TIME)
@@ -52,6 +67,26 @@ object SettingsManager {
             setDefaultSetting(LIFT_SPECIFIC_DELOADING, DEFAULT_LIFT_SPECIFIC_DELOADING)
 
             sharedPreferences.edit { putBoolean("settings_initialized", true) }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun migrateLegacyPreferences(context: Context) {
+        val legacyPreferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+        if (legacyPreferences.all.isNotEmpty()) {
+            sharedPreferences.edit(commit = true) {
+                legacyPreferences.all.forEach { (key, value) ->
+                    when (value) {
+                        is String -> putString(key, value)
+                        is Int -> putInt(key, value)
+                        is Long -> putLong(key, value)
+                        is Float -> putFloat(key, value)
+                        is Boolean -> putBoolean(key, value)
+                        is Set<*> -> putStringSet(key, value as Set<String>)
+                    }
+                }
+            }
+            legacyPreferences.edit().clear().apply()
         }
     }
 
