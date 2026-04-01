@@ -85,7 +85,7 @@ fun LogHeaders() {
                 .offset(x = (-16).dp),
             imageVector = Icons.Filled.Check,
             tint = MaterialTheme.colorScheme.onSecondaryContainer,
-            contentDescription = null,
+            contentDescription = "Completed",
         )
     }
 }

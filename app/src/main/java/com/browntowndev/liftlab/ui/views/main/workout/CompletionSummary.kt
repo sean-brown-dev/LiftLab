@@ -123,7 +123,7 @@ fun CompletionSummary(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = R.drawable.award_medals),
                                 tint = MaterialTheme.colorScheme.tertiary,
-                                contentDescription = null,
+                                contentDescription = "Personal Records",
                             )
                             val recordOrRecords = if (workoutCompletionSummary.personalRecordCount == 1) {
                                 "Personal Record"

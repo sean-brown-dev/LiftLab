@@ -70,7 +70,7 @@ fun WavePatternDropdown(
             Icon(
                 modifier = Modifier.size(18.dp).padding(end = 5.dp),
                 imageVector = Icons.Filled.Warning,
-                contentDescription = null,
+                contentDescription = "Warning",
                 tint = MaterialTheme.colorScheme.error,
             )
             Text(
@@ -100,7 +100,7 @@ private fun WavePattern(
                 Icon(
                     modifier = Modifier.size(18.dp),
                     imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
-                    contentDescription = null,
+                    contentDescription = "Arrow right",
                     tint = fontColor,
                 )
             }

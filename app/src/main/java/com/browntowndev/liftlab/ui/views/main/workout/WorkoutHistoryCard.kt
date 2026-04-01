@@ -123,7 +123,7 @@ fun WorkoutHistoryCard(
                 modifier = Modifier.size(15.dp),
                 painter = painterResource(id = R.drawable.stopwatch_icon),
                 tint = MaterialTheme.colorScheme.outline,
-                contentDescription = null,
+                contentDescription = "Workout duration",
             )
             Text(
                 modifier = Modifier.padding(end = 10.dp),
@@ -135,7 +135,7 @@ fun WorkoutHistoryCard(
                 modifier = Modifier.size(15.dp),
                 painter = painterResource(id = R.drawable.award_medals),
                 tint = MaterialTheme.colorScheme.tertiary,
-                contentDescription = null,
+                contentDescription = "Personal Records",
             )
             Text(
                 modifier = Modifier.padding(end = 10.dp),
