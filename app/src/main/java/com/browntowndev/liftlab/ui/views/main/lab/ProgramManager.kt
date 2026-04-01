@@ -53,7 +53,7 @@ fun ProgramManager(
         item {
             Spacer(modifier = Modifier.height(10.dp))
         }
-        items(programs) { program ->
+        items(programs, key = { it.id }) { program ->
             Card(
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.outlinedCardColors(

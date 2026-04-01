@@ -126,7 +126,7 @@ fun RowMultiSelect(
                 modifier = Modifier.fillMaxWidth().height(233.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp),
             ) {
-                items(options) { option ->
+                items(options, key = { it }) { option ->
                     val isChecked by remember(selectionsState, option) {
                         mutableStateOf(
                             selectionsState.contains(option)
