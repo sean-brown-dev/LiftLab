@@ -1,3 +1,0 @@
-## 2024-05-15 - Add stable keys to LazyColumn items
-**Learning:** Jetpack Compose lists (`LazyColumn`, `LazyRow`) can suffer from performance issues if `key` parameters are not provided to the `items` DSL. Without keys, Compose may unnecessarily recompose items during reordering or data changes.
-**Action:** Always provide unique, stable keys (like IDs or unique strings) to `items` in Jetpack Compose to optimize recomposition performance.
