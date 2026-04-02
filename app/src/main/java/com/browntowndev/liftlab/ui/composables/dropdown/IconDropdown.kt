@@ -17,14 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.browntowndev.liftlab.R
 
 @Composable
 fun IconDropdown(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Default.MoreVert,
     painter: Painter? = null,
+    contentDescription: String? = stringResource(R.string.accessibility_more_options),
     isExpanded: Boolean,
     onToggleExpansion: () -> Unit,
     iconSize: Dp = 24.dp,
@@ -37,10 +40,10 @@ fun IconDropdown(
     ) {
         IconButton(onClick = onToggleExpansion) {
             if (painter != null) {
-                Icon(painter = painter, contentDescription = null, modifier = Modifier.size(iconSize), tint = iconTint)
+                Icon(painter = painter, contentDescription = contentDescription, modifier = Modifier.size(iconSize), tint = iconTint)
             }
             else {
-                Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(iconSize), tint = iconTint)
+                Icon(imageVector = icon, contentDescription = contentDescription, modifier = Modifier.size(iconSize), tint = iconTint)
             }
         }
             DropdownMenu(
