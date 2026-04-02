@@ -71,7 +71,8 @@ fun Workout(
     },
 ) {
     val state by workoutViewModel.workoutState.collectAsState()
-    val timerState by durationTimerViewModel.state.collectAsState()
+    val timerState = durationTimerViewModel.state.collectAsState()
+    val isTimerRunning by remember { androidx.compose.runtime.derivedStateOf { timerState.value.running } }
 
     workoutViewModel.registerEventBus()
     EventBusDisposalEffect(screenId = screenId, viewModelToUnregister = workoutViewModel)
@@ -119,8 +120,8 @@ fun Workout(
         }
     }
 
-    LaunchedEffect(key1 = state.startTime, key2 = timerState.running) {
-        if (enableDurationTimer && state.startTime != null && !timerState.running) {
+    LaunchedEffect(key1 = state.startTime, key2 = isTimerRunning) {
+        if (enableDurationTimer && state.startTime != null && !isTimerRunning) {
             durationTimerViewModel.startFrom(state.startTime!!) // This is smart and won't restart from 0
         }
     }
@@ -158,7 +159,7 @@ fun Workout(
             animationEnabled = animationEnabled,
             workoutInProgress = state.inProgress,
             workoutName = state.workout!!.name,
-            timeInProgress = timerState.time,
+            timeInProgressProvider = { timerState.value.time },
             lifts = state.workout!!.lifts,
             combinedVolumeTypes = state.combinedVolumeTypes,
             primaryVolumeTypes = state.primaryVolumeTypes,
@@ -178,7 +179,7 @@ fun Workout(
             visible = state.workoutLogVisible && !state.isReordering && !state.isCompletionSummaryVisible,
             animationEnabled = animationEnabled,
             lifts = state.workout!!.lifts,
-            duration = timerState.time,
+            durationProvider = { timerState.value.time },
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
                 workoutViewModel.setWeight(
                     workoutLiftId = workoutLiftId,
