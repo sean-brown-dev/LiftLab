@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.core.common.REST_TIME_RANGE
 import com.browntowndev.liftlab.ui.composables.spinner.TimeSelectionSpinner
 import kotlin.time.Duration
@@ -37,7 +39,7 @@ fun DurationPickerMenuItem(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.accessibility_back)
                 )
             }
             Text(
