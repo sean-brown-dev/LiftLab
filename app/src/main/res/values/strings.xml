@@ -32,4 +32,7 @@
     <string name="share_workout">Share Workout</string>
     <string name="profile">Profile</string>
     <string name="firebase_client_id">301580597941-2dee4a9mv6a59ncbuel0f2i8u2mvs6uk.apps.googleusercontent.com</string>
+    <string name="accessibility_close">Close</string>
+    <string name="accessibility_done">Done</string>
+    <string name="accessibility_remove_filter">Remove filter</string>
 </resources>
