@@ -210,7 +210,7 @@ fun FocusedOutlinedTextField(
             }) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.accessibility_close),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }

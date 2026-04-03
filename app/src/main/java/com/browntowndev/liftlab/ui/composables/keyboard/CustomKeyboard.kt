@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import com.browntowndev.liftlab.R
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.ui.composables.utils.rememberWindowHeight
 
@@ -101,7 +103,7 @@ fun CustomKeyboard(
                         modifier = Modifier.size(25.dp),
                         imageVector = Icons.Filled.Check,
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.accessibility_done)
                     )
                 }
 
