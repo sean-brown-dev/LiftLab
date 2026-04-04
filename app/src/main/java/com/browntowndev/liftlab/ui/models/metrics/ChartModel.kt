@@ -122,7 +122,9 @@ fun getPerWorkoutVolumeChartModel(
         }
         .fastMap { workoutLog ->
             val repVolume = workoutLog.setLogEntries.sumOf { it.reps }
-            val totalWeight = workoutLog.setLogEntries.map { it.weight }.sum()
+            // ⚡ Bolt: Replaced .map { it.weight }.sum() with .sumOf to prevent unnecessary intermediate List allocation.
+            // Expected Impact: Reduces memory allocation O(N) -> O(1) and iterates once instead of twice for summing weights.
+            val totalWeight = workoutLog.setLogEntries.sumOf { it.weight.toDouble() }.toFloat()
             val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(workoutLog.setLogEntries, totalWeight)
             VolumeTypesForDate(
                 date = workoutLog.date.toLocalDate(),
@@ -197,7 +199,9 @@ fun getPerMicrocycleVolumeChartModel(
                     .groupBy { it.liftId }
                     .map { liftResults ->
                         val repVolume = liftResults.value.sumOf { it.reps }
-                        val totalWeight = liftResults.value.map { it.weight }.sum()
+                        // ⚡ Bolt: Replaced .map { it.weight }.sum() with .sumOf to prevent unnecessary intermediate List allocation.
+                        // Expected Impact: Reduces memory allocation O(N) -> O(1) and iterates once instead of twice for summing weights.
+                        val totalWeight = liftResults.value.sumOf { it.weight.toDouble() }.toFloat()
                         val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(liftResults.value, totalWeight)
 
                         val workingSetVolume = liftResults.value.filter { it.rpe >= 7f }.size /
