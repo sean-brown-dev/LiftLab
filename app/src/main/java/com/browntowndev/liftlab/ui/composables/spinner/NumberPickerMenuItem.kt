@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.browntowndev.liftlab.R
 
 @Composable
 fun NumberPickerMenuItem(
@@ -31,7 +33,7 @@ fun NumberPickerMenuItem(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.accessibility_back)
                 )
             }
             Text(
@@ -61,7 +63,7 @@ fun NullableNumberPickerMenuItem(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.accessibility_back)
                 )
             }
             Text(
