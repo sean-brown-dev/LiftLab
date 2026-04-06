@@ -122,11 +122,11 @@ fun getPerWorkoutVolumeChartModel(
         }
         .fastMap { workoutLog ->
             val repVolume = workoutLog.setLogEntries.sumOf { it.reps }
-            val totalWeight = workoutLog.setLogEntries.map { it.weight }.sum()
+            val totalWeight = workoutLog.setLogEntries.sumOf { it.weight.toDouble() }.toFloat()
             val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(workoutLog.setLogEntries, totalWeight)
             VolumeTypesForDate(
                 date = workoutLog.date.toLocalDate(),
-                workingSetVolume = workoutLog.setLogEntries.filter { it.rpe >= 7f }.size,
+                workingSetVolume = workoutLog.setLogEntries.count { it.rpe >= 7f },
                 relativeVolume = repVolume * (totalWeight / totalWeightIfLifting1RmEachTime),
             )
         }.associateBy { volumes ->
@@ -197,10 +197,10 @@ fun getPerMicrocycleVolumeChartModel(
                     .groupBy { it.liftId }
                     .map { liftResults ->
                         val repVolume = liftResults.value.sumOf { it.reps }
-                        val totalWeight = liftResults.value.map { it.weight }.sum()
+                        val totalWeight = liftResults.value.sumOf { it.weight.toDouble() }.toFloat()
                         val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(liftResults.value, totalWeight)
 
-                        val workingSetVolume = liftResults.value.filter { it.rpe >= 7f }.size /
+                        val workingSetVolume = liftResults.value.count { it.rpe >= 7f } /
                             if (secondaryVolumeTypesByLiftId?.contains(liftResults.key) == true) 2f else 1f
 
                         val averageIntensity = (totalWeight / totalWeightIfLifting1RmEachTime)
@@ -331,10 +331,10 @@ fun getWeeklyCompletionChart(
     val completedWorkoutsByWeek = workoutCompletionRange
         .fastMap { week ->
             week.first to
-                    workoutsInDateRange.filter { workoutLog ->
+                    workoutsInDateRange.count { workoutLog ->
                         week.first <= workoutLog.date.toLocalDate() &&
                                 workoutLog.date.toLocalDate() <= week.second
-                    }.size
+                    }
         }
         .sortedBy { it.first }
         .associate { (date, completionCount) ->
@@ -401,7 +401,7 @@ fun getMicroCycleCompletionChart(
             }
 
             logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
-                workoutLog.setLogEntries.filter { it.myoRepSetPosition == null }.size
+                workoutLog.setLogEntries.count { it.myoRepSetPosition == null }
             }.toFloat().div(setCount).times(100)
         }.ifEmpty { mapOf(1 to 0f) }
 
