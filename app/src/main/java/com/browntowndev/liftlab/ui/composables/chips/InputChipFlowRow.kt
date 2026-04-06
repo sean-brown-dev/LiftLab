@@ -22,9 +22,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.models.controls.FilterChipOption
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -69,7 +71,7 @@ fun InputChipFlowRow(
                         Icon(
                             modifier = Modifier.size(16.dp),
                             imageVector = Icons.Filled.Close,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.accessibility_remove_filter),
                         )
                     }
                 }
