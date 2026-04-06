@@ -67,7 +67,7 @@ fun WorkoutLog(
     lifts: List<LoggingWorkoutLiftUiModel>,
     animationEnabled: Boolean = true, // For tests
     pickerViewModel: PickerViewModel = koinViewModel(),
-    duration: String,
+    durationProvider: () -> String,
     onWeightChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, weight: Float?) -> Unit,
     onRepsChanged: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, reps: Int?) -> Unit,
     onRpeSelected: (workoutLiftId: Long, setPosition: Int, myoRepSetPosition: Int?, newRpe: Float) -> Unit,
@@ -120,7 +120,7 @@ fun WorkoutLog(
                         )
                         Spacer(modifier = Modifier.width(3.dp))
                         Text(
-                            text = duration,
+                            text = durationProvider(),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.outline,
                         )

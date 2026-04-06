@@ -55,7 +55,7 @@ fun WorkoutPreview(
     animationEnabled: Boolean = true, // for testing
     workoutInProgress: Boolean,
     workoutName: String,
-    timeInProgress: String,
+    timeInProgressProvider: () -> String,
     lifts: List<LoggingWorkoutLiftUiModel>,
     combinedVolumeTypes: List<CharSequence>,
     primaryVolumeTypes: List<CharSequence>,
@@ -91,16 +91,7 @@ fun WorkoutPreview(
                 item (key = "start_workout_button") {
                     val primaryColor = MaterialTheme.colorScheme.primary
                     val secondaryColor = MaterialTheme.colorScheme.secondary
-                    var buttonColor by remember {
-                        mutableStateOf(
-                            if (!workoutInProgress) primaryColor
-                            else secondaryColor
-                        )
-                    }
-                    LaunchedEffect(key1 = workoutInProgress) {
-                        buttonColor = if (!workoutInProgress) primaryColor
-                        else secondaryColor
-                    }
+                    val buttonColor = if (!workoutInProgress) primaryColor else secondaryColor
 
                     Spacer(modifier = Modifier.height(20.dp))
                     Button(
@@ -119,29 +110,11 @@ fun WorkoutPreview(
                             }
                         }
                     ) {
-                        var text by remember {
-                            mutableStateOf(
-                                if (!workoutInProgress) "Start $workoutName"
-                                else "Resume - $timeInProgress"
-                            )
-                        }
-
                         val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
                         val onSecondaryColor = MaterialTheme.colorScheme.onSecondary
-                        var textColor by remember {
-                            mutableStateOf(
-                                if (!workoutInProgress) onPrimaryColor
-                                else onSecondaryColor
-                            )
-                        }
+                        val textColor = if (!workoutInProgress) onPrimaryColor else onSecondaryColor
 
-                        LaunchedEffect(key1 = workoutInProgress, key2 = timeInProgress) {
-                            textColor = if (!workoutInProgress) onPrimaryColor
-                            else onSecondaryColor
-
-                            text = if (!workoutInProgress) "Start $workoutName"
-                            else "Resume - $timeInProgress"
-                        }
+                        val text = if (!workoutInProgress) "Start $workoutName" else "Resume - ${timeInProgressProvider()}"
 
                         Text(
                             text = text,

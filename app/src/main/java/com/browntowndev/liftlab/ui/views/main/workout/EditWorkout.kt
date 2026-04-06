@@ -62,7 +62,7 @@ fun EditWorkout(
             visible = true,
             isEdit = true,
             lifts = workoutState.workout!!.lifts,
-            duration = editWorkoutState.duration,
+            durationProvider = { editWorkoutState.duration },
             onWeightChanged = { workoutLiftId, setPosition, myoRepSetPosition, weight ->
                 editWorkoutViewModel.setWeight(
                     workoutLiftId = workoutLiftId,
