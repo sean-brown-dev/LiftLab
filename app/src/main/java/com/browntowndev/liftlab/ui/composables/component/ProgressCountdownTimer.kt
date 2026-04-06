@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.browntowndev.liftlab.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun ProgressCountdownTimer(
@@ -84,7 +85,7 @@ fun ProgressCountdownTimer(
                             onCancel()
                         },
                     painter = painterResource(id = R.drawable.skip_icon),
-                    contentDescription = null,
+                    contentDescription = stringResource(id = R.string.accessibility_skip_timer),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
