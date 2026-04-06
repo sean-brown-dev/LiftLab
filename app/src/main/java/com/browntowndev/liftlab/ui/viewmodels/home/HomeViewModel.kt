@@ -196,8 +196,18 @@ class HomeViewModel(
     }
 
     fun createAccount(email: String, password: String) = executeWithErrorHandling("Failed to create account.") {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+            _state.update { it.copy(firebaseError = "Invalid email format.") }
+            return@executeWithErrorHandling
+        }
+        if (password.isEmpty()) {
+            _state.update { it.copy(firebaseError = "Password cannot be empty.") }
+            return@executeWithErrorHandling
+        }
+
         try {
-            firebaseAuth.createUserWithEmailAndPassword(email, password)
+            firebaseAuth.createUserWithEmailAndPassword(trimmedEmail, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         task.result?.user?.sendEmailVerification()
@@ -238,9 +248,19 @@ class HomeViewModel(
 
 
     fun login(email: String, password: String) = executeWithErrorHandling("Failed to log in user.") {
+        val trimmedEmail = email.trim()
+        if (trimmedEmail.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+            _state.update { it.copy(firebaseError = "Invalid email format.") }
+            return@executeWithErrorHandling
+        }
+        if (password.isEmpty()) {
+            _state.update { it.copy(firebaseError = "Password cannot be empty.") }
+            return@executeWithErrorHandling
+        }
+
         viewModelScope.launch {
             try {
-                firebaseAuth.signInWithEmailAndPassword(email, password)
+                firebaseAuth.signInWithEmailAndPassword(trimmedEmail, password)
                     .addOnCompleteListener { task ->
                         handleFirebaseTaskCompletion(task)
                     }
