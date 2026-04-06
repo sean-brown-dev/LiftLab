@@ -50,10 +50,8 @@ class ProgramGenerationAiClient: AiClient {
             text(prompt)
         }
 
-        Log.d("ProgramGenerationAiClient", "Sending Prompt=$prompt")
         val response = model.generateContent(full)
         val programJson = response.text ?: error("Firebase AI returned an empty response")
-        Log.d("ProgramGenerationAiClient", "Response=$programJson")
 
         return runCatching {
             val json = Json { ignoreUnknownKeys = true }
