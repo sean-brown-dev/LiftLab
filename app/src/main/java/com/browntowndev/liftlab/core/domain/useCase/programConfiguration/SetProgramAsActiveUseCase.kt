@@ -23,7 +23,8 @@ class SetProgramAsActiveUseCase(
             .filter { it.isActive && it.id != idOfProgramToActivate }
 
         if (programsToDeactivate.size > 1) {
-            FirebaseCrashlytics.getInstance().recordException(Exception("Multiple programs were active at once. $programsToDeactivate"))
+            val programIds = programsToDeactivate.map { it.id }
+            FirebaseCrashlytics.getInstance().recordException(Exception("Multiple programs were active at once. IDs: $programIds"))
         }
 
         programsToDeactivate.fastForEach { program ->

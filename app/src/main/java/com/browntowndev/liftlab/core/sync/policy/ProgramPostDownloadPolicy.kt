@@ -28,16 +28,18 @@ class ProgramPostDownloadPolicy(
         if (activePrograms.size > 1) {
             val activeCloudPrograms = programsSyncPolicyRepository.getManyByRemoteId(remoteIds).filter { it.isActive }
             if (activeCloudPrograms.size > 1) {
-                Log.w(TAG, "Multiple active programs found: $activeCloudPrograms")
-                FirebaseCrashlytics.getInstance().recordException(Exception("Multiple active cloud programs found: $activeCloudPrograms"))
+                val cloudProgramIds = activeCloudPrograms.map { it.id }
+                Log.w(TAG, "Multiple active programs found. IDs: $cloudProgramIds")
+                FirebaseCrashlytics.getInstance().recordException(Exception("Multiple active cloud programs found. IDs: $cloudProgramIds"))
             }
 
             val cloudProgramIdToKeepActive = activeCloudPrograms.firstOrNull()?.id
             Log.d(TAG, "Keep active program ID: $cloudProgramIdToKeepActive")
 
             val programsToDeactivate = if (cloudProgramIdToKeepActive == null) {
+                val programIds = activePrograms.map { it.id }
                 Log.w(TAG, "Multiple local programs were active.")
-                FirebaseCrashlytics.getInstance().recordException(Exception("Multiple active local programs found: $activePrograms"))
+                FirebaseCrashlytics.getInstance().recordException(Exception("Multiple active local programs found. IDs: $programIds"))
 
                 // Activate newest program
                 activePrograms.sortedByDescending { it.id }.drop(1).fastMap { it }
