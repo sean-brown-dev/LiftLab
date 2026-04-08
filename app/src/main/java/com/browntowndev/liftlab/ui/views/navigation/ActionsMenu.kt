@@ -133,14 +133,14 @@ fun RowScope.ActionsMenu(
                         item.icon?.onLeft {
                             Icon(
                                 imageVector = it,
-                                contentDescription = null,
+                                contentDescription = if (item.contentDescriptionResourceId != null) stringResource(id = item.contentDescriptionResourceId as Int) else null,
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }?.onRight {
                             Icon(
                                 modifier = Modifier.size(24.dp),
                                 painter = painterResource(id = it),
-                                contentDescription = null,
+                                contentDescription = if (item.contentDescriptionResourceId != null) stringResource(id = item.contentDescriptionResourceId as Int) else null,
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
@@ -190,14 +190,14 @@ fun FocusedOutlinedTextField(
             item.icon?.onLeft {
                 Icon(
                     imageVector = it,
-                    contentDescription = null,
+                    contentDescription = if (item.contentDescriptionResourceId != null) stringResource(id = item.contentDescriptionResourceId as Int) else null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }?.onRight {
                 Icon(
                     modifier = Modifier.size(24.dp),
                     painter = painterResource(id = it),
-                    contentDescription = null,
+                    contentDescription = if (item.contentDescriptionResourceId != null) stringResource(id = item.contentDescriptionResourceId as Int) else null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
