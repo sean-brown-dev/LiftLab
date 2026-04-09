@@ -126,9 +126,11 @@ fun getPerWorkoutVolumeChartModel(
             // Expected Impact: Reduces memory allocation O(N) -> O(1) and iterates once instead of twice for summing weights.
             val totalWeight = workoutLog.setLogEntries.sumOf { it.weight.toDouble() }.toFloat()
             val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(workoutLog.setLogEntries, totalWeight)
+            // ⚡ Bolt: Replaced .filter { it.rpe >= 7f }.size with .count { it.rpe >= 7f } to prevent unnecessary intermediate List allocation.
+            // Expected Impact: Reduces memory allocation O(N) -> O(1) and iterates once instead of twice for filtering and sizing.
             VolumeTypesForDate(
                 date = workoutLog.date.toLocalDate(),
-                workingSetVolume = workoutLog.setLogEntries.filter { it.rpe >= 7f }.size,
+                workingSetVolume = workoutLog.setLogEntries.count { it.rpe >= 7f },
                 relativeVolume = repVolume * (totalWeight / totalWeightIfLifting1RmEachTime),
             )
         }.associateBy { volumes ->
@@ -204,7 +206,9 @@ fun getPerMicrocycleVolumeChartModel(
                         val totalWeight = liftResults.value.sumOf { it.weight.toDouble() }.toFloat()
                         val totalWeightIfLifting1RmEachTime = getTotalWeightIfLifting1RmEachTime(liftResults.value, totalWeight)
 
-                        val workingSetVolume = liftResults.value.filter { it.rpe >= 7f }.size /
+                        // ⚡ Bolt: Replaced .filter { it.rpe >= 7f }.size with .count { it.rpe >= 7f } to prevent unnecessary intermediate List allocation.
+                        // Expected Impact: Reduces memory allocation O(N) -> O(1) and iterates once instead of twice for filtering and sizing.
+                        val workingSetVolume = liftResults.value.count { it.rpe >= 7f } /
                             if (secondaryVolumeTypesByLiftId?.contains(liftResults.key) == true) 2f else 1f
 
                         val averageIntensity = (totalWeight / totalWeightIfLifting1RmEachTime)
@@ -405,7 +409,9 @@ fun getMicroCycleCompletionChart(
             }
 
             logsForMicro.key + 1 to logsForMicro.value.sumOf { workoutLog ->
-                workoutLog.setLogEntries.filter { it.myoRepSetPosition == null }.size
+                // ⚡ Bolt: Replaced .filter { it.myoRepSetPosition == null }.size with .count { it.myoRepSetPosition == null } to prevent unnecessary intermediate List allocation.
+                // Expected Impact: Reduces memory allocation O(N) -> O(1) and iterates once instead of twice for filtering and sizing.
+                workoutLog.setLogEntries.count { it.myoRepSetPosition == null }
             }.toFloat().div(setCount).times(100)
         }.ifEmpty { mapOf(1 to 0f) }
 
