@@ -57,7 +57,7 @@ class ProgramGenerationAiClient: AiClient {
             val json = Json { ignoreUnknownKeys = true }
             json.decodeFromString<ProgramPayload>(programJson)
         }.getOrElse {
-            Log.e("ProgramGenerationAiClient", "Firebase AI returned invalid JSON", it)
+            Log.e("ProgramGenerationAiClient", "Firebase AI returned invalid JSON")
             error("Firebase AI returned invalid JSON")
         }
     }
