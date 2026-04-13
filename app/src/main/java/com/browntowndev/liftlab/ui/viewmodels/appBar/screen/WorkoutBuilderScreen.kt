@@ -59,7 +59,7 @@ data class WorkoutBuilderScreen(
     override val navigationIcon: Either<ImageVector, Int>
         get() = Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
-        get() = null
+        get() = "Back"
     override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
         get() = {
             _eventBus.post(TopAppBarEvent.ActionEvent(TopAppBarAction.NavigatedBack))
