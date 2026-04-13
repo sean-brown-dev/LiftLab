@@ -1,4 +1,4 @@
-## 2024-05-17 - Prevent Sensitive Data Logging in AI Clients
-**Vulnerability:** The AI client implementation (`ProgramGenerationAiClient.kt`) was logging the complete prompt sent to the LLM as well as the complete raw JSON response using `Log.d`.
-**Learning:** Even if data is not considered a high-level secret (like an API key), logging complete conversational turns, prompts, and large payloads from AI generation processes can unintentionally leak user-specific data, patterns, or PII into the system logcat. This data could then be exposed if logs are aggregated or accessed by other means.
-**Prevention:** Avoid logging complete request/response payloads in production code, especially those interacting with third-party APIs or AI models where user context is included. Only log necessary metadata or error details needed for debugging without exposing the core data payload.
+## 2024-05-24 - [Exclude Encrypted SharedPreferences from Backup]
+**Vulnerability:** The application's `EncryptedSharedPreferences` file (`LiftLabPreferencesEncrypted.xml`) was not explicitly excluded from cloud backups and device transfers in `data_extraction_rules.xml` and `backup_rules.xml`.
+**Learning:** `EncryptedSharedPreferences` rely on device-specific Android Keystore keys. Backing them up to the cloud or transferring them to a new device usually results in a corrupted state where the app crashes upon trying to read the restored file because the decryption key doesn't exist on the new device. It also poses a security risk to backup sensitive encrypted data to the cloud.
+**Prevention:** Always explicitly exclude `EncryptedSharedPreferences` files from cloud backups and device transfers in `data_extraction_rules.xml` and `backup_rules.xml`.
