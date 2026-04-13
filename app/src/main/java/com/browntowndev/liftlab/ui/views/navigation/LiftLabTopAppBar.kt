@@ -30,7 +30,9 @@ import com.browntowndev.liftlab.ui.viewmodels.appBar.LiftLabTopAppBarState
 @Composable
 fun LiftLabTopAppBar(
     state: LiftLabTopAppBarState,
-    timerState: CountdownTimerState,
+    // ⚡ Bolt: Using a provider (() -> CountdownTimerState) instead of the raw state object
+    // prevents this parent composable from recomposing every second when the timer ticks.
+    timerStateProvider: () -> CountdownTimerState,
     allowExpansion: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     onCancelRestTimer: () -> Unit,
@@ -49,7 +51,7 @@ fun LiftLabTopAppBar(
             title = {
                 Title(
                     state = state,
-                    timerState = timerState,
+                    timerStateProvider = timerStateProvider,
                     titleFontSize = 32.sp ,
                     subtitleFontSize = 18.sp,
                     onCancelRestTimer = onCancelRestTimer,
@@ -77,7 +79,7 @@ fun LiftLabTopAppBar(
             title = {
                 Title(
                     state = state,
-                    timerState = timerState,
+                    timerStateProvider = timerStateProvider,
                     titleFontSize = 25.sp,
                     subtitleFontSize = 14.sp,
                     onCancelRestTimer = onCancelRestTimer,
@@ -126,7 +128,7 @@ private fun NavigationIcon(state: LiftLabTopAppBarState) {
 @Composable
 private fun Title(
     state: LiftLabTopAppBarState,
-    timerState: CountdownTimerState,
+    timerStateProvider: () -> CountdownTimerState,
     titleFontSize: TextUnit = 25.sp,
     subtitleFontSize: TextUnit = 14.sp,
     onCancelRestTimer: () -> Unit,
@@ -151,9 +153,9 @@ private fun Title(
             contentAlignment = Alignment.CenterStart,
         ) {
             ProgressCountdownTimer(
-                running = timerState.running,
-                progress = timerState.progress,
-                timeRemaining = timerState.timeRemaining,
+                runningProvider = { timerStateProvider().running },
+                progressProvider = { timerStateProvider().progress },
+                timeRemainingProvider = { timerStateProvider().timeRemaining },
                 onCancel = {
                     onCancelRestTimer()
                 }

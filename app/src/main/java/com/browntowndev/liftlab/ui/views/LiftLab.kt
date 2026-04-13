@@ -94,7 +94,9 @@ fun LiftLab(
                 topBar = {
                     LiftLabTopAppBar(
                         state = liftLabTopAppBarState,
-                        timerState = timerState,
+                        // ⚡ Bolt: Pass timer state as a lambda provider to defer state reading
+                        // and prevent the entire LiftLab scaffold from recomposing on every timer tick.
+                        timerStateProvider = { timerState },
                         allowExpansion = allowsExpansion,
                         scrollBehavior = scrollBehavior,
                         onCancelRestTimer = topAppBarViewModel::cancelRestTimer,
