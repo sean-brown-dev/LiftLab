@@ -1,3 +1,7 @@
 ## 2024-05-18 - [Compose Recomposition Optimization]
 **Learning:** Frequent timer updates (e.g. `timerState.time` emitting every second) read in a parent composable will cause the entire screen and all unstable child components (like lists of complex models) to recompose unnecessarily. Also, using `LaunchedEffect` to copy passed-in properties to local `mutableStateOf` just for `Text` is an anti-pattern that triggers extra composition phases.
 **Action:** Unbox frequent state updates into lambdas (e.g., `durationProvider: () -> String`) and pass the lambdas to child composables. This defers state reading to the specific component that needs it, skipping recomposition for the heavy parent and sibling lists. Use `derivedStateOf` to observe specific sub-properties like `running` without recomposing on every tick. Compute values inline instead of using `LaunchedEffect` syncing where possible.
+
+## 2024-03-XX - Memory allocation with filter { ... }.size
+**Learning:** Found multiple usages of `.filter { ... }.size` which allocates an unnecessary intermediate list just to count matching elements.
+**Action:** Replace `.filter { ... }.size` with `.count { ... }` to prevent intermediate O(N) memory allocations, improving performance and reducing GC pressure.
