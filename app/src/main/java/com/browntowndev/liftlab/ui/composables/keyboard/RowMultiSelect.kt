@@ -36,11 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
+import com.browntowndev.liftlab.R
 import com.browntowndev.liftlab.ui.composables.utils.rememberWindowHeight
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptionTree
 import com.browntowndev.liftlab.ui.models.metrics.LiftMetricOptions
@@ -106,7 +108,7 @@ fun RowMultiSelect(
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = null,
+                        contentDescription = stringResource(id = R.string.accessibility_close),
                     )
                 }
             }
