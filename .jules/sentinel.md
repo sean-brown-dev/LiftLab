@@ -2,3 +2,7 @@
 **Vulnerability:** The AI client implementation (`ProgramGenerationAiClient.kt`) was logging the complete prompt sent to the LLM as well as the complete raw JSON response using `Log.d`.
 **Learning:** Even if data is not considered a high-level secret (like an API key), logging complete conversational turns, prompts, and large payloads from AI generation processes can unintentionally leak user-specific data, patterns, or PII into the system logcat. This data could then be exposed if logs are aggregated or accessed by other means.
 **Prevention:** Avoid logging complete request/response payloads in production code, especially those interacting with third-party APIs or AI models where user context is included. Only log necessary metadata or error details needed for debugging without exposing the core data payload.
+## 2024-05-18 - [Fix Insecure Implicit Intent for sharing]
+**Vulnerability:** Implicit intents using `ACTION_SEND` can lead to insecure implicit intent vulnerabilities when sharing data, as the system does not enforce strict limitations on which applications can handle the intent, potentially leaking data to unintended apps.
+**Learning:** `ShareCompat.IntentBuilder` provides a more secure and standardized way to build share intents. It handles URI permission grants correctly and helps prevent data leakage by configuring `ClipData` appropriately under the hood.
+**Prevention:** Always use `androidx.core.app.ShareCompat.IntentBuilder` instead of manually constructing `Intent(Intent.ACTION_SEND)` when sharing data across applications.
