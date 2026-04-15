@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.util.fastMap
 import androidx.compose.ui.util.fastMapNotNull
+import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import com.browntowndev.liftlab.core.domain.enums.TopAppBarAction
@@ -277,13 +278,11 @@ class WorkoutViewModel(
                 fileName = "workoutSummary.png"
             )
         )
-        val intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "image/png"
-            putExtra(Intent.EXTRA_STREAM, shareUri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
+        ShareCompat.IntentBuilder(context)
+            .setType("image/png")
+            .setStream(shareUri)
+            .setChooserTitle("Share WorkoutEntity Results")
+            .startChooser()
     }
 
     private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
