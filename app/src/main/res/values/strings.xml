@@ -37,4 +37,5 @@
     <string name="accessibility_close">Close</string>
     <string name="accessibility_done">Done</string>
     <string name="accessibility_remove_filter">Remove filter</string>
+    <string name="accessibility_skip_timer">Skip rest timer</string>
 </resources>
