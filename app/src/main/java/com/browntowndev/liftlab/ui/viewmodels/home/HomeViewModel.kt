@@ -224,7 +224,8 @@ class HomeViewModel(
         _state.update {
             it.copy(firebaseError = "Failed to authenticate user.")
         }
-        Log.e("Firebase", "Failed to authenticate user: ${ex ?: "Unknown error"}")
+        Log.e("Firebase", "Failed to authenticate user")
+        ex?.let { FirebaseCrashlytics.getInstance().recordException(it) }
     }
 
     private fun handleFirebaseTaskCompletion(task: Task<AuthResult>) {
@@ -292,7 +293,8 @@ class HomeViewModel(
                 }
             }
         } else {
-            Log.e("Firebase", "Failed to authenticate user: ${signInResult.exceptionOrNull() ?: "Unknown error"}")
+            Log.e("Firebase", "Failed to authenticate user")
+            signInResult.exceptionOrNull()?.let { FirebaseCrashlytics.getInstance().recordException(it) }
             _state.update {
                 it.copy(
                     firebaseError = "Failed to authenticate user.",
