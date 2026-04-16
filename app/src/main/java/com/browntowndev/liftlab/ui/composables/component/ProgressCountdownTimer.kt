@@ -34,19 +34,21 @@ import com.browntowndev.liftlab.R
 
 @Composable
 fun ProgressCountdownTimer(
-    running: Boolean,
-    progress: Float,
-    timeRemaining: String,
+    // ⚡ Bolt: State reads are deferred to the lowest possible component using lambdas.
+    // This optimization stops the entire screen from recomposing on every countdown tick.
+    runningProvider: () -> Boolean,
+    progressProvider: () -> Float,
+    timeRemainingProvider: () -> String,
     onCancel: () -> Unit,
 ) {
     val animatedProgress by animateFloatAsState(
-        targetValue = progress,
+        targetValue = progressProvider(),
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
         label = "Rest Timer Progress"
     )
 
     AnimatedVisibility(
-        visible = running,
+        visible = runningProvider(),
         enter = expandHorizontally(
             expandFrom = Alignment.Start,
             animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
@@ -76,7 +78,7 @@ fun ProgressCountdownTimer(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Spacer(modifier = Modifier.width(30.dp))
-                Text(text = timeRemaining)
+                Text(text = timeRemainingProvider())
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(
                     modifier = Modifier
