@@ -105,7 +105,7 @@ data class WorkoutScreen(
             else
                 Icons.AutoMirrored.Filled.ArrowBack.left()
     override val navigationIconContentDescription: String?
-        get() = null
+        get() = if (backNavigationIconVisible) "Back" else "Expand"
     override val onNavigationIconClick: (() -> List<Pair<String, Boolean>>)
         get() = {
             _eventBus.post(TopAppBarEvent.ActionEvent(action = TopAppBarAction.NavigatedBack))
