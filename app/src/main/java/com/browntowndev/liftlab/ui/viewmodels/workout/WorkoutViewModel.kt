@@ -277,13 +277,14 @@ class WorkoutViewModel(
                 fileName = "workoutSummary.png"
             )
         )
-        val intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            type = "image/png"
-            putExtra(Intent.EXTRA_STREAM, shareUri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(Intent.createChooser(intent, "Share WorkoutEntity Results"))
+        val shareIntent = androidx.core.app.ShareCompat.IntentBuilder(context)
+            .setType("image/png")
+            .setStream(shareUri)
+            .intent
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+        val chooserIntent = Intent.createChooser(shareIntent, "Share WorkoutEntity Results")
+        context.startActivity(chooserIntent)
     }
 
     private fun getTempFileFromBitmap(context: Context, bitmap: Bitmap, fileName: String): File {
