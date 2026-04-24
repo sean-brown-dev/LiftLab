@@ -58,6 +58,7 @@ class RestTimerNotificationService : Service() {
 
         val skipPendingIntent = Intent(this, RestTimerButtonHandler::class.java).apply {
             action = SKIP_ACTION
+            setPackage(packageName)
         }.let {
             PendingIntent.getBroadcast(
                 this,
@@ -165,6 +166,7 @@ class RestTimerNotificationService : Service() {
     private fun broadcastTimerCompleted() {
         val intent = Intent(this, RestTimerCompletedReceiver::class.java).apply {
             action = RestTimerCompletedReceiver.ACTION
+            setPackage(packageName)
         }
         sendBroadcast(intent)
     }
