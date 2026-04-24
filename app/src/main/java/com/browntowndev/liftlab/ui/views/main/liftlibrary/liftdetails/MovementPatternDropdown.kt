@@ -69,8 +69,7 @@ fun MovementPatternDropdown(
             Spacer(modifier = Modifier.weight(1f))
             Icon(
                 modifier = Modifier
-                    .size(32.dp)
-                    .clickable { isExpanded = true },
+                    .size(32.dp),
                 imageVector = Icons.Filled.ArrowDropDown,
                 tint = MaterialTheme.colorScheme.primary,
                 contentDescription = null
