@@ -1,6 +1,3 @@
-## 2024-05-18 - [Compose Recomposition Optimization]
-**Learning:** Frequent timer updates (e.g. `timerState.time` emitting every second) read in a parent composable will cause the entire screen and all unstable child components (like lists of complex models) to recompose unnecessarily. Also, using `LaunchedEffect` to copy passed-in properties to local `mutableStateOf` just for `Text` is an anti-pattern that triggers extra composition phases.
-**Action:** Unbox frequent state updates into lambdas (e.g., `durationProvider: () -> String`) and pass the lambdas to child composables. This defers state reading to the specific component that needs it, skipping recomposition for the heavy parent and sibling lists. Use `derivedStateOf` to observe specific sub-properties like `running` without recomposing on every tick. Compute values inline instead of using `LaunchedEffect` syncing where possible.
-## 2024-05-19 - [Collection Intermediate Allocation Optimization]
-**Learning:** Chaining `.filter { ... }.size` creates an entirely new intermediate List object in memory just to count its elements, leading to unnecessary $O(N)$ allocations and garbage collection overhead, especially in data-heavy domains like charts or lists.
-**Action:** Replace `.filter { ... }.size` with `.count { ... }` to iterate over the collection directly and compute the size with $O(1)$ memory overhead.
+## 2024-05-18 - Compose fastMap usage
+**Learning:** While `fastMap` is an excellent optimization for reducing iterator allocations during UI state mapping in Compose, replacing standard `.map` calls across multiple files requires careful attention to imports. Omitting `import androidx.compose.ui.util.fastMap` will result in unresolved reference errors during compilation.
+**Action:** Always verify `fastMap` replacements with `git diff` to ensure the import is present, and confirm compilation via `assembleDebug` or `test` tasks.

@@ -27,7 +27,8 @@ fun Workout.toUiModel(): WorkoutUiModel {
         programId = programId,
         name = name,
         position = position,
-        lifts = lifts.map { it.toUiModel() }
+        // ⚡ Bolt: Replaced .map { ... } with .fastMap { ... } to prevent unnecessary iterator allocation during mapping
+        lifts = lifts.fastMap { it.toUiModel() }
     )
 }
 
@@ -37,7 +38,8 @@ fun WorkoutUiModel.toDomainModel(): Workout {
         programId = programId,
         name = name,
         position = position,
-        lifts = lifts.map { it.toDomainModel() }
+        // ⚡ Bolt: Replaced .map { ... } with .fastMap { ... } to prevent unnecessary iterator allocation during mapping
+        lifts = lifts.fastMap { it.toDomainModel() }
     )
 }
 

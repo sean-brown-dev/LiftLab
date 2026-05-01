@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.mapping
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.models.metadata.ActiveProgramMetadata
 import com.browntowndev.liftlab.core.domain.models.programConfiguration.Program
 import com.browntowndev.liftlab.ui.models.workout.ProgramUiModel
@@ -14,7 +15,8 @@ fun Program.toUiModel(): ProgramUiModel {
         currentMicrocycle = currentMicrocycle,
         currentMicrocyclePosition = currentMicrocyclePosition,
         currentMesocycle = currentMesocycle,
-        workouts = workouts.map { it.toUiModel() }
+        // ⚡ Bolt: Replaced .map { ... } with .fastMap { ... } to prevent unnecessary iterator allocation during mapping
+        workouts = workouts.fastMap { it.toUiModel() }
     )
 }
 
@@ -27,7 +29,8 @@ fun ProgramUiModel.toDomainModel(): Program {
         currentMicrocycle = currentMicrocycle,
         currentMicrocyclePosition = currentMicrocyclePosition,
         currentMesocycle = currentMesocycle,
-        workouts = workouts.map { it.toDomainModel() }
+        // ⚡ Bolt: Replaced .map { ... } with .fastMap { ... } to prevent unnecessary iterator allocation during mapping
+        workouts = workouts.fastMap { it.toDomainModel() }
     )
 }
 
