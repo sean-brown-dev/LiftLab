@@ -1,5 +1,6 @@
 package com.browntowndev.liftlab.ui.mapping
 
+import androidx.compose.ui.util.fastMap
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.LiftCompletionSummary
 import com.browntowndev.liftlab.core.domain.models.workoutLogging.WorkoutCompletionSummary
 import com.browntowndev.liftlab.ui.models.workout.LiftCompletionSummaryUiModel
@@ -8,14 +9,16 @@ import com.browntowndev.liftlab.ui.models.workout.WorkoutCompletionSummaryUiMode
 fun WorkoutCompletionSummary.toUiModel() =
     WorkoutCompletionSummaryUiModel(
         workoutName = workoutName,
-        liftCompletionSummaries = liftCompletionSummaries.map { it.toUiModel() },
+        // ⚡ Bolt: Replaced .map { ... } with .fastMap { ... } to prevent unnecessary iterator allocation during mapping
+        liftCompletionSummaries = liftCompletionSummaries.fastMap { it.toUiModel() },
         endTime = endTime,
     )
 
 fun WorkoutCompletionSummaryUiModel.toDomainModel() =
     WorkoutCompletionSummary(
         workoutName = workoutName,
-        liftCompletionSummaries = liftCompletionSummaries.map { it.toDomainModel() },
+        // ⚡ Bolt: Replaced .map { ... } with .fastMap { ... } to prevent unnecessary iterator allocation during mapping
+        liftCompletionSummaries = liftCompletionSummaries.fastMap { it.toDomainModel() },
         endTime = endTime,
     )
 
