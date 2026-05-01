@@ -234,7 +234,7 @@ class HomeViewModel(
 
             if (firebaseUser != null) {
                 onUserLoggedIn()
-                Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
+                Log.d("Firebase", "User successfully authenticated.")
             } else {
                 // This case is highly unexpected if task.isSuccessful is true
                 Log.e("Firebase", "User is null despite successful task.")
@@ -272,7 +272,7 @@ class HomeViewModel(
     }
 
     fun logout() = executeWithErrorHandling("Failed to log out user.") {
-        Log.d("Firebase", "Logging out user ${firebaseAuth.currentUser?.uid}.")
+        Log.d("Firebase", "Logging out user.")
         firebaseAuth.signOut()
     }
 
@@ -280,7 +280,7 @@ class HomeViewModel(
         if (signInResult.isSuccess) {
             val firebaseUser: FirebaseUser? = signInResult.getOrNull()
             if (firebaseUser != null) {
-                Log.d("Firebase", "User ${firebaseUser.email} successfully authenticated.")
+                Log.d("Firebase", "User successfully authenticated.")
                 onUserLoggedIn()
             } else {
                 // Should be impossible. The library returns failure if user was null
